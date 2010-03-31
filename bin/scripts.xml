@@ -1,0 +1,18 @@
+<!-- Script declaration file -->
+<xml>
+	<scripts>
+		<type value="FollowBot">
+			<inheritDefaultScripts value="true" />
+			<scriptDir value="Bots\FollowBot" />
+		</type>
+		<type value="DuelBot">
+			<inheritDefaultScripts value="true" />
+			<scriptDir value="Bots\DuelBot" />
+		</type>
+		
+		<type value="GameType_CTF">
+			<inheritDefaultScripts value="true" />
+			<scriptDir value="GameTypes\CTF" />
+		</type>
+	</scripts>
+</xml>

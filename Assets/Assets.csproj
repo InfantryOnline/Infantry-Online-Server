@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Assets</RootNamespace>
+    <AssemblyName>Assets</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssetFiles\AbstractAsset.cs" />
+    <Compile Include="AssetFiles\AssetFile.cs" />
+    <Compile Include="AssetFiles\AssetFileFactory.cs" />
+    <Compile Include="AssetFiles\IAssetFile.cs" />
+    <Compile Include="Blo\BloFile.cs" />
+    <Compile Include="Cfg\CfgInfo.Arena.cs" />
+    <Compile Include="Cfg\CfgInfo.Attribute.cs" />
+    <Compile Include="Cfg\CfgInfo.Bong.cs" />
+    <Compile Include="Cfg\CfgInfo.Bounty.cs" />
+    <Compile Include="Cfg\CfgInfo.Bubble.cs" />
+    <Compile Include="Cfg\CfgInfo.Cash.cs" />
+    <Compile Include="Cfg\CfgInfo.cs" />
+    <Compile Include="Cfg\CfgInfo.DamageType.cs" />
+    <Compile Include="Cfg\CfgInfo.DeathMatch.cs" />
+    <Compile Include="Cfg\CfgInfo.Door.cs" />
+    <Compile Include="Cfg\CfgInfo.Event.cs" />
+    <Compile Include="Cfg\CfgInfo.Experience.cs" />
+    <Compile Include="Cfg\CfgInfo.Expire.cs" />
+    <Compile Include="Cfg\CfgInfo.FixedStat.cs" />
+    <Compile Include="Cfg\CfgInfo.Flag.cs" />
+    <Compile Include="Cfg\CfgInfo.FlagMvp.cs" />
+    <Compile Include="Cfg\CfgInfo.HeldCategory.cs" />
+    <Compile Include="Cfg\CfgInfo.HelpMenu.cs" />
+    <Compile Include="Cfg\CfgInfo.Jackpot.cs" />
+    <Compile Include="Cfg\CfgInfo.King.cs" />
+    <Compile Include="Cfg\CfgInfo.Level.cs" />
+    <Compile Include="Cfg\CfgInfo.Los.cs" />
+    <Compile Include="Cfg\CfgInfo.LosType.cs" />
+    <Compile Include="Cfg\CfgInfo.Message.cs" />
+    <Compile Include="Cfg\CfgInfo.NamedArena.cs" />
+    <Compile Include="Cfg\CfgInfo.Owner.cs" />
+    <Compile Include="Cfg\CfgInfo.Point.cs" />
+    <Compile Include="Cfg\CfgInfo.PublicColors.cs" />
+    <Compile Include="Cfg\CfgInfo.PublicProfile.cs" />
+    <Compile Include="Cfg\CfgInfo.QuickSkill.cs" />
+    <Compile Include="Cfg\CfgInfo.Radar.cs" />
+    <Compile Include="Cfg\CfgInfo.Rank.cs" />
+    <Compile Include="Cfg\CfgInfo.Render.cs" />
+    <Compile Include="Cfg\CfgInfo.Rpg.cs" />
+    <Compile Include="Cfg\CfgInfo.Rts.cs" />
+    <Compile Include="Cfg\CfgInfo.RtsStateDefault.cs" />
+    <Compile Include="Cfg\CfgInfo.Soccer.cs" />
+    <Compile Include="Cfg\CfgInfo.SoccerMvp.cs" />
+    <Compile Include="Cfg\CfgInfo.Soul.cs" />
+    <Compile Include="Cfg\CfgInfo.Sound.cs" />
+    <Compile Include="Cfg\CfgInfo.StartGame.cs" />
+    <Compile Include="Cfg\CfgInfo.Stat.cs" />
+    <Compile Include="Cfg\CfgInfo.TeamDefault.cs" />
+    <Compile Include="Cfg\CfgInfo.TeamInfo.cs" />
+    <Compile Include="Cfg\CfgInfo.Terrain.cs" />
+    <Compile Include="Cfg\CfgInfo.Timing.cs" />
+    <Compile Include="Cfg\CfgInfo.Uiart.cs" />
+    <Compile Include="Cfg\CfgInfo.UiartFont.cs" />
+    <Compile Include="Cfg\CfgInfo.UiartMetrics.cs" />
+    <Compile Include="Cfg\CfgInfo.Uiwav.cs" />
+    <Compile Include="Cfg\CfgInfo.Vehicle.cs" />
+    <Compile Include="Cfg\CfgInfo.View.cs" />
+    <Compile Include="Cfg\CfgInfo.WarpGroup.cs" />
+    <Compile Include="Cfg\CfgInfo.WebMenu.cs" />
+    <Compile Include="Cfg\CfgInfo.ZoneStat.cs" />
+    <Compile Include="Cfg\ConfigFile.cs" />
+    <Compile Include="Itm\ItemFile.cs" />
+    <Compile Include="Itm\ItmInfo.Ammo.cs" />
+    <Compile Include="Itm\ItmInfo.ControlItem.cs" />
+    <Compile Include="Itm\ItmInfo.cs" />
+    <Compile Include="Itm\ItmInfo.Graphics.cs" />
+    <Compile Include="Itm\ItmInfo.Item.cs" />
+    <Compile Include="Itm\ItmInfo.ItemMaker.cs" />
+    <Compile Include="Itm\ItmInfo.MultiItem.cs" />
+    <Compile Include="Itm\ItmInfo.MultiUse.cs" />
+    <Compile Include="Itm\ItmInfo.NestedItem.cs" />
+    <Compile Include="Itm\ItmInfo.Projectile.cs" />
+    <Compile Include="Itm\ItmInfo.RepairItem.cs" />
+    <Compile Include="Itm\ItmInfo.SkillItem.cs" />
+    <Compile Include="Itm\ItmInfo.Sound.cs" />
+    <Compile Include="Itm\ItmInfo.UpgradeItem.cs" />
+    <Compile Include="Itm\ItmInfo.UtilityItem.cs" />
+    <Compile Include="Itm\ItmInfo.VehicleMaker.cs" />
+    <Compile Include="Itm\ItmInfo.WarpItem.cs" />
+    <Compile Include="Lio\LioFile.cs" />
+    <Compile Include="Lvl\LevelFile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Lvl\LvlInfo.BlobReference.cs" />
+    <Compile Include="Lvl\LvlInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Lvl\LvlInfo.Header.cs" />
+    <Compile Include="Lvl\LvlInfo.Tile.cs" />
+    <Compile Include="Rpg\SkillInfo.InventoryMutator..cs" />
+    <Compile Include="Shared\CsvFile.cs" />
+    <Compile Include="Shared\HSV.cs" />
+    <Compile Include="Shared\ICsvParseable.cs" />
+    <Compile Include="Shared\ICsvParser.cs" />
+    <Compile Include="AssetFiles\Checksum.cs" />
+    <Compile Include="AssetFiles\CSVReader.cs" />
+    <Compile Include="Lio\LioInfo.cs" />
+    <Compile Include="Lio\LioInfo.Door.cs" />
+    <Compile Include="Lio\LioInfo.Flag.cs" />
+    <Compile Include="Lio\LioInfo.Hide.cs" />
+    <Compile Include="Lio\LioInfo.Nested.cs" />
+    <Compile Include="Lio\LioInfo.Parallax.cs" />
+    <Compile Include="Lio\LioInfo.Portal.cs" />
+    <Compile Include="Lio\LioInfo.Sound.cs" />
+    <Compile Include="Lio\LioInfo.Switch.cs" />
+    <Compile Include="Lio\LioInfo.Text.cs" />
+    <Compile Include="Lio\LioInfo.WarpField.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rpg\SkillFile.cs" />
+    <Compile Include="Rpg\SkillInfo.cs" />
+    <Compile Include="Shared\SoundBlob.cs" />
+    <Compile Include="Shared\SpriteBlob.cs" />
+    <Compile Include="Shared\StreamHelpers.cs" />
+    <Compile Include="Shared\AnimatedSprite.cs" />
+    <Compile Include="Shared\ArmorValues.cs" />
+    <Compile Include="Shared\SpeedValues.cs" />
+    <Compile Include="Veh\VehicleFile.cs" />
+    <Compile Include="Veh\VehInfo.Car.cs" />
+    <Compile Include="Veh\VehInfo.Computer.cs" />
+    <Compile Include="Veh\VehInfo.ComputerProduct.cs" />
+    <Compile Include="Veh\VehInfo.cs" />
+    <Compile Include="Veh\VehInfo.Dependent.cs" />
+    <Compile Include="Veh\VehInfo.Nested.cs" />
+    <Compile Include="Veh\VehInfo.Spectator.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

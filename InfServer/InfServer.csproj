@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>InfServer</RootNamespace>
+    <AssemblyName>InfServer</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CSScriptLibrary, Version=2.1.0.0, Culture=neutral, PublicKeyToken=70fcc3d18c749033, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\CSScriptLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="DBComm, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\DBComm.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionic.Zlib, Version=1.9.1.5, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Ionic.Zlib.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bot\Bot.cs" />
+    <Compile Include="Bot\MovementController.cs" />
+    <Compile Include="Bot\ScriptBot.cs" />
+    <Compile Include="Bot\Vector2.cs" />
+    <Compile Include="Bot\WeaponController.cs" />
+    <Compile Include="Database\Database.cs" />
+    <Compile Include="Database\Logic\Connection.cs" />
+    <Compile Include="Database\Logic\Player.cs" />
+    <Compile Include="Game\Arena\Arena.cs" />
+    <Compile Include="Game\Arena\ArenaBot.cs" />
+    <Compile Include="Game\Arena\ArenaLio.cs" />
+    <Compile Include="Game\Arena\ArenaSocial.cs" />
+    <Compile Include="Game\Arena\ArenaState.cs" />
+    <Compile Include="Game\Arena\ArenaComputer.cs" />
+    <Compile Include="Game\Arena\ArenaUpdate.cs" />
+    <Compile Include="Game\Arena\ScriptArena.cs" />
+    <Compile Include="Game\Assets\AssetManager.Cache.cs" />
+    <Compile Include="Game\Assets\AssetManager.Lio.cs" />
+    <Compile Include="Game\Assets\AssetManager.cs" />
+    <Compile Include="Game\Commands\Mod\Basic.cs" />
+    <Compile Include="Game\Commands\Mod\Bots.cs" />
+    <Compile Include="Game\Commands\Mod\Vehicles.cs" />
+    <Compile Include="Game\Commands\Registrar.cs" />
+    <Compile Include="Game\Interfaces\IChatTarget.cs" />
+    <Compile Include="Game\Interfaces\ILocatable.cs" />
+    <Compile Include="Game\Objects\ObjTracker.cs" />
+    <Compile Include="Game\Objects\Player.cs" />
+    <Compile Include="Game\Objects\PlayerStats.cs" />
+    <Compile Include="Game\Objects\Team.cs" />
+    <Compile Include="Game\Objects\Vehicle.Computer.cs" />
+    <Compile Include="Game\Objects\Vehicle.cs" />
+    <Compile Include="Game\ZoneArenas.cs" />
+    <Compile Include="Game\ZonePlayers.cs" />
+    <Compile Include="Game\ZoneServer.cs" />
+    <Compile Include="Logic\General\Assets.Events.cs" />
+    <Compile Include="Logic\General\Assets.Item.cs" />
+    <Compile Include="Logic\General\Assets.Skills.cs" />
+    <Compile Include="Logic\General\Rewards.cs" />
+    <Compile Include="Logic\Lio\Warp.cs" />
+    <Compile Include="Logic\Packets\Login\Assets.cs" />
+    <Compile Include="Logic\Packets\Login\Login.cs" />
+    <Compile Include="Logic\Packets\Social\Chat.cs" />
+    <Compile Include="Logic\Packets\Update\Game.cs" />
+    <Compile Include="Logic\Packets\Update\Player.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Protocol\Factory.cs" />
+    <Compile Include="Protocol\Helpers\Arena.cs" />
+    <Compile Include="Protocol\Helpers\Assets.cs" />
+    <Compile Include="Protocol\Helpers\Helpers.cs" />
+    <Compile Include="Protocol\Helpers\Login.cs" />
+    <Compile Include="Protocol\Helpers\Math.cs" />
+    <Compile Include="Protocol\Helpers\Objects.cs" />
+    <Compile Include="Protocol\Helpers\Player.cs" />
+    <Compile Include="Protocol\Helpers\Social.cs" />
+    <Compile Include="Protocol\Helpers\Updates.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerDrop.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerFlag.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerPickup.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerJoin.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerPortal.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerSwitch.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerUseItem.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_Shop.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_ShopSkill.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\SC_ItemReload.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\SC_ShopFinished.cs" />
+    <Compile Include="Protocol\Packets\Game\SC_BindVehicle.cs" />
+    <Compile Include="Protocol\Packets\Game\SC_ChangeTeam.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_Flags.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_ClearProjectiles.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_LIOUpdates.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_Items.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_PlayerEnter.cs" />
+    <Compile Include="Protocol\Packets\Game\SC_EnterArena.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_PlayerLeave.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_PlayerState.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_ArenaMessage.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_VehicleDestroy.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_Vehicles.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\CS_Explosion.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\CS_PlayerDeath.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\CS_PlayerUpdate.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_Inventory.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_ItemDrop.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerDeath.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerTeamUpdate.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerUpdate.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerWarp.cs" />
+    <Compile Include="Protocol\Packets\Login\CS_Ready.cs" />
+    <Compile Include="Protocol\Packets\Login\CS_RequestUpdate.cs" />
+    <Compile Include="Protocol\Helpers\PacketIDs.cs" />
+    <Compile Include="Protocol\Packets\Login\CS_StartUpdate.cs" />
+    <Compile Include="Protocol\Packets\Login\SC_AssetUpdate.cs" />
+    <Compile Include="Protocol\Packets\Login\SC_AssetUpdateInfo.cs" />
+    <Compile Include="Protocol\Packets\Security\CS_Frames.cs" />
+    <Compile Include="Protocol\Packets\Security\CS_Security.cs" />
+    <Compile Include="Protocol\Packets\Social\CS_Chat.cs" />
+    <Compile Include="Protocol\Packets\Social\SC_Chat.cs" />
+    <Compile Include="Protocol\Packets\Login\CS_Login.cs" />
+    <Compile Include="Protocol\Packets\Login\SC_AssetInfo.cs" />
+    <Compile Include="Protocol\Packets\Login\SC_Login.cs" />
+    <Compile Include="Protocol\Packets\Login\SC_PatchInfo.cs" />
+    <Compile Include="Protocol\Packets\Login\SC_SetIngame.cs" />
+    <Compile Include="Scripts\Events\Events.cs" />
+    <Compile Include="Scripts\Events\Handlers.cs" />
+    <Compile Include="Scripts\ScriptParser.cs" />
+    <Compile Include="Scripts\Scripts.cs" />
+    <Compile Include="Scripts\ThreadedObject.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Assets\Assets.csproj">
+      <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
+      <Name>Assets</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\InfServer.Network\InfServer.Network.csproj">
+      <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
+      <Name>InfServer.Network</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

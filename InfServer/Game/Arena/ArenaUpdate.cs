@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+
+using InfServer.Network;
+using InfServer.Protocol;
+using InfServer.Logic;
+
+using Assets;
+
+namespace InfServer.Game
+{
+	// Arena Class
+	/// Represents a single arena in the server
+	///////////////////////////////////////////////////////
+	public abstract partial class Arena : IChatTarget
+	{	// Member variables
+		///////////////////////////////////////////////////
+
+		///////////////////////////////////////////////////
+		// Member Functions
+		///////////////////////////////////////////////////
+		#region Update
+		/// <summary>
+		/// Triggered when a player requests to pick up an item
+		/// </summary>
+		public virtual void handlePlayerPickup(Player from, CS_PlayerPickup update)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player requests to drop an item
+		/// </summary>
+		public virtual void handlePlayerDrop(Player from, CS_PlayerDrop update)
+		{	}
+
+		/// <summary>
+		/// Handles a player's portal request
+		/// </summary>
+		public virtual void handlePlayerPortal(Player from, LioInfo.Portal portal)
+		{	}
+
+		/// <summary>
+		/// Handles a player's switch request
+		/// </summary>
+		public virtual void handlePlayerSwitch(Player from, bool bOpen, LioInfo.Switch swi)
+		{	}
+
+		/// <summary>
+		/// Handles a player's flag request
+		/// </summary>
+		public virtual void handlePlayerFlag(Player from, bool bPickup, bool bInPlace, LioInfo.Flag flag)
+		{	}
+
+		/// <summary>
+		/// Handles the spawn of a player
+		/// </summary>
+		public virtual void handlePlayerSpawn(Player from, bool bDeath)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player wants to spec or unspec
+		/// </summary>
+		public virtual void handlePlayerJoin(Player from, bool bSpec)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player wants to enter a vehicle
+		/// </summary>
+		public virtual void handlePlayerEnterVehicle(Player from, bool bEnter, ushort vehicleID)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player notifies the server of an explosion
+		/// </summary>
+		public virtual void handlePlayerExplosion(Player from, CS_Explosion update)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player has sent an update packet
+		/// </summary>
+		public virtual void handlePlayerUpdate(Player from, CS_PlayerUpdate update)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player has sent a death packet
+		/// </summary>
+		public virtual void handlePlayerDeath(Player from, CS_PlayerDeath update)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player attempts to use the store
+		/// </summary>
+		public virtual void handlePlayerShop(Player from, ItemInfo item, int quantity)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player attempts to use the skill shop
+		/// </summary>
+		public virtual void handlePlayerShopSkill(Player from, SkillInfo skill)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player attempts to use a warp item
+		/// </summary>
+		public virtual void handlePlayerWarp(Player player, ItemInfo.WarpItem item, ushort targetPlayerID, short posX, short posY)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player attempts to use a vehicle creator
+		/// </summary>
+		public virtual void handlePlayerMakeVehicle(Player player, ItemInfo.VehicleMaker item, short posX, short posY)
+		{	}
+
+		/// <summary>
+		/// Triggered when a player attempts to use an item creator
+		/// </summary>
+		public virtual void handlePlayerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
+		{	}
+		#endregion
+	}
+}

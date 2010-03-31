@@ -1,0 +1,43 @@
+<!-- Main configuration file -->
+<xml>
+	<database>
+		<ip value="127.0.0.1" />
+		<port value="13337" />
+		
+		<zoneid value="1" />
+		<password value="abc123" />
+		
+		<connectionAttempts value="0" />
+	</database>
+	
+	<server>
+		<version value="155" />
+		<zoneConfig value="ctf1.cfg" />
+		<gameType value="GameType_CTF" />
+		
+		<logPackets value="true" />
+	</server>
+	
+	<protocol>
+		<udpMaxSize value="496" />
+		<crcLength value="0" />
+		
+		<reliableJuggle value="16" />
+		<reliableGrace value="500" />
+		<connectionTimeout value="10000" />
+		
+		<clientPingFreq value="2000" />
+	</protocol>
+	
+	<arena>
+		<maxArenaVehicles value="10000" />
+		<maxArenaItems value="10000" />
+
+		<gameCheckInterval value="250" />
+	</arena>
+	
+	<maxPlayers value="5000" />
+	
+	<bindIP value="0.0.0.0" />
+	<bindPort value="1337" />
+</xml>

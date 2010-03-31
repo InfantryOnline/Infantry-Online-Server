@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5D556DA8-1878-46F3-8064-AC5338832BB4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>InfServer.Network</RootNamespace>
+    <AssemblyName>InfServer.Network</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Logic\Box.cs" />
+    <Compile Include="Logic\Connection.cs" />
+    <Compile Include="Logic\Ping.cs" />
+    <Compile Include="Logic\Registrar.cs" />
+    <Compile Include="Logic\Reliable.cs" />
+    <Compile Include="Network\Client.cs" />
+    <Compile Include="Network\ClientConn.cs" />
+    <Compile Include="Network\CRC32.cs" />
+    <Compile Include="Network\IClient.cs" />
+    <Compile Include="Network\IPacketHandler.cs" />
+    <Compile Include="Network\NetworkClient.cs" />
+    <Compile Include="Network\PacketBase.cs" />
+    <Compile Include="Network\PacketDummy.cs" />
+    <Compile Include="Network\PacketFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Network\Server.cs" />
+    <Compile Include="Protocol\Box.cs" />
+    <Compile Include="Protocol\CS_Initial.cs" />
+    <Compile Include="Protocol\CS_State.cs" />
+    <Compile Include="Protocol\DataPacket.cs" />
+    <Compile Include="Protocol\Disconnect.cs" />
+    <Compile Include="Protocol\OutOfSync.cs" />
+    <Compile Include="Protocol\Ping.cs" />
+    <Compile Include="Protocol\Reliable.cs" />
+    <Compile Include="Protocol\ReliableBox.cs" />
+    <Compile Include="Protocol\ReliableEcho.cs" />
+    <Compile Include="Protocol\SC_Initial.cs" />
+    <Compile Include="Protocol\SC_State.cs" />
+    <Compile Include="Utility\Config\ConfigSetting.cs" />
+    <Compile Include="Utility\Config\XmlConfig.cs" />
+    <Compile Include="Utility\Logging\DdMonitor.cs" />
+    <Compile Include="Utility\Logging\Log.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
