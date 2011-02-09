@@ -203,7 +203,7 @@ namespace InfServer.Game
 				}
 				else
 					drop.quantity = (short)(drop.quantity - update.quantity);
-
+                
 				//Add the pickup to inventory!
 				from.inventoryModify(drop.item, update.quantity);
 
@@ -809,6 +809,8 @@ namespace InfServer.Game
 		/// </summary>
 		public override void handlePlayerShopSkill(Player from, SkillInfo skill)
 		{	//Do we have the skills required for this?
+
+            Log.write(TLog.Normal, Logic_Assets.SkillCheck(from, skill.Logic).ToString());
 			if (!Logic_Assets.SkillCheck(from, skill.Logic))
 				return;
 
@@ -859,6 +861,48 @@ namespace InfServer.Game
 			}
 			else
 			{	//TODO: Handle attributes
+                //Do we have enough experience for this skill?
+                if (skill.Price > from.Experience)
+                    return;
+                if (!from.skillModify(false, skill, 1))
+                    return;
+
+                //Success, let's also change the cash..
+                from.Cash = Math.Max(from.Cash + skill.CashAdjustment, 0);
+
+                //Clear inventory?
+                if (skill.ResetInventory)
+                    from._inventory.Clear();
+
+                //Process inventory adjustments
+                foreach (SkillInfo.InventoryMutator ia in skill.InventoryMutators)
+                {	//If it's valid..
+                    if (ia.ItemId == 0)
+                        continue;
+
+                    //Add our item!
+                    ItemInfo item = _server._assets.getItemByID(ia.ItemId);
+                    if (item == null)
+                    {
+                        Log.write(TLog.Error, "Invalid itemID #{0} for inventory adjustment.", ia.ItemId);
+                        continue;
+                    }
+
+                    from.inventoryModify(false, item.id, ia.Quantity);
+                }
+
+                //Finally, do we use a new defaultvehicle?
+                if (skill.DefaultVehicleId != -1)
+                {	//Yes, create and apply it
+                    VehInfo baseType = _server._assets.getVehicleByID(skill.DefaultVehicleId);
+                    if (baseType == null)
+                        Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
+                    else
+                        from.setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
+                }
+
+                //We're done! Update the player's state
+                from.syncState();
 			}
 		}
 
@@ -1089,7 +1133,7 @@ namespace InfServer.Game
 				if (item.itemMakerQuantity > 0)
 					itemSpawn(itminfo, (ushort)item.itemMakerQuantity, posX, posY);
 				else
-					player.inventoryModify(itminfo, item.itemMakerQuantity);
+					player.inventoryModify(itminfo, Math.Abs(item.itemMakerQuantity));
 
 				//Indicate that it was successful
 				SC_ItemReload rld = new SC_ItemReload();

@@ -83,11 +83,13 @@ namespace Assets
                 else if (line.Length > 0)
                 {
                     int eqIdx = line.IndexOf('=');
-
-                    if (eqIdx == -1)
-                        values.Add(line, "");
-                    else
-                        values.Add(line.Substring(0, eqIdx), line.Substring(eqIdx + 1));
+                    if (!values.ContainsKey(line.Substring(0, eqIdx)))
+                    {
+                        if (eqIdx == -1)
+                            values.Add(line, "");
+                        else
+                            values.Add(line.Substring(0, eqIdx), line.Substring(eqIdx + 1));
+                    }
                 }
             }
             stringTree.Add(currentHeader, values);
