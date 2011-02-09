@@ -1,0 +1,20 @@
+<!-- Main configuration file -->
+<xml>
+	<protocol>
+		<udpMaxSize value="496" />
+		<crcLength value="2" />
+		
+		<reliableJuggle value="6" />
+		<reliableGrace value="500" />
+		<connectionTimeout value="60000" />
+		
+		<clientPingFreq value="2000" />
+	</protocol>
+
+	<database>
+		<connectionString value="Data Source=JOSHUA-DESKTOP\Infantry;Initial Catalog=Infantry;Persist Security Info=True;Trusted_Connection=Yes;" />
+	</database>
+	
+	<bindIP value="0.0.0.0" />
+	<bindPort value="13337" />
+</xml>
