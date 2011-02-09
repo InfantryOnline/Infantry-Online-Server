@@ -18,3 +18,12 @@ C:\Users\Josh\Desktop\InfDatabase\InfDatabase\bin\Debug\DBComm.pdb
 C:\Users\Josh\Desktop\InfDatabase\InfDatabase\obj\Debug\ResolveAssemblyReference.cache
 C:\Users\Josh\Desktop\InfDatabase\InfDatabase\obj\Debug\InfDatabase.exe
 C:\Users\Josh\Desktop\InfDatabase\InfDatabase\obj\Debug\InfDatabase.pdb
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\bin\Debug\InfDatabase.exe.config
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\obj\Debug\InfDatabase.exe
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\obj\Debug\InfDatabase.pdb
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\bin\Debug\InfDatabase.exe
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\bin\Debug\InfDatabase.pdb
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\bin\Debug\DBComm.dll
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\bin\Debug\DBComm.pdb
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\bin\Debug\InfServer.Network.pdb
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\InfDatabase\obj\Debug\ResolveAssemblyReference.cache
