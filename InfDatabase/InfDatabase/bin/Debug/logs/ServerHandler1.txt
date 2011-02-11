@@ -1,2 +1,0 @@
-* Log opened for ServerHandler on 2/8/2011
-[11:56:51 PM] Loading Server Configuration
