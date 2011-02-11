@@ -9,7 +9,10 @@
 			<inheritDefaultScripts value="true" />
 			<scriptDir value="Bots\DuelBot" />
 		</type>
-		
+		<type value="SniperBot">
+			<inheritDefaultScripts value="true" />
+			<scriptDir value="Bots\SniperBot" />
+		</type>
 		<type value="GameType_CTF">
 			<inheritDefaultScripts value="true" />
 			<scriptDir value="GameTypes\CTF" />

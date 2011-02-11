@@ -15,7 +15,7 @@ namespace InfServer.Logic
 	///////////////////////////////////////////////////////
 	public partial class Logic_Assets
 	{
-		static public Regex paramRegex = new Regex(@"\!?([%@#]?)([0-9]+)");		
+		static public Regex paramRegex = new Regex(@"\!?([%@#\-]?)([0-9]+)");		
 
 		/// <summary>
 		/// The public skillcheck method
@@ -54,7 +54,7 @@ namespace InfServer.Logic
 
 				if (prefix == "%")
 				{ // ClassId
-					val = (classId == numVal) ? true : false;
+					val = (classId == numVal) ? false : true;
 				}
 				else if (prefix == "@")
 				{ // Experience
@@ -64,6 +64,18 @@ namespace InfServer.Logic
 				{ // Points
 					val = (points >= numVal) ? true : false;
 				}
+                else if (prefix == "-")
+                { // Attributes
+                    //Convert our values..
+                    int attrVal = numVal % 1000;
+                    int attrID = numVal / 1000;
+                    //Check em
+                    if (player._skills.ContainsKey(attrID))
+                    {
+                        val = (player._skills[attrID].quantity >= attrVal) ? true : false;
+                    }
+                    else { val = false; }
+                }
 				else
 				{ // Skill (aaerox is super mean!)
 					val = player._skills.ContainsKey(numVal);
@@ -78,9 +90,9 @@ namespace InfServer.Logic
 			{
 				bQualified = expr(booleanString, ref pos);
 			}				
-			catch (ParseException)
+			catch (ParseException e)
 			{
-				Log.write(TLog.Error, "Error parsing skill string: {0}", skillString);					
+				Log.write(TLog.Error, "Error parsing skill string: {0} Error: {1}", skillString, e);					
 			}
 			
 			return bQualified;
@@ -88,20 +100,21 @@ namespace InfServer.Logic
 
 		#region Implementation of the recursive descent parser
 
-		/* NOTE: For boolean evaluation, AND has higher precedence than OR when 
+        /* NOTE: For boolean evaluation, AND has higher precedence than OR when 
 		 * no parentheses are used.
 		 * 
 		 * This is a simple implementation of a recursive descent parser
 		 * where the NOT logic is already handled by above. Since the replaced
 		 * string is all one character, the grammar is simple, and consists
-		 * of the characters '0', '1', '|', '&', '(', ')'.
+		 * of the characters '0', '1', '|', '!', '&', '(', ')'.
 		 * 
 		 * expr			= and_expr ( '|' and_expr )*
-		 * and_expr		= simple_expr ( '&' simple_expr )*
+		 * and_expr		= not_expr ( '!' not_expr )*
+         * not_expr     = simple_expr ( '&' simple_expr )*
 		 * simple_expr	= 0 | 1 | '(' expr ')'
 		 */
 
-		private static bool expr(String exp, ref int pos)
+        private static bool expr(String exp, ref int pos)
 		{
 			bool x = and_expr(exp, ref pos);
 			while (pos < exp.Length && exp[pos] == '|')
@@ -112,16 +125,26 @@ namespace InfServer.Logic
 			return x;
 		}
 
-		private static bool and_expr(String exp, ref int pos)
-		{
-			bool x = simple_expr(exp, ref pos);
-			while (pos < exp.Length && exp[pos] == '&')
-			{
-				pos++;
-				x &= simple_expr(exp, ref pos);
-			}
-			return x;
-		}
+        private static bool and_expr(String exp, ref int pos)
+        {
+            bool x = not_expr(exp, ref pos);
+            while (pos < exp.Length && exp[pos] == '&')
+            {
+                pos++;
+                x &= not_expr(exp, ref pos);
+            }
+            return x;
+        }
+
+        private static bool not_expr(String exp, ref int pos)
+        {
+            if (exp[pos] == '!')
+            {
+                pos++;
+                return !not_expr(exp, ref pos);
+            }
+            else return simple_expr(exp, ref pos);
+        }
 
 		private static bool simple_expr(String exp, ref int pos)
 		{
@@ -130,16 +153,16 @@ namespace InfServer.Logic
 			{
 				pos++;
 				bool x = expr(exp, ref pos);
-				if (exp[pos++] != ')') throw new ParseException("Lacking closed parens");
+				if (exp.Contains(')') != true ) throw new ParseException("Lacking closed parens");
 				return x;
 			}
-			else if (c == '0' || c == '1')
-			{
-				pos++;
-				return (c == '1') ? true : false;
-			}
-			else
-				throw new ParseException("Unexpected character");
+            else if (c == '0' || c == '1')
+            {
+                pos++;
+                return (c == '1') ? true : false;
+            }
+            else
+                throw new ParseException("Unexpected character: "+c);
 		}
 
 		#endregion		

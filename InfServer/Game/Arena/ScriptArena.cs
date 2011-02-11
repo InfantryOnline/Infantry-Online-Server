@@ -808,13 +808,16 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to use the skill shop
 		/// </summary>
 		public override void handlePlayerShopSkill(Player from, SkillInfo skill)
-		{	//Do we have the skills required for this?
+		{   //Do we have the skills required for this?
             if (!Logic_Assets.SkillCheck(from, skill.Logic))
-				return;
+                return;
 
 			//Attribute or skill?
 			if (skill.SkillId >= 0)
-			{	//Do we have enough experience for this skill?
+            {   //Do we have the skills required for this?
+                if (!Logic_Assets.SkillCheck(from, skill.Logic))
+                    return;
+                //Do we have enough experience for this skill?
 				if (skill.Price > from.Experience)
 					return;
 				if (!from.skillModify(false, skill, 1))
@@ -858,7 +861,15 @@ namespace InfServer.Game
 				from.syncState();
 			}
 			else
-			{	//TODO: Handle attributes
+            {   //Attributes
+                //Do we have enough experience for this skill?
+                if (skill.Price > from.Experience)
+                    return;
+                if (!from.skillModify(false, skill, 1))
+                    return;
+
+                //We're done! Update the player's state
+                from.syncState();
 			}
 		}
 
