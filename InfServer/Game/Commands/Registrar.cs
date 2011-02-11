@@ -90,7 +90,7 @@ namespace InfServer.Game.Commands
 		{
 			foreach (HandlerInfo handler in handlers)
 			{	//Obtain a list of appropriate handlers
-				IEnumerable<HandlerDescriptor> descriptors = (IEnumerable<HandlerDescriptor>)handler.method.Invoke(null, new object[] { });
+				IEnumerable<HandlerDescriptor> descriptors = (IEnumerable<HandlerDescriptor>) handler.method.Invoke(null, new object[] { });
 
 				if (descriptors == null)
 				{	//Report and abort

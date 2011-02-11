@@ -109,8 +109,8 @@ namespace InfServer.Logic
 		 * of the characters '0', '1', '|', '!', '&', '(', ')'.
 		 * 
 		 * expr			= and_expr ( '|' and_expr )*
-		 * and_expr		= not_expr ( '!' not_expr )*
-         * not_expr     = simple_expr ( '&' simple_expr )*
+		 * and_expr		= not_expr ( '&' not_expr )*
+         * not_expr    = simple_expr | '!' not_expr
 		 * simple_expr	= 0 | 1 | '(' expr ')'
 		 */
 
@@ -125,16 +125,16 @@ namespace InfServer.Logic
 			return x;
 		}
 
-        private static bool and_expr(String exp, ref int pos)
-        {
-            bool x = not_expr(exp, ref pos);
-            while (pos < exp.Length && exp[pos] == '&')
-            {
-                pos++;
-                x &= not_expr(exp, ref pos);
-            }
-            return x;
-        }
+		private static bool and_expr(String exp, ref int pos)
+		{
+			bool x = not_expr(exp, ref pos);
+			while (pos < exp.Length && exp[pos] == '&')
+			{
+				pos++;
+				x &= not_expr(exp, ref pos);
+			}
+			return x;
+		}
 
         private static bool not_expr(String exp, ref int pos)
         {
@@ -143,7 +143,7 @@ namespace InfServer.Logic
                 pos++;
                 return !not_expr(exp, ref pos);
             }
-            else return simple_expr(exp, ref pos);
+            else return simple_expr(exp, ref pos);                
         }
 
 		private static bool simple_expr(String exp, ref int pos)

@@ -99,6 +99,7 @@
     <Compile Include="Game\Assets\AssetManager.Cache.cs" />
     <Compile Include="Game\Assets\AssetManager.Lio.cs" />
     <Compile Include="Game\Assets\AssetManager.cs" />
+    <Compile Include="Game\Commands\Chat\Commands.cs" />
     <Compile Include="Game\Commands\Mod\Basic.cs" />
     <Compile Include="Game\Commands\Mod\Bots.cs" />
     <Compile Include="Game\Commands\Mod\Vehicles.cs" />
@@ -217,6 +218,7 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

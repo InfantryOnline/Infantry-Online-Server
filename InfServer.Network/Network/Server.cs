@@ -331,6 +331,8 @@ namespace InfServer.Network
 			saea.RemoteEndPoint = ep;
 
 			_sock.SendToAsync(saea);*/
+
+            // TODO this causes an (unhandled) error when the packet is bigger than the datagram size!
 			_sock.SendTo(data, ep);
 		}
 
