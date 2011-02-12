@@ -15,10 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfServer", "InfServer\InfS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scripts", "bin\scripts\Scripts.csproj", "{92319419-09C9-449F-95A3-C2A659211D80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfDatabase", "InfDatabase\InfDatabase\InfDatabase.csproj", "{40DAA82C-3DB0-4922-8F36-383E1AEC0C0D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBComm", "InfDatabase\DBComm\DBComm.csproj", "{BE76F013-B0CC-43BC-B61E-A09FD764F021}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,14 +35,6 @@ Global
 		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{92319419-09C9-449F-95A3-C2A659211D80}.Debug|Any CPU.ActiveCfg = Release|Any CPU
 		{92319419-09C9-449F-95A3-C2A659211D80}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40DAA82C-3DB0-4922-8F36-383E1AEC0C0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{40DAA82C-3DB0-4922-8F36-383E1AEC0C0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{40DAA82C-3DB0-4922-8F36-383E1AEC0C0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40DAA82C-3DB0-4922-8F36-383E1AEC0C0D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BE76F013-B0CC-43BC-B61E-A09FD764F021}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BE76F013-B0CC-43BC-B61E-A09FD764F021}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BE76F013-B0CC-43BC-B61E-A09FD764F021}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BE76F013-B0CC-43BC-B61E-A09FD764F021}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
