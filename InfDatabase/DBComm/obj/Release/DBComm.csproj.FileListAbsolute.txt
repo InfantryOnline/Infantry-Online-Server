@@ -1,0 +1,14 @@
+C:\Programming\Infantry\InfDatabase\DBComm\bin\Release\DBComm.dll
+C:\Programming\Infantry\InfDatabase\DBComm\bin\Release\DBComm.pdb
+C:\Programming\Infantry\InfDatabase\DBComm\bin\Release\InfServer.Network.dll
+C:\Programming\Infantry\InfDatabase\DBComm\bin\Release\InfServer.Network.pdb
+C:\Programming\Infantry\InfDatabase\DBComm\obj\Release\ResolveAssemblyReference.cache
+C:\Programming\Infantry\InfDatabase\DBComm\obj\Release\DBComm.dll
+C:\Programming\Infantry\InfDatabase\DBComm\obj\Release\DBComm.pdb
+C:\Programming\Infantry\InfDatabase\bin\DBComm.dll
+C:\Programming\Infantry\InfDatabase\bin\DBComm.pdb
+C:\Users\Admin\Desktop\InfDatabase\bin\DBComm.dll
+C:\Users\Admin\Desktop\InfDatabase\bin\DBComm.pdb
+C:\Users\Admin\Desktop\InfDatabase\DBComm\obj\Release\ResolveAssemblyReference.cache
+C:\Users\Admin\Desktop\InfDatabase\DBComm\obj\Release\DBComm.dll
+C:\Users\Admin\Desktop\InfDatabase\DBComm\obj\Release\DBComm.pdb

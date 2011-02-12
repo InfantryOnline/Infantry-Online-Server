@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database Name="DataSource" EntityNamespace="InfServer.Data.DB" ContextNamespace="InfServer.Data" Class="InfantryDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=DEEPTHOUGHT-PC\SQLExpress;Persist Security Info=True;User ID=aaerox" SettingsObjectName="InfDatabase.Properties.Settings" SettingsPropertyName="DataSourceConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.player" Member="players">
+    <Type Name="player">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="alias" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="zone" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="squad" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="stats" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="permission" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="inventory" Type="System.Data.Linq.Binary" DbType="VarBinary(512)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="skills" Type="System.Data.Linq.Binary" DbType="VarBinary(512)" CanBeNull="true" UpdateCheck="Never" />
+      <Association Name="stats_player" Member="stats1" ThisKey="stats" Type="stats" IsForeignKey="true" />
+      <Association Name="zone_player" Member="zone1" ThisKey="zone" Type="zone" IsForeignKey="true" />
+      <Association Name="alia_player" Member="alias1" ThisKey="alias" Type="alias" IsForeignKey="true" />
+      <Association Name="squad_player" Member="squad1" ThisKey="squad" Type="squad" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.stats" Member="stats">
+    <Type Name="stats">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="cash" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="experience" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="experienceTotal" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="points" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="killPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="deathPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="assistPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="bonusPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="vehicleKills" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="vehicleDeaths" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="playSeconds" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat1" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat3" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat4" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat5" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="altstat8" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="stats_player" Member="players" OtherKey="stats" Type="player" />
+    </Type>
+  </Table>
+  <Table Name="dbo.account" Member="accounts">
+    <Type Name="account">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
+      <Column Name="password" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
+      <Column Name="ticket" Type="System.String" DbType="VarChar(128)" CanBeNull="true" />
+      <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="permission" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="account_alia" Member="alias" OtherKey="account" Type="alias" />
+    </Type>
+  </Table>
+  <Table Name="dbo.zone" Member="zones">
+    <Type Name="zone">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="password" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="description" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
+      <Column Name="notice" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
+      <Column Name="active" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Association Name="zone_player" Member="players" OtherKey="zone" Type="player" />
+    </Type>
+  </Table>
+  <Table Name="dbo.alias" Member="alias">
+    <Type Name="alias">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="account" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
+      <Column Name="creation" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Association Name="alia_player" Member="players" OtherKey="alias" Type="player" />
+      <Association Name="account_alia" Member="account1" ThisKey="account" Type="account" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.squad" Member="squads">
+    <Type Name="squad">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
+      <Column Name="password" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
+      <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Association Name="squad_player" Member="players" OtherKey="squad" Type="player" />
+    </Type>
+  </Table>
+</Database>
