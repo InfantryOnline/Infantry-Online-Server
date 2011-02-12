@@ -12,3 +12,8 @@ C:\Users\Admin\Desktop\InfDatabase\bin\DBComm.pdb
 C:\Users\Admin\Desktop\InfDatabase\DBComm\obj\Release\ResolveAssemblyReference.cache
 C:\Users\Admin\Desktop\InfDatabase\DBComm\obj\Release\DBComm.dll
 C:\Users\Admin\Desktop\InfDatabase\DBComm\obj\Release\DBComm.pdb
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\DBComm\obj\Release\ResolveAssemblyReference.cache
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\DBComm\obj\Release\DBComm.dll
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\DBComm\obj\Release\DBComm.pdb
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\bin\DBComm.dll
+C:\Users\Josh\Desktop\Infserv\trunk\InfDatabase\bin\DBComm.pdb
