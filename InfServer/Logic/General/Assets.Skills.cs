@@ -54,7 +54,7 @@ namespace InfServer.Logic
 
 				if (prefix == "%")
 				{ // ClassId
-					val = (classId == numVal) ? false : true;
+					val = (classId == numVal) ? true : false;
 				}
 				else if (prefix == "@")
 				{ // Experience

@@ -63,6 +63,7 @@ namespace Assets
             public int maxFrameStall;
             public int teamSwitchMinEnergy;
             public bool persistantArena;
+            public int vehicleExitWarpRadius;
 
             public Arena(ref Dictionary<string, Dictionary<string, string>> stringTree)
             {
@@ -125,6 +126,7 @@ namespace Assets
                 maxFrameStall = Parser.GetInt("MaxFrameStall");
                 teamSwitchMinEnergy = Parser.GetInt("TeamSwitchMinEnergy");
                 persistantArena = Parser.GetBool("PersistantArena");
+                vehicleExitWarpRadius = Parser.GetInt("VehicleExitWarpRadius");
             }
         }
     }

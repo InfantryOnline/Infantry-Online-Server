@@ -155,12 +155,16 @@ namespace InfServer.Game
 			if (p.IsSpectator) return false;
 
 			// Don't fire at teammates
-			//if (p._team == _team) return false;
+			if (p._team == _team) return false;
 
 			// Don't fire at dead people
 			if (p.IsDead) return false;			
 
-			// TODO: do not fire at people out of weight tracking limits
+			//Don't fire at people outside of our weight limits.
+            int pWeight = p.ActiveVehicle._type.Weight;
+            bool trackPlayer = (pWeight >= _type.TrackingWeightLow && pWeight <= _type.TrackingWeightHigh);
+            if (!trackPlayer)
+                return false;
 
 			// TODO: do not fire at people out of turret angle limits
 

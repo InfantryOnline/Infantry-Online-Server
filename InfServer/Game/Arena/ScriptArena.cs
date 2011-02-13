@@ -428,10 +428,15 @@ namespace InfServer.Game
 		{	//Are we trying to leave our current vehicle?
 			if (!bEnter)
 			{	//Forward to our script
-				if (!exists("Player.LeaveVehicle") || (bool)callsync("Player.LeaveVehicle", false, from, from._occupiedVehicle))
-					//Let's leave it!
+                if (!exists("Player.LeaveVehicle") || (bool)callsync("Player.LeaveVehicle", false, from, from._occupiedVehicle))
+                    //Let's leave it!
 					from._occupiedVehicle.playerLeave(true);
-				
+
+                    //Warp the player away from the vehicle to keep him from getting "stuck"
+                    Random exitRadius = new Random();
+                    from.warp(from._state.positionX + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius),
+                    from._state.positionY + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius));
+				    
 				return;
 			}
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Text.RegularExpressions;
 using InfServer.Bots;
 
 using Assets;
@@ -173,7 +173,19 @@ namespace InfServer.Game.Commands.Mod
 
             //Determine the item and quantitiy
             string[] args = payload.Split(':');
-            ItemInfo item = player._server._assets.getItemByName(args[0].Trim());
+
+            //Our handy string/int checkar
+            bool IsNumeric = Regex.IsMatch(args[0], @"^\d+$");
+
+            ItemInfo item;
+
+            //Is he asking for an ITEMID?
+            if (!IsNumeric)
+            {   //Nope, pass as string.
+                item = player._server._assets.getItemByName(args[0].Trim());
+            }
+            else { item = player._server._assets.getItemByID(Int32.Parse(args[0].Trim())); }
+
             int quantity = (args.Length == 1) ? 1 : Convert.ToInt32(args[1].Trim());
 
             if (item == null)
