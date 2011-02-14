@@ -29,5 +29,10 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
             _contentReader.ReadUInt32(); // Discard leading data
             Token = Flip(_contentReader.ReadUInt32());
         }
+
+        public override string Dump
+        {
+            get { return "Zone list request."; }
+        }
     }
 }

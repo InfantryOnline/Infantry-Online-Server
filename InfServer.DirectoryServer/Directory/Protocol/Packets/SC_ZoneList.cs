@@ -28,5 +28,10 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
             Write(streamSizeInBytes);
             Write(data);
         }
+
+        public override string Dump
+        {
+            get { return String.Format("Zone frame sent: {0}", frameNum); }
+        }
     }
 }

@@ -30,5 +30,10 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
             Skip(4);
             frameReceived = _contentReader.ReadUInt16();
         }
+
+        public override string Dump
+        {
+            get { return String.Format("Frame Ack Received: {0}", frameReceived); }
+        }
     }
 }

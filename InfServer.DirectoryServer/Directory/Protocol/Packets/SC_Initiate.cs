@@ -27,5 +27,10 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
 
             Write(Flip(RandChallengeToken));
         }
+
+        public override string Dump
+        {
+            get { return "Challenge response sent."; }
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace InfServer.DirectoryServer.Directory
         {	//Search for our namespace
             List<MethodInfo> regFunctions = new List<MethodInfo>();
             IEnumerable<Type> classes = asm.GetTypes().Where(
-                type => (type.Namespace != null && type.Namespace.StartsWith("DirectoryServer.Directory.Logic")));
+                type => (type.Namespace != null && type.Namespace.StartsWith("InfServer.DirectoryServer.Directory.Logic")));
 
             foreach (Type type in classes)
             {
