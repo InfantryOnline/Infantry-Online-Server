@@ -262,7 +262,11 @@ namespace DirectoryServer
             if (chunkNum != _streams.Count)
             {
                 Console.WriteLine("[Zone Chunk sent.]");
-                byte[] header = { 00, 03, 00, 00, (byte)chunkNum, 00, 00, 00, 00, 0x08, 00, 00, 0x91, 0x0D, 00, 00 };
+
+                byte hi = BitConverter.GetBytes(_streams.ByteSize)[1];
+                byte lo = BitConverter.GetBytes(_streams.ByteSize)[0];
+
+                byte[] header = { 00, 03, 00, 00, (byte)chunkNum, 00, 00, 00, 00, 0x08, 00, 00, lo, hi, 00, 00 };
                 byte[] zoneInfo = _streams[chunkNum];
 
                 byte[] response = header.Concat(zoneInfo).ToArray();

@@ -25,6 +25,11 @@ namespace DirectoryServer
             }
         }
 
+        public int ByteSize
+        {
+            get { return _data.Length; }
+        }
+
         public int Count
         {
             get { return (int)Math.Ceiling(_data.Length/496.0); }
