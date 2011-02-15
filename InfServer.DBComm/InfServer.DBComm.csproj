@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{8817E7B9-441E-45EF-B2BF-9E637DCCB868}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>InfServer.DirectoryServer</RootNamespace>
-    <AssemblyName>InfServer.DirectoryServer</AssemblyName>
+    <RootNamespace>InfServer.DBComm</RootNamespace>
+    <AssemblyName>InfServer.DBComm</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -33,9 +33,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -43,24 +47,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Directory\DirectoryClient.cs" />
-    <Compile Include="Directory\DirectoryServer.cs" />
-    <Compile Include="Directory\Logic\Packets\Challenge.cs" />
-    <Compile Include="Directory\Logic\Packets\ZoneListing.cs" />
-    <Compile Include="Directory\Protocol\Factory.cs" />
-    <Compile Include="Directory\Protocol\Helpers\Zone.cs" />
-    <Compile Include="Directory\Protocol\Helpers\ZoneStream.cs" />
-    <Compile Include="Directory\Protocol\Packets\CS_AckZoneList.cs" />
-    <Compile Include="Directory\Protocol\Packets\CS_Initiate.cs" />
-    <Compile Include="Directory\Protocol\Packets\CS_Version.cs" />
-    <Compile Include="Directory\Protocol\Packets\CS_ZoneList.cs" />
-    <Compile Include="Directory\Protocol\Packets\SC_Initiate.cs" />
-    <Compile Include="Directory\Protocol\Packets\SC_ZoneList.cs" />
-    <Compile Include="Directory\Registrar.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="C2SFactory.cs" />
+    <Compile Include="Helpers\Database.cs" />
+    <Compile Include="Packets\Login\CS_Auth.cs" />
+    <Compile Include="Packets\Login\CS_PlayerLogin.cs" />
+    <Compile Include="Packets\Login\SC_Auth.cs" />
+    <Compile Include="Packets\Login\SC_PlayerLogin.cs" />
+    <Compile Include="Packets\Player\CS_PlayerLeave.cs" />
+    <Compile Include="Packets\Player\CS_PlayerUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="S2CFactory.cs" />
+    <Compile Include="Structures\Player.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\InfServer.Network\InfServer.Network.csproj">
       <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
