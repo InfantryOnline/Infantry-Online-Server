@@ -20,12 +20,12 @@ namespace InfServer.DirectoryServer.Directory.Logic.Packets
 
         public static void Handle_CS_AckZoneList(CS_AckZoneList pkt, DirectoryClient client)
         {
-            // Do we have more packets to send?
-            UInt16 frame = pkt.frameReceived++;
-
             List<SC_ZoneList> packets = Program.server.ZoneStream.Packets;
 
-            if (frame < packets.Count)
+            UInt16 frame = pkt.frameReceived;
+
+            // Can we send the next frame?
+            if (++frame < packets.Count)
             {
                 client.send(packets[frame]);
             }

@@ -52,12 +52,20 @@ namespace InfServer.DirectoryServer.Directory
                     method.Invoke(null, new object[] { });
             }
 
+            /**
+             * Part of the original code, but not needed here because the Executing Assembly *is*
+             * the Calling Assembly.
+             * 
+             * This should fix the packet duplication bugs.
+             *
             //Register the calling assembly's functions
             List<MethodInfo> callerRegs = findRegistrars(Assembly.GetCallingAssembly());
 
             //Call them all!
             foreach (MethodInfo method in callerRegs)
                 method.Invoke(null, new object[] { });
+             * 
+             **/
         }
     }
 
