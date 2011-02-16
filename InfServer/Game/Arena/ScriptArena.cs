@@ -44,6 +44,9 @@ namespace InfServer.Game
 		{	//Initialize the base arena class
 			base.init();
 
+            //Start our configurable breakdown class
+            _breakDown = new BreakDown();
+
 			//Load the associated scripts
 			_scripts = Scripts.instanceScripts(this, _scriptType);
 		}
@@ -85,6 +88,7 @@ namespace InfServer.Game
 		public override void gameStart()
 		{	//We're running!
 			_bGameRunning = true;
+            _timeGameStarted = DateTime.Now;
 
 			//Reset the flags
 			flagReset();
@@ -98,15 +102,15 @@ namespace InfServer.Game
 			if (startCfg.vehicleReset)
 				resetVehicles();
 
-			if (startCfg.initialHides)
-				initialHideSpawns();
+			//if (startCfg.initialHides)
+				//initialHideSpawns();
 
 			//Handle the start for all players
 			string startGame = _server._zoneConfig.EventInfo.startGame;
 
 			foreach (Player player in Players)
 			{	//We don't want previous stats to count
-				player.clearCurrentStats();
+				//player.clearCurrentStats();
 
 				//Reset anything else we're told to
 				if (startCfg.clearProjectiles)
@@ -141,6 +145,17 @@ namespace InfServer.Game
 			//Reset the game state
 			flagReset();
 
+            //Calculate how long the game lasted
+            _timeGameEnded = DateTime.Now;
+            System.TimeSpan diff = _timeGameEnded - _timeGameStarted;
+
+            //Decide whether the game was long enough to display minutes
+            if (diff.TotalMinutes > 0)
+            {
+                sendArenaMessage("Game lasted " + diff.Minutes + " minutes, " + diff.Seconds + " seconds.");
+            }
+            else { sendArenaMessage("Game lasted " + diff.Seconds + " seconds."); }
+
 			//Execute the end game event
 			string endGame = _server._zoneConfig.EventInfo.endGame;
 			foreach (Player player in Players)
@@ -155,6 +170,35 @@ namespace InfServer.Game
 			//Pass it to the script environment
 			callsync("Game.End", false);
 		}
+
+        /// <summary>
+        /// Called to reset the game state
+        /// </summary>
+        public override void breakDown()
+        {
+            //TODO: Finish this and add some color!
+            if (_breakDown.bDisplayMVP)
+                sendArenaMessage("MVP");
+            if (_breakDown.bDisplayPersonal)
+                sendArenaMessage("Personal");
+            if (_breakDown.bDisplayTeam)
+                sendArenaMessage("Team");
+
+            //Pass it to the script environment
+            callsync("Game.BreakDown", false);
+        }
+
+
+        /// <summary>
+        /// Called when the game ends
+        /// </summary>
+        public class Breakdown
+        {
+            //All true by default
+            public bool bDisplayMVP = true;
+            public bool bDisplayTeam = true;
+            public bool bDisplayPersonal = true;
+        }
 
 		/// <summary>
 		/// Called to reset the game state

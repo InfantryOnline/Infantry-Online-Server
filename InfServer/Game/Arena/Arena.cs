@@ -34,6 +34,9 @@ namespace InfServer.Game
 
 		public Dictionary<int, TickerInfo> _tickers;	//The tickers!
 		public bool _bGameRunning;						//Is the game running?
+        public DateTime _timeGameStarted;               //When our game started
+        public DateTime _timeGameEnded;                 //When our game ended
+        public BreakDown _breakDown;
 
 		public int _levelWidth;
 		public LvlInfo.Tile[] _tiles;					//The terrain tiles in the arena, can be updated to reflect switches, etc
@@ -317,6 +320,9 @@ namespace InfServer.Game
 		{	//Initialize our subsections
 			initState();
 			initLio();
+
+            //Start our configurable breakdown class
+            _breakDown = new BreakDown();
 		}
 
 		/// <summary>
@@ -461,6 +467,7 @@ namespace InfServer.Game
 		public virtual void gameStart() 
 		{	//We're running!
 			_bGameRunning = true;
+            _timeGameStarted = DateTime.Now;
 
 			//Reset the game state
 			flagReset();
@@ -482,6 +489,7 @@ namespace InfServer.Game
 		public virtual void gameEnd()
 		{	//We've stopped
 			_bGameRunning = false;
+            _timeGameEnded = DateTime.Now;
 
 			//Reset the game state
 			flagReset();
@@ -493,6 +501,31 @@ namespace InfServer.Game
 			foreach (Player player in PlayersIngame)
 				Logic_Assets.RunEvent(player, endGame);
 		}
+
+        /// <summary>
+        /// Our configurable Breakdown Class.
+        /// </summary>
+        public class BreakDown
+        {   //All true by default
+            public bool bDisplayMVP = true;
+            public bool bDisplayTeam = true;
+            public bool bDisplayPersonal = true;
+        } 
+
+
+        /// <summary>
+		/// Called when the game ends
+		/// </summary>
+        public virtual void breakDown()
+        {
+            //TODO: Finish this :]
+            if (_breakDown.bDisplayMVP)
+                sendArenaMessage("MVP");
+            if (_breakDown.bDisplayPersonal)
+                sendArenaMessage("Personal");
+            if (_breakDown.bDisplayTeam)
+                sendArenaMessage("Team");
+        }
 
 		/// <summary>
 		/// Called to reset the game state
