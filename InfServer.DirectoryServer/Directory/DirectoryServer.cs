@@ -28,6 +28,7 @@ namespace InfServer.DirectoryServer.Directory
 
             // Sanity Test zones, lifted from SOE zone list.
             var zones = new List<Zone>();
+            /*
             var z9 = new Zone(new byte[4] { 64, 37, 134, 136 }, 9669, "[I:Arcade] Frontlines", false, "Frontlines");
             var z6 = new Zone(new byte[4] { 64, 37, 134, 136 }, 9556, "[I:CQ] Faydon Lake", false, "Titan and Collective forces wage war against eachother for control of the Faydon Lake territory. A hybrid zone with CTF/SK/EOL inspiration.");
             var z3 = new Zone(new byte[4] { 64, 37, 134, 136 }, 9957, "[I:CTFX] CTF Extreme", false, "CTFX2 part of the PCT! Submit your PCT entry at: stationgamesfeedback@soe.sony.com");
@@ -72,7 +73,15 @@ namespace InfServer.DirectoryServer.Directory
             zones.Add(z20);
             zones.Add(z21);
             zones.Add(z22);
+             */
 
+            var z1 = new Zone(new byte[4] { 207, 191, 144, 208 }, 1337, "[Temp]HellSpawn CTF", false, "HellSpawn's Twin Peaks");
+            var z2 = new Zone(new byte[4] { 99, 231, 167, 97 }, 1337, "[Temp]Jovan CTF", false, "Jovan's Twin Peaks");
+            var z3 = new Zone(new byte[4] { 97, 81, 195, 81 }, 1337, "[Temp]Mongoose CTF", false, "Geese Twin Peaks");
+
+            zones.Add(z1);
+            zones.Add(z2);
+            zones.Add(z3);
             ZoneStream = new ZoneStream(zones);
 
             return true;
