@@ -78,7 +78,7 @@ namespace InfServer.Script.GameType_CTF
 			//Do we have enough players ingame?
 			int playing = _arena.PlayerCount;
 
-			if ((_tickGameStart != 0 || _tickGameStarting != 0) && playing < _minPlayers)
+			if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
 			{	//Stop the game!
 				_arena.setTicker(1, 1, 0, "Not Enough Players");
 				_arena.gameReset();
@@ -169,40 +169,46 @@ namespace InfServer.Script.GameType_CTF
 		/// Called when the specified team have won
 		/// </summary>
 		public void gameVictory(Team victors)
-		{	//Let everyone know
-			if (!_config.flag.useJackpot)
+		{
+
+            //Let everyone know
+			if (_config.flag.useJackpot)
 				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);
+
+            //Stop the game
+            _arena.gameEnd();
 
 			_arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);
 
+            //TODO: Move this calculation to breakDown() in ScriptArena?
 			//Calculate the jackpot for each player
-			foreach (Player p in _arena.Players)
-			{	//Spectating? Psh.
-				if (p.IsSpectator)
-					continue;
+            foreach (Player p in _arena.Players)
+            {	//Spectating? Psh.
+                if (p.IsSpectator)
+                    continue;
 
-				//Find the base reward
-				int personalJackpot;
+                //Find the base reward
+                int personalJackpot;
 
-				if (p._team == victors)
-					personalJackpot = _jackpot * (_config.flag.winnerJackpotFixedPercent / 1000);
-				else
-					personalJackpot = _jackpot * (_config.flag.loserJackpotFixedPercent / 1000);
+                if (p._team == victors)
+                    personalJackpot = _jackpot * (_config.flag.winnerJackpotFixedPercent / 1000);
+                else
+                    personalJackpot = _jackpot * (_config.flag.loserJackpotFixedPercent / 1000);
 
-				//Obtain the respective rewards
-				int cashReward = personalJackpot * (_config.flag.cashReward / 1000);
-				int experienceReward = personalJackpot * (_config.flag.experienceReward / 1000);
-				int pointReward = personalJackpot * (_config.flag.pointReward / 1000);
+                //Obtain the respective rewards
+                int cashReward = personalJackpot * (_config.flag.cashReward / 1000);
+                int experienceReward = personalJackpot * (_config.flag.experienceReward / 1000);
+                int pointReward = personalJackpot * (_config.flag.pointReward / 1000);
 
-				p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
+                p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
 
-				p.Cash += cashReward;
-				p.Experience += experienceReward;
-				p.Points += pointReward;
-			}
+                p.Cash += cashReward;
+                p.Experience += experienceReward;
+                p.Points += pointReward;
+            }
 
-			//Stop the game
-			_arena.gameEnd();
+            //Call teh Breakdownz
+            _arena.breakDown();
 		}
 
 		/// <summary>
@@ -251,10 +257,24 @@ namespace InfServer.Script.GameType_CTF
 			_tickGameStarting = 0;
 			_tickVictoryStart = 0;
 			_tickNextVictoryNotice = 0;
-
 			_victoryTeam = null;
+
+            //Just a simple test to make sure its working...
+            _arena._breakDown.bDisplayMVP = false;
 			return true;
 		}
+
+        /// <summary>
+        /// Called when the statistical breakdown is displayed
+        /// </summary>
+        [Scripts.Event("Game.BreakDown")]
+        public bool breakDown()
+        {	//Allows additional "custom" breakdown information
+
+
+            //Always return true;
+            return true;
+        }
 
 		/// <summary>
 		/// Called to reset the game state
