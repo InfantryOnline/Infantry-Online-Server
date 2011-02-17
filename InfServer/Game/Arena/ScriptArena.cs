@@ -161,6 +161,7 @@ namespace InfServer.Game
 			foreach (Player player in Players)
 			{	//Keep the player's game stats updated
 				player.migrateStats();
+			    player.syncState();
 
 				//Run the event if necessary
 				if (!player.IsSpectator)
@@ -210,7 +211,7 @@ namespace InfServer.Game
                     int deaths = 0;
                     foreach (Player player in PlayersIngame)
                     {
-                        if (player._team._name == team.Key)
+                        if (player._team == team.Value)
                         {
                             kills = kills + player.StatsLastGame.kills;
                             deaths = deaths + player.StatsLastGame.deaths;

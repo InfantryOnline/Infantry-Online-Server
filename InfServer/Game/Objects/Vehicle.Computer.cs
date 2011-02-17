@@ -155,7 +155,7 @@ namespace InfServer.Game
 			if (p.IsSpectator) return false;
 
 			// Don't fire at teammates
-			if (p._team == _team) return false;
+            if (p._team == _team) return false;
 
 			// Don't fire at dead people
 			if (p.IsDead) return false;			
@@ -169,10 +169,84 @@ namespace InfServer.Game
 			// TODO: do not fire at people out of turret angle limits
 
 			// TODO: do not fire at people out of LOS (complicated calculation)
-			
+            if (IsPlayerOccluded(p))
+                return false;
+
 			return true;
 			
 		}
+
+        /// <summary>
+        /// Returns true if the player is hidden from the vehicle's view, likely by a tile.
+        /// </summary>
+        /// <param name="p">player to check</param>
+        /// <returns>true if player cannot be seen</returns>
+        private Boolean IsPlayerOccluded(Player p)
+        {
+            List<LvlInfo.Tile> pSet = calcBresenhems(_state.positionX, _state.positionY,
+		                               p._state.positionX, p._state.positionY);
+
+            foreach(var tile in pSet)
+            {
+                short physLow = _arena._server._assets.Level.PhysicsLow[tile.Physics];
+                short physHigh = _arena._server._assets.Level.PhysicsHigh[tile.Physics];
+
+                // Are we within the physics?
+                if (_type.FireHeight >= physLow && _type.FireHeight <= physHigh)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns a list of tiles that intersect with the line segment going from
+        /// (x0, y0) to (x1, y1).
+        /// 
+        /// Uses Bresenhem's Line Algorithm to get the tiles.
+        /// http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+        /// </summary>
+        /// <param name="x0">x-component of one vertex</param>
+        /// <param name="y0">y-component of one vertex</param>
+        /// <param name="x1">x-component of the other vertex</param>
+        /// <param name="y1">y-component of the other vertex</param>
+        /// <returns>All tiles that intersect with the line segment</returns>
+        private List<LvlInfo.Tile> calcBresenhems(short x0, short y0, short x1, short y1)
+        {
+            List<LvlInfo.Tile> tiles = new List<LvlInfo.Tile>();
+
+            int dx = Math.Abs(x1 - x0);
+            int dy = Math.Abs(y1 - y0);
+
+            // Slope
+            int sx = x0 < x1 ? 1 : -1;
+            int sy = y0 < y1 ? 1 : -1;
+
+            int err = dx - dy;
+
+            while(true)
+            {
+                tiles.Add(_arena.getTile(x0, y0));
+
+                if (x0 == x1 && y0 == y1)
+                    break;
+
+                int e2 = 2*err;
+
+                if (e2 > -dy)
+                {
+                    err -= dy;
+                    x0 += (short)sx;
+                }
+                if(e2 < dx)
+                {
+                    err += dx;
+                    y0 += (short) sy;
+                }
+            }
+
+            return tiles;
+        }
 
 		/// <summary>
 		/// Returns squared norm distance from turret to this player
