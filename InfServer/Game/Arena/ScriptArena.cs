@@ -180,9 +180,49 @@ namespace InfServer.Game
             if (_breakDown.bDisplayMVP)
                 sendArenaMessage("MVP");
             if (_breakDown.bDisplayPersonal)
-                sendArenaMessage("Personal");
+            {
+                sendArenaMessage("&----------------------------------------");
+                foreach (Player player in _playersIngame)
+                {
+                    if (player.IsSpectator)
+                        continue;
+
+                    if (player == null)
+                        continue;
+
+                    if (player.StatsLastGame == null)
+                        continue;
+
+                    player.sendMessage(0, String.Format("Personal Kills: {0}", player.StatsLastGame.kills));
+                    player.sendMessage(0, String.Format("Personal Deaths: {0}", player.StatsLastGame.deaths));
+                }
+                sendArenaMessage("&----------------------------------------");
+            }
+
             if (_breakDown.bDisplayTeam)
-                sendArenaMessage("Team");
+            {
+                foreach (var team in _teams)
+                {
+                    if (team.Value.ActivePlayers == 0)
+                        continue;
+
+                    int kills = 0;
+                    int deaths = 0;
+                    foreach (Player player in PlayersIngame)
+                    {
+                        if (player._team._name == team.Key)
+                        {
+                            kills = kills + player.StatsLastGame.kills;
+                            deaths = deaths + player.StatsLastGame.deaths;
+                        }
+
+                    }
+
+                        sendArenaMessage(String.Format("!{0} Kills: {1}", team.Value._name, kills));
+                        sendArenaMessage(String.Format("!{0} Deaths: {1}", team.Value._name, deaths));
+                        sendArenaMessage("&----------------------------------------");
+                }
+            }
 
             //Pass it to the script environment
             callsync("Game.BreakDown", false);
