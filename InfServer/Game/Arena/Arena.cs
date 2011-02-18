@@ -507,24 +507,16 @@ namespace InfServer.Game
         /// </summary>
         public class BreakDown
         {   //All true by default
-            public bool bDisplayMVP = true;
             public bool bDisplayTeam = true;
-            public bool bDisplayPersonal = true;
+            public bool bDisplayIndividual = true;
         } 
 
 
         /// <summary>
 		/// Called when the game ends
 		/// </summary>
-        public virtual void breakDown()
+        public virtual void breakDown(Player from, bool bCurrent)
         {
-            //TODO: Finish this :]
-            if (_breakDown.bDisplayMVP)
-                sendArenaMessage("MVP");
-            if (_breakDown.bDisplayPersonal)
-                sendArenaMessage("Personal");
-            if (_breakDown.bDisplayTeam)
-                sendArenaMessage("Team");
         }
 
 		/// <summary>

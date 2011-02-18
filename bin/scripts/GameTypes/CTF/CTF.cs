@@ -205,10 +205,10 @@ namespace InfServer.Script.GameType_CTF
                 p.Cash += cashReward;
                 p.Experience += experienceReward;
                 p.Points += pointReward;
-            }
 
-            //Call teh Breakdownz
-            _arena.breakDown();
+                //Call teh Breakdownz
+                _arena.breakDown(p, false);
+            }
 		}
 
 		/// <summary>
@@ -259,8 +259,6 @@ namespace InfServer.Script.GameType_CTF
 			_tickNextVictoryNotice = 0;
 			_victoryTeam = null;
 
-            //Just a simple test to make sure its working...
-            _arena._breakDown.bDisplayMVP = false;
 			return true;
 		}
 

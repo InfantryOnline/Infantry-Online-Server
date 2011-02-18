@@ -67,6 +67,14 @@ namespace InfServer.Game.Commands.Chat
         }
 
         /// <summary>
+        /// buys items in the form item1:x1, item2:x2 and so on
+        /// </summary>
+        public static void breakdown(Player player, Player recipient, string payload)
+        {
+            player._arena.breakDown(player, true);
+        }
+
+        /// <summary>
         /// sends commands to a mod
         /// </summary>
         public static void help(Player player, Player recipient, string payload)
@@ -84,6 +92,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(help, "help",
                 "Asks moderator for help.",
                 "?help question");
+
+            yield return new HandlerDescriptor(breakdown, "breakdown",
+                "Displays current game statistics",
+                "?breakdown");
 
             yield return new HandlerDescriptor(buy, "buy",
                 "Buys items",

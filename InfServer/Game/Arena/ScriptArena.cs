@@ -173,72 +173,82 @@ namespace InfServer.Game
 		}
 
         /// <summary>
-        /// Called to reset the game state
+        /// Called when the game wants to display end game statistics
         /// </summary>
-        public override void breakDown()
+        public override void breakDown(Player from, bool bCurrent)
         {
-            //TODO: Finish this and add some color!
-            if (_breakDown.bDisplayMVP)
-                sendArenaMessage("MVP");
-            if (_breakDown.bDisplayPersonal)
-            {
-                sendArenaMessage("&----------------------------------------");
-                foreach (Player player in _playersIngame)
-                {
-                    if (player.IsSpectator)
-                        continue;
-
-                    if (player == null)
-                        continue;
-
-                    if (player.StatsLastGame == null)
-                        continue;
-
-                    player.sendMessage(0, String.Format("Personal Kills: {0}", player.StatsLastGame.kills));
-                    player.sendMessage(0, String.Format("Personal Deaths: {0}", player.StatsLastGame.deaths));
-                }
-                sendArenaMessage("&----------------------------------------");
-            }
-
+            //Display Team Stats?
             if (_breakDown.bDisplayTeam)
             {
+                from.sendMessage(0, "#Team Statistics Breakdown");
+                Team rankOne;
+                Team rankTwo;
+                int mostKills = 0;
+
                 foreach (var team in _teams)
                 {
+                    //We don't want to count teams that don't have any players
                     if (team.Value.ActivePlayers == 0)
                         continue;
 
                     int kills = 0;
                     int deaths = 0;
+                    //Add up all the kills
                     foreach (Player player in PlayersIngame)
                     {
                         if (player._team == team.Value)
                         {
-                            kills = kills + player.StatsLastGame.kills;
-                            deaths = deaths + player.StatsLastGame.deaths;
+                            if (bCurrent)
+                            {
+                                kills = kills + player.StatsCurrentGame.kills;
+                                deaths = deaths + player.StatsCurrentGame.deaths;
+                            }
+                            else
+                            {
+                                kills = kills + player.StatsLastGame.kills;
+                                deaths = deaths + player.StatsLastGame.deaths;
+                            }
                         }
 
                     }
 
-                        sendArenaMessage(String.Format("!{0} Kills: {1}", team.Value._name, kills));
-                        sendArenaMessage(String.Format("!{0} Deaths: {1}", team.Value._name, deaths));
-                        sendArenaMessage("&----------------------------------------");
+                    if (kills > mostKills)
+                    {
+                        rankOne = team.Value;
+                    }
+                    else { rankTwo = team.Value; }
+
+
+                
+                        //Display team information
+                    from.sendMessage(0, String.Format("!{0} Kills={1}", team.Value._name, kills));
+                    from.sendMessage(0, String.Format("!{0} Deaths={1}", team.Value._name, deaths));
+                    from.sendMessage(0, "&----------------------------------------");
                 }
             }
+            //Do we want to display individual statistics?
+            if (_breakDown.bDisplayIndividual)
+            {
+                SortedDictionary<int, Player> rank = new SortedDictionary<int, Player>();
+                from.sendMessage(0, "#Individual Statistics Breakdown");
+                foreach (Player player in _playersIngame)
+                {
+                    if (bCurrent)
+                    {
+                        rank.Add(player.StatsCurrentGame.kills, player);
+                    }
+                    else { rank.Add(player.StatsLastGame.kills, player); }
+                    
+                }
+                //Display top 3
+                from.sendMessage(0, String.Format("!1st (K={0} D={1}): {2}", rank.ElementAt(0).Key, rank.ElementAt(0).Value.StatsLastGame.deaths, rank.ElementAt(0).Value._alias));
+                from.sendMessage(0, String.Format("!2nd (K={0} D={1}): {2}", rank.ElementAt(1).Key, rank.ElementAt(1).Value.StatsLastGame.deaths, rank.ElementAt(1).Value._alias));
+                from.sendMessage(0, String.Format("!3rd (K={0} D={1}): {2}", rank.ElementAt(2).Key, rank.ElementAt(2).Value.StatsLastGame.deaths, rank.ElementAt(2).Value._alias));
+            }
+
 
             //Pass it to the script environment
             callsync("Game.BreakDown", false);
-        }
-
-
-        /// <summary>
-        /// Called when the game ends
-        /// </summary>
-        public class Breakdown
-        {
-            //All true by default
-            public bool bDisplayMVP = true;
-            public bool bDisplayTeam = true;
-            public bool bDisplayPersonal = true;
         }
 
 		/// <summary>
