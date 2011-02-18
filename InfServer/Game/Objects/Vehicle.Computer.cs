@@ -158,7 +158,10 @@ namespace InfServer.Game
             if (p._team == _team) return false;
 
 			// Don't fire at dead people
-			if (p.IsDead) return false;			
+			if (p.IsDead) return false;
+
+            // Don't fire at people outside of turret's firing range
+            if (!InRange(p)) return false;
 
 			//Don't fire at people outside of our weight limits.
             int pWeight = p.ActiveVehicle._type.Weight;
@@ -169,8 +172,7 @@ namespace InfServer.Game
 			// TODO: do not fire at people out of turret angle limits
 
 			// TODO: do not fire at people out of LOS (complicated calculation)
-            if (IsPlayerOccluded(p))
-                return false;
+            if (IsPlayerOccluded(p)) return false;
 
 			return true;
 			
@@ -195,6 +197,21 @@ namespace InfServer.Game
                 if (_type.FireHeight >= physLow && _type.FireHeight <= physHigh)
                     return true;
             }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the player is in turret's firing range.
+        /// </summary>
+        /// <param name="p">Player to check</param>
+        /// <returns>true if player is in firing range</returns>
+        private Boolean InRange(Player p)
+        {
+            double d = Math.Sqrt(squaredDistanceTo(p));
+
+            if (d <= _type.LosDistance)
+                return true;
 
             return false;
         }
