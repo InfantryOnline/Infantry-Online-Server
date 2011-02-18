@@ -153,6 +153,9 @@ namespace InfServer.Network
 				foreach (NetworkClient client in activeClients)
 					if (!client._bDestroyed)
 						client.poll();
+
+                // Sleep a bit
+			    Thread.Sleep(10);
 			}
 		}
 

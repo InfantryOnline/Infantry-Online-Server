@@ -75,6 +75,9 @@ namespace InfServer.Game
 						Log.write(TLog.Exception, "Exception whilst polling arena {0}:\r\n{1}", arena._name, ex);
 					}
 				}
+
+                // Sleep for a bit
+			    Thread.Sleep(10);
 			}
 		}
 
