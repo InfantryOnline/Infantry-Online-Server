@@ -67,7 +67,7 @@ namespace InfServer.Game.Commands.Chat
         }
 
         /// <summary>
-        /// buys items in the form item1:x1, item2:x2 and so on
+        /// displays current game statistics
         /// </summary>
         public static void breakdown(Player player, Player recipient, string payload)
         {

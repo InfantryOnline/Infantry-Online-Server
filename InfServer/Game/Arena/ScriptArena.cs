@@ -102,15 +102,15 @@ namespace InfServer.Game
 			if (startCfg.vehicleReset)
 				resetVehicles();
 
-			//if (startCfg.initialHides)
-				//initialHideSpawns();
+			if (startCfg.initialHides)
+				initialHideSpawns();
 
 			//Handle the start for all players
 			string startGame = _server._zoneConfig.EventInfo.startGame;
 
 			foreach (Player player in Players)
 			{	//We don't want previous stats to count
-				//player.clearCurrentStats();
+				player.clearCurrentStats();
 
 				//Reset anything else we're told to
 				if (startCfg.clearProjectiles)
@@ -172,6 +172,8 @@ namespace InfServer.Game
 			callsync("Game.End", false);
 		}
 
+
+
         /// <summary>
         /// Called when the game wants to display end game statistics
         /// </summary>
@@ -181,22 +183,15 @@ namespace InfServer.Game
             if (_breakDown.bDisplayTeam)
             {
                 from.sendMessage(0, "#Team Statistics Breakdown");
-                Team rankOne;
-                Team rankTwo;
-                int mostKills = 0;
-
-                foreach (var team in _teams)
+                Dictionary<Team, int> teamKills = new Dictionary<Team, int>();
+                foreach (var t in _teams)
                 {
-                    //We don't want to count teams that don't have any players
-                    if (team.Value.ActivePlayers == 0)
-                        continue;
-
                     int kills = 0;
                     int deaths = 0;
                     //Add up all the kills
                     foreach (Player player in PlayersIngame)
                     {
-                        if (player._team == team.Value)
+                        if (player._team == t.Value)
                         {
                             if (bCurrent)
                             {
@@ -209,41 +204,51 @@ namespace InfServer.Game
                                 deaths = deaths + player.StatsLastGame.deaths;
                             }
                         }
-
                     }
-
-                    if (kills > mostKills)
-                    {
-                        rankOne = team.Value;
-                    }
-                    else { rankTwo = team.Value; }
-
-
-                
-                        //Display team information
-                    from.sendMessage(0, String.Format("!{0} Kills={1}", team.Value._name, kills));
-                    from.sendMessage(0, String.Format("!{0} Deaths={1}", team.Value._name, deaths));
-                    from.sendMessage(0, "&----------------------------------------");
+                    //Add team to our SortedDictionary
+                    teamKills.Add(t.Value, kills);
                 }
+                var teamRanks = (from entry in teamKills orderby entry.Value ascending select entry);
+
+                if (teamKills.Keys.Count > 1)
+                    from.sendMessage(0, String.Format("!1st (K={0}): {1}",
+                        teamRanks.ElementAt(0).Value,
+                        teamRanks.ElementAt(0).Key._name));
+                if (teamKills.Keys.Count > 1)
+                    from.sendMessage(0, String.Format("!2nd (K={0}): {1}",
+                        teamRanks.ElementAt(1).Value,
+                        teamRanks.ElementAt(1).Key._name));
             }
             //Do we want to display individual statistics?
             if (_breakDown.bDisplayIndividual)
             {
-                SortedDictionary<int, Player> rank = new SortedDictionary<int, Player>();
+                Dictionary<Player, int> playerKills = new Dictionary<Player, int>();
                 from.sendMessage(0, "#Individual Statistics Breakdown");
                 foreach (Player player in _playersIngame)
                 {
                     if (bCurrent)
                     {
-                        rank.Add(player.StatsCurrentGame.kills, player);
+                        playerKills.Add(player, player.StatsCurrentGame.kills);
                     }
-                    else { rank.Add(player.StatsLastGame.kills, player); }
-                    
+                    else { playerKills.Add(player, player.StatsLastGame.kills); }
+
                 }
+
+                var playerRanks = (from entry in playerKills orderby entry.Value ascending select entry);
+
                 //Display top 3
-                from.sendMessage(0, String.Format("!1st (K={0} D={1}): {2}", rank.ElementAt(0).Key, rank.ElementAt(0).Value.StatsLastGame.deaths, rank.ElementAt(0).Value._alias));
-                from.sendMessage(0, String.Format("!2nd (K={0} D={1}): {2}", rank.ElementAt(1).Key, rank.ElementAt(1).Value.StatsLastGame.deaths, rank.ElementAt(1).Value._alias));
-                from.sendMessage(0, String.Format("!3rd (K={0} D={1}): {2}", rank.ElementAt(2).Key, rank.ElementAt(2).Value.StatsLastGame.deaths, rank.ElementAt(2).Value._alias));
+                if (playerKills.Keys.Count > 0)
+                from.sendMessage(0, String.Format("!1st (K={0} D={1}): {2}", 
+                    playerRanks.ElementAt(0).Value, playerRanks.ElementAt(0).Key.StatsLastGame.deaths, 
+                    playerRanks.ElementAt(0).Key._alias));
+                if (playerKills.Keys.Count > 1)
+                from.sendMessage(0, String.Format("!2nd (K={0} D={1}): {2}",
+                    playerRanks.ElementAt(1).Value, playerRanks.ElementAt(1).Key.StatsLastGame.deaths, 
+                    playerRanks.ElementAt(1).Key._alias));
+                if (playerKills.Keys.Count > 2)
+                from.sendMessage(0, String.Format("!3rd (K={0} D={1}): {2}",
+                    playerRanks.ElementAt(2).Value, playerRanks.ElementAt(2).Key.StatsLastGame.deaths, 
+                    playerRanks.ElementAt(2).Key._alias));
             }
 
 
