@@ -210,7 +210,7 @@ namespace InfServer.Game
         {
             double d = Math.Sqrt(squaredDistanceTo(p));
 
-            if (d <= _type.LosDistance)
+            if (d <= _type.FireRadius)
                 return true;
 
             return false;
