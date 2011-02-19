@@ -152,6 +152,9 @@ namespace InfServer.Game
                 {
                     _lock.ReleaseWriterLock();
                 }
+
+                remoteEp = new IPEndPoint(IPAddress.Any, 0);
+                _socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEp, OnRequestReceived, null);
             }
         }
 
