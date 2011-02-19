@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,128 @@ namespace InfServer.Game
 		public new LogClient _logger;			//Our zone server log
 
 		private bool _bStandalone;				//Are we in standalone mode?
+
+	    private ClientPingResponder _pingResponder;
+
+        /// <summary>
+        /// Responds to ping and player count requests made by the client. Runs on the port
+        /// above the zone server.
+        /// </summary>
+        private class ClientPingResponder
+        {
+            private Dictionary<ushort, Player> _players;
+            private Thread _listenThread;
+            private Socket _socket;
+            private Dictionary<EndPoint, Int32> _clients;
+            private Boolean _isOperating;
+            private ReaderWriterLock _lock;
+            private byte[] _buffer;
+
+            public ClientPingResponder(Dictionary<ushort, Player> players)
+            {
+                _players = players;
+                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                _clients = new Dictionary<EndPoint, Int32>();
+                _lock = new ReaderWriterLock();
+                _buffer = new byte[4];
+            }
+
+            public void Begin(IPEndPoint listenPoint)
+            {
+                _listenThread = new Thread(Listen);
+                _listenThread.IsBackground = true;
+                _listenThread.Name = "ClientPingResponder";
+                _listenThread.Start(listenPoint);
+            }
+
+            private void Listen(Object obj)
+            {
+                var listenPoint = (IPEndPoint)obj;
+                EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+
+                //Prevent useless connection reset exceptions
+                uint IOC_IN = 0x80000000;
+                uint IOC_VENDOR = 0x18000000;
+                uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+                _socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+
+                _socket.Bind(listenPoint);
+                _socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEP, OnRequestReceived, null);
+
+                _isOperating = true;
+
+                // Do we have clients to service?
+                while(_isOperating)
+                {
+                    Dictionary<EndPoint, Int32> queue = null;
+                    _lock.AcquireWriterLock(Timeout.Infinite);
+
+                    // Swap the queue
+                    try
+                    {
+                        queue = _clients;
+                        _clients = new Dictionary<EndPoint, Int32>();
+                    }
+                    finally
+                    {
+                        _lock.ReleaseWriterLock();
+                    }
+
+                    if(queue != null && queue.Count != 0)
+                    {
+                        // May not be synchronized, but that's okay, the client requests often.
+                        byte[] playerCount = BitConverter.GetBytes(_players.Count);
+
+                        foreach(var entry in queue)
+                        {
+                            // TODO: Refactor this into something cultured
+                            EndPoint client = entry.Key;
+                            byte[] token = BitConverter.GetBytes(entry.Value);
+
+                            byte[] buffer = new []
+                                                {
+                                                    playerCount[0], playerCount[1], playerCount[2], playerCount[3],
+                                                    token[0], token[1], token[2], token[3]
+                                                };
+
+                            _socket.SendTo(buffer, client);
+                        }
+                    }
+
+                    Thread.Sleep(10);
+                }
+            }
+
+            private void OnRequestReceived(IAsyncResult result)
+            {
+                if(!result.IsCompleted)
+                {
+                    // Log this
+                    return;
+                }
+
+                EndPoint remoteEp = new IPEndPoint(IPAddress.Any, 0);
+                int read = _socket.EndReceiveFrom(result, ref remoteEp);
+
+                if(read != 4)
+                {
+                    // Log and disregard
+                    return;
+                }
+
+                _lock.AcquireWriterLock(Timeout.Infinite);
+
+                try
+                {
+                    Int32 token = BitConverter.ToInt32(_buffer, 0);
+                    _clients[remoteEp] = token;
+                }
+                finally
+                {
+                    _lock.ReleaseWriterLock();
+                }
+            }
+        }
 
 		/// <summary>
 		/// Indicates whether the server is in standalone (no database) mode
@@ -172,6 +295,10 @@ namespace InfServer.Game
 			if (!initArenas())
 				return false;
 
+            // Create the ping/player count responder
+            //////////////////////////////////////////////
+		    _pingResponder = new ClientPingResponder(_players);
+
 			return true;
 		}
 
@@ -187,7 +314,9 @@ namespace InfServer.Game
 				IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue);
 			base.begin(listenPoint);
 
-			//Start handling our arenas
+		    _pingResponder.Begin(new IPEndPoint(IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue + 1));
+
+			//Start handling our arenas);
 			using (LogAssume.Assume(_logger))
 				handleArenas();
 		}
