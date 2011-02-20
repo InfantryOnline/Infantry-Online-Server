@@ -120,6 +120,12 @@ namespace InfServer.Game
 		/// </summary>
 		public virtual void handlePlayerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
 		{	}
+
+        /// <summary>
+        /// Triggered when a player attempts to repair(heal)
+        /// </summary>
+        public virtual void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
+        {   }
 		#endregion
 	}
 }

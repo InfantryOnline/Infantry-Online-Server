@@ -78,10 +78,12 @@ namespace InfServer.DirectoryServer.Directory
             var z1 = new Zone(new byte[4] { 207, 191, 144, 208 }, 1337, "[Temp]HellSpawn CTF", false, "HellSpawn's Twin Peaks");
             var z2 = new Zone(new byte[4] { 99, 231, 167, 97 }, 1337, "[Temp]Jovan CTF", false, "Jovan's Twin Peaks");
             var z3 = new Zone(new byte[4] { 97, 81, 195, 81 }, 1337, "[Temp]Mongoose CTF", false, "Geese Twin Peaks");
+            var z4 = new Zone(new byte[4] { 97, 81, 195, 81 }, 2001, "Combined Arms", false, "This is it.");
 
             zones.Add(z1);
             zones.Add(z2);
             zones.Add(z3);
+            zones.Add(z4);
             ZoneStream = new ZoneStream(zones);
 
             return true;

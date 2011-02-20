@@ -1214,6 +1214,28 @@ namespace InfServer.Game
 				player._client.sendReliable(rld);
 			}
 		}
+
+        public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
+        {
+            // Forward it to our script
+            if(!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, posX, posY))
+            {
+                // Does player want to repair themselves?
+                if(item.repairSelf)
+                {
+                    
+                }
+
+                player._state.health += (short)item.repairAmount;
+                player.inventoryModify(item, item.ammoUsedPerShot);
+
+                // Indicate that it was successful
+                SC_ItemReload rld = new SC_ItemReload();
+                rld.itemID = (short) item.id;
+
+                player._client.sendReliable(rld);
+            }
+        }
 		#endregion
 	}
 }

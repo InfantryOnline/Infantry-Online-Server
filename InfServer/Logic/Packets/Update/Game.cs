@@ -353,6 +353,11 @@ namespace InfServer.Logic
 						case ItemInfo.ItemType.ItemMaker:
 							player._arena.handlePlayerMakeItem(player, info as ItemInfo.ItemMaker, pkt.posX, pkt.posY);
 							break;
+
+                        case ItemInfo.ItemType.Repair:
+					        player._arena.handlePlayerRepair(player, info as ItemInfo.RepairItem, pkt.posX, pkt.posY);
+					        break;
+
 					}
 				}
 			}
