@@ -578,17 +578,34 @@ namespace InfServer.Protocol
 			//Group our normal packets
 			foreach (ReliableInfo pInfo in packetQueue)
 			{	//If the packet exceeds the max limit, send it on it's own
-				if (2 + 1 + pInfo.packet.Length > udpMaxSize)
+				if (2 + 1 + pInfo.packet.Length > byte.MaxValue)
 				{	//We need to send the previous boxing packets first, as they
 					//should be in order of reliable id
 					if (box.reliables.Count > 0)
 					{
 						info = new ReliableInfo();
 						info.rid = _S2C_Reliable++;
-						info.packet = new Reliable(box, info.rid);
+
+						//Don't add a lonely box
+						if (box.reliables.Count == 1)
+							info.packet = new Reliable(box.reliables[0].packet, info.rid);
+						else
+						{	//Make sure the box is serialized
+							if (!box._bSerialized)
+							{
+								box._client = this;
+								box._handler = _handler;
+
+								box.Serialize();
+								box._bSerialized = true;
+							}
+
+							info.packet = new Reliable(box, info.rid);
+						}
+
 						info.consolidateEvents(box.reliables);
 
-						reliables.Add(pInfo);
+						reliables.Add(info);
 					}
 
 					box = new ReliableBox();
@@ -597,7 +614,7 @@ namespace InfServer.Protocol
 					//Add the packet on it's own
 					Reliable reli = new Reliable();
 					reli.packet = pInfo.packet;
-					reli.rNumber = _S2C_Reliable++;
+					pInfo.rid = reli.rNumber = _S2C_Reliable++;
 					pInfo.packet = reli;
 
 					reliables.Add(pInfo);
@@ -609,7 +626,24 @@ namespace InfServer.Protocol
 				{	//There's not enough room, box up our current packet
 					info = new ReliableInfo();
 					info.rid = _S2C_Reliable++;
-					info.packet = new Reliable(box, info.rid);
+
+					//Don't add a lonely box
+					if (box.reliables.Count == 1)
+						info.packet = new Reliable(box.reliables[0].packet, info.rid);
+					else
+					{	//Make sure the box is serialized
+						if (!box._bSerialized)
+						{
+							box._client = this;
+							box._handler = _handler;
+
+							box.Serialize();
+							box._bSerialized = true;
+						}
+
+						info.packet = new Reliable(box, info.rid);
+					}
+
 					info.consolidateEvents(box.reliables);
 
 					reliables.Add(info);
@@ -628,6 +662,17 @@ namespace InfServer.Protocol
 			{
 				info = new ReliableInfo();
 				info.rid = _S2C_Reliable++;
+
+				//Make sure the box is serialized
+				if (!box._bSerialized)
+				{
+					box._client = this;
+					box._handler = _handler;
+
+					box.Serialize();
+					box._bSerialized = true;
+				}
+
 				info.packet = new Reliable(box, info.rid);
 				info.consolidateEvents(box.reliables);
 
@@ -663,23 +708,39 @@ namespace InfServer.Protocol
 			//Group our normal packets
 			foreach (PacketBase packet in packetQueue)
 			{	//Do not group data packets
-				if (packet is DataPacket)
+				if (packet is DataPacket) 
 				{
 					boxes.Add(packet);
 					continue;
 				}
 
-				//If the packet exceeds the max limit, send it on it's own
-				if (2 + 1 + packet.Length > udpMaxSize)
+				//Make sure the packet is serialized before we go comparing size
+				if (!packet._bSerialized)
 				{
+					packet._client = this;
+					packet._handler = _handler;
+
+					packet.Serialize();
+					packet._bSerialized = true;
+				}
+
+				//If the packet exceeds the max limit, send it on it's own
+				if (2 + 1 + packet.Length > byte.MaxValue)
+				{	//WARNING: This may disrupt the reliable flow?
 					boxes.Add(packet);
 					continue;
 				}
 
 				//Do we have space to add this packet?
 				if (currentSize + packet.Length + 1 > udpMaxSize)
-				{	//There's not enough room, box up our current packet
-					boxes.Add(box);
+				{	//There's not enough room. Check if our previous packet is on it's
+					//own and actually warrants a box packet.
+					if (box.packets.Count == 1)
+						boxes.Add(box.packets[0]);
+					else
+						boxes.Add(box);
+
+					//Create our new box
 					box = new BoxPacket();
 					currentSize = 2 + _CRCLength;
 				}
