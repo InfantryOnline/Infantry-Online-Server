@@ -33,6 +33,8 @@ namespace InfServer.Game
 
 		private bool _bStandalone;				//Are we in standalone mode?
 
+        public string _name;                    //The zone's name
+
 	    private ClientPingResponder _pingResponder;
 
         /// <summary>

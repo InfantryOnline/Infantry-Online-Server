@@ -75,12 +75,36 @@ namespace InfServer.Game.Commands.Chat
         }
 
         /// <summary>
-        /// sends commands to a mod
+        /// Sends help request to moderators..
         /// </summary>
         public static void help(Player player, Player recipient, string payload)
         {
-            // For now, just send a message to the arena
-            Helpers.Social_ArenaChat(player._arena, player._alias + " asked for help: " + payload, 0);
+            //Ignore help requests in stand alone mode
+            if (player._server.IsStandalone)
+                return;
+            
+            //payload empty?
+            if (payload == "")
+                payload = "None specified";
+
+            //Check our arena for moderators...
+            int mods = 0;
+            foreach (Player mod in player._arena.Players)
+            {   //Display to every type of "moderator"
+                if (mod._permissionStatic > 0)
+                {
+                    mod.sendMessage(0, String.Format("&HELP:(Zone={0} Arena={1} Player={2}) Reason={3}", player._server._name, player._arena._name, player._alias, payload));
+                    mods += 1;
+                }
+            }
+
+            //TODO: Log help requests to the database when there are no moderators online.
+            if (mods == 0)
+            {
+            }
+
+            //Notify the player all went well..
+            player.sendMessage(0, "Help request sent, when a moderator replies, use :: syntax to reply back");
         }
 
         /// <summary>

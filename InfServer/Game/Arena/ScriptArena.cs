@@ -305,7 +305,7 @@ namespace InfServer.Game
 					drop.quantity = (short)(drop.quantity - update.quantity);
                 
 				//Add the pickup to inventory!
-				from.inventoryModify(drop.item, update.quantity);
+			    handlePlayerReceiveItem(from, drop.item, from._state.positionX, from._state.positionY, update.quantity);
 
 				//Remove the item from player's clients
 				Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
@@ -1177,63 +1177,145 @@ namespace InfServer.Game
 		/// <summary>
 		/// Triggered when a player attempts to use an item creator
 		/// </summary>
-		public override void handlePlayerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
-		{	//What does he expect us to make?
-			ItemInfo itminfo = _server._assets.getItemByID(item.itemMakerItemID);
-			if (itminfo == null)
-			{
-				Log.write(TLog.Warning, "ItemMaker Item {0} corresponds to invalid item.", item);
-				return;
-			}
+        public override void handlePlayerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
+		{
+		    //What does he expect us to make?
+		    ItemInfo itminfo = _server._assets.getItemByID(item.itemMakerItemID);
+		    if (itminfo == null)
+		    {
+		        Log.write(TLog.Warning, "ItemMaker Item {0} corresponds to invalid item.", item);
+		        return;
+		    }
 
-			//Expensive stuff, item creation
-			int ammoID;
-			int ammoCount;
+		    //Expensive stuff, item creation
+		    int ammoID;
+		    int ammoCount;
 
-			if (player.Cash < item.cashCost)
-				return;
+		    if (player.Cash < item.cashCost)
+		        return;
 
-			if (item.getAmmoType(out ammoID, out ammoCount))
-				if (ammoID != 0 && !player.inventoryModify(ammoID, -ammoCount))
-					return;
+		    if (item.getAmmoType(out ammoID, out ammoCount))
+		        if (ammoID != 0 && !player.inventoryModify(ammoID, -ammoCount))
+		            return;
 
-			player.Cash -= item.cashCost;
+		    player.Cash -= item.cashCost;
 
-			//Forward to our script
-			if (!exists("Player.MakeItem") || (bool)callsync("Player.MakeItem", false, player, item, posX, posY))
-			{	//Do we create it in the inventory or arena?
-				if (item.itemMakerQuantity > 0)
-					itemSpawn(itminfo, (ushort)item.itemMakerQuantity, posX, posY);
-				else
-					player.inventoryModify(itminfo, Math.Abs(item.itemMakerQuantity));
+		    //Forward to our script
+		    if (!exists("Player.MakeItem") || (bool) callsync("Player.MakeItem", false, player, item, posX, posY))
+		    {
+		        //Do we create it in the inventory or arena?
+                if (item.itemMakerQuantity > 0)
+                    itemSpawn(itminfo, (ushort)item.itemMakerQuantity, posX, posY);
+                else
+                    handlePlayerReceiveItem(player, itminfo, posX, posY, Math.Abs(item.itemMakerQuantity));
 
-				//Indicate that it was successful
-				SC_ItemReload rld = new SC_ItemReload();
-				rld.itemID = (short)item.id;
+		        //Indicate that it was successful
+		        SC_ItemReload rld = new SC_ItemReload();
+		        rld.itemID = (short) item.id;
 
-				player._client.sendReliable(rld);
-			}
+		        player._client.sendReliable(rld);
+
+                player.syncState();
+		    }
 		}
+
+
+        /// <summary>
+        /// Triggered when a player receives an item
+        /// </summary>
+        public override void handlePlayerReceiveItem(Player player, ItemInfo item, short posX, short posY, int quantity)
+        {
+            switch (item.itemType)
+            {
+                case ItemInfo.ItemType.Multi:
+                    handlePlayerMultiItem(player, item as ItemInfo.MultiItem, posX, posY, quantity);
+                    break;
+
+                case ItemInfo.ItemType.Upgrade:
+                    handlePlayerUpgradeItem(player, item as ItemInfo.UpgradeItem, posX, posY, quantity);
+                    break;
+
+                case ItemInfo.ItemType.Skill:
+                    var skillItm = item as ItemInfo.SkillItem;
+                    foreach (var skill in skillItm.skills)
+                    {
+                        handlePlayerShopSkill(player, player._server._assets.getSkillByID(skill.ID));
+                    }
+                    break;
+
+                default:
+                    player.inventoryModify(false, item, Math.Abs(quantity));
+                    break;
+            }
+            player.syncState();
+        }
+
+
+	    /// <summary>
+        /// Triggered when a player receives a multi-item
+        /// </summary>
+        public void handlePlayerMultiItem(Player player, ItemInfo.MultiItem item, short posX, short posY, int quantity)
+        {   //Loop through the MultiItem's slots
+            foreach (var itm in item.slots)
+            {
+                if (itm.value == 0)
+                    continue;
+
+                //Declare our "slot" as an item
+                ItemInfo currentItm = player._server._assets.getItemByID(itm.value);
+                
+                //Prize it!
+                handlePlayerReceiveItem(player, currentItm, posX, posY, quantity);
+            }
+        }
+
+        /// <summary>
+        /// Triggered when a player receives a upgrade-item
+        /// </summary>
+        public void handlePlayerUpgradeItem(Player player, ItemInfo.UpgradeItem item, short posX, short posY, int quantity)
+        {   //Loop through the Upgrade Item's slots
+            foreach (var itm in item.upgrades)
+            {   //Declare our input/output as items
+                ItemInfo inputItm = player._server._assets.getItemByID(itm.inputID);
+                ItemInfo outputItm = player._server._assets.getItemByID(itm.outputID);
+
+                //Start the upgrading!
+                if (itm.outputID > 0 && player.getInventory(itm.inputID) != null)
+                {
+                    if (Logic_Assets.SkillCheck(player, outputItm.skillLogic))
+                    handlePlayerReceiveItem(player, outputItm, posX, posY, quantity);
+                }
+
+                //Remove the input item..
+                if (itm.inputID > 0)
+                {   //Check if he even has the input item..
+                    if (player.getInventory(itm.inputID) != null)
+                        player.inventoryModify(false, inputItm, -quantity);
+                }
+            }
+        }
 
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
         {
+
+            // Does player want to repair themselves?
+            if (item.repairSelf)
+            {
+
+            }
+            player.inventoryModify(item.useAmmoID, -item.ammoUsedPerShot);
+
+            player._state.health += (short)item.repairAmount;
+
+            // Indicate that it was successful
+            SC_ItemReload rld = new SC_ItemReload();
+            rld.itemID = (short)item.id;
+
+            player._client.sendReliable(rld);
+
             // Forward it to our script
             if(!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, posX, posY))
             {
-                // Does player want to repair themselves?
-                if(item.repairSelf)
-                {
-                    
-                }
-
-                player._state.health += (short)item.repairAmount;
-                player.inventoryModify(item, item.ammoUsedPerShot);
-
-                // Indicate that it was successful
-                SC_ItemReload rld = new SC_ItemReload();
-                rld.itemID = (short) item.id;
-
-                player._client.sendReliable(rld);
             }
         }
 		#endregion

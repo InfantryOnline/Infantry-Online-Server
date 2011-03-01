@@ -29,6 +29,7 @@ namespace Assets
                     child.inputID = CSVReader.GetInt(values[currentPlace + 0]);
                     child.outputID = CSVReader.GetInt(values[currentPlace + 1]);
                     currentPlace += 2;
+                    item.upgrades.Add(child);
                 }
 
                 return item;

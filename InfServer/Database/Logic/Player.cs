@@ -46,6 +46,7 @@ namespace InfServer.Logic
 
 			//Let him in!
 			Helpers.Login_Response(player._client, SC_Login.Login_Result.Success, pkt.loginMessage);
+            player._permissionStatic = pkt.permission;
 		}
 
 		/// <summary>

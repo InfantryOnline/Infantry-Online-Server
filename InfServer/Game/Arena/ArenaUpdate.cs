@@ -122,6 +122,12 @@ namespace InfServer.Game
 		{	}
 
         /// <summary>
+        /// Triggered when a player receives an item
+        /// </summary>
+        public virtual void handlePlayerReceiveItem(Player player, ItemInfo item, short posX, short posY, int quantity)
+        { }
+
+        /// <summary>
         /// Triggered when a player attempts to repair(heal)
         /// </summary>
         public virtual void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)

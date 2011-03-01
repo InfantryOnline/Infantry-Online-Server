@@ -201,8 +201,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {	//Modify the recipient inventory
-                if (!recipient.inventoryModify(item, quantity))
-                    player.sendMessage(-1, "Unable to make inventory adjustment.");
+                player._arena.handlePlayerReceiveItem(recipient, item, player._state.positionX, player._state.positionY, quantity);
             }
         }
 

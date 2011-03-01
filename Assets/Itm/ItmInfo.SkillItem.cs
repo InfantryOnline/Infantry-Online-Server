@@ -13,7 +13,7 @@ namespace Assets
                 public int ID;
             }
 
-            public List<Skill> skills;
+            public List<Skill> skills = new List<Skill>();
 
             public static SkillItem Load(List<string> values)
             {
@@ -28,6 +28,7 @@ namespace Assets
 					child.logic = CSVReader.GetQuotedString(values[currentPlace + 0]);
                     child.ID = CSVReader.GetInt(values[currentPlace + 1]);
                     currentPlace += 2;
+                    item.skills.Add(child);
                 }
                 return item;
             }
