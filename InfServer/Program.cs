@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
 
 namespace InfServer
 {
 	class Program
 	{
 		static Game.ZoneServer server;
+        public static void restart()
+        {
+            Thread.Sleep(5000);
+            Log.close();
+            Process.Start(Environment.CurrentDirectory + "/InfServer.exe");
+            Environment.Exit(1);
+        }
 
 		public static void onException(object o, UnhandledExceptionEventArgs e)
 		{	//Talk about the exception

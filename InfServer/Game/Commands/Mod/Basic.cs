@@ -120,6 +120,15 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
+        static public void serverRestart(Player player, Player recipient, string payload)
+        {
+            foreach (Player p in player._arena.Players)
+            {
+                p.sendMessage(-1, "!Server restarting in 30 seconds.");
+            }
+            InfServer.Program.restart();
+        }
+
         /// <summary>
         /// Summons the specified player to yourself
         /// </summary>
@@ -321,6 +330,11 @@ namespace InfServer.Game.Commands.Mod
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
                 "::*warp or *warp A4 or *warp 123,123",
                 InfServer.Data.PlayerPermission.ArenaMod);
+
+            yield return new HandlerDescriptor(serverRestart, "recycle",
+                "Restarts the current zone..",
+                "*recycle",
+                InfServer.Data.PlayerPermission.Sysop);
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Summons a specified player to your location.",

@@ -519,6 +519,10 @@ namespace InfServer.Game
         {
         }
 
+        public virtual void handlePlayerChatCommand(Player player, Player recipient, string command, string payload)
+        {
+        }
+
 		/// <summary>
 		/// Called to reset the game state
 		/// </summary>

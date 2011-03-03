@@ -1280,7 +1280,7 @@ namespace InfServer.Game
                 ItemInfo outputItm = player._server._assets.getItemByID(itm.outputID);
 
                 //Start the upgrading!
-                if (itm.outputID > 0 && player.getInventory(itm.inputID) != null)
+                if (itm.outputID > 0)
                 {
                     if (Logic_Assets.SkillCheck(player, outputItm.skillLogic))
                     handlePlayerReceiveItem(player, outputItm, posX, posY, quantity);
@@ -1292,6 +1292,16 @@ namespace InfServer.Game
                     if (player.getInventory(itm.inputID) != null)
                         player.inventoryModify(false, inputItm, -quantity);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Triggered when a player sends a chat command
+        /// </summary>
+        public override void handlePlayerChatCommand(Player player, Player recipient, string command, string payload)
+        {
+            if (!exists("Player.ChatCommand") || (bool)callsync("Player.ChatCommand", false, player, recipient, command, payload)) 
+            { 
             }
         }
 

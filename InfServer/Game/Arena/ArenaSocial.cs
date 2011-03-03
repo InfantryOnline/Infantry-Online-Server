@@ -123,7 +123,11 @@ namespace InfServer.Game
 			HandlerDescriptor handler;
 
 			if (!_commandRegistrar._chatCommands.TryGetValue(command.ToLower(), out handler))
-				return;
+            {
+                from._arena.handlePlayerChatCommand(from, recipient, command, payload);
+                return;
+            }
+
 
 			try
 			{	//Handle it!

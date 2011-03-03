@@ -186,7 +186,6 @@ namespace InfServer.Script.GameType_CTF
             {	//Spectating? Psh.
                 if (p.IsSpectator)
                     continue;
-
                 //Find the base reward
                 int personalJackpot;
 
@@ -210,6 +209,19 @@ namespace InfServer.Script.GameType_CTF
                 _arena.breakDown(p, false);
             }
 		}
+
+        /// <summary>
+        /// Called when a player sends a chat command
+        /// </summary>
+        [Scripts.Event("Player.ChatCommand")]
+        public bool playerChatCommand(Player player, Player recipient, string command, string payload)
+        {
+            if (command.ToLower() == "test")
+            {
+                player.sendMessage(0, "Test");
+            }
+            return true;
+        }
 
 		/// <summary>
 		/// Called when a player enters the game
