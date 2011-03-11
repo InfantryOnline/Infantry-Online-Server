@@ -77,6 +77,11 @@
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Infantry.dbml.layout">
+      <DependentUpon>Infantry.dbml</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\InfServer.DBComm\InfServer.DBComm.csproj">
       <Project>{8817E7B9-441E-45EF-B2BF-9E637DCCB868}</Project>
       <Name>InfServer.DBComm</Name>
@@ -85,11 +90,6 @@
       <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
       <Name>InfServer.Network</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Infantry.dbml.layout">
-      <DependentUpon>Infantry.dbml</DependentUpon>
-    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

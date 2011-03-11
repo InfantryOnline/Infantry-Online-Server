@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>InfServer</RootNamespace>
     <AssemblyName>InfServer</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -31,6 +31,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -55,10 +56,6 @@
     <Reference Include="CSScriptLibrary, Version=2.1.0.0, Culture=neutral, PublicKeyToken=70fcc3d18c749033, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\CSScriptLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="DBComm, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\DBComm.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zlib, Version=1.9.1.5, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -192,16 +189,6 @@
     <Compile Include="Scripts\ThreadedObject.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Assets\Assets.csproj">
-      <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
-      <Name>Assets</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\InfServer.Network\InfServer.Network.csproj">
-      <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
-      <Name>InfServer.Network</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
@@ -218,7 +205,23 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Assets\Assets.csproj">
+      <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
+      <Name>Assets</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\InfServer.DBComm\InfServer.DBComm.csproj">
+      <Project>{8817E7B9-441E-45EF-B2BF-9E637DCCB868}</Project>
+      <Name>InfServer.DBComm</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\InfServer.Network\InfServer.Network.csproj">
+      <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
+      <Name>InfServer.Network</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
