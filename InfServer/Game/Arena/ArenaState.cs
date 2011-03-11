@@ -123,15 +123,15 @@ namespace InfServer.Game
 		    Helpers.Object_Players(player, Players);
 
 			//Load the arena's item state  
-			//Helpers.Object_Items(player, _items.Values);         
+			Helpers.Object_Items(player, _items.Values);         
 
 			//Load the arena's various lio objects
-			//Helpers.Object_Flags(player, _flags.Values);
-			//Helpers.Object_LIOs(player, _switches.Values);
+			Helpers.Object_Flags(player, _flags.Values);
+			Helpers.Object_LIOs(player, _switches.Values);
 
 			//Load the vehicles in the arena
-			//if (_vehicles.Count > 0)
-				//Helpers.Object_Vehicles(player, _vehicles);
+			if (_vehicles.Count > 0)
+				Helpers.Object_Vehicles(player, _vehicles);
 
 			//Initialize the player's state
 			Helpers.Player_StateInit(player,
@@ -144,7 +144,7 @@ namespace InfServer.Game
 					player.setIngame();
 
 					//Load the tickers
-					//Helpers.Arena_Message(player, _tickers.Values);
+					Helpers.Arena_Message(player, _tickers.Values);
 				}
 			);
 		}

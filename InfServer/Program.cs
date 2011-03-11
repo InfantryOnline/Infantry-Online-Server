@@ -10,6 +10,10 @@ namespace InfServer
 	class Program
 	{
 		static Game.ZoneServer server;
+
+		/// <summary>
+		/// Used to exit and spawn a new instance of the server
+		/// </summary>
         public static void restart()
         {
             Thread.Sleep(5000);
@@ -18,6 +22,9 @@ namespace InfServer
             Environment.Exit(1);
         }
 
+		/// <summary>
+		/// Makes a note of all unhandled exceptions
+		/// </summary>
 		public static void onException(object o, UnhandledExceptionEventArgs e)
 		{	//Talk about the exception
 			using (LogAssume.Assume(server._logger))

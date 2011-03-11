@@ -44,8 +44,8 @@ namespace InfServer.Game
 		{	//Initialize the base arena class
 			base.init();
 
-            //Start our configurable breakdown class
-            _breakDown = new BreakDown();
+            //Initialize our breakdown settings
+            _breakdownSettings = new BreakdownSettings();
 
 			//Load the associated scripts
 			_scripts = Scripts.instanceScripts(this, _scriptType);
@@ -172,22 +172,21 @@ namespace InfServer.Game
 			callsync("Game.End", false);
 		}
 
-
-
         /// <summary>
         /// Called when the game wants to display end game statistics
         /// </summary>
-        public override void breakDown(Player from, bool bCurrent)
-        {
-            //Display Team Stats?
-            if (_breakDown.bDisplayTeam)
+        public override void breakdown(Player from, bool bCurrent)
+        {	//Display Team Stats?
+            if (_breakdownSettings.bDisplayTeam)
             {
                 from.sendMessage(0, "#Team Statistics Breakdown");
                 Dictionary<Team, int> teamKills = new Dictionary<Team, int>();
+
                 foreach (var t in _teams)
                 {
                     int kills = 0;
                     int deaths = 0;
+
                     //Add up all the kills
                     foreach (Player player in PlayersIngame)
                     {
@@ -205,9 +204,11 @@ namespace InfServer.Game
                             }
                         }
                     }
+
                     //Add team to our SortedDictionary
                     teamKills.Add(t.Value, kills);
                 }
+
                 var teamRanks = (from entry in teamKills orderby entry.Value ascending select entry);
 
                 if (teamKills.Keys.Count > 1)
@@ -219,11 +220,13 @@ namespace InfServer.Game
                         teamRanks.ElementAt(1).Value,
                         teamRanks.ElementAt(1).Key._name));
             }
+
             //Do we want to display individual statistics?
-            if (_breakDown.bDisplayIndividual)
+            if (_breakdownSettings.bDisplayIndividual)
             {
                 Dictionary<Player, int> playerKills = new Dictionary<Player, int>();
                 from.sendMessage(0, "#Individual Statistics Breakdown");
+
                 foreach (Player player in _playersIngame)
                 {
                     if (bCurrent)
@@ -251,9 +254,8 @@ namespace InfServer.Game
                     playerRanks.ElementAt(2).Key._alias));
             }
 
-
             //Pass it to the script environment
-            callsync("Game.BreakDown", false);
+            callsync("Game.Breakdown", false);
         }
 
 		/// <summary>

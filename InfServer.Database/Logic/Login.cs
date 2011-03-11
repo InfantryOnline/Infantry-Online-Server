@@ -64,7 +64,7 @@ namespace InfServer.Logic
 			SC_Auth<Zone> success = new SC_Auth<Zone>();
 
 			success.result = SC_Auth<Zone>.LoginResult.Success;
-		    success.message = dbZone.name;
+		    success.message = dbZone.notice;
 
 			client.sendReliable(success);
 

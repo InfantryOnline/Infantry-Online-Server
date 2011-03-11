@@ -169,9 +169,7 @@ namespace InfServer.Script.GameType_CTF
 		/// Called when the specified team have won
 		/// </summary>
 		public void gameVictory(Team victors)
-		{
-
-            //Let everyone know
+		{	//Let everyone know
 			if (_config.flag.useJackpot)
 				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);
 
@@ -180,7 +178,7 @@ namespace InfServer.Script.GameType_CTF
 
 			_arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);
 
-            //TODO: Move this calculation to breakDown() in ScriptArena?
+            //TODO: Move this calculation to breakdown() in ScriptArena?
 			//Calculate the jackpot for each player
             foreach (Player p in _arena.Players)
             {	//Spectating? Psh.
@@ -206,7 +204,7 @@ namespace InfServer.Script.GameType_CTF
                 p.Points += pointReward;
 
                 //Call teh Breakdownz
-                _arena.breakDown(p, false);
+                _arena.breakdown(p, false);
             }
 		}
 
@@ -277,8 +275,8 @@ namespace InfServer.Script.GameType_CTF
         /// <summary>
         /// Called when the statistical breakdown is displayed
         /// </summary>
-        [Scripts.Event("Game.BreakDown")]
-        public bool breakDown()
+        [Scripts.Event("Game.Breakdown")]
+        public bool breakdown()
         {	//Allows additional "custom" breakdown information
 
 

@@ -71,7 +71,7 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void breakdown(Player player, Player recipient, string payload)
         {
-            player._arena.breakDown(player, true);
+            player._arena.breakdown(player, true);
         }
 
         /// <summary>

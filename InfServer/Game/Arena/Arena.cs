@@ -36,7 +36,7 @@ namespace InfServer.Game
 		public bool _bGameRunning;						//Is the game running?
         public DateTime _timeGameStarted;               //When our game started
         public DateTime _timeGameEnded;                 //When our game ended
-        public BreakDown _breakDown;
+        public BreakdownSettings _breakdownSettings;
 
 		public int _levelWidth;
 		public LvlInfo.Tile[] _tiles;					//The terrain tiles in the arena, can be updated to reflect switches, etc
@@ -321,8 +321,8 @@ namespace InfServer.Game
 			initState();
 			initLio();
 
-            //Start our configurable breakdown class
-            _breakDown = new BreakDown();
+            //Initialize our breakdown settings
+            _breakdownSettings = new BreakdownSettings();
 		}
 
 		/// <summary>
@@ -505,17 +505,16 @@ namespace InfServer.Game
         /// <summary>
         /// Our configurable Breakdown Class.
         /// </summary>
-        public class BreakDown
+        public class BreakdownSettings
         {   //All true by default
             public bool bDisplayTeam = true;
             public bool bDisplayIndividual = true;
         } 
 
-
         /// <summary>
 		/// Called when the game ends
 		/// </summary>
-        public virtual void breakDown(Player from, bool bCurrent)
+        public virtual void breakdown(Player from, bool bCurrent)
         {
         }
 
