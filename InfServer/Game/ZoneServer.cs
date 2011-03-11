@@ -81,7 +81,7 @@ namespace InfServer.Game
 			string filePath = AssetFileFactory.findAssetFile(_config["server/zoneConfig"].Value, "assets\\");
 			if (filePath == null)
 			{
-				Log.write(TLog.Error, "Unable to find config file.");
+				Log.write(TLog.Error, "Unable to find config file '" + _config["server/zoneConfig"].Value + "'.");
 				return false;
 			}
 

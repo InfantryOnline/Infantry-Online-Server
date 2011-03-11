@@ -1249,6 +1249,7 @@ namespace InfServer.Game
                     player.inventoryModify(false, item, Math.Abs(quantity));
                     break;
             }
+
             player.syncState();
         }
 
@@ -1308,13 +1309,12 @@ namespace InfServer.Game
         }
 
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
-        {
-
-            // Does player want to repair themselves?
+        {	// Does player want to repair themselves?
             if (item.repairSelf)
             {
 
             }
+
             player.inventoryModify(item.useAmmoID, -item.ammoUsedPerShot);
 
             player._state.health += (short)item.repairAmount;

@@ -210,7 +210,7 @@ namespace InfServer.Scripting
 		private static bool compile(List<ScriptParser> parsers, string[] sources, string[] namespaces)
 		{	//Obtain our compiler
 			var providerOptions = new Dictionary<string, string>();
-			providerOptions.Add("CompilerVersion", "v3.5");
+			providerOptions.Add("CompilerVersion", "v4.0");
 
 			CodeDomProvider compiler = new CSharpCodeProvider(providerOptions);
 

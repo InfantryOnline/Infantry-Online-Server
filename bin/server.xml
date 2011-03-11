@@ -15,7 +15,7 @@
 		<zoneConfig value="ctf1.cfg" />
 		<gameType value="GameType_CTF" />
 		
-		<logPackets value="true" />
+		<logPackets value="false" />
 	</server>
 	
 	<protocol>
