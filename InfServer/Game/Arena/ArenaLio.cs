@@ -190,8 +190,7 @@ namespace InfServer.Game
 		/// Attempts to trigger a hide spawn
 		/// </summary>
 		private bool hideSpawn(HideState hs, int spawns)
-		{
-            //Mark out last attempt
+		{   //Mark out last attempt
 			hs._tickLastAttempt = Environment.TickCount;
 			hs._tickLastSuccessAttempt = 0;
 
@@ -201,17 +200,15 @@ namespace InfServer.Game
 				return false;
 			if (players < hs.Hide.HideData.MinPlayers)
 				return false;
-
             
 			//Look out for distant players
 			if (hs.Hide.HideData.MinPlayerDistance != 0 &&
-				getPlayersInRange(hs.Hide.GeneralData.OffsetX, hs.Hide.GeneralData.OffsetY, hs.Hide.HideData.MinPlayerDistance).Count == 0)
+				getPlayersInRange(hs.Hide.GeneralData.OffsetX, hs.Hide.GeneralData.OffsetY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
 				return false;
 
 			if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
 				getPlayersInRange(hs.Hide.GeneralData.OffsetX, hs.Hide.GeneralData.OffsetY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
 				return false;
-             
             
 			//TODO: Hide lio spawn probability
 

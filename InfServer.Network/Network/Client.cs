@@ -184,7 +184,7 @@ namespace InfServer.Protocol
 		{	//Sync up!
 			using (DdMonitor.Lock(_sync))
 			{	//Only time out server-side clients
-				if (!_bClientConn && Environment.TickCount - base._lastPacketRecv > connectionTimeout)
+				if (connectionTimeout != -1 && !_bClientConn && Environment.TickCount - base._lastPacketRecv > connectionTimeout)
 				{	//Farewell~
 					Log.write(TLog.Warning, "Client timeout: {0}", this);
 					destroy();

@@ -4,10 +4,10 @@
 		<ip value="127.0.0.1" />
 		<port value="13337" />
 		
-		<zoneid value="1" />
+		<zoneid value="2" />
 		<password value="abc123" />
 		
-		<connectionAttempts value="0" />
+		<connectionAttempts value="1" />
 	</database>
 	
 	<server>

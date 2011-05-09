@@ -80,7 +80,14 @@ namespace InfServer.Data
 
 					//Keep trying to connect until we get a reaction.
 					do
-					{	//Start our connection
+					{   //Have we tried enough?
+                        if (attemptsLeft-- <= 0)
+                        {
+                            Log.write(TLog.Warning, "Attempt to connect to the database server timed out.");
+                            return false;
+                        }
+
+                        //Start our connection
 						_conn.begin(dbPoint);
 
 						//Send our initial packet
@@ -91,13 +98,6 @@ namespace InfServer.Data
 						init.udpMaxPacket = Client.udpMaxSize;
 
 						_conn._client.send(init);
-
-						//Have we tried enough?
-						if (--attemptsLeft <= 0)
-						{
-							Log.write(TLog.Warning, "Attempt to connect to the database server timed out.");
-							return false;
-						}
 					} 
 					while (!_syncStart.WaitOne(3000));
 
