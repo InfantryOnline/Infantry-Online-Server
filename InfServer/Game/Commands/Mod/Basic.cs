@@ -23,7 +23,7 @@ namespace InfServer.Game.Commands.Mod
             {	//List all mod commands
                 player.sendMessage(0, "&Mod commands available to you:");
 
-                int playerPermission = (int)player.PermissionLevel;
+                int playerPermission = (int)player.PermissionLevelLocal;
 
                 foreach (HandlerDescriptor cmd in player._arena._commandRegistrar._modCommands.Values)
                     if (playerPermission >= (int)cmd.permissionLevel)
@@ -41,7 +41,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Do we have permission to view this?
-            if ((int)player.PermissionLevel < (int)handler.permissionLevel)
+            if ((int)player.PermissionLevelLocal < (int)handler.permissionLevel)
             {
                 player.sendMessage(-1, "Unable to find the specified command.");
                 return;

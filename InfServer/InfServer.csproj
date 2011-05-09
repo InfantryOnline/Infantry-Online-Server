@@ -117,6 +117,7 @@
     <Compile Include="Logic\General\Assets.Skills.cs" />
     <Compile Include="Logic\General\Rewards.cs" />
     <Compile Include="Logic\Lio\Warp.cs" />
+    <Compile Include="Logic\Packets\Arenas\Arenas.cs" />
     <Compile Include="Logic\Packets\Login\Assets.cs" />
     <Compile Include="Logic\Packets\Login\Login.cs" />
     <Compile Include="Logic\Packets\Social\Chat.cs" />
@@ -174,7 +175,7 @@
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdate.cs" />
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdateInfo.cs" />
     <Compile Include="Protocol\Packets\Security\CS_Frames.cs" />
-    <Compile Include="Protocol\Packets\Security\CS_Security.cs" />
+    <Compile Include="Protocol\Packets\State\CS_ArenaJoin.cs" />
     <Compile Include="Protocol\Packets\Social\CS_Chat.cs" />
     <Compile Include="Protocol\Packets\Social\SC_Chat.cs" />
     <Compile Include="Protocol\Packets\Login\CS_Login.cs" />
@@ -182,6 +183,7 @@
     <Compile Include="Protocol\Packets\Login\SC_Login.cs" />
     <Compile Include="Protocol\Packets\Login\SC_PatchInfo.cs" />
     <Compile Include="Protocol\Packets\Login\SC_SetIngame.cs" />
+    <Compile Include="Protocol\Packets\State\SC_ArenaList.cs" />
     <Compile Include="Scripts\Events\Events.cs" />
     <Compile Include="Scripts\Events\Handlers.cs" />
     <Compile Include="Scripts\ScriptParser.cs" />

@@ -118,10 +118,10 @@ namespace InfServer.Game
 
 			//Do we need to notify, or is this an initial team?
 			if (player._bIngame)
-			{	//Let everyone know
+				//Let everyone know
 				Helpers.Player_SetTeam(_arena.Players, player, this);
-				player.sendMessage(0, "Team joined: " + _name);
-			}
+
+			player.sendMessage(0, "Team joined: " + _name);
 
 			//If he isn't a spectator, trigger the event too
 			if (!player.IsSpectator)

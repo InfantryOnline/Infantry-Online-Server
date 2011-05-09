@@ -95,7 +95,7 @@ namespace InfServer.Game
 				return;
 
 			//Check the permission levels
-			if ((int)from.PermissionLevel < (int)handler.permissionLevel)
+			if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
 			{	//Not going to happen.
 				return;
 			}

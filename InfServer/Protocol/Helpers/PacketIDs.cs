@@ -57,6 +57,7 @@ namespace InfServer.Protocol
 				EnterArena = 0x04,
 				ArenaMessage = 0x05,
 				PatchInfo = 0x07,
+				ArenaList = 0x08,
 				BindVehicle = 0x0B,
 				ChangeTeam = 0x0C,
 				PlayerState = 0x0D,

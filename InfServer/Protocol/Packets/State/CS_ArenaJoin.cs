@@ -8,9 +8,9 @@ using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-	/// CS_Security is used to check the integrity of the client's security
+	/// CS_ArenaJoin is used to check the integrity of the client's security
 	/// </summary>
-	public class CS_Security : PacketBase
+	public class CS_ArenaJoin : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public bool Unk1;
@@ -18,11 +18,11 @@ namespace InfServer.Protocol
 		public UInt32 AssetChecksum;	//Checksum of all the assets loaded in the client
 		public UInt16 Unk2;
 		public UInt16 Unk3;
-		public string Unk4;
+		public string ArenaName;
 
 		//Packet routing
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.Security;
-		static public event Action<CS_Security, Player> Handlers;
+		static public event Action<CS_ArenaJoin, Player> Handlers;
 
 
 		///////////////////////////////////////////////////
@@ -34,7 +34,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-		public CS_Security(ushort typeID, byte[] buffer, int index, int count)
+		public CS_ArenaJoin(ushort typeID, byte[] buffer, int index, int count)
 			: base(typeID, buffer, index, count)
 		{
 		}
@@ -58,7 +58,7 @@ namespace InfServer.Protocol
 			AssetChecksum = _contentReader.ReadUInt32();
 			Unk2 = _contentReader.ReadUInt16();
 			Unk3 = _contentReader.ReadUInt16();
-			Unk4 = ReadString(16);
+			ArenaName = ReadString(16);
 		}
 
 		/// <summary>

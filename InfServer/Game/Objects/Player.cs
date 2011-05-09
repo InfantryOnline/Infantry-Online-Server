@@ -129,9 +129,20 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// Gets the player's permission level in his current state
+		/// Gets the player's absolute permission level across the zone
 		/// </summary>
 		public Data.PlayerPermission PermissionLevel
+		{
+			get
+			{
+				return (Data.PlayerPermission)_permissionStatic;
+			}
+		}
+
+		/// <summary>
+		/// Gets the player's permission level in his current state
+		/// </summary>
+		public Data.PlayerPermission PermissionLevelLocal
 		{
 			get
 			{
@@ -208,17 +219,8 @@ namespace InfServer.Game
 			bDestroyed = true;
 
 			using (LogAssume.Assume(_server._logger))
-			{	//If we're currently in a vehicle, we want to desert it
-				if (_occupiedVehicle != null)
-					_occupiedVehicle.playerLeave(true);
-
-				//Notify our team
-				if (_team != null)
-					_team.lostPlayer(this);
-
-				//Notify our current arena
-				if (_arena != null)
-					_arena.lostPlayer(this);
+			{	//Take him out of his arena
+				leftArena();
 
 				//and next, the zone server
 				_server.lostPlayer(this);
@@ -232,6 +234,29 @@ namespace InfServer.Game
 		{
 			Helpers.Player_Disconnect(this);
 			destroy();
+		}
+
+		/// <summary>
+		/// The player has left the arena, reset assets
+		/// </summary>
+		public void leftArena()
+		{	//If we're currently in a vehicle, we want to desert it
+			if (_occupiedVehicle != null)
+				_occupiedVehicle.playerLeave(true);
+			_occupiedVehicle = null;
+
+			//Notify our team
+			if (_team != null)
+				_team.lostPlayer(this);
+			_team = null;
+
+			//Notify our current arena
+			if (_arena != null)
+				_arena.lostPlayer(this);
+			_arena = null;
+
+			//We are no longer ingame
+			_bIngame = false;
 		}
 
 		/// <summary>

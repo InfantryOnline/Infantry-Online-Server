@@ -15,9 +15,18 @@ namespace InfServer.Game.Commands.Chat
     /// </summary>
     public class Normal
     {
-               
+      	/// <summary>
+        /// Presents the player with a list of arenas available to join
+        /// </summary>
+		public static void arena(Player player, Player recipient, string payload)
+		{	//Form the list packet to send to him..
+			SC_ArenaList arenaList = new SC_ArenaList(player._server._arenas.Values, player);
+
+			player._client.sendReliable(arenaList);
+		}
+
         /// <summary>
-        /// buys items in the form item1:x1, item2:x2 and so on
+        /// Purchases items in the form item1:x1, item2:x2 and so on
         /// </summary>
         public static void buy(Player player, Player recipient, string payload)
         {	           
@@ -124,6 +133,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(buy, "buy",
                 "Buys items",
                 "?buy item1:amount1,item2:#absoluteAmount2");
+
+			yield return new HandlerDescriptor(arena, "arena",
+				"Displays all arenas availble to join",
+				"?arena");
         }
     }
 }

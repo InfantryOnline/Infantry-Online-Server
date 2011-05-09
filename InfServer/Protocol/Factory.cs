@@ -90,8 +90,8 @@ namespace InfServer.Protocol
 					packet = new CS_Login(typeID, buffer, offset, size);
 					break;
 
-				case CS_Security.TypeID:
-					packet = new CS_Security(typeID, buffer, offset, size);
+				case CS_ArenaJoin.TypeID:
+					packet = new CS_ArenaJoin(typeID, buffer, offset, size);
 					break;
 
 				case CS_PlayerJoin.TypeID:

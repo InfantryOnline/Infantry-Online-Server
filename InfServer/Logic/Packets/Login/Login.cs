@@ -77,38 +77,6 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
-		/// Triggered when the client is attempting to enter the game and sends his security reply
-		/// </summary>
-		static public void Handle_CS_Security(CS_Security pkt, Player player)
-		{	//If the player isn't logged in, ignore
-			if (!player._bLoggedIn)
-			{	//Log and abort
-				Log.write(TLog.Warning, "Player {0} tried to send security update while not logged in.", player);
-				player.disconnect();
-				return;
-			}
-
-			//TODO: Check the security update
-
-			//Is this the first security update?
-			if (!player._bIngame)
-			{	//We need to find our player an arena to inhabit..
-				Arena match = player._server.allocatePlayer(player);
-
-				//If we're unable to find an arena, abort
-				if (match == null)
-				{
-					Log.write(TLog.Warning, "Unable to allocate player '{0}' an arena.", player._alias);
-					player.disconnect();
-					return;
-				}
-
-				//Add him to the arena
-				match.newPlayer(player);
-			}
-		}
-
-		/// <summary>
 		/// Registers all handlers
 		/// </summary>
 		[Logic.RegistryFunc]
@@ -116,7 +84,6 @@ namespace InfServer.Logic
 		{
 			CS_Login.Handlers += Handle_CS_Login;
 			CS_Ready.Handlers += Handle_CS_Ready;
-			CS_Security.Handlers += Handle_CS_Security;
 		}
 	}
 }

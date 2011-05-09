@@ -13,7 +13,27 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public Int32 connectionID;			//The connection ID given at the start of the communication
-		public Int16 reasonID;				//The reason for disconnecting
+		public DisconnectReason reason;		//The reason for disconnecting
+
+		public enum DisconnectReason
+		{
+			DisconnectReasonNone = 0,
+			DisconnectReasonIcmpError,
+			DisconnectReasonTimeout,
+			DisconnectReasonOtherSideTerminated,
+			DisconnectReasonManagerDeleted,
+			DisconnectReasonConnectFail,
+			DisconnectReasonApplication,
+			DisconnectReasonUnreachableConnection,
+			DisconnectReasonUnacknowledgedTimeout,
+			DisconnectReasonNewConnectionAttempt,
+			DisconnectReasonConnectionRefused,
+			DisconnectReasonConnectError,
+			DisconnectReasonConnectingToSelf,
+			DisconnectReasonReliableOverflow,
+			DisconnectReasonApplicationReleased,
+			DisconnectReasonCorruptPacket,
+		};
 
 		//Packet routing
 		public const ushort TypeID = (ushort)5;
@@ -58,7 +78,7 @@ namespace InfServer.Protocol
 			Write((byte)TypeID);
 
 			Write(connectionID);
-			Write(Flip(reasonID));
+			Write(Flip((Int16)reason));
 		}
 
 		/// <summary>
@@ -67,7 +87,7 @@ namespace InfServer.Protocol
 		public override void Deserialize()
 		{	//Get our values!
 			connectionID = _contentReader.ReadInt32();
-			reasonID = Flip(_contentReader.ReadInt16());
+			reason = (DisconnectReason)Flip(_contentReader.ReadInt16());
 		}
 
 		/// <summary>
@@ -77,7 +97,7 @@ namespace InfServer.Protocol
 		{
 			get
 			{
-				return "Disconnect signal (" + reasonID + ")";
+				return "Disconnect signal (" + reason.ToString() + ")";
 			}
 		}
 	}

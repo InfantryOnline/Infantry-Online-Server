@@ -198,7 +198,7 @@ namespace InfServer.Protocol
 			Disconnect discon = new Disconnect();
 
 			discon.connectionID = p._client._connectionID;
-			discon.reasonID = 6;
+			discon.reason = Disconnect.DisconnectReason.DisconnectReasonApplication;
 
 			p._client.send(discon);
 		}

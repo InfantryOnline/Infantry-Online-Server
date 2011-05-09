@@ -29,7 +29,7 @@ namespace InfServer.Game
 		/// </summary>
 		public bool initArenas()
 		{	//Initialize variables
-			_arenas = new Dictionary<string, Arena>();
+			_arenas = new Dictionary<string, Arena>(StringComparer.OrdinalIgnoreCase);
 
 			//Gather config settings
 			Arena.maxItems = _config["arena/maxArenaItems"].intValue;
@@ -143,6 +143,28 @@ namespace InfServer.Game
 			Arena arena = null;
 			if (!_arenas.TryGetValue("Public1", out arena))
 				return newArena("");
+			return arena;
+		}
+
+		/// <summary>
+		/// Determines, given a specific arena request, which arena the player should join
+		/// </summary>
+		public Arena playerJoinArena(Player player, String arenaName)
+		{	//Do we have such an arena?
+			Arena arena = null;
+			if (!_arenas.TryGetValue(arenaName, out arena))
+			{	//Let's attempt to make it!
+				//Is it a reserved public arena?
+				if (arenaName.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+					//Can't do this I'm afraid
+					return null;
+
+				//Create it!
+				return newArena(arenaName);
+			}
+
+			//TODO: Test for join arena privileges
+
 			return arena;
 		}
 	}

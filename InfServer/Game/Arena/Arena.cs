@@ -442,6 +442,19 @@ namespace InfServer.Game
 				return null;
 			return team;
 		}
+
+		/// <summary>
+		/// Determines whether the player should be able to see this arena
+		/// </summary>
+		public bool isVisibleToPlayer(Player player)
+		{	//If we're private..
+			if (IsPrivate)
+			{	//Does the player have enough permission?
+				return (player.PermissionLevel >= Data.PlayerPermission.Mod);
+			}
+
+			return true;
+		}
 		#endregion
 
 		#region Events

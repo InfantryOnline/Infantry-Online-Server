@@ -219,7 +219,7 @@ namespace InfServer.Protocol
 				Disconnect discon = new Disconnect();
 
 				discon.connectionID = _connectionID;
-				discon.reasonID = 6;
+				discon.reason = Disconnect.DisconnectReason.DisconnectReasonApplication;
 
 				_packetQueue.Enqueue(discon);
 
