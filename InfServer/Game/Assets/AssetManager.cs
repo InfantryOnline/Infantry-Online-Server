@@ -150,7 +150,7 @@ namespace InfServer.Game
 		public void loadBloFile(string filename)
 		{	//Should we be loading blo files?
 			if (!bUseBlobs)
-				continue;
+				return;
 
 			//None == nothing
 			if (filename == null || filename == "")
