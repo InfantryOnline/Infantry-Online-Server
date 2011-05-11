@@ -183,13 +183,19 @@ namespace InfServer.Game
                 Dictionary<Team, int> teamKills = new Dictionary<Team, int>();
 
                 foreach (var t in _teams)
-                {
+                {	//Ignore team spec, and teams with no players
+					if (t.Value.IsSpec || t.Value.ActivePlayers == 0)
+						continue;
+
                     int kills = 0;
                     int deaths = 0;
 
                     //Add up all the kills
                     foreach (Player player in PlayersIngame)
-                    {
+                    {	//Ignore players in spec
+						if (player.IsSpectator)
+							continue;
+
                         if (player._team == t.Value)
                         {
                             if (bCurrent)
@@ -209,9 +215,9 @@ namespace InfServer.Game
                     teamKills.Add(t.Value, kills);
                 }
 
-                var teamRanks = (from entry in teamKills orderby entry.Value ascending select entry);
+                var teamRanks = (from entry in teamKills orderby entry.Value descending select entry);
 
-                if (teamKills.Keys.Count > 1)
+                if (teamKills.Keys.Count > 0)
                     from.sendMessage(0, String.Format("!1st (K={0}): {1}",
                         teamRanks.ElementAt(0).Value,
                         teamRanks.ElementAt(0).Key._name));
@@ -219,6 +225,10 @@ namespace InfServer.Game
                     from.sendMessage(0, String.Format("!2nd (K={0}): {1}",
                         teamRanks.ElementAt(1).Value,
                         teamRanks.ElementAt(1).Key._name));
+				if (teamKills.Keys.Count > 2)
+					from.sendMessage(0, String.Format("!3rd (K={0}): {1}",
+						teamRanks.ElementAt(2).Value,
+						teamRanks.ElementAt(2).Key._name));
             }
 
             //Do we want to display individual statistics?
@@ -230,14 +240,12 @@ namespace InfServer.Game
                 foreach (Player player in _playersIngame)
                 {
                     if (bCurrent)
-                    {
                         playerKills.Add(player, player.StatsCurrentGame.kills);
-                    }
-                    else { playerKills.Add(player, player.StatsLastGame.kills); }
-
+                    else 
+						playerKills.Add(player, player.StatsLastGame.kills);
                 }
 
-                var playerRanks = (from entry in playerKills orderby entry.Value ascending select entry);
+				var playerRanks = (from entry in playerKills orderby entry.Value descending select entry);
 
                 //Display top 3
                 if (playerKills.Keys.Count > 0)

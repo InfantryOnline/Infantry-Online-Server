@@ -14,6 +14,7 @@
 		<version value="155" />
 		<zoneConfig value="ctf1.cfg" />
 		<gameType value="GameType_CTF" />
+		<loadBlobs value="true" />
 		
 		<logPackets value="true" />
 	</server>

@@ -91,6 +91,9 @@ namespace InfServer.Game
 			try
 			{
 				_assets = new AssetManager();
+
+				_assets.bUseBlobs = _config["server/loadBlobs"].boolValue;
+
 				if (!_assets.load(_zoneConfig, _config["server/zoneConfig"].Value))
 				{	//We're unable to continue
 					Log.write(TLog.Error, "Files missing, unable to continue.");

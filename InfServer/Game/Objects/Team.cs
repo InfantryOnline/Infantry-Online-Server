@@ -63,6 +63,17 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Returns whether the team is a public team
+		/// </summary>
+		public bool IsSpec
+		{
+			get
+			{
+				return _name.Equals("spec", StringComparison.OrdinalIgnoreCase);
+			}
+		}
+
+		/// <summary>
 		/// Gives a short summary of this team
 		/// </summary>
 		public override string ToString()

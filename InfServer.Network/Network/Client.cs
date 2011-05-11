@@ -396,14 +396,15 @@ namespace InfServer.Protocol
 					packet._bSerialized = true;
 				}
 				
-				//Is the packet too large to be sent as one?
-				if (packet._size > _C2S_UDPSize)
+				//Is the (packet and reliable header) too large to be sent as one?
+				if (4 + packet._size + _CRCLength> _C2S_UDPSize)
 				{	//We must add it to the data packet queue..
 					DataStream ds = new DataStream();
 
 					ds.amountSent = 0;
 					ds.buffer = packet.Data;
-					ds.Completed += completionCallback;
+					if (completionCallback != null)
+						ds.Completed += completionCallback;
 
 					_dataQueue.Enqueue(ds);
 					return;
@@ -573,7 +574,7 @@ namespace InfServer.Protocol
 			List<ReliableInfo> reliables = new List<ReliableInfo>();
 			ReliableInfo info;
 			ReliableBox box = new ReliableBox();
-			int currentSize = 2 + _CRCLength;		//Header+footer size of a box packet
+			int currentSize = 4 + 2 + _CRCLength;		//Header+footer size of a boxed reliable packet
 
 			//Group our normal packets
 			foreach (ReliableInfo pInfo in packetQueue)
@@ -609,7 +610,7 @@ namespace InfServer.Protocol
 					}
 
 					box = new ReliableBox();
-					currentSize = 2 + _CRCLength;
+					currentSize = 4 + 2 + _CRCLength;
 
 					//Add the packet on it's own
 					Reliable reli = new Reliable();
@@ -649,7 +650,7 @@ namespace InfServer.Protocol
 					reliables.Add(info);
 
 					box = new ReliableBox();
-					currentSize = 2 + _CRCLength;
+					currentSize = 4 + 2 + _CRCLength;
 				}
 
 				//Add the packet to the box list

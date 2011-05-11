@@ -27,6 +27,8 @@ namespace InfServer.Game
 		private SortedDictionary<int, VehInfo> _idToVehicle;
 		private SortedDictionary<int, LioInfo> _idToLio;
 
+		public bool bUseBlobs = true;
+
 		public Cache AssetCache
 		{
 			get;
@@ -146,7 +148,11 @@ namespace InfServer.Game
 		/// Attempts to load an additional blo file
 		/// </summary>		
 		public void loadBloFile(string filename)
-		{	//None == nothing
+		{	//Should we be loading blo files?
+			if (!bUseBlobs)
+				continue;
+
+			//None == nothing
 			if (filename == null || filename == "")
 				return;
 
