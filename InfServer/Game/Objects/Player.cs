@@ -369,7 +369,14 @@ namespace InfServer.Game
 			_skills.TryGetValue(skill.SkillId, out sk);
 
 			if (sk != null)
-			{	//Do we have enough attributes?
+			{	//If it's a skill and not an attribute, we can only have one..
+				if (skill.SkillId > 0)
+				{
+					Log.write(TLog.Warning, "Attempted to add duplicate skill {0} for player {1}.", skill.Name, this);
+					return false;
+				}
+				
+				//Do we have enough attributes?
 				if (sk.quantity + adjust < 0)
 				{
 					Log.write(TLog.Warning, "Attempted to remove too many attributes from player {0}.", this);
@@ -421,6 +428,55 @@ namespace InfServer.Game
 				_skills.Add(sk.skill.SkillId, sk);
 			}
 
+			//Attribute or skill?
+			if (skill.SkillId >= 0)
+			{   //Do we have enough experience for this skill?
+				if (skill.Price <= ExperienceTotal)
+				{	//Success, let's also change the cash..
+					Cash = Math.Max(Cash + skill.CashAdjustment, 0);
+
+					//Clear inventory?
+					if (skill.ResetInventory)
+						_inventory.Clear();
+
+					//Process inventory adjustments
+					foreach (SkillInfo.InventoryMutator ia in skill.InventoryMutators)
+					{	//If it's valid..
+						if (ia.ItemId == 0)
+							continue;
+
+						//Add our item!
+						ItemInfo item = _server._assets.getItemByID(ia.ItemId);
+						if (item == null)
+						{
+							Log.write(TLog.Error, "Invalid itemID #{0} for inventory adjustment.", ia.ItemId);
+							continue;
+						}
+
+						inventoryModify(false, item.id, ia.Quantity);
+					}
+
+					//Finally, do we use a new defaultvehicle?
+					if (skill.DefaultVehicleId != -1)
+					{	//Yes, create and apply it
+						VehInfo baseType = _server._assets.getVehicleByID(skill.DefaultVehicleId);
+						if (baseType == null)
+							Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
+						else
+							setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
+					}
+				}
+			}
+			else
+			{   //Attributes
+
+				//Do we have enough experience for this skill?
+				if (skill.Price <= Experience)
+				{
+					//TODO: Remove experience?
+				}
+			}
+
 			//Update the player's state
 			if (bSyncState)
 				syncState();
@@ -443,6 +499,36 @@ namespace InfServer.Game
 			if (item.itemType == ItemInfo.ItemType.Upgrade)
 			{	//Apply it!
 				applyUpgradeItem(bSync, (ItemInfo.UpgradeItem)item, adjust);
+				return true;
+			}
+			//A skill item?
+			else if (item.itemType == ItemInfo.ItemType.Skill)
+			{	//Add each of the applicable skills
+				ItemInfo.SkillItem skill = (ItemInfo.SkillItem)item;
+
+				foreach (ItemInfo.SkillItem.Skill entry in skill.skills)
+				{	//No skill?
+					if (entry.ID == 0)
+						continue;
+					
+					//Do we satisfy the logic?
+					if (!Logic_Assets.SkillCheck(this, entry.logic))
+						continue;
+
+					//Obtain the skill..
+					SkillInfo skillInfo = _server._assets.getSkillByID(entry.ID);
+					if (skillInfo == null)
+					{
+						Log.write(TLog.Warning, "Attempted to add non-existent skill '{0}' for skill item '{1}'", entry.ID, item.name);
+						continue;
+					}
+					
+					//Add the skill!
+					skillModify(skillInfo, 1);
+				}
+
+				//At the moment we always sync - otherwise this function may only sync inventory
+				syncState();
 				return true;
 			}
 

@@ -256,9 +256,7 @@ namespace InfServer.Logic
 						{	//Find the given item
 							ItemInfo item = player._server._assets.getItemByName(param.Substring(0, colIdx));
                             if (item != null)
-                                player._arena.handlePlayerReceiveItem(player, item,
-                                    player._state.positionX, player._state.positionY,
-                                    Convert.ToInt32(param.Substring(colIdx + 1)));
+								player.inventoryModify(item, Convert.ToInt32(param.Substring(colIdx + 1)));
 						}
 					}
 					break;

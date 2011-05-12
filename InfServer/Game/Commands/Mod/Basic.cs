@@ -212,7 +212,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {	//Modify the recipient inventory
-                player._arena.handlePlayerReceiveItem(recipient, item, player._state.positionX, player._state.positionY, quantity);
+				player.inventoryModify(item, quantity);
             }
         }
 

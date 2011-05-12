@@ -316,7 +316,7 @@ namespace InfServer.Game
 					drop.quantity = (short)(drop.quantity - update.quantity);
                 
 				//Add the pickup to inventory!
-			    handlePlayerReceiveItem(from, drop.item, from._state.positionX, from._state.positionY, update.quantity);
+				from.inventoryModify(drop.item, update.quantity);
 
 				//Remove the item from player's clients
 				Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
@@ -928,65 +928,8 @@ namespace InfServer.Game
             if (!Logic_Assets.SkillCheck(from, skill.Logic))
                 return;
 
-			//Attribute or skill?
-			if (skill.SkillId >= 0)
-            {   //Do we have the skills required for this?
-                if (!Logic_Assets.SkillCheck(from, skill.Logic))
-                    return;
-                //Do we have enough experience for this skill?
-				if (skill.Price > from.Experience)
-					return;
-				if (!from.skillModify(false, skill, 1))
-					return;
-
-				//Success, let's also change the cash..
-				from.Cash = Math.Max(from.Cash + skill.CashAdjustment, 0);
-
-				//Clear inventory?
-				if (skill.ResetInventory)
-					from._inventory.Clear();
-
-				//Process inventory adjustments
-				foreach (SkillInfo.InventoryMutator ia in skill.InventoryMutators)
-				{	//If it's valid..
-					if (ia.ItemId == 0)
-						continue;
-
-					//Add our item!
-					ItemInfo item = _server._assets.getItemByID(ia.ItemId);
-					if (item == null)
-					{
-						Log.write(TLog.Error, "Invalid itemID #{0} for inventory adjustment.", ia.ItemId);
-						continue;
-					}
-
-					from.inventoryModify(false, item.id, ia.Quantity);
-				}
-
-				//Finally, do we use a new defaultvehicle?
-				if (skill.DefaultVehicleId != -1)
-				{	//Yes, create and apply it
-					VehInfo baseType = _server._assets.getVehicleByID(skill.DefaultVehicleId);
-					if (baseType == null)
-						Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
-					else
-						from.setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
-				}
-
-				//We're done! Update the player's state
-				from.syncState();
-			}
-			else
-            {   //Attributes
-                //Do we have enough experience for this skill?
-                if (skill.Price > from.Experience)
-                    return;
-                if (!from.skillModify(false, skill, 1))
-                    return;
-
-                //We're done! Update the player's state
-                from.syncState();
-			}
+			//Perform the skill modify!
+			from.skillModify(skill, 1);
 		}
 
 		/// <summary>
@@ -1235,12 +1178,11 @@ namespace InfServer.Game
 
 		    //Forward to our script
 		    if (!exists("Player.MakeItem") || (bool) callsync("Player.MakeItem", false, player, item, posX, posY))
-		    {
-		        //Do we create it in the inventory or arena?
-                if (item.itemMakerQuantity > 0)
-                    itemSpawn(itminfo, (ushort)item.itemMakerQuantity, posX, posY);
-                else
-                    handlePlayerReceiveItem(player, itminfo, posX, posY, Math.Abs(item.itemMakerQuantity));
+		    {   //Do we create it in the inventory or arena?
+				if (item.itemMakerQuantity > 0)
+					itemSpawn(itminfo, (ushort)item.itemMakerQuantity, posX, posY);
+				else
+					player.inventoryModify(itminfo, Math.Abs(item.itemMakerQuantity));
 
 		        //Indicate that it was successful
 		        SC_ItemReload rld = new SC_ItemReload();
@@ -1251,83 +1193,6 @@ namespace InfServer.Game
                 player.syncState();
 		    }
 		}
-
-
-        /// <summary>
-        /// Triggered when a player receives an item
-        /// </summary>
-        public override void handlePlayerReceiveItem(Player player, ItemInfo item, short posX, short posY, int quantity)
-        {
-            switch (item.itemType)
-            {
-                case ItemInfo.ItemType.Multi:
-                    handlePlayerMultiItem(player, item as ItemInfo.MultiItem, posX, posY, quantity);
-                    break;
-
-                case ItemInfo.ItemType.Upgrade:
-                    handlePlayerUpgradeItem(player, item as ItemInfo.UpgradeItem, posX, posY, quantity);
-                    break;
-
-                case ItemInfo.ItemType.Skill:
-                    var skillItm = item as ItemInfo.SkillItem;
-                    foreach (var skill in skillItm.skills)
-                    {
-                        handlePlayerShopSkill(player, player._server._assets.getSkillByID(skill.ID));
-                    }
-                    break;
-
-                default:
-                    player.inventoryModify(false, item, Math.Abs(quantity));
-                    break;
-            }
-
-            player.syncState();
-        }
-
-
-	    /// <summary>
-        /// Triggered when a player receives a multi-item
-        /// </summary>
-        public void handlePlayerMultiItem(Player player, ItemInfo.MultiItem item, short posX, short posY, int quantity)
-        {   //Loop through the MultiItem's slots
-            foreach (var itm in item.slots)
-            {
-                if (itm.value == 0)
-                    continue;
-
-                //Declare our "slot" as an item
-                ItemInfo currentItm = player._server._assets.getItemByID(itm.value);
-                
-                //Prize it!
-                handlePlayerReceiveItem(player, currentItm, posX, posY, quantity);
-            }
-        }
-
-        /// <summary>
-        /// Triggered when a player receives a upgrade-item
-        /// </summary>
-        public void handlePlayerUpgradeItem(Player player, ItemInfo.UpgradeItem item, short posX, short posY, int quantity)
-        {   //Loop through the Upgrade Item's slots
-            foreach (var itm in item.upgrades)
-            {   //Declare our input/output as items
-                ItemInfo inputItm = player._server._assets.getItemByID(itm.inputID);
-                ItemInfo outputItm = player._server._assets.getItemByID(itm.outputID);
-
-                //Start the upgrading!
-                if (itm.outputID > 0)
-                {
-                    if (Logic_Assets.SkillCheck(player, outputItm.skillLogic))
-                    handlePlayerReceiveItem(player, outputItm, posX, posY, quantity);
-                }
-
-                //Remove the input item..
-                if (itm.inputID > 0)
-                {   //Check if he even has the input item..
-                    if (player.getInventory(itm.inputID) != null)
-                        player.inventoryModify(false, inputItm, -quantity);
-                }
-            }
-        }
 
         /// <summary>
         /// Triggered when a player sends a chat command
