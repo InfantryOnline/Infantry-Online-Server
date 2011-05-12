@@ -116,6 +116,12 @@ namespace InfServer.Game
 		{	}
 
 		/// <summary>
+		/// Triggered when a player's item expires
+		/// </summary>
+		public virtual void handlePlayerItemExpire(Player player, ushort itemTypeID)
+		{	}
+
+		/// <summary>
 		/// Triggered when a player attempts to use an item creator
 		/// </summary>
 		public virtual void handlePlayerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
@@ -125,13 +131,20 @@ namespace InfServer.Game
         /// Triggered when a player receives an item
         /// </summary>
         public virtual void handlePlayerReceiveItem(Player player, ItemInfo item, short posX, short posY, int quantity)
-        { }
+        {	}
 
         /// <summary>
         /// Triggered when a player attempts to repair(heal)
         /// </summary>
         public virtual void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
         {   }
+
+		/// <summary>
+		/// Triggered when a player attempts to spectate another player
+		/// </summary>
+		public virtual void handlePlayerSpectate(Player player, ushort targetPlayerID)
+		{	}
+
 		#endregion
 	}
 }

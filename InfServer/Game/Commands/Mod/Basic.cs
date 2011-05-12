@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using InfServer.Bots;
 
 using Assets;
+
+using InfServer.Bots;
+using InfServer.Protocol;
 
 namespace InfServer.Game.Commands.Mod
 {
@@ -214,6 +216,41 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
+		/// <summary>
+		/// Forces a player to spectate another
+		/// </summary>
+		static public void spectate(Player player, Player recipient, string payload)
+		{	//Sanity checks
+			if (payload == "" || recipient == null)
+			{
+				player.sendMessage(-1, "Syntax: ::*spectate [player]");
+				return;
+			}
+
+			if (!recipient.IsSpectator)
+			{
+				player.sendMessage(-1, "Player isn't in spec.");
+				return;
+			}
+
+			//Find the player he's talking about
+			Player target = player._arena.getPlayerByName(payload);
+
+			if (target == null)
+			{
+				player.sendMessage(-1, "Cannot find player '" + payload + "'.");
+				return;
+			}
+			if (target.IsSpectator)
+			{
+				player.sendMessage(-1, "Target isn't in the game.");
+				return;
+			}
+
+			//Let the games begin!
+			recipient.spectate(target);
+		}
+
         /// <summary>
         /// Puts a player into spectator mode
         /// </summary>
@@ -350,6 +387,11 @@ namespace InfServer.Game.Commands.Mod
                 "Spawns an item on the ground or in a player's inventory",
                 "*prize item:amount or ::*prize item:amount",
                 InfServer.Data.PlayerPermission.ArenaMod);
+
+			yield return new HandlerDescriptor(spectate, "spectate",
+				"Forces a player to spectate the specified player.",
+				"::*spectate [player]",
+				InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(spec, "spec",
                 "Puts a player into spectator mode, optionally on a specified team.",

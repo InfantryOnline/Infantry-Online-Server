@@ -142,8 +142,10 @@
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerPortal.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerSwitch.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerUseItem.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_RequestSpectator.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_Shop.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_ShopSkill.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_ItemExpired.cs" />
     <Compile Include="Protocol\Packets\Game\Action\SC_ItemReload.cs" />
     <Compile Include="Protocol\Packets\Game\Action\SC_ShopFinished.cs" />
     <Compile Include="Protocol\Packets\Game\SC_BindVehicle.cs" />
@@ -165,6 +167,7 @@
     <Compile Include="Protocol\Packets\Game\Update\SC_Inventory.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_ItemDrop.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerDeath.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerSpectate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerTeamUpdate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerUpdate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerWarp.cs" />

@@ -218,5 +218,21 @@ namespace InfServer.Protocol
 		{
 			p._client.sendReliable(new SC_ClearProjectiles());
 		}
+
+		/// <summary>
+		/// Prompts a player to start spectating another player
+		/// </summary>
+		static public void Player_SpectatePlayer(Player p, Player toSpec)
+		{	//Form the packet
+			SC_PlayerSpectate pkt = new SC_PlayerSpectate();
+
+			pkt.spectatorID = p._id;
+			pkt.playerID = toSpec._id;
+
+			pkt.unk1 = -1;
+			pkt.unk2 = 1;
+
+			p._client.sendReliable(pkt);
+		}
 	}
 }

@@ -158,6 +158,14 @@ namespace InfServer.Protocol
 					packet = new CS_PlayerPortal(typeID, buffer, offset, size);
 					break;
 
+				case CS_RequestSpectator.TypeID:
+					packet = new CS_RequestSpectator(typeID, buffer, offset, size);
+					break;
+
+				case CS_ItemExpired.TypeID:
+					packet = new CS_ItemExpired(typeID, buffer, offset, size);
+					break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

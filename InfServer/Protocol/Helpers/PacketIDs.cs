@@ -29,6 +29,7 @@ namespace InfServer.Protocol
 				PlayerJoin = 0x0A,
 				StartUpdate = 0x0B,
 				PlayerPickup = 0x0E,
+				PlayerUseItem = 0x0F,
 				PlayerDrop = 0x17,
 				Chat = 0x18,
 				Ready = 0x0C,
@@ -40,10 +41,11 @@ namespace InfServer.Protocol
 				Frames = 0x15,
 				PlayerUpdate = 0x1C,
 				RequestUpdate = 0x1E,
+				ItemExpired = 0x20,
 				PlayerDeath = 0x21,
 				PlayerPortal = 0x22,
 				Security = 0x25,
-				PlayerUseItem = 0x0F,
+				RequestSpectator = 0x2B,
 			}
 
 			/// <summary>
@@ -80,6 +82,7 @@ namespace InfServer.Protocol
 				PlayerTeamUpdate = 0x28,
 				PlayerWarp = 0x2C,
 				ItemReload = 0x33,
+				PlayerSpectate = 0x35,
 			}
 		}
 	}

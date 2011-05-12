@@ -364,6 +364,51 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
+		/// Handles an spectator request for a client
+		/// </summary>
+		static public void Handle_CS_RequestSpectator(CS_RequestSpectator pkt, Player player)
+		{	//Allow the player's arena to handle it
+			if (player._arena == null)
+			{
+				Log.write(TLog.Error, "Player {0} sent spectator request packet with no arena.", player);
+				return;
+			}
+
+			if (!player.IsSpectator)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to spectate a player while not in spec.", player);
+				return;
+			}
+
+			using (DdMonitor.Lock(player._arena._sync))
+			{
+				using (LogAssume.Assume(player._arena._logger))
+				{
+					player._arena.handlePlayerSpectate(player, pkt.playerID);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Handles an item expiry notification
+		/// </summary>
+		static public void Handle_CS_ItemExpired(CS_ItemExpired pkt, Player player)
+		{	//Allow the player's arena to handle it
+			if (player._arena == null)
+			{
+				Log.write(TLog.Error, "Player {0} sent item expired packet with no arena.", player);
+				return;
+			}
+
+			using (DdMonitor.Lock(player._arena._sync))
+			{
+				using (LogAssume.Assume(player._arena._logger))
+				{
+					player._arena.handlePlayerItemExpire(player, pkt.itemID);
+				}
+			}
+		}
+		/// <summary>
 		/// Registers all handlers
 		/// </summary>
 		[Logic.RegistryFunc]
@@ -379,6 +424,8 @@ namespace InfServer.Logic
 			CS_Shop.Handlers += Handle_CS_Shop;
 			CS_ShopSkill.Handlers += Handle_CS_ShopSkill;
 			CS_PlayerUseItem.Handlers += Handle_CS_PlayerUseItem;
+			CS_RequestSpectator.Handlers += Handle_CS_RequestSpectator;
+			CS_ItemExpired.Handlers += Handle_CS_ItemExpired;
 		}
 	}
 }

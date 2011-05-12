@@ -145,23 +145,23 @@ namespace InfServer.Game
 			//Reset the game state
 			flagReset();
 
-            //Calculate how long the game lasted
-            _timeGameEnded = DateTime.Now;
-            System.TimeSpan diff = _timeGameEnded - _timeGameStarted;
+			//Calculate how long the game lasted
+			_timeGameEnded = DateTime.Now;
+			System.TimeSpan diff = _timeGameEnded - _timeGameStarted;
 
-            //Decide whether the game was long enough to display minutes
-            if (diff.TotalMinutes > 0)
-            {
-                sendArenaMessage("Game lasted " + diff.Minutes + " minutes, " + diff.Seconds + " seconds.");
-            }
-            else { sendArenaMessage("Game lasted " + diff.Seconds + " seconds."); }
+			//Decide whether the game was long enough to display minutes
+			if (diff.TotalMinutes > 0)
+			{
+				sendArenaMessage("Game lasted " + diff.Minutes + " minutes, " + diff.Seconds + " seconds.");
+			}
+			else { sendArenaMessage("Game lasted " + diff.Seconds + " seconds."); }
 
 			//Execute the end game event
 			string endGame = _server._zoneConfig.EventInfo.endGame;
 			foreach (Player player in Players)
 			{	//Keep the player's game stats updated
 				player.migrateStats();
-			    player.syncState();
+				player.syncState();
 
 				//Run the event if necessary
 				if (!player.IsSpectator)
@@ -171,100 +171,6 @@ namespace InfServer.Game
 			//Pass it to the script environment
 			callsync("Game.End", false);
 		}
-
-        /// <summary>
-        /// Called when the game wants to display end game statistics
-        /// </summary>
-        public override void breakdown(Player from, bool bCurrent)
-        {	//Display Team Stats?
-            if (_breakdownSettings.bDisplayTeam)
-            {
-                from.sendMessage(0, "#Team Statistics Breakdown");
-                Dictionary<Team, int> teamKills = new Dictionary<Team, int>();
-
-                foreach (var t in _teams)
-                {	//Ignore team spec, and teams with no players
-					if (t.Value.IsSpec || t.Value.ActivePlayers == 0)
-						continue;
-
-                    int kills = 0;
-                    int deaths = 0;
-
-                    //Add up all the kills
-                    foreach (Player player in PlayersIngame)
-                    {	//Ignore players in spec
-						if (player.IsSpectator)
-							continue;
-
-                        if (player._team == t.Value)
-                        {
-                            if (bCurrent)
-                            {
-                                kills = kills + player.StatsCurrentGame.kills;
-                                deaths = deaths + player.StatsCurrentGame.deaths;
-                            }
-                            else
-                            {
-                                kills = kills + player.StatsLastGame.kills;
-                                deaths = deaths + player.StatsLastGame.deaths;
-                            }
-                        }
-                    }
-
-                    //Add team to our SortedDictionary
-                    teamKills.Add(t.Value, kills);
-                }
-
-                var teamRanks = (from entry in teamKills orderby entry.Value descending select entry);
-
-                if (teamKills.Keys.Count > 0)
-                    from.sendMessage(0, String.Format("!1st (K={0}): {1}",
-                        teamRanks.ElementAt(0).Value,
-                        teamRanks.ElementAt(0).Key._name));
-                if (teamKills.Keys.Count > 1)
-                    from.sendMessage(0, String.Format("!2nd (K={0}): {1}",
-                        teamRanks.ElementAt(1).Value,
-                        teamRanks.ElementAt(1).Key._name));
-				if (teamKills.Keys.Count > 2)
-					from.sendMessage(0, String.Format("!3rd (K={0}): {1}",
-						teamRanks.ElementAt(2).Value,
-						teamRanks.ElementAt(2).Key._name));
-            }
-
-            //Do we want to display individual statistics?
-            if (_breakdownSettings.bDisplayIndividual)
-            {
-                Dictionary<Player, int> playerKills = new Dictionary<Player, int>();
-                from.sendMessage(0, "#Individual Statistics Breakdown");
-
-                foreach (Player player in _playersIngame)
-                {
-                    if (bCurrent)
-                        playerKills.Add(player, player.StatsCurrentGame.kills);
-                    else 
-						playerKills.Add(player, player.StatsLastGame.kills);
-                }
-
-				var playerRanks = (from entry in playerKills orderby entry.Value descending select entry);
-
-                //Display top 3
-                if (playerKills.Keys.Count > 0)
-                from.sendMessage(0, String.Format("!1st (K={0} D={1}): {2}", 
-                    playerRanks.ElementAt(0).Value, playerRanks.ElementAt(0).Key.StatsLastGame.deaths, 
-                    playerRanks.ElementAt(0).Key._alias));
-                if (playerKills.Keys.Count > 1)
-                from.sendMessage(0, String.Format("!2nd (K={0} D={1}): {2}",
-                    playerRanks.ElementAt(1).Value, playerRanks.ElementAt(1).Key.StatsLastGame.deaths, 
-                    playerRanks.ElementAt(1).Key._alias));
-                if (playerKills.Keys.Count > 2)
-                from.sendMessage(0, String.Format("!3rd (K={0} D={1}): {2}",
-                    playerRanks.ElementAt(2).Value, playerRanks.ElementAt(2).Key.StatsLastGame.deaths, 
-                    playerRanks.ElementAt(2).Key._alias));
-            }
-
-            //Pass it to the script environment
-            callsync("Game.Breakdown", false);
-        }
 
 		/// <summary>
 		/// Called to reset the game state
@@ -277,6 +183,101 @@ namespace InfServer.Game
 			callsync("Game.Reset", false);
 		}
 
+		/// <summary>
+		/// Called when the game wants to display end game statistics
+		/// </summary>
+		public override void breakdown(Player from, bool bCurrent)
+		{	//Display Team Stats?
+			if (_breakdownSettings.bDisplayTeam)
+			{
+				from.sendMessage(0, "#Team Statistics Breakdown");
+				Dictionary<Team, int> teamKills = new Dictionary<Team, int>();
+
+				foreach (var t in _teams)
+				{	//Ignore team spec, and teams with no players
+					if (t.Value.IsSpec || t.Value.ActivePlayers == 0)
+						continue;
+
+					int kills = 0;
+					int deaths = 0;
+
+					//Add up all the kills
+					foreach (Player player in PlayersIngame)
+					{	//Ignore players in spec
+						if (player.IsSpectator)
+							continue;
+
+						if (player._team == t.Value)
+						{
+							if (bCurrent)
+							{
+								kills = kills + player.StatsCurrentGame.kills;
+								deaths = deaths + player.StatsCurrentGame.deaths;
+							}
+							else
+							{
+								kills = kills + player.StatsLastGame.kills;
+								deaths = deaths + player.StatsLastGame.deaths;
+							}
+						}
+					}
+
+					//Add team to our SortedDictionary
+					teamKills.Add(t.Value, kills);
+				}
+
+				var teamRanks = (from entry in teamKills orderby entry.Value descending select entry);
+
+				if (teamKills.Keys.Count > 0)
+					from.sendMessage(0, String.Format("!1st (K={0}): {1}",
+						teamRanks.ElementAt(0).Value,
+						teamRanks.ElementAt(0).Key._name));
+				if (teamKills.Keys.Count > 1)
+					from.sendMessage(0, String.Format("!2nd (K={0}): {1}",
+						teamRanks.ElementAt(1).Value,
+						teamRanks.ElementAt(1).Key._name));
+				if (teamKills.Keys.Count > 2)
+					from.sendMessage(0, String.Format("!3rd (K={0}): {1}",
+						teamRanks.ElementAt(2).Value,
+						teamRanks.ElementAt(2).Key._name));
+			}
+
+			//Do we want to display individual statistics?
+			if (_breakdownSettings.bDisplayIndividual)
+			{
+				Dictionary<Player, int> playerKills = new Dictionary<Player, int>();
+				from.sendMessage(0, "#Individual Statistics Breakdown");
+
+				foreach (Player player in _playersIngame)
+				{
+					if (bCurrent)
+						playerKills.Add(player, player.StatsCurrentGame.kills);
+					else
+						playerKills.Add(player, player.StatsLastGame.kills);
+				}
+
+				var playerRanks = (from entry in playerKills orderby entry.Value descending select entry);
+
+				//Display top 3
+				if (playerKills.Keys.Count > 0)
+					from.sendMessage(0, String.Format("!1st (K={0} D={1}): {2}",
+						playerRanks.ElementAt(0).Value, playerRanks.ElementAt(0).Key.StatsLastGame.deaths,
+						playerRanks.ElementAt(0).Key._alias));
+				if (playerKills.Keys.Count > 1)
+					from.sendMessage(0, String.Format("!2nd (K={0} D={1}): {2}",
+						playerRanks.ElementAt(1).Value, playerRanks.ElementAt(1).Key.StatsLastGame.deaths,
+						playerRanks.ElementAt(1).Key._alias));
+				if (playerKills.Keys.Count > 2)
+					from.sendMessage(0, String.Format("!3rd (K={0} D={1}): {2}",
+						playerRanks.ElementAt(2).Value, playerRanks.ElementAt(2).Key.StatsLastGame.deaths,
+						playerRanks.ElementAt(2).Key._alias));
+			}
+
+			//Pass it to the script environment
+			callsync("Game.Breakdown", false);
+		}
+
+		#region Handlers
 		/// <summary>
 		/// Triggered when a player requests to pick up an item
 		/// </summary>
@@ -1185,11 +1186,33 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Triggered when a player's item expires
+		/// </summary>
+		public override void handlePlayerItemExpire(Player player, ushort itemTypeID)
+		{	//What sort of item is this?
+			ItemInfo itminfo = _server._assets.getItemByID(itemTypeID);
+			if (itminfo == null)
+			{
+				Log.write(TLog.Warning, "Player attempted to expire an invalid item type.");
+				return;
+			}
+		
+			//Can this item expire?
+			if (itminfo.expireTimer == 0)
+			{	//No!
+				Log.write(TLog.Warning, "Player attempted to expire an item which can't be expired: {0}", itminfo.name);
+				return;
+			}
+
+			//Remove all items of this type
+			player.removeAllItemFromInventory(itemTypeID);
+		}
+
+		/// <summary>
 		/// Triggered when a player attempts to use an item creator
 		/// </summary>
         public override void handlePlayerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
-		{
-		    //What does he expect us to make?
+		{   //What does he expect us to make?
 		    ItemInfo itminfo = _server._assets.getItemByID(item.itemMakerItemID);
 		    if (itminfo == null)
 		    {
@@ -1316,6 +1339,9 @@ namespace InfServer.Game
             }
         }
 
+		/// <summary>
+		/// Triggered when a player attempts to repair(heal)
+		/// </summary>
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
         {	// Does player want to repair themselves?
             if (item.repairSelf)
@@ -1338,6 +1364,30 @@ namespace InfServer.Game
             {
             }
         }
+
+		/// <summary>
+		/// Triggered when a player attempts to spectate another player
+		/// </summary>
+		public override void handlePlayerSpectate(Player player, ushort targetPlayerID)
+		{	//Make sure he's in spec himself
+			if (!player.IsSpectator)
+				return;
+			
+			//Find the player in question						
+			Player target = _playersIngame.getObjByID(targetPlayerID);
+			if (target == null)
+				return;
+
+			//Can't spectate other spectators
+			if (target.IsSpectator)
+				return;
+
+			//TODO: Check spectator permission
+
+			//Tell him yes!
+			player.spectate(target);
+		}
+		#endregion
 		#endregion
 	}
 }

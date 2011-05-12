@@ -444,6 +444,18 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Gets a player of the specified name
+		/// </summary>
+		public Player getPlayerByName(string name)
+		{	//Attempt to find him
+			foreach (Player player in _players)
+				if (player._alias.Equals(name, StringComparison.OrdinalIgnoreCase))
+					return player;
+
+			return null;
+		}
+
+		/// <summary>
 		/// Determines whether the player should be able to see this arena
 		/// </summary>
 		public bool isVisibleToPlayer(Player player)

@@ -439,7 +439,14 @@ namespace InfServer.Game
 		/// Modifies and updates the player's inventory
 		/// </summary>
 		public bool inventoryModify(bool bSync, ItemInfo item, int adjust)
-		{	//Do we already have such an item?
+		{	//Is this item an upgrade item?
+			if (item.itemType == ItemInfo.ItemType.Upgrade)
+			{	//Apply it!
+				applyUpgradeItem(bSync, (ItemInfo.UpgradeItem)item, adjust);
+				return true;
+			}
+
+			//Do we already have such an item?
 			InventoryItem ii;
 			_inventory.TryGetValue(item.id, out ii);
 
@@ -492,50 +499,77 @@ namespace InfServer.Game
 		/// </summary>
 		public bool inventoryModify(int itemid, int adjust)
 		{	//Redirect
-			return inventoryModify(true, itemid, adjust);
+			return inventoryModify(true, _server._assets.getItemByID(itemid), adjust);
 		}
 
 		/// <summary>
 		/// Modifies and updates the player's inventory
 		/// </summary>
 		public bool inventoryModify(bool bSyncInv, int itemid, int adjust)
-		{	//Do we already have such an item?
-			InventoryItem ii;
-			_inventory.TryGetValue(itemid, out ii);
+		{	//Get the item info
+			return inventoryModify(bSyncInv, _server._assets.getItemByID(itemid), adjust);
+		}
 
-			if (ii != null)
-			{	//Do we have enough items?
-				if (ii.quantity + adjust < 0)
-				{
-					Log.write(TLog.Warning, "Attempted to remove too many items from player {0}.", this);
-					return false;
+		/// <summary>
+		/// Removes all items of a specific type from the player's inventory
+		/// </summary>
+		public void removeAllItemFromInventory(int itemID)
+		{	//Attempt to remove it!
+			removeAllItemFromInventory(true, itemID);
+		}
+
+		/// <summary>
+		/// Removes all items of a specific type from the player's inventory
+		/// </summary>
+		public void removeAllItemFromInventory(bool bSyncInv, int itemID)
+		{	//Attempt to remove it!
+			if (_inventory.Remove(itemID))
+			{	//Should we sync?
+				if (bSyncInv)
+					syncInventory();
+			}
+		}
+
+		/// <summary>
+		/// Applys the changes an update item makes from the inventory
+		/// </summary>
+		private void applyUpgradeItem(bool bSyncInv, ItemInfo.UpgradeItem upgradeItem, int repeat)
+		{	//Find the first input item which matches
+			foreach (ItemInfo.UpgradeItem.Upgrade upgrade in upgradeItem.upgrades)
+			{	//Valid entry?
+				if (upgrade.inputID == 0 && upgrade.outputID == 0)
+					continue;
+
+				//If there is no input item..
+				if (upgrade.inputID == 0)
+				{	//Just gift the output item!
+					inventoryModify(false, upgrade.outputID, 1);
+					break;
 				}
 
-				//Will there be any items left?
-				if (adjust < 0 && (ii.quantity + adjust == 0))
-					_inventory.Remove(itemid);
-				else
-					ii.quantity = (ushort)(ii.quantity + adjust);
-			}
-			else if (adjust < 0)
-			{
-				Log.write(TLog.Warning, "Attempted to remove items which didn't exist from player {0}.", this);
-				return false;
-			}
-			else
-			{	//We need to add a new inventory item
-				ii = new InventoryItem();
+				//Do we have such an item?
+				InventoryItem ii;
+				_inventory.TryGetValue(upgrade.inputID, out ii);
 
-				ii.item = _server._assets.getItemByID(itemid);
-				ii.quantity = (ushort)adjust;
+				if (ii == null || ii.quantity <= 0)
+					continue;
 
-				_inventory.Add(itemid, ii);
+				//Yes! Remove the item
+				inventoryModify(false, upgrade.inputID, -1);
+
+				//Do we replace with an output item?
+				if (upgrade.outputID != 0)
+					inventoryModify(false, upgrade.outputID, 1);
+
+				break;
 			}
 
-			//Update the player's inventory
+			//Do we repeat?
+			if (repeat > 1)
+				applyUpgradeItem(false, upgradeItem, repeat - 1);
+
 			if (bSyncInv)
 				syncInventory();
-			return true;
 		}
 
 		/// <summary>
@@ -606,6 +640,20 @@ namespace InfServer.Game
 			if (!_inventory.TryGetValue(item.id, out ii))
 				return null;
 			return ii;
+		}
+
+		/// <summary>
+		/// Forces the player to spectate a certain player
+		/// </summary>
+		public bool spectate(Player toSpectate)
+		{	//Check whether the players are appropriate
+			if (toSpectate.IsSpectator)
+				return false;
+			if (!IsSpectator)
+				return false;
+
+			Helpers.Player_SpectatePlayer(this, toSpectate);
+			return true;
 		}
 
 		/// <summary>
