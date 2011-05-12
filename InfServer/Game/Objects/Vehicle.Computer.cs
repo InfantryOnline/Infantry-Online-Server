@@ -270,7 +270,7 @@ namespace InfServer.Game
 		/// </summary>		
 		private double squaredDistanceTo(Player p)
 		{
-			return (p._state.positionX - _state.positionX) ^ 2 + (p._state.positionY - _state.positionY) ^ 2;
+			return Math.Pow(p._state.positionX - _state.positionX, 2) + Math.Pow(p._state.positionY - _state.positionY, 2);
 		}
 
 		/// <summary>
@@ -279,7 +279,7 @@ namespace InfServer.Game
 		/// </summary>		
 		public void applyDamage(int dmgX, int dmgY, ItemInfo.Projectile wep)
 		{
-			double radius = Math.Sqrt((dmgX - _state.positionX)^2 + (dmgY - _state.positionY)^2);
+			double radius = Math.Sqrt(Math.Pow(dmgX - _state.positionX, 2) + Math.Pow(dmgY - _state.positionY, 2));
 
 			// NOTE: Damage values are all multiplied by 1000
 

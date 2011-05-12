@@ -328,6 +328,24 @@ namespace InfServer.Script.GameType_CTF
 		}
 
 		/// <summary>
+		/// Handles a player's produce request
+		/// </summary>
+		[Scripts.Event("Player.Produce")]
+		public bool playerProduce(Player player, Computer computer, VehInfo.Computer.ComputerProduct product)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// Handles a player's switch request
+		/// </summary>
+		[Scripts.Event("Player.Switch")]
+		public bool playerSwitch(Player player, LioInfo.Switch swi)
+		{
+			return true;
+		}
+
+		/// <summary>
 		/// Handles a player's flag request
 		/// </summary>
 		[Scripts.Event("Player.FlagAction")]
@@ -458,6 +476,15 @@ namespace InfServer.Script.GameType_CTF
 		/// </summary>
 		[Scripts.Event("Shop.Sell")]
 		public bool shopSell(Player patron, ItemInfo item, int quantity)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// Triggered when a vehicle dies
+		/// </summary>
+		[Scripts.Event("Vehicle.Death")]
+		public bool vehicleDeath(Vehicle dead, Player killer)
 		{
 			return true;
 		}

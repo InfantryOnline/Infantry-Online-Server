@@ -44,6 +44,12 @@ namespace InfServer.Game
 		{	}
 
 		/// <summary>
+		/// Handles a player's produce request
+		/// </summary>
+		public virtual void handlePlayerProduce(Player from, ushort computerVehID, ushort produceItem)
+		{ }
+
+		/// <summary>
 		/// Handles a player's switch request
 		/// </summary>
 		public virtual void handlePlayerSwitch(Player from, bool bOpen, LioInfo.Switch swi)
@@ -88,7 +94,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Triggered when a player has sent a death packet
 		/// </summary>
-		public virtual void handlePlayerDeath(Player from, CS_PlayerDeath update)
+		public virtual void handlePlayerDeath(Player from, CS_VehicleDeath update)
 		{	}
 
 		/// <summary>
@@ -137,6 +143,12 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to spectate another player
 		/// </summary>
 		public virtual void handlePlayerSpectate(Player player, ushort targetPlayerID)
+		{	}
+
+		/// <summary>
+		/// Triggered when a vehicle dies
+		/// </summary>
+		public virtual void handleVehicleDeath(Vehicle dead, Player killer, Player occupier)
 		{	}
 
 		#endregion

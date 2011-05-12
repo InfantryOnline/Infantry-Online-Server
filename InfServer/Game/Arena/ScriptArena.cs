@@ -380,6 +380,58 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Handles a player's produce request
+		/// </summary>
+		public override void handlePlayerProduce(Player from, ushort computerVehID, ushort produceItem)
+		{	//Make sure the item index is sensible
+			if (produceItem > 15)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to produce item > 15.", from);
+				return;
+			}
+			
+			//Get the associated vehicle
+			Vehicle vehicle;
+
+			if ((vehicle = _vehicles.getObjByID(computerVehID)) == null)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to produce using invalid vehicle.", from);
+				return;
+			}
+
+			Computer computer = vehicle as Computer;
+			if (computer == null)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to produce using non-computer vehicle.", from);
+				return;
+			}
+
+			//It must be in range
+			if (!Helpers.isInRange( 100,
+									computer._state.positionX, computer._state.positionY,
+									from._state.positionX, from._state.positionY))
+				return;
+
+			//Can't produce from dead or non-computer vehicles
+			if (computer.IsDead || computer._type.Type != VehInfo.Types.Computer)
+				return;
+			
+			//Vehicle looks fine, find the produce item involved
+			VehInfo.Computer computerInfo = (VehInfo.Computer)computer._type;
+			VehInfo.Computer.ComputerProduct product = computerInfo.Products[produceItem];
+			
+			//Quick check to make sure it isn't blank
+			if (product.Title == "")
+				return;
+
+			//Forward to our script
+			if (!exists("Player.Produce") || (bool)callsync("Player.Produce", false, from, computer, product))
+			{	//Make a produce request
+				produceRequest(from, computer, product);
+			}
+		}
+
+		/// <summary>
 		/// Handles a player's switch request
 		/// </summary>
 		public override void handlePlayerSwitch(Player from, bool bOpen, LioInfo.Switch swi)
@@ -755,8 +807,38 @@ namespace InfServer.Game
 		/// <summary>
 		/// Triggered when a player has sent a death packet
 		/// </summary>
-		public override void handlePlayerDeath(Player from, CS_PlayerDeath update)
-		{	//Fall out of our vehicle and die!
+		public override void handlePlayerDeath(Player from, CS_VehicleDeath update)
+		{	//Was it us that died?
+			if (update.killedID != from._id)
+			{	//Was it the vehicle we were in?
+				if (update.killedID == from._occupiedVehicle._id)
+				{	//Was it a player kill?
+					Player killer = null;
+
+					if (update.type == Helpers.KillType.Player)
+					{	//Sanity checks
+						killer = _players.getObjByID((ushort)update.killerPlayerID);
+
+						//Was it a player?
+						if (update.killerPlayerID >= 5001 || killer == null)
+						{
+							Log.write(TLog.Warning, "Player {0} gave invalid player killer ID.", from);
+							return;
+						}
+					}
+					
+					//Yes! Fall out of the vehicle
+					from._occupiedVehicle.kill(killer);
+					from._occupiedVehicle.playerLeave(true);
+					return;
+				}
+				
+				//We shouldn't be able to 'kill' anything else
+				Log.write(TLog.Warning, "Player {0} died with invalid killedID #{1}", from._alias, update.killedID);
+				return;
+			}
+			
+			//Fall out of our vehicle and die!
 			if (from._occupiedVehicle != null)
 				from._occupiedVehicle.playerLeave(true);
 
@@ -1251,6 +1333,17 @@ namespace InfServer.Game
 
 			//Tell him yes!
 			player.spectate(target);
+		}
+
+		/// <summary>
+		/// Triggered when a vehicle dies
+		/// </summary>
+		public override void handleVehicleDeath(Vehicle dead, Player killer, Player occupier)
+		{	//Forward it to our script
+			if (!exists("Vehicle.Death") || (bool)callsync("Vehicle.Death", false, dead, killer))
+			{	//Route the death to the arena
+				Helpers.Vehicle_RouteDeath(Players, killer, dead, occupier);
+			}
 		}
 		#endregion
 		#endregion

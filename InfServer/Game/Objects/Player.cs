@@ -705,6 +705,18 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Retrives the inventory item count for the specified item type
+		/// </summary>
+		public int getInventoryAmount(int itemid)
+		{	//Do we have such an item?
+			InventoryItem ii;
+
+			if (!_inventory.TryGetValue(itemid, out ii))
+				return 0;
+			return ii.quantity;
+		}
+
+		/// <summary>
 		/// Retrives the inventory entry for the specified item type
 		/// </summary>
 		public InventoryItem getInventory(int itemid)

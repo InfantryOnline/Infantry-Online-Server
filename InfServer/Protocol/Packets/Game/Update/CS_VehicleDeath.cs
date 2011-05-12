@@ -8,22 +8,22 @@ using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-	/// CS_PlayerDeath is triggered when a player dies
+	/// CS_VehicleDeath is triggered when a player dies
 	/// </summary>
-	public class CS_PlayerDeath : PacketBase
+	public class CS_VehicleDeath : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public Helpers.KillType type;		//The way in which the player was killed
 		public UInt32 killerPlayerID;		//The id of the player who killed me
 		public UInt16 unk1;
-		public UInt16 unk2;		
+		public UInt16 killedID;				//ID of the vehicle/player which was killed		
 		public Int16 positionX;
 		public Int16 positionY;
-		public UInt16 unk3;
+		public UInt16 unk2;
 
 		//Packet routing
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.PlayerDeath;
-		static public Action<CS_PlayerDeath, Player> Handlers;
+		static public Action<CS_VehicleDeath, Player> Handlers;
 
 
 		///////////////////////////////////////////////////
@@ -35,7 +35,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-		public CS_PlayerDeath(ushort typeID, byte[] buffer, int index, int count)
+		public CS_VehicleDeath(ushort typeID, byte[] buffer, int index, int count)
 			: base(typeID, buffer, index, count)
 		{
 		}
@@ -57,10 +57,10 @@ namespace InfServer.Protocol
 			type = (Helpers.KillType)_contentReader.ReadByte();
 			killerPlayerID = _contentReader.ReadUInt32();
 			unk1 = _contentReader.ReadUInt16();
-			unk2 = _contentReader.ReadUInt16();
+			killedID = _contentReader.ReadUInt16();
 			positionX = _contentReader.ReadInt16();
 			positionY = _contentReader.ReadInt16();
-			unk3 = _contentReader.ReadUInt16();
+			unk2 = _contentReader.ReadUInt16();
 		}
 
 		/// <summary>
@@ -70,7 +70,7 @@ namespace InfServer.Protocol
 		{
 			get
 			{
-				return "Player death update";
+				return "Vehicle death update";
 			}
 		}
 	}

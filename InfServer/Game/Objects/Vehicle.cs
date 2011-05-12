@@ -130,6 +130,19 @@ namespace InfServer.Game
 
 		#region State
 		/// <summary>
+		/// Causes the vehicle to die
+		/// </summary>
+		public void kill(Player killer)
+		{	//Set our health to 0
+			_state.health = 0;
+
+			_tickDead = Environment.TickCount;
+
+			//Notify the arena
+			_arena.handleVehicleDeath(this, killer, _inhabitant);
+		}
+
+		/// <summary>
 		/// The vehicle is being destroyed, clean up assets
 		/// </summary>
 		public void destroy(bool bRestoreBase)

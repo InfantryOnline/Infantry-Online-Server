@@ -7,14 +7,14 @@ using InfServer.Network;
 
 namespace InfServer.Protocol
 {	/// <summary>
-	/// SC_PlayerDeath is used to inform clients of a player's death
+	/// SC_VehicleDeath is used to inform clients of a player's death
 	/// </summary>
-	public class SC_PlayerDeath : PacketBase
+	public class SC_VehicleDeath : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public Helpers.KillType type;	//The way in which the player was killed
 		public UInt16 playerID;			//The id of the player which was killed
-		public UInt16 vehicleID;		//The id of the vehicle which was killed???
+		public UInt16 vehicleID;		//The id of the vehicle which was killed
 		public UInt32 killerID;			//Villainous murdering scum!
 		public Int16 points;			//Points earned by the killer
 		public Int16 personalPoints;	//Points earned
@@ -26,7 +26,7 @@ namespace InfServer.Protocol
 		public byte yaw;
 		public byte unk1;	
 
-		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.PlayerDeath;
+		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.VehicleDeath;
 
 
 		///////////////////////////////////////////////////
@@ -36,7 +36,7 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-		public SC_PlayerDeath()
+		public SC_VehicleDeath()
 			: base(TypeID)
 		{ }
 

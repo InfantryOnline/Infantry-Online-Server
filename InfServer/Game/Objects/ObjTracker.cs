@@ -119,7 +119,7 @@ namespace InfServer.Game
 				int px = state.positionX;
 				int py = state.positionY;
 
-				return ((px - xPos) ^ 2 + (py - yPos) ^ 2) < (range ^ 2);
+				return (Math.Pow(px - xPos, 2) + Math.Pow(py - yPos, 2)) < (Math.Pow(range, 2));
 			});
 		}
 

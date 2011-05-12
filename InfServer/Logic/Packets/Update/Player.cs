@@ -30,7 +30,7 @@ namespace InfServer.Logic
 		/// <summary>
 		/// Handles the declaration of death from a client
 		/// </summary>
-		static public void Handle_CS_PlayerDeath(CS_PlayerDeath pkt, Player player)
+		static public void Handle_CS_PlayerDeath(CS_VehicleDeath pkt, Player player)
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
@@ -50,7 +50,7 @@ namespace InfServer.Logic
 		static public void Register()
 		{
 			CS_PlayerUpdate.Handlers += Handle_CS_PlayerUpdate;
-			CS_PlayerDeath.Handlers += Handle_CS_PlayerDeath;
+			CS_VehicleDeath.Handlers += Handle_CS_PlayerDeath;
 		}
 	}
 }

@@ -258,7 +258,7 @@ namespace InfServer.Game
 
 				while (spawns > 0)
 				{	//Make sure we're not doing this infinitely
-					if (attempts > 1000)
+					if (attempts++ > 200)
 					{
 						Log.write(TLog.Error, "Unable to satisfy hide spawn for '{0}'.", hs.Hide);
 						break;
@@ -645,7 +645,7 @@ namespace InfServer.Game
 
 				do
 				{	//Make sure we're not doing this infinitely
-					if (attempts > 1000)
+					if (attempts++ > 200)
 					{
 						Log.write(TLog.Error, "Unable to satisfy flag spawn for '{0}'.", fs.flag);
 						bActive = false;

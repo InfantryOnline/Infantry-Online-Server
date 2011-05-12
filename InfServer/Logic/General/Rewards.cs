@@ -18,7 +18,7 @@ namespace InfServer.Logic
 		/// <summary>
 		/// Calculates and distributes rewards for a turret kill
 		/// </summary>		
-		static public void calculateTurretKillRewards(Player victim, Computer comp, CS_PlayerDeath update)
+		static public void calculateTurretKillRewards(Player victim, Computer comp, CS_VehicleDeath update)
 		{	//Does it have a valid owner?
 			Player owner = comp._creator;
 			if (owner == null)
@@ -41,7 +41,7 @@ namespace InfServer.Logic
 		/// <summary>
 		/// Calculates and distributes rewards for a player kill
 		/// </summary>		
-		static public void calculatePlayerKillRewards(Player victim, Player killer, CS_PlayerDeath update)
+		static public void calculatePlayerKillRewards(Player victim, Player killer, CS_VehicleDeath update)
 		{	//Calculate kill reward for killer
 			CfgInfo cfg = victim._server._zoneConfig;
 			int killerCash = (int)(cfg.cash.killReward +

@@ -107,7 +107,36 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
-		/// Handles an switch request from a client
+		/// Handles a produce request from a client
+		/// </summary>
+		static public void Handle_CS_PlayerProduce(CS_PlayerProduce pkt, Player player)
+		{	//Allow the player's arena to handle it
+			if (player._arena == null)
+			{
+				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				return;
+			}
+
+			if (player.IsSpectator)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to produce an item from spec.", player);
+				return;
+			}
+
+			if (player.IsDead)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to produce an item while dead.", player);
+				return;
+			}
+
+			//Pass the request on to the server
+			using (DdMonitor.Lock(player._arena._sync))
+				using (LogAssume.Assume(player._arena._logger))
+					player._arena.handlePlayerProduce(player, pkt.computerID, pkt.produceItem);
+		}
+
+		/// <summary>
+		/// Handles a switch request from a client
 		/// </summary>
 		static public void Handle_CS_PlayerSwitch(CS_PlayerSwitch pkt, Player player)
 		{	//Allow the player's arena to handle it
@@ -419,6 +448,7 @@ namespace InfServer.Logic
 			CS_Explosion.Handlers += Handle_CS_Explosion;
 			CS_PlayerJoin.Handlers += Handle_CS_PlayerJoin;
 			CS_PlayerPortal.Handlers += Handle_CS_PlayerPortal;
+			CS_PlayerProduce.Handlers += Handle_CS_PlayerProduce;
 			CS_PlayerSwitch.Handlers += Handle_CS_PlayerSwitch;
 			CS_PlayerFlag.Handlers += Handle_CS_PlayerFlag;
 			CS_Shop.Handlers += Handle_CS_Shop;

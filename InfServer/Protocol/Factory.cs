@@ -150,8 +150,8 @@ namespace InfServer.Protocol
 					packet = new CS_StartUpdate(typeID, buffer, offset, size);
 					break;
 
-				case CS_PlayerDeath.TypeID:
-					packet = new CS_PlayerDeath(typeID, buffer, offset, size);
+				case CS_VehicleDeath.TypeID:
+					packet = new CS_VehicleDeath(typeID, buffer, offset, size);
 					break;
 
 				case CS_PlayerPortal.TypeID:
@@ -164,6 +164,10 @@ namespace InfServer.Protocol
 
 				case CS_ItemExpired.TypeID:
 					packet = new CS_ItemExpired(typeID, buffer, offset, size);
+					break;
+
+				case CS_PlayerProduce.TypeID:
+					packet = new CS_PlayerProduce(typeID, buffer, offset, size);
 					break;
 
 				default:

@@ -56,10 +56,10 @@ namespace InfServer.Protocol
 		/// Notifies a player of a player kill
 		/// </summary>
 		static public void Player_RouteKill(
-			Player p, CS_PlayerDeath death, Player dead,
+			Player p, CS_VehicleDeath death, Player dead,
 			int cash, int points, int personalPoints, int experience)
 		{	//Prepare a death packet
-			SC_PlayerDeath not = new SC_PlayerDeath();
+			SC_VehicleDeath not = new SC_VehicleDeath();
 
 			not.type = death.type;
 
@@ -83,10 +83,10 @@ namespace InfServer.Protocol
 		/// Notifies a group of players of a player kill
 		/// </summary>
 		static public void Player_RouteKill(
-			IEnumerable<Player> p, CS_PlayerDeath death, Player dead,
+			IEnumerable<Player> p, CS_VehicleDeath death, Player dead,
 			int cash, int points, int personalPoints, int experience)
 		{	//Prepare a death packet
-			SC_PlayerDeath not = new SC_PlayerDeath();
+			SC_VehicleDeath not = new SC_VehicleDeath();
 
 			not.type = death.type;
 

@@ -135,11 +135,13 @@
     <Compile Include="Protocol\Helpers\Player.cs" />
     <Compile Include="Protocol\Helpers\Social.cs" />
     <Compile Include="Protocol\Helpers\Updates.cs" />
+    <Compile Include="Protocol\Helpers\Vehicles.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerDrop.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerFlag.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerPickup.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerJoin.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerPortal.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_PlayerProduce.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerSwitch.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerUseItem.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_RequestSpectator.cs" />
@@ -162,11 +164,11 @@
     <Compile Include="Protocol\Packets\Game\State\SC_VehicleDestroy.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_Vehicles.cs" />
     <Compile Include="Protocol\Packets\Game\Update\CS_Explosion.cs" />
-    <Compile Include="Protocol\Packets\Game\Update\CS_PlayerDeath.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\CS_VehicleDeath.cs" />
     <Compile Include="Protocol\Packets\Game\Update\CS_PlayerUpdate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_Inventory.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_ItemDrop.cs" />
-    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerDeath.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_VehicleDeath.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerSpectate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerTeamUpdate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerUpdate.cs" />
