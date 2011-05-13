@@ -1296,25 +1296,20 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to repair(heal)
 		/// </summary>
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
-        {	// Does player want to repair themselves?
-            if (item.repairSelf)
-            {
-
-            }
-
-            player.inventoryModify(item.useAmmoID, -item.ammoUsedPerShot);
-
-            player._state.health += (short)item.repairAmount;
-
-            // Indicate that it was successful
-            SC_ItemReload rld = new SC_ItemReload();
-            rld.itemID = (short)item.id;
-
-            player._client.sendReliable(rld);
+        {	//Does the player have appropriate ammo?
+			if (item.useAmmoID != 0 && !player.inventoryModify(item.useAmmoID, -item.ammoUsedPerShot))
+				return;
 
             // Forward it to our script
             if(!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, posX, posY))
-            {
+			{	//Indicate that it was successful
+				SC_ItemReload rld = new SC_ItemReload();
+				rld.itemID = (short)item.id;
+
+				player._client.sendReliable(rld);
+
+				//Sent an item used notification to players
+
             }
         }
 

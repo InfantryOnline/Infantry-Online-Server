@@ -43,6 +43,8 @@ namespace InfServer.Game
 
 		public Commands.Registrar _commandRegistrar;	//Our chat/mod command registrar
 
+		private List<DelayedAction> _delayedActionList;	//The delayed actions waiting to be executed
+	
 		//Events
 		public event Action<Arena> Close;				//Called when an arena runs out of players and is closed
 
@@ -239,6 +241,18 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Represents a delayed action
+		/// </summary>
+		public class DelayedAction
+		{
+			public Func<object, bool> action;	//Action to execute
+			public object state;				//State to pass to the function
+
+			public int tickExecute;				//When we should execute it
+			public int tickDelay;				//The original tick delay before execution
+		}
+
+		/// <summary>
 		/// Represents the state of a ticker
 		/// </summary>
 		public class TickerInfo
@@ -299,6 +313,8 @@ namespace InfServer.Game
 			_lastItemKey = 0;
 
 			_bots = new ObjTracker<InfServer.Bots.Bot>();
+
+			_delayedActionList = new List<DelayedAction>();
 
 			//Instance our tiles array
 			LvlInfo lvl = server._assets.Level;
@@ -388,6 +404,31 @@ namespace InfServer.Game
 				foreach (Vehicle vehicle in condemned)
 					vehicle.destroy(true);
 
+				//Take care of our delayed actions
+				List<DelayedAction> executedActions = null;
+
+				foreach (DelayedAction delayed in _delayedActionList)
+				{	//Is it due to be executed?
+					if (now < delayed.tickExecute)
+						continue;
+
+					//Queue it for execution
+					if (executedActions == null)
+						executedActions = new List<DelayedAction>();
+					executedActions.Add(delayed);
+				}
+
+				if (executedActions != null)
+				{
+					foreach (DelayedAction delayed in executedActions)
+					{
+						if (!delayed.action(delayed.state))
+							_delayedActionList.Remove(delayed);
+						else
+							delayed.tickExecute = now + delayed.tickDelay;
+					}
+				}
+
 				//Look after our lio objects
 				pollLio();
 
@@ -466,6 +507,25 @@ namespace InfServer.Game
 			}
 
 			return true;
+		}
+		#endregion
+
+		#region Delayed Actions
+		/// <summary>
+		/// Registers a delayed action to be executed at a later date
+		/// </summary>
+		public void addDelayedAction(int millisecondDelay, Func<object, bool> action, object state)
+		{	//Create our delayed action structure
+			DelayedAction delayed = new DelayedAction();
+
+			delayed.action = action;
+			delayed.state = state;
+
+			delayed.tickExecute = Environment.TickCount + millisecondDelay;
+			delayed.tickDelay = millisecondDelay;
+
+			using (DdMonitor.Lock(_sync))
+				_delayedActionList.Add(delayed);
 		}
 		#endregion
 
