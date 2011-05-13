@@ -16,7 +16,7 @@
 		<gameType value="GameType_CTF" />
 		<loadBlobs value="true" />
 		
-		<logPackets value="true" />
+		<logPackets value="false" />
 	</server>
 	
 	<protocol>

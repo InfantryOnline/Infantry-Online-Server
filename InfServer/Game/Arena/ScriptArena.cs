@@ -191,86 +191,68 @@ namespace InfServer.Game
 			if (_breakdownSettings.bDisplayTeam)
 			{
 				from.sendMessage(0, "#Team Statistics Breakdown");
-				Dictionary<Team, int> teamKills = new Dictionary<Team, int>();
 
-				foreach (var t in _teams)
-				{	//Ignore team spec, and teams with no players
-					if (t.Value.IsSpec || t.Value.ActivePlayers == 0)
-						continue;
+				//Make sure stats are up-to-date
+				foreach (Team t in _teams.Values)
+					t.precalculateStats(bCurrent);
 
-					int kills = 0;
-					int deaths = 0;
+				IEnumerable<Team> activeTeams = _teams.Values.Where(entry => entry.ActivePlayerCount > 0);
+				IEnumerable<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._calculatedKills);
+				int idx = 3;	//Only display top three teams
 
-					//Add up all the kills
-					foreach (Player player in PlayersIngame)
-					{	//Ignore players in spec
-						if (player.IsSpectator)
-							continue;
+				foreach (Team t in rankedTeams)
+				{	
+					if (idx-- == 0)
+						break;
 
-						if (player._team == t.Value)
-						{
-							if (bCurrent)
-							{
-								kills = kills + player.StatsCurrentGame.kills;
-								deaths = deaths + player.StatsCurrentGame.deaths;
-							}
-							else
-							{
-								kills = kills + player.StatsLastGame.kills;
-								deaths = deaths + player.StatsLastGame.deaths;
-							}
-						}
+					string format = "!3rd (K={0} D={1}): {2}";
+
+					switch (idx)
+					{
+						case 2:
+							format = "!1st (K={0} D={1}): {2}";
+							break;
+						case 1:
+							format = "!2nd (K={0} D={1}): {2}";
+							break;
 					}
 
-					//Add team to our SortedDictionary
-					teamKills.Add(t.Value, kills);
+					from.sendMessage(0, String.Format(format,
+						t._calculatedKills, t._calculatedDeaths,
+						t._name));
 				}
-
-				var teamRanks = (from entry in teamKills orderby entry.Value descending select entry);
-
-				if (teamKills.Keys.Count > 0)
-					from.sendMessage(0, String.Format("!1st (K={0}): {1}",
-						teamRanks.ElementAt(0).Value,
-						teamRanks.ElementAt(0).Key._name));
-				if (teamKills.Keys.Count > 1)
-					from.sendMessage(0, String.Format("!2nd (K={0}): {1}",
-						teamRanks.ElementAt(1).Value,
-						teamRanks.ElementAt(1).Key._name));
-				if (teamKills.Keys.Count > 2)
-					from.sendMessage(0, String.Format("!3rd (K={0}): {1}",
-						teamRanks.ElementAt(2).Value,
-						teamRanks.ElementAt(2).Key._name));
 			}
 
 			//Do we want to display individual statistics?
 			if (_breakdownSettings.bDisplayIndividual)
 			{
-				Dictionary<Player, int> playerKills = new Dictionary<Player, int>();
 				from.sendMessage(0, "#Individual Statistics Breakdown");
 
-				foreach (Player player in _playersIngame)
+				IEnumerable<Player> rankedPlayers = _playersIngame.OrderByDescending(player => (bCurrent ? player.StatsCurrentGame.kills : player.StatsLastGame.kills));
+				int idx = 3;	//Only display top three player
+
+				foreach (Player p in rankedPlayers)
 				{
-					if (bCurrent)
-						playerKills.Add(player, player.StatsCurrentGame.kills);
-					else
-						playerKills.Add(player, player.StatsLastGame.kills);
+					if (idx-- == 0)
+						break;
+
+					string format = "!3rd (K={0} D={1}): {2}";
+
+					switch (idx)
+					{
+						case 2:
+							format = "!1st (K={0} D={1}): {2}";
+							break;
+						case 1:
+							format = "!2nd (K={0} D={1}): {2}";
+							break;
+					}
+
+					from.sendMessage(0, String.Format(format,
+						(bCurrent ? p.StatsCurrentGame.kills : p.StatsLastGame.kills),
+						(bCurrent ? p.StatsCurrentGame.deaths : p.StatsLastGame.deaths),
+						p._alias));
 				}
-
-				var playerRanks = (from entry in playerKills orderby entry.Value descending select entry);
-
-				//Display top 3
-				if (playerKills.Keys.Count > 0)
-					from.sendMessage(0, String.Format("!1st (K={0} D={1}): {2}",
-						playerRanks.ElementAt(0).Value, playerRanks.ElementAt(0).Key.StatsLastGame.deaths,
-						playerRanks.ElementAt(0).Key._alias));
-				if (playerKills.Keys.Count > 1)
-					from.sendMessage(0, String.Format("!2nd (K={0} D={1}): {2}",
-						playerRanks.ElementAt(1).Value, playerRanks.ElementAt(1).Key.StatsLastGame.deaths,
-						playerRanks.ElementAt(1).Key._alias));
-				if (playerKills.Keys.Count > 2)
-					from.sendMessage(0, String.Format("!3rd (K={0} D={1}): {2}",
-						playerRanks.ElementAt(2).Value, playerRanks.ElementAt(2).Key.StatsLastGame.deaths,
-						playerRanks.ElementAt(2).Key._alias));
 			}
 
 			//Pass it to the script environment
@@ -509,7 +491,7 @@ namespace InfServer.Game
 					for (int i = 0; i < _server._zoneConfig.arena.desiredFrequencies; ++i)
 					{	//Do we have more active players than the last?
 						Team team = publicTeams[i];
-						int activePlayers = team.ActivePlayers;
+						int activePlayers = team.ActivePlayerCount;
 
 						if (pick == null ||
 							(playerCount > activePlayers &&
@@ -533,7 +515,7 @@ namespace InfServer.Game
 					for (int i = 0; i < _server._zoneConfig.arena.desiredFrequencies; ++i)
 					{	//Do we have more active players than the last?
 						Team team = publicTeams[i];
-						int activePlayers = team.ActivePlayers;
+						int activePlayers = team.ActivePlayerCount;
 
 						if (pick == null ||
 							(playerCount > activePlayers &&
@@ -560,7 +542,7 @@ namespace InfServer.Game
 
 						foreach (Team team in publicTeams)
 						{	//Do we have more active players than the last?
-							int activePlayers = team.ActivePlayers;
+							int activePlayers = team.ActivePlayerCount;
 
 							if (pick == null ||
 								(playerCount < activePlayers && activePlayers < _server._zoneConfig.arena.maxPerFrequency) &&
@@ -591,15 +573,16 @@ namespace InfServer.Game
 		{	//Are we trying to leave our current vehicle?
 			if (!bEnter)
 			{	//Forward to our script
-                if (!exists("Player.LeaveVehicle") || (bool)callsync("Player.LeaveVehicle", false, from, from._occupiedVehicle))
-                    //Let's leave it!
+				if (!exists("Player.LeaveVehicle") || (bool)callsync("Player.LeaveVehicle", false, from, from._occupiedVehicle))
+				{   //Let's leave it!
 					from._occupiedVehicle.playerLeave(true);
 
-                    //Warp the player away from the vehicle to keep him from getting "stuck"
-                    Random exitRadius = new Random();
-                    from.warp(from._state.positionX + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius),
-                    from._state.positionY + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius));
-				    
+					//Warp the player away from the vehicle to keep him from getting "stuck"
+					Random exitRadius = new Random();
+					from.warp(from._state.positionX + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius),
+					from._state.positionY + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius));
+				}
+
 				return;
 			}
 
@@ -869,16 +852,17 @@ namespace InfServer.Game
 					{	//Handle any flags
 						flagHandleDeath(from, killer);
 
-						Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
+						//Don't reward for teamkills
+						if (from._team == killer._team)
+							Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
+						else
+						{
+							Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedEnemy);
+							Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
+						}
 
 						killer.Kills++;
 						from.Deaths++;
-
-						//Trigger the killed event
-						if (from._team == killer._team)
-							Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedEnemy);
-						else
-							Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
 					}
 
 					return;

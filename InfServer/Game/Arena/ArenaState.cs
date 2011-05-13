@@ -43,6 +43,17 @@ namespace InfServer.Game
 			}
 		}
 
+		/// <summary>
+		/// Returns a list of teams present in the arena
+		/// </summary>
+		public IEnumerable<Team> Teams
+		{
+			get
+			{
+				return _teams.Values;
+			}
+		}
+
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////

@@ -10,14 +10,14 @@ namespace InfServer.Game
 	/// </summary>
 	public class CustomObject
 	{
-		private Dictionary<string, object> _customData = new Dictionary<string,object>();
+		private Dictionary<string, object> _customData = new Dictionary<string,object>(StringComparer.OrdinalIgnoreCase);
 
 		/// <summary>        
 		/// Sets a custom variable, used for scripting
 		/// </summary> 
 		public void setVar(string name, object value)
 		{
-			_customData[name.ToLower()] = value;
+			_customData[name] = value;
 		}
 
 		/// <summary>        
@@ -27,7 +27,7 @@ namespace InfServer.Game
 		{
 			object value;
 
-			if (!_customData.TryGetValue(name.ToLower(), out value))
+			if (!_customData.TryGetValue(name, out value))
 				return null;
 
 			return value;
@@ -36,11 +36,12 @@ namespace InfServer.Game
 		/// <summary>        
 		/// Retrieves a string custom variable
 		/// </summary> 
+		/// <remarks>Returns "" if the string doesn't exist, or object isn't a string</remarks>
 		public string getVarString(string name)
 		{
 			object value;
 
-			if (!_customData.TryGetValue(name.ToLower(), out value))
+			if (!_customData.TryGetValue(name, out value))
 				return "";
 
 			if (!(value is string))
@@ -52,11 +53,12 @@ namespace InfServer.Game
 		/// <summary>        
 		/// Retrieves an integer custom variable
 		/// </summary> 
+		/// <remarks>Returns 0 if the integer doesn't exist</remarks>
 		public int getVarInt(string name)
 		{
 			object value;
 
-			if (!_customData.TryGetValue(name.ToLower(), out value))
+			if (!_customData.TryGetValue(name, out value))
 				return 0;
 
 			return Convert.ToInt32(value);

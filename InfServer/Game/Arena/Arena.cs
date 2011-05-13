@@ -418,6 +418,8 @@ namespace InfServer.Game
 					executedActions.Add(delayed);
 				}
 
+				//We have to execute them outside of the actionlist loop to make sure
+				//it won't be modified due to removing or adding new actions.
 				if (executedActions != null)
 				{
 					foreach (DelayedAction delayed in executedActions)
@@ -514,10 +516,15 @@ namespace InfServer.Game
 		/// <summary>
 		/// Registers a delayed action to be executed at a later date
 		/// </summary>
+		/// <remarks>The action function given should return false to never execute again,
+		/// or true to execute again after the next [millisecondDelay] milliseconds</remarks>
+		/// <param name="millisecondDelay">The delay in milliseconds before the action function is called</param>
+		/// <param name="action">The function to call after the delay elapses</param>
+		/// <param name="state">The argument to pass to the action function when called</param>
 		public void addDelayedAction(int millisecondDelay, Func<object, bool> action, object state)
 		{	//Create our delayed action structure
 			DelayedAction delayed = new DelayedAction();
-
+			
 			delayed.action = action;
 			delayed.state = state;
 

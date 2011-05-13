@@ -31,6 +31,9 @@ namespace InfServer.Game
 
 		public bool _isPrivate;					//Is this a private team?
 
+		public int _calculatedKills;			//The amount of kills for the team, since the last calculation
+		public int _calculatedDeaths;			//The amoutn of deaths for the team, since the last calculation
+
 		public CfgInfo.TeamInfo _info;		//The team-specific info
 
 		//Events
@@ -43,11 +46,22 @@ namespace InfServer.Game
 		/// <summary>
 		/// Returns the number of unspecced players in the team
 		/// </summary>
-		public int ActivePlayers
+		public int ActivePlayerCount
 		{
 			get
 			{
-				return _players.Count(player => (!player.IsSpectator));;
+				return _players.Count(player => (!player.IsSpectator));
+			}
+		}
+
+		/// <summary>
+		/// Returns a list of the unspecced players in the team
+		/// </summary>
+		public IEnumerable<Player> ActivePlayers
+		{
+			get
+			{
+				return _players.Where(player => (!player.IsSpectator));
 			}
 		}
 
@@ -182,6 +196,35 @@ namespace InfServer.Game
 		/// </summary>
 		public void playerEnemyTeamChat(Player from, CS_Chat chat)
 		{	//Route it to both the enemy team and our team
+		}
+		#endregion
+
+		#region Stats
+		/// <summary>
+		/// Pre-calculates the statistics for the team, and stores them in the _calculated* variables
+		/// </summary>
+		public void precalculateStats(bool bCurrent)
+		{
+			int kills = 0;
+			int deaths = 0;
+
+			//Add up the stats for each player
+			foreach (Player player in ActivePlayers)
+			{	
+				if (bCurrent)
+				{
+					kills = kills + player.StatsCurrentGame.kills;
+					deaths = deaths + player.StatsCurrentGame.deaths;
+				}
+				else
+				{
+					kills = kills + player.StatsLastGame.kills;
+					deaths = deaths + player.StatsLastGame.deaths;
+				}
+			}
+
+			_calculatedKills = kills;
+			_calculatedDeaths = deaths;
 		}
 		#endregion
 	}
