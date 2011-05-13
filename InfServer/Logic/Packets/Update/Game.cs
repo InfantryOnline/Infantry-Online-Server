@@ -372,7 +372,7 @@ namespace InfServer.Logic
 					switch (info.itemType)
 					{
 						case ItemInfo.ItemType.Warp:
-							player._arena.handlePlayerWarp(player, info as ItemInfo.WarpItem, pkt.targetPlayer, pkt.posX, pkt.posY);
+							player._arena.handlePlayerWarp(player, info as ItemInfo.WarpItem, (ushort)pkt.targetVehicle, pkt.posX, pkt.posY);
 							break;
 
 						case ItemInfo.ItemType.VehicleMaker:

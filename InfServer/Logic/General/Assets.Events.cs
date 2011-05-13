@@ -157,13 +157,27 @@ namespace InfServer.Logic
 		/// <summary>
 		/// Parses event strings and executes the given actions
 		/// </summary>		
-		static private void executeAction(Player player, string action, string param, EventState state)
+		static private bool executeAction(Player player, string action, string param, EventState state)
+		{
+			return executeAction(true, player, action, param, state);
+		}
+
+		/// <summary>
+		/// Parses event strings and executes the given actions
+		/// </summary>		
+		static private bool executeAction(bool bEnforceState, Player player, string action, string param, EventState state)
 		{	//What sort of action?
+			bool bChangedState = false;
+
 			switch (action)
 			{
 				//Sends the player to the specified lio warp group
 				case "warp":
-					{	//Default to warpgroup 0
+					{	//Only in an arena
+						if (player._arena == null)
+							break;
+
+						//Default to warpgroup 0
 						int warpGroup = 0;
 						if (param != "")
 							warpGroup = Convert.ToInt32(param);
@@ -187,21 +201,25 @@ namespace InfServer.Logic
 				//Sets the player's experience to the amount defined
 				case "setexp":
 					player.Experience = Convert.ToInt32(param);
+					bChangedState = true;
 					break;
 
 				//Sets the player's cash to the amount defined
 				case "setcash":
 					player.Cash = Convert.ToInt32(param);
+					bChangedState = true;
 					break;
 
 				//Adds the amount given to the player's experience
 				case "addexp":
 					player.Experience += Convert.ToInt32(param);
+					bChangedState = true;
 					break;
 
 				//Adds the amount given to the player's cash
 				case "addcash":
 					player.Cash += Convert.ToInt32(param);
+					bChangedState = true;
 					break;
 
 				//Sets the player's energy to the amount defined
@@ -212,13 +230,13 @@ namespace InfServer.Logic
 				//Wipes all player skills
 				case "wipeskill":
 					player._skills.Clear();
-					player.syncState();
+					bChangedState = true;
 					break;
 
 				//Wipes the player's inventory
 				case "wipeinv":
 					player._inventory.Clear();
-					player.syncInventory();
+					bChangedState = true;
 					break;
 
 				//Wipes the player's score
@@ -228,8 +246,13 @@ namespace InfServer.Logic
 
 				//Resets the player's default vehicle
 				case "reset":
-					state.bWarping = true;
-					state.warpMode = Helpers.WarpMode.Respawn;
+					{	//Only in an arena
+						if (player._arena == null)
+							break;
+
+						state.bWarping = true;
+						state.warpMode = Helpers.WarpMode.Respawn;
+					}
 					break;
 
 				//Gives the player the specified skill
@@ -237,7 +260,9 @@ namespace InfServer.Logic
 					{	//Find the given skill
 						SkillInfo skill = player._server._assets.getSkillByName(param);
 						if (skill != null)
-							player.skillModify(skill, 1);
+							player.skillModify(false, skill, 1);
+
+						bChangedState = true;
 					}
 					break;
 
@@ -250,14 +275,16 @@ namespace InfServer.Logic
 						{	//Find the given item
 							ItemInfo item = player._server._assets.getItemByName(param);
 							if (item != null)
-								player.inventoryModify(item, 1);
+								player.inventoryModify(false, item, 1);
 						}
 						else
 						{	//Find the given item
 							ItemInfo item = player._server._assets.getItemByName(param.Substring(0, colIdx));
                             if (item != null)
-								player.inventoryModify(item, Convert.ToInt32(param.Substring(colIdx + 1)));
+								player.inventoryModify(false, item, Convert.ToInt32(param.Substring(colIdx + 1)));
 						}
+
+						bChangedState = true;
 					}
 					break;
 
@@ -273,6 +300,11 @@ namespace InfServer.Logic
 					RunEvent(player, player._team._info.eventString, state);
 					break;
 			}
+
+			if (bEnforceState && bChangedState)
+				player.syncState();
+
+			return bChangedState;
 		}
 
 		/// <summary>

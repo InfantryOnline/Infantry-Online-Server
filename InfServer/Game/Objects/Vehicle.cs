@@ -17,7 +17,7 @@ namespace InfServer.Game
 	// Vehicle Class
 	/// Represents a single vehicle in an arena
 	///////////////////////////////////////////////////////
-	public class Vehicle : ILocatable
+	public class Vehicle : CustomObject, ILocatable
 	{	// Member variables
 		///////////////////////////////////////////////////
 		public Arena _arena;				//The arena we belong to

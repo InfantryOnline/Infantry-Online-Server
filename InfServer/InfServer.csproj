@@ -103,6 +103,7 @@
     <Compile Include="Game\Commands\Registrar.cs" />
     <Compile Include="Game\Interfaces\IChatTarget.cs" />
     <Compile Include="Game\Interfaces\ILocatable.cs" />
+    <Compile Include="Game\Objects\CustomObject.cs" />
     <Compile Include="Game\Objects\ObjTracker.cs" />
     <Compile Include="Game\Objects\Player.cs" />
     <Compile Include="Game\Objects\PlayerStats.cs" />
@@ -149,6 +150,7 @@
     <Compile Include="Protocol\Packets\Game\Action\CS_ShopSkill.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_ItemExpired.cs" />
     <Compile Include="Protocol\Packets\Game\Action\SC_ItemReload.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\SC_ItemUsed.cs" />
     <Compile Include="Protocol\Packets\Game\Action\SC_ShopFinished.cs" />
     <Compile Include="Protocol\Packets\Game\SC_BindVehicle.cs" />
     <Compile Include="Protocol\Packets\Game\SC_ChangeTeam.cs" />

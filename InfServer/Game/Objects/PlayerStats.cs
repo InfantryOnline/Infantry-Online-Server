@@ -66,7 +66,9 @@ namespace InfServer.Game
 				int diff = value - _stats.cash;
 
 				_stats.cash = Math.Max(value, 0);
-				_statsGame.cash += diff;
+
+				if (_statsGame != null)
+					_statsGame.cash += diff;
 			}
 		}
 
@@ -85,7 +87,9 @@ namespace InfServer.Game
 				int diff = value - _stats.points;
 
 				_stats.points = value;
-				_statsGame.points += diff;
+
+				if (_statsGame != null)
+					_statsGame.points += diff;
 			}
 		}
 
@@ -105,8 +109,12 @@ namespace InfServer.Game
 
 				_stats.experience = Math.Max(value, 0);
 				_stats.experienceTotal += diff;
-				_statsGame.experience += diff;
-				_statsGame.experienceTotal += diff;
+
+				if (_statsGame != null)
+				{
+					_statsGame.experience += diff;
+					_statsGame.experienceTotal += diff;
+				}
 			}
 		}
 
@@ -125,7 +133,9 @@ namespace InfServer.Game
 				int diff = value - _stats.experienceTotal;
 
 				_stats.experienceTotal = Math.Max(value, 0);
-				_statsGame.experienceTotal += diff;
+
+				if (_statsGame != null)
+					_statsGame.experienceTotal += diff;
 			}
 		}
 
@@ -144,8 +154,10 @@ namespace InfServer.Game
 				int diff = value - _stats.kills;
 
 				_stats.kills = Math.Max(value, 0);
-				_statsGame.kills += diff;
-			}
+
+				if (_statsGame != null)
+					_statsGame.kills += diff;
+			}	
 		}
 
 		/// <summary>
@@ -163,7 +175,9 @@ namespace InfServer.Game
 				int diff = value - _stats.deaths;
 
 				_stats.deaths = Math.Max(value, 0);
-				_statsGame.deaths += diff;
+
+				if (_statsGame != null)
+					_statsGame.deaths += diff;
 			}
 		}
 
@@ -182,7 +196,9 @@ namespace InfServer.Game
 				int diff = value - _stats.killPoints;
 
 				_stats.killPoints = value;
-				_statsGame.killPoints += diff;
+
+				if (_statsGame != null)
+					_statsGame.killPoints += diff;
 			}
 		}
 
@@ -201,7 +217,9 @@ namespace InfServer.Game
 				int diff = value - _stats.deathPoints;
 
 				_stats.deathPoints = value;
-				_statsGame.deathPoints += diff;
+
+				if (_statsGame != null)
+					_statsGame.deathPoints += diff;
 			}
 		}
 
@@ -220,7 +238,9 @@ namespace InfServer.Game
 				int diff = value - _stats.bonusPoints;
 
 				_stats.bonusPoints = value;
-				_statsGame.bonusPoints += diff;
+
+				if (_statsGame != null)
+					_statsGame.bonusPoints += diff;
 			}
 		}
 
@@ -239,7 +259,9 @@ namespace InfServer.Game
 				int diff = value - _stats.assistPoints;
 
 				_stats.assistPoints = value;
-				_statsGame.assistPoints += diff;
+
+				if (_statsGame != null)
+					_statsGame.assistPoints += diff;
 			}
 		}
 
@@ -258,7 +280,9 @@ namespace InfServer.Game
 				int diff = value - _stats.playSeconds;
 
 				_stats.playSeconds = value;
-				_statsGame.playSeconds += diff;
+
+				if (_statsGame != null)
+					_statsGame.playSeconds += diff;
 			}
 		}
 

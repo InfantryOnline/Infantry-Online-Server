@@ -18,7 +18,7 @@ namespace InfServer.Game
 	// Player Class
 	/// Represents a single player in the server
 	///////////////////////////////////////////////////////
-	public partial class Player : IClient, ILocatable
+	public partial class Player : CustomObject, IClient, ILocatable
 	{	// Member variables
 		///////////////////////////////////////////////////
 		public Client _client;					//Our network client
@@ -43,7 +43,6 @@ namespace InfServer.Game
 		#endregion
 
 		#region Game state
-		public bool _bFirstTimeSetup;			//Is this the player's first time in the zone/first setup?
 		public bool _bIgnoreUpdates;			//Are we temporarily ignoring player updates? (Usually due to vehicle change)
 		public bool _bSpectator;				//Is the player in spectator mode?
 
@@ -201,11 +200,6 @@ namespace InfServer.Game
 			_alias = "";
 
 			_state = new Helpers.ObjectState();
-
-			_inventory = new Dictionary<int, InventoryItem>();
-			_skills = new Dictionary<int, SkillItem>();
-
-			_stats = new InfServer.Data.PlayerStats();
 		}
 
 		#region State
@@ -462,7 +456,7 @@ namespace InfServer.Game
 						VehInfo baseType = _server._assets.getVehicleByID(skill.DefaultVehicleId);
 						if (baseType == null)
 							Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
-						else
+						else if (_arena != null)
 							setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
 					}
 				}
@@ -529,6 +523,12 @@ namespace InfServer.Game
 
 				//At the moment we always sync - otherwise this function may only sync inventory
 				syncState();
+				return true;
+			}
+			//A multi item?
+			else if (item.itemType == ItemInfo.ItemType.Multi)
+			{	//Apply it!
+				applyMultiItem(bSync, (ItemInfo.MultiItem)item, adjust);
 				return true;
 			}
 
@@ -614,6 +614,45 @@ namespace InfServer.Game
 				if (bSyncInv)
 					syncInventory();
 			}
+		}
+
+		/// <summary>
+		/// Applys the changes a multi item makes from the inventory
+		/// </summary>
+		private void applyMultiItem(bool bSync, ItemInfo.MultiItem multiItem, int repeat)
+		{	//Adjust stats as necessary
+			if (multiItem.Cash != 0)
+				this.Cash += multiItem.Cash;
+
+			if (multiItem.Experience != 0)
+				this.Experience += multiItem.Experience;
+
+			//TODO: Implement modification of energy, health and repair
+			
+			//Give the player his items
+			foreach (ItemInfo.MultiItem.Slot slot in multiItem.slots)
+			{	//Valid item?
+				if (slot.value == 0)
+					continue;
+
+				//Attempt to find the item in question
+				ItemInfo item = _server._assets.getItemByID(slot.value);
+				if (item == null)
+				{
+					Log.write(TLog.Warning, "MultiItem {0} attempted to spawn invalid item #{1}", multiItem.name, slot.value);
+					continue;
+				}
+
+				//Add an item!
+				inventoryModify(false, item, 1);
+			}
+
+			//Do we repeat?
+			if (repeat > 1)
+				applyMultiItem(false, multiItem, repeat - 1);
+
+			if (bSync)
+				syncState();
 		}
 
 		/// <summary>
@@ -849,7 +888,7 @@ namespace InfServer.Game
 		/// </summary>
 		public void warp(Player warpTo)
 		{	//Warp away!
-			warp(Helpers.WarpMode.Normal, -1, warpTo._state.positionX, _state.positionY);
+			warp(Helpers.WarpMode.Normal, -1, warpTo._state.positionX, warpTo._state.positionY);
 		}
 
 		/// <summary>
@@ -1046,6 +1085,27 @@ namespace InfServer.Game
 
 			//All done!
 			return stats;
+		}
+
+		/// <summary>
+		/// Gives the player items and skill appropriate for a first time player
+		/// </summary>
+		public void assignFirstTimeStats()
+		{	//Create some new lists
+			_inventory = new Dictionary<int, InventoryItem>();
+			_skills = new Dictionary<int, SkillItem>();
+
+			//No basic stats
+			_stats = new InfServer.Data.PlayerStats();
+			_statsGame = null;
+			_statsLastGame = null;
+
+			//Execute the first time setup events
+			Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
+			Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeInvSetup);
+
+			//Consider him loaded
+			_bDBLoaded = true;
 		}
 
 		/// <summary>

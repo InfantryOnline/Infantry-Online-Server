@@ -70,6 +70,7 @@ namespace InfServer.Protocol
 				Inventory = 0x12,
 				ShopFinished = 0x15,
 				GameReset = 0x16,
+				ItemUsed = 0x18,
 				LIOUpdates = 0x19,
 				Flags = 0x1A,
 				PlayerUpdate = 0x1B,

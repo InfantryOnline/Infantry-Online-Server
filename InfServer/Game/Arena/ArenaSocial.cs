@@ -128,7 +128,6 @@ namespace InfServer.Game
                 return;
             }
 
-
 			try
 			{	//Handle it!
 				handler.handler(from, recipient, payload);

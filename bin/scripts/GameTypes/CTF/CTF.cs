@@ -409,6 +409,16 @@ namespace InfServer.Script.GameType_CTF
 		}
 
 		/// <summary>
+		/// Triggered when a player has died, by any means
+		/// </summary>
+		/// <remarks>killer may be null if it wasn't a player kill</remarks>
+		[Scripts.Event("Player.Death")]
+		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType)
+		{
+			return true;
+		}
+
+		/// <summary>
 		/// Triggered when one player has killed another
 		/// </summary>
 		[Scripts.Event("Player.PlayerKill")]
@@ -476,6 +486,16 @@ namespace InfServer.Script.GameType_CTF
 		/// </summary>
 		[Scripts.Event("Shop.Sell")]
 		public bool shopSell(Player patron, ItemInfo item, int quantity)
+		{
+			return true;
+		}
+
+		/// <summary>
+		/// Triggered when a vehicle is created
+		/// </summary>
+		/// <remarks>Doesn't catch spectator or dependent vehicle creation</remarks>
+		[Scripts.Event("Vehicle.Creation")]
+		public bool vehicleCreation(Vehicle created, Team team, Player creator)
 		{
 			return true;
 		}

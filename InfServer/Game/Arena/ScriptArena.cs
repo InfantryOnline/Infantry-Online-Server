@@ -808,13 +808,14 @@ namespace InfServer.Game
 		/// Triggered when a player has sent a death packet
 		/// </summary>
 		public override void handlePlayerDeath(Player from, CS_VehicleDeath update)
-		{	//Was it us that died?
+		{	//Store variables to pass to the event at the end
+			Player killer = null;
+			
+			//Was it us that died?
 			if (update.killedID != from._id)
 			{	//Was it the vehicle we were in?
 				if (update.killedID == from._occupiedVehicle._id)
 				{	//Was it a player kill?
-					Player killer = null;
-
 					if (update.type == Helpers.KillType.Player)
 					{	//Sanity checks
 						killer = _players.getObjByID((ushort)update.killerPlayerID);
@@ -852,7 +853,7 @@ namespace InfServer.Game
 			//Was it a player kill?
 			if (update.type == Helpers.KillType.Player)
 			{	//Sanity checks
-				Player killer = _players.getObjByID((ushort)update.killerPlayerID);
+				killer = _players.getObjByID((ushort)update.killerPlayerID);
 
 				//Was it a player?
 				if (update.killerPlayerID < 5001)
@@ -933,6 +934,11 @@ namespace InfServer.Game
 					//route the kill packet to all players.
 					Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
 				}
+			}
+
+			//Prompt the player death event
+			if (!exists("Player.Death") || (bool)callsync("Player.Death", false, from, killer, update.type))
+			{	
 			}
 		}
 
@@ -1333,6 +1339,17 @@ namespace InfServer.Game
 
 			//Tell him yes!
 			player.spectate(target);
+		}
+
+		/// <summary>
+		/// Triggered when a vehicle is created
+		/// </summary>
+		/// <remarks>Doesn't catch spectator or dependent vehicle creation</remarks>
+		public override void handleVehicleCreation(Vehicle created, Team team, Player creator)
+		{	//Forward it to our script
+			if (!exists("Vehicle.Creation") || (bool)callsync("Vehicle.Creation", false, created, team, creator))
+			{	
+			}
 		}
 
 		/// <summary>

@@ -17,7 +17,7 @@ namespace InfServer.Game
 	// Arena Class
 	/// Represents a single arena in the server
 	///////////////////////////////////////////////////////
-	public abstract partial class Arena : IChatTarget, IEventObject		
+	public abstract partial class Arena : CustomObject, IChatTarget, IEventObject		
 	{	// Member variables
 		///////////////////////////////////////////////////
 		public LogClient _logger;						//The logger we use for this arena!

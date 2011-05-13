@@ -41,8 +41,8 @@ namespace InfServer.Logic
 				//Assign the player stats
 				player.assignStats(pkt.stats);
 			else
-				//Flag him as first time
-				player._bFirstTimeSetup = true;
+				//First time loading!
+				player.assignFirstTimeStats();
 
 			//Let him in!
 			Helpers.Login_Response(player._client, SC_Login.Login_Result.Success, pkt.loginMessage);

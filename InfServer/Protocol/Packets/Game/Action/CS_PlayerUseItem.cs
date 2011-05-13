@@ -13,15 +13,14 @@ namespace InfServer.Protocol
 	public class CS_PlayerUseItem : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-		public UInt16 targetPlayer;
+		public UInt32 targetVehicle;
 		public Int16 unk1;
 		public Int16 unk2;
-		public Int16 unk3;
 		public Int16 itemID;
 		public Int16 posX;
 		public Int16 posY;
 		public byte yaw;
-		public byte unk4;
+		public byte unk3;
 
 		//Packet routing
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.PlayerUseItem;
@@ -56,15 +55,14 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Deserialize()
 		{
-			targetPlayer = _contentReader.ReadUInt16();
+			targetVehicle = _contentReader.ReadUInt32();
 			unk1 = _contentReader.ReadInt16();
 			unk2 = _contentReader.ReadInt16();
-			unk3 = _contentReader.ReadInt16();
 			itemID = _contentReader.ReadInt16();
 			posX = _contentReader.ReadInt16();
 			posY = _contentReader.ReadInt16();
 			yaw = _contentReader.ReadByte();
-			unk4 = _contentReader.ReadByte();
+			unk3 = _contentReader.ReadByte();
 		}
 
 		/// <summary>

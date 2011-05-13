@@ -146,6 +146,13 @@ namespace InfServer.Game
 		{	}
 
 		/// <summary>
+		/// Triggered when a vehicle is created
+		/// </summary>
+		/// <remarks>Doesn't catch spectator or dependent vehicle creation</remarks>
+		public virtual void handleVehicleCreation(Vehicle created, Team team, Player creator)
+		{	}
+
+		/// <summary>
 		/// Triggered when a vehicle dies
 		/// </summary>
 		public virtual void handleVehicleDeath(Vehicle dead, Player killer, Player occupier)

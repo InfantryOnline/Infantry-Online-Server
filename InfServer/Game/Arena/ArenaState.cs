@@ -328,6 +328,10 @@ namespace InfServer.Game
 				veh._childs.Add(child);
 			}
 
+			//If it's not a spectator or dependent vehicle, let the arena pass it to the script
+			if (type.Type != VehInfo.Types.Dependent && type.Type != VehInfo.Types.Spectator)
+				handleVehicleCreation(veh, team, creator);
+
 			return veh;
 		}
 
