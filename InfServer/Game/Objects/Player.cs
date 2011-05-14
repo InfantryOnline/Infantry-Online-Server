@@ -724,6 +724,27 @@ namespace InfServer.Game
 		{	//Do eet
 			Helpers.Player_ClearProjectiles(this);
 		}
+
+		/// <summary>
+		/// Notifies the player that he has been healed
+		/// </summary>
+		/// <param name="item">The item used to heal the player</param>
+		/// <param name="healer">The player who initiated the healing</param>
+		public void heal(ItemInfo.RepairItem item, Player healer)
+		{	//Redirect
+			heal(item, healer, healer._state.positionX, healer._state.positionY);
+		}
+
+		/// <summary>
+		/// Notifies the player that he has been healed
+		/// </summary>
+		/// <param name="item">The item used to heal the player</param>
+		/// <param name="healer">The player who initiated the healing</param>
+		public void heal(ItemInfo.RepairItem item, Player healer, short posX, short posY)
+		{	//Send him the notification
+			Helpers.Player_RouteItemUsed(this, healer, this._id, (Int16)item.id, posX, posY, 0); 
+		}
+
 		#endregion
 
 		#region Helpers

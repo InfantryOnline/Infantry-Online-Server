@@ -13,9 +13,8 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public byte unk1;
-		public UInt32 targetVehicle;
-		public Int16 unk2;
-		public Int16 unk3;
+		public UInt32 userPlayer;		//Player who used the item
+		public UInt32 targetVehicle;	//The target of the used item		
 		public Int16 unk4;
 		public Int16 unk5;
 		public Int16 itemID;
@@ -46,9 +45,8 @@ namespace InfServer.Protocol
 			Write((byte)TypeID);
 
 			Write(unk1);
+			Write(userPlayer);
 			Write(targetVehicle);
-			Write(unk2);
-			Write(unk3);
 			Write(unk4);
 			Write(unk5);
 			Write(itemID);

@@ -174,7 +174,7 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// Returns a list of the active players in the arena
+		/// Returns a list of the players in the arena
 		/// </summary>
 		/// 
 		public IEnumerable<Player> Players

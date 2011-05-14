@@ -12,7 +12,7 @@
 	
 	<server>
 		<version value="155" />
-		<zoneConfig value="ctf1.cfg" />
+		<zoneConfig value="sub.cfg" />
 		<gameType value="GameType_CTF" />
 		<loadBlobs value="true" />
 		

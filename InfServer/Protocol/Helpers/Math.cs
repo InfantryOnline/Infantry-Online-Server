@@ -18,6 +18,18 @@ namespace InfServer.Protocol
 		/// <summary>
 		/// Performs a simple square-range check
 		/// </summary>
+		static public bool isInRange(int range, ObjectState state1, ObjectState state2)
+		{	//Is it?
+			if (Math.Abs(state1.positionX - state2.positionX) > range)
+				return false;
+			if (Math.Abs(state1.positionY - state2.positionY) > range)
+				return false;
+			return true;
+		}
+
+		/// <summary>
+		/// Performs a simple square-range check
+		/// </summary>
 		static public bool isInRange(int range, int x1, int y1, int x2, int y2)
 		{	//Is it?
 			if (Math.Abs(x1 - x2) > range)

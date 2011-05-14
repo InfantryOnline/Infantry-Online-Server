@@ -136,7 +136,7 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player attempts to repair(heal)
         /// </summary>
-        public virtual void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
+        public virtual void handlePlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
         {   }
 
 		/// <summary>

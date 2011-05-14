@@ -234,5 +234,43 @@ namespace InfServer.Protocol
 
 			p._client.sendReliable(pkt);
 		}
+
+		/// <summary>
+		/// Provides an easy means of routing item used notifications between players
+		/// </summary>
+		static public void Player_RouteItemUsed(Player p, Player from, UInt16 targetVehicle, Int16 itemID, Int16 posX, Int16 posY, byte yaw)
+		{	//Create the item used packet
+			SC_ItemUsed used = new SC_ItemUsed();
+
+			used.userPlayer = from._id;
+			used.targetVehicle = targetVehicle;
+			used.itemID = itemID;
+			used.posX = posX;
+			used.posY = posY;
+			used.yaw = yaw;
+
+			//Go!
+			p._client.sendReliable(used);
+		}
+
+		/// <summary>
+		/// Provides an easy means of routing item used notifications to multiple players
+		/// </summary>
+		static public void Player_RouteItemUsed(bool bSkipSelf, IEnumerable<Player> players, Player from, UInt16 targetVehicle, Int16 itemID, Int16 posX, Int16 posY, byte yaw)
+		{	//Create the item used packet
+			SC_ItemUsed used = new SC_ItemUsed();
+
+			used.userPlayer = from._id;
+			used.targetVehicle = targetVehicle;
+			used.itemID = itemID;
+			used.posX = posX;
+			used.posY = posY;
+			used.yaw = yaw;
+
+			//Go!
+			foreach (Player player in players)
+				if (!bSkipSelf || player != from)
+					player._client.sendReliable(used);
+		}
 	}
 }

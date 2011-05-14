@@ -229,7 +229,7 @@ namespace InfServer.Game
 				from.sendMessage(0, "#Individual Statistics Breakdown");
 
 				IEnumerable<Player> rankedPlayers = _playersIngame.OrderByDescending(player => (bCurrent ? player.StatsCurrentGame.kills : player.StatsLastGame.kills));
-				int idx = 3;	//Only display top three player
+				int idx = 3;	//Only display top three players
 
 				foreach (Player p in rankedPlayers)
 				{
@@ -644,7 +644,7 @@ namespace InfServer.Game
 							break;
 					}
 
-					c.applyDamage(update.positionX, update.positionY, usedWep);
+					c.applyDamage(from, update.positionX, update.positionY, usedWep);
 				}
 			}
 		}
@@ -1277,26 +1277,142 @@ namespace InfServer.Game
         }
 
 		/// <summary>
-		/// Triggered when a player attempts to repair(heal)
+		/// Triggered when a player attempts to repair/heal
 		/// </summary>
-        public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, short posX, short posY)
+        public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
         {	//Does the player have appropriate ammo?
 			if (item.useAmmoID != 0 && !player.inventoryModify(item.useAmmoID, -item.ammoUsedPerShot))
 				return;
 
             // Forward it to our script
             if(!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, posX, posY))
-			{	//Indicate that it was successful
+			{	//What type of repair is it?
+				switch (item.repairType)
+				{
+					//Health and energy repair
+					case 0:
+					case 2:
+						{	//Is it an area or individual repair?
+							if (item.repairDistance > 0)
+							{	//Individual! Do we have a valid target?
+								Player target = _playersIngame.getObjByID(targetVehicle);
+								if (target == null)
+								{
+									Log.write(TLog.Warning, "Player {0} attempted to use a {1} to heal a non-existent player.", player._alias, item.name);
+									return;
+								}
+
+								//Is he on the correct team?
+								if (target._team != player._team)
+									return;
+
+								//Is he in range?
+								if (!Helpers.isInRange(item.repairDistance, target._state, player._state))
+									return;
+
+								//Repair!
+								target.heal(item, player);
+							}
+							else if (item.repairDistance < 0)
+							{	//An area heal! Get all players within this area..
+								List<Player> players = getPlayersInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
+
+								//Check each player
+								foreach (Player p in players)
+								{	//Is he on the correct team?
+									if (p._team != player._team)
+										continue;
+
+									//Can we self heal?
+									if (p == player && !item.repairSelf)
+										continue;
+
+									//Heal!
+									p.heal(item, player);
+								}
+							}
+							else
+							{	//A self heal! Sure you can!
+								player.heal(item, player);
+							}
+						}
+						break;
+
+					//Vehicle repair
+					case 1:
+						{	//Is it an area or individual repair?
+							if (item.repairDistance > 0)
+							{	//Individual! Do we have a valid target?
+								Vehicle target = _vehicles.getObjByID(targetVehicle);
+								if (target == null)
+								{
+									Log.write(TLog.Warning, "Player {0} attempted to use a {1} to repair a non-existent vehicle.", player._alias, item.name);
+									return;
+								}
+
+								//Is it in range?
+								if (!Helpers.isInRange(item.repairDistance, target._state, player._state))
+									return;
+
+								//Is it occupied?
+								if (target._inhabitant != null)
+									target._inhabitant.heal(item, player);
+								else
+								{	//Apply the healing effect
+									target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + item.repairAmount);
+
+									//TODO: A bit hackish, should probably standardize this or improve computer updates
+									if (target is Computer)
+										(target as Computer)._sendUpdate = true;
+								}
+							}
+							else if (item.repairDistance < 0)
+							{	//An area heal! Get all vehicles within this area..
+								List<Vehicle> players = _vehicles.getObjsInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
+
+								//Check each vehicle
+								foreach (Vehicle v in players)
+								{	//Is it on the correct team?
+									if (v._team != player._team)
+										continue;
+
+									//Can we self heal?
+									if (v._inhabitant == player && !item.repairSelf)
+										continue;
+
+									//Repair!
+									if (v._inhabitant != null)
+										v._inhabitant.heal(item, player);
+									else
+									{	//Apply the healing effect
+										v._state.health = (short)Math.Min(v._type.Hitpoints, v._state.health + item.repairAmount);
+
+										//TODO: A bit hackish, should probably standardize this or improve computer updates
+										if (v is Computer)
+											(v as Computer)._sendUpdate = true;
+									}
+								}
+							}
+							else
+							{	//A self heal! Sure you can!
+								player.heal(item, player);
+							}
+						}
+						break;
+				}
+				
+				//Indicate that it was successful
 				SC_ItemReload rld = new SC_ItemReload();
 				rld.itemID = (short)item.id;
 
 				player._client.sendReliable(rld);
 
-				//Sent an item used notification to players
-
+				
+				//Send an item used notification to players
+				Helpers.Player_RouteItemUsed(false, Players, player, targetVehicle, (Int16)item.id, posX, posY, 0);  
             }
         }
-
+		
 		/// <summary>
 		/// Triggered when a player attempts to spectate another player
 		/// </summary>

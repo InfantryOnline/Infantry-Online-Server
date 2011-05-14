@@ -277,7 +277,7 @@ namespace InfServer.Game
 		/// Applies damage from each of the six damage types
 		/// Destroys the turret if necessary
 		/// </summary>		
-		public void applyDamage(int dmgX, int dmgY, ItemInfo.Projectile wep)
+		public void applyDamage(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
 		{
 			double radius = Math.Sqrt(Math.Pow(dmgX - _state.positionX, 2) + Math.Pow(dmgY - _state.positionY, 2));
 
@@ -349,8 +349,8 @@ namespace InfServer.Game
 
 			//Did we die?
 			if (_state.health <= 0)
-			{
-				_tickDead = Environment.TickCount;
+			{	//Make ourselves dead!
+				kill(attacker);
 
 				//Computer vehicles don't linger, so destroy it
 				destroy(false);

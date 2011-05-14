@@ -33,7 +33,7 @@ namespace InfServer.Logic
 			//Does he have a specific arena to join?
 			Arena match = null;
 
-			if (pkt.ArenaName != "" || pkt.ArenaName == "-2")
+			if (pkt.ArenaName != "" && pkt.ArenaName != "-2")
 				match = player._server.playerJoinArena(player, pkt.ArenaName);
 
 			if (match == null)
