@@ -1406,7 +1406,6 @@ namespace InfServer.Game
 				rld.itemID = (short)item.id;
 
 				player._client.sendReliable(rld);
-
 				
 				//Send an item used notification to players
 				Helpers.Player_RouteItemUsed(false, Players, player, targetVehicle, (Int16)item.id, posX, posY, 0);  

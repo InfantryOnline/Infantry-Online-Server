@@ -1,5 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Database Name="DataSource" EntityNamespace="InfServer.Data.DB" ContextNamespace="InfServer.Data" Class="InfantryDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="DataSource" EntityNamespace="InfServer.Data.DB" ContextNamespace="InfServer.Data" Class="InfantryDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
   <Connection Mode="AppSettings" ConnectionString="Data Source=DEEPTHOUGHT-PC\SQLExpress;Persist Security Info=True;User ID=aaerox" SettingsObjectName="InfServer.Database.Properties.Settings" SettingsPropertyName="DataSourceConnectionString" Provider="System.Data.SqlClient" />
   <Table Name="dbo.player" Member="players">
     <Type Name="player">
@@ -12,10 +11,10 @@
       <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="inventory" Type="System.Data.Linq.Binary" DbType="VarBinary(512)" CanBeNull="true" UpdateCheck="Never" />
       <Column Name="skills" Type="System.Data.Linq.Binary" DbType="VarBinary(512)" CanBeNull="true" UpdateCheck="Never" />
-      <Association Name="stats_player" Member="stats1" ThisKey="stats" Type="stats" IsForeignKey="true" />
-      <Association Name="zone_player" Member="zone1" ThisKey="zone" Type="zone" IsForeignKey="true" />
-      <Association Name="alia_player" Member="alias1" ThisKey="alias" Type="alias" IsForeignKey="true" />
-      <Association Name="squad_player" Member="squad1" ThisKey="squad" Type="squad" IsForeignKey="true" />
+      <Association Name="stats_player" Member="stats1" ThisKey="stats" OtherKey="id" Type="stats" IsForeignKey="true" />
+      <Association Name="zone_player" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
+      <Association Name="alias_player" Member="alias1" ThisKey="alias" OtherKey="id" Type="alias" IsForeignKey="true" />
+      <Association Name="squad_player" Member="squad1" ThisKey="squad" OtherKey="id" Type="squad" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.stats" Member="stats">
@@ -40,7 +39,7 @@
       <Column Name="altstat6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="altstat7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="altstat8" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Association Name="stats_player" Member="players" OtherKey="stats" Type="player" />
+      <Association Name="stats_player" Member="players" ThisKey="id" OtherKey="stats" Type="player" />
     </Type>
   </Table>
   <Table Name="dbo.account" Member="accounts">
@@ -52,7 +51,8 @@
       <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="permission" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Association Name="account_alia" Member="alias" OtherKey="account" Type="alias" />
+      <Column Member="email" Type="System.String" DbType="VarChar(256) NOT NULL" CanBeNull="false" />
+      <Association Name="account_alias" Member="alias" ThisKey="id" OtherKey="account" Type="alias" />
     </Type>
   </Table>
   <Table Name="dbo.zone" Member="zones">
@@ -63,7 +63,7 @@
       <Column Name="description" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
       <Column Name="notice" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
       <Column Name="active" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
-      <Association Name="zone_player" Member="players" OtherKey="zone" Type="player" />
+      <Association Name="zone_player" Member="players" ThisKey="id" OtherKey="zone" Type="player" />
     </Type>
   </Table>
   <Table Name="dbo.alias" Member="alias">
@@ -72,8 +72,8 @@
       <Column Name="account" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="creation" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Association Name="alia_player" Member="players" OtherKey="alias" Type="player" />
-      <Association Name="account_alia" Member="account1" ThisKey="account" Type="account" IsForeignKey="true" />
+      <Association Name="alias_player" Member="players" ThisKey="id" OtherKey="alias" Type="player" />
+      <Association Name="account_alias" Member="account1" ThisKey="account" OtherKey="id" Type="account" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.squad" Member="squads">
@@ -82,7 +82,7 @@
       <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="password" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Association Name="squad_player" Member="players" OtherKey="squad" Type="player" />
+      <Association Name="squad_player" Member="players" ThisKey="id" OtherKey="squad" Type="player" />
     </Type>
   </Table>
 </Database>
