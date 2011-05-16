@@ -98,9 +98,9 @@ namespace InfServer.Bots
 
 			//Apply our rotation
             if (_isRotatingLeft)
-				_direction -= ((_rollRotate/10000.0d) * delta);
+				_direction -= ((_rollRotate / 10000.0d) * delta);
 			else if (_isRotatingRight)
-				_direction += ((_rollRotate/10000.0d) * delta);
+				_direction += ((_rollRotate / 10000.0d) * delta);
 
 			_direction %= 240;
 
@@ -109,7 +109,6 @@ namespace InfServer.Bots
 
 			//Vectorize our direction, unf.
 			Vector2 directionVector = Vector2.createUnitVector(_direction);
-            directionVector.multiply(0.1d);
 
 			//Apply our thrusting instructions
             _thrustDirection = 0;

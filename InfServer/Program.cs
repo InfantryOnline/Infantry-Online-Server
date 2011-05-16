@@ -40,7 +40,7 @@ namespace InfServer
 				return;
 			}
 
-			DdMonitor.bNoSync = true;
+			DdMonitor.bNoSync = false;
 			DdMonitor.bEnabled = false;
 			DdMonitor.DefaultTimeout = -1;
 

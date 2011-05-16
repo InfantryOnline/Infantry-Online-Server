@@ -163,11 +163,14 @@ namespace InfServer.Bots
         {	//Calculate our delta time..
 			int tickCount = Environment.TickCount;
 			int delta = tickCount - _tickLastPoll;
+	
+			//Don't need to update too much
+			if (delta < 50)
+				return true;
 
 			_tickLastPoll = tickCount;
 
-			/*//Allow our controller to update our vehicle state
-			return _controller.updateState(delta);*/
+			//Allow our controller to update our vehicle state
 			_movement.updateState(delta);
 
 			if (_itemUseID == 0)

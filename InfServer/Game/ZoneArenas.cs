@@ -78,7 +78,7 @@ namespace InfServer.Game
 				}
 
                 // Sleep for a bit
-			    Thread.Sleep(10);
+			    //Thread.Sleep(10);
 			}
 		}
 
