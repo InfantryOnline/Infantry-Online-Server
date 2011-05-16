@@ -80,7 +80,10 @@ namespace InfServer
 		/// <param name="monitor">The object on which to acquire the monitor lock.</param>
 		/// <returns>An IDisposable that can be used to release the lock.</returns>
 		public static IDisposable Lock(object monitor)
-		{
+		{	//If we're not syncing, don't do anything
+			if (m_bNoSync)
+				return null;
+
 			if (monitor == null) throw new ArgumentNullException("monitor");
 			IDisposable cookie = new DdMonitorCookie(monitor);
 			if (!Enter(monitor))
