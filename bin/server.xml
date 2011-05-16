@@ -12,7 +12,7 @@
 	
 	<server>
 		<version value="155" />
-		<zoneConfig value="sub.cfg" />
+		<zoneConfig value="ctf1.cfg" />
 		<gameType value="GameType_CTF" />
 		<loadBlobs value="true" />
 		
@@ -35,6 +35,10 @@
 		<maxArenaItems value="10000" />
 
 		<gameCheckInterval value="250" />
+		
+		<namedArena value="OvD">
+			<gameType value="GameType_CTF_OvD" />
+		</namedArena>
 	</arena>
 	
 	<maxPlayers value="5000" />

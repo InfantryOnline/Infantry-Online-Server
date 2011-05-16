@@ -124,6 +124,7 @@
     <Compile Include="Bots\DuelBot\DuelBot.cs" />
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />
+    <Compile Include="GameTypes\CTF_OvD\OvD.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

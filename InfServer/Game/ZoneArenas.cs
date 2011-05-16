@@ -98,8 +98,20 @@ namespace InfServer.Game
 				name = "Public" + idx;
 			}
 
-			//Instance our default gametype
+			//Is this a registered arena name?
 			string invokerType = _config["server/gameType"].Value;
+			IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
+
+			foreach (ConfigSetting named in namedArenas)
+			{	//Correct arena?
+				if (name.Equals(named.Value, StringComparison.OrdinalIgnoreCase))
+				{
+					invokerType = named["gameType"].Value;
+					break;
+				}
+			}
+
+			//Instance our gametype
 			if (!Scripting.Scripts.invokerTypeExists(invokerType))
 			{
 				Log.write(TLog.Error, "Unable to find gameType '{0}'", invokerType);

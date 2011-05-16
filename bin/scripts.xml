@@ -17,5 +17,9 @@
 			<inheritDefaultScripts value="true" />
 			<scriptDir value="GameTypes\CTF" />
 		</type>
+		<type value="GameType_CTF_OvD">
+			<inheritDefaultScripts value="true" />
+			<scriptDir value="GameTypes\CTF_OvD" />
+		</type>
 	</scripts>
 </xml>
