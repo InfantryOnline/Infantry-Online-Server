@@ -59,6 +59,7 @@ namespace InfServer.Game
 				{	//Grab a list of arenas
 					using (DdMonitor.Lock(_arenas))
 						arenas = new List<Arena>(_arenas.Values);
+					lastArenaUpdate = Environment.TickCount;
 				}
 
 				//Poll each arena!

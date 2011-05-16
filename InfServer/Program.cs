@@ -41,7 +41,7 @@ namespace InfServer
 			}
 
 			DdMonitor.bNoSync = false;
-			DdMonitor.bEnabled = true;
+			DdMonitor.bEnabled = false;
 			DdMonitor.DefaultTimeout = -1;
 
 			//Register our catch-all exception handler
