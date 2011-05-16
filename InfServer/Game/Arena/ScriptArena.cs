@@ -464,8 +464,7 @@ namespace InfServer.Game
 			{	//Forward to our script
 				if (!exists("Player.LeaveGame") || (bool)callsync("Player.LeaveGame", false, from))
 				{	//The player has effectively left the game
-					if (from.spec(getTeamByName("spec")))
-						playerLeave(from);
+					from.spec(getTeamByName("spec"));
 				}
 			}
 			else
@@ -557,10 +556,8 @@ namespace InfServer.Game
 
 				//Do we have a contender?
 				if (pick != null)
-				{	//Great, use it
-					if (from.unspec(pick))
-						playerEnter(from);
-				}
+					//Great, use it
+					from.unspec(pick);
 				else
 					from.sendNoticeLog(TLog.Warning, "Unable to find team.");
 			}

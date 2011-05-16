@@ -848,6 +848,9 @@ namespace InfServer.Game
 			//Throw ourselves onto team spec!
 			team.addPlayer(this);
 
+			//Make sure the arena knows we've left
+			_arena.playerLeave(this);
+
 			//We should now be a spectator in spec!
 			return true;
 		}
@@ -901,6 +904,10 @@ namespace InfServer.Game
 
 			//Run the exit spec event
 			Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.exitSpectatorMode);
+
+			//Make sure the arena knows we've entered
+			_arena.playerEnter(this);
+
 			return true;
 		}
 

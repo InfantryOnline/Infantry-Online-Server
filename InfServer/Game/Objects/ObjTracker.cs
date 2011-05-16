@@ -187,13 +187,13 @@ namespace InfServer.Game
 		/// Add a player to the player tracker
 		/// </summary>		
 		public void Add(T p)
-		{
-			_idToObj.Add(p.getID(), p);
+		{	//Set the given id
+			_idToObj[p.getID()] = p;
 
 			Helpers.ObjectState state = p.getState();
 			List<T> bucket = _matrix[state.positionX / BUCKET_TICKS, state.positionY / BUCKET_TICKS];
 
-			_objToBucket.Add(p, bucket);
+			_objToBucket[p] = bucket;
 
 			// Insert player into the right bucket
 			bucket.Add(p);			
