@@ -72,15 +72,13 @@ namespace InfServer.Game
 			}
 		}
 
-		public void updateObjState(T from, CS_PlayerUpdate update)
+		public void updateObjState(T from, Helpers.ObjectState state)
 		{	//Make sure he's one of ours
 			if (!Contains(from))
 			{
-				Log.write(TLog.Warning, "Given object state update for unknown player {0}.", from);
+				Log.write(TLog.Warning, "Given object state update for unknown object {0}.", from);
 				return;
 			}
-
-			Helpers.ObjectState state = from.getState();
 
 			// Update the bucket if it's not correct
 			List<T> newBucket = _matrix[state.positionX / BUCKET_TICKS, state.positionY / BUCKET_TICKS];
@@ -169,6 +167,55 @@ namespace InfServer.Game
 			}
 
 			return found;
+		}
+
+		/// <summary>
+		/// Returns the number of objects inside the box defined by the parameters
+		/// </summary>		
+		public int getObjcountInArea(int xMin, int yMin, int xMax, int yMax)
+		{
+			return getObjcountByClosure(xMin, yMin, xMax, yMax, delegate(T p)
+			{	//Does it satisfy the predicate?
+				if ((_defPredicate != null && !_defPredicate(p)))
+					return false;
+
+				Helpers.ObjectState state = p.getState();
+				int px = state.positionX;
+				int py = state.positionY;
+				return (xMin <= px && px <= xMax && yMin <= py && py <= yMax);
+			});
+		}
+
+		private int getObjcountByClosure(int xMin, int yMin, int xMax, int yMax, Func<T, bool> filter)
+		{
+			//Clamp coordinates
+			xMin = Math.Max(0, xMin);
+			yMin = Math.Max(0, yMin);
+			xMax = Math.Min(TICK_MAX, xMax);
+			yMax = Math.Min(TICK_MAX, yMax);
+
+			// Figure out the buckets we need to search
+			int bXMin = xMin / BUCKET_TICKS;
+			int bXMax = xMax / BUCKET_TICKS;
+			int bYMin = yMin / BUCKET_TICKS;
+			int bYMax = yMax / BUCKET_TICKS;
+
+			// Get anyone in the buckets that satisfies the exact coords
+			int result = 0;
+
+			for (int i = bXMin; i <= bXMax; i++)
+			{
+				for (int j = bYMin; j <= bYMax; j++)
+				{
+					foreach (T p in _matrix[i, j])
+					{
+						if (filter(p))
+							result++;
+					}
+				}
+			}
+
+			return result;
 		}
 
 		#region Collection functions

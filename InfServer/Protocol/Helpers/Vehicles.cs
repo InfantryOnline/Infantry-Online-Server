@@ -29,7 +29,7 @@ namespace InfServer.Protocol
 
 			not.type = KillType.Player;
 
-			not.playerID = (occupier == null) ? (ushort)0 : occupier._id;
+			not.playerID = (occupier == null) ? (ushort) 0 : occupier._id;
 			not.vehicleID = dead._id;
 			not.killerID = (killer == null) ? 0 : (uint)killer._id;
 			not.positionX = dead._state.positionX;
@@ -50,7 +50,7 @@ namespace InfServer.Protocol
 
 			not.type = KillType.Player;
 
-			not.playerID = (occupier == null) ? (ushort)0 : occupier._id;
+			not.playerID = (occupier == null) ? (ushort) 0 : occupier._id;
 			not.vehicleID = dead._id;
 			not.killerID = (killer == null) ? 0 : (uint)killer._id;
 			not.positionX = dead._state.positionX;

@@ -274,90 +274,19 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// Applies damage from each of the six damage types
-		/// Destroys the turret if necessary
+		/// Handles damage from explosions triggered nearby
 		/// </summary>		
-		public void applyDamage(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
-		{
-			double radius = Math.Sqrt(Math.Pow(dmgX - _state.positionX, 2) + Math.Pow(dmgY - _state.positionY, 2));
-
-			// NOTE: Damage values are all multiplied by 1000
-
-			double fraction;
-			double grossDamage;
-			double netDamage;
-
-			if (radius <= wep.kineticDamageRadius)
-			{				
-				fraction = 1 - radius / wep.kineticDamageRadius;
-				grossDamage = (wep.kineticDamageInner - wep.kineticDamageOuter) * fraction + wep.kineticDamageOuter;
-				netDamage = (grossDamage - _type.Armors[0].SelfIgnore) * (1.0d - _type.Armors[0].SelfReduction / 1000.0d);
-				netDamage /= 1000;
-				if (netDamage > 0) _state.health -= (short) Math.Round(netDamage);
-			}
-
-			if (radius <= wep.explosiveDamageRadius)
-			{
-				fraction = 1 - radius / wep.explosiveDamageRadius;
-				grossDamage = (wep.explosiveDamageInner - wep.explosiveDamageOuter) * fraction + wep.explosiveDamageOuter;
-				netDamage = (grossDamage - _type.Armors[1].SelfIgnore) * (1.0d - _type.Armors[1].SelfReduction / 1000.0d);
-				netDamage /= 1000;
-				if (netDamage > 0) _state.health -= (short)Math.Round(netDamage);
-			}
-
-			if (radius <= wep.electronicDamageRadius)
-			{
-				fraction = 1 - radius / wep.electronicDamageRadius;
-				grossDamage = (wep.electronicDamageInner - wep.electronicDamageOuter) * fraction + wep.electronicDamageOuter;
-				netDamage = (grossDamage - _type.Armors[2].SelfIgnore) * (1.0d - _type.Armors[2].SelfReduction / 1000.0d);
-				netDamage /= 1000;
-				if (netDamage > 0) _state.health -= (short)Math.Round(netDamage);
-			}
-
-			if (radius <= wep.psionicDamageRadius)
-			{
-				fraction = 1 - radius / wep.psionicDamageRadius;
-				grossDamage = (wep.psionicDamageInner - wep.psionicDamageOuter) * fraction + wep.psionicDamageOuter;
-				netDamage = (grossDamage - _type.Armors[3].SelfIgnore) * (1.0d - _type.Armors[3].SelfReduction / 1000.0d);
-				netDamage /= 1000;
-				if (netDamage > 0) _state.health -= (short)Math.Round(netDamage);
-			}
-
-			if (radius <= wep.bypassDamageRadius)
-			{
-				fraction = 1 - radius / wep.bypassDamageRadius;
-				grossDamage = (wep.bypassDamageInner - wep.bypassDamageOuter) * fraction + wep.bypassDamageOuter;
-				netDamage = (grossDamage - _type.Armors[4].SelfIgnore) * (1.0d - _type.Armors[4].SelfReduction / 1000.0d);
-				netDamage /= 1000;
-				if (netDamage > 0) _state.health -= (short)Math.Round(netDamage);
-			}
-
-			if (radius <= wep.energyDamageRadius)
-			{
-				fraction = 1 - radius / wep.energyDamageRadius;
-				grossDamage = (wep.energyDamageInner - wep.energyDamageOuter) * fraction + wep.energyDamageOuter;
-				netDamage = (grossDamage - _type.Armors[5].SelfIgnore) * (1.0d - _type.Armors[5].SelfReduction / 1000.0d);
-				netDamage /= 1000;
-
-				// if (netDamage > 0)
-				// TODO: take care of energy damage
-			}
-
-			//Clamp health
-			if (_state.health < 0) 
-				_state.health = 0;
-
+		public override void applyExplosion(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
+		{	//Apply our damage
+			applyExplosionDamage(false, attacker, dmgX, dmgY, wep);
+			
 			//Did we die?
 			if (_state.health <= 0)
-			{	//Make ourselves dead!
-				kill(attacker);
-
-				//Computer vehicles don't linger, so destroy it
+			{	//Computer vehicles don't linger, so destroy it
 				destroy(false);
 			}
 
 			_sendUpdate = true;
 		}
-		
 	}
 }

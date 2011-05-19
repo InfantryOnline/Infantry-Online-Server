@@ -120,7 +120,8 @@ namespace InfServer.Bots
 			//Populate variables
 			_type = type;
 
-			_movement = new MovementController(_type, _state, arena);
+			if (_movement == null)
+				_movement = new MovementController(_type, _state, arena);
 			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
 
 			_tickLastPoll = Environment.TickCount;
@@ -139,7 +140,8 @@ namespace InfServer.Bots
 			//Populate variables
             _type = type;
 
-			_movement = new MovementController(_type, _state, arena);
+			if (_movement == null)
+				_movement = new MovementController(_type, _state, arena);
 			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
 
 			_tickLastPoll = Environment.TickCount;
@@ -149,11 +151,28 @@ namespace InfServer.Bots
 
 		#region State
 		/// <summary>
+		/// Causes the vehicle to die
+		/// </summary>
+		public override void kill(Player killer)
+		{	//Die, and then cease movement
+			_state.health = 0;
+			_tickDead = Environment.TickCount;
+
+			_movement.stop();
+			_movement.bEnabled = false;
+
+			//Notify the arena
+			_arena.handleBotDeath(this, killer);
+		}
+
+		/// <summary>
 		/// The vehicle is being destroyed, clean up assets
 		/// </summary>
 		public override void destroy(bool bRestoreBase, bool bRemove)
 		{	//Notify the arena of our destruction
 			_arena.lostBot(this);
+
+			base.destroy(bRestoreBase, bRemove);
 		}
 
 		/// <summary>
@@ -165,22 +184,53 @@ namespace InfServer.Bots
 			int delta = tickCount - _tickLastPoll;
 	
 			//Don't need to update too much
-			if (delta < 50)
-				return true;
+			if (delta < 0)
+				return false;
 
 			_tickLastPoll = tickCount;
 
-			//Allow our controller to update our vehicle state
-			_movement.updateState(delta);
-
-			if (_itemUseID == 0)
+			//If it's a ridiculous delta, ignore it
+			if (delta > 600)
 			{
-				if (tickCount - _tickLastUpdate > 80)
-					_tickLastUpdate = tickCount;
-				else
-					return false;
+				Log.write(TLog.Warning, "Encountered excessive bot delta of {0}", delta);
+				return false;
 			}
-			return true;
+
+			//Are we dead?
+			if (IsDead)
+			{	//Should we remove ourself from the world?
+				if (_type.RemoveDeadTimer != 0 && _tickDead != 0 &&
+					tickCount - _tickDead > (_type.RemoveDeadTimer * 1000))
+					destroy(false);
+			}
+			else
+			{
+				//Allow our controller to update our vehicle state
+				_movement.updateState(delta);
+
+				if (_itemUseID == 0)
+				{
+					if (tickCount - _tickLastUpdate > 300)
+					{
+						_tickLastUpdate = tickCount;
+						return true;
+					}
+					else
+						return false;
+				}
+				else
+					return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Handles damage from explosions triggered nearby
+		/// </summary>		
+		public override void applyExplosion(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
+		{	//Apply our damage
+			applyExplosionDamage(true, attacker, dmgX, dmgY, wep);
 		}
 		#endregion
     }

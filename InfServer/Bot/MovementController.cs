@@ -8,6 +8,8 @@ using InfServer.Protocol;
 
 using Assets;
 
+using Axiom.Math;
+
 namespace InfServer.Bots
 {
 	// MovementController Class
@@ -16,9 +18,10 @@ namespace InfServer.Bots
     public class MovementController
 	{	// Member variables
 		///////////////////////////////////////////////////
-		private VehInfo.Car _type;						//The type of vehicle we represent
-		private Helpers.ObjectState _state;				//Our internal object state
-        private Arena _arena;                           //The arena we're in
+		protected VehInfo.Car _type;					//The type of vehicle we represent
+		protected Helpers.ObjectState _state;			//Our internal object state
+		protected Arena _arena;                         //The arena we're in
+		public bool bEnabled;							//Are we able to accept movement commands?
 
 		//Hardcode the terrain for now until we get access to the map info!
 		private int _terrainType = 0;
@@ -59,6 +62,7 @@ namespace InfServer.Bots
 			_type = type;
 			_state = state;
             _arena = arena;
+			bEnabled = true;
 
 			_position = new Vector2(state.positionX, state.positionY);
 			_velocity = new Vector2(state.velocityX, state.velocityY);
@@ -68,9 +72,9 @@ namespace InfServer.Bots
 			SpeedValues t0 = type.TerrainSpeeds[0];
 
 			_rollFriction = t0.RollFriction;
-			_rollThrust = t0.RollThrust;
-			_rollThrustStrafe = t0.StrafeThrust;
-			_rollThrustBack = t0.BackwardThrust;
+			_rollThrust = t0.RollThrust * 4800 / 128;
+			_rollThrustStrafe = t0.StrafeThrust * 4800 / 128;
+			_rollThrustBack = t0.BackwardThrust * 4800 / 128;
 			_rollRotate = t0.RollRotate;
 			_rollTopSpeed = t0.RollTopSpeed;
         }
@@ -92,8 +96,12 @@ namespace InfServer.Bots
 		/// <summary>
 		/// Updates the state in accordance with movement instructions
 		/// </summary>
-        public bool updateState(double delta)
-        {	//Get our speed values for our current terrain
+        public virtual bool updateState(double delta)
+        {	//If we're dead
+			if (delta <= 0 || !bEnabled)
+				return false;
+			
+			//Get our speed values for our current terrain
             SpeedValues stats = _type.TerrainSpeeds[_terrainType];
 
 			//Apply our rotation
@@ -109,53 +117,57 @@ namespace InfServer.Bots
 
 			//Vectorize our direction, unf.
 			Vector2 directionVector = Vector2.createUnitVector(_direction);
+			Vector2 accelVector = Vector2.Zero;
 
 			//Apply our thrusting instructions
             _thrustDirection = 0;
 
 			if (_isThrustingForward)
 			{
-				_velocity.x += _rollThrust * directionVector.x;
-				_velocity.y += _rollThrust * directionVector.y;
+				accelVector.x += directionVector.x * _rollThrust;
+				accelVector.y += directionVector.y * _rollThrust;
 				_thrustDirection = _direction;
 			}
 			else if (_isThrustingBackward)
 			{
-				_velocity.x -= _rollThrustBack * directionVector.x;
-				_velocity.y -= _rollThrustBack * directionVector.y;
+				accelVector.x += directionVector.x * _rollThrustBack;
+				accelVector.y += directionVector.y * _rollThrustBack;
 				_thrustDirection = calculateNewDirection(_direction, 120);
 			}
 
 			if (_isStrafingLeft)
 			{
-				_velocity.x += _rollThrustStrafe * directionVector.y;
-				_velocity.y += _rollThrustStrafe * -directionVector.x;
+				double tmpX = directionVector.x;
+				accelVector.x += directionVector.y * _rollThrustStrafe;
+				accelVector.y += -tmpX * _rollThrustStrafe;
 			}
 			else if (_isStrafingRight)
 			{
-				_velocity.x += _rollThrustStrafe * -directionVector.y;
-				_velocity.y += _rollThrustStrafe * directionVector.x;
+				double tmpX = directionVector.x;
+				accelVector.x += -directionVector.y * _rollThrustStrafe;
+				accelVector.y += tmpX * _rollThrustStrafe;
 			}
 
-			double xPerTick = _velocity.x / 10000.0d;
-			double yPerTick = _velocity.y / 10000.0d;
+			//Apply our acceleration
+			_velocity.x += accelVector.x * (delta / 1000.0d);
+			_velocity.y += accelVector.y * (delta / 1000.0d);
+
+			//Apply friction
+			double frictionMod = 1000 - ((((((double)_rollFriction) * 800) / 256) / 10) * (delta / 10.0d));
+
+			_velocity.x = ((_velocity.x * frictionMod) / 1000.0d);
+			_velocity.y = ((_velocity.y * frictionMod) / 1000.0d);
 
             //TODO: Add the effects of projectile explosions on our velocity
             //TODO: Check for physics react accordingly
 
 			//Clamp our resulting velocity
-			if (_velocity.magnitude() >= _rollTopSpeed)
-				_velocity.setMagnitude(_rollTopSpeed);   
- 
-            //Apply friction laws of the terrain/car
-			//TODO: The constant may not be entirely accurate
-			double friction = 1 - Math.Log10(1 + (_rollFriction * delta) / 10000);
+			if (_velocity.Length >= _rollTopSpeed / 1)
+				_velocity.Normalize(_rollTopSpeed / 1);
 
-			_velocity.x *= friction;
-			_velocity.y *= friction;
-
-			xPerTick = _velocity.x / 10000.0d;
-			yPerTick = _velocity.y / 10000.0d;
+			//Calculate our new position
+			double xPerTick = _velocity.x / 10000.0d;
+			double yPerTick = _velocity.y / 10000.0d;
 
 			Vector2 newPosition = new Vector2(_position.x + (xPerTick * delta), _position.y + (yPerTick * delta));
 
@@ -165,22 +177,25 @@ namespace InfServer.Bots
 			int newTileX = (int)Math.Floor(newPosition.x / 16);
 			int newTileY = (int)Math.Floor(newPosition.y / 16);
 			LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
+
 			if (tile.Blocked)
 			{
                 bool collision = false;
+
                 if (Math.Abs(tileX - newTileX) > 0)
                 {
                     _velocity.x *= -1;
                     collision = true;
                 }
+
                 if (Math.Abs(tileY - newTileY) > 0)
                 {
                     _velocity.y *= -1;
                     collision = true;
                 }
+
                 if (collision)
-                    _velocity.multiply(_type.BouncePercent / 1000.0d);
-                
+                    _velocity *= _type.BouncePercent / 1000.0d;
 			}
 
             //Finally, we can adjust our position

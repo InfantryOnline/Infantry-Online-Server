@@ -225,18 +225,16 @@ namespace InfServer.Script.GameType_CTF
 		/// Called when a player enters the game
 		/// </summary>
 		[Scripts.Event("Player.Enter")]
-		public bool playerEnter(Player player)
+		public void playerEnter(Player player)
 		{
-			return true;
 		}
 
 		/// <summary>
 		/// Called when a player leaves the game
 		/// </summary>
 		[Scripts.Event("Player.Leave")]
-		public bool playerLeave(Player player)
+		public void playerLeave(Player player)
 		{
-			return true;
 		}
 
 		/// <summary>

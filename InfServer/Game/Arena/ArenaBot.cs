@@ -22,7 +22,7 @@ namespace InfServer.Game
 	{	// Member variables
 		///////////////////////////////////////////////////
 		protected ObjTracker<Bot> _bots;				//The vehicles belonging to the arena, indexed by id
-
+		private List<Bot> _condemnedBots;				//Bots to be deleted
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -40,10 +40,21 @@ namespace InfServer.Game
 				{	//Prepare and send an update packet for the vehicle
 					Helpers.Update_RouteBot(Players, bot);
 
+					//Update the bot's state
+					if (!bot.bCondemned)
+					_vehicles.updateObjState(bot, bot._state);
+
 					//Only shoot once!
 					bot._itemUseID = 0;
 				}
+
+				if (bot.bCondemned)
+					_condemnedBots.Add(bot);
 			}
+
+			foreach (Bot bot in _condemnedBots)
+				_bots.Remove(bot);
+			_condemnedBots.Clear();
 		}
 
 		/// <summary>
@@ -190,8 +201,8 @@ namespace InfServer.Game
 		/// Handles the loss of a bot
 		/// </summary>
 		public void lostBot(Bot bot)
-		{	//Sob, let it go
-			_bots.Remove(bot);
+		{	//Mark it for deletion
+			bot.bCondemned = true;
 		}
 	}
 }

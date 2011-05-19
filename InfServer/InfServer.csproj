@@ -42,6 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -51,6 +52,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CSScriptLibrary, Version=2.1.0.0, Culture=neutral, PublicKeyToken=70fcc3d18c749033, processorArchitecture=MSIL">
@@ -78,9 +80,45 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot\Bot.cs" />
+    <Compile Include="Bot\Math\AxisAlignedBox.cs" />
+    <Compile Include="Bot\Math\Collections\BaseCollection.cs" />
+    <Compile Include="Bot\Math\Collections\Lists.cs" />
+    <Compile Include="Bot\Math\Collections\Pair.cs" />
+    <Compile Include="Bot\Math\Collections\QuaternionCollection.cs" />
+    <Compile Include="Bot\Math\Collections\Vector3Collection.cs" />
+    <Compile Include="Bot\Math\Degree.cs" />
+    <Compile Include="Bot\Math\Enums.cs" />
+    <Compile Include="Bot\Math\Matrix3.cs" />
+    <Compile Include="Bot\Math\Matrix4.cs" />
+    <Compile Include="Bot\Math\Plane.cs" />
+    <Compile Include="Bot\Math\PlaneBoundedVolume.cs" />
+    <Compile Include="Bot\Math\Quaternion.cs" />
+    <Compile Include="Bot\Math\Radian.cs" />
+    <Compile Include="Bot\Math\Ray.cs" />
+    <Compile Include="Bot\Math\Real.cs" />
+    <Compile Include="Bot\Math\Sphere.cs" />
+    <Compile Include="Bot\Math\Utility.cs" />
+    <Compile Include="Bot\Math\Utility\Contract.cs" />
+    <Compile Include="Bot\Math\Utility\Exceptions.cs" />
+    <Compile Include="Bot\Math\Utility\Proclaim.cs" />
+    <Compile Include="Bot\Math\Vector3.cs" />
+    <Compile Include="Bot\Math\Vector4.cs" />
     <Compile Include="Bot\MovementController.cs" />
+    <Compile Include="Bot\OpenSteer\AbstractVehicle.cs" />
+    <Compile Include="Bot\OpenSteer\Colours.cs" />
+    <Compile Include="Bot\OpenSteer\LocalSpace.cs" />
+    <Compile Include="Bot\OpenSteer\lq.cs" />
+    <Compile Include="Bot\OpenSteer\lqProximity.cs" />
+    <Compile Include="Bot\OpenSteer\Obstacle.cs" />
+    <Compile Include="Bot\OpenSteer\OpenSteerUtility.cs" />
+    <Compile Include="Bot\OpenSteer\PathWay.cs" />
+    <Compile Include="Bot\OpenSteer\Proximity.cs" />
+    <Compile Include="Bot\OpenSteer\RandomGenerator.cs" />
+    <Compile Include="Bot\OpenSteer\SimpleVehicle.cs" />
+    <Compile Include="Bot\OpenSteer\SteerLibrary.cs" />
     <Compile Include="Bot\ScriptBot.cs" />
-    <Compile Include="Bot\Vector2.cs" />
+    <Compile Include="Bot\SteeringController.cs" />
+    <Compile Include="Bot\Math\Vector2.cs" />
     <Compile Include="Bot\WeaponController.cs" />
     <Compile Include="Database\Database.cs" />
     <Compile Include="Database\Logic\Connection.cs" />
@@ -230,6 +268,25 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Bot\Math\Collections\.svn\all-wcprops" />
+    <None Include="Bot\Math\Collections\.svn\dir-prop-base" />
+    <None Include="Bot\Math\Collections\.svn\entries" />
+    <None Include="Bot\Math\Collections\.svn\prop-base\BaseCollection.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\prop-base\Lists.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\prop-base\Pair.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\prop-base\QuaternionCollection.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\prop-base\Vector3Collection.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\text-base\BaseCollection.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\text-base\Lists.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\text-base\Pair.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\text-base\QuaternionCollection.cs.svn-base" />
+    <None Include="Bot\Math\Collections\.svn\text-base\Vector3Collection.cs.svn-base" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Bot\Math\Collections\.svn\props\" />
+    <Folder Include="Bot\Math\Collections\.svn\tmp\prop-base\" />
+    <Folder Include="Bot\Math\Collections\.svn\tmp\props\" />
+    <Folder Include="Bot\Math\Collections\.svn\tmp\text-base\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

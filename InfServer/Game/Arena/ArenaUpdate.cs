@@ -9,6 +9,7 @@ using System.Threading;
 using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Logic;
+using InfServer.Bots;
 
 using Assets;
 
@@ -157,6 +158,12 @@ namespace InfServer.Game
 		/// </summary>
 		public virtual void handleVehicleDeath(Vehicle dead, Player killer, Player occupier)
 		{	}
+
+		/// <summary>
+		/// Triggered when a bot is killed
+		/// </summary>
+		public virtual void handleBotDeath(Bot dead, Player killer)
+		{ }
 
 		#endregion
 	}

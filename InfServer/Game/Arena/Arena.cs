@@ -228,6 +228,15 @@ namespace InfServer.Game
 		///////////////////////////////////////////////////
 		#region Member Classes
 		/// <summary>
+		/// Our configurable Breakdown Class.
+		/// </summary>
+		public class BreakdownSettings
+		{   //All true by default
+			public bool bDisplayTeam = true;
+			public bool bDisplayIndividual = true;
+		} 
+
+		/// <summary>
 		/// Represents a dropped item
 		/// </summary>
 		public class ItemDrop
@@ -306,6 +315,7 @@ namespace InfServer.Game
 			_teams = new Dictionary<string, Team>();
 			_freqTeams = new SortedDictionary<int, Team>();
 
+			_condemnedVehicles = new List<Vehicle>();
 			_vehicles = new ObjTracker<Vehicle>();
 			_lastVehicleKey = (ushort)5001;						//The vehicle IDs must start at 5001, everything before
 																//is assumed to be a player base vehicle.
@@ -313,6 +323,7 @@ namespace InfServer.Game
 			_lastItemKey = 0;
 
 			_bots = new ObjTracker<InfServer.Bots.Bot>();
+			_condemnedBots = new List<Bots.Bot>();
 
 			_delayedActionList = new List<DelayedAction>();
 
@@ -370,10 +381,11 @@ namespace InfServer.Game
 				}
 
 				//Keep car vehicles in line
-				List<Vehicle> condemned = new List<Vehicle>();
-
 				foreach (Vehicle vehicle in _vehicles)
 				{	//We don't need to bother maintaining bot vehicles
+					if (vehicle.bCondemned)
+						_condemnedVehicles.Add(vehicle);
+
 					if (vehicle._bBotVehicle)
 						continue;
 
@@ -389,20 +401,21 @@ namespace InfServer.Game
 								//Check for expiration timers
 								if (carInfo.RemoveGlobalTimer != 0 && vehicle._tickCreation != 0 &&
 									now - vehicle._tickCreation > (carInfo.RemoveGlobalTimer * 1000))
-									condemned.Add(vehicle);
+									vehicle.destroy(true);
 								else if (carInfo.RemoveDeadTimer != 0 && vehicle._tickDead != 0 &&
 									now - vehicle._tickDead > (carInfo.RemoveDeadTimer * 1000))
-									condemned.Add(vehicle);
+									vehicle.destroy(true);
 								else if (carInfo.RemoveUnoccupiedTimer != 0 && vehicle._tickUnoccupied != 0 &&
 									now - vehicle._tickUnoccupied > (carInfo.RemoveUnoccupiedTimer * 1000))
-									condemned.Add(vehicle);
+									vehicle.destroy(true);
 							}
 							break;
 					}
 				}
 
-				foreach (Vehicle vehicle in condemned)
-					vehicle.destroy(true);
+				foreach (Vehicle vehicle in _condemnedVehicles)
+					_vehicles.Remove(vehicle);
+				_condemnedVehicles.Clear();
 
 				//Take care of our delayed actions
 				List<DelayedAction> executedActions = null;
@@ -469,6 +482,11 @@ namespace InfServer.Game
 		public List<Player> getPlayersInArea(int topX, int topY, int bottomX, int bottomY)
 		{
 			return _playersIngame.getObjsInArea(topX, topY, bottomX, bottomY);
+		}
+
+		public int getPlayerCountInArea(int topX, int topY, int bottomX, int bottomY)
+		{
+			return _playersIngame.getObjcountInArea(topX, topY, bottomX, bottomY);
 		}
 
 		#endregion
@@ -557,51 +575,15 @@ namespace InfServer.Game
 		/// Called when the game begins
 		/// </summary>
 		public virtual void gameStart() 
-		{	//We're running!
-			_bGameRunning = true;
-            _timeGameStarted = DateTime.Now;
-
-			//Reset the game state
-			flagReset();
-			resetItems();
-			resetVehicles();
-
-			//Perform our initial hide spawns
-			initialHideSpawns();
-
-			//Execute the start game event
-			string startGame = _server._zoneConfig.EventInfo.startGame;
-			foreach (Player player in PlayersIngame)
-				Logic_Assets.RunEvent(player, startGame);
+		{
 		}
 
 		/// <summary>
 		/// Called when the game ends
 		/// </summary>
 		public virtual void gameEnd()
-		{	//We've stopped
-			_bGameRunning = false;
-            _timeGameEnded = DateTime.Now;
-
-			//Reset the game state
-			flagReset();
-			resetItems();
-			resetVehicles();
-
-			//Execute the end game event
-			string endGame = _server._zoneConfig.EventInfo.endGame;
-			foreach (Player player in PlayersIngame)
-				Logic_Assets.RunEvent(player, endGame);
+		{
 		}
-
-        /// <summary>
-        /// Our configurable Breakdown Class.
-        /// </summary>
-        public class BreakdownSettings
-        {   //All true by default
-            public bool bDisplayTeam = true;
-            public bool bDisplayIndividual = true;
-        } 
 
         /// <summary>
 		/// Called when the game ends
@@ -615,14 +597,104 @@ namespace InfServer.Game
         }
 
 		/// <summary>
+		/// Determines which team is appropriate for the player to be playing on
+		/// </summary>
+		public virtual Team pickAppropriateTeam(Player player)
+		{	//Find an appropriate team for the player to join
+			List<Team> publicTeams = _teams.Values.Where(team => team.IsPublic).ToList();
+			Team pick = null;
+
+			if (_server._zoneConfig.arena.forceEvenTeams)
+			{	//We just want one for each team
+				int playerCount = 0;
+
+				for (int i = 0; i < _server._zoneConfig.arena.desiredFrequencies; ++i)
+				{	//Do we have more active players than the last?
+					Team team = publicTeams[i];
+					int activePlayers = team.ActivePlayerCount;
+					int maxPlayers = team._info.maxPlayers;
+
+					if ((pick == null && maxPlayers != -1) ||
+						(playerCount > activePlayers &&
+							(maxPlayers == 0 || playerCount < maxPlayers)))
+					{
+						pick = team;
+						playerCount = activePlayers;
+					}
+				}
+
+				if (pick == null)
+					return null;
+			}
+			else
+			{	//Spread them out until we hit our desired number of frequencies
+				int playerCount = int.MaxValue;
+				int desiredFreqs = _server._zoneConfig.arena.desiredFrequencies;
+				int idx = 0;
+
+				while (desiredFreqs > 0 && publicTeams.Count > idx)
+				{	//Valid team?
+					Team team = publicTeams[idx++];
+					int maxPlayers = team._info.maxPlayers;
+
+					if (maxPlayers == -1)
+						continue;
+
+					//Do we have less active players than the last?
+					int activePlayers = team.ActivePlayerCount;
+
+					if (activePlayers < playerCount &&
+						(maxPlayers == 0 || activePlayers + 1 < maxPlayers))
+					{
+						pick = team;
+						playerCount = activePlayers;
+
+						if (activePlayers == 0)
+							break;
+					}
+
+					if (activePlayers > 0)
+						desiredFreqs--;
+				}
+
+				if (pick == null)
+				{	//Desired frequencies are all full, go to our extra teams!
+					playerCount = 0;
+					desiredFreqs = _server._zoneConfig.arena.frequencyMax;
+					idx = 0;
+
+					while (desiredFreqs > 0 && publicTeams.Count > idx)
+					{	//Valid team?
+						Team team = publicTeams[idx++];
+						int maxPlayers = team._info.maxPlayers;
+
+						if (maxPlayers == -1)
+							continue;
+
+						//Do we have more active players than the last?
+						int activePlayers = team.ActivePlayerCount;
+
+						if (activePlayers > playerCount &&
+							(maxPlayers == 0 || activePlayers + 1 < maxPlayers))
+						{
+							pick = team;
+							playerCount = activePlayers;
+						}
+
+						if (activePlayers > 0)
+							desiredFreqs--;
+					}
+				}
+			}
+
+			return pick;
+		}
+
+		/// <summary>
 		/// Called to reset the game state
 		/// </summary>
 		public virtual void gameReset()
-		{	//Reset the game state
-			flagReset();
-			resetItems();
-			resetVehicles();
-		}
+		{	}
 		#endregion
 	}
 }

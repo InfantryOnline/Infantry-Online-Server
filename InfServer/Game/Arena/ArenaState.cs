@@ -23,6 +23,7 @@ namespace InfServer.Game
 		protected SortedDictionary<int, Team> _freqTeams;		//The list of teams, indexed by frequency
 
 		protected ObjTracker<Vehicle> _vehicles;				//The vehicles belonging to the arena, indexed by id
+		private List<Vehicle> _condemnedVehicles;				//Vehicles to be deleted
 		private ushort _lastVehicleKey;							//The last vehicle key which was allocated
 
 		protected SortedDictionary<ushort, ItemDrop> _items;	//The items belonging to the arena, indexed by id
@@ -208,7 +209,7 @@ namespace InfServer.Game
 		public void lostVehicle(Vehicle vehicle, bool bRemove)
 		{	//Sob, let it go
 			if (bRemove)
-				_vehicles.Remove(vehicle);
+				vehicle.bCondemned = true;
 
 			//Notify everyone else of it's destruction
 			Helpers.Object_VehicleDestroy(Players, vehicle);

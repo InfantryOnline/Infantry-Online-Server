@@ -10,6 +10,7 @@ using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Logic;
 using InfServer.Scripting;
+using InfServer.Bots;
 
 using Assets;
 
@@ -178,6 +179,8 @@ namespace InfServer.Game
 		public override void gameReset()
 		{	//Reset the game state
 			flagReset();
+			resetItems();
+			resetVehicles();
 
 			//Pass it to the script environment
 			callsync("Game.Reset", false);
@@ -475,91 +478,25 @@ namespace InfServer.Game
 					return;
 				}
 
+				//Is he able to unspec?
+				if (!Logic_Assets.SkillCheck(from, _server._zoneConfig.arena.exitSpectatorLogic))
+				{
+					from.sendMessage(-1, _server._zoneConfig.arena.exitSpectatorMessage);
+					return;
+				}
+
 				//Forward to our script
 				if (exists("Player.JoinGame") && !(bool)callsync("Player.JoinGame", false, from))
 					return;
 
-				//Find an appropriate team for the player to join
-				List<Team> publicTeams = _teams.Values.Where(team => team.IsPublic).ToList();
-				Team pick = null;
+				//Pick a team
+				Team pick = pickAppropriateTeam(from);
 
-				if (_server._zoneConfig.arena.forceEvenTeams)
-				{	//We just want one for each team
-					int playerCount = 0;
-
-					for (int i = 0; i < _server._zoneConfig.arena.desiredFrequencies; ++i)
-					{	//Do we have more active players than the last?
-						Team team = publicTeams[i];
-						int activePlayers = team.ActivePlayerCount;
-
-						if (pick == null ||
-							(playerCount > activePlayers &&
-								(team._info.maxPlayers == 0 || playerCount < team._info.maxPlayers)))
-						{
-							pick = team;
-							playerCount = activePlayers;
-						}
-					}
-
-					if (pick == null)
-					{
-						from.sendNoticeLog(TLog.Warning, "Unable to find team.");
-						return;
-					}
-				}
-				else
-				{	//Spread them out until we hit our desired number of frequencies
-					int playerCount = 0;
-
-					for (int i = 0; i < _server._zoneConfig.arena.desiredFrequencies; ++i)
-					{	//Do we have more active players than the last?
-						Team team = publicTeams[i];
-						int activePlayers = team.ActivePlayerCount;
-
-						if (pick == null ||
-							(playerCount > activePlayers &&
-								(team._info.maxPlayers == 0 || playerCount < team._info.maxPlayers)))
-						{
-							pick = team;
-							playerCount = activePlayers;
-						}
-					}
-
-					if (pick == null)
-					{
-						from.sendNoticeLog(TLog.Warning, "Unable to find team.");
-						return;
-					}
-
-					//If there is still a desired team without enough players
-					//then great, we'll use that.
-
-					if (playerCount >= _server._zoneConfig.arena.maxPerFrequency)
-					{	//Otherwise, we need to start looking at other teams.
-						//We want to fill a team up, and then move onto the next.
-						playerCount = 0;
-
-						foreach (Team team in publicTeams)
-						{	//Do we have more active players than the last?
-							int activePlayers = team.ActivePlayerCount;
-
-							if (pick == null ||
-								(playerCount < activePlayers && activePlayers < _server._zoneConfig.arena.maxPerFrequency) &&
-								(team._info.maxPlayers == 0 || playerCount < team._info.maxPlayers))
-							{
-								pick = team;
-								playerCount = activePlayers;
-							}
-						}
-					}
-				}
-
-				//Do we have a contender?
 				if (pick != null)
 					//Great, use it
 					from.unspec(pick);
 				else
-					from.sendNoticeLog(TLog.Warning, "Unable to find team.");
+					from.sendMessage(-1, "Unable to pick a team.");
 			}
 		}
 
@@ -626,23 +563,12 @@ namespace InfServer.Game
 			{	//Find the largest blast radius of damage types of this weapon
 				int maxDamageRadius = Helpers.getMaxBlastRadius(usedWep);
 
-				List<Vehicle> vechs = _vehicles.getObjsInRange(update.positionX, update.positionY, maxDamageRadius);
+				List<Vehicle> vechs = _vehicles.getObjsInRange(update.positionX, update.positionY, maxDamageRadius + 500);
 
-				foreach (Vehicle v in vechs)
-				{	//Look for computer vehicles..
-					Computer c = v as Computer;
-					if (c == null)
-						continue;
-
-					//TODO: Is the damage mode appropriate?
-					switch (usedWep.damageMode)
-					{
-						default:
-							break;
-					}
-
-					c.applyDamage(from, update.positionX, update.positionY, usedWep);
-				}
+				//Notify all vehicles in the vicinity
+				foreach (Vehicle v in vechs)	
+					if (!v.IsDead)
+						v.applyExplosion(from, update.positionX, update.positionY, usedWep);
 			}
 		}
 
@@ -760,7 +686,7 @@ namespace InfServer.Game
 				from._occupiedVehicle._state.lastUpdate = from._state.lastUpdate = Environment.TickCount;
 
 				//Update spatial data
-				_vehicles.updateObjState(from._occupiedVehicle, update);
+				_vehicles.updateObjState(from._occupiedVehicle, from._occupiedVehicle._state);
 
 				//Propagate the state
 				from._occupiedVehicle.propagateState();
@@ -772,9 +698,9 @@ namespace InfServer.Game
 			}
 
 			//Send player coord updates to update spatial data
-			_players.updateObjState(from, update);
+			_players.updateObjState(from, from._state);
 			if (!from._bSpectator)
-				_playersIngame.updateObjState(from, update);
+				_playersIngame.updateObjState(from, from._state);
 
 			//If it's a spectator, we should not route
 			if (from.IsSpectator)
@@ -1451,6 +1377,17 @@ namespace InfServer.Game
 			if (!exists("Vehicle.Death") || (bool)callsync("Vehicle.Death", false, dead, killer))
 			{	//Route the death to the arena
 				Helpers.Vehicle_RouteDeath(Players, killer, dead, occupier);
+			}
+		}
+
+		/// <summary>
+		/// Triggered when a bot is killed
+		/// </summary>
+		public override void handleBotDeath(Bot dead, Player killer)
+		{	//Forward it to our script
+			if (!exists("Bot.Death") || (bool)callsync("Bot.Death", false, dead, killer))
+			{	//Route the death to the arena
+				Helpers.Vehicle_RouteDeath(Players, killer, dead, null);
 			}
 		}
 		#endregion

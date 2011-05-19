@@ -47,12 +47,12 @@ namespace InfServer.Script.DuelBot
 			_bot = invoker as Bot;
 			_rand = new Random();
 
-			//Equip ourselves a maklov!
+			/*//Equip ourselves a maklov!
 			switch (_rand.Next(0, 5))
 			{
-				case 0:
+				case 0:*/
 					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Maklov AR mk 606"));	
-					break;
+					/*break;
 
 				case 1:
 					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Unittech BR2000"));	
@@ -69,7 +69,7 @@ namespace InfServer.Script.DuelBot
 				case 4:
 					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Maklov GL 8a"));
 					break;
-			}
+			}*/
 
 			return true;
 		}

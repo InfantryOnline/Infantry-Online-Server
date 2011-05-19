@@ -20,6 +20,7 @@ namespace InfServer.Game
 	public class Vehicle : CustomObject, ILocatable
 	{	// Member variables
 		///////////////////////////////////////////////////
+		public bool bCondemned;				//Is the vehicle ready to be deleted?
 		public Arena _arena;				//The arena we belong to
 		public VehInfo _type;				//The type of vehicle we represent
 
@@ -45,6 +46,9 @@ namespace InfServer.Game
 		public int _tickDead;				//The time at which the vehicle was last dead
 		#endregion
 
+		#region Events
+		public event Action<Vehicle> Destroyed;	//Called when the vehicle has been destroyed
+		#endregion
 
 		///////////////////////////////////////////////////
 		// Accessors
@@ -132,7 +136,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Causes the vehicle to die
 		/// </summary>
-		public void kill(Player killer)
+		public virtual void kill(Player killer)
 		{	//Set our health to 0
 			_state.health = 0;
 
@@ -159,6 +163,9 @@ namespace InfServer.Game
 
 			//Notify the arena of our destruction
 			_arena.lostVehicle(this, bRemove);
+
+			if (Destroyed != null)
+				Destroyed(this);
 		}
 		#endregion
 
@@ -222,6 +229,145 @@ namespace InfServer.Game
 			_inhabitant = null;
 
 			Helpers.Object_VehicleBind(_arena.Players, this, null);
+		}
+
+		/// <summary>
+		/// Handles damage from explosions triggered nearby
+		/// </summary>		
+		public virtual void applyExplosion(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
+		{	}
+
+		/// <summary>
+		/// Calculates how much damage the vehicle should receive from an explosion
+		/// </summary>		
+		public void applyExplosionDamage(bool bImpliedExplosion, Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
+		{	//Quick check to make sure that the weapon is even damaging before we do math
+			int maxRadius = Helpers.getMaxBlastRadius(wep);
+			if (maxRadius == 0)
+				return;
+
+			//Find the radius at which we were closest to the blast
+			double radius = getImpliedRadius(dmgX, dmgY, maxRadius + _type.TriggerRadius);
+
+			radius -= _type.TriggerRadius;
+			if (radius < 0)
+				radius = 1;
+			
+			//Calculate the damage for each type
+			double fraction = 0;
+			double grossDamage = 0;
+			double netDamage = 0;
+
+			if (radius <= wep.kineticDamageRadius)
+			{
+				fraction = 1 - radius / wep.kineticDamageRadius;
+				grossDamage = (wep.kineticDamageInner - wep.kineticDamageOuter) * fraction + wep.kineticDamageOuter;
+				netDamage = (grossDamage - _type.Armors[0].SelfIgnore) * (1.0d - _type.Armors[0].SelfReduction / 1000.0d);
+			}
+
+			if (radius <= wep.explosiveDamageRadius)
+			{
+				fraction = 1 - radius / wep.explosiveDamageRadius;
+				grossDamage = (wep.explosiveDamageInner - wep.explosiveDamageOuter) * fraction + wep.explosiveDamageOuter;
+				netDamage = (grossDamage - _type.Armors[1].SelfIgnore) * (1.0d - _type.Armors[1].SelfReduction / 1000.0d);
+			}
+
+			if (radius <= wep.electronicDamageRadius)
+			{
+				fraction = 1 - radius / wep.electronicDamageRadius;
+				grossDamage = (wep.electronicDamageInner - wep.electronicDamageOuter) * fraction + wep.electronicDamageOuter;
+				netDamage = (grossDamage - _type.Armors[2].SelfIgnore) * (1.0d - _type.Armors[2].SelfReduction / 1000.0d);
+			}
+
+			if (radius <= wep.psionicDamageRadius)
+			{
+				fraction = 1 - radius / wep.psionicDamageRadius;
+				grossDamage = (wep.psionicDamageInner - wep.psionicDamageOuter) * fraction + wep.psionicDamageOuter;
+				netDamage = (grossDamage - _type.Armors[3].SelfIgnore) * (1.0d - _type.Armors[3].SelfReduction / 1000.0d);
+			}
+
+			if (radius <= wep.bypassDamageRadius)
+			{
+				fraction = 1 - radius / wep.bypassDamageRadius;
+				grossDamage = (wep.bypassDamageInner - wep.bypassDamageOuter) * fraction + wep.bypassDamageOuter;
+				netDamage = (grossDamage - _type.Armors[4].SelfIgnore) * (1.0d - _type.Armors[4].SelfReduction / 1000.0d);
+			}
+
+			if (radius <= wep.energyDamageRadius)
+			{
+				/*fraction = 1 - radius / wep.energyDamageRadius;
+				grossDamage = (wep.energyDamageInner - wep.energyDamageOuter) * fraction + wep.energyDamageOuter;
+				netDamage = (grossDamage - _type.Armors[5].SelfIgnore) * (1.0d - _type.Armors[5].SelfReduction / 1000.0d);
+				netDamage /= 1000;*/
+
+				// if (netDamage > 0)
+				// TODO: take care of energy damage
+			}
+
+			//Apply the damage
+			if (netDamage > 0) 
+				_state.health -= (short)Math.Round((netDamage / 1000));
+
+			//Have we been killed?
+			if (_state.health <= 0)
+			{
+				kill(attacker);
+				_state.health = 0;
+			}
+
+			if (netDamage != 0)
+				Log.write("(" + wep.name + ") Damage: " + (netDamage / 1000));
+		}
+
+		/// <summary>
+		/// Determines how close the vehicle may have passed near the explosion in recent history
+		/// </summary>	
+		private float getImpliedRadius(int posX, int posY, int radiusLimit)
+		{	//Calculate the start and end of our velocity 'ray' (giving 400ms leeway)
+			float rayStartX = _state.positionX - (((float)_state.velocityX) * (float)(400.0 / 10000.0));
+			float rayStartY = _state.positionY - (((float)_state.velocityY) * (float)(400.0 / 10000.0));
+
+			return distanceFromLineSegForPoint(posX, posY, rayStartX, rayStartY, _state.positionX, _state.positionY);
+		}
+
+		private float distanceFromLineSegForPoint(float x, float y, float x1, float y1, float x2, float y2)
+		{
+			float A = x - x1;
+			float B = y - y1;
+			float C = x2 - x1;
+			float D = y2 - y1;
+
+			float dot = A * C + B * D;
+			float len_sq = C * C + D * D;
+			float param = dot / len_sq;
+
+			float xx, yy;
+
+			if (param < 0)
+			{
+				xx = x1;
+				yy = y1;
+			}
+			else if (param > 1)
+			{
+				xx = x2;
+				yy = y2;
+			}
+			else
+			{
+				xx = x1 + param * C;
+				yy = y1 + param * D;
+			}
+
+			return distance(x, y, xx, yy);
+		}
+
+		private float distance(float aX, float aY, float bX, float bY)
+		{
+			float dx = aX - bX;
+			float dy = aY - bY;
+
+			return (float)Math.Sqrt((dx * dx) + (dy * dy));
 		}
 		#endregion
 

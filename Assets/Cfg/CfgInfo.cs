@@ -122,6 +122,9 @@ namespace Assets
             cfgInfo.sound = new Sound(ref stringTree);
             for (int i = 0; i <= 49; i++)
             {
+				if (!stringTree.ContainsKey("TeamInfo" + i))
+					continue;
+
                 cfgInfo.teams.Add(new TeamInfo(ref stringTree, i));
             }
             cfgInfo.soccer = new Soccer(ref stringTree);
@@ -143,6 +146,9 @@ namespace Assets
             cfgInfo.bubble = new Bubble(ref stringTree);
             for (int i = 0; i <= 19; i++)
             {
+				if (!stringTree.ContainsKey("NamedArena" + i))
+					continue;
+
                 cfgInfo.areans.Add(new NamedArena(ref stringTree, i));
             }
             cfgInfo.jackpot = new Jackpot(ref stringTree);

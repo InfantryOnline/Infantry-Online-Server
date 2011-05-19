@@ -478,6 +478,30 @@ namespace InfServer.Game
 		}
 		
 		/// <summary>
+		/// Sets an absolute amount for a specific item
+		/// </summary>
+		public void inventorySet(bool bSync, ItemInfo item, int amount)
+		{	//Do we already have such an item?
+			InventoryItem ii;
+			_inventory.TryGetValue(item.id, out ii);
+
+			if (ii == null)
+			{	//We need to add a new inventory item
+				ii = new InventoryItem();
+
+				ii.item = _server._assets.getItemByID(item.id);
+				ii.quantity = (ushort)amount;
+
+				_inventory.Add(item.id, ii);
+			}
+			else
+				ii.quantity = (ushort)amount;
+
+			if (bSync)
+				syncInventory();
+		}
+
+		/// <summary>
 		/// Modifies and updates the player's inventory
 		/// </summary>
 		public bool inventoryModify(ItemInfo item, int adjust)
@@ -885,13 +909,6 @@ namespace InfServer.Game
 			if (_occupiedVehicle._type.Type != VehInfo.Types.Spectator)
 			{
 				Log.write(TLog.Warning, "Attempted to unspectate with non-spectator vehicle. {0}", this);
-				return false;
-			}
-
-			//Is he able to unspec?
-			if (!Logic_Assets.SkillCheck(this, _server._zoneConfig.arena.exitSpectatorLogic))
-			{
-				sendMessage(-1, _server._zoneConfig.arena.exitSpectatorMessage);
 				return false;
 			}
 
