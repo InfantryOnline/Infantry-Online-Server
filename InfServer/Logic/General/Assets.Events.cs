@@ -292,7 +292,7 @@ namespace InfServer.Logic
                 case "vehicleevent":
                     if(player._baseVehicle != null)
 			            //Get the vehicle string
-			            RunEvent(player, player._baseVehicle._type.EventString1, state);
+			            RunEvent(player, player._baseVehicle._type.EventString1, null);
 
 			        break;
 

@@ -293,6 +293,10 @@ namespace InfServer.Game
 					return false;
 				}
 
+                // Can this item be spawned at all?
+                if (hs.Hide.HideData.InitialCount == 0 && hs.Hide.HideData.HideQuantity == 0)
+                    return false;
+
 				//Check for the amount of similiar vehicles
 				int objArea = 0;
 				int objLevel = 0;
