@@ -26,6 +26,7 @@ namespace InfServer.Game
 		public CfgInfo _zoneConfig;				//The zone-specific configuration file
 
 		public AssetManager _assets;
+		public Bots.Pathfinder _pathfinder;		//Global pathfinder
 
 		public Database _db;					//Our connection to the database
  
@@ -165,6 +166,8 @@ namespace InfServer.Game
 				return false;
 			}
 
+			Log.write("Initializing pathfinder..");
+			_pathfinder = new Bots.Pathfinder(this);
 
 			// Connect to the database
 			///////////////////////////////////////////////

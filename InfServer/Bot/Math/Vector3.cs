@@ -473,6 +473,11 @@ namespace Axiom.Math
 			return ( this - second ).Length;
 		}
 
+		public static Real Distance(Vector3 v1, Vector3 v2)
+		{
+			return (v1 - v2).Length;
+		}
+
 		/// <summary>
 		///     Returns the square of the distance to another vector.
 		/// <remarks>
@@ -544,6 +549,11 @@ namespace Axiom.Math
 			return x * vector.x + y * vector.y + z * vector.z;
 		}
 
+		public static Real Dot(Vector3 v1, Vector3 v2)
+		{
+			return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+		}
+
 		/// <summary>
 		///     Calculates the absolute dot (scalar) product of this vector with another.
 		/// </summary>
@@ -574,7 +584,15 @@ namespace Axiom.Math
 				( this.z * vector.x ) - ( this.x * vector.z ),
 				( this.x * vector.y ) - ( this.y * vector.x )
 				);
+		}
 
+		public static Vector3 Cross(Vector3 v1, Vector3 v2)
+		{
+			return new Vector3(
+				(v1.y * v2.z) - (v1.z * v2.y),
+				(v1.z * v2.x) - (v1.x * v2.z),
+				(v1.x * v2.y) - (v1.y * v2.x)
+				);
 		}
 
 		/// <summary>

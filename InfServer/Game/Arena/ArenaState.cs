@@ -347,6 +347,60 @@ namespace InfServer.Game
 			return veh;
 		}
 
+		#region Vehicle Get Functions
+		/// <summary>
+		/// Gets all vehicles within the specified range
+		/// </summary>
+		public List<Vehicle> getVehiclesInRange(int posX, int posY, int range)
+		{
+			return _vehicles.getObjsInRange(posX, posY, range);
+		}
+
+		/// <summary>
+		/// Gets all vehicles within the specified range
+		/// </summary>
+		public List<Vehicle> getVehiclesInRange(int posX, int posY, int range, Predicate<Vehicle> predicate)
+		{
+			return _vehicles.getObjsInRange(posX, posY, range, predicate);
+		}
+
+		/// <summary>
+		/// Gets all vehicles within the specified box
+		/// </summary>
+		public List<Vehicle> getVehiclesInBox(int posX, int posY, int width, int height)
+		{	//Extrapolate
+			width /= 2;
+			height /= 2;
+
+			return getVehiclesInArea(posX - width, posY - height, posX + width, posY + height);
+		}
+
+		/// <summary>
+		/// Gets all vehicles within the specified area
+		/// </summary>
+		public List<Vehicle> getVehiclesInArea(int topX, int topY, int bottomX, int bottomY)
+		{
+			return _vehicles.getObjsInArea(topX, topY, bottomX, bottomY);
+		}
+
+		/// <summary>
+		/// Gets all vehicles within the specified area
+		/// </summary>
+		public List<Vehicle> getVehiclesInArea(int topX, int topY, int bottomX, int bottomY, Predicate<Vehicle> predicate)
+		{
+			return _vehicles.getObjsInArea(topX, topY, bottomX, bottomY, predicate);
+		}
+
+
+		/// <summary>
+		/// Gets the amount of vehicles within the specified area
+		/// </summary>
+		public int getVehicleCountInArea(int topX, int topY, int bottomX, int bottomY)
+		{
+			return _vehicles.getObjcountInArea(topX, topY, bottomX, bottomY);
+		}
+		#endregion
+
 		/// <summary>
 		/// Creates an item drop at the specified location
 		/// </summary>
@@ -356,6 +410,11 @@ namespace InfServer.Game
 			if (_items.Count == maxItems)
 			{
 				Log.write(TLog.Warning, "Item count full.");
+				return null;
+			}
+			else if (item == null)
+			{
+				Log.write(TLog.Error, "Attempted to spawn invalid item.");
 				return null;
 			}
 

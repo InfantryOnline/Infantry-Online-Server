@@ -46,7 +46,7 @@ namespace InfServer.Script.GameType_ZombieZone
 
 		private int c_minPlayers = 1;			//The minimum amount of players
 
-		private int c_zombieAddTimer = 1;		//The amount of seconds between allowing new zombies
+		private int c_zombieAddTimer = 15;		//The amount of seconds between allowing new zombies
 		private int c_zombieRespawnTime = 500;	//The amount of ms between spawning new zombies
 		private int c_zombieRespawnDist = 500;	//The distance we need to be from players to spawn
  
@@ -88,7 +88,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			//Do we have enough players ingame?
 			int playing = _arena.PlayerCount;
 
-			if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < c_minPlayers)
+			if ((_tickGameStart == 0 || (_tickGameStarting == 0 && _tickGameStart != -1)) && playing < c_minPlayers)
 			{	//Stop the game!
 				_arena.setTicker(1, 1, 0, "Not Enough Players");
 				_arena.gameReset();
@@ -214,6 +214,47 @@ namespace InfServer.Script.GameType_ZombieZone
 		#endregion
 
 		#region Events
+		/// <summary>
+		/// Called when a player sends a chat command
+		/// </summary>
+		[Scripts.Event("Player.ChatCommand")]
+		public bool playerChatCommand(Player player, Player recipient, string command, string payload)
+		{
+			if (command.ToLower() == "spawn")
+			{	//Spawn a zombie on him!
+				for (int i = 0; i < 1; i++)
+				{
+					Helpers.ObjectState state = new Helpers.ObjectState();
+
+					state.positionX = (short)(player._state.positionX + 100);
+					state.positionY = (short)(player._state.positionY + 100);
+					state.positionZ = 0;
+
+					//Use an appropriate zombie vehicle
+					VehInfo zombieVeh = _arena._server._assets.getVehicleByID(211);
+
+					//Create our new zombie
+					ZombieBot zombie = _arena.newBot(typeof(ZombieBot), zombieVeh, state, null) as ZombieBot;
+
+					if (zombie == null)
+					{
+						Log.write(TLog.Error, "Unable to create zombie bot.");
+						return true;
+					}
+
+					//Great! Add it to our list
+					zombie.Destroyed += delegate(Vehicle bot)
+					{
+						_zombies.Remove((ZombieBot)bot);
+					};
+
+					_zombies.Add(zombie);
+				}
+			}
+
+			return true;
+		}
+
 		/// <summary>
 		/// Triggered when a vehicle dies
 		/// </summary>

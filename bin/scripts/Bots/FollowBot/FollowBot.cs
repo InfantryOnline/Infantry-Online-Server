@@ -10,6 +10,8 @@ using InfServer.Scripting;
 using InfServer.Bots;
 using InfServer.Protocol;
 
+using Axiom.Math;
+
 
 namespace InfServer.Script.FollowBot
 {	// Script Class
@@ -66,10 +68,11 @@ namespace InfServer.Script.FollowBot
 					_bot._state.positionX - player._state.positionX, 
 					_bot._state.positionY - player._state.positionY);
 				_bot._movement.stopThrusting();
+				Real distLength = distanceVector.Length;
 
-				if (distanceVector.magnitude() > 150)
+				if (distLength > 150)
 					_bot._movement.thrustForward();
-				else if (distanceVector.magnitude() < 50)
+				else if (distLength < 50)
 					_bot._movement.thrustBackward();
 				else
 				{	//We're close enough, shoot at them!

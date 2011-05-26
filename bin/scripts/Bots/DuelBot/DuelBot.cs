@@ -11,6 +11,7 @@ using InfServer.Scripting;
 using InfServer.Bots;
 using InfServer.Protocol;
 
+using Axiom.Math;
 
 namespace InfServer.Script.DuelBot
 {	// Script Class
@@ -51,7 +52,7 @@ namespace InfServer.Script.DuelBot
 			switch (_rand.Next(0, 5))
 			{
 				case 0:*/
-					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Maklov AR mk 606"));	
+					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Claw"));	
 					/*break;
 
 				case 1:
@@ -95,7 +96,7 @@ namespace InfServer.Script.DuelBot
 				Vector2 distanceVector = new Vector2(
 					_bot._state.positionX - _victim._state.positionX,
 					_bot._state.positionY - _victim._state.positionY);
-				double distance = distanceVector.magnitude();
+				double distance = distanceVector.Length;
 
 				//Aim our weapon!
 				bool bAimed;

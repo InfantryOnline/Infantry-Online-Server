@@ -207,10 +207,10 @@ namespace InfServer.Bots
 			_position.y = Math.Max(_position.y, 0);
 
             //Update the state, converting our floats into the nearest short values
-			_state.positionX = (short)_position.x;
-			_state.positionY = (short)_position.y;
-			_state.velocityX = (short)_velocity.x;
-			_state.velocityY = (short)_velocity.y;
+			_state.positionX = (short)(uint)_position.x;
+			_state.positionY = (short)(uint)_position.y;
+			_state.velocityX = (short)(uint)_velocity.x;
+			_state.velocityY = (short)(uint)_velocity.y;
 			_state.yaw = (byte)_direction;
 			_state.direction = getDirection();
 

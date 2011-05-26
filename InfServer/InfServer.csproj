@@ -16,6 +16,8 @@
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -28,10 +30,8 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,6 +43,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -53,6 +54,41 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Itanium'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Itanium\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>Itanium</PlatformTarget>
+    <CodeAnalysisLogFile>..\bin\InfServer.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Itanium'">
+    <OutputPath>bin\Itanium\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>Itanium</PlatformTarget>
+    <CodeAnalysisLogFile>..\bin\InfServer.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CSScriptLibrary, Version=2.1.0.0, Culture=neutral, PublicKeyToken=70fcc3d18c749033, processorArchitecture=MSIL">
@@ -80,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bot\Bot.cs" />
+    <Compile Include="Bot\InfantryVehicle.cs" />
     <Compile Include="Bot\Math\AxisAlignedBox.cs" />
     <Compile Include="Bot\Math\Collections\BaseCollection.cs" />
     <Compile Include="Bot\Math\Collections\Lists.cs" />
@@ -104,19 +141,26 @@
     <Compile Include="Bot\Math\Vector3.cs" />
     <Compile Include="Bot\Math\Vector4.cs" />
     <Compile Include="Bot\MovementController.cs" />
-    <Compile Include="Bot\OpenSteer\AbstractVehicle.cs" />
-    <Compile Include="Bot\OpenSteer\Colours.cs" />
-    <Compile Include="Bot\OpenSteer\LocalSpace.cs" />
-    <Compile Include="Bot\OpenSteer\lq.cs" />
-    <Compile Include="Bot\OpenSteer\lqProximity.cs" />
-    <Compile Include="Bot\OpenSteer\Obstacle.cs" />
-    <Compile Include="Bot\OpenSteer\OpenSteerUtility.cs" />
-    <Compile Include="Bot\OpenSteer\PathWay.cs" />
-    <Compile Include="Bot\OpenSteer\Proximity.cs" />
-    <Compile Include="Bot\OpenSteer\RandomGenerator.cs" />
-    <Compile Include="Bot\OpenSteer\SimpleVehicle.cs" />
-    <Compile Include="Bot\OpenSteer\SteerLibrary.cs" />
+    <Compile Include="Bot\Pathfinding\Pathfinder.cs" />
     <Compile Include="Bot\ScriptBot.cs" />
+    <Compile Include="Bot\SharpSteer\AbstractVehicle.cs" />
+    <Compile Include="Bot\SharpSteer\BruteForceProximityDatabase.cs" />
+    <Compile Include="Bot\SharpSteer\Clock.cs" />
+    <Compile Include="Bot\SharpSteer\ILocalSpace.cs" />
+    <Compile Include="Bot\SharpSteer\IProximityDatabase.cs" />
+    <Compile Include="Bot\SharpSteer\ITokenForProximityDatabase.cs" />
+    <Compile Include="Bot\SharpSteer\IVehicle.cs" />
+    <Compile Include="Bot\SharpSteer\LocalSpace.cs" />
+    <Compile Include="Bot\SharpSteer\LQDatabase.cs" />
+    <Compile Include="Bot\SharpSteer\LQProximityDatabase.cs" />
+    <Compile Include="Bot\SharpSteer\Obstacle.cs" />
+    <Compile Include="Bot\SharpSteer\Pathway.cs" />
+    <Compile Include="Bot\SharpSteer\PolylinePathway.cs" />
+    <Compile Include="Bot\SharpSteer\SimpleVehicle.cs" />
+    <Compile Include="Bot\SharpSteer\SphericalObstacle.cs" />
+    <Compile Include="Bot\SharpSteer\SteerLibrary.cs" />
+    <Compile Include="Bot\SharpSteer\Utilities.cs" />
+    <Compile Include="Bot\SharpSteer\Vector3Helpers.cs" />
     <Compile Include="Bot\SteeringController.cs" />
     <Compile Include="Bot\Math\Vector2.cs" />
     <Compile Include="Bot\WeaponController.cs" />
@@ -146,6 +190,7 @@
     <Compile Include="Game\Objects\Player.cs" />
     <Compile Include="Game\Objects\PlayerStats.cs" />
     <Compile Include="Game\Objects\Team.cs" />
+    <Compile Include="Game\Objects\Vehicle.Abstract.cs" />
     <Compile Include="Game\Objects\Vehicle.Computer.cs" />
     <Compile Include="Game\Objects\Vehicle.cs" />
     <Compile Include="Game\ZoneArenas.cs" />
@@ -268,26 +313,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Bot\Math\Collections\.svn\all-wcprops" />
-    <None Include="Bot\Math\Collections\.svn\dir-prop-base" />
-    <None Include="Bot\Math\Collections\.svn\entries" />
-    <None Include="Bot\Math\Collections\.svn\prop-base\BaseCollection.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\prop-base\Lists.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\prop-base\Pair.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\prop-base\QuaternionCollection.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\prop-base\Vector3Collection.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\text-base\BaseCollection.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\text-base\Lists.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\text-base\Pair.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\text-base\QuaternionCollection.cs.svn-base" />
-    <None Include="Bot\Math\Collections\.svn\text-base\Vector3Collection.cs.svn-base" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Bot\Math\Collections\.svn\props\" />
-    <Folder Include="Bot\Math\Collections\.svn\tmp\prop-base\" />
-    <Folder Include="Bot\Math\Collections\.svn\tmp\props\" />
-    <Folder Include="Bot\Math\Collections\.svn\tmp\text-base\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

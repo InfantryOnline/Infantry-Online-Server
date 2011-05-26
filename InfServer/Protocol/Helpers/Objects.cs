@@ -7,6 +7,7 @@ using InfServer.Network;
 using InfServer.Game;
 
 using Assets;
+using Axiom.Math;
 
 namespace InfServer.Protocol
 {	/// <summary>
@@ -50,6 +51,26 @@ namespace InfServer.Protocol
 				SouthWest = 0xD3E1,
 				SouthEast = 0x2DE1,
 				NorthEast = 0x2D2A,
+			}
+
+			//Converting objects to vector space
+			public Vector3 velocity()
+			{
+				return new Vector3(((float)velocityX) / 1000, ((float)velocityY) / 1000, ((float)velocityZ) / 1000);
+			}
+
+			public Vector3 position()
+			{
+				if (lastUpdate != 0)
+				{	//We want to find the player's -current- position
+					double timeElapsed = (Environment.TickCount - lastUpdate) / 1000.0d;
+
+					return new Vector3(	(((float)positionX) + ((((float)velocityX) / 10) * timeElapsed)) / 100,
+										(((float)positionY) + ((((float)velocityY) / 10) * timeElapsed)) / 100,
+										(((float)positionZ) + ((((float)velocityZ) / 10) * timeElapsed)) / 100);
+				}
+				else
+					return new Vector3(((float)positionX) / 100, ((float)positionY) / 100, ((float)positionZ) / 100);
 			}
 		}
 

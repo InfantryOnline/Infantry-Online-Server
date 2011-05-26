@@ -42,7 +42,7 @@ namespace InfServer.Game
 
 					//Update the bot's state
 					if (!bot.bCondemned)
-					_vehicles.updateObjState(bot, bot._state);
+						_vehicles.updateObjState(bot, bot._state);
 
 					//Only shoot once!
 					bot._itemUseID = 0;

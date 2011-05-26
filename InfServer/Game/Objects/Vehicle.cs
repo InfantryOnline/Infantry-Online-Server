@@ -10,7 +10,7 @@ using InfServer.Network;
 using InfServer.Protocol;
 
 using Assets;
-
+using Bnoerj.AI.Steering;
 
 namespace InfServer.Game
 {
@@ -23,6 +23,8 @@ namespace InfServer.Game
 		public bool bCondemned;				//Is the vehicle ready to be deleted?
 		public Arena _arena;				//The arena we belong to
 		public VehInfo _type;				//The type of vehicle we represent
+
+		private VehicleAbstract _abstract;	//Used for communicating with the opensteer framework
 
 		public Team _team;					//The team we belong to
 		public Player _creator;				//The player which created us
@@ -56,6 +58,18 @@ namespace InfServer.Game
 		/// <summary>
 		/// Is this player currently dead?
 		/// </summary>
+		public IVehicle Abstract
+		{
+			get
+			{
+				_abstract.calculate();
+				return _abstract;
+			}
+		}
+
+		/// <summary>
+		/// Is this player currently dead?
+		/// </summary>
 		public bool IsDead
 		{
 			get
@@ -84,6 +98,8 @@ namespace InfServer.Game
 
 			_state = new Helpers.ObjectState();
 			_childs = new List<Vehicle>();
+
+			_abstract = new VehicleAbstract(this);
 		}
 
 		/// <summary>
@@ -96,6 +112,8 @@ namespace InfServer.Game
 
 			_state = state;
 			_childs = new List<Vehicle>();
+
+			_abstract = new VehicleAbstract(this);
 		}
 
 		/// <summary>

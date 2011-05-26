@@ -120,8 +120,7 @@ namespace InfServer.Bots
 			//Populate variables
 			_type = type;
 
-			if (_movement == null)
-				_movement = new MovementController(_type, _state, arena);
+			_movement = new MovementController(_type, _state, arena);
 			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
 
 			_tickLastPoll = Environment.TickCount;
@@ -140,8 +139,26 @@ namespace InfServer.Bots
 			//Populate variables
             _type = type;
 
-			if (_movement == null)
-				_movement = new MovementController(_type, _state, arena);
+			_movement = new MovementController(_type, _state, arena);
+			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
+
+			_tickLastPoll = Environment.TickCount;
+
+			_bBotVehicle = true;
+		}
+
+		/// <summary>
+		/// Generic constructor
+		/// </summary>
+		public Bot(VehInfo.Car type, Helpers.ObjectState state, Arena arena, MovementController movement)
+			: base(type, state, arena)
+		{	//Initialize the event object
+			eventInit(true);
+
+			//Populate variables
+			_type = type;
+
+			_movement = movement;
 			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
 
 			_tickLastPoll = Environment.TickCount;
@@ -210,7 +227,7 @@ namespace InfServer.Bots
 
 				if (_itemUseID == 0)
 				{
-					if (tickCount - _tickLastUpdate > 300)
+					if (tickCount - _tickLastUpdate > 120)
 					{
 						_tickLastUpdate = tickCount;
 						return true;

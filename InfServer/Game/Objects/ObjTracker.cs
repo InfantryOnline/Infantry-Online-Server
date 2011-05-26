@@ -122,6 +122,24 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Returns objects in the circle of radius range centered at xPos, yPos
+		/// </summary>		
+		public List<T> getObjsInRange(int xPos, int yPos, int range, Predicate<T> predicate)
+		{
+			return getObjsByClosure(xPos - range, yPos - range, xPos + range, yPos + range, delegate(T p)
+			{	//Does it satisfy the predicate?
+				if ((_defPredicate != null && !_defPredicate(p)) || !predicate(p))
+					return false;
+
+				Helpers.ObjectState state = p.getState();
+				int px = state.positionX;
+				int py = state.positionY;
+
+				return (Math.Pow(px - xPos, 2) + Math.Pow(py - yPos, 2)) < (Math.Pow(range, 2));
+			});
+		}
+
+		/// <summary>
 		/// Returns objects inside the box defined by the parameters
 		/// </summary>		
 		public List<T> getObjsInArea(int xMin, int yMin, int xMax, int yMax)
@@ -135,6 +153,23 @@ namespace InfServer.Game
 				int px = state.positionX;
 				int py = state.positionY;
 				return (xMin <= px && px <= xMax && yMin <= py && py <= yMax);				
+			});
+		}
+
+		/// <summary>
+		/// Returns objects inside the box defined by the parameters
+		/// </summary>		
+		public List<T> getObjsInArea(int xMin, int yMin, int xMax, int yMax, Predicate<T> predicate)
+		{
+			return getObjsByClosure(xMin, yMin, xMax, yMax, delegate(T p)
+			{	//Does it satisfy the predicate?
+				if ((_defPredicate != null && !_defPredicate(p)) || !predicate(p))
+					return false;
+
+				Helpers.ObjectState state = p.getState();
+				int px = state.positionX;
+				int py = state.positionY;
+				return (xMin <= px && px <= xMax && yMin <= py && py <= yMax);
 			});
 		}
 

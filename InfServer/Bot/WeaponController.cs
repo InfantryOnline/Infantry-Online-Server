@@ -146,6 +146,33 @@ namespace InfServer.Bots
 		}
 
 		/// <summary>
+		/// Retrieves the appropriate angle to aim at to hit the target
+		/// </summary>
+		public bool isAimed(int aimAngle)
+		{	//Calculate the smallest angle difference
+			int angleDiffHi = aimAngle - _state.yaw;
+			int angleDiffLo = (angleDiffHi < 0) ? 240 - Math.Abs(angleDiffHi) : -(240 - Math.Abs(angleDiffHi));
+
+			int angleDiff;
+
+			if (Math.Abs(angleDiffHi) < Math.Abs(angleDiffLo))
+				angleDiff = angleDiffHi;
+			else
+				angleDiff = angleDiffLo;
+
+			//Is it in range according to our fuzziness factor?
+			return (Math.Abs(angleDiff) <= (_settings.aimFuzziness / 2));
+		}
+
+		/// <summary>
+		/// Retrieves the appropriate angle to aim at to hit the target
+		/// </summary>
+		public int getAimAngle(Helpers.ObjectState target)
+		{
+			return Helpers.computeLeadFireAngle(_state, target, _primaryProjectile.muzzleVelocity / 1000);
+		}
+
+		/// <summary>
 		/// Determines whether the bot needs to aim to clockwise, anticlockwise or is ontarget
 		/// </summary>
 		public int testAim(Helpers.ObjectState target, out bool bAimed)

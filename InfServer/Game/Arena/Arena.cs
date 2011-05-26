@@ -24,6 +24,7 @@ namespace InfServer.Game
 		public volatile bool _bActive;					//Is the arena functioning, or condemned?
 
 		public ZoneServer _server;						//The server we belong to
+		public Bots.Pathfinder _pathfinder;				//The pathfinding object used for this arena
 
 		protected ObjTracker<Player> _players;			//The list of players in this arena
 		protected ObjTracker<Player> _playersIngame;	//The list of players currently ingame
@@ -304,6 +305,7 @@ namespace InfServer.Game
 			//Populate variables
 			_sync = new object();
 			_server = server;
+			_pathfinder = _server._pathfinder;
 
 			_rand = new Random();
 

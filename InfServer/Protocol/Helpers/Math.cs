@@ -6,6 +6,7 @@ using System.Text;
 using InfServer.Network;
 using InfServer.Game;
 
+using Assets;
 
 namespace InfServer.Protocol
 {	/// <summary>
@@ -226,6 +227,113 @@ namespace InfServer.Protocol
 			double infdegrees = Math.Round(theta * (120 / Math.PI)) + 120 + 180;
 			infdegrees = infdegrees % 240;
 			return (byte)infdegrees;
+		}
+
+		/// <summary>
+		/// Returns a list of tiles that intersect with the line segment going from
+		/// (x0, y0) to (x1, y1).
+		/// 
+		/// Uses Bresenhem's Line Algorithm to get the tiles.
+		/// http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+		/// </summary>
+		/// <param name="x0">x-component of one vertex</param>
+		/// <param name="y0">y-component of one vertex</param>
+		/// <param name="x1">x-component of the other vertex</param>
+		/// <param name="y1">y-component of the other vertex</param>
+		/// <returns>All tiles that intersect with the line segment</returns>
+		static public List<LvlInfo.Tile> calcBresenhems(Arena arena, short x0, short y0, short x1, short y1)
+		{	//Make sure we're dealing with just tile coordinates
+			x0 /= 16;
+			y0 /= 16;
+			x1 /= 16;
+			y1 /= 16;
+
+			List<LvlInfo.Tile> tiles = new List<LvlInfo.Tile>();
+
+			int dx = Math.Abs(x1 - x0);
+			int dy = Math.Abs(y1 - y0);
+
+			// Slope
+			int sx = x0 < x1 ? 1 : -1;
+			int sy = y0 < y1 ? 1 : -1;
+
+			int err = dx - dy;
+
+			while (true)
+			{
+				tiles.Add(arena._tiles[(y0 * arena._levelWidth) + x0]);
+
+				if (x0 == x1 && y0 == y1)
+					break;
+
+				int e2 = 2 * err;
+
+				if (e2 > -dy)
+				{
+					err -= dy;
+					x0 += (short)sx;
+				}
+				if (e2 < dx)
+				{
+					err += dx;
+					y0 += (short)sy;
+				}
+			}
+
+			return tiles;
+		}
+
+		/// <summary>
+		/// Returns a list of tiles that intersect with the line segment going from
+		/// (x0, y0) to (x1, y1).
+		/// 
+		/// Uses Bresenhem's Line Algorithm to get the tiles.
+		/// http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+		/// </summary>
+		/// <param name="x0">x-component of one vertex</param>
+		/// <param name="y0">y-component of one vertex</param>
+		/// <param name="x1">x-component of the other vertex</param>
+		/// <param name="y1">y-component of the other vertex</param>
+		/// <returns>All tiles that intersect with the line segment</returns>
+		static public bool calcBresenhemsPredicate(Arena arena, short x0, short y0, short x1, short y1, Predicate<LvlInfo.Tile> predicate)
+		{	//Make sure we're dealing with just tile coordinates
+			x0 /= 16;
+			y0 /= 16;
+			x1 /= 16;
+			y1 /= 16;
+
+			int dx = Math.Abs(x1 - x0);
+			int dy = Math.Abs(y1 - y0);
+
+			// Slope
+			int sx = x0 < x1 ? 1 : -1;
+			int sy = y0 < y1 ? 1 : -1;
+
+			int err = dx - dy;
+
+			while (true)
+			{
+				if (!predicate(arena._tiles[(y0 * arena._levelWidth) + x0]))
+					return false;
+
+				if (x0 == x1 && y0 == y1)
+					break;
+
+				int e2 = 2 * err;
+
+				if (e2 > -dy)
+				{
+					err -= dy;
+					x0 += (short)sx;
+				}
+				if (e2 < dx)
+				{
+					err += dx;
+					y0 += (short)sy;
+				}
+			}
+
+			return true;
 		}
 	}
 }

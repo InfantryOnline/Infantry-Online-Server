@@ -661,7 +661,7 @@ namespace InfServer.Game
 			from._state.positionX = update.positionX;
 			from._state.positionY = update.positionY;
 			from._state.positionZ = update.positionZ;
-
+			
 			from._state.yaw = update.yaw;
 			from._state.direction = (Helpers.ObjectState.Direction)update.direction;
 			from._state.unk1 = update.unk1;
