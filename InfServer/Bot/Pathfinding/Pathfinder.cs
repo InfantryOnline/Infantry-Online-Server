@@ -50,7 +50,7 @@ namespace InfServer.Bots
 
 			for (int i = 0; i < lvlInfo.Height; ++i)
 				for (int j = 0; j < lvlInfo.Width; ++j)
-					map[(i * lvlInfo.Width) + j] = lvlInfo.Tiles[(j * lvlInfo.Width) + i].Blocked ? (byte)1 : (byte)0;
+					map[(i * lvlInfo.Width) + j] = lvlInfo.Tiles[(i * lvlInfo.Width) + j].Blocked ? (byte)1 : (byte)0;
 
 			//Initialize our pathfinder
 			pathHandle = createMapContext(map, lvlInfo.Width, lvlInfo.Height);
@@ -110,15 +110,15 @@ namespace InfServer.Bots
 			int lastDiffY = 0;
 
 			//Commit the first node to the path
-			lastPointX = path[0] / lvlInfo.Width;
-			lastPointY = path[0] % lvlInfo.Width;
+			lastPointX = path[0] % lvlInfo.Width;
+			lastPointY = path[0] / lvlInfo.Width;
 
 			points.Add(new Vector3(((float)(lastPointX) * 16) / 100, ((float)(lastPointY) * 16) / 100, 0));
 
 			for (int i = 1; i < path.Length; ++i)
 			{	//Determine whether the next node is in the same direction
-				int pointX = path[i] / lvlInfo.Width;
-				int pointY = path[i] % lvlInfo.Width;
+				int pointX = path[i] % lvlInfo.Width;
+				int pointY = path[i] / lvlInfo.Width;
 				int diffX = pointX - lastPointX;
 				int diffY = pointY - lastPointY;
 

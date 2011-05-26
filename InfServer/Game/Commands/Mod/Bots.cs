@@ -67,10 +67,10 @@ namespace InfServer.Game.Commands.Mod
 				ItemInfo item = player._arena._server._assets.getItemByName("Drop Armor");
 				LvlInfo level = player._arena._server._assets.Level;
 
-				for (int i = 0; i < path.Length / 5; ++i)
+				for (int i = 0; i < path.Length; ++i)
 				{
-					short cX = (short)(path[i * 5] / level.Width);
-					short cY = (short)(path[i * 5] % level.Width);
+					short cX = (short)(path[i] % level.Width);
+					short cY = (short)(path[i] / level.Width);
 
 					cX *= 16;
 					cY *= 16;
@@ -78,6 +78,8 @@ namespace InfServer.Game.Commands.Mod
 					player._arena.itemSpawn(item, 1, cX, cY);
 				}
 			}
+			else
+				player.sendMessage(-1, "Unable to calculate path.");
 		}
 
 		/// <summary>

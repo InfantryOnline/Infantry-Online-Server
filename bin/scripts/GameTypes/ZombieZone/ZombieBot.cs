@@ -23,6 +23,7 @@ namespace InfServer.Script.GameType_ZombieZone
 		///////////////////////////////////////////////////
 		private Player victim;					//The player we're currently stalking
 		private SteeringController steering;	//System for controlling the bot's steering
+		private Script_ZombieZone zz;			//The zombiezone script
 
 		private int _stalkRadius = 10000;		//The distance away we'll look for a victim (in pixels?)
 		private int _optimalDistance = 10;		//The distance we want to remain at ideally
