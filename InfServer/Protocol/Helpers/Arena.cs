@@ -30,7 +30,7 @@ namespace InfServer.Protocol
 
 				msg.colour = ticker.colour;
 				msg.tickerMessage = "*" + ticker.idx + ticker.message;
-				msg.timer = (ushort)((ticker.timer - Environment.TickCount) / 10);
+				msg.timer = (uint)((ticker.timer - Environment.TickCount) / 10);
 
 				p._client.sendReliable(msg);
 			}
@@ -45,7 +45,7 @@ namespace InfServer.Protocol
 
 			msg.colour = colour;
 			msg.tickerMessage = tickerMessage;
-			msg.timer = (ushort)timer;
+			msg.timer = (uint)timer;
 
 			foreach (Player player in p)
 				player._client.sendReliable(msg);

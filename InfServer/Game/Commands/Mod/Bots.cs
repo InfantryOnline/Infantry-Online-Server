@@ -64,7 +64,7 @@ namespace InfServer.Game.Commands.Mod
 
 			if (bSuccess)
 			{	//Spawn markers on the path!
-				ItemInfo item = player._arena._server._assets.getItemByName("Drop Armor");
+				ItemInfo item = player._arena._server._assets.getItemByName("Ammo");
 				LvlInfo level = player._arena._server._assets.Level;
 
 				for (int i = 0; i < path.Length; ++i)

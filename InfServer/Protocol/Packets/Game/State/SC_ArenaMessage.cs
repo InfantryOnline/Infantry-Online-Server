@@ -14,8 +14,7 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public byte colour;
-		public UInt16 timer;			//Timer seconds * 10
-		public Int16 unk2;
+		public UInt32 timer;			//Timer seconds * 10
 		public string tickerMessage;
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.ArenaMessage;
@@ -40,7 +39,6 @@ namespace InfServer.Protocol
 			Write((byte)TypeID);
 			Write(colour);
 			Write(timer);
-			Write(unk2);
 			Write(tickerMessage, 0);
 		}
 

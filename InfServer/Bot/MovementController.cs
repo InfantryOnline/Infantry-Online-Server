@@ -176,6 +176,18 @@ namespace InfServer.Bots
 			int tileY = (int)Math.Floor(_position.y / 16);
 			int newTileX = (int)Math.Floor(newPosition.x / 16);
 			int newTileY = (int)Math.Floor(newPosition.y / 16);
+
+			//Clamp the zombie to the arena
+			if (newTileX > _arena._levelWidth)
+				newTileX = _arena._levelWidth - 1;
+			else if (newTileX < 0)
+				newTileX = 0;
+
+			if (newTileY > _arena._server._assets.Level.Height)
+				newTileY = _arena._server._assets.Level.Height - 1;
+			else if (newTileY < 0)
+				newTileY = 0;
+
 			LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
 
 			if (tile.Blocked)

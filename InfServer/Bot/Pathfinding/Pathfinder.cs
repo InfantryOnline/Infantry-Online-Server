@@ -26,13 +26,19 @@ namespace InfServer.Bots
 		public static extern int createMapContext([MarshalAs(UnmanagedType.LPArray)] byte[] obstacleMap, int width, int height);
 
 		[DllImport("pathfinder.dll")]
-		public static extern bool explorePath(int pathHandle, int start, int target);
+		public static extern int createSearchContext(int pathHandle, int start, int target);
 
 		[DllImport("pathfinder.dll")]
-		public static extern IntPtr getPath(int pathHandle);
+		public static extern IntPtr getPath(int searchHandle);
 
 		[DllImport("pathfinder.dll")]
-		public static extern int getPathLength(int pathHandle);
+		public static extern int getPathLength(int searchHandle);
+
+		[DllImport("pathfinder.dll")]
+		public static extern void deleteSearchContext(int searchHandle);
+
+		[DllImport("pathfinder.dll")]
+		public static extern bool isBlocked(int pathHandle, int nodeID);
 		#endregion
 
 		///////////////////////////////////////////////////
@@ -60,38 +66,41 @@ namespace InfServer.Bots
 		/// Calculates a path from start to finish
 		/// </summary>
 		public bool calculatePath(short startX, short startY, short endX, short endY, out int[] path)
-		{	//Be threadsafe!
-			lock (this)
-			{	//Convert the coordinates into node numbers
-				int start = (startX * lvlInfo.Width) + startY;
-				int end = (endX * lvlInfo.Width) + endY;
-				path = null;
+		{	//Convert the coordinates into node numbers
+			int start = (startY * lvlInfo.Width) + startX;
+			int end = (endY * lvlInfo.Width) + endX;
+			path = null;
 
-				//Attempt to solve the path
-				try
-				{
-					bool bSuccess = explorePath(pathHandle, start, end);
-					if (!bSuccess)
-						return false;
-				}
-				catch (Exception e)
-				{
-					Log.write(TLog.Exception, "Error while pathfinding: " + e.ToString());
-				}
+			//Attempt to solve the path
+			int searchContext = 0;
 
-				//Obtain our path
-				int pathSize = getPathLength(pathHandle);
-				IntPtr solvedPath = getPath(pathHandle);
-
-				if (pathSize == 0 || solvedPath == IntPtr.Zero)
+			try
+			{	//Check whether either tile is blocked
+				if (isBlocked(pathHandle, start) || isBlocked(pathHandle, end))
 					return false;
 
-				//Copy it over and we're done
+				searchContext = createSearchContext(pathHandle, start, end);
+				if (searchContext == 0)
+					return false;
+			}
+			catch (Exception e)
+			{
+				Log.write(TLog.Exception, "Error while pathfinding: " + e.ToString());
+			}
+
+			//Obtain our path
+			int pathSize = getPathLength(searchContext);
+			IntPtr solvedPath = getPath(searchContext);
+			bool bValid = (pathSize != 0 && solvedPath != IntPtr.Zero);
+
+			if (bValid)
+			{	//Copy it over and we're done
 				path = new int[pathSize];
 				Marshal.Copy(solvedPath, path, 0, pathSize);
 			}
 
-			return true;
+			deleteSearchContext(searchContext);
+			return bValid;
 		}
 
 		/// <summary>

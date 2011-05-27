@@ -313,8 +313,9 @@ namespace InfServer.Script.GameType_ZombieZone
 
 			//Put each player on the zombie horde onto public teams
 			Team zombieHorde = _arena.getTeamByName("Zombie Horde");
+			List<Player> zombies = new List<Player>(zombieHorde.ActivePlayers);
 
-			foreach (Player zombie in zombieHorde.ActivePlayers)
+			foreach (Player zombie in zombies)
 			{	//Assign him a public team
 				Team pick = _arena.pickAppropriateTeam(zombie);
 				if (pick == null)
@@ -353,7 +354,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			}
 
 			//Calculate our initial zombie count
-			_initialZombieCount = _arena.PlayerCount;
+			_initialZombieCount = _arena.PlayerCount + 15;
 
 			return true;
 		}
