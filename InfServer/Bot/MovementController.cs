@@ -171,22 +171,22 @@ namespace InfServer.Bots
 
 			Vector2 newPosition = new Vector2(_position.x + (xPerTick * delta), _position.y + (yPerTick * delta));
 
+			//Clamp the position to the arena
+			if (newPosition.x >= _arena._levelWidth * 16)
+				newPosition.x = (_arena._levelWidth - 1) * 16;
+			else if (newPosition.x < 0)
+				newPosition.x = 0;
+
+			if (newPosition.y >= _arena._server._assets.Level.Height * 16)
+				newPosition.y = (_arena._server._assets.Level.Height - 1) * 16;
+			else if (newPosition.y < 0)
+				newPosition.y = 0;
+
 			//Check for collisions
 			int tileX = (int)Math.Floor(_position.x / 16);
 			int tileY = (int)Math.Floor(_position.y / 16);
 			int newTileX = (int)Math.Floor(newPosition.x / 16);
 			int newTileY = (int)Math.Floor(newPosition.y / 16);
-
-			//Clamp the zombie to the arena
-			if (newTileX > _arena._levelWidth)
-				newTileX = _arena._levelWidth - 1;
-			else if (newTileX < 0)
-				newTileX = 0;
-
-			if (newTileY > _arena._server._assets.Level.Height)
-				newTileY = _arena._server._assets.Level.Height - 1;
-			else if (newTileY < 0)
-				newTileY = 0;
 
 			LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
 
@@ -215,7 +215,9 @@ namespace InfServer.Bots
 			_position.y += yPerTick * delta;
 
 			//Clamp our position
+			_position.x = Math.Min(_position.x, (_arena._server._assets.Level.Height - 1) * 16);
 			_position.x = Math.Max(_position.x, 0);
+			_position.y = Math.Min(_position.y, (_arena._server._assets.Level.Width - 1) * 16);
 			_position.y = Math.Max(_position.y, 0);
 
             //Update the state, converting our floats into the nearest short values

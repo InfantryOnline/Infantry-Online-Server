@@ -354,7 +354,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			}
 
 			//Calculate our initial zombie count
-			_initialZombieCount = _arena.PlayerCount + 15;
+			_initialZombieCount = _arena.PlayerCount + 30;
 
 			return true;
 		}

@@ -193,7 +193,7 @@ namespace InfServer.Network
 			{
 				_contentWriter.Write(szValue.ToCharArray());
 				_contentWriter.Write((byte)0);
-				_size += szValue.Length;
+				_size += szValue.Length + 1;
 				return;
 			}
 			

@@ -574,7 +574,8 @@ namespace InfServer.Protocol
 			List<ReliableInfo> reliables = new List<ReliableInfo>();
 			ReliableInfo info;
 			ReliableBox box = new ReliableBox();
-			int currentSize = 4 + 2 + _CRCLength;		//Header+footer size of a boxed reliable packet
+			int packetStartSize = 4 /*reliable*/ + 2 /*reliable box*/ + _CRCLength;
+			int currentSize = packetStartSize;		//Header+footer size of a boxed reliable packet
 
 			//Group our normal packets
 			foreach (ReliableInfo pInfo in packetQueue)
@@ -610,7 +611,7 @@ namespace InfServer.Protocol
 					}
 
 					box = new ReliableBox();
-					currentSize = 4 + 2 + _CRCLength;
+					currentSize = packetStartSize;
 
 					//Add the packet on it's own
 					Reliable reli = new Reliable();
@@ -650,7 +651,7 @@ namespace InfServer.Protocol
 					reliables.Add(info);
 
 					box = new ReliableBox();
-					currentSize = 4 + 2 + _CRCLength;
+					currentSize = packetStartSize;
 				}
 
 				//Add the packet to the box list

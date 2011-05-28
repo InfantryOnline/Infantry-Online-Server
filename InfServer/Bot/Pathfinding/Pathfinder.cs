@@ -38,6 +38,9 @@ namespace InfServer.Bots
 		public static extern void deleteSearchContext(int searchHandle);
 
 		[DllImport("pathfinder.dll")]
+		public static extern void deleteMapContext(int pathHandle);
+
+		[DllImport("pathfinder.dll")]
 		public static extern bool isBlocked(int pathHandle, int nodeID);
 		#endregion
 
@@ -63,6 +66,14 @@ namespace InfServer.Bots
 		}
 
 		/// <summary>
+		/// Generic Destructor
+		/// </summary>
+		~Pathfinder()
+		{	//Delete our context
+			deleteMapContext(pathHandle);
+		}
+
+		/// <summary>
 		/// Calculates a path from start to finish
 		/// </summary>
 		public bool calculatePath(short startX, short startY, short endX, short endY, out int[] path)
@@ -80,13 +91,14 @@ namespace InfServer.Bots
 					return false;
 
 				searchContext = createSearchContext(pathHandle, start, end);
-				if (searchContext == 0)
-					return false;
 			}
 			catch (Exception e)
 			{
 				Log.write(TLog.Exception, "Error while pathfinding: " + e.ToString());
 			}
+
+			if (searchContext == 0)
+				return false;
 
 			//Obtain our path
 			int pathSize = getPathLength(searchContext);

@@ -109,9 +109,9 @@ namespace InfServer.Script.GameType_ZombieZone
 					{	//Update it!
 						_tickLastPath = int.MaxValue;
 
-						ThreadPool.QueueUserWorkItem(
+						/*ThreadPool.QueueUserWorkItem(
 							delegate(object state)
-							{	//If we couldn't find a new path, stick with the old one for now
+							{	//If we couldn't find a new path, stick with the old one for now*/
 								List<Vector3> newPath = findPathToPoint(victim._state.positionX, victim._state.positionY);
 								if (newPath != null)
 								{
@@ -120,8 +120,8 @@ namespace InfServer.Script.GameType_ZombieZone
 								}
 
 								_tickLastPath = now;
-							}
-						);
+							/*}
+						);*/
 					}
 
 					//Navigate to him
