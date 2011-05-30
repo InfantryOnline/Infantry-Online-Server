@@ -21,6 +21,8 @@ namespace InfServer.Script.GameType_ZombieZone
 	public class ZombieBot : Bot
 	{	// Member variables
 		///////////////////////////////////////////////////
+		public Team targetTeam;					//The team of which players we're targetting
+
 		private Player victim;					//The player we're currently stalking
 		private SteeringController steering;	//System for controlling the bot's steering
 		private Script_ZombieZone zz;			//The zombiezone script
@@ -44,7 +46,7 @@ namespace InfServer.Script.GameType_ZombieZone
 		/// <summary>
 		/// Generic constructor
 		/// </summary>
-		public ZombieBot(VehInfo.Car type, Helpers.ObjectState state, Arena arena)
+		public ZombieBot(VehInfo.Car type, Helpers.ObjectState state, Arena arena, Script_ZombieZone _zz)
 			: base(	type, state, arena, 
 					new SteeringController(type, state, arena))
 		{
@@ -53,7 +55,8 @@ namespace InfServer.Script.GameType_ZombieZone
 			_seperation = (float)rnd.NextDouble();
 			steering = _movement as SteeringController;
 
-			_weapon.equip(_arena._server._assets.getItemByName("Spit"));
+			_weapon.equip(_arena._server._assets.getItemByID(type.InventoryItems[0]));
+			zz = _zz;
 		}
 
 		/// <summary>
@@ -70,7 +73,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			int now = Environment.TickCount;
 
 			//Get the closest player
-			victim = getClosestPlayer();
+			victim = getTargetPlayer();
 
 			if (victim != null)
 			{	//Do we have a direct path to the player?
@@ -170,31 +173,31 @@ namespace InfServer.Script.GameType_ZombieZone
 		}
 
 		/// <summary>
-		/// Obtains the nearest valid player
+		/// Obtains a suitable target player
 		/// </summary>
-		private Player getClosestPlayer()
-		{
-			List<Player> inTrackingRange =
-				_arena.getPlayersInRange(_state.positionX, _state.positionY, _stalkRadius);
-
-			if (inTrackingRange.Count == 0)
+		private Player getTargetPlayer()
+		{	//Look at the players on the target team
+			if (targetTeam == null)
 				return null;
 
-			//Sort by distance to bot
-			inTrackingRange.Sort(
-				delegate(Player p, Player q)
+			Player target = null;
+			double lastDist = double.MaxValue;
+
+			foreach (Player p in targetTeam.ActivePlayers)
+			{	//Find the closest player
+				if (p.IsDead)
+					continue;
+
+				double dist = Helpers.distanceSquaredTo(_state, p._state);
+
+				if (lastDist > dist)
 				{
-					return Comparer<double>.Default.Compare(
-						Helpers.distanceSquaredTo(_state, p._state), Helpers.distanceSquaredTo(_state, q._state));
+					lastDist = dist;
+					target = p;
 				}
-			);
+			}
 
-			//Get a valid player!
-			foreach (Player player in inTrackingRange)
-				if (!player.IsDead)
-					return player;
-
-			return null;
+			return target;
 		}
 
 		#region Steer Delegates

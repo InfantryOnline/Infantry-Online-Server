@@ -154,7 +154,7 @@ namespace InfServer.Protocol
 		{
 			int abx = a.positionX - b.positionX;
 			int aby = a.positionY - b.positionY;
-			return Math.Sqrt((abx * abx) + (aby * aby));
+			return (abx * abx) + (aby * aby);
 		}
 		#endregion
 

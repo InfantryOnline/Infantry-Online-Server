@@ -58,6 +58,14 @@ namespace InfServer.Game
 		/// <summary>
 		/// Sets a new ticker message
 		/// </summary>
+		public void setTicker(byte colour, int idx, int timer, Func<Player, String> customTicker)
+		{	//Redirect
+			setTicker(colour, idx, timer, null, null, customTicker);
+		}
+
+		/// <summary>
+		/// Sets a new ticker message
+		/// </summary>
 		public void setTicker(byte colour, int idx, int timer, string message)
 		{	//Redirect
 			setTicker(colour, idx, timer, message, null);
@@ -68,10 +76,21 @@ namespace InfServer.Game
 		/// </summary>
 		public void setTicker(byte colour, int idx, int timer, string message, Action expireCallback)
 		{	//Set the new ticker
-			_tickers[idx] = new TickerInfo(message, timer, idx, colour, expireCallback);
+			TickerInfo ticker = _tickers[idx] = new TickerInfo(message, timer, idx, colour, expireCallback, null);
 
 			//Relay the change
-			Helpers.Arena_Message(Players, colour, timer, "*" + idx + message);
+			Helpers.Arena_Message(Players, ticker);
+		}
+
+		/// <summary>
+		/// Sets a new ticker message
+		/// </summary>
+		public void setTicker(byte colour, int idx, int timer, string message, Action expireCallback, Func<Player, String> customTicker)
+		{	//Set the new ticker
+			TickerInfo ticker = _tickers[idx] = new TickerInfo(message, timer, idx, colour, expireCallback, customTicker);
+
+			//Relay the change
+			Helpers.Arena_Message(Players, ticker);
 		}
 		#endregion
 

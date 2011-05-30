@@ -29,10 +29,41 @@ namespace InfServer.Protocol
 				SC_ArenaMessage msg = new SC_ArenaMessage();
 
 				msg.colour = ticker.colour;
-				msg.tickerMessage = "*" + ticker.idx + ticker.message;
+				msg.tickerMessage = "*" + ticker.idx + ((ticker.customTicker == null) ? ticker.message : ticker.customTicker(p));
 				msg.timer = (uint)((ticker.timer - Environment.TickCount) / 10);
 
 				p._client.sendReliable(msg);
+			}
+		}
+
+		/// <summary>
+		/// Updates/sends an arena message
+		/// </summary>
+		static public void Arena_Message(IEnumerable<Player> p, Arena.TickerInfo ticker)
+		{	//Prepare the packet
+			if (ticker.customTicker == null)
+			{
+				SC_ArenaMessage msg = new SC_ArenaMessage();
+
+				msg.colour = ticker.colour;
+				msg.tickerMessage = "*" + ticker.idx + ticker.message;
+				msg.timer = (uint)((ticker.timer - Environment.TickCount) / 10);
+
+				foreach (Player player in p)
+					player._client.sendReliable(msg);
+			}
+			else
+			{
+				foreach (Player player in p)
+				{
+					SC_ArenaMessage msg = new SC_ArenaMessage();
+
+					msg.colour = ticker.colour;
+					msg.tickerMessage = "*" + ticker.idx + ticker.customTicker(player);
+					msg.timer = (uint)((ticker.timer - Environment.TickCount) / 10);
+
+					player._client.sendReliable(msg);
+				}
 			}
 		}
 

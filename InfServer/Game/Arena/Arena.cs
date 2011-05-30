@@ -271,13 +271,16 @@ namespace InfServer.Game
 			public int timer;
 			public int idx;
 			public byte colour;
-			public Action callback;
 
-			public TickerInfo(string _message, int _timer, int _idx, byte _colour, Action _callback)
+			public Action expireCallback;
+			public Func<Player, String> customTicker;
+
+			public TickerInfo(string _message, int _timer, int _idx, byte _colour, Action _callback, Func<Player, String> _customTicker)
 			{
 				message = _message;
 				colour = _colour;
-				callback = _callback;
+				expireCallback = _callback;
+				customTicker = _customTicker;
 				idx = _idx;
 
 				//The timer has to be relative, so calculate
@@ -286,8 +289,8 @@ namespace InfServer.Game
 
 			public void onExpire()
 			{
-				if (callback != null)
-					callback();
+				if (expireCallback != null)
+					expireCallback();
 			}
 		}
 		#endregion
@@ -587,10 +590,17 @@ namespace InfServer.Game
 		{
 		}
 
-        /// <summary>
-		/// Called when the game ends
+		/// <summary>
+		/// Creates a breakdown tailored for one player
 		/// </summary>
-        public virtual void breakdown(Player from, bool bCurrent)
+		public virtual void individualBreakdown(Player from, bool bCurrent)
+		{
+		}
+
+        /// <summary>
+		/// Called when the game needs to display end game statistics
+		/// </summary>
+        public virtual void breakdown(bool bCurrent)
         {
         }
 
@@ -618,7 +628,7 @@ namespace InfServer.Game
 
 					if ((pick == null && maxPlayers != -1) ||
 						(playerCount > activePlayers &&
-							(maxPlayers == 0 || playerCount < maxPlayers)))
+							(maxPlayers == 0 || playerCount <= maxPlayers)))
 					{
 						pick = team;
 						playerCount = activePlayers;
@@ -646,7 +656,7 @@ namespace InfServer.Game
 					int activePlayers = team.ActivePlayerCount;
 
 					if (activePlayers < playerCount &&
-						(maxPlayers == 0 || activePlayers + 1 < maxPlayers))
+						(maxPlayers == 0 || activePlayers + 1 <= maxPlayers))
 					{
 						pick = team;
 						playerCount = activePlayers;
@@ -677,7 +687,7 @@ namespace InfServer.Game
 						int activePlayers = team.ActivePlayerCount;
 
 						if (activePlayers > playerCount &&
-							(maxPlayers == 0 || activePlayers + 1 < maxPlayers))
+							(maxPlayers == 0 || activePlayers + 1 <= maxPlayers))
 						{
 							pick = team;
 							playerCount = activePlayers;

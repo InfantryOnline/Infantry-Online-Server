@@ -17,7 +17,7 @@ namespace InfServer.Game
 	// Team Class
 	/// Represents a single team in an arena
 	///////////////////////////////////////////////////////
-	public class Team : IChatTarget
+	public class Team : CustomObject, IChatTarget
 	{	// Member variables
 		///////////////////////////////////////////////////
 		public Arena _arena;					//The arena we belong to

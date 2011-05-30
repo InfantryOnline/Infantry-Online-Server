@@ -204,7 +204,7 @@ namespace InfServer.Script.GameType_CTF
                 p.Points += pointReward;
 
                 //Call teh Breakdownz
-                _arena.breakdown(p, false);
+                _arena.individualBreakdown(p, false);
             }
 		}
 

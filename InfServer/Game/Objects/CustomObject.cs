@@ -63,5 +63,13 @@ namespace InfServer.Game
 
 			return Convert.ToInt32(value);
 		}
+
+		/// <summary>        
+		/// Clears all customobject variables from the object
+		/// </summary> 
+		public void resetVars()
+		{
+			_customData.Clear();
+		}
 	}
 }

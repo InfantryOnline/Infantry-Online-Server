@@ -55,6 +55,17 @@ namespace InfServer.Game
 			}
 		}
 
+		/// <summary>
+		/// Returns a list of teams with active players
+		/// </summary>
+		public IEnumerable<Team> ActiveTeams
+		{
+			get
+			{
+				return _teams.Values.Where(t => t.ActivePlayerCount > 0);
+			}
+		}
+
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////

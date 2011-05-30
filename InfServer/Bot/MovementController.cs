@@ -215,9 +215,9 @@ namespace InfServer.Bots
 			_position.y += yPerTick * delta;
 
 			//Clamp our position
-			_position.x = Math.Min(_position.x, (_arena._server._assets.Level.Height - 1) * 16);
+			_position.x = Math.Min(_position.x, (_arena._server._assets.Level.Width - 1) * 16);
 			_position.x = Math.Max(_position.x, 0);
-			_position.y = Math.Min(_position.y, (_arena._server._assets.Level.Width - 1) * 16);
+			_position.y = Math.Min(_position.y, (_arena._server._assets.Level.Height - 1) * 16);
 			_position.y = Math.Max(_position.y, 0);
 
             //Update the state, converting our floats into the nearest short values

@@ -187,10 +187,14 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// Called when the game wants to display end game statistics
+		/// Creates a breakdown tailored for one player
 		/// </summary>
-		public override void breakdown(Player from, bool bCurrent)
-		{	//Display Team Stats?
+		public override void individualBreakdown(Player from, bool bCurrent)
+		{	//Give the script a chance to take over
+			if (exists("Player.Breakdown") && ((bool)callsync("Player.Breakdown", false, from, bCurrent)) == false)
+				return;
+
+			//Display Team Stats?
 			if (_breakdownSettings.bDisplayTeam)
 			{
 				from.sendMessage(0, "#Team Statistics Breakdown");
@@ -204,7 +208,7 @@ namespace InfServer.Game
 				int idx = 3;	//Only display top three teams
 
 				foreach (Team t in rankedTeams)
-				{	
+				{
 					if (idx-- == 0)
 						break;
 
@@ -257,9 +261,15 @@ namespace InfServer.Game
 						p._alias));
 				}
 			}
+		}
 
-			//Pass it to the script environment
-			callsync("Game.Breakdown", false);
+		/// <summary>
+		/// Called when the game needs to display end game statistics
+		/// </summary>
+		public override void breakdown(bool bCurrent)
+		{	//Show a breakdown for each player in the arena
+			foreach (Player p in Players)
+				individualBreakdown(p, bCurrent);
 		}
 
 		#region Handlers
