@@ -50,7 +50,7 @@ namespace InfServer.Script.GameType_ZombieZone
 
 		private int c_minPlayers = 1;				//The minimum amount of players
 
-		private int c_zombieAddTimer = 15;			//The amount of seconds between allowing new zombies
+		private int c_zombieAddTimer = 25;			//The amount of seconds between allowing new zombies
 		private int c_zombieRespawnTime = 500;		//The amount of ms between spawning new zombies
 		private int c_zombieMinRespawnDist = 500;	//The minimum distance zombies can be spawned from the players
 		private int c_zombieMaxRespawnDist = 1500;	//The maximum distance zombies can be spawned from the players
@@ -161,7 +161,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			int attackers = int.MaxValue;
 
 			foreach (Team t in _arena.ActiveTeams)
-				if (t.getVarInt("attackers") < attackers)
+				if (t._id != 0 && t.getVarInt("attackers") < attackers)
 				{
 					target = t;
 					attackers = t.getVarInt("attackers");
@@ -179,7 +179,8 @@ namespace InfServer.Script.GameType_ZombieZone
 				return;
 			}
 
-			player.warp(Helpers.WarpMode.Normal, state, 0, -1, 0);
+			player.warp(Helpers.WarpMode.Respawn, state, 0, -1, 0);
+			target.setVar("attackers", attackers + 1);
 		}
 		#endregion
 
@@ -222,7 +223,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			int attackers = int.MaxValue;
 
 			foreach (Team t in _arena.ActiveTeams)
-				if (t.getVarInt("attackers") < attackers)
+				if (t._id != 0 && t.getVarInt("attackers") < attackers)
 				{
 					target = t;
 					attackers = t.getVarInt("attackers");
@@ -262,6 +263,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			};
 
 			_zombies.Add(zombie);
+			target.setVar("attackers", attackers + 1);
 		}
 
 		/// <summary>
