@@ -332,9 +332,6 @@ namespace InfServer.Game
 				kill(attacker);
 				_state.health = 0;
 			}
-
-			if (netDamage != 0)
-				Log.write("(" + wep.name + ") Damage: " + (netDamage / 1000));
 		}
 
 		/// <summary>

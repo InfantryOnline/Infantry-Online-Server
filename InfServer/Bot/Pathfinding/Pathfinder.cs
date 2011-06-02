@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 using InfServer.Game;
 
@@ -20,6 +22,19 @@ namespace InfServer.Bots
 		///////////////////////////////////////////////////
 		private LvlInfo lvlInfo;
 		private int pathHandle;
+
+		private Thread pathingThread;
+		private BlockingCollection<PathfindReq> pathingQueue;
+
+		private class PathfindReq
+		{
+			public short startX;
+			public short startY;
+			public short endX;
+			public short endY;
+
+			public Action<List<Vector3>> callback;
+		}
 
 		#region Pathfinder DLL Declarations
 		[DllImport("pathfinder.dll")]
@@ -53,6 +68,7 @@ namespace InfServer.Bots
 		public Pathfinder(ZoneServer server)
 		{
 			lvlInfo = server._assets.Level;
+			pathingQueue = new BlockingCollection<PathfindReq>();
 
 			//Create a boolean representation of our map
 			byte[] map = new byte[lvlInfo.Width * lvlInfo.Height];
@@ -71,12 +87,70 @@ namespace InfServer.Bots
 		~Pathfinder()
 		{	//Delete our context
 			deleteMapContext(pathHandle);
+			pathingThread.Abort();
+		}
+
+		/// <summary>
+		/// Begins the thread used to perform all pathfinding
+		/// </summary>
+		public void beginThread()
+		{
+			pathingThread = new Thread(pathfinder);
+			pathingThread.IsBackground = true;
+			pathingThread.Name = "Pathfinding";
+			pathingThread.Start(pathingThread);
+		}
+
+		/// <summary>
+		/// Begins the thread used to perform all pathfinding
+		/// </summary>
+		private void pathfinder(Object obj)
+		{
+			while (true)
+			{	//Do we have any requests to process?
+				if (pathingQueue.Count == 0)
+				{
+					Thread.Sleep(10);
+					continue;
+				}
+
+				//Take one!
+				PathfindReq req = pathingQueue.Take();
+
+				//Solve the path
+				int[] path;
+
+				if (!calculatePath(req.startX, req.startY, req.endX, req.endY, out path))
+				{
+					req.callback(null);
+					continue;
+				}
+				
+				//Create a steerable path
+				req.callback(createSteerablePath(path));
+			}
+		}
+
+		/// <summary>
+		/// Queues a pathfinding operation
+		/// </summary>
+		public void queueRequest(short startX, short startY, short endX, short endY, Action<List<Vector3>> callback)
+		{	
+			PathfindReq req = new PathfindReq();
+
+			req.startX = startX;
+			req.startY = startY;
+			req.endX = endX;
+			req.endY = endY;
+			req.callback = callback;
+
+			pathingQueue.Add(req);
 		}
 
 		/// <summary>
 		/// Calculates a path from start to finish
 		/// </summary>
-		public bool calculatePath(short startX, short startY, short endX, short endY, out int[] path)
+		private bool calculatePath(short startX, short startY, short endX, short endY, out int[] path)
 		{	//Convert the coordinates into node numbers
 			int start = (startY * lvlInfo.Width) + startX;
 			int end = (endY * lvlInfo.Width) + endX;
@@ -118,7 +192,7 @@ namespace InfServer.Bots
 		/// <summary>
 		/// Calculates a path from start to finish
 		/// </summary>
-		public List<Vector3> createSteerablePath(int[] path)
+		private List<Vector3> createSteerablePath(int[] path)
 		{	//Sanity
 			if (path.Length == 0)
 				return null;

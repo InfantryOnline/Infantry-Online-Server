@@ -20,6 +20,7 @@ namespace InfServer.Bots
 		///////////////////////////////////////////////////
 		private InfantryVehicle vehicle;					//Our vehicle to model steering behavior
 		public bool bSkipAim;								//Skip aiming and use the given angle
+		public bool bSkipRotate;							//Don't turn to steer to the target, just strafe and thrust
 		public float angle;									//The given angle to use
 
 		public Func<InfantryVehicle, Vector3> steerDelegate;//Delegate which calculates how much steering to apply
@@ -45,8 +46,29 @@ namespace InfServer.Bots
 		/// </summary>
 		public override bool updateState(double delta)
 		{
+			double difference;
+
 			if (steerDelegate == null)
+			{	//Should we aim anyway?
+				if (bSkipAim)
+				{
+					difference = Helpers.calculateDifferenceInAngles(_state.yaw, angle);
+
+					if (Math.Abs(difference) < 2)
+						stopRotating();
+					else if (difference > 0)
+						rotateRight();
+					else
+						rotateLeft();
+				}
+				else
+					stopRotating();
+
+				stopThrusting();
+				stopStrafing();
+
 				return base.updateState(delta);
+			}
 
 			vehicle.Position = _state.position();
 
@@ -54,23 +76,28 @@ namespace InfServer.Bots
 			Vector3 steer = steerDelegate(vehicle);
 			float degrees;
 
-			if (!bSkipAim)
-			{	//Which direction are we supposed to be travelling in?
-				double yaw = Utility.ATan2(steer.x, steer.y);
-				degrees = -((Utility.RadiansToDegrees(yaw) / 1.5f) - 120);
+			//Which direction are we supposed to be travelling in?
+			double yaw = Utility.ATan2(steer.x, steer.y);
+			degrees = -((Utility.RadiansToDegrees(yaw) / 1.5f) - 120);
+
+			double steerDifference = Helpers.calculateDifferenceInAngles(_state.yaw, degrees);
+
+			if (bSkipAim)
+				difference = Helpers.calculateDifferenceInAngles(_state.yaw, angle);
+			else
+				difference = steerDifference;
+
+			if (!bSkipRotate || bSkipAim)
+			{	//Turn to face our target
+				if (Math.Abs(difference) < 2)
+					stopRotating();
+				else if (difference > 0)
+					rotateRight();
+				else
+					rotateLeft();
 			}
 			else
-				degrees = angle;
-
-			double difference = Helpers.calculateDifferenceInAngles(_state.yaw, degrees);
-
-			if (Math.Abs(difference) < 2)
-				//Force the angle for the sake of accuracy
 				stopRotating();
-			else if (difference > 0)
-				rotateRight();
-			else
-				rotateLeft();
 
 			//Move appropriately towards the target
 			if (steer.Length < 0.6f)
@@ -78,17 +105,17 @@ namespace InfServer.Bots
 				stopThrusting();
 				stopStrafing();
 			}
-			else if (difference > 90 || difference < -90)
+			else if (steerDifference > 90 || steerDifference < -90)
 			{
 				thrustBackward();
 				stopStrafing();
 			}
-			else if (difference > 50)
+			else if (steerDifference > 50)
 			{
 				stopThrusting();
 				strafeRight();
 			}
-			else if (difference < -50)
+			else if (steerDifference < -50)
 			{
 				stopThrusting();
 				strafeLeft();
@@ -99,6 +126,10 @@ namespace InfServer.Bots
 				stopStrafing();
 			}
 			
+			//These should be updated every poll
+			bSkipAim = false;
+			bSkipRotate = false;
+
 			return base.updateState(delta);
 		}
 

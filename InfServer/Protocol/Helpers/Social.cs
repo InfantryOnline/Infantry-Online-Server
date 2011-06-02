@@ -47,5 +47,19 @@ namespace InfServer.Protocol
 			foreach (Player player in a.getChatTargets())
 				player._client.sendReliable(chat);
 		}
+
+		/// <summary>
+		/// Updates/sends an arena message
+		/// </summary>
+		static public void Social_TickerMessage(Player p, byte colour, int timer, string tickerMessage)
+		{	//Prepare the packet
+			SC_ArenaMessage msg = new SC_ArenaMessage();
+
+			msg.colour = colour;
+			msg.tickerMessage = tickerMessage;
+			msg.timer = (uint)timer;
+
+			p._client.sendReliable(msg);
+		}
 	}
 }

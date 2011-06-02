@@ -35,8 +35,8 @@ namespace InfServer.Game
 
 		public Dictionary<int, TickerInfo> _tickers;	//The tickers!
 		public bool _bGameRunning;						//Is the game running?
-        public DateTime _timeGameStarted;               //When our game started
-        public DateTime _timeGameEnded;                 //When our game ended
+        public int _tickGameStarted;					//The tick at which our game started
+		public int _tickGameEnded;						//The tick at which our game ended
         public BreakdownSettings _breakdownSettings;
 
 		public int _levelWidth;

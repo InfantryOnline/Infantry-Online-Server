@@ -89,7 +89,8 @@ namespace InfServer.Game
 		public override void gameStart()
 		{	//We're running!
 			_bGameRunning = true;
-            _timeGameStarted = DateTime.Now;
+            _tickGameStarted = Environment.TickCount;
+			_tickGameEnded = 0;
 
 			//Reset the flags
 			flagReset();
@@ -142,21 +143,11 @@ namespace InfServer.Game
 		public override void gameEnd()
 		{	//We've stopped
 			_bGameRunning = false;
+			_tickGameEnded = Environment.TickCount;
 
 			//Reset the game state
 			flagReset();
-
-			//Calculate how long the game lasted
-			_timeGameEnded = DateTime.Now;
-			System.TimeSpan diff = _timeGameEnded - _timeGameStarted;
-
-			//Decide whether the game was long enough to display minutes
-			if (diff.TotalMinutes > 0)
-			{
-				sendArenaMessage("Game lasted " + diff.Minutes + " minutes, " + diff.Seconds + " seconds.");
-			}
-			else { sendArenaMessage("Game lasted " + diff.Seconds + " seconds."); }
-
+			
 			//Execute the end game event
 			string endGame = _server._zoneConfig.EventInfo.endGame;
 			foreach (Player player in Players)
@@ -1056,7 +1047,7 @@ namespace InfServer.Game
 							}
 						}
 						else
-							player.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
+							target.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
 					}
 					break;
 
@@ -1083,7 +1074,7 @@ namespace InfServer.Game
 							}
 						}
 						else
-							player.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
+							target.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
 					}
 					break;
 			}

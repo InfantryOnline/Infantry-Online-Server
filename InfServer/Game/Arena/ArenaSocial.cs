@@ -52,7 +52,15 @@ namespace InfServer.Game
 		/// </summary>
 		public void triggerMessage(byte colour, int timer, string message)
 		{	//Relay the message
-			Helpers.Arena_Message(Players, colour, timer, message);
+			Helpers.Arena_Message(Players, colour, timer, message, null);
+		}
+
+		/// <summary>
+		/// Sends a new infoarea message
+		/// </summary>
+		public void triggerMessage(byte colour, int timer, string message, Player except)
+		{	//Relay the message
+			Helpers.Arena_Message(Players, colour, timer, message, except);
 		}
 
 		/// <summary>

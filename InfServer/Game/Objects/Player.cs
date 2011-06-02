@@ -980,7 +980,11 @@ namespace InfServer.Game
 		/// Sends the player a warp request
 		/// </summary>
 		public void warp(Helpers.WarpMode mode, short energy, short topX, short topY, short bottomX, short bottomY, short invulnTime)
-		{	//Prepare our packet
+		{	//Approximate the player's new position
+			_state.positionX = (short)(((topX - bottomX) / 2) + bottomX);
+			_state.positionY = (short)(((topY - bottomY) / 2) + bottomY);
+			
+			//Prepare our packet
 			SC_PlayerWarp warp = new SC_PlayerWarp();
 
 			warp.warpMode = mode;
@@ -1038,6 +1042,14 @@ namespace InfServer.Game
 		public void sendMessage(int bong, string message)
 		{	//Senddit
 			Helpers.Social_ArenaChat(this, message, bong);
+		}
+
+		/// <summary>
+		/// Sends a new infoarea message
+		/// </summary>
+		public void triggerMessage(byte colour, int timer, string message)
+		{	//Senddit
+			Helpers.Social_TickerMessage(this, colour, timer, message);
 		}
 		#endregion
 

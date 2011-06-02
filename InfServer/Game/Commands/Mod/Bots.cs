@@ -41,48 +41,6 @@ namespace InfServer.Game.Commands.Mod
 		}
 
 		/// <summary>
-		/// Computes a path from the player's location to the given location
-		/// </summary>
-		static public void computePath(Player player, Player recipient, string payload)
-		{	//Sanity checks
-			if (payload == "" ||
-				recipient != null)
-			{
-				player.sendMessage(-1, "Syntax: *computepath [exactCoord]");
-				return;
-			}
-
-			string[] coords = payload.Split(',');
-			int x = Convert.ToInt32(coords[0]);
-			int y = Convert.ToInt32(coords[1]);
-
-			//Pass it to the pathfinder
-			int[] path;
-			bool bSuccess = player._arena._pathfinder.calculatePath((short)(player._state.positionX / 16), (short)(player._state.positionY / 16),
-																	(short)x, (short)y,
-																	out path);
-
-			if (bSuccess)
-			{	//Spawn markers on the path!
-				ItemInfo item = player._arena._server._assets.getItemByName("Ammo");
-				LvlInfo level = player._arena._server._assets.Level;
-
-				for (int i = 0; i < path.Length; ++i)
-				{
-					short cX = (short)(path[i] % level.Width);
-					short cY = (short)(path[i] / level.Width);
-
-					cX *= 16;
-					cY *= 16;
-
-					player._arena.itemSpawn(item, 1, cX, cY);
-				}
-			}
-			else
-				player.sendMessage(-1, "Unable to calculate path.");
-		}
-
-		/// <summary>
 		/// Registers all handlers
 		/// </summary>
 		[Commands.RegistryFunc(HandlerType.ModCommand)]
@@ -91,11 +49,6 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(spawnBot, "spawnbot",
 				"Spawns a bot using a specified vehicle type and script.",
 				"*spawnbot [scriptType], [vehicleid]", 
-				InfServer.Data.PlayerPermission.ArenaMod);
-
-			yield return new HandlerDescriptor(computePath, "computepath",
-				"Computes a path using pathfinding between your current and the given location.",
-				"*computepath [exactCoord]",
 				InfServer.Data.PlayerPermission.ArenaMod);
 		}
 	}

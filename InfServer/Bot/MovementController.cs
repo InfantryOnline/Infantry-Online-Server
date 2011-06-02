@@ -130,8 +130,8 @@ namespace InfServer.Bots
 			}
 			else if (_isThrustingBackward)
 			{
-				accelVector.x += directionVector.x * _rollThrustBack;
-				accelVector.y += directionVector.y * _rollThrustBack;
+				accelVector.x += directionVector.x * -_rollThrustBack;
+				accelVector.y += directionVector.y * -_rollThrustBack;
 				_thrustDirection = calculateNewDirection(_direction, 120);
 			}
 

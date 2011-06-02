@@ -168,6 +168,7 @@ namespace InfServer.Game
 
 			Log.write("Initializing pathfinder..");
 			_pathfinder = new Bots.Pathfinder(this);
+			_pathfinder.beginThread();
 
 			// Connect to the database
 			///////////////////////////////////////////////

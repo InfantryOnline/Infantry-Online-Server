@@ -109,6 +109,7 @@ namespace InfServer.Game
 			//We're entering the arena..
 			player._arena = this;
 			player.migrateStats();
+			player.resetVars();
 
 			//TODO: Check rules for whether player enters in spec
 			player._bSpectator = true;

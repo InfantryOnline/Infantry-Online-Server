@@ -157,6 +157,8 @@
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />
     <Compile Include="GameTypes\CTF_OvD\OvD.cs" />
+    <Compile Include="GameTypes\ZombieZone\RangedZombieBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\SuicideZombieBot.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieBot.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieZone.cs" />
   </ItemGroup>

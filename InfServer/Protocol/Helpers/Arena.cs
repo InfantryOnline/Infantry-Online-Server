@@ -70,7 +70,7 @@ namespace InfServer.Protocol
 		/// <summary>
 		/// Updates/sends an arena message
 		/// </summary>
-		static public void Arena_Message(IEnumerable<Player> p, byte colour, int timer, string tickerMessage)
+		static public void Arena_Message(IEnumerable<Player> p, byte colour, int timer, string tickerMessage, Player except)
 		{	//Prepare the packet
 			SC_ArenaMessage msg = new SC_ArenaMessage();
 
@@ -79,7 +79,8 @@ namespace InfServer.Protocol
 			msg.timer = (uint)timer;
 
 			foreach (Player player in p)
-				player._client.sendReliable(msg);
+				if (player != except)
+					player._client.sendReliable(msg);
 		}
 	}
 }

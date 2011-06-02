@@ -23,19 +23,15 @@ namespace InfServer.Script.GameType_ZombieZone
 		///////////////////////////////////////////////////
 		public Team targetTeam;					//The team of which players we're targetting
 
-		private Player victim;					//The player we're currently stalking
-		private SteeringController steering;	//System for controlling the bot's steering
-		private Script_ZombieZone zz;			//The zombiezone script
+		protected bool bOverriddenPoll;			//Do we have custom actions for poll?
 
-		private int _stalkRadius = 10000;		//The distance away we'll look for a victim (in pixels?)
-		private int _optimalDistance = 10;		//The distance we want to remain at ideally
+		protected Player victim;				//The player we're currently stalking
+		protected SteeringController steering;	//System for controlling the bot's steering
+		protected Script_ZombieZone zz;			//The zombiezone script
 
-		private List<Vector3> _path;			//The path to our destination
-		private int _pathTarget;				//The next target node of the path
-		private List<Vector3> _subPath;			//Small time pathfinding, to make sure we can keep to the path itself
-		private int _subPathTarget;				//The next target node of the subpath
-		private int _subPathPathTarget;			//The target on the real path that we're subpathing to
-		private int _tickLastPath;				//The time at which we last made a path to the player
+		protected List<Vector3> _path;			//The path to our destination
+		protected int _pathTarget;				//The next target node of the path
+		protected int _tickLastPath;			//The time at which we last made a path to the player
 
 		private float _seperation;
 
@@ -55,7 +51,9 @@ namespace InfServer.Script.GameType_ZombieZone
 			_seperation = (float)rnd.NextDouble();
 			steering = _movement as SteeringController;
 
-			_weapon.equip(_arena._server._assets.getItemByID(type.InventoryItems[0]));
+			if (type.InventoryItems[0] != 0)
+				_weapon.equip(_arena._server._assets.getItemByID(type.InventoryItems[0]));
+
 			zz = _zz;
 		}
 
@@ -63,7 +61,11 @@ namespace InfServer.Script.GameType_ZombieZone
 		/// Looks after the bot's functionality
 		/// </summary>
 		public override bool poll()
-		{	//Dead? Do nothing
+		{	//Overridden?
+			if (bOverriddenPoll)
+				return base.poll();
+			
+			//Dead? Do nothing
 			if (IsDead)
 			{
 				steering.steerDelegate = null;
@@ -112,19 +114,20 @@ namespace InfServer.Script.GameType_ZombieZone
 					{	//Update it!
 						_tickLastPath = int.MaxValue;
 
-						/*ThreadPool.QueueUserWorkItem(
-							delegate(object state)
-							{	//If we couldn't find a new path, stick with the old one for now*/
-								List<Vector3> newPath = findPathToPoint(victim._state.positionX, victim._state.positionY);
-								if (newPath != null)
+						_arena._pathfinder.queueRequest(
+							(short)(_state.positionX / 16), (short)(_state.positionY / 16),
+							(short)(victim._state.positionX / 16), (short)(victim._state.positionY / 16),
+							delegate(List<Vector3> path)
+							{
+								if (path != null)
 								{
-									_path = newPath;
+									_path = path;
 									_pathTarget = 1;
 								}
 
 								_tickLastPath = now;
-							/*}
-						);*/
+							}
+						);
 					}
 
 					//Navigate to him
@@ -141,41 +144,9 @@ namespace InfServer.Script.GameType_ZombieZone
 		}
 
 		/// <summary>
-		/// Finds a path to the given player
-		/// </summary>
-		private List<Vector3> findPathToPoint(short posX, short posY)
-		{	//Perform some pathfinding..
-			int[] path;
-
-			bool bSuccess = _arena._pathfinder.calculatePath(
-				(short)(_state.positionX / 16), (short)(_state.positionY / 16),
-				(short)(posX / 16), (short)(posY / 16),
-				out path);
-
-			if (!bSuccess)
-				return null;
-
-			//Transform it into a path we can steer along
-			List<Vector3> pathway =  _arena._pathfinder.createSteerablePath(path);
-
-			/*ItemInfo item = _arena._server._assets.getItemByName("Ammo");
-			LvlInfo level = _arena._server._assets.Level;
-
-			for (int i = 0; i < pathway.Count; ++i)
-			{
-				short cX = (short)(((float)pathway[i].x) * 100);
-				short cY = (short)(((float)pathway[i].y) * 100);
-
-				_arena.itemSpawn(item, 1, cX, cY);
-			}*/
-
-			return pathway;
-		}
-
-		/// <summary>
 		/// Obtains a suitable target player
 		/// </summary>
-		private Player getTargetPlayer()
+		protected Player getTargetPlayer()
 		{	//Look at the players on the target team
 			if (targetTeam == null)
 				return null;
