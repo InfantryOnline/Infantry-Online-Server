@@ -800,11 +800,8 @@ namespace InfServer.Game
 			if (update.type == Helpers.KillType.Player && update.killerPlayerID >= 5001)
 			{	//Attempt to find the associated bot
 				Bots.Bot bot = _vehicles.getObjByID((ushort)update.killerPlayerID) as Bots.Bot;
-				if (bot == null)
-				{
-					Log.write(TLog.Warning, "Player {0} was killed by unidentifiable bot #{1}.", from, update.killerPlayerID);
-					return;
-				}
+				
+				//Note: bot can be null, for when a player is killed by the bot's projectiles after the bot is dead
 
 				//Forward to our script
 				if (!exists("Player.BotKill") || (bool)callsync("Player.BotKill", false, from, bot))
@@ -1205,7 +1202,7 @@ namespace InfServer.Game
 		/// </summary>
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
         {	//Does the player have appropriate ammo?
-			if (item.useAmmoID != 0 && !player.inventoryModify(item.useAmmoID, -item.ammoUsedPerShot))
+			if (item.useAmmoID != 0 && !player.inventoryModify(false, item.useAmmoID, -item.ammoUsedPerShot))
 				return;
 
             // Forward it to our script

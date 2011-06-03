@@ -194,6 +194,7 @@ namespace InfServer.Game
 				itm.quantity = 0;
 
 			Helpers.Object_Items(Players, _items.Values);
+			_items.Clear();
 		}
 
 		/// <summary>

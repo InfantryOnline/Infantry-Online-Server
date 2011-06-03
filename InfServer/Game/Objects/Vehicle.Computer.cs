@@ -188,8 +188,8 @@ namespace InfServer.Game
 			return Helpers.calcBresenhemsPredicate(p._arena, _state.positionX, _state.positionY, p._state.positionX, p._state.positionY,
 				delegate(LvlInfo.Tile t)
 				{
-					short physLow = _arena._server._assets.Level.PhysicsLow[t.Physics];
-					short physHigh = _arena._server._assets.Level.PhysicsHigh[t.Physics];
+					short physLow = AssetManager.Manager.Level.PhysicsLow[t.Physics];
+					short physHigh = AssetManager.Manager.Level.PhysicsHigh[t.Physics];
 
 					//Are we within the physics?
 					return (_type.FireHeight >= physLow && _type.FireHeight <= physHigh);	

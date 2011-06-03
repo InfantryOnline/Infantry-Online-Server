@@ -52,23 +52,23 @@ namespace InfServer.Script.DuelBot
 			switch (_rand.Next(0, 5))
 			{
 				case 0:*/
-					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Claw"));	
+					_bot._weapon.equip(AssetManager.Manager.getItemByName("Claw"));	
 					/*break;
 
 				case 1:
-					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Unittech BR2000"));	
+					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Unittech BR2000"));	
 					break;
 
 				case 2:
-					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Kuchler CR 102"));	
+					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Kuchler CR 102"));	
 					break;
 
 				case 3:
-					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Gravitron"));	
+					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Gravitron"));	
 					break;
 
 				case 4:
-					_bot._weapon.equip(_bot._arena._server._assets.getItemByName("Maklov GL 8a"));
+					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Maklov GL 8a"));
 					break;
 			}*/
 

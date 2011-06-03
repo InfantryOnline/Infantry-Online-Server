@@ -119,9 +119,9 @@ namespace InfServer.Script.GameType_ZombieZone
 			//Populate our zombie type structure
 			_zombieTypes = new List<ZombieType>();
 
-			_zombieTypes.Add(new ZombieType(typeof(ZombieBot), _arena._server._assets.getVehicleByID(211), 5));
-			_zombieTypes.Add(new ZombieType(typeof(SuicideZombieBot), _arena._server._assets.getVehicleByID(109), 1));
-			_zombieTypes.Add(new ZombieType(typeof(RangedZombieBot), _arena._server._assets.getVehicleByID(108), 2));
+			_zombieTypes.Add(new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(211), 5));
+			_zombieTypes.Add(new ZombieType(typeof(SuicideZombieBot), AssetManager.Manager.getVehicleByID(109), 1));
+			_zombieTypes.Add(new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(108), 2));
 
 			//Calculate the total spawn weight
 			_zombieTypeMaxWeight = 0;
@@ -201,7 +201,7 @@ namespace InfServer.Script.GameType_ZombieZone
 		{	//Let's get some class kits down!
 			short x = posX, y = posY;
 
-			ItemInfo kit = _arena._server._assets.getItemByName("Chemist Kit");
+			ItemInfo kit = AssetManager.Manager.getItemByName("Chemist Kit");
 			Helpers.randomPositionInArea(_arena, c_startAreaRadius, ref x, ref y);
 
 			_arena.itemSpawn(kit, 1, x, y);
@@ -209,7 +209,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			x = posX; 
 			y = posY;
 
-			kit = _arena._server._assets.getItemByName("Engineer Kit");
+			kit = AssetManager.Manager.getItemByName("Engineer Kit");
 			Helpers.randomPositionInArea(_arena, c_startAreaRadius, ref x, ref y);
 
 			_arena.itemSpawn(kit, 1, x, y);
@@ -217,7 +217,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			x = posX;
 			y = posY;
 
-			kit = _arena._server._assets.getItemByName("Heavy Marine Kit");
+			kit = AssetManager.Manager.getItemByName("Heavy Marine Kit");
 			Helpers.randomPositionInArea(_arena, c_startAreaRadius, ref x, ref y);
 
 			_arena.itemSpawn(kit, 1, x, y);
@@ -225,7 +225,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			x = posX;
 			y = posY;
 
-			kit = _arena._server._assets.getItemByName("Squad Leader Kit");
+			kit = AssetManager.Manager.getItemByName("Squad Leader Kit");
 			Helpers.randomPositionInArea(_arena, c_startAreaRadius, ref x, ref y);
 
 			_arena.itemSpawn(kit, 1, x, y);
@@ -236,11 +236,18 @@ namespace InfServer.Script.GameType_ZombieZone
 		/// </summary>
 		public void setupMarinePlayer(Player player)
 		{	//Make him an infantryman!
-			player.setDefaultVehicle(_arena._server._assets.getVehicleByID(10));
+			player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(10));
+
+			//Conviscate some items
+			player.removeAllItemFromInventory(false, AssetManager.Manager.getItemByName("Heal").id);
 
 			//Give him some starting ammo!
-			ItemInfo ammoItem = _arena._server._assets.getItemByName("Ammo");
+			ItemInfo ammoItem = AssetManager.Manager.getItemByName("Ammo");
 			player.inventorySet(false, ammoItem, -ammoItem.maxAllowed);
+
+			//Give him some consumables!
+			player.inventorySet(false, AssetManager.Manager.getItemByName("Energizer"), 2);
+			player.inventorySet(false, AssetManager.Manager.getItemByName("Frag Grenade"), 3);
 
 			//Done, sync!
 			player.syncInventory();
@@ -262,7 +269,7 @@ namespace InfServer.Script.GameType_ZombieZone
 				}
 
 			//Make him a zombie
-			player.setDefaultVehicle(_arena._server._assets.getVehicleByID(211));
+			player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(211));
 
 			if (target != null)
 			{	//Determine a place to spawn
@@ -297,7 +304,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			TeamState team = getTeamState(target);
 
 			//Use an appropriate zombie vehicle
-			VehInfo zombieVeh = _arena._server._assets.getVehicleByID(205);
+			VehInfo zombieVeh = AssetManager.Manager.getVehicleByID(205);
 
 			//Create our new zombie
 			ZombieBot zombie = _arena.newBot(typeof(ZombieBot), zombieVeh, state, this) as ZombieBot;
@@ -509,12 +516,12 @@ namespace InfServer.Script.GameType_ZombieZone
 		public bool findUnblockedLocation(ref short locX, ref short locY, short innerRadius, short outerRadius)
 		{	//Generate a spawn location
 			int attempts = 0;
-			short mapWidth = (short)((_arena._server._assets.Level.Width - 1) * 16);
-			short mapHeight = (short)((_arena._server._assets.Level.Height - 1) * 16);
+			short mapWidth = (short)((AssetManager.Manager.Level.Width - 1) * 16);
+			short mapHeight = (short)((AssetManager.Manager.Level.Height - 1) * 16);
 
 			short posX, posY;
 
-			while (attempts++ <= 200)
+			while (attempts++ <= 1000)
 			{	//Generate some random coordinates
 				posX = locX;
 				posY = locY;
@@ -522,7 +529,7 @@ namespace InfServer.Script.GameType_ZombieZone
 				Helpers.randomPositionInArea(_arena, ref posX, ref posY, outerRadius, outerRadius);
 
 				//Within our inner radius?
-				if (Math.Abs(posX - locX) < innerRadius || Math.Abs(posY - locY) < innerRadius)
+				if (Math.Abs(posX - locX) < innerRadius && Math.Abs(posY - locY) < innerRadius)
 					continue;
 
 				//Is it blocked?
@@ -547,7 +554,7 @@ namespace InfServer.Script.GameType_ZombieZone
 		[Scripts.Event("Player.ChatCommand")]
 		public bool playerChatCommand(Player player, Player recipient, string command, string payload)
 		{
-			/*if (command.ToLower() == "spawn")
+			if (command.ToLower() == "spawn")
 			{	//Spawn a zombie on him!
 				for (int i = 0; i < 1; i++)
 				{
@@ -558,26 +565,12 @@ namespace InfServer.Script.GameType_ZombieZone
 					state.positionZ = 0;
 
 					//Use an appropriate zombie vehicle
-					VehInfo zombieVeh = _arena._server._assets.getVehicleByID(211);
+					VehInfo zombieVeh = AssetManager.Manager.getVehicleByID(205);
 
 					//Create our new zombie
 					ZombieBot zombie = _arena.newBot(typeof(ZombieBot), zombieVeh, state, this) as ZombieBot;
-
-					if (zombie == null)
-					{
-						Log.write(TLog.Error, "Unable to create zombie bot.");
-						return true;
-					}
-
-					//Great! Add it to our list
-					zombie.Destroyed += delegate(Vehicle bot)
-					{
-						_zombies.Remove((ZombieBot)bot);
-					};
-
-					_zombies.Add(zombie);
 				}
-			}*/
+			}
 
 			return true;
 		}
@@ -631,13 +624,23 @@ namespace InfServer.Script.GameType_ZombieZone
 		public bool playerItemPickup(Player player, Arena.ItemDrop drop, ushort quantity)
 		{	//Are they any kit items?
 			if (drop.item.name == "Engineer Kit")
-				player.setDefaultVehicle(_arena._server._assets.getVehicleByID(15));
+			{
+				player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(15));
+			}
 			else if (drop.item.name == "Heavy Marine Kit")
-				player.setDefaultVehicle(_arena._server._assets.getVehicleByID(20));
+			{
+				player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(20));
+			}
 			else if (drop.item.name == "Chemist Kit")
-				player.setDefaultVehicle(_arena._server._assets.getVehicleByID(25));
+			{	//Give him some heals, depending on the amount of teammates
+				player.inventorySet(AssetManager.Manager.getItemByName("Heal"), player._team.ActivePlayerCount);
+
+				player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(25));
+			}
 			else if (drop.item.name == "Squad Leader Kit")
-				player.setDefaultVehicle(_arena._server._assets.getVehicleByID(30));
+			{
+				player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(30));
+			}
 
 			return true;
 		}

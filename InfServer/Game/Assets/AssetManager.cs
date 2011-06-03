@@ -15,6 +15,8 @@ namespace InfServer.Game
 	public partial class AssetManager
 	{	// Member variables
 		///////////////////////////////////////////////////
+		static private AssetManager _singleton;
+
 		private List<AssetInfo> _assetList;
 		private List<string> _bloList;
 		
@@ -47,6 +49,14 @@ namespace InfServer.Game
 			set;
 		}
 
+		static public AssetManager Manager
+		{
+			get
+			{
+				return _singleton;
+			}
+		}
+
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////
@@ -55,6 +65,8 @@ namespace InfServer.Game
 		/// </summary>		
 		public bool load(CfgInfo zoneConf, string configFilename)
 		{
+			_singleton = this;
+
 			_assetList = new List<AssetInfo>();
 	
 			//Add the game config

@@ -52,7 +52,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			steering = _movement as SteeringController;
 
 			if (type.InventoryItems[0] != 0)
-				_weapon.equip(_arena._server._assets.getItemByID(type.InventoryItems[0]));
+				_weapon.equip(AssetManager.Manager.getItemByID(type.InventoryItems[0]));
 
 			zz = _zz;
 		}

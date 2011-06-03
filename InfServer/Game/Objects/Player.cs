@@ -480,6 +480,14 @@ namespace InfServer.Game
 		/// <summary>
 		/// Sets an absolute amount for a specific item
 		/// </summary>
+		public void inventorySet(ItemInfo item, int amount)
+		{
+			inventorySet(true, item, amount);
+		}
+
+		/// <summary>
+		/// Sets an absolute amount for a specific item
+		/// </summary>
 		public void inventorySet(bool bSync, ItemInfo item, int amount)
 		{	//Do we already have such an item?
 			InventoryItem ii;
