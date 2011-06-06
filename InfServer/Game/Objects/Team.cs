@@ -66,6 +66,17 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Returns a list of specced and unspecced players on a team
+		/// </summary>
+		public IEnumerable<Player> AllPlayers
+		{
+			get
+			{
+				return _players;
+			}
+		}
+
+		/// <summary>
 		/// Returns whether the team is a public team
 		/// </summary>
 		public bool IsPublic
@@ -196,6 +207,38 @@ namespace InfServer.Game
 		/// </summary>
 		public void playerEnemyTeamChat(Player from, CS_Chat chat)
 		{	//Route it to both the enemy team and our team
+		}
+
+		/// <summary>
+		/// Sends an arena message to the entire arena
+		/// </summary>
+		public void sendArenaMessage(string message)
+		{	//Relay the message
+			Helpers.Social_ArenaChat(AllPlayers, message, 0);
+		}
+
+		/// <summary>
+		/// Sends an arena message to the entire arena
+		/// </summary>
+		public void sendArenaMessage(string message, int bong)
+		{	//Relay the message
+			Helpers.Social_ArenaChat(AllPlayers, message, bong);
+		}
+
+		/// <summary>
+		/// Sends a new infoarea message
+		/// </summary>
+		public void triggerMessage(byte colour, int timer, string message)
+		{	//Relay the message
+			Helpers.Arena_Message(AllPlayers, colour, timer, message, (Player)null);
+		}
+
+		/// <summary>
+		/// Sends a new infoarea message
+		/// </summary>
+		public void triggerMessage(byte colour, int timer, string message, Player except)
+		{	//Relay the message
+			Helpers.Arena_Message(AllPlayers, colour, timer, message, except);
 		}
 		#endregion
 

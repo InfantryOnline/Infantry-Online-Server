@@ -56,10 +56,14 @@ namespace InfServer.Protocol
 			{
 				foreach (Player player in p)
 				{
+					String tickerMessage = ticker.customTicker(player);
+					if (tickerMessage == null)
+						continue;
+
 					SC_ArenaMessage msg = new SC_ArenaMessage();
 
 					msg.colour = ticker.colour;
-					msg.tickerMessage = "*" + ticker.idx + ticker.customTicker(player);
+					msg.tickerMessage = "*" + ticker.idx + tickerMessage;
 					msg.timer = (uint)((ticker.timer - Environment.TickCount) / 10);
 
 					player._client.sendReliable(msg);
@@ -80,6 +84,22 @@ namespace InfServer.Protocol
 
 			foreach (Player player in p)
 				if (player != except)
+					player._client.sendReliable(msg);
+		}
+
+		/// <summary>
+		/// Updates/sends an arena message
+		/// </summary>
+		static public void Arena_Message(IEnumerable<Player> p, byte colour, int timer, string tickerMessage, Team except)
+		{	//Prepare the packet
+			SC_ArenaMessage msg = new SC_ArenaMessage();
+
+			msg.colour = colour;
+			msg.tickerMessage = tickerMessage;
+			msg.timer = (uint)timer;
+
+			foreach (Player player in p)
+				if (player._team != except)
 					player._client.sendReliable(msg);
 		}
 	}

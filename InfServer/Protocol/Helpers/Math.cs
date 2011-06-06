@@ -192,7 +192,7 @@ namespace InfServer.Protocol
 
 			// Don't fire if the guy is on top of the turret
 			if (x_1 == 0 && x_2 == 0)
-				return 0;
+				return (byte)calculateDegreesBetweenPoints(target.positionX, target.positionY, state.positionX, state.positionY);
 
 			// Muzzle velocity = thousandths of pixels per tick, convert to pixels per tick
 			double r = projSpeed;
@@ -204,7 +204,8 @@ namespace InfServer.Protocol
 			double d = (b * b) - (4 * a * c);
 
 			// Don't sqrt if discriminant is negative
-			if (d < 0) return 0;
+			if (d < 0)
+				return (byte)calculateDegreesBetweenPoints(target.positionX, target.positionY, state.positionX, state.positionY);
 
 			double discQuotient = Math.Sqrt(d) / (2.0 * a);
 			double fracFront = -b / (2.0 * a);
@@ -216,7 +217,7 @@ namespace InfServer.Protocol
 
 			// Pick smallest positive root, if any
 			if (t0 < 0 && t1 < 0)
-				return 0;
+				return (byte)calculateDegreesBetweenPoints(target.positionX, target.positionY, state.positionX, state.positionY);
 			else if (t0 > 0 && t1 > 0)
 				t = t0 < t1 ? t0 : t1;
 			else

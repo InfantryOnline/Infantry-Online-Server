@@ -189,11 +189,11 @@ namespace InfServer.Game
 		/// Resets all items in the arena
 		/// </summary>
 		public void resetItems()
-		{	//Kill each item drop
+		{	//Get rid of each item
 			foreach (ItemDrop itm in _items.Values)
 				itm.quantity = 0;
 
-			Helpers.Object_Items(Players, _items.Values);
+			Helpers.Object_ItemDrops(Players, _items.Values);
 			_items.Clear();
 		}
 

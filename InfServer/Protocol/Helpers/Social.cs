@@ -49,6 +49,23 @@ namespace InfServer.Protocol
 		}
 
 		/// <summary>
+		/// Sends arena messages to players
+		/// </summary>
+		static public void Social_ArenaChat(IEnumerable<Player> players, string message, int bong)
+		{	//Prepare the chat packet
+			SC_Chat chat = new SC_Chat();
+
+			chat.bong = (byte)bong;
+			chat.chatType = Chat_Type.Arena;
+			chat.message = message;
+			chat.from = "";
+
+			//Send it to all arena participants
+			foreach (Player player in players)
+				player._client.sendReliable(chat);
+		}
+
+		/// <summary>
 		/// Updates/sends an arena message
 		/// </summary>
 		static public void Social_TickerMessage(Player p, byte colour, int timer, string tickerMessage)

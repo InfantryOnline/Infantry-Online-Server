@@ -332,8 +332,6 @@ namespace InfServer.Game
 				kill(attacker);
 				_state.health = 0;
 			}
-
-			Log.write("({0}) Radius: {1} Damage: {2}", wep.name, radius, netDamage / 1000);
 		}
 
 		/// <summary>

@@ -40,6 +40,7 @@ namespace InfServer.Game
         public BreakdownSettings _breakdownSettings;
 
 		public int _levelWidth;
+		public int _levelHeight;
 		public LvlInfo.Tile[] _tiles;					//The terrain tiles in the arena, can be updated to reflect switches, etc
 
 		public Commands.Registrar _commandRegistrar;	//Our chat/mod command registrar
@@ -136,7 +137,7 @@ namespace InfServer.Game
 		}
 		#endregion
 
-
+		#region Accessors
 		///////////////////////////////////////////////////
 		// Accessors
 		///////////////////////////////////////////////////
@@ -223,6 +224,7 @@ namespace InfServer.Game
 			//Find the associated terrain type
 			return _server._zoneConfig.terrains[_server._assets.Level.TerrainLookup[tile.TerrainLookup]];
 		}
+		#endregion Accessors
 
 		///////////////////////////////////////////////////
 		// Member Classes
@@ -336,6 +338,7 @@ namespace InfServer.Game
 			LvlInfo lvl = server._assets.Level;
 			_tiles = new LvlInfo.Tile[lvl.Tiles.Length];
 			_levelWidth = lvl.Width;
+			_levelHeight = lvl.Height;
 
 			Array.Copy(lvl.Tiles, _tiles, lvl.Height * lvl.Width);
 
@@ -530,6 +533,112 @@ namespace InfServer.Game
 			{	//Does the player have enough permission?
 				return (player.PermissionLevel >= Data.PlayerPermission.Mod);
 			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// Gets the tile at the specified location
+		/// </summary>
+		/// <remarks>The position given should be in map ticks.</remarks>
+		public bool getUnblockedTileInRadius(ref short x, ref short y, int innerRadius, int outerRadius)
+		{
+			return getUnblockedTileInRadius(ref x, ref y, innerRadius, outerRadius, 0);
+		}
+
+		/// <summary>
+		/// Gets the tile at the specified location
+		/// </summary>
+		/// <remarks>The position given should be in map ticks.</remarks>
+		public bool getUnblockedTileInRadius(ref short x, ref short y, int innerRadius, int outerRadius, int unblockedRadius)
+		{	//Create a list of legible tiles
+			List<int> legible = new List<int>();
+
+			//Turn all coordinates into tile coordinates
+			x /= 16;
+			y /= 16;
+
+			innerRadius /= 16;
+			outerRadius /= 16;
+			unblockedRadius /= 16;
+			innerRadius++;
+			outerRadius++;
+			unblockedRadius++;
+
+			int yCons1 = Math.Max(0, y - innerRadius);
+			int yCons2 = Math.Min(_levelHeight, y + outerRadius);
+			int xCons1 = Math.Max(0, x - innerRadius);
+			int xCons2 = Math.Min(_levelWidth, x + outerRadius);
+
+			for (int j = Math.Max(0, y - outerRadius); j < yCons1; ++j)
+			{
+				for (int k = Math.Max(0, x - outerRadius); k < xCons1; ++k)
+				{	//Not blocked?
+					if (!_tiles[(j * _levelWidth) + k].Blocked)
+						legible.Add((j * _levelWidth) + k);
+				}
+				for (int k = Math.Max(0, x + innerRadius); k < xCons2; ++k)
+				{	//Not blocked?
+					if (!_tiles[(j * _levelWidth) + k].Blocked)
+						legible.Add((j * _levelWidth) + k);
+				}
+			}
+
+			for (int j = Math.Max(0, y + innerRadius); j < yCons2; ++j)
+			{
+				for (int k = Math.Max(0, x - outerRadius); k < xCons1; ++k)
+				{	//Not blocked?
+					if (!_tiles[(j * _levelWidth) + k].Blocked)
+						legible.Add((j * _levelWidth) + k);
+				}
+				for (int k = Math.Max(0, x + innerRadius); k < xCons2; ++k)
+				{	//Not blocked?
+					if (!_tiles[(j * _levelWidth) + k].Blocked)
+						legible.Add((j * _levelWidth) + k);
+				}
+			}
+
+			if (legible.Count == 0)
+				return false;
+
+			//Should we perform a second pass to find tiles which have the appropriate amount of enclosing space?
+			if (unblockedRadius > 0)
+			{
+				List<int> secondPass = new List<int>();
+
+				foreach (int idx in legible)
+				{	//Check around the point
+					int j1 = Math.Max(0, (idx % _levelWidth) - unblockedRadius);
+					int j2 = Math.Min(_levelWidth, (idx % _levelWidth) + unblockedRadius);
+					int k = Math.Max(0, (idx / _levelWidth) - unblockedRadius);
+					int k2 = Math.Min(_levelHeight, (idx / _levelWidth) + unblockedRadius);
+					bool bBlocked = false;
+
+					for (; k < k2 && !bBlocked; ++k)
+						for (int j = j1; j < j2; ++j)
+						{
+							if (_tiles[(k * _levelWidth) + j].Blocked)
+							{
+								bBlocked = true;
+								break;
+							}
+						}
+
+					if (!bBlocked)
+						secondPass.Add(idx);
+				}
+
+				if (secondPass.Count == 0)
+					return false;
+
+				legible = secondPass;
+			}
+
+			//Choose a random location from the list
+			int chosen = legible[_rand.Next(legible.Count)];
+
+			x = (short)((chosen % _levelWidth) * 16);
+			y = (short)((chosen / _levelWidth) * 16);
 
 			return true;
 		}

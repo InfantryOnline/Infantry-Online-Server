@@ -313,9 +313,7 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(0, "Payload can only contain numbers (0-9)");
             }
             else
-            { //All is well, continue
-
-                //Give our target player some cash!
+            {	//Give our target player some cash!
                 target.Cash += cashVal;
 
                 //Alert the player
@@ -340,9 +338,7 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Payload can only contain numbers (0-9)");
             }
             else
-            { //All is well, continue
-
-                //Give our target player some cash!
+            {   //Give our target player some experience!
                 target.Experience += expVal;
 
                 //Alert the player

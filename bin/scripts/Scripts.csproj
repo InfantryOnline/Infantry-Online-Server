@@ -160,7 +160,9 @@
     <Compile Include="GameTypes\ZombieZone\RangedZombieBot.cs" />
     <Compile Include="GameTypes\ZombieZone\SuicideZombieBot.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\ZombieTransitions.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieZone.cs" />
+    <Compile Include="GameTypes\ZombieZone\ZombieZone.Stats.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

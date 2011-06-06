@@ -86,7 +86,7 @@ namespace InfServer.Protocol
 					Write((byte)20);		//Sizeof
 
 					Write(veh._state.health);
-					Write((short)0);
+					Write((short)veh._team._id);
 					Write(veh._state.positionX);
 					Write(veh._state.positionY);
 					Write(veh._state.positionZ);

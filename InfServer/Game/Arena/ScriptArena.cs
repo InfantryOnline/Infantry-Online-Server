@@ -757,6 +757,10 @@ namespace InfServer.Game
 			from._bEnemyDeath = true;
 			from._deathTime = Environment.TickCount;
 
+			//Prompt the player death event
+			if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type))
+				return;
+
 			//Was it a player kill?
 			if (update.type == Helpers.KillType.Player)
 			{	//Sanity checks
@@ -839,11 +843,6 @@ namespace InfServer.Game
 					//route the kill packet to all players.
 					Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
 				}
-			}
-
-			//Prompt the player death event
-			if (!exists("Player.Death") || (bool)callsync("Player.Death", false, from, killer, update.type))
-			{	
 			}
 		}
 
