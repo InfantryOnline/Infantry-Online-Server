@@ -376,17 +376,72 @@ namespace InfServer.Game
 					Log.write(TLog.Warning, "Attempted to remove too many attributes from player {0}.", this);
 					return false;
 				}
-
-				//Will there be any attributes left?
-				if (adjust < 0 && (sk.quantity + adjust == 0))
-					_inventory.Remove(skill.SkillId);
-				else
-					sk.quantity = (short)(sk.quantity + adjust);
 			}
 			else if (adjust < 0)
 			{
 				Log.write(TLog.Warning, "Attempted to remove attributes which didn't exist from player {0}.", this);
 				return false;
+			}
+
+			//Attribute or skill?
+			if (skill.SkillId >= 0)
+			{   //Do we have enough experience for this skill?
+				if (skill.Price > Experience)
+					return false;
+
+				Experience -= skill.Price;
+
+				//Success, let's also change the cash..
+				Cash = Math.Max(Cash + skill.CashAdjustment, 0);
+
+				//Clear inventory?
+				if (skill.ResetInventory)
+					_inventory.Clear();
+
+				//Process inventory adjustments
+				foreach (SkillInfo.InventoryMutator ia in skill.InventoryMutators)
+				{	//If it's valid..
+					if (ia.ItemId == 0)
+						continue;
+
+					//Add our item!
+					ItemInfo item = _server._assets.getItemByID(ia.ItemId);
+					if (item == null)
+					{
+						Log.write(TLog.Error, "Invalid itemID #{0} for inventory adjustment.", ia.ItemId);
+						continue;
+					}
+
+					inventoryModify(false, item.id, ia.Quantity);
+				}
+
+				//Finally, do we use a new defaultvehicle?
+				if (skill.DefaultVehicleId != -1)
+				{	//Yes, create and apply it
+					VehInfo baseType = _server._assets.getVehicleByID(skill.DefaultVehicleId);
+					if (baseType == null)
+						Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
+					else if (_arena != null)
+						setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
+				}
+			}
+			else
+			{   //Attributes
+
+				//Do we have enough experience for this skill?
+				if (skill.Price <= Experience)
+				{
+					//TODO: Remove experience?
+				}
+			}
+
+			//Add the skill to our skill list
+			if (sk != null)
+			{	//Will there be any attributes left?
+				if (adjust < 0 && (sk.quantity + adjust == 0))
+					_inventory.Remove(skill.SkillId);
+				else
+					sk.quantity = (short)(sk.quantity + adjust);
 			}
 			else
 			{	//We need to add a new skill item, should we reset other skills?
@@ -420,55 +475,6 @@ namespace InfServer.Game
 				sk.quantity = (short)adjust;
 
 				_skills.Add(sk.skill.SkillId, sk);
-			}
-
-			//Attribute or skill?
-			if (skill.SkillId >= 0)
-			{   //Do we have enough experience for this skill?
-				if (skill.Price <= ExperienceTotal)
-				{	//Success, let's also change the cash..
-					Cash = Math.Max(Cash + skill.CashAdjustment, 0);
-
-					//Clear inventory?
-					if (skill.ResetInventory)
-						_inventory.Clear();
-
-					//Process inventory adjustments
-					foreach (SkillInfo.InventoryMutator ia in skill.InventoryMutators)
-					{	//If it's valid..
-						if (ia.ItemId == 0)
-							continue;
-
-						//Add our item!
-						ItemInfo item = _server._assets.getItemByID(ia.ItemId);
-						if (item == null)
-						{
-							Log.write(TLog.Error, "Invalid itemID #{0} for inventory adjustment.", ia.ItemId);
-							continue;
-						}
-
-						inventoryModify(false, item.id, ia.Quantity);
-					}
-
-					//Finally, do we use a new defaultvehicle?
-					if (skill.DefaultVehicleId != -1)
-					{	//Yes, create and apply it
-						VehInfo baseType = _server._assets.getVehicleByID(skill.DefaultVehicleId);
-						if (baseType == null)
-							Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
-						else if (_arena != null)
-							setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
-					}
-				}
-			}
-			else
-			{   //Attributes
-
-				//Do we have enough experience for this skill?
-				if (skill.Price <= Experience)
-				{
-					//TODO: Remove experience?
-				}
 			}
 
 			//Update the player's state

@@ -94,7 +94,7 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// The player's amount of experience remaining to be sent
+		/// The player's amount of experience remaining to be spent
 		/// </summary>
 		public int Experience
 		{

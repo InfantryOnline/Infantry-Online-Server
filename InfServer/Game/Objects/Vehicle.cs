@@ -338,7 +338,13 @@ namespace InfServer.Game
 		/// Determines how close the vehicle may have passed near the explosion in recent history
 		/// </summary>	
 		private float getImpliedRadius(int posX, int posY, int radiusLimit)
-		{	//Calculate the start and end of our velocity 'ray' (giving 400ms leeway)
+		{	//Are we still?
+			if (_state.velocityX == 0 && _state.velocityY == 0 && _state.velocityZ == 0)
+			{	//Perform a simple calculation
+				return (float)Helpers.distanceTo(posX, posY, _state.positionX, _state.positionY);
+			}
+
+			//Calculate the start and end of our velocity 'ray' (giving 400ms leeway)
 			float rayStartX = _state.positionX - (((float)_state.velocityX) * (float)(400.0 / 10000.0));
 			float rayStartY = _state.positionY - (((float)_state.velocityY) * (float)(400.0 / 10000.0));
 

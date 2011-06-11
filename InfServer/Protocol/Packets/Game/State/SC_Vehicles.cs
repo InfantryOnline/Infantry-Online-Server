@@ -92,7 +92,8 @@ namespace InfServer.Protocol
 					Write(veh._state.positionZ);
 					Write(veh._state.yaw);
 					Write((byte)0);
-					Write((Int32)1);
+					Write((Int16)1);
+					Write((Int16)0);
 					Write((Int32)veh._state.yaw);
 					break;
 			}

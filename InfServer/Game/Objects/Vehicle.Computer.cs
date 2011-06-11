@@ -93,7 +93,7 @@ namespace InfServer.Game
 		{	//If it isn't a turret then do nothing
 			if (_primaryGun == null) 
 				return false;
-
+			
 			//If not reloaded yet don't fire
 			if (_tickShotTime + (_primaryProjectile.fireDelay * 10) > Environment.TickCount ||
 				_tickReloadTime + (_primaryProjectile.reloadDelayNormal * 10) > Environment.TickCount) 

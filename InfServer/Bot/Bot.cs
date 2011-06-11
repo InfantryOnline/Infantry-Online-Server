@@ -227,7 +227,7 @@ namespace InfServer.Bots
 
 				if (_itemUseID == 0)
 				{
-					if (tickCount - _tickLastUpdate > 120)
+					if (tickCount - _tickLastUpdate > 160)
 					{
 						_tickLastUpdate = tickCount;
 						return true;

@@ -560,7 +560,7 @@ namespace InfServer.Game
 			}
 
 			//Forward to our script
-			if (!exists("Player.Explosion") || (bool)callsync("Player.Explosion", false, from, usedWep))
+			if (!exists("Player.Explosion") || (bool)callsync("Player.Explosion", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
 			{	//Find the largest blast radius of damage types of this weapon
 				int maxDamageRadius = Helpers.getMaxBlastRadius(usedWep);
 

@@ -128,6 +128,10 @@ namespace InfServer.Game
 
 			foreach (string file in ItemInfo.BlobsToLoad)
 				loadBloFile(file + ".blo");
+			foreach (LvlInfo.BlobReference blob in Level.ObjectBlobs)
+				loadBloFile(blob.FileName);
+			foreach (LvlInfo.BlobReference blob in Level.FloorBlobs)
+				loadBloFile(blob.FileName);
 
 			foreach (string blo in _bloList)
 			{	//Attempt to load it

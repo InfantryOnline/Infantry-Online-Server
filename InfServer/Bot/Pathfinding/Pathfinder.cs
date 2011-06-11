@@ -21,7 +21,8 @@ namespace InfServer.Bots
 	{	// Member variables
 		///////////////////////////////////////////////////
 		private LvlInfo lvlInfo;
-		private int pathHandle;
+		private int pathHandleClr2;
+		private int pathHandleClr0;
 
 		private Thread pathingThread;
 		private BlockingCollection<PathfindReq> pathingQueue;
@@ -33,7 +34,7 @@ namespace InfServer.Bots
 			public short endX;
 			public short endY;
 
-			public Action<List<Vector3>> callback;
+			public Action<List<Vector3>, int> callback;
 		}
 
 		#region Pathfinder DLL Declarations
@@ -75,10 +76,31 @@ namespace InfServer.Bots
 
 			for (int i = 0; i < lvlInfo.Height; ++i)
 				for (int j = 0; j < lvlInfo.Width; ++j)
+				{	//Write in the blocked tile
 					map[(i * lvlInfo.Width) + j] = lvlInfo.Tiles[(i * lvlInfo.Width) + j].Blocked ? (byte)1 : (byte)0;
+				}
+
+			pathHandleClr0 = createMapContext(map, lvlInfo.Width, lvlInfo.Height);
+
+			//Block tiles for clearance
+			int clearance = 2;
+
+			for (int i = 0; i < lvlInfo.Height; ++i)
+				for (int j = 0; j < lvlInfo.Width; ++j)
+				{	
+					if (lvlInfo.Tiles[(i * lvlInfo.Width) + j].Blocked)
+					{	//Block tiles around it for clearance
+						int yMax = Math.Min(lvlInfo.Height - 1, (i + clearance + 1));
+						int xMax = Math.Min(lvlInfo.Width - 1, (j + clearance + 1));
+
+						for (int y = Math.Max(0, i - clearance); y < yMax; ++y)
+							for (int x = Math.Max(0, j - clearance); x < xMax; ++x)
+								map[(y * lvlInfo.Width) + x] = (byte)1;
+					}
+				}
 
 			//Initialize our pathfinder
-			pathHandle = createMapContext(map, lvlInfo.Width, lvlInfo.Height);
+			pathHandleClr2 = createMapContext(map, lvlInfo.Width, lvlInfo.Height);
 		}
 
 		/// <summary>
@@ -86,7 +108,8 @@ namespace InfServer.Bots
 		/// </summary>
 		~Pathfinder()
 		{	//Delete our context
-			deleteMapContext(pathHandle);
+			deleteMapContext(pathHandleClr0);
+			deleteMapContext(pathHandleClr2);
 			pathingThread.Abort();
 		}
 
@@ -122,19 +145,19 @@ namespace InfServer.Bots
 
 				if (!calculatePath(req.startX, req.startY, req.endX, req.endY, out path))
 				{
-					req.callback(null);
+					req.callback(null, 0);
 					continue;
 				}
 				
 				//Create a steerable path
-				req.callback(createSteerablePath(path));
+				req.callback(createSteerablePath(path), path.Length);
 			}
 		}
 
 		/// <summary>
 		/// Queues a pathfinding operation
 		/// </summary>
-		public void queueRequest(short startX, short startY, short endX, short endY, Action<List<Vector3>> callback)
+		public void queueRequest(short startX, short startY, short endX, short endY, Action<List<Vector3>, int> callback)
 		{	
 			PathfindReq req = new PathfindReq();
 
@@ -160,11 +183,24 @@ namespace InfServer.Bots
 			int searchContext = 0;
 
 			try
-			{	//Check whether either tile is blocked
-				if (isBlocked(pathHandle, start) || isBlocked(pathHandle, end))
-					return false;
+			{	//First attempt to make a clearance 2 path
+				if (!isBlocked(pathHandleClr2, start) && !isBlocked(pathHandleClr2, end))
+					searchContext = createSearchContext(pathHandleClr2, start, end);
 
-				searchContext = createSearchContext(pathHandle, start, end);
+				//If it fails, attempt a clearance 0 path
+				bool bInvalid = (searchContext == 0 || getPath(searchContext) == IntPtr.Zero || getPathLength(searchContext) == 0);
+
+				if (bInvalid)
+				{
+					if (searchContext != 0)
+					{
+						deleteSearchContext(searchContext);
+						searchContext = 0;
+					}
+
+					if (isBlocked(pathHandleClr2, start) || isBlocked(pathHandleClr2, end))
+						searchContext = createSearchContext(pathHandleClr0, start, end);
+				}
 			}
 			catch (Exception e)
 			{

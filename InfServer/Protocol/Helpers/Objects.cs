@@ -76,40 +76,7 @@ namespace InfServer.Protocol
 			//Converting to displayable coordinates
 			public String letterCoord()
 			{
-				int xpos = (positionX / 80) / 16;
-				int ypos = ((positionY / 80) / 16) + 1;
-				char lettercoord = 'A';
-
-				if (xpos == 1)
-					lettercoord = 'B';
-				else if (xpos == 2)
-					lettercoord = 'C';
-				else if (xpos == 3)
-					lettercoord = 'D';
-				else if (xpos == 4)
-					lettercoord = 'E';
-				else if (xpos == 5)
-					lettercoord = 'F';
-				else if (xpos == 6)
-					lettercoord = 'G';
-				else if (xpos == 7)
-					lettercoord = 'H';
-				else if (xpos == 8)
-					lettercoord = 'I';
-				else if (xpos == 9)
-					lettercoord = 'J';
-				else if (xpos == 10)
-					lettercoord = 'K';
-				else if (xpos == 11)
-					lettercoord = 'L';
-				else if (xpos == 12)
-					lettercoord = 'M';
-				else if (xpos == 13)
-					lettercoord = 'N';
-				else if (xpos == 14)
-					lettercoord = 'O';
-
-				return String.Format("{0}{1}", lettercoord, ypos);
+				return Helpers.posToLetterCoord(positionX, positionY);
 			}
 		}
 

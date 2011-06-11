@@ -401,7 +401,7 @@ namespace InfServer.Script.GameType_CTF
 		/// Triggered when a player notifies the server of an explosion
 		/// </summary>
 		[Scripts.Event("Player.Explosion")]
-		public bool playerExplosion(Player player, ItemInfo.Projectile weapon)
+		public bool playerExplosion(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
 		{
 			return true;
 		}

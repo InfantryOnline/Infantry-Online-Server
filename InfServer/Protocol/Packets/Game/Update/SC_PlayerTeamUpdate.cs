@@ -56,7 +56,7 @@ namespace InfServer.Protocol
 
 			Write(vehicle._id);
 			Write((short)Environment.TickCount);
-			Write((short)0);
+			Write((vehicle._team != null) ? vehicle._team._id : (short)-1);
 
 			if (!bBot)
 				Write((player == null ? (ushort)0xFFFF : player._id));

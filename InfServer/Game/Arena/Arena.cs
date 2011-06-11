@@ -780,7 +780,7 @@ namespace InfServer.Game
 
 				if (pick == null)
 				{	//Desired frequencies are all full, go to our extra teams!
-					playerCount = 0;
+					playerCount = -1;
 					desiredFreqs = _server._zoneConfig.arena.frequencyMax;
 					idx = 0;
 
