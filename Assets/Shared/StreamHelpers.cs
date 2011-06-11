@@ -55,5 +55,31 @@ namespace Assets
 
             return data;
         }
+
+        public static int ReadInt(this Stream stream)
+        {
+            var b = new byte[4];
+            stream.Read(b, 0, 4);
+            return BitConverter.ToInt32(b, 0);
+        }
+
+        public static short ReadShort(this Stream stream)
+        {
+            var b = new byte[2];
+            stream.Read(b, 0, 2);
+            return BitConverter.ToInt16(b, 0);
+        }
+
+        public static byte[] ReadByteArray(this Stream stream, int count)
+        {
+            var b = new byte[count];
+            stream.Read(b, 0, count);
+            return b;
+        }
+
+        public static void Skip(this Stream stream, int count)
+        {
+            for (var i = 0; i < count; i++) stream.ReadByte();
+        }
     }
 }
