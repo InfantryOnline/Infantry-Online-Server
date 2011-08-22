@@ -17,7 +17,7 @@ namespace InfServer.Network
 		where T: IClient
 	{	// Member variables
 		///////////////////////////////////////////////////
-		public Client<T> _client;					//Our client, including the connection state
+		public Client<T> _client;				//Our client, including the connection state
 		public LogClient _logger;				//The logger we're writing to
 
 		private volatile bool _bOperating;		//Are we still operating?
@@ -127,48 +127,57 @@ namespace InfServer.Network
 		/// <param name="listenPoint">The endpoint to bind on.</param>
 		private void listen()
 		{
-			Log.assume(_logger);
+			try
+			{
+				Log.assume(_logger);
 
-			_bOperating = true;
-			_remEP = new IPEndPoint(IPAddress.Any, 0);
+				_bOperating = true;
+				_remEP = new IPEndPoint(IPAddress.Any, 0);
 
-			// Begin handling received packets
-			////////////////////////////////
-			while (_bOperating)
-			{	//Read required data from the server state while using
-				//as little lock time as possible.
-				Queue<PacketBase> packets = null;
+				// Begin handling received packets
+				////////////////////////////////
+				while (_bOperating)
+				{	//Read required data from the server state while using
+					//as little lock time as possible.
+					Queue<PacketBase> packets = null;
 
-				_networkLock.AcquireWriterLock(Timeout.Infinite);
+					_networkLock.AcquireWriterLock(Timeout.Infinite);
 
-				try
-				{
-					if (_packetsWaiting)
-					{	//Take the entire queue, and substitute the current
-						//queue for a new one
-						packets = _packetQueue;
+					try
+					{
+						if (_packetsWaiting)
+						{	//Take the entire queue, and substitute the current
+							//queue for a new one
+							packets = _packetQueue;
 
-						_packetQueue = new Queue<PacketBase>();
-						_packetsWaiting = false;
+							_packetQueue = new Queue<PacketBase>();
+							_packetsWaiting = false;
+						}
 					}
+
+					finally
+					{	//Release our lock
+						_networkLock.ReleaseWriterLock();
+					}
+
+					if (packets != null)
+					{	//Predispatch, then handle each packet
+						foreach (PacketBase packet in packets)
+							if (_client.predispatchCheck(packet))
+								routePacket(packet);
+					}
+
+					//Poll our active network client
+					_client.poll();
+
+					//Poll ourself
+					poll();
+
+					Thread.Sleep(20);
 				}
-
-				finally
-				{	//Release our lock
-					_networkLock.ReleaseWriterLock();
-				}
-
-				if (packets != null)
-				{	//Predispatch, then handle each packet
-					foreach (PacketBase packet in packets)
-						if (_client.predispatchCheck(packet))
-							routePacket(packet);
-				}
-
-				//Poll our active network client
-				_client.poll();
-
 			}
+			catch (ThreadAbortException)
+			{	}
 
 			_listenThread = null;
 		}
@@ -190,6 +199,8 @@ namespace InfServer.Network
 		/// </summary>
 		private void onClientDestroy(NetworkClient client)
 		{	//We're no longer operating
+			_listenThread.Abort();
+
 			_client = null;
 			_bOperating = false;
 

@@ -167,6 +167,7 @@
     <Compile Include="Database\Database.cs" />
     <Compile Include="Database\Logic\Connection.cs" />
     <Compile Include="Database\Logic\Player.cs" />
+    <Compile Include="Database\Logic\Stats.cs" />
     <Compile Include="Game\Arena\Arena.cs" />
     <Compile Include="Game\Arena\ArenaBot.cs" />
     <Compile Include="Game\Arena\ArenaLio.cs" />
@@ -179,10 +180,14 @@
     <Compile Include="Game\Assets\AssetManager.Lio.cs" />
     <Compile Include="Game\Assets\AssetManager.cs" />
     <Compile Include="Game\Commands\Chat\Commands.cs" />
+    <Compile Include="Game\Commands\Game\Game.cs" />
     <Compile Include="Game\Commands\Mod\Basic.cs" />
     <Compile Include="Game\Commands\Mod\Bots.cs" />
     <Compile Include="Game\Commands\Mod\Vehicles.cs" />
     <Compile Include="Game\Commands\Registrar.cs" />
+    <Compile Include="Game\Commands\Stats\Stats.cs" />
+    <Compile Include="Game\Commands\Sysop\Network.cs" />
+    <Compile Include="Game\Commands\Sysop\Server.cs" />
     <Compile Include="Game\Interfaces\IChatTarget.cs" />
     <Compile Include="Game\Interfaces\ILocatable.cs" />
     <Compile Include="Game\Objects\CustomObject.cs" />
@@ -204,7 +209,11 @@
     <Compile Include="Logic\Packets\Arenas\Arenas.cs" />
     <Compile Include="Logic\Packets\Login\Assets.cs" />
     <Compile Include="Logic\Packets\Login\Login.cs" />
+    <Compile Include="Logic\Packets\Security\Security.cs" />
+    <Compile Include="Logic\Packets\Social\Banners.cs" />
     <Compile Include="Logic\Packets\Social\Chat.cs" />
+    <Compile Include="Logic\Packets\Stats\Statistics.cs" />
+    <Compile Include="Logic\Packets\Unknown.cs" />
     <Compile Include="Logic\Packets\Update\Game.cs" />
     <Compile Include="Logic\Packets\Update\Player.cs" />
     <Compile Include="Program.cs" />
@@ -251,20 +260,40 @@
     <Compile Include="Protocol\Packets\Game\Update\CS_Explosion.cs" />
     <Compile Include="Protocol\Packets\Game\Update\CS_VehicleDeath.cs" />
     <Compile Include="Protocol\Packets\Game\Update\CS_PlayerUpdate.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_Projectile.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_Inventory.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_ItemDrop.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerCrowns.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerMultiItem.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerSetBounty.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerStopSpectate.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerWarpEx.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_Skills.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_VehicleDeath.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerSpectate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerTeamUpdate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerUpdate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerWarp.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\SC_VehicleState.cs" />
     <Compile Include="Protocol\Packets\Login\CS_Ready.cs" />
     <Compile Include="Protocol\Packets\Login\CS_RequestUpdate.cs" />
     <Compile Include="Protocol\Helpers\PacketIDs.cs" />
     <Compile Include="Protocol\Packets\Login\CS_StartUpdate.cs" />
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdate.cs" />
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdateInfo.cs" />
+    <Compile Include="Protocol\Packets\Misc\CS_FileSend.cs" />
+    <Compile Include="Protocol\Packets\Security\SC_RegQuery.cs" />
+    <Compile Include="Protocol\Packets\Stats\CS_ChartRequest.cs" />
+    <Compile Include="Protocol\Packets\Stats\SC_Chart.cs" />
+    <Compile Include="Protocol\Packets\Misc\SC_FileSend.cs" />
+    <Compile Include="Protocol\Packets\Misc\SC_ShowGif.cs" />
+    <Compile Include="Protocol\Packets\Security\CS_Environment.cs" />
     <Compile Include="Protocol\Packets\Security\CS_Frames.cs" />
+    <Compile Include="Protocol\Packets\Misc\SC_ConfirmFileSend.cs" />
+    <Compile Include="Protocol\Packets\Security\SC_Environment.cs" />
+    <Compile Include="Protocol\Packets\Security\SC_Test.cs" />
+    <Compile Include="Protocol\Packets\Social\CS_SetBanner.cs" />
+    <Compile Include="Protocol\Packets\Social\SC_Banner.cs" />
     <Compile Include="Protocol\Packets\State\CS_ArenaJoin.cs" />
     <Compile Include="Protocol\Packets\Social\CS_Chat.cs" />
     <Compile Include="Protocol\Packets\Social\SC_Chat.cs" />
@@ -274,6 +303,7 @@
     <Compile Include="Protocol\Packets\Login\SC_PatchInfo.cs" />
     <Compile Include="Protocol\Packets\Login\SC_SetIngame.cs" />
     <Compile Include="Protocol\Packets\State\SC_ArenaList.cs" />
+    <Compile Include="Protocol\Packets\Stats\SC_ScoreChart.cs" />
     <Compile Include="Scripts\Events\Events.cs" />
     <Compile Include="Scripts\Events\Handlers.cs" />
     <Compile Include="Scripts\ScriptParser.cs" />
@@ -314,7 +344,9 @@
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Logic\.svn\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

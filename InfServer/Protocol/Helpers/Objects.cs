@@ -36,8 +36,13 @@ namespace InfServer.Protocol
 			public Direction direction;		//The direction we're attempting to move in
 			public byte unk1;				//Unknown (flags?)
 
+			public byte pitch;
+
+			//
 			public byte fireAngle;			//Used for computer vehicles
 			public int lastUpdate;			//The last point this state was updated
+			public int lastUpdateServer;	//The time at which this was received on the server
+			public int updateNumber;		//The update counter, used for route range factoring
 
 			//Assume the direction system is hardcoded for now
 			public enum Direction : ushort

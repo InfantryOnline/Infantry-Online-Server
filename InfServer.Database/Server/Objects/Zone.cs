@@ -31,6 +31,8 @@ namespace InfServer
 		/// </summary>
 		public class Player
 		{
+			public long acctid;			//The player's account id
+			public long aliasid;		//The player's alias id
 			public long dbid;			//The player's id in the database
 			public string alias;		//The player's alias
 		}
@@ -71,12 +73,30 @@ namespace InfServer
 		}
 
 		/// <summary>
+		/// Does the zone have a player online under the given account?
+		/// </summary>
+		public bool hasAccountPlayer(long id)
+		{
+			return _players.Values.Any(p => p.acctid == id);
+		}
+
+		/// <summary>
+		/// Does the zone have a given player alias online?
+		/// </summary>
+		public bool hasAliasPlayer(long id)
+		{
+			return _players.Values.Any(p => p.aliasid == id);
+		}
+
+		/// <summary>
 		/// Indicates that a player has joined the zone server
 		/// </summary>
 		public void newPlayer(int id, string alias, Data.DB.player dbplayer)
 		{	//Add him to our player list
 			Player player = new Player();
 
+			player.acctid = dbplayer.alias1.account1.id;
+			player.aliasid = dbplayer.alias1.id;
 			player.dbid = dbplayer.id;
 			player.alias = alias;
 

@@ -121,7 +121,7 @@ namespace Axiom.Math
 		}
 
 		/// <summary>
-		///		Construct a plane from 3 coplanar points.
+		///		Construct a plane from 3 coplanar Points.
 		/// </summary>
 		/// <param name="point0">First point.</param>
 		/// <param name="point1">Second point.</param>
@@ -241,7 +241,7 @@ namespace Axiom.Math
 		}
 
 		/// <summary>
-		///		Construct a plane from 3 coplanar points.
+		///		Construct a plane from 3 coplanar Points.
 		/// </summary>
 		/// <param name="point0">First point.</param>
 		/// <param name="point1">Second point.</param>

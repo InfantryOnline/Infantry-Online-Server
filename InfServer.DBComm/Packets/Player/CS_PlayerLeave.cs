@@ -77,7 +77,7 @@ namespace InfServer.Protocol
 			player.id = _contentReader.ReadUInt16();
 			player.magic = _contentReader.ReadInt32();
 
-			alias = ReadString();
+			alias = ReadNullString();
 		}
 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace InfServer.Protocol
 		{
 			get
 			{
-				return "Player stat update";
+				return "Player leave notification";
 			}
 		}
 	}

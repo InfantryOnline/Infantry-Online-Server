@@ -63,7 +63,7 @@ namespace InfServer.Protocol
 			Write((UInt16)(TypeID << 8));
 
 			//Contents
-			Write(tickCount);
+			Write(Flip(tickCount));
 			Write(Flip(serverTickCount));
 			Write(Flip(clientSentCount));
 			Write(Flip(clientRecvCount));

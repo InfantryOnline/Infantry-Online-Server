@@ -50,6 +50,7 @@ namespace InfServer.Bots
 		private bool _isRotatingLeft = false;
 		private bool _isRotatingRight = false;
 
+		private int _tickMovementFrozenUntil;
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -101,6 +102,17 @@ namespace InfServer.Bots
 			if (delta <= 0 || !bEnabled)
 				return false;
 			
+			//Are we frozen?
+			if (_tickMovementFrozenUntil != 0 && _tickMovementFrozenUntil > Environment.TickCount)
+			{
+				_isThrustingForward = false;
+				_isThrustingBackward = false;
+				_isStrafingLeft = false;
+				_isStrafingRight = false;
+			}
+			else
+				_tickMovementFrozenUntil = 0;
+	
 			//Get our speed values for our current terrain
             SpeedValues stats = _type.TerrainSpeeds[_terrainType];
 
@@ -218,12 +230,21 @@ namespace InfServer.Bots
 			_state.velocityY = (short)(uint)_velocity.y;
 			_state.yaw = (byte)_direction;
 			_state.direction = getDirection();
+			_state.lastUpdate = Environment.TickCount;
 
 			//TODO: Apply vector tolerance to decide whether to update
 			return true;
 		}
 
 		#region Movement Controls
+		/// <summary>
+		/// Causes the zombie to cease movement for the specified period of time
+		/// </summary>		
+		public void freezeMovement(int duration)
+		{
+			_tickMovementFrozenUntil = Environment.TickCount + duration;
+		}
+
 		/// <summary>
 		/// Causes the bot to thrust forward
 		/// </summary>

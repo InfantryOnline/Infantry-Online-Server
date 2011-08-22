@@ -2,7 +2,7 @@
 <xml>
 	<database>
 		<ip value="127.0.0.1" />
-		<port value="13337" />
+		<port value="34966" />
 		
 		<zoneid value="1" />
 		<password value="abc123" />
@@ -15,19 +15,15 @@
 		<zoneConfig value="zzv2old.cfg" />
 		<gameType value="GameType_ZombieZone" />
 		<loadBlobs value="true" />
-		
 		<logPackets value="false" />
 	</server>
 	
 	<protocol>
 		<udpMaxSize value="496" />
 		<crcLength value="0" />
-		
-		<reliableJuggle value="16" />
-		<reliableGrace value="500" />
 		<connectionTimeout value="10000" />
-		
 		<clientPingFreq value="2000" />
+		<logUnknownPackets value="true" />
 	</protocol>
 	
 	<arena>
@@ -35,6 +31,15 @@
 		<maxArenaItems value="10000" />
 
 		<gameCheckInterval value="250" />
+
+		<routing>
+			<routeRange value="700" />
+			<routeWeaponRange value="1400" />
+			<routeRadarRange value="1000" />
+			<routeRadarRangeFactor value="3" />
+			<routeRadarRangeFar value="1400" />
+			<routeRadarRangeFarFactor value="9" />
+		</routing>
 		
 		<namedArena value="OvD">
 			<gameType value="GameType_CTF_OvD" />

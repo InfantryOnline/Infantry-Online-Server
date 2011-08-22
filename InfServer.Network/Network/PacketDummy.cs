@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using InfServer.Protocol;
+
 namespace InfServer.Network
 {
 	/// <summary>
@@ -9,6 +11,8 @@ namespace InfServer.Network
 	/// </summary>
 	public class PacketDummy : PacketBase
 	{
+		static public event Action<PacketDummy, Client> Handlers;
+
 		/// <summary>
 		/// Creates an instance of the dummy packet used to debug communication or 
 		/// to represent unknown packets.
@@ -18,6 +22,15 @@ namespace InfServer.Network
 		public PacketDummy(ushort typeID, byte[] buffer, int index, int count)
 			: base(typeID, buffer, index, count)
 		{
+		}
+
+		/// <summary>
+		/// Routes a new packet to various relevant handlers
+		/// </summary>
+		public override void Route()
+		{	//Call all handlers!
+			if (Handlers != null)
+				Handlers(this, (Client)_client);
 		}
 
 		/// <summary>

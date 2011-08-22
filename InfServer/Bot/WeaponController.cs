@@ -16,6 +16,8 @@ namespace InfServer.Bots
 	public class WeaponController
 	{	// Member variables
 		///////////////////////////////////////////////////
+		public bool bEquipped;							//Are we equipped with a weapon?
+
 		private Helpers.ObjectState _state;				//The state of the vehicle we represent
 		private WeaponSettings _settings;				//The controller settings
 
@@ -23,6 +25,7 @@ namespace InfServer.Bots
 		private ItemInfo _primaryItem;					//The main item we're using
 		private ItemInfo.Projectile _primaryProjectile;	//The projectile we're paying attention to
 
+		private int _fireDelay;							//The delay between firing shots
 		private int _reloadTime;						//The time taken to reload
 		private int _ammoType;							//Ammo settings
 		private int _ammoCount;							//
@@ -33,11 +36,27 @@ namespace InfServer.Bots
 		private int _ammoRemaining;						//The amount of ammo we have remaining in our clip
 
 		//Properties
+		public ItemInfo.Projectile Projectile
+		{
+			get
+			{
+				return _primaryProjectile;
+			}
+		}
+
 		public short ItemID
 		{
 			get
 			{
 				return (short)_type.id;
+			}
+		}
+
+		public int AmmoUse
+		{
+			get
+			{
+				return _ammoCount;
 			}
 		}
 
@@ -68,6 +87,8 @@ namespace InfServer.Bots
 		{
 			_state = state;
 			_settings = settings;
+
+			bEquipped = false;
 		}
 
 		/// <summary>
@@ -97,6 +118,7 @@ namespace InfServer.Bots
 			{
 				ItemInfo.MultiUse mug = (ItemInfo.MultiUse)_primaryItem;
 				_reloadTime = mug.reloadDelayNormal * 10;
+				_fireDelay = mug.fireDelay * 10;
 
 				//Assume the first item is the tracking projectile
 				_primaryProjectile = ((ItemInfo.Projectile)am.getItemByID(mug.childItems[0].id));
@@ -105,12 +127,15 @@ namespace InfServer.Bots
 			{
 				_primaryProjectile = (ItemInfo.Projectile)_primaryItem;
 				_reloadTime = _primaryProjectile.reloadDelayNormal * 10;
+				_fireDelay = _primaryProjectile.fireDelay * 10;
 			}
 			else
 			{	//We can't handle this item
 				Log.write(TLog.Warning, "Weapon controller given invalid equip item {0}", item);
 				return false;
 			}
+
+			bEquipped = (_primaryProjectile != null);
 
 			return true;
 		}
@@ -122,8 +147,8 @@ namespace InfServer.Bots
 		{	//If not reloaded yet don't fire
 			int now = Environment.TickCount;
 
-			if (_tickShotTime + (_primaryProjectile.fireDelay * 10) > now ||
-				_tickReloadTime + (_primaryProjectile.reloadDelayNormal * 10) > now)
+			if (_tickShotTime + _fireDelay > now ||
+				_tickReloadTime > now)
 				return false;
 
 			return true;

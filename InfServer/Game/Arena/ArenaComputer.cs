@@ -53,7 +53,7 @@ namespace InfServer.Game
 					now - computer._tickCreation > computer._type.RemoveGlobalTimer * 1000)
 				{	//Destroy it and continue
 					//TODO: Do this destroy outside of the loop!
-					computer.destroy(false);
+					computer.destroy(true);
 					continue;
 				}
 
@@ -79,7 +79,9 @@ namespace InfServer.Game
 				//Does it need to send an update?
 				if (computer.poll() || computer._sendUpdate)
 				{	//Prepare and send an update packet for the vehicle
-					Helpers.Update_RouteComputer(Players, computer);
+					computer._state.updateNumber++;
+
+					Helpers.Update_RouteComputer(computer);
 				}					
 			}
 		}
@@ -190,7 +192,7 @@ namespace InfServer.Game
 
 				if (client.inventoryModify(item, itemsCreated))
 				{
-					client.sendMessage(-1, item.name + " has been added to your inventory.");
+					client.sendMessage(0, item.name + " has been added to your inventory.");
 					return true;
 				}
 				else
@@ -199,7 +201,7 @@ namespace InfServer.Game
 					return false;
 				}
 			}
-			else
+			else if (product.ProductToCreate < 0)
 			{	//It's a vehicle! Get the vehicle type
 				VehInfo vehInfo = _server._assets.getVehicleByID(-product.ProductToCreate);
 				if (vehInfo == null)
@@ -229,6 +231,8 @@ namespace InfServer.Game
 						return false;
 				}
 			}
+			else
+				return false;
 		}
 	}
 }

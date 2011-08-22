@@ -50,6 +50,7 @@ namespace InfServer.Protocol
 				Write(singlePlayer._team._id);
 				Write((UInt32)new Random().Next());
 				Write((bool)true);
+
 				return;
 			}
 

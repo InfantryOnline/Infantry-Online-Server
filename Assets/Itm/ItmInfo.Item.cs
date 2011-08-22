@@ -99,6 +99,12 @@ namespace Assets
 			ammoCapacity = 0;
 			return false;
 		}
+
+		public virtual bool getRouteRange(out int range)
+		{
+			range = 0;
+			return false;
+		}
     }
 }
 

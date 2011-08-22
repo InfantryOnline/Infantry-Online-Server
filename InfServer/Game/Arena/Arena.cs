@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Net;
@@ -22,6 +23,7 @@ namespace InfServer.Game
 		///////////////////////////////////////////////////
 		public LogClient _logger;						//The logger we use for this arena!
 		public volatile bool _bActive;					//Is the arena functioning, or condemned?
+		public bool _bIsPublic;							//Is this a public arena?
 
 		public ZoneServer _server;						//The server we belong to
 		public Bots.Pathfinder _pathfinder;				//The pathfinding object used for this arena
@@ -32,6 +34,8 @@ namespace InfServer.Game
 		public string _name;							//The name of this arena
 
 		public Random _rand;							//Our random seed
+
+		public int _tickLastMinorPoll;					//The time at which we performed a last minor poll update
 
 		public Dictionary<int, TickerInfo> _tickers;	//The tickers!
 		public bool _bGameRunning;						//Is the game running?
@@ -46,7 +50,9 @@ namespace InfServer.Game
 		public Commands.Registrar _commandRegistrar;	//Our chat/mod command registrar
 
 		private List<DelayedAction> _delayedActionList;	//The delayed actions waiting to be executed
-	
+
+		public BlockingCollection<Action<Arena>> _events;//Arena events waiting to be processed
+
 		//Events
 		public event Action<Arena> Close;				//Called when an arena runs out of players and is closed
 
@@ -55,6 +61,13 @@ namespace InfServer.Game
 		static public int maxItems;						//The maximum amount of items we can have laying about
 		
 		static public int gameCheckInterval;			//The frequency at which we check basic game state
+
+		static public int routeRange;					//The range at which all update packets are routed
+		static public int routeWeaponRange;				//The range at which all weapon update packets are routed
+		static public int routeRadarRange;				//The range at which packets are routed, but slower
+		static public int routeRadarRangeFactor;		//The factor at which the packets are routed
+		static public int routeRadarRangeFar;			//The range at which packets are routed, but even slower
+		static public int routeRadarRangeFarFactor;		//The factor at which the far packets are routed
 
 		#region EventObject
 		/// <summary>
@@ -334,6 +347,8 @@ namespace InfServer.Game
 
 			_delayedActionList = new List<DelayedAction>();
 
+			_events = new BlockingCollection<Action<Arena>>();
+
 			//Instance our tiles array
 			LvlInfo lvl = server._assets.Level;
 			_tiles = new LvlInfo.Tile[lvl.Tiles.Length];
@@ -361,30 +376,51 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
+		/// Adds an event to be processed
+		/// </summary>
+		public void handleEvent(Action<Arena> action)
+		{
+			_events.Add(action);
+		}
+
+		/// <summary>
 		/// Allows the arena to keep it's game state up-to-date
 		/// </summary>
 		public virtual void poll()
 		{	//Make sure we're synced
 			using (DdMonitor.Lock(_sync))
-			{	//Look after our players
+			{	//Process any waiting events
+				for (int i =_events.Count; i > 0; --i)
+					_events.Take()(this);
+
+				//Are we due a minor poll update?
 				int now = Environment.TickCount;
+				bool bMinor = (now - _tickLastMinorPoll) > 1000;
+				if (bMinor)
+					_tickLastMinorPoll = now;
 
 				foreach (Player player in PlayersIngame)
 				{	//Is he awaiting a respawn?
-					if (player._deathTime != 0 && now - player._deathTime > 10000)
+					if (player._deathTime != 0 && now - player._deathTime > _server._zoneConfig.timing.enterDelay * 10)
 					{	//So spawn him!
 						player._deathTime = 0;
 						handlePlayerSpawn(player, true);
 					}
+
+					//Update play seconds
+					if (bMinor && _bGameRunning)
+						player.PlaySeconds++;
 				}
 
-				//Keep our tickers in line
-				foreach (TickerInfo ticker in _tickers.Values)
-				{	//If it's timed out
-					if (ticker.timer != -1 && ticker.timer < now)
-					{	//Ticker has expired
-						ticker.timer = -1;
-						ticker.onExpire();
+				if (bMinor)
+				{	//Keep our tickers in line
+					foreach (TickerInfo ticker in _tickers.Values)
+					{	//If it's timed out
+						if (ticker.timer != -1 && ticker.timer < now)
+						{	//Ticker has expired
+							ticker.timer = -1;
+							ticker.onExpire();
+						}
 					}
 				}
 
@@ -474,6 +510,11 @@ namespace InfServer.Game
 		#endregion
 
 		#region Players
+		public List<Player> getPlayersAndSpecInRange(int posX, int posY, int range)
+		{
+			return _players.getObjsInRange(posX, posY, range);
+		}
+
 		public List<Player> getPlayersInRange(int posX, int posY, int range)
 		{
 			return _playersIngame.getObjsInRange(posX, posY, range);
@@ -565,37 +606,44 @@ namespace InfServer.Game
 			outerRadius++;
 			unblockedRadius++;
 
-			int yCons1 = Math.Max(0, y - innerRadius);
-			int yCons2 = Math.Min(_levelHeight, y + outerRadius);
-			int xCons1 = Math.Max(0, x - innerRadius);
-			int xCons2 = Math.Min(_levelWidth, x + outerRadius);
+			int yStep1 = Math.Max(0, y - outerRadius);
+			int yStep2 = Math.Max(0, y - innerRadius);
+			int yStep3 = Math.Min(_levelHeight, y + innerRadius);
+			int yStep4 = Math.Min(_levelHeight, y + outerRadius);
+			int xStep1 = Math.Max(0, x - outerRadius);
+			int xStep2 = Math.Max(0, x - innerRadius);
+			int xStep3 = Math.Min(_levelWidth, x + innerRadius);
+			int xStep4 = Math.Min(_levelWidth, x + outerRadius);
 
-			for (int j = Math.Max(0, y - outerRadius); j < yCons1; ++j)
+			//Top section
+			for (int j = yStep1; j < yStep2; ++j)
 			{
-				for (int k = Math.Max(0, x - outerRadius); k < xCons1; ++k)
+				for (int k = xStep1; k < xStep4; ++k)
+					if (!_tiles[(j * _levelWidth) + k].Blocked)
+						legible.Add((j * _levelWidth) + k);
+			}
+
+			//Mid section
+			for (int j = yStep2; j < yStep3; ++j)
+			{
+				for (int k = xStep1; k < xStep2; ++k)
 				{	//Not blocked?
 					if (!_tiles[(j * _levelWidth) + k].Blocked)
 						legible.Add((j * _levelWidth) + k);
 				}
-				for (int k = Math.Max(0, x + innerRadius); k < xCons2; ++k)
+				for (int k = xStep3; k < xStep4; ++k)
 				{	//Not blocked?
 					if (!_tiles[(j * _levelWidth) + k].Blocked)
 						legible.Add((j * _levelWidth) + k);
 				}
 			}
 
-			for (int j = Math.Max(0, y + innerRadius); j < yCons2; ++j)
+			//Bottom section
+			for (int j = yStep3; j < yStep4; ++j)
 			{
-				for (int k = Math.Max(0, x - outerRadius); k < xCons1; ++k)
-				{	//Not blocked?
+				for (int k = xStep1; k < xStep4; ++k)
 					if (!_tiles[(j * _levelWidth) + k].Blocked)
 						legible.Add((j * _levelWidth) + k);
-				}
-				for (int k = Math.Max(0, x + innerRadius); k < xCons2; ++k)
-				{	//Not blocked?
-					if (!_tiles[(j * _levelWidth) + k].Blocked)
-						legible.Add((j * _levelWidth) + k);
-				}
 			}
 
 			if (legible.Count == 0)
@@ -642,6 +690,62 @@ namespace InfServer.Game
 
 			return true;
 		}
+
+		/// <summary>
+		/// Returns the amount of items total in the specified area
+		/// </summary>
+		public int getItemCountInRange(ItemInfo item, short x, short y, int range)
+		{
+			int objArea = 0;
+
+			foreach (ItemDrop drop in _items.Values)
+			{	//Is it of the same time?
+				if (item != null && drop.item != item)
+					continue;
+
+				//In the given area?
+				if (x + range < drop.positionX)
+					continue;
+				if (x - range > drop.positionX)
+					continue;
+				if (y + range < drop.positionY)
+					continue;
+				if (y - range > drop.positionY)
+					continue;
+
+				objArea += drop.quantity;
+			}
+
+			return objArea;
+		}
+
+		/// <summary>
+		/// Returns the amount of item drops total in the specified area
+		/// </summary>
+		public int getItemDropCountInArea(ItemInfo item, ref short x, ref short y, int range)
+		{
+			int objArea = 0;
+
+			foreach (ItemDrop drop in _items.Values)
+			{	//Is it of the same time?
+				if (item != null && drop.item != item)
+					continue;
+
+				//In the given area?
+				if (x + range < drop.positionX)
+					continue;
+				if (x - range > drop.positionX)
+					continue;
+				if (y + range < drop.positionY)
+					continue;
+				if (y - range > drop.positionY)
+					continue;
+
+				objArea++;
+			}
+
+			return objArea;
+		}
 		#endregion
 
 		#region Delayed Actions
@@ -675,6 +779,13 @@ namespace InfServer.Game
 		public virtual void playerEnter(Player player)
 		{	//The player has joined the game! Add him
 			_playersIngame.Add(player);
+
+			//Stop spectating
+			if (player._spectating != null)
+			{
+				player._spectating._spectators.Remove(player);
+				player._spectating = null;
+			}
 		}
 
 		/// <summary>

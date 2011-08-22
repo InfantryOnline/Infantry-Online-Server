@@ -79,7 +79,7 @@ namespace InfServer.Protocol
 		public override void Deserialize()
 		{
 			result = (LoginResult)_contentReader.ReadByte();
-			message = ReadString();
+			message = ReadNullString();
 		}
 
 		/// <summary>

@@ -20,8 +20,8 @@ namespace InfServer.Logic
 			CS_State csi = new CS_State();
 
 			csi.tickCount = (ushort)Environment.TickCount;
-			csi.packetsSent = client._stats.C2S_packetsSent;
-			csi.packetsReceived = client._stats.C2S_packetsRecv;
+			csi.packetsSent = client._packetsSent;
+			csi.packetsReceived = client._packetsReceived;
 
 			client.send(csi);
 		}

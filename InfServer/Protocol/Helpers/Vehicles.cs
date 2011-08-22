@@ -61,5 +61,34 @@ namespace InfServer.Protocol
 			foreach (Player player in p)
 				player._client.sendReliable(not);
 		}
+
+		/// <summary>
+		/// Sets the vehicle's energy
+		/// </summary>
+		static public void Vehicle_SetEnergy(Player p, short energy)
+		{
+			SC_VehicleState state = new SC_VehicleState();
+
+			state.energy = energy;
+
+			p._client.sendReliable(state);
+		}
+
+		/// <summary>
+		/// Resets aspects of a vehicle's state
+		/// </summary>
+		static public void Vehicle_ResetState(Player p, bool resetEnergy, bool resetHealth, bool resetVelocity)
+		{
+			SC_VehicleState state = new SC_VehicleState();
+
+			if (resetEnergy)
+				state.flags |= Helpers.ResetFlags.ResetEnergy;
+			if (resetHealth)
+				state.flags |= Helpers.ResetFlags.ResetHealth;
+			if (resetVelocity)
+				state.flags |= Helpers.ResetFlags.ResetVelocity;
+
+			p._client.sendReliable(state);
+		}
 	}
 }

@@ -67,10 +67,10 @@ namespace Bnoerj.AI.Steering
 		int DivZ;
 
 		// pointer to an array of pointers, one for each bin
-		// The last index is the extra bin for "everything else" (points outside super-brick)
+		// The last index is the extra bin for "everything else" (Points outside super-brick)
 		ClientProxy[] bins;
 
-		// extra bin for "everything else" (points outside super-brick)
+		// extra bin for "everything else" (Points outside super-brick)
 		//ClientProxy other;
 
 		/*

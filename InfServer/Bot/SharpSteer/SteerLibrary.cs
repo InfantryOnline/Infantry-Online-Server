@@ -733,9 +733,9 @@ namespace Bnoerj.AI.Steering
 			// when the path does not intersect the sphere
 			if (d < 0) return;
 
-			// otherwise, the path intersects the sphere in two points with
+			// otherwise, the path intersects the sphere in two Points with
 			// parametric coordinates of "p" and "q".
-			// (If "d" is zero the two points are coincident, the path is tangent)
+			// (If "d" is zero the two Points are coincident, the path is tangent)
 			s = (float)Math.Sqrt(d);
 			p = (-b + s) / 2;
 			q = (-b - s) / 2;

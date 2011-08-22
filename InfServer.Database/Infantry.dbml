@@ -11,6 +11,7 @@
       <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="inventory" Type="System.Data.Linq.Binary" DbType="VarBinary(512)" CanBeNull="true" UpdateCheck="Never" />
       <Column Name="skills" Type="System.Data.Linq.Binary" DbType="VarBinary(512)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="banner" Type="System.Byte[]" CanBeNull="true" />
       <Association Name="stats_player" Member="stats1" ThisKey="stats" OtherKey="id" Type="stats" IsForeignKey="true" />
       <Association Name="zone_player" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
       <Association Name="alias_player" Member="alias1" ThisKey="alias" OtherKey="id" Type="alias" IsForeignKey="true" />
@@ -20,10 +21,12 @@
   <Table Name="dbo.stats" Member="stats">
     <Type Name="stats">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="zone" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="cash" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="experience" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="experienceTotal" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="points" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+	  <Column Name="kills" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="deaths" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="killPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="deathPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="assistPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
@@ -31,15 +34,20 @@
       <Column Name="vehicleKills" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="vehicleDeaths" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="playSeconds" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat1" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat3" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat4" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat5" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="altstat8" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat1" Storage="_zonestat1" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat2" Storage="_zonestat2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat3" Storage="_zonestat3" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat4" Storage="_zonestat4" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat5" Storage="_zonestat5" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat6" Storage="_zonestat6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat7" Storage="_zonestat7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat8" Storage="_zonestat8" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat9" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat10" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat11" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat12" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Association Name="stats_player" Member="players" ThisKey="id" OtherKey="stats" Type="player" />
+      <Association Name="zone_stats" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.account" Member="accounts">
@@ -51,7 +59,7 @@
       <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="permission" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Member="email" Type="System.String" DbType="VarChar(256) NOT NULL" CanBeNull="false" />
+      <Column Name="email" Type="System.String" DbType="VarChar(256) NOT NULL" CanBeNull="false" />
       <Association Name="account_alias" Member="alias" ThisKey="id" OtherKey="account" Type="alias" />
     </Type>
   </Table>
@@ -64,6 +72,7 @@
       <Column Name="notice" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
       <Column Name="active" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
       <Association Name="zone_player" Member="players" ThisKey="id" OtherKey="zone" Type="player" />
+      <Association Name="zone_stats" Member="stats" ThisKey="id" OtherKey="zone" Type="stats" />
     </Type>
   </Table>
   <Table Name="dbo.alias" Member="alias">

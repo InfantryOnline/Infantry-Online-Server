@@ -14,6 +14,8 @@ namespace InfServer.Protocol
 		///////////////////////////////////////////////////
 		public UInt16 rNumber;
 
+		public int streamID;
+
 		//Packet routing
 		public const ushort TypeID = (ushort)0x11;
 		static public event Action<OutOfSync, Client> Handlers;
@@ -26,9 +28,11 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-		public OutOfSync()
+		public OutOfSync(int _streamID)
 			: base(TypeID)
-		{ }
+		{
+			streamID = _streamID;
+		}
 
 		/// <summary>
 		/// Creates an instance of the dummy packet used to debug communication or 
@@ -36,9 +40,11 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-		public OutOfSync(ushort typeID, byte[] buffer, int index, int count)
+		public OutOfSync(ushort typeID, byte[] buffer, int index, int count, int sID)
 			: base(typeID, buffer, index, count)
-		{ }
+		{
+			streamID = sID;
+		}
 
 		/// <summary>
 		/// Routes a new packet to various relevant handlers
@@ -53,8 +59,11 @@ namespace InfServer.Protocol
 		/// Serializes the data stored in the packet class into a byte array ready for sending.
 		/// </summary>
 		public override void Serialize()
-		{
-			
+		{	//Packet ID
+			Write((UInt16)((TypeID + streamID) << 8));
+
+			//Insert our number
+			Write(Flip(rNumber));
 		}
 
 		/// <summary>

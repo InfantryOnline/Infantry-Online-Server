@@ -361,7 +361,7 @@ namespace InfServer.Game
 			//Forward to our script
 			if (!exists("Player.Portal") || (bool)callsync("Player.Portal", false, from, portal))
 			{	//Do some warpage
-				Logic_Lio.Warp(Helpers.WarpMode.Normal, from, warp);
+				Logic_Lio.Warp(Helpers.ResetFlags.ResetNone, from, warp);
 			}
 		}
 
@@ -653,6 +653,10 @@ namespace InfServer.Game
 			}
 
 			//Update the player's state
+			int now = Environment.TickCount;
+			int updateTick = ((now >> 16) << 16) + (update.tickCount & 0xFFFF);
+			int oldPosX = from._state.positionX, oldPosY = from._state.positionY;
+
 			from._state.energy = update.energy;
 
 			from._state.velocityX = update.velocityX;
@@ -666,6 +670,10 @@ namespace InfServer.Game
 			from._state.yaw = update.yaw;
 			from._state.direction = (Helpers.ObjectState.Direction)update.direction;
 			from._state.unk1 = update.unk1;
+			from._state.pitch = update.pitch;
+
+			from._state.lastUpdate = updateTick;
+			from._state.lastUpdateServer = now;
 
 			//If the player is inside a vehicle..
 			if (from._occupiedVehicle != null)
@@ -684,7 +692,9 @@ namespace InfServer.Game
 				from._occupiedVehicle._state.yaw = update.yaw;
 				from._occupiedVehicle._state.direction = (Helpers.ObjectState.Direction)update.direction;
 				from._occupiedVehicle._state.unk1 = update.unk1;
-				from._occupiedVehicle._state.lastUpdate = from._state.lastUpdate = Environment.TickCount;
+				from._occupiedVehicle._state.pitch = update.pitch;
+
+				from._occupiedVehicle._state.lastUpdate = updateTick;
 
 				//Update spatial data
 				_vehicles.updateObjState(from._occupiedVehicle, from._occupiedVehicle._state);
@@ -695,7 +705,6 @@ namespace InfServer.Game
 			else
 			{
 				from._state.health = update.health;
-				from._state.lastUpdate = Environment.TickCount;
 			}
 
 			//Send player coord updates to update spatial data
@@ -705,10 +714,20 @@ namespace InfServer.Game
 
 			//If it's a spectator, we should not route
 			if (from.IsSpectator)
+			{	//Are we still spectating a player?
+				if (update.playerSpectating == -1 && from._spectating != null)
+				{
+					from._spectating._spectators.Remove(from);
+					from._spectating = null;
+				}
+
 				return;
+			}
 
 			//Route it to all players!
-			Helpers.Update_RoutePlayer(Players, from, update);
+			from._state.updateNumber++;
+
+			Helpers.Update_RoutePlayer(from, update, updateTick, oldPosX, oldPosY);
 		}
 
 		/// <summary>
@@ -717,35 +736,32 @@ namespace InfServer.Game
 		public override void handlePlayerDeath(Player from, CS_VehicleDeath update)
 		{	//Store variables to pass to the event at the end
 			Player killer = null;
-			
+
+			//Was it a player kill?
+			if (update.type == Helpers.KillType.Player)
+			{	//Sanity checks
+				killer = _players.getObjByID((ushort)update.killerPlayerID);
+
+				//Was it a player we can't find?
+				if (update.killerPlayerID < 5001 && killer == null)
+					Log.write(TLog.Warning, "Player {0} gave invalid player killer ID.", from);
+			}
+
 			//Was it us that died?
 			if (update.killedID != from._id)
 			{	//Was it the vehicle we were in?
 				if (update.killedID == from._occupiedVehicle._id)
-				{	//Was it a player kill?
-					if (update.type == Helpers.KillType.Player)
-					{	//Sanity checks
-						killer = _players.getObjByID((ushort)update.killerPlayerID);
-
-						//Was it a player?
-						if (update.killerPlayerID >= 5001 || killer == null)
-						{
-							Log.write(TLog.Warning, "Player {0} gave invalid player killer ID.", from);
-							return;
-						}
-					}
-					
-					//Yes! Fall out of the vehicle
+				{	//Yes! Fall out of the vehicle
 					from._occupiedVehicle.kill(killer);
 					from._occupiedVehicle.playerLeave(true);
 					return;
 				}
-				
+
 				//We shouldn't be able to 'kill' anything else
 				Log.write(TLog.Warning, "Player {0} died with invalid killedID #{1}", from._alias, update.killedID);
 				return;
 			}
-			
+
 			//Fall out of our vehicle and die!
 			if (from._occupiedVehicle != null)
 				from._occupiedVehicle.playerLeave(true);
@@ -758,7 +774,7 @@ namespace InfServer.Game
 			from._deathTime = Environment.TickCount;
 
 			//Prompt the player death event
-			if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type))
+			if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type, update))
 				return;
 
 			//Was it a player kill?
@@ -928,7 +944,15 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to use a warp item
 		/// </summary>
 		public override void handlePlayerWarp(Player player, ItemInfo.WarpItem item, ushort targetPlayerID, short posX, short posY)
-		{	//What sort of warp item are we dealing with?
+		{	//Is this warp being prevented by a bot?
+			Bot antiWarpBot = checkBotAntiwarp(player);
+			if (antiWarpBot != null)
+			{
+				player.sendMessage(-1, "You are being antiwarped by a " + antiWarpBot._type.Name);
+				return;
+			}
+
+			//What sort of warp item are we dealing with?
 			switch (item.warpMode)
 			{
 				case ItemInfo.WarpItem.WarpMode.Lio:
@@ -950,7 +974,7 @@ namespace InfServer.Game
 					}
 
 					//Warp the player
-					Logic_Lio.Warp(Helpers.WarpMode.Normal, player, warps);
+					Logic_Lio.Warp(Helpers.ResetFlags.ResetNone, player, warps);
 					break;
 
 				case ItemInfo.WarpItem.WarpMode.WarpTeam:
@@ -981,10 +1005,10 @@ namespace InfServer.Game
 						if (item.areaEffectRadius > 0)
 						{
 							foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
-								p.warp(Helpers.WarpMode.Normal, target._state, (short)item.accuracyRadius, -1, 0);
+								p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
 						}
 						else
-							player.warp(Helpers.WarpMode.Normal, target._state, (short)item.accuracyRadius, -1, 0);
+							player.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
 					}
 					break;
 
@@ -1009,10 +1033,10 @@ namespace InfServer.Game
 						if (item.areaEffectRadius > 0)
 						{
 							foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
-								p.warp(Helpers.WarpMode.Normal, target._state, (short)item.accuracyRadius, -1, 0);
+								p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
 						}
 						else
-							player.warp(Helpers.WarpMode.Normal, target._state, (short)item.accuracyRadius, -1, 0);
+							player.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
 					}
 					break;
 
@@ -1039,11 +1063,11 @@ namespace InfServer.Game
 							foreach (Player p in
 								getPlayersInRange(target._state.positionX, target._state.positionY, item.areaEffectRadius))
 							{
-								p.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
+								p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
 							}
 						}
 						else
-							target.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
+							target.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
 					}
 					break;
 
@@ -1066,11 +1090,18 @@ namespace InfServer.Game
 							foreach (Player p in
 								getPlayersInRange(target._state.positionX, target._state.positionY, item.areaEffectRadius))
 							{
-								p.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
+								p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
 							}
 						}
 						else
-							target.warp(Helpers.WarpMode.Normal, player._state, (short)item.accuracyRadius, -1, 0);
+							target.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
+					}
+					break;
+
+				case ItemInfo.WarpItem.WarpMode.Portal:
+					{	//Just forward it to the script for now
+						if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
+							return;
 					}
 					break;
 			}
@@ -1102,10 +1133,11 @@ namespace InfServer.Game
 				return;
 
 			if (item.getAmmoType(out ammoID, out ammoCount))
-				if (ammoID != 0 && !player.inventoryModify(ammoID, -ammoCount))
+				if (ammoID != 0 && !player.inventoryModify(false, ammoID, -ammoCount))
 					return;
 
 			player.Cash -= item.cashCost;
+			player.syncInventory();
 
 			//Forward to our script
 			if (!exists("Player.MakeVehicle") || (bool)callsync("Player.MakeVehicle", false, player, item, posX, posY))
@@ -1200,13 +1232,13 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to repair/heal
 		/// </summary>
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
-        {	//Does the player have appropriate ammo?
-			if (item.useAmmoID != 0 && !player.inventoryModify(false, item.useAmmoID, -item.ammoUsedPerShot))
-				return;
-
-            // Forward it to our script
-            if(!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, posX, posY))
-			{	//What type of repair is it?
+        {	// Forward it to our script
+			if (!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, targetVehicle, posX, posY))
+			{	//Does the player have appropriate ammo?
+				if (item.useAmmoID != 0 && !player.inventoryModify(false, item.useAmmoID, -item.ammoUsedPerShot))
+					return;
+				
+				//What type of repair is it?
 				switch (item.repairType)
 				{
 					//Health and energy repair
@@ -1380,9 +1412,9 @@ namespace InfServer.Game
 		/// <summary>
 		/// Triggered when a bot is killed
 		/// </summary>
-		public override void handleBotDeath(Bot dead, Player killer)
+		public override void handleBotDeath(Bot dead, Player killer, int weaponID)
 		{	//Forward it to our script
-			if (!exists("Bot.Death") || (bool)callsync("Bot.Death", false, dead, killer))
+			if (!exists("Bot.Death") || (bool)callsync("Bot.Death", false, dead, killer, weaponID))
 			{	//Route the death to the arena
 				Helpers.Vehicle_RouteDeath(Players, killer, dead, null);
 			}

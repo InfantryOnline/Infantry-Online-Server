@@ -37,7 +37,6 @@ namespace InfServer.Data
 		public int kills;
 		public int deaths;
 
-		public int points;
 		public int killPoints;
 		public int deathPoints;
 		public int assistPoints;
@@ -46,14 +45,18 @@ namespace InfServer.Data
 		public int vehicleDeaths;
 		public int playSeconds;
 
-		public int altstat1;
-		public int altstat2;
-		public int altstat3;
-		public int altstat4;
-		public int altstat5;
-		public int altstat6;
-		public int altstat7;
-		public int altstat8;
+		public int zonestat1;
+		public int zonestat2;
+		public int zonestat3;
+		public int zonestat4;
+		public int zonestat5;
+		public int zonestat6;
+		public int zonestat7;
+		public int zonestat8;
+		public int zonestat9;
+		public int zonestat10;
+		public int zonestat11;
+		public int zonestat12;
 
 		public int cash;
 		public List<InventoryStat> inventory;
@@ -74,27 +77,80 @@ namespace InfServer.Data
 			public int quantity;
 		}
 
+		public long Points
+		{
+			get
+			{
+				return killPoints + assistPoints + bonusPoints;
+			}
+		}
+
+
 		///////////////////////////////////////////////////
 		// Member Functions
 		//////////////////////////////////////////////////
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		public PlayerStats()
+		{	
+
+		}
+
+		/// <summary>
+		/// Constructs the stats object from another stats object
+		/// </summary>
+		public PlayerStats(PlayerStats stats)
+		{
+			zonestat1 = stats.zonestat1;
+			zonestat2 = stats.zonestat2;
+			zonestat3 = stats.zonestat3;
+			zonestat4 = stats.zonestat4;
+			zonestat5 = stats.zonestat5;
+			zonestat6 = stats.zonestat6;
+			zonestat7 = stats.zonestat7;
+			zonestat8 = stats.zonestat8;
+			zonestat9 = stats.zonestat9;
+			zonestat10 = stats.zonestat10;
+			zonestat11 = stats.zonestat11;
+			zonestat12 = stats.zonestat12;
+
+			kills = stats.kills;
+			deaths = stats.deaths;
+			killPoints = stats.killPoints;
+			deathPoints = stats.deathPoints;
+			assistPoints = stats.assistPoints;
+			bonusPoints = stats.bonusPoints;
+			vehicleKills = stats.vehicleKills;
+			vehicleDeaths = stats.vehicleDeaths;
+			playSeconds = stats.playSeconds;
+
+			cash = stats.cash;
+			experience = stats.experience;
+			experienceTotal = stats.experienceTotal;
+		}
+
 		/// <summary>
 		/// Serializes the data stored in the stat class into the packet data
 		/// </summary>
 		public void Serialize(PacketBase packet)
 		{	//Write all our data out
-			packet.Write(altstat1);
-			packet.Write(altstat2);
-			packet.Write(altstat3);
-			packet.Write(altstat4);
-			packet.Write(altstat5);
-			packet.Write(altstat6);
-			packet.Write(altstat7);
-			packet.Write(altstat8);
+			packet.Write(zonestat1);
+			packet.Write(zonestat2);
+			packet.Write(zonestat3);
+			packet.Write(zonestat4);
+			packet.Write(zonestat5);
+			packet.Write(zonestat6);
+			packet.Write(zonestat7);
+			packet.Write(zonestat8);
+			packet.Write(zonestat9);
+			packet.Write(zonestat10);
+			packet.Write(zonestat11);
+			packet.Write(zonestat12);
 
 			packet.Write(kills);
 			packet.Write(deaths);
 
-			packet.Write(points);
 			packet.Write(killPoints);
 			packet.Write(deathPoints);
 			packet.Write(assistPoints);
@@ -130,19 +186,22 @@ namespace InfServer.Data
 		{	//Ready our object
 			PlayerStats stats = new PlayerStats();
 
-			stats.altstat1 = reader.ReadInt32();
-			stats.altstat2 = reader.ReadInt32();
-			stats.altstat3 = reader.ReadInt32();
-			stats.altstat4 = reader.ReadInt32();
-			stats.altstat5 = reader.ReadInt32();
-			stats.altstat6 = reader.ReadInt32();
-			stats.altstat7 = reader.ReadInt32();
-			stats.altstat8 = reader.ReadInt32();
+			stats.zonestat1 = reader.ReadInt32();
+			stats.zonestat2 = reader.ReadInt32();
+			stats.zonestat3 = reader.ReadInt32();
+			stats.zonestat4 = reader.ReadInt32();
+			stats.zonestat5 = reader.ReadInt32();
+			stats.zonestat6 = reader.ReadInt32();
+			stats.zonestat7 = reader.ReadInt32();
+			stats.zonestat8 = reader.ReadInt32();
+			stats.zonestat9 = reader.ReadInt32();
+			stats.zonestat10 = reader.ReadInt32();
+			stats.zonestat11 = reader.ReadInt32();
+			stats.zonestat12 = reader.ReadInt32();
 
 			stats.kills = reader.ReadInt32();
 			stats.deaths = reader.ReadInt32();
 
-			stats.points = reader.ReadInt32();
 			stats.killPoints = reader.ReadInt32();
 			stats.deathPoints = reader.ReadInt32();
 			stats.assistPoints = reader.ReadInt32();

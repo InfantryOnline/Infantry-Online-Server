@@ -61,14 +61,7 @@ namespace InfServer.Protocol
 
 			foreach (PacketBase packet in packets)
 			{	//Make sure the packet is serialized
-				if (!packet._bSerialized)
-				{
-					packet._client = _client;
-					packet._handler = _handler;
-
-					packet.Serialize();
-					packet._bSerialized = true;
-				}
+				packet.MakeSerialized(_client, _handler);
 
 				//Insert the packet size
 				byte[] packetData = packet.Data;

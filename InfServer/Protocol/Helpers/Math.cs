@@ -148,7 +148,7 @@ namespace InfServer.Protocol
 		}
 
 		/// <summary>
-		/// Calculates the distance between two points
+		/// Calculates the distance between two Points
 		/// </summary>
 		static public double distanceTo(int x1, int y1, int x2, int y2)
 		{

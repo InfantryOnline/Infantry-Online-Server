@@ -56,28 +56,28 @@ namespace InfServer.Protocol
 			switch (chatType)
 			{
 				case Helpers.Chat_Type.Normal:
-					recipient = ReadString();
-					message = ReadString();
+					recipient = ReadNullString();
+					message = ReadNullString();
 					break;
 
 				case Helpers.Chat_Type.Whisper:
-					recipient = ReadString();
-					message = ReadString();
+					recipient = ReadNullString();
+					message = ReadNullString();
 					break;
 
 				case Helpers.Chat_Type.EnemyTeam:
-					recipient = ReadString();
-					message = ReadString();
+					recipient = ReadNullString();
+					message = ReadNullString();
 					break;
 
 				case Helpers.Chat_Type.Team:
-					recipient = ReadString();
-					message = ReadString();
+					recipient = ReadNullString();
+					message = ReadNullString();
 					break;
 
 				case Helpers.Chat_Type.Squad:
-					recipient = ReadString();
-					message = ReadString();
+					recipient = ReadNullString();
+					message = ReadNullString();
 					break;
 
 				default:

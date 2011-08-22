@@ -21,7 +21,11 @@ namespace InfServer
 		public ConfigSetting _config;			//Our server config
 		public new LogClient _logger;			//Our zone server log
 
+		public List<Zone> _zones;				//The zones currently connected
+
 		private string _connectionString;		//The connectionstring to our database
+
+		static public bool bAllowMulticlienting;//Should we allow players to join multiple times under the same account?
 
 
 		///////////////////////////////////////////////////
@@ -34,6 +38,7 @@ namespace InfServer
 			: base(new C2SPacketFactory<Zone>(), new Client<Zone>(false))
 		{
 			_config = ConfigSetting.Blank;
+			_zones = new List<Zone>();
 		}
 
 		/// <summary>
@@ -53,9 +58,9 @@ namespace InfServer
 				return false;
 			}
 			
-			Client.reliableJuggle = _config["protocol/reliableJuggle"].intValue;
-			Client.reliableGrace = _config["protocol/reliableGrace"].intValue;
 			Client.connectionTimeout = _config["protocol/connectionTimeout"].intValue;
+
+			bAllowMulticlienting = _config["allowMulticlienting"].boolValue;
 
 			//Attempt to connect to our database
 			_connectionString = _config["database/connectionString"].Value;

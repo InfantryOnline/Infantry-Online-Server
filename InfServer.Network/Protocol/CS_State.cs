@@ -14,10 +14,11 @@ namespace InfServer.Protocol
 		///////////////////////////////////////////////////
 		public UInt16 tickCount;				//The last 16 bits of the client's tickcount
 
-		public Int32 clientLastUpdate;
+		public Int32 clientCurrentUpdate;
 		public Int32 clientAverageUpdate;
 		public Int32 clientShortestUpdate;
 		public Int32 clientLongestUpdate;
+		public Int32 clientLastUpdate;
 		public UInt64 packetsSent;
 		public UInt64 packetsReceived;
 
@@ -64,13 +65,14 @@ namespace InfServer.Protocol
 		{	//Type ID
 			Write((UInt16)(TypeID << 8));
 
-			Write(tickCount);
-			Write(clientLastUpdate);
-			Write(clientAverageUpdate);
-			Write(clientShortestUpdate);
-			Write(clientLongestUpdate);
-			Write(packetsSent);
-			Write(packetsReceived);
+			Write(Flip(tickCount));
+			Write(Flip(clientCurrentUpdate));
+			Write(Flip(clientAverageUpdate));
+			Write(Flip(clientShortestUpdate));
+			Write(Flip(clientLongestUpdate));
+			Write(Flip(clientLastUpdate));
+			Write(Flip(packetsSent));
+			Write(Flip(packetsReceived));
 		}
 
 		/// <summary>
@@ -78,14 +80,15 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Deserialize()
 		{	//Get the tickcount
-			tickCount = _contentReader.ReadUInt16();
+			tickCount = Flip( _contentReader.ReadUInt16());
 
-			clientLastUpdate = _contentReader.ReadInt32();
-			clientAverageUpdate = _contentReader.ReadInt32();
-			clientShortestUpdate = _contentReader.ReadInt32();
-			clientLongestUpdate = _contentReader.ReadInt32();
-			packetsSent = _contentReader.ReadUInt64();
-			packetsReceived = _contentReader.ReadUInt64();
+			clientCurrentUpdate = Flip(_contentReader.ReadInt32());
+			clientAverageUpdate = Flip(_contentReader.ReadInt32());
+			clientShortestUpdate = Flip(_contentReader.ReadInt32());
+			clientLongestUpdate = Flip(_contentReader.ReadInt32());
+			clientLastUpdate = Flip(_contentReader.ReadInt32());
+			packetsSent = Flip(_contentReader.ReadUInt64());
+			packetsReceived = Flip(_contentReader.ReadUInt64());
 		}
 
 		/// <summary>

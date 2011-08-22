@@ -69,7 +69,7 @@ namespace InfServer.Protocol
 					Write(veh._state.positionX);
 					Write(veh._state.positionY);
 					Write(veh._state.positionZ);
-					Write(veh._state.yaw);
+					Write(veh._state.pitch);
 					Write((byte)veh._parentSlot);
 					Write(veh._state.yaw);
 					Write(veh._state.yaw);
@@ -97,6 +97,10 @@ namespace InfServer.Protocol
 					Write((Int32)veh._state.yaw);
 					break;
 			}
+
+			//Write in all associated dependent vehicles
+			foreach (Vehicle child in veh._childs)
+				serializeVehicle(child);
 		}
 
 		/// <summary>
@@ -112,8 +116,8 @@ namespace InfServer.Protocol
 			
 			//Write out each asset
 			foreach (Vehicle vehicle in vehicles)
-				//Serialize!
-				serializeVehicle(vehicle);
+				if (vehicle._type.Type != VehInfo.Types.Dependent)
+					serializeVehicle(vehicle);
 		}
 
 		/// <summary>

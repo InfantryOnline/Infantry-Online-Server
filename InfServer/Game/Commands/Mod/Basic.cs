@@ -122,15 +122,6 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
-        static public void serverRestart(Player player, Player recipient, string payload)
-        {
-            foreach (Player p in player._arena.Players)
-            {
-                p.sendMessage(-1, "!Server restarting in 30 seconds.");
-            }
-            InfServer.Program.restart();
-        }
-
         /// <summary>
         /// Summons the specified player to yourself
         /// </summary>
@@ -212,7 +203,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {	//Modify the recipient inventory
-				player.inventoryModify(item, quantity);
+				recipient.inventoryModify(item, quantity);
             }
         }
 
@@ -221,13 +212,13 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
 		static public void spectate(Player player, Player recipient, string payload)
 		{	//Sanity checks
-			if (payload == "" || recipient == null)
+			if (payload == "")
 			{
-				player.sendMessage(-1, "Syntax: ::*spectate [player]");
+				player.sendMessage(-1, "Syntax: ::*spectate [player] or *spectate [player]");
 				return;
 			}
 
-			if (!recipient.IsSpectator)
+			if (recipient != null && !recipient.IsSpectator)
 			{
 				player.sendMessage(-1, "Player isn't in spec.");
 				return;
@@ -248,7 +239,14 @@ namespace InfServer.Game.Commands.Mod
 			}
 
 			//Let the games begin!
-			recipient.spectate(target);
+			if (recipient != null)
+				recipient.spectate(target);
+			else
+			{
+				foreach (Player p in player._arena.Players)
+					if (p.IsSpectator)
+						p.spectate(target);
+			}
 		}
 
         /// <summary>
@@ -349,6 +347,26 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
+		/// <summary>
+		/// Removes a player from the server
+		/// </summary>
+		static public void kill(Player player, Player recipient, string payload)
+		{	//Sanity checks
+			if (recipient == null)
+			{
+				player.sendMessage(-1, "Syntax: ::*kill");
+				return;
+			}
+
+			//Kill all?
+			if (payload != null && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
+				foreach (Player p in player._arena.Players)
+					p.destroy();
+			else
+				//Destroy him!
+				recipient.destroy();
+		}
+
         /// <summary>
         /// Registers all handlers
         /// </summary>
@@ -363,11 +381,6 @@ namespace InfServer.Game.Commands.Mod
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
                 "::*warp or *warp A4 or *warp 123,123",
                 InfServer.Data.PlayerPermission.ArenaMod);
-
-            yield return new HandlerDescriptor(serverRestart, "recycle",
-                "Restarts the current zone..",
-                "*recycle",
-                InfServer.Data.PlayerPermission.Sysop);
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Summons a specified player to your location.",
@@ -385,8 +398,8 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.ArenaMod);
 
 			yield return new HandlerDescriptor(spectate, "spectate",
-				"Forces a player to spectate the specified player.",
-				"::*spectate [player]",
+				"Forces a player or the whole arena to spectate the specified player.",
+				"Syntax: ::*spectate [player] or *spectate [player]",
 				InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(spec, "spec",
@@ -408,6 +421,11 @@ namespace InfServer.Game.Commands.Mod
                 "Prizes specified amount of experience to target player",
                 "*experience [amount] or ::*experience [amount]",
                 InfServer.Data.PlayerPermission.ArenaMod);
+
+			yield return new HandlerDescriptor(kill, "kill",
+			   "Removes the target player from the server",
+			   "::*kill",
+			   InfServer.Data.PlayerPermission.Mod);
         }
     }
 }

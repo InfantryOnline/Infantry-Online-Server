@@ -44,19 +44,68 @@ namespace InfServer.Protocol
 					break;
 
 				case Reliable.TypeID:
-					packet = new Reliable(typeID, buffer, offset, size);
+					packet = new Reliable(typeID, buffer, offset, size, 0);
+					break;
+				case Reliable.TypeID + 1:
+					packet = new Reliable(typeID, buffer, offset, size, 1);
+					break;
+				case Reliable.TypeID + 2:
+					packet = new Reliable(typeID, buffer, offset, size, 2);
+					break;
+				case Reliable.TypeID + 3:
+					packet = new Reliable(typeID, buffer, offset, size, 3);
 					break;
 
 				case OutOfSync.TypeID:
-					packet = new OutOfSync(typeID, buffer, offset, size);
+					packet = new OutOfSync(typeID, buffer, offset, size, 0);
+					break;
+				case OutOfSync.TypeID + 1:
+					packet = new OutOfSync(typeID, buffer, offset, size, 1);
+					break;
+				case OutOfSync.TypeID + 2:
+					packet = new OutOfSync(typeID, buffer, offset, size, 2);
+					break;
+				case OutOfSync.TypeID + 3:
+					packet = new OutOfSync(typeID, buffer, offset, size, 3);
 					break;
 
 				case ReliableEcho.TypeID:
-					packet = new ReliableEcho(typeID, buffer, offset, size);
+					packet = new ReliableEcho(typeID, buffer, offset, size, 0);
+					break;
+				case ReliableEcho.TypeID + 1:
+					packet = new ReliableEcho(typeID, buffer, offset, size, 1);
+					break;
+				case ReliableEcho.TypeID + 2:
+					packet = new ReliableEcho(typeID, buffer, offset, size, 2);
+					break;
+				case ReliableEcho.TypeID + 3:
+					packet = new ReliableEcho(typeID, buffer, offset, size, 3);
+					break; 
+	
+				case ReliableBox.TypeID:
+					packet = new ReliableBox(typeID, buffer, offset, size, 0);
+					break;
+				case ReliableBox.TypeID + 1:
+					packet = new ReliableBox(typeID, buffer, offset, size, 1);
+					break;
+				case ReliableBox.TypeID + 2:
+					packet = new ReliableBox(typeID, buffer, offset, size, 2);
+					break;
+				case ReliableBox.TypeID + 3:
+					packet = new ReliableBox(typeID, buffer, offset, size, 3);
 					break;
 
-				case ReliableBox.TypeID:
-					packet = new ReliableBox(typeID, buffer, offset, size);
+				case DataPacketRcv.TypeID:
+					packet = new DataPacketRcv(typeID, buffer, offset, size, 0);
+					break;
+				case DataPacketRcv.TypeID + 1:
+					packet = new DataPacketRcv(typeID, buffer, offset, size, 1);
+					break;
+				case DataPacketRcv.TypeID + 2:
+					packet = new DataPacketRcv(typeID, buffer, offset, size, 2);
+					break;
+				case DataPacketRcv.TypeID + 3:
+					packet = new DataPacketRcv(typeID, buffer, offset, size, 3);
 					break;
 
 				default:
@@ -168,6 +217,26 @@ namespace InfServer.Protocol
 
 				case CS_PlayerProduce.TypeID:
 					packet = new CS_PlayerProduce(typeID, buffer, offset, size);
+					break;
+
+				case CS_SetBanner.TypeID:
+					packet = new CS_SetBanner(typeID, buffer, offset, size);
+					break;
+
+				case CS_FileSend.TypeID:
+					packet = new CS_FileSend(typeID, buffer, offset, size);
+					break;
+
+				case CS_Environment.TypeID:
+					packet = new CS_Environment(typeID, buffer, offset, size);
+					break;
+
+				case CS_Frames.TypeID:
+					packet = new CS_Frames(typeID, buffer, offset, size);
+					break;
+
+				case CS_ChartRequest.TypeID:
+					packet = new CS_ChartRequest(typeID, buffer, offset, size);
 					break;
 
 				default:

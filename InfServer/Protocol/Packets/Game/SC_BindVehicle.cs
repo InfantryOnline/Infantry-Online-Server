@@ -69,7 +69,7 @@ namespace InfServer.Protocol
 					Write(Vehicle1._state.positionX);
 					Write(Vehicle1._state.positionY);
 					Write(Vehicle1._state.positionZ);
-					Write(Vehicle1._state.yaw);
+					Write(Vehicle1._state.pitch);
 					Write((byte)Vehicle1._parentSlot);
 					Write(Vehicle1._state.yaw);
 					Write(Vehicle1._state.yaw);

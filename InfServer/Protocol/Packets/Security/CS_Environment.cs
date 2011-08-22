@@ -8,23 +8,17 @@ using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-	/// CS_PlayerDrop is triggered when a player attempts to drop an item
+	/// CS_Environment contains a client's environmental data
 	/// </summary>
-	public class CS_PlayerDrop : PacketBase
+	public class CS_Environment : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-		public Int32 unk1;
-		public Int32 unk2;
-		public Int16 unk3;
-		public Int16 positionX;
-		public Int16 positionY;
-		public Int16 unk4;
-		public UInt16 itemID;		//The item we're attempting to drop
-		public UInt16 quantity;		//The amount we're dropping
+		public List<string> processes;
+		public List<string> windows;
 
 		//Packet routing
-		public const ushort TypeID = 10;
-		static public Action<CS_PlayerDrop, Player> Handlers;
+		public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.Environment;
+		static public event Action<CS_Environment, Player> Handlers;
 
 
 		///////////////////////////////////////////////////
@@ -36,7 +30,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-		public CS_PlayerDrop(ushort typeID, byte[] buffer, int index, int count)
+		public CS_Environment(ushort typeID, byte[] buffer, int index, int count)
 			: base(typeID, buffer, index, count)
 		{
 		}
@@ -47,7 +41,7 @@ namespace InfServer.Protocol
 		public override void Route()
 		{	//Call all handlers!
 			if (Handlers != null)
-				Handlers(this, ((Client)_client)._player);
+				Handlers(this, ((Client<Player>)_client)._obj);
 		}
 
 		/// <summary>
@@ -55,14 +49,30 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Deserialize()
 		{
-			unk1 = _contentReader.ReadInt32();
-			unk2 = _contentReader.ReadInt32();
-			unk3 = _contentReader.ReadInt16();
-			positionX = _contentReader.ReadInt16();
-			positionY = _contentReader.ReadInt16();
-			unk4 = _contentReader.ReadInt16();
-			itemID = _contentReader.ReadUInt16();
-			quantity = _contentReader.ReadUInt16();
+			_contentReader.ReadInt16();
+
+			//Read in the main string
+			processes = new List<string>();
+			windows = new List<string>();
+			string env = ReadNullString((int)_content.Length);
+			int idx = 0;
+
+			while ((idx = env.IndexOf('"', idx)) != -1)
+			{	//Find the end
+				int endIdx = env.IndexOf("\",", idx + 1);
+				if (endIdx == -1)
+					break;
+
+				//A process or window?
+				string payload = env.Substring(idx + 3, endIdx - idx - 3);
+
+				if (env[idx + 1] == 'P')
+					processes.Add(payload);
+				else
+					windows.Add(payload);
+
+				idx = endIdx + 2;
+			}
 		}
 
 		/// <summary>
@@ -72,7 +82,7 @@ namespace InfServer.Protocol
 		{
 			get
 			{
-				return "Player drop notification";
+				return "Framelapse update";
 			}
 		}
 	}

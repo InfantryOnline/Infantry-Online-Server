@@ -40,8 +40,8 @@ namespace InfServer.Logic
 		{	// Get player's current experience - prefixed by '@' in the skill string for >= comparison
 			int exp = player.Experience;
 
-			// Get player's total points - prefixed by '#' in the skill string for >= comparison
-			int points = player.Points;
+			// Get player's total Points - prefixed by '#' in the skill string for >= comparison
+			long points = player.Points;
 			
 			// First, we kill all spaces (if any), then replace all the junk with proper boolean values.				
 			// Then Calculate boolean values for all the shit in the expression.

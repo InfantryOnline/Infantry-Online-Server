@@ -853,7 +853,7 @@ namespace InfServer.Script.GameType_CTF_OvD
 
 				p.Cash += cashReward;
 				p.Experience += experienceReward;
-				p.Points += pointReward;
+				p.BonusPoints += pointReward;
 
 				//Call teh Breakdownz
 				_arena.individualBreakdown(p, false);
@@ -1115,7 +1115,7 @@ namespace InfServer.Script.GameType_CTF_OvD
 		/// </summary>
 		/// <remarks>killer may be null if it wasn't a player kill</remarks>
 		[Scripts.Event("Player.Death")]
-		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType)
+		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
 		{
 			return true;
 		}

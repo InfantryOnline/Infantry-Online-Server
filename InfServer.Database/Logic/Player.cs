@@ -36,16 +36,21 @@ namespace InfServer.Logic
 				//Update his stats object
 				Data.DB.stats stats = dbplayer.stats1;
 
-				stats.altstat1 = pkt.stats.altstat1;
-				stats.altstat2 = pkt.stats.altstat2;
-				stats.altstat3 = pkt.stats.altstat3;
-				stats.altstat4 = pkt.stats.altstat4;
-				stats.altstat5 = pkt.stats.altstat5;
-				stats.altstat6 = pkt.stats.altstat6;
-				stats.altstat7 = pkt.stats.altstat7;
-				stats.altstat8 = pkt.stats.altstat8;
+				stats.zonestat1 = pkt.stats.zonestat1;
+				stats.zonestat2 = pkt.stats.zonestat2;
+				stats.zonestat3 = pkt.stats.zonestat3;
+				stats.zonestat4 = pkt.stats.zonestat4;
+				stats.zonestat5 = pkt.stats.zonestat5;
+				stats.zonestat6 = pkt.stats.zonestat6;
+				stats.zonestat7 = pkt.stats.zonestat7;
+				stats.zonestat8 = pkt.stats.zonestat8;
+				stats.zonestat9 = pkt.stats.zonestat9;
+				stats.zonestat10 = pkt.stats.zonestat10;
+				stats.zonestat11 = pkt.stats.zonestat11;
+				stats.zonestat12 = pkt.stats.zonestat12;
 
-				stats.points = pkt.stats.points;
+				stats.kills = pkt.stats.kills;
+				stats.deaths = pkt.stats.deaths;
 				stats.killPoints = pkt.stats.killPoints;
 				stats.deathPoints = pkt.stats.deathPoints;
 				stats.assistPoints = pkt.stats.assistPoints;
@@ -68,12 +73,41 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
+		/// Handles a player banner update
+		/// </summary>
+		static public void Handle_CS_PlayerBanner(CS_PlayerBanner<Zone> pkt, Zone zone)
+		{	//Attempt to find the player in question
+			Zone.Player player = zone.getPlayer(pkt.player.id);
+			if (player == null)
+			{	//Make a note
+				Log.write(TLog.Warning, "Ignoring player banner update for #{0}, not present in zone mirror.", pkt.player.id);
+				return;
+			}
+
+			using (InfantryDataContext db = zone._server.getContext())
+			{	//Get the associated player entry
+				Data.DB.player dbplayer = db.players.SingleOrDefault(plyr => plyr.id == player.dbid);
+				if (dbplayer == null)
+				{	//Make a note
+					Log.write(TLog.Warning, "Ignoring player banner update for {0}, not present in database.", player.alias);
+					return;
+				}
+
+				dbplayer.banner = pkt.banner;
+
+				//Update all changes
+				db.SubmitChanges();
+			}
+		}
+
+		/// <summary>
 		/// Registers all handlers
 		/// </summary>
 		[RegistryFunc]
 		static public void Register()
 		{
 			CS_PlayerUpdate<Zone>.Handlers += Handle_CS_PlayerUpdate;
+			CS_PlayerBanner<Zone>.Handlers += Handle_CS_PlayerBanner;
 		}
 	}
 }

@@ -113,7 +113,7 @@ namespace Axiom.Math
 			// Get the half-size of the box
 			Vector3 halfSize = box.HalfSize;
 
-			// If all points are on outside of any plane, we fail
+			// If all Points are on outside of any plane, we fail
 			Vector3[] points = box.Corners;
 
 			for ( int i = 0; i < planes.Count; i++ )

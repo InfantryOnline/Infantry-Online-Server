@@ -17,7 +17,7 @@ namespace Bnoerj.AI.Steering
 {
 	/// <summary>
 	/// PolylinePathway: a simple implementation of the Pathway protocol.  The path
-	/// is a "polyline" a series of line segments between specified points.  A
+	/// is a "polyline" a series of line segments between specified Points.  A
 	/// radius defines a volume for the path which is the union of a sphere at each
 	/// point and a cylinder along each segment.
 	/// </summary>
@@ -31,15 +31,15 @@ namespace Bnoerj.AI.Steering
 		public PolylinePathway()
 		{ }
 
-		// construct a PolylinePathway given the number of points (vertices),
-		// an array of points, and a path radius.
+		// construct a PolylinePathway given the number of Points (vertices),
+		// an array of Points, and a path radius.
         public PolylinePathway(int _pointCount, Vector3[] _points, float _radius, bool _cyclic)
 		{
 			Initialize(_pointCount, _points, _radius, _cyclic);
 		}
 
-		// construct a PolylinePathway given the number of points (vertices),
-		// an array of points, and a path radius.
+		// construct a PolylinePathway given the number of Points (vertices),
+		// an array of Points, and a path radius.
 		public PolylinePathway(List<Vector3> _points, float _radius, bool _cyclic)
 		{
 			Initialize(_points, _radius, _cyclic);
@@ -58,7 +58,7 @@ namespace Bnoerj.AI.Steering
 			points = new Vector3[pointCount];
 			normals = new Vector3[pointCount];
 
-			// loop over all points
+			// loop over all Points
 			for (int i = 0; i < pointCount; i++)
 			{
 				// copy in point locations, closing cycle when appropriate
@@ -95,7 +95,7 @@ namespace Bnoerj.AI.Steering
 			points = new Vector3[pointCount];
 			normals = new Vector3[pointCount];
 
-			// loop over all points
+			// loop over all Points
 			for (int i = 0; i < _points.Count; i++)
 			{
 				// copy in point locations, closing cycle when appropriate

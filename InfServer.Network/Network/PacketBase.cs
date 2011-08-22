@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
+using InfServer.Protocol;
 
 namespace InfServer.Network
 {	// PacketBase Class
@@ -15,7 +16,7 @@ namespace InfServer.Network
 		public ushort _type;						//The type of this packet
 		public int _size;							//Length of the packet
 
-		private MemoryStream	_content;			//Contents of this packet
+		protected MemoryStream _content;			//Contents of this packet
 
 		protected BinaryReader	_contentReader;		//Class for reading
 		private BinaryWriter	_contentWriter;		//Class for writing
@@ -61,6 +62,21 @@ namespace InfServer.Network
 
 			_type = typeID;
 			_size = (ushort)count;
+		}
+
+		/// <summary>
+		/// Routes a new packet to various relevant handlers
+		/// </summary>
+		public void MakeSerialized(NetworkClient client, IPacketHandler handler)
+		{
+			if (!_bSerialized)
+			{
+				_client = client;
+				_handler = handler;
+
+				Serialize();
+				_bSerialized = true;
+			}
 		}
 
 		/// <summary>
@@ -225,9 +241,29 @@ namespace InfServer.Network
 		/// <summary>
 		/// Reads a null terminated string from the packet
 		/// </summary>
-		protected string ReadString()
+		protected string ReadNullString()
 		{	//Read into a character array until we encounter a null
 			byte[] readString = new byte[MAX_NULLSTRING];
+			int idx = 0;
+
+			while ((readString[idx] = _contentReader.ReadByte()) != 0)
+				idx++;
+
+			//Got it
+			_size += idx + 1;
+
+			if (idx > 0)
+				return ASCIIEncoding.ASCII.GetString(readString, 0, idx);
+			else
+				return "";
+		}
+
+		/// <summary>
+		/// Reads a null terminated string from the packet
+		/// </summary>
+		protected string ReadNullString(int maxSize)
+		{	//Read into a character array until we encounter a null
+			byte[] readString = new byte[maxSize];
 			int idx = 0;
 
 			while ((readString[idx] = _contentReader.ReadByte()) != 0)

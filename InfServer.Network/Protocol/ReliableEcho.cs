@@ -14,6 +14,8 @@ namespace InfServer.Protocol
 		///////////////////////////////////////////////////
 		public ushort rNumber;			//The message number we recieved
 
+		public int streamID;		
+
 		//Packet routing
 		public const ushort TypeID = (ushort)21;
 		static public event Action<ReliableEcho, Client> Handlers;
@@ -26,9 +28,11 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-		public ReliableEcho()
+		public ReliableEcho(int _streamID)
 			: base(TypeID)
-		{}
+		{
+			streamID = _streamID;
+		}
 
 		/// <summary>
 		/// Creates an instance of the dummy packet used to debug communication or 
@@ -36,9 +40,11 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-		public ReliableEcho(ushort typeID, byte[] buffer, int index, int count)
+		public ReliableEcho(ushort typeID, byte[] buffer, int index, int count, int sID)
 			: base(typeID, buffer, index, count)
-		{ }
+		{
+			streamID = sID;
+		}
 
 		/// <summary>
 		/// Routes a new packet to various relevant handlers
@@ -54,7 +60,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Serialize()
 		{	//Write our info
-			Write(Flip(TypeID));
+			Write(Flip((short)(TypeID + streamID)));
 			Write(Flip(rNumber));
 		}
 
@@ -73,7 +79,7 @@ namespace InfServer.Protocol
 		{
 			get
 			{
-				return "Reliable echo for message #" + rNumber;
+				return String.Format("Reliable Echo Stream #{0} Message #{1}", streamID, rNumber);
 			}
 		}
 	}

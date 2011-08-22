@@ -51,7 +51,7 @@ namespace InfServer.Protocol
 			Skip(4);
 			
 			//Just a filename
-			filename = ReadString();
+			filename = ReadNullString();
 		}
 
 		/// <summary>

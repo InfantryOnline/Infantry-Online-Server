@@ -159,6 +159,8 @@ namespace InfServer.Data.DB
 		
 		private System.Data.Linq.Binary _skills;
 		
+		private byte[] _banner;
+		
 		private EntityRef<stats> _stats1;
 		
 		private EntityRef<zone> _zone1;
@@ -189,6 +191,8 @@ namespace InfServer.Data.DB
     partial void OninventoryChanged();
     partial void OnskillsChanging(System.Data.Linq.Binary value);
     partial void OnskillsChanged();
+    partial void OnbannerChanging(byte[] value);
+    partial void OnbannerChanged();
     #endregion
 		
 		public player()
@@ -396,6 +400,26 @@ namespace InfServer.Data.DB
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_banner")]
+		public byte[] banner
+		{
+			get
+			{
+				return this._banner;
+			}
+			set
+			{
+				if ((this._banner != value))
+				{
+					this.OnbannerChanging(value);
+					this.SendPropertyChanging();
+					this._banner = value;
+					this.SendPropertyChanged("banner");
+					this.OnbannerChanged();
+				}
+			}
+		}
+		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="stats_player", Storage="_stats1", ThisKey="stats", OtherKey="id", IsForeignKey=true)]
 		public stats stats1
 		{
@@ -560,15 +584,19 @@ namespace InfServer.Data.DB
 		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
 		
 		private long _id;
-		
+
+		private long _zone;
+
 		private int _cash;
 		
 		private int _experience;
 		
 		private int _experienceTotal;
-		
-		private int _points;
-		
+
+		private int _kills;
+
+		private int _deaths;
+
 		private int _killPoints;
 		
 		private int _deathPoints;
@@ -583,23 +611,33 @@ namespace InfServer.Data.DB
 		
 		private int _playSeconds;
 		
-		private int _altstat1;
+		private int _zonestat1;
 		
-		private int _altstat2;
+		private int _zonestat2;
 		
-		private int _altstat3;
+		private int _zonestat3;
 		
-		private int _altstat4;
+		private int _zonestat4;
 		
-		private int _altstat5;
+		private int _zonestat5;
 		
-		private int _altstat6;
+		private int _zonestat6;
 		
-		private int _altstat7;
+		private int _zonestat7;
 		
-		private int _altstat8;
+		private int _zonestat8;
+		
+		private int _zonestat9;
+		
+		private int _zonestat10;
+		
+		private int _zonestat11;
+		
+		private int _zonestat12;
 		
 		private EntitySet<player> _players;
+		
+		private EntityRef<zone> _zone1;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -613,8 +651,6 @@ namespace InfServer.Data.DB
     partial void OnexperienceChanged();
     partial void OnexperienceTotalChanging(int value);
     partial void OnexperienceTotalChanged();
-    partial void OnpointsChanging(int value);
-    partial void OnpointsChanged();
     partial void OnkillPointsChanging(int value);
     partial void OnkillPointsChanged();
     partial void OndeathPointsChanging(int value);
@@ -629,27 +665,42 @@ namespace InfServer.Data.DB
     partial void OnvehicleDeathsChanged();
     partial void OnplaySecondsChanging(int value);
     partial void OnplaySecondsChanged();
-    partial void Onaltstat1Changing(int value);
-    partial void Onaltstat1Changed();
-    partial void Onaltstat2Changing(int value);
-    partial void Onaltstat2Changed();
-    partial void Onaltstat3Changing(int value);
-    partial void Onaltstat3Changed();
-    partial void Onaltstat4Changing(int value);
-    partial void Onaltstat4Changed();
-    partial void Onaltstat5Changing(int value);
-    partial void Onaltstat5Changed();
-    partial void Onaltstat6Changing(int value);
-    partial void Onaltstat6Changed();
-    partial void Onaltstat7Changing(int value);
-    partial void Onaltstat7Changed();
-    partial void Onaltstat8Changing(int value);
-    partial void Onaltstat8Changed();
+    partial void Onzonestat1Changing(int value);
+    partial void Onzonestat1Changed();
+    partial void Onzonestat2Changing(int value);
+    partial void Onzonestat2Changed();
+    partial void Onzonestat3Changing(int value);
+    partial void Onzonestat3Changed();
+    partial void Onzonestat4Changing(int value);
+    partial void Onzonestat4Changed();
+    partial void Onzonestat5Changing(int value);
+    partial void Onzonestat5Changed();
+    partial void Onzonestat6Changing(int value);
+    partial void Onzonestat6Changed();
+    partial void Onzonestat7Changing(int value);
+    partial void Onzonestat7Changed();
+    partial void Onzonestat8Changing(int value);
+    partial void Onzonestat8Changed();
+    partial void Onzonestat9Changing(int value);
+    partial void Onzonestat9Changed();
+    partial void Onzonestat10Changing(int value);
+    partial void Onzonestat10Changed();
+    partial void Onzonestat11Changing(int value);
+    partial void Onzonestat11Changed();
+    partial void Onzonestat12Changing(int value);
+    partial void Onzonestat12Changed();
+    partial void OnzoneChanging(long value);
+    partial void OnzoneChanged();
+    partial void OnkillsChanging(int value);
+    partial void OnkillsChanged();
+    partial void OndeathsChanging(int value);
+    partial void OndeathsChanged();
     #endregion
 		
 		public stats()
 		{
 			this._players = new EntitySet<player>(new Action<player>(this.attach_players), new Action<player>(this.detach_players));
+			this._zone1 = default(EntityRef<zone>);
 			OnCreated();
 		}
 		
@@ -669,6 +720,30 @@ namespace InfServer.Data.DB
 					this._id = value;
 					this.SendPropertyChanged("id");
 					this.OnidChanged();
+				}
+			}
+		}
+
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage = "_zone", DbType = "BigInt NOT NULL")]
+		public long zone
+		{
+			get
+			{
+				return this._zone;
+			}
+			set
+			{
+				if ((this._zone != value))
+				{
+					if (this._zone1.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.OnzoneChanging(value);
+					this.SendPropertyChanging();
+					this._zone = value;
+					this.SendPropertyChanged("zone");
+					this.OnzoneChanged();
 				}
 			}
 		}
@@ -712,8 +787,8 @@ namespace InfServer.Data.DB
 				}
 			}
 		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_experienceTotal", DbType="Int NOT NULL")]
+
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage = "_experienceTotal", DbType = "Int NOT NULL")]
 		public int experienceTotal
 		{
 			get
@@ -731,28 +806,48 @@ namespace InfServer.Data.DB
 					this.OnexperienceTotalChanged();
 				}
 			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_points", DbType="Int NOT NULL")]
-		public int points
+		}	
+
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage = "_kills", DbType = "Int NOT NULL")]
+		public int kills
 		{
 			get
 			{
-				return this._points;
+				return this._kills;
 			}
 			set
 			{
-				if ((this._points != value))
+				if ((this._kills != value))
 				{
-					this.OnpointsChanging(value);
+					this.OnkillsChanging(value);
 					this.SendPropertyChanging();
-					this._points = value;
-					this.SendPropertyChanged("points");
-					this.OnpointsChanged();
+					this._kills = value;
+					this.SendPropertyChanged("kills");
+					this.OnkillsChanged();
 				}
 			}
 		}
-		
+
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage = "_deaths", DbType = "Int NOT NULL")]
+		public int deaths
+		{
+			get
+			{
+				return this._deaths;
+			}
+			set
+			{
+				if ((this._deaths != value))
+				{
+					this.OndeathsChanging(value);
+					this.SendPropertyChanging();
+					this._deaths = value;
+					this.SendPropertyChanged("deaths");
+					this.OndeathsChanged();
+				}
+			}
+		}
+
 		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_killPoints", DbType="Int NOT NULL")]
 		public int killPoints
 		{
@@ -893,166 +988,246 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat1", DbType="Int NOT NULL")]
-		public int altstat1
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat1", DbType="Int NOT NULL")]
+		public int zonestat1
 		{
 			get
 			{
-				return this._altstat1;
+				return this._zonestat1;
 			}
 			set
 			{
-				if ((this._altstat1 != value))
+				if ((this._zonestat1 != value))
 				{
-					this.Onaltstat1Changing(value);
+					this.Onzonestat1Changing(value);
 					this.SendPropertyChanging();
-					this._altstat1 = value;
-					this.SendPropertyChanged("altstat1");
-					this.Onaltstat1Changed();
+					this._zonestat1 = value;
+					this.SendPropertyChanged("zonestat1");
+					this.Onzonestat1Changed();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat2", DbType="Int NOT NULL")]
-		public int altstat2
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat2", DbType="Int NOT NULL")]
+		public int zonestat2
 		{
 			get
 			{
-				return this._altstat2;
+				return this._zonestat2;
 			}
 			set
 			{
-				if ((this._altstat2 != value))
+				if ((this._zonestat2 != value))
 				{
-					this.Onaltstat2Changing(value);
+					this.Onzonestat2Changing(value);
 					this.SendPropertyChanging();
-					this._altstat2 = value;
-					this.SendPropertyChanged("altstat2");
-					this.Onaltstat2Changed();
+					this._zonestat2 = value;
+					this.SendPropertyChanged("zonestat2");
+					this.Onzonestat2Changed();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat3", DbType="Int NOT NULL")]
-		public int altstat3
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat3", DbType="Int NOT NULL")]
+		public int zonestat3
 		{
 			get
 			{
-				return this._altstat3;
+				return this._zonestat3;
 			}
 			set
 			{
-				if ((this._altstat3 != value))
+				if ((this._zonestat3 != value))
 				{
-					this.Onaltstat3Changing(value);
+					this.Onzonestat3Changing(value);
 					this.SendPropertyChanging();
-					this._altstat3 = value;
-					this.SendPropertyChanged("altstat3");
-					this.Onaltstat3Changed();
+					this._zonestat3 = value;
+					this.SendPropertyChanged("zonestat3");
+					this.Onzonestat3Changed();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat4", DbType="Int NOT NULL")]
-		public int altstat4
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat4", DbType="Int NOT NULL")]
+		public int zonestat4
 		{
 			get
 			{
-				return this._altstat4;
+				return this._zonestat4;
 			}
 			set
 			{
-				if ((this._altstat4 != value))
+				if ((this._zonestat4 != value))
 				{
-					this.Onaltstat4Changing(value);
+					this.Onzonestat4Changing(value);
 					this.SendPropertyChanging();
-					this._altstat4 = value;
-					this.SendPropertyChanged("altstat4");
-					this.Onaltstat4Changed();
+					this._zonestat4 = value;
+					this.SendPropertyChanged("zonestat4");
+					this.Onzonestat4Changed();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat5", DbType="Int NOT NULL")]
-		public int altstat5
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat5", DbType="Int NOT NULL")]
+		public int zonestat5
 		{
 			get
 			{
-				return this._altstat5;
+				return this._zonestat5;
 			}
 			set
 			{
-				if ((this._altstat5 != value))
+				if ((this._zonestat5 != value))
 				{
-					this.Onaltstat5Changing(value);
+					this.Onzonestat5Changing(value);
 					this.SendPropertyChanging();
-					this._altstat5 = value;
-					this.SendPropertyChanged("altstat5");
-					this.Onaltstat5Changed();
+					this._zonestat5 = value;
+					this.SendPropertyChanged("zonestat5");
+					this.Onzonestat5Changed();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat6", DbType="Int NOT NULL")]
-		public int altstat6
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat6", DbType="Int NOT NULL")]
+		public int zonestat6
 		{
 			get
 			{
-				return this._altstat6;
+				return this._zonestat6;
 			}
 			set
 			{
-				if ((this._altstat6 != value))
+				if ((this._zonestat6 != value))
 				{
-					this.Onaltstat6Changing(value);
+					this.Onzonestat6Changing(value);
 					this.SendPropertyChanging();
-					this._altstat6 = value;
-					this.SendPropertyChanged("altstat6");
-					this.Onaltstat6Changed();
+					this._zonestat6 = value;
+					this.SendPropertyChanged("zonestat6");
+					this.Onzonestat6Changed();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat7", DbType="Int NOT NULL")]
-		public int altstat7
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat7", DbType="Int NOT NULL")]
+		public int zonestat7
 		{
 			get
 			{
-				return this._altstat7;
+				return this._zonestat7;
 			}
 			set
 			{
-				if ((this._altstat7 != value))
+				if ((this._zonestat7 != value))
 				{
-					this.Onaltstat7Changing(value);
+					this.Onzonestat7Changing(value);
 					this.SendPropertyChanging();
-					this._altstat7 = value;
-					this.SendPropertyChanged("altstat7");
-					this.Onaltstat7Changed();
+					this._zonestat7 = value;
+					this.SendPropertyChanged("zonestat7");
+					this.Onzonestat7Changed();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_altstat8", DbType="Int NOT NULL")]
-		public int altstat8
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat8", DbType="Int NOT NULL")]
+		public int zonestat8
 		{
 			get
 			{
-				return this._altstat8;
+				return this._zonestat8;
 			}
 			set
 			{
-				if ((this._altstat8 != value))
+				if ((this._zonestat8 != value))
 				{
-					this.Onaltstat8Changing(value);
+					this.Onzonestat8Changing(value);
 					this.SendPropertyChanging();
-					this._altstat8 = value;
-					this.SendPropertyChanged("altstat8");
-					this.Onaltstat8Changed();
+					this._zonestat8 = value;
+					this.SendPropertyChanged("zonestat8");
+					this.Onzonestat8Changed();
 				}
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat9", DbType="Int NOT NULL")]
+		public int zonestat9
+		{
+			get
+			{
+				return this._zonestat9;
+			}
+			set
+			{
+				if ((this._zonestat9 != value))
+				{
+					this.Onzonestat9Changing(value);
+					this.SendPropertyChanging();
+					this._zonestat9 = value;
+					this.SendPropertyChanged("zonestat9");
+					this.Onzonestat9Changed();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat10", DbType="Int NOT NULL")]
+		public int zonestat10
+		{
+			get
+			{
+				return this._zonestat10;
+			}
+			set
+			{
+				if ((this._zonestat10 != value))
+				{
+					this.Onzonestat10Changing(value);
+					this.SendPropertyChanging();
+					this._zonestat10 = value;
+					this.SendPropertyChanged("zonestat10");
+					this.Onzonestat10Changed();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat11", DbType="Int NOT NULL")]
+		public int zonestat11
+		{
+			get
+			{
+				return this._zonestat11;
+			}
+			set
+			{
+				if ((this._zonestat11 != value))
+				{
+					this.Onzonestat11Changing(value);
+					this.SendPropertyChanging();
+					this._zonestat11 = value;
+					this.SendPropertyChanged("zonestat11");
+					this.Onzonestat11Changed();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zonestat12", DbType="Int NOT NULL")]
+		public int zonestat12
+		{
+			get
+			{
+				return this._zonestat12;
+			}
+			set
+			{
+				if ((this._zonestat12 != value))
+				{
+					this.Onzonestat12Changing(value);
+					this.SendPropertyChanging();
+					this._zonestat12 = value;
+					this.SendPropertyChanged("zonestat12");
+					this.Onzonestat12Changed();
+				}
+			}
+		}
+
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="stats_player", Storage="_players", ThisKey="id", OtherKey="stats")]
 		public EntitySet<player> players
 		{
@@ -1063,6 +1238,40 @@ namespace InfServer.Data.DB
 			set
 			{
 				this._players.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_stats", Storage="_zone1", ThisKey="zone", OtherKey="id", IsForeignKey=true)]
+		public zone zone1
+		{
+			get
+			{
+				return this._zone1.Entity;
+			}
+			set
+			{
+				zone previousValue = this._zone1.Entity;
+				if (((previousValue != value) 
+							|| (this._zone1.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._zone1.Entity = null;
+						previousValue.stats.Remove(this);
+					}
+					this._zone1.Entity = value;
+					if ((value != null))
+					{
+						value.stats.Add(this);
+						this._zone = value.id;
+					}
+					else
+					{
+						this._zone = default(long);
+					}
+					this.SendPropertyChanged("zone1");
+				}
 			}
 		}
 		
@@ -1377,6 +1586,8 @@ namespace InfServer.Data.DB
 		
 		private EntitySet<player> _players;
 		
+		private EntitySet<stats> _stats;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -1398,6 +1609,7 @@ namespace InfServer.Data.DB
 		public zone()
 		{
 			this._players = new EntitySet<player>(new Action<player>(this.attach_players), new Action<player>(this.detach_players));
+			this._stats = new EntitySet<stats>(new Action<stats>(this.attach_stats), new Action<stats>(this.detach_stats));
 			OnCreated();
 		}
 		
@@ -1534,6 +1746,19 @@ namespace InfServer.Data.DB
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_stats", Storage="_stats", ThisKey="id", OtherKey="zone")]
+		public EntitySet<stats> stats
+		{
+			get
+			{
+				return this._stats;
+			}
+			set
+			{
+				this._stats.Assign(value);
+			}
+		}
+		
 		public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -1561,6 +1786,18 @@ namespace InfServer.Data.DB
 		}
 		
 		private void detach_players(player entity)
+		{
+			this.SendPropertyChanging();
+			entity.zone1 = null;
+		}
+		
+		private void attach_stats(stats entity)
+		{
+			this.SendPropertyChanging();
+			entity.zone1 = this;
+		}
+		
+		private void detach_stats(stats entity)
 		{
 			this.SendPropertyChanging();
 			entity.zone1 = null;

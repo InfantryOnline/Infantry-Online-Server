@@ -124,6 +124,9 @@ namespace InfServer.Game
 				//Make sure his stats get updated
 				if (player._bDBLoaded)
 					_db.updatePlayer(player);
+
+				//We've lost him!
+				_db.lostPlayer(player);
 			}
 		}
 

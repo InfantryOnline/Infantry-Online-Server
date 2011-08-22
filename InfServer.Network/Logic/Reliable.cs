@@ -15,40 +15,44 @@ namespace InfServer.Logic
 		/// Handles all reliable packets received from clients
 		/// </summary>
 		static public void Handle_Reliable(Reliable pkt, Client client)
-		{	//Is the reliable number what we expected?
-			if (pkt.rNumber > client._C2S_Reliable)
-			{	//Keep the packet around for later
-				client._oosReliable[pkt.rNumber] = pkt.packet;
-				Log.write(TLog.Warning, "Out of sync reliable. {0} vs {1}", pkt.rNumber, client._C2S_Reliable);
+		{	//Get the relevant stream
+			Client.StreamState stream = client._streams[pkt.streamID];
+			
+			//Is the reliable number what we expected?
+			if (pkt.rNumber > stream.C2S_Reliable)
+			{	//Report it!
+				Log.write(TLog.Warning, "OOS Reliable Packet Stream[{0}]. {1} vs {2}", pkt.streamID, pkt.rNumber, stream.C2S_Reliable);
+				client.reportOutOfSync(pkt, pkt.rNumber, pkt.streamID);
 				return;
 			}
 			//A previously received reliable?
-			else if (pkt.rNumber < client._C2S_Reliable)
+			else if (pkt.rNumber < stream.C2S_Reliable)
 			{	//Re-send the echo
-				ReliableEcho resent = new ReliableEcho();
-				resent.rNumber = (ushort)(client._C2S_Reliable - 1);
+				ReliableEcho resent = new ReliableEcho(pkt.streamID);
+				resent.rNumber = (ushort)(stream.C2S_Reliable - 1);
 				client.send(resent);
 				return;
 			}
 
 			//Expect the next!
-			client._C2S_Reliable++;
+			stream.C2S_Reliable++;
 
 			//Handle the message we're supposed to receive
 			client._handler.handlePacket(pkt.packet, client);
 
 			//If we have other packets in seqence waiting in store, use them too
 			PacketBase unhandled;
+			ushort reliableNext = stream.C2S_Reliable;
 
-			while (client._oosReliable.TryGetValue(client._C2S_Reliable, out unhandled))
+			while (stream.oosReliable.TryGetValue(reliableNext, out unhandled))
 			{	//Handle it and go to next packet
 				client._handler.handlePacket(unhandled, client);
-				client._oosReliable.Remove(client._C2S_Reliable++);
+				stream.oosReliable.Remove(reliableNext++);
 			}
 
 			//Prepare an echo for all received packets
-			ReliableEcho echo = new ReliableEcho();
-			echo.rNumber = (ushort)(client._C2S_Reliable - 1);
+			ReliableEcho echo = new ReliableEcho(pkt.streamID);
+			echo.rNumber = (ushort)(stream.C2S_Reliable - 1);
 			client.send(echo);
 		}
 
@@ -57,7 +61,7 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_ReliableEcho(ReliableEcho pkt, Client client)
 		{	//Confirm that it was received
-			client.confirmReliable(pkt.rNumber);
+			client.confirmReliable(pkt.rNumber, pkt.streamID);
 		}
 
 		/// <summary>
@@ -65,6 +69,7 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_OutOfSync(OutOfSync pkt, Client client)
 		{
+			//TODO: Resend packet?
 			Log.write(TLog.Error, "** OUTOFSYNC: " + pkt.rNumber);
 		}
 

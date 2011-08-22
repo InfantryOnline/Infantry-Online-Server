@@ -15,27 +15,16 @@ namespace InfServer.Protocol
 	public class SC_PlayerUpdate : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-		public Helpers.Update_Type updateType;
-		public Player player;				//The player we're updating, if any
-		public Vehicle vehicle;				//The vehicle we're updating
+		public int tickUpdate;								//The time when this update was made
 
-		public Int16 itemID;				//The ID of the item the player is using, if any
-		public UInt16 vehicleID;			//The player's current vehicle's id, if any
-		public Int16 tickCount;				//The tickcount
-		public UInt16 playerID;				//The player's current id
-		public UInt16 unk2;
-		public Int16 health;				//Player's health
-		public Int16 velocityX;				//Velocity info
-		public Int16 velocityY;				//
-		public Int16 velocityZ;				//
-		public Int16 positionX;				//Positional info
-		public Int16 positionY;				//
-		public Int16 positionZ;				//
-		public byte yaw;					//Our rotation
-		public UInt16 direction;			//The direction we're attempting to move on
-		public byte unk3;					//Unknown (flags?)
+		public Player player;								//The player we're updating, if any
+		public Vehicle vehicle;								//The vehicle we're updating
 
-		public List<ushort> activeEquip;	//Any additional equipment we may have active
+		public Int16 itemID;								//Id of the item we fired
+		public List<ushort> activeEquip;					//Any additional equipment we may have active
+		public List<ItemInfo.UtilityItem> activeUtilities;	//Alternative list type
+
+		public bool bBot;									//Is this a bot?
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.PlayerUpdate;
 
@@ -50,7 +39,6 @@ namespace InfServer.Protocol
 		public SC_PlayerUpdate()
 			: base(TypeID)
 		{
-			activeEquip = new List<ushort>();
 		}
 
 		/// <summary>
@@ -60,26 +48,77 @@ namespace InfServer.Protocol
 		{
 			Write((byte)TypeID);
 
-			Write((byte)updateType);
-			Write(itemID);
-			Write(vehicleID);
-			Write(tickCount);
-			Write(unk2);
-			Write(playerID);
-			Write(health);
-			Write(velocityX);
-			Write(velocityY);
-			Write(velocityZ);
-			Write(positionX);
-			Write(positionY);
-			Write(positionZ);
-			Write(yaw);
-			Write(direction);
-			Write(unk3);
+			Write((byte)0);			//Really not sure what this is
+
+			if (player != null)
+				Write((itemID == 0) ? (short)(-player.Bounty) : itemID);
+			else
+				Write(itemID);
+
+			Write(vehicle._id);
+			Write(tickUpdate);
+
+			if (!bBot)
+				Write((player == null ? (ushort)0xFFFF : player._id));
+			else
+				Write(vehicle._id);
+
+			switch (vehicle._type.Type)
+			{
+				case VehInfo.Types.Car:
+					Write(vehicle._state.health);
+					Write(vehicle._state.velocityX);
+					Write(vehicle._state.velocityY);
+					Write(vehicle._state.velocityZ);
+					Write(vehicle._state.positionX);
+					Write(vehicle._state.positionY);
+					Write(vehicle._state.positionZ);
+					Write(vehicle._state.yaw);
+					Write((UInt16)vehicle._state.direction);
+					Write(vehicle._state.unk1);
+					break;
+
+				case VehInfo.Types.Dependent:
+					Write(vehicle._state.velocityX);
+					Write(vehicle._state.velocityY);
+					Write(vehicle._state.velocityZ);
+					Write(vehicle._state.positionX);
+					Write(vehicle._state.positionY);
+					Write(vehicle._state.positionZ);
+					Write(vehicle._state.health);
+					Write(vehicle._state.pitch);
+					Write(vehicle._state.yaw);
+					Write(vehicle._state.yaw);
+					Write(vehicle._state.unk1);
+					break;
+
+				case VehInfo.Types.Computer:
+					Write(vehicle._state.health);
+					Write((vehicle._team != null) ? vehicle._team._id : (short)-1);
+					Write(vehicle._state.positionX);
+					Write(vehicle._state.positionY);
+					Write(vehicle._state.positionZ);
+					Write((short)64);
+					Write((short)1);
+					Write((short)0);
+					Write(vehicle._state.fireAngle);	//Base yaw?
+					Write(vehicle._state.fireAngle);	//Turret yaw?
+					Write((short)206);
+					break;
+			}
 
 			//Write in all additional equipment
-			foreach (ushort equip in activeEquip)
-				Write(equip);
+			if (activeEquip != null)
+			{
+				foreach (ushort equip in activeEquip)
+					Write(equip);
+			}
+
+			if (activeUtilities != null)
+			{
+				foreach (ItemInfo.UtilityItem util in activeUtilities)
+					Write((ushort)util.id);
+			}
 		}
 
 		/// <summary>

@@ -35,6 +35,11 @@ namespace InfServer.Network
 
 		public Random _rand;					//Our PRNG
 
+		#region Statistics
+		public long _totalBytesSent;			//Total bytes sent by the server
+		public long _totalBytesReceived;		//Total bytes received by the server
+		#endregion
+
 		//The list of clients in communication with the server
 		public Dictionary<Int64, NetworkClient> _clients;
 
@@ -64,6 +69,7 @@ namespace InfServer.Network
 			_rand = new Random();
 		}
 
+		#region State
 		/// <summary>
 		/// Begins all network server operations
 		/// </summary>
@@ -155,7 +161,7 @@ namespace InfServer.Network
 						client.poll();
 
                 // Sleep a bit
-			    Thread.Sleep(10);
+			    Thread.Sleep(5);
 			}
 		}
 
@@ -301,7 +307,10 @@ namespace InfServer.Network
 		/// Adds the given packet to the packet handling queue
 		/// </summary>
 		public void handlePacket(PacketBase packet, NetworkClient client)
-		{	//Attempt to find the client responsible
+		{	//Add it to our received amount
+			_totalBytesReceived += packet._size;
+
+			//Attempt to find the client responsible
 			_networkLock.AcquireWriterLock(Timeout.Infinite);
 
 			try
@@ -325,18 +334,10 @@ namespace InfServer.Network
 			if (_bLogPackets)
 				Log.write(TLog.Normal, "--> Packet: {0}\r\n{1}", _logger, packet.Dump, packet.DataDump);
 
-			//Send using our socket
-			/*SocketAsyncEventArgs saea = new SocketAsyncEventArgs();
-
-			saea.Buffer = packet.Data;
-			saea.Count = packet.Data.Length;
-			saea.Offset = 0;
-			saea.RemoteEndPoint = ep;
-
-			_sock.SendToAsync(saea);*/
-
-            // TODO this causes an (unhandled) error when the packet is bigger than the datagram size!
 			_sock.SendTo(data, ep);
+
+			//Add it to our sent amount
+			_totalBytesSent += packet._size;
 		}
 
 		/// <summary>
@@ -364,5 +365,10 @@ namespace InfServer.Network
 		{
 			return _factory;
 		}
+		#endregion
+
+		#region Statistics
+	
+		#endregion
 	}
 }

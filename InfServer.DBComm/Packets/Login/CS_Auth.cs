@@ -69,7 +69,7 @@ namespace InfServer.Protocol
 		public override void Deserialize()
 		{
 			zoneID = _contentReader.ReadInt32();
-			password = ReadString();
+			password = ReadNullString();
 		}
 
 		/// <summary>

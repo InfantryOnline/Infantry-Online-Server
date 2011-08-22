@@ -15,6 +15,8 @@ namespace InfServer.Protocol
 		public List<Client.ReliableInfo> reliables;		//The reliables we need to box
 		public List<PacketBase> packets;				//The packets which we contain
 
+		public int streamID;			//Which data stream is this? (Maximum of 4)
+
 		//Packet routing
 		public const ushort TypeID = (ushort)0x19;
 		static public event Action<ReliableBox, Client> Handlers;
@@ -27,10 +29,11 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-		public ReliableBox()
+		public ReliableBox(int _streamID)
 			: base(TypeID)
 		{
 			reliables = new List<Client.ReliableInfo>();
+			streamID = _streamID;
 		}
 
 		/// <summary>
@@ -39,9 +42,11 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-		public ReliableBox(ushort typeID, byte[] buffer, int index, int count)
+		public ReliableBox(ushort typeID, byte[] buffer, int index, int count, int sID)
 			: base(typeID, buffer, index, count)
-		{ }
+		{
+			streamID = sID;
+		}
 
 		/// <summary>
 		/// Routes a new packet to various relevant handlers
@@ -57,7 +62,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Serialize()
 		{	//Packet ID
-			Write((UInt16)(TypeID << 8));
+			Write((UInt16)((TypeID + streamID) << 8));
 
 			//Look through all our infos
 			int lastRID = -1;
@@ -73,14 +78,7 @@ namespace InfServer.Protocol
 				PacketBase packet = info.packet;
 				lastRID = info.rid;
 
-				if (!packet._bSerialized)
-				{
-					packet._client = _client;
-					packet._handler = _handler;
-
-					packet.Serialize();
-					packet._bSerialized = true;
-				}
+				packet.MakeSerialized(_client, _handler);
 
 				//Insert the packet size
 				byte[] packetData = packet.Data;

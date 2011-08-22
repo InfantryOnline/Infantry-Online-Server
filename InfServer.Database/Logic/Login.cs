@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Data;
 
@@ -60,6 +61,12 @@ namespace InfServer.Logic
 			Zone zone = new Zone(client, server, dbZone);
 			client._obj = zone;
 
+			server._zones.Add(zone);
+			zone._client.Destruct += delegate(NetworkClient nc)
+			{
+				server._zones.Remove(zone);
+			};
+
 			//Success!
 			SC_Auth<Zone> success = new SC_Auth<Zone>();
 
@@ -79,11 +86,69 @@ namespace InfServer.Logic
 			Log.write(TLog.Inane, "Player login request for {0} on {1}", pkt.alias, zone);
 
 			using (InfantryDataContext db = zone._server.getContext())
-			{	//Attempt to find the associated account
-				Data.DB.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
+			{
 				SC_PlayerLogin<Zone> plog = new SC_PlayerLogin<Zone>();
 
 				plog.player = pkt.player;
+
+				//Are they using the launcher?
+				if (pkt.ticketid == "")
+				{	//They're trying to trick us, jim!
+					plog.bSuccess = false;
+					plog.loginMessage = "Please use the Infantry launcher to run the game.";
+
+					zone._client.send(plog);
+					return;
+				}
+
+				//Is it a normal ticketid or an auth request?
+				Data.DB.account account = null;
+
+				if (pkt.ticketid.Contains(':'))
+				{
+					string[] split = pkt.ticketid.Split(':');
+
+					//Validate the password
+					if (split[1].Length != 32)
+					{
+						plog.bSuccess = false;
+						plog.loginMessage = "Invalid password string.";
+
+						zone._client.send(plog);
+						return;
+					}
+
+					//Can we find an account that matches?
+					account = db.accounts.SingleOrDefault(acct => acct.name == split[0]);
+
+					if (account == null)
+					{	//Account doesn't exist, create it!
+						account = new Data.DB.account();
+
+						account.name = split[0];
+						account.password = split[1];
+						account.dateCreated = DateTime.Now;
+						account.lastAccess = DateTime.Now;
+						account.email = "none@nowhere.com";
+						account.ticket = "";
+
+						db.accounts.InsertOnSubmit(account);
+
+						plog.loginMessage = "Your account has been created.";
+
+						db.SubmitChanges();
+					}
+					else if (!account.password.Equals(split[1], StringComparison.CurrentCultureIgnoreCase))
+					{	//Bad password!
+						plog.bSuccess = false;
+						plog.loginMessage = "Invalid password.";
+
+						zone._client.send(plog);
+						return;
+					}
+				}
+				else
+					account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
 
 				if (account == null)
 				{	//They're trying to trick us, jim!
@@ -94,6 +159,16 @@ namespace InfServer.Logic
 					return;
 				}
 
+				//Is there already a player online under this account?
+				if (DBServer.bAllowMulticlienting && zone._server._zones.Any(z => z.hasAccountPlayer(account.id)))
+				{	
+					plog.bSuccess = false;
+					plog.loginMessage = "Account is currently in use.";
+
+					zone._client.send(plog);
+					return;
+				}
+				
 				//We have the account associated!
 				plog.permission = (PlayerPermission)account.permission;
 
@@ -101,6 +176,16 @@ namespace InfServer.Logic
 				Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
 				Data.DB.player player = null;
 				Data.DB.stats stats = null;
+
+				//Is there already a player online under this alias?
+				if (alias != null && zone._server._zones.Any(z => z.hasAliasPlayer(alias.id)))
+				{	
+					plog.bSuccess = false;
+					plog.loginMessage = "Alias is currently in use.";
+
+					zone._client.send(plog);
+					return;
+				}
 
 				if (alias == null && !pkt.bCreateAlias)
 				{	//Prompt him to create a new alias
@@ -153,6 +238,7 @@ namespace InfServer.Logic
 					//Create a blank stats row
 					stats = new InfServer.Data.DB.stats();
 
+					stats.zone = zone._zone.id;
 					player.stats1 = stats;
 
 					db.stats.InsertOnSubmit(stats);
@@ -164,22 +250,28 @@ namespace InfServer.Logic
 				}
 				else
 				{	//Load the player details and stats!
+					plog.banner = player.banner;
 					plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
 					plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
 					plog.bSuccess = true;
 
 					stats = player.stats1;
 
-					plog.stats.altstat1 = stats.altstat1;
-					plog.stats.altstat2 = stats.altstat2;
-					plog.stats.altstat3 = stats.altstat3;
-					plog.stats.altstat4 = stats.altstat4;
-					plog.stats.altstat5 = stats.altstat5;
-					plog.stats.altstat6 = stats.altstat6;
-					plog.stats.altstat7 = stats.altstat7;
-					plog.stats.altstat8 = stats.altstat8;
+					plog.stats.zonestat1 = stats.zonestat1;
+					plog.stats.zonestat2 = stats.zonestat2;
+					plog.stats.zonestat3 = stats.zonestat3;
+					plog.stats.zonestat4 = stats.zonestat4;
+					plog.stats.zonestat5 = stats.zonestat5;
+					plog.stats.zonestat6 = stats.zonestat6;
+					plog.stats.zonestat7 = stats.zonestat7;
+					plog.stats.zonestat8 = stats.zonestat8;
+					plog.stats.zonestat9 = stats.zonestat9;
+					plog.stats.zonestat10 = stats.zonestat10;
+					plog.stats.zonestat11 = stats.zonestat11;
+					plog.stats.zonestat12 = stats.zonestat12;
 
-					plog.stats.points = stats.points;
+					plog.stats.kills = stats.kills;
+					plog.stats.deaths = stats.deaths;
 					plog.stats.killPoints = stats.killPoints;
 					plog.stats.deathPoints = stats.deathPoints;
 					plog.stats.assistPoints = stats.assistPoints;
@@ -219,6 +311,7 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_CS_PlayerLeave(CS_PlayerLeave<Zone> pkt, Zone zone)
 		{	//He's gone!
+			Log.write("Player {0} left zone {1}", pkt.alias, zone._zone.name);
 			zone.lostPlayer(pkt.player.id);
 		}
 

@@ -518,7 +518,7 @@ namespace Axiom.Math
 
 			// Now, we take the cross product of the tangents to get a vector which 
 			// should point in the same direction as our normal calculated above. 
-			// If it points in the opposite direction (the dot product between the normals is less than zero), 
+			// If it Points in the opposite direction (the dot product between the normals is less than zero), 
 			// then we need to reverse the s and t tangents. 
 			// This is because the triangle has been mirrored when going from tangent space to object space.
 			// reverse tangents if necessary.
@@ -1308,7 +1308,7 @@ namespace Axiom.Math
 				}
 				else
 				{
-					//Ray points away from plane
+					//Ray Points away from plane
 					if ( volume.outside == PlaneSide.Negative )
 						denom = -denom;
 

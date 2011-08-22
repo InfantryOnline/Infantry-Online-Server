@@ -14,7 +14,7 @@ namespace InfServer.DirectoryServer.Directory
         public const int Port = 4850;
 
         public ConfigSetting Config;
-        public LogClient _logger;
+        public new LogClient _logger;
         public ZoneStream ZoneStream;
 
         public DirectoryServer() : base(new Factory(), new DirectoryClient())

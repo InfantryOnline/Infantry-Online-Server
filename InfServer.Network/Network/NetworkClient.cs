@@ -50,14 +50,7 @@ namespace InfServer.Network
 		/// </summary>
 		public virtual void send(PacketBase packet)
 		{	//First, allow the packet to serialize
-			if (!packet._bSerialized)
-			{
-				packet._client = this;
-				packet._handler = _handler;
-
-				packet.Serialize();
-				packet._bSerialized = true;
-			}
+			packet.MakeSerialized(this, _handler);
 
 			//Start sending!
 			_handler.sendPacket(packet, packet.Data, _ipe);

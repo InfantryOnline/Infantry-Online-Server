@@ -34,7 +34,7 @@ namespace InfServer.Logic
 				(victim.Bounty * (((float)cfg.point.percentOfTarget) / 1000)));
 
 			owner.Cash += (int)(killerCash * (((float)cfg.arena.turretCashSharePercent) / 1000));
-			owner.Points += (int)(killerPoints * (((float)cfg.arena.turretPointsSharePercent) / 1000));
+			owner.KillPoints += (int)(killerPoints * (((float)cfg.arena.turretPointsSharePercent) / 1000));
 			owner.Experience += (int)(killerExp * (((float)cfg.arena.turretExperienceSharePercent) / 1000));
 		}
 		
@@ -60,7 +60,6 @@ namespace InfServer.Logic
 			//Update some statistics
 			killer.Cash += killerCash;
 			killer.Experience += killerExp;
-			killer.Points += killerPoints;
 			killer.KillPoints += killerPoints;
 			victim.DeathPoints += killerPoints;
 
@@ -120,7 +119,6 @@ namespace InfServer.Logic
 				Helpers.Player_RouteKill(p, update, victim, cashRewards[p._id], killerPoints, pointRewards[p._id], expRewards[p._id]);
 				p.Cash += cashRewards[p._id];
 				p.Experience += expRewards[p._id];
-				p.Points += pointRewards[p._id];
 				p.AssistPoints += pointRewards[p._id];
 				
 				sentTo.Add(p._id);
@@ -136,7 +134,6 @@ namespace InfServer.Logic
 					Helpers.Player_RouteKill(p, update, victim, cashRewards[p._id], killerPoints, pointRewards[p._id], expRewards[p._id]);
 					p.Cash += cashRewards[p._id];
 					p.Experience += expRewards[p._id];
-					p.Points += pointRewards[p._id];
 					p.AssistPoints += pointRewards[p._id];
 
 					sentTo.Add(p._id);
@@ -155,7 +152,6 @@ namespace InfServer.Logic
 					Helpers.Player_RouteKill(p, update, victim, cashRewards[p._id], killerPoints, pointRewards[p._id], expRewards[p._id]);
 					p.Cash += cashRewards[p._id];
 					p.Experience += expRewards[p._id];
-					p.Points += pointRewards[p._id];
 					p.AssistPoints += pointRewards[p._id];
 
 					sentTo.Add(p._id);

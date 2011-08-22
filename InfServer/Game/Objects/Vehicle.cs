@@ -41,6 +41,7 @@ namespace InfServer.Game
 
 		#region Game state
 		public Helpers.ObjectState _state;	//The state of our vehicle!
+		public List<Player> _attackers;		//The list of players which have damaged this vehicle
 
 		//Game timers
 		public int _tickCreation;			//The time at which the vehicle was created
@@ -74,7 +75,7 @@ namespace InfServer.Game
 		{
 			get
 			{
-				return _state.health == 0;
+				return _state.health == 0 || bCondemned;
 			}
 		}
 
@@ -96,8 +97,10 @@ namespace InfServer.Game
 			_type = type;
 			_arena = arena;
 
-			_state = new Helpers.ObjectState();
 			_childs = new List<Vehicle>();
+
+			_state = new Helpers.ObjectState();
+			_attackers = new List<Player>();
 
 			_abstract = new VehicleAbstract(this);
 		}
@@ -110,8 +113,10 @@ namespace InfServer.Game
 			_type = type;
 			_arena = arena;
 
-			_state = state;
 			_childs = new List<Vehicle>();
+
+			_state = state;
+			_attackers = new List<Player>();
 
 			_abstract = new VehicleAbstract(this);
 		}
@@ -123,6 +128,28 @@ namespace InfServer.Game
 		{
 			_state.health = (short)(_arena._server._zoneConfig.soul.energyShieldMode == 2 ? 1 : _type.Hitpoints);
 			_state.energy = (short)_type.EnergyMax;
+		}
+
+		/// <summary>
+		/// Determines whether the vehicle is unoccupied and sets the flag if neccessary
+		/// </summary>
+		public void testForUnoccupied()
+		{	//Are we unoccupied?
+			if (_tickUnoccupied != 0 && _inhabitant == null)
+			{	//Check children
+				bool bUnoccupied = true;
+
+				foreach (Vehicle child in _childs)
+					if (child._inhabitant != null)
+						bUnoccupied = false;
+
+				if (bUnoccupied)
+					_tickUnoccupied = Environment.TickCount;
+			}
+
+			//Check parent
+			if (_parent != null)
+				_parent.testForUnoccupied();
 		}
 
 		/// <summary>
@@ -155,6 +182,14 @@ namespace InfServer.Game
 		/// Causes the vehicle to die
 		/// </summary>
 		public virtual void kill(Player killer)
+		{
+			kill(killer, 0);
+		}
+
+		/// <summary>
+		/// Causes the vehicle to die
+		/// </summary>
+		public virtual void kill(Player killer, int weaponID)
 		{	//Set our health to 0
 			_state.health = 0;
 
@@ -176,8 +211,16 @@ namespace InfServer.Game
 		/// The vehicle is being destroyed, clean up assets
 		/// </summary>
 		public virtual void destroy(bool bRestoreBase, bool bRemove)
-		{	//If we have a player, kick him out
+		{	//If we're already condemned, abort
+			if (bCondemned)
+				return;
+
+			//If we have a player, kick him out
 			playerLeave(bRestoreBase);
+
+			//Destroy all child vehicles too
+			foreach (Vehicle child in _childs)
+				child.destroy(bRestoreBase, bRemove);
 
 			//Notify the arena of our destruction
 			_arena.lostVehicle(this, bRemove);
@@ -192,7 +235,14 @@ namespace InfServer.Game
 		/// Called when a player is entering the vehicle
 		/// </summary>
 		public bool playerEnter(Player player)
-		{	//We want to ignore new updates until we
+		{	//If we have an inhabitant already this isn't going to happen
+			if (_inhabitant != null)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to enter vehicle which already had an inhabitant.", player._alias);
+				return false;
+			}
+			
+			//We want to ignore new updates until we
 			//have confirmation that the player has changed vehicle
 			player._bIgnoreUpdates = true;	
 			
@@ -216,6 +266,7 @@ namespace InfServer.Game
 					player._bIgnoreUpdates = false;	
 				}
 			);
+
 			return true;
 		}
 
@@ -242,9 +293,10 @@ namespace InfServer.Game
 			}
 
 			//We're no longer inhabited
-			_tickUnoccupied = Environment.TickCount;
 			_inhabitant._occupiedVehicle = null;
 			_inhabitant = null;
+
+			testForUnoccupied();
 
 			Helpers.Object_VehicleBind(_arena.Players, this, null);
 		}
@@ -264,11 +316,30 @@ namespace InfServer.Game
 			if (maxRadius == 0)
 				return;
 
+			//Will this weapon even harm us?
+			switch (wep.damageMode)
+			{
+				case 2:			//Enemy
+					if (attacker._team == _team)
+						return;
+					break;
+
+				case 3:			//Friendly but self
+					if (attacker._team != _team)
+						return;
+					break;
+
+				case 4:			//Friendly
+					if (attacker._team != _team)
+						return;
+					break;
+			}
+
 			//Find the radius at which we were closest to the blast
 			double radius = getImpliedRadius(dmgX, dmgY, maxRadius + _type.TriggerRadius);
 
 			radius -= _type.TriggerRadius;
-			if (radius < 0)
+			if (radius < 1)
 				radius = 1;
 			
 			//Calculate the damage for each type
@@ -280,56 +351,59 @@ namespace InfServer.Game
 			{
 				fraction = 1 - radius / wep.kineticDamageRadius;
 				grossDamage = (wep.kineticDamageInner - wep.kineticDamageOuter) * fraction + wep.kineticDamageOuter;
-				netDamage = (grossDamage - _type.Armors[0].SelfIgnore) * (1.0d - _type.Armors[0].SelfReduction / 1000.0d);
+				netDamage += (grossDamage - _type.Armors[0].SelfIgnore) * (1.0d - _type.Armors[0].SelfReduction / 1000.0d);
 			}
 
 			if (radius <= wep.explosiveDamageRadius)
 			{
 				fraction = 1 - radius / wep.explosiveDamageRadius;
 				grossDamage = (wep.explosiveDamageInner - wep.explosiveDamageOuter) * fraction + wep.explosiveDamageOuter;
-				netDamage = (grossDamage - _type.Armors[1].SelfIgnore) * (1.0d - _type.Armors[1].SelfReduction / 1000.0d);
+				netDamage += (grossDamage - _type.Armors[1].SelfIgnore) * (1.0d - _type.Armors[1].SelfReduction / 1000.0d);
 			}
 
 			if (radius <= wep.electronicDamageRadius)
 			{
 				fraction = 1 - radius / wep.electronicDamageRadius;
 				grossDamage = (wep.electronicDamageInner - wep.electronicDamageOuter) * fraction + wep.electronicDamageOuter;
-				netDamage = (grossDamage - _type.Armors[2].SelfIgnore) * (1.0d - _type.Armors[2].SelfReduction / 1000.0d);
+				netDamage += (grossDamage - _type.Armors[2].SelfIgnore) * (1.0d - _type.Armors[2].SelfReduction / 1000.0d);
 			}
 
 			if (radius <= wep.psionicDamageRadius)
 			{
 				fraction = 1 - radius / wep.psionicDamageRadius;
 				grossDamage = (wep.psionicDamageInner - wep.psionicDamageOuter) * fraction + wep.psionicDamageOuter;
-				netDamage = (grossDamage - _type.Armors[3].SelfIgnore) * (1.0d - _type.Armors[3].SelfReduction / 1000.0d);
+				netDamage += (grossDamage - _type.Armors[3].SelfIgnore) * (1.0d - _type.Armors[3].SelfReduction / 1000.0d);
 			}
 
 			if (radius <= wep.bypassDamageRadius)
 			{
 				fraction = 1 - radius / wep.bypassDamageRadius;
 				grossDamage = (wep.bypassDamageInner - wep.bypassDamageOuter) * fraction + wep.bypassDamageOuter;
-				netDamage = (grossDamage - _type.Armors[4].SelfIgnore) * (1.0d - _type.Armors[4].SelfReduction / 1000.0d);
+				netDamage += (grossDamage - _type.Armors[4].SelfIgnore) * (1.0d - _type.Armors[4].SelfReduction / 1000.0d);
 			}
 
 			if (radius <= wep.energyDamageRadius)
 			{
 				/*fraction = 1 - radius / wep.energyDamageRadius;
 				grossDamage = (wep.energyDamageInner - wep.energyDamageOuter) * fraction + wep.energyDamageOuter;
-				netDamage = (grossDamage - _type.Armors[5].SelfIgnore) * (1.0d - _type.Armors[5].SelfReduction / 1000.0d);
-				netDamage /= 1000;*/
+				netDamage += (grossDamage - _type.Armors[5].SelfIgnore) * (1.0d - _type.Armors[5].SelfReduction / 1000.0d);*/
 
 				// if (netDamage > 0)
 				// TODO: take care of energy damage
 			}
 
 			//Apply the damage
-			if (netDamage > 0) 
+			if (netDamage > 0)
+			{
 				_state.health -= (short)Math.Round((netDamage / 1000));
+				if (!_attackers.Contains(attacker))
+					_attackers.Add(attacker);
+			}
 
 			//Have we been killed?
 			if (_state.health <= 0)
 			{
-				kill(attacker);
+				kill(attacker, wep.id);
 				_state.health = 0;
 			}
 		}

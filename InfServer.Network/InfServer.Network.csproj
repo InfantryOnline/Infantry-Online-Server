@@ -99,6 +99,7 @@
   <ItemGroup>
     <Compile Include="Logic\Box.cs" />
     <Compile Include="Logic\Connection.cs" />
+    <Compile Include="Logic\DataStream.cs" />
     <Compile Include="Logic\Ping.cs" />
     <Compile Include="Logic\Registrar.cs" />
     <Compile Include="Logic\Reliable.cs" />
@@ -117,6 +118,7 @@
     <Compile Include="Protocol\CS_Initial.cs" />
     <Compile Include="Protocol\CS_State.cs" />
     <Compile Include="Protocol\DataPacket.cs" />
+    <Compile Include="Protocol\DataPacketRcv.cs" />
     <Compile Include="Protocol\Disconnect.cs" />
     <Compile Include="Protocol\OutOfSync.cs" />
     <Compile Include="Protocol\Ping.cs" />

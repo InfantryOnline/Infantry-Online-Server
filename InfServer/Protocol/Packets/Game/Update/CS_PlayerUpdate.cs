@@ -20,10 +20,11 @@ namespace InfServer.Protocol
 		public bool bIgnored;				//Was the update ignored?
 
 		public Int16 energy;				//Current energy
-		public UInt32 tickCRC;				//The checksum of the client's tickcount
+		public UInt16 itemCRC;				//The CRC checksum of the item used
+		public UInt16 tickCount;			//The tick count at the time update was made
 		public UInt16 playerID;				//The player's current id
 		public Int16 itemID;				//The ID of the item the player is using, if any
-		public Int32 tickCount;				//The tickcount
+		public Int32 fullTickCount;			//The full client's tickcount (only to be used relatively)
 		public Int16 health;				//Player's health
 		public Int16 velocityX;				//Velocity info
 		public Int16 velocityY;				//
@@ -35,8 +36,10 @@ namespace InfServer.Protocol
 		public UInt16 direction;			//The direction we're attempting to move on
 		public byte unk1;					//Unknown (flags?)
 
+		public byte pitch;					//Pitch, for dependent vehicles
+
 		//Spectator
-		public UInt16 playerSpectating;		//The ID of the player we're spectating
+		public Int16 playerSpectating;		//The ID of the player we're spectating
 
 		public List<ushort> activeEquip;	//Any additional equipment we may have active
 
@@ -81,10 +84,11 @@ namespace InfServer.Protocol
 
 			//Read in the bulk of the packet
 			energy = _contentReader.ReadInt16();
-			tickCRC = _contentReader.ReadUInt32();
+			itemCRC = _contentReader.ReadUInt16();
+			tickCount = _contentReader.ReadUInt16();
 			playerID = _contentReader.ReadUInt16();
 			itemID = _contentReader.ReadInt16();
-			tickCount = _contentReader.ReadInt32();
+			fullTickCount = _contentReader.ReadInt32();
 
 			//What we read in next depends on our vehicle type
 			VehInfo.Types vehType;
@@ -122,7 +126,7 @@ namespace InfServer.Protocol
 					positionZ = _contentReader.ReadInt16();
 
 					health = _contentReader.ReadInt16();
-					yaw = _contentReader.ReadByte();
+					pitch = _contentReader.ReadByte();
 					yaw = _contentReader.ReadByte();
 					yaw = _contentReader.ReadByte();
 					unk1 = _contentReader.ReadByte();
@@ -133,7 +137,7 @@ namespace InfServer.Protocol
 				case VehInfo.Types.Spectator:
 					positionX = _contentReader.ReadInt16();
 					positionY = _contentReader.ReadInt16();
-					playerSpectating = _contentReader.ReadUInt16();
+					playerSpectating = _contentReader.ReadInt16();
 
 					structRead = 6;
 					break;

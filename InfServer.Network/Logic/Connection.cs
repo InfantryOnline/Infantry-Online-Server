@@ -71,8 +71,8 @@ namespace InfServer.Logic
 			client._CRC_S2C.key = (uint)pkt.CRCSeed;
 
 			//Enable CRC!
-			client._CRC_C2S.bActive = true;
-			client._CRC_S2C.bActive = true;
+			client._CRC_C2S.bActive = (pkt.CRCLen > 0);
+			client._CRC_S2C.bActive = (pkt.CRCLen > 0);
 
 			//We're now initialized
 			client._bInitialized = true;
@@ -83,8 +83,16 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_CS_State(CS_State pkt, Client client)
 		{	//Update what we know of the client's connection state
-			client._stats.C2S_packetsSent = pkt.packetsSent;
-			client._stats.C2S_packetsRecv = pkt.packetsReceived;
+			client._stats.clientCurrentUpdate = pkt.clientCurrentUpdate;
+			client._stats.clientAverageUpdate = pkt.clientAverageUpdate;
+			client._stats.clientShortestUpdate = pkt.clientShortestUpdate;
+			client._stats.clientLongestUpdate = pkt.clientLongestUpdate;
+			client._stats.clientLastUpdate = pkt.clientLastUpdate;
+
+			client._stats.clientPacketsSent = pkt.packetsSent;
+			client._stats.clientPacketsRecv = pkt.packetsReceived;
+			client._stats.serverPacketsSent = client._packetsSent;
+			client._stats.serverPacketsRecv = client._packetsReceived;
 
 			//Prepare our reply
 			SC_State sci = new SC_State();
@@ -93,24 +101,25 @@ namespace InfServer.Logic
 			sci.serverTickCount = Environment.TickCount;
 			sci.clientSentCount = pkt.packetsSent;
 			sci.clientRecvCount = pkt.packetsReceived;
-			sci.serverRecvCount = client._stats.S2C_packetsRecv;
-			sci.serverSentCount = client._stats.S2C_packetsSent;
+			sci.serverRecvCount = client._stats.serverPacketsRecv;
+			sci.serverSentCount = client._stats.serverPacketsSent;
 
 			client.send(sci);
 
 			//Set our sync difference
-			ushort wander = (ushort)client._timeDiff;
+			short wander = (short)client._timeDiff;
 			int timeDiff = (sci.serverTickCount - pkt.tickCount) & 0xFFFF;
-			if (timeDiff > 0x7FFF)
-				timeDiff = 0xFFFF - timeDiff;
-			client._timeDiff = (ushort)timeDiff;
+			client._timeDiff = (short)timeDiff;
 
 			//Calculate the clock wander
 			if (wander != 0)
 			{
-				wander = (ushort)Math.Abs(client._timeDiff - wander);
-				client._stats.clockWander[client._stats.idx++ % 10] = wander;
+				wander = (short)Math.Abs(client._timeDiff - wander);
+				client._stats.clockWander[client._stats.wanderIdx++ % 10] = wander;
 			}
+			
+			//Adjust the client's data rates accordingly
+			client.adjustRates(pkt.clientAverageUpdate);
 		}
 
 		/// <summary>
@@ -118,9 +127,9 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_SC_State(SC_State pkt, Client client)
 		{
-			client._stats.S2C_packetsSent = pkt.serverSentCount;
-			client._stats.S2C_packetsRecv = pkt.serverRecvCount;
-			client._timeDiff = Environment.TickCount - pkt.serverTickCount;
+			client._stats.serverPacketsSent = pkt.serverSentCount;
+			client._stats.serverPacketsRecv = pkt.serverRecvCount;
+			client._timeDiff = (short)(Environment.TickCount - pkt.serverTickCount);
 		}
 
 		/// <summary>

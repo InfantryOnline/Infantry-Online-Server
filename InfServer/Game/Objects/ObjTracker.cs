@@ -330,12 +330,12 @@ namespace InfServer.Game
 		/// </summary>		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
 		{
-			return _objToBucket.Keys.GetEnumerator();
+			return _idToObj.Values.GetEnumerator();
 		}
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
-			return _objToBucket.Keys.GetEnumerator();
+			return _idToObj.Values.GetEnumerator();
 		}
 		#endregion
 	}

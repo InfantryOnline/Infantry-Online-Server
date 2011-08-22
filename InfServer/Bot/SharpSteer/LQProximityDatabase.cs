@@ -17,14 +17,14 @@
 
 	This utility is a spatial database which stores objects each of
 	which is associated with a 3d point (a location in a 3d space).
-	The points serve as the "search key" for the associated object.
+	The Points serve as the "search key" for the associated object.
 	It is intended to efficiently answer "sphere inclusion" queries,
 	also known as range queries: basically questions like:
 
 		Which objects are within a radius R of the location L?
 
 	In this context, "efficiently" means significantly faster than the
-	naive, brute force O(n) testing of all known points.  Additionally
+	naive, brute force O(n) testing of all known Points.  Additionally
 	it is assumed that the objects move along unpredictable paths, so
 	that extensive preprocessing (for example, constructing a Delaunay
 	triangulation of the point set) may not be practical.
@@ -38,8 +38,8 @@
 	Terminology used here: the region of space associated with a bin
 	is called a sub-brick.  The collection of all sub-bricks is called
 	the super-brick.  The super-brick should be specified to surround
-	the region of space in which (almost) all the key-points will
-	exist.  If key-points move outside the super-brick everything will
+	the region of space in which (almost) all the key-Points will
+	exist.  If key-Points move outside the super-brick everything will
 	continue to work, but without the speed advantage provided by the
 	spatial subdivision.  For more details about how to specify the
 	super-brick's position, size and subdivisions see lqCreateDatabase

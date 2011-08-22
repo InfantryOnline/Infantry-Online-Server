@@ -12,7 +12,7 @@ namespace InfServer.Protocol
 	public class SC_PlayerWarp : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-		public Helpers.WarpMode warpMode;		//Type of warp
+		public Helpers.ResetFlags warpFlags;		//Type of warp
 		public Int16 invulnTime;	//The amount of time we're invulnerable after spawning
 		public Int16 bottomX;		//The warp window
 		public Int16 bottomY;		//
@@ -41,7 +41,7 @@ namespace InfServer.Protocol
 		{
 			Write((byte)TypeID);
 
-			Write((byte)warpMode);
+			Write((byte)warpFlags);
 			Write(invulnTime);
 			Write(topX);
 			Write(topY);

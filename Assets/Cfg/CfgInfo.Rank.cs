@@ -298,6 +298,152 @@ namespace Assets
                 name69 = Parser.GetString("Name69");
                 points69 = Parser.GetInt("Points69");
             }
+
+			public string getRank(int experience)
+			{
+				if (experience > points69)
+					return name69;
+				else if (experience > points68)
+					return name68;
+				else if (experience > points67)
+					return name67;
+				else if (experience > points66)
+					return name66;
+				else if (experience > points65)
+					return name65;
+				else if (experience > points64)
+					return name64;
+				else if (experience > points63)
+					return name63;
+				else if (experience > points62)
+					return name62;
+				else if (experience > points61)
+					return name61;
+				else if (experience > points60)
+					return name60;
+				else if (experience > points59)
+					return name59;
+				else if (experience > points58)
+					return name58;
+				else if (experience > points57)
+					return name57;
+				else if (experience > points56)
+					return name56;
+				else if (experience > points55)
+					return name55;
+				else if (experience > points54)
+					return name54;
+				else if (experience > points53)
+					return name53;
+				else if (experience > points52)
+					return name52;
+				else if (experience > points51)
+					return name51;
+				else if (experience > points50)
+					return name50;
+				else if (experience > points49)
+					return name49;
+				else if (experience > points48)
+					return name48;
+				else if (experience > points47)
+					return name47;
+				else if (experience > points46)
+					return name46;
+				else if (experience > points45)
+					return name45;
+				else if (experience > points44)
+					return name44;
+				else if (experience > points43)
+					return name43;
+				else if (experience > points42)
+					return name42;
+				else if (experience > points41)
+					return name41;
+				else if (experience > points40)
+					return name40;
+				else if (experience > points39)
+					return name39;
+				else if (experience > points38)
+					return name38;
+				else if (experience > points37)
+					return name37;
+				else if (experience > points36)
+					return name36;
+				else if (experience > points35)
+					return name35;
+				else if (experience > points34)
+					return name34;
+				else if (experience > points33)
+					return name33;
+				else if (experience > points32)
+					return name32;
+				else if (experience > points31)
+					return name31;
+				else if (experience > points30)
+					return name30;
+				else if (experience > points29)
+					return name29;
+				else if (experience > points28)
+					return name28;
+				else if (experience > points27)
+					return name27;
+				else if (experience > points26)
+					return name26;
+				else if (experience > points25)
+					return name25;
+				else if (experience > points24)
+					return name24;
+				else if (experience > points23)
+					return name23;
+				else if (experience > points22)
+					return name22;
+				else if (experience > points21)
+					return name21;
+				else if (experience > points20)
+					return name20;
+				else if (experience > points19)
+					return name19;
+				else if (experience > points18)
+					return name18;
+				else if (experience > points17)
+					return name17;
+				else if (experience > points16)
+					return name16;
+				else if (experience > points15)
+					return name15;
+				else if (experience > points14)
+					return name14;
+				else if (experience > points13)
+					return name13;
+				else if (experience > points12)
+					return name12;
+				else if (experience > points11)
+					return name11;
+				else if (experience > points10)
+					return name10;
+				else if (experience > points9)
+					return name9;
+				else if (experience > points8)
+					return name8;
+				else if (experience > points7)
+					return name7;
+				else if (experience > points6)
+					return name6;
+				else if (experience > points5)
+					return name5;
+				else if (experience > points4)
+					return name4;
+				else if (experience > points3)
+					return name3;
+				else if (experience > points2)
+					return name2;
+				else if (experience > points1)
+					return name1;
+				else if (experience > points0)
+					return name0;
+
+				return "";
+			}
         }
     }
 }

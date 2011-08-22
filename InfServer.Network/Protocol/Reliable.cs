@@ -15,6 +15,8 @@ namespace InfServer.Protocol
 		public ushort rNumber;			//The number which identifies this message
 		public PacketBase packet;		//The packet message we're carrying
 
+		public int streamID;			//Which data stream is this? (Maximum of 4)
+
 		//Packet routing
 		public const ushort TypeID = (ushort)9;
 		static public event Action<Reliable, Client> Handlers;
@@ -34,11 +36,12 @@ namespace InfServer.Protocol
 		/// <summary>
 		/// Used to easily create a reliable packet
 		/// </summary>
-		public Reliable(PacketBase _packet, int _rNumber)
+		public Reliable(PacketBase _packet, int _rNumber, int _streamID)
 			: base(TypeID)
 		{
 			packet = _packet;
 			rNumber = (ushort)_rNumber;
+			streamID = _streamID;
 		}
 
 		/// <summary>
@@ -47,9 +50,11 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-		public Reliable(ushort typeID, byte[] buffer, int index, int count)
+		public Reliable(ushort typeID, byte[] buffer, int index, int count, int sID)
 			: base(typeID, buffer, index, count)
-		{ }
+		{
+			streamID = sID;
+		}
 
 		/// <summary>
 		/// Routes a new packet to various relevant handlers
@@ -65,20 +70,13 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Serialize()
 		{	//Packet ID
-			Write((UInt16)(TypeID << 8));
+			Write((UInt16)((TypeID + streamID) << 8));
 			
 			//Insert our number
 			Write(Flip(rNumber));
 
 			//Make sure our packet is serialized
-			if (!packet._bSerialized)
-			{
-				packet._client = _client;
-				packet._handler = _handler;
-
-				packet.Serialize();
-				packet._bSerialized = true;
-			}
+			packet.MakeSerialized(_client, _handler);
 
 			//Write our packet contents
 			Write(packet.Data);

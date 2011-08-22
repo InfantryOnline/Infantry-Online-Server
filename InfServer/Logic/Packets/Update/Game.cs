@@ -36,9 +36,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerPickup(player, pkt);
+				}
+			);
 		}
 
 		/// <summary>
@@ -64,9 +66,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerDrop(player, pkt);
+				}
+			);
 		}
 
 		/// <summary>
@@ -100,9 +104,11 @@ namespace InfServer.Logic
 				Log.write(TLog.Warning, "Player {0} attempted to use portal which doesn't exist.", player);
 			else
 			{
-				using (DdMonitor.Lock(player._arena._sync))
-					using (LogAssume.Assume(player._arena._logger))
+				player._arena.handleEvent(delegate(Arena arena)
+					{
 						player._arena.handlePlayerPortal(player, portal);
+					}
+				);
 			}
 		}
 
@@ -130,9 +136,11 @@ namespace InfServer.Logic
 			}
 
 			//Pass the request on to the server
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerProduce(player, pkt.computerID, pkt.produceItem);
+				}
+			);
 		}
 
 		/// <summary>
@@ -166,9 +174,11 @@ namespace InfServer.Logic
 				Log.write(TLog.Warning, "Player {0} attempted to use switch which doesn't exist.", player);
 			else
 			{
-				using (DdMonitor.Lock(player._arena._sync))
-					using (LogAssume.Assume(player._arena._logger))
+				player._arena.handleEvent(delegate(Arena arena)
+					{
 						player._arena.handlePlayerSwitch(player, pkt.bOpen, sw);
+					}
+				);
 			}
 		}
 
@@ -197,9 +207,11 @@ namespace InfServer.Logic
 				Log.write(TLog.Warning, "Player {0} attempted to use flag which doesn't exist.", player);
 			else
 			{
-				using (DdMonitor.Lock(player._arena._sync))
-					using (LogAssume.Assume(player._arena._logger))
+				player._arena.handleEvent(delegate(Arena arena)
+					{
 						player._arena.handlePlayerFlag(player, pkt.bPickup, pkt.bSuccess, flag);
+					}
+				);
 			}
 		}
 
@@ -219,9 +231,7 @@ namespace InfServer.Logic
 				return;
 
 			//Do we wish to return to our base player vehicle?
-			using (DdMonitor.Lock(player._arena._sync))
-			{
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
 				{
 					if (pkt.vehicleID == player._baseVehicle._id)
 					{	//Yes, are we currently in a specator vehicle?
@@ -248,7 +258,7 @@ namespace InfServer.Logic
 						//An attempt to enter a vehicle?
 						player._arena.handlePlayerEnterVehicle(player, true, (ushort)pkt.vehicleID);
 				}
-			}
+			);
 		}
 		
 		/// <summary>
@@ -268,9 +278,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))	
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerExplosion(player, pkt);
+				}
+			);
 		}
 
 		/// <summary>
@@ -292,9 +304,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerShop(player, item, pkt.quantity);
+				}
+			);
 
 			//We will always finish the transaction
 			Helpers.Player_ShopFinish(player);
@@ -319,9 +333,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerShopSkill(player, skill);
+				}
+			);
 
 			//We will always finish the transaction
 			Helpers.Player_ShopFinish(player);
@@ -365,9 +381,7 @@ namespace InfServer.Logic
 				return;
 
 			//The action taken depends on the type of item
-			using (DdMonitor.Lock(player._arena._sync))
-			{
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
 				{
 					switch (info.itemType)
 					{
@@ -383,12 +397,12 @@ namespace InfServer.Logic
 							player._arena.handlePlayerMakeItem(player, info as ItemInfo.ItemMaker, pkt.posX, pkt.posY);
 							break;
 
-                        case ItemInfo.ItemType.Repair:
-					        player._arena.handlePlayerRepair(player, info as ItemInfo.RepairItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
-					        break;
+						case ItemInfo.ItemType.Repair:
+							player._arena.handlePlayerRepair(player, info as ItemInfo.RepairItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
+							break;
 					}
 				}
-			}
+			);
 		}
 
 		/// <summary>
@@ -408,13 +422,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-			{
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
 				{
 					player._arena.handlePlayerSpectate(player, pkt.playerID);
 				}
-			}
+			);
 		}
 
 		/// <summary>
@@ -428,13 +440,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-			{
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
 				{
 					player._arena.handlePlayerItemExpire(player, pkt.itemID);
 				}
-			}
+			);
 		}
 		/// <summary>
 		/// Registers all handlers

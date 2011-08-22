@@ -120,9 +120,8 @@ namespace InfServer.Game
 				return false;
 			}
 
-			Client.reliableJuggle = _config["protocol/reliableJuggle"].intValue;
-			Client.reliableGrace = _config["protocol/reliableGrace"].intValue;
 			Client.connectionTimeout = _config["protocol/connectionTimeout"].intValue;
+			Client.bLogUnknowns = _config["protocol/logUnknownPackets"].boolValue;
 
 			ClientConn<Database>.clientPingFreq = _config["protocol/clientPingFreq"].intValue;
 

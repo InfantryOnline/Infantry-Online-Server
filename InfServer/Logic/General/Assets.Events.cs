@@ -21,12 +21,12 @@ namespace InfServer.Logic
 		public class EventState
 		{
 			public bool bWarping;									//Are we going to warp?
-			public Helpers.WarpMode warpMode;						//The warpmode to use
+			public Helpers.ResetFlags warpFlags;					//The warp flags to use
 			public IEnumerable<LioInfo.WarpField> warpGroup;		//Our warpgroup to warp to, if any
 
 			public EventState()
 			{
-				warpMode = Helpers.WarpMode.Normal;
+				warpFlags = Helpers.ResetFlags.ResetNone;
 				warpGroup = null;
 			}
 		}
@@ -251,7 +251,7 @@ namespace InfServer.Logic
 							break;
 
 						state.bWarping = true;
-						state.warpMode = Helpers.WarpMode.Respawn;
+						state.warpFlags = Helpers.ResetFlags.ResetAll;
 					}
 					break;
 
@@ -303,7 +303,7 @@ namespace InfServer.Logic
 					break;
 			}
 
-			if (bEnforceState && bChangedState)
+			if (player._bIngame && bEnforceState && bChangedState)
 				player.syncState();
 
 			return bChangedState;
@@ -328,7 +328,7 @@ namespace InfServer.Logic
 				}
 
 				//Great! Apply the warp
-				Logic_Lio.Warp(state.warpMode, player, wGroup);
+				Logic_Lio.Warp(state.warpFlags, player, wGroup);
 			}
 		}
 	}

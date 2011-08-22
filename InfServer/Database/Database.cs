@@ -100,7 +100,7 @@ namespace InfServer.Data
 						_conn._client.send(init);
 					} 
 					while (!_syncStart.WaitOne(3000));
-
+					
 					//Reset our event
 					_syncStart.Reset();
 
@@ -146,9 +146,30 @@ namespace InfServer.Data
 		{
 
 		}
+
+		/// <summary>
+		/// Retrieves the client connection stats
+		/// </summary>
+		public Client.ConnectionStats getStats()
+		{
+			return _conn._client._stats;
+		}
 		#endregion
 
 		#region Updating
+		/// <summary>
+		/// Declares that a player has left the server
+		/// </summary>
+		public void lostPlayer(Player player)
+		{	//Notify the database!
+			CS_PlayerLeave<Database> pkt = new CS_PlayerLeave<Database>();
+
+			pkt.player = player.toInstance();
+			pkt.alias = player._alias;
+
+			send(pkt);
+		}
+
 		/// <summary>
 		/// Submits a player update to the database
 		/// </summary>

@@ -21,6 +21,8 @@ namespace InfServer.Protocol
 		public byte[] data;			//The packet message we're carrying
 		public int offset;			//
 
+		public int streamID;		//Which data stream is this? (Maximum of 4)
+
 		//Packet routing
 		public const ushort TypeID = (ushort)13;
 		static public event Action<DataPacket, Client> Handlers;
@@ -33,9 +35,11 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-		public DataPacket()
+		public DataPacket(int _streamID)
 			: base(TypeID)
-		{ }
+		{
+			streamID = _streamID;
+		}
 
 		/// <summary>
 		/// Creates an instance of the dummy packet used to debug communication or 
@@ -61,7 +65,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Serialize()
 		{	//Packet ID
-			Write((UInt16)(TypeID << 8));
+			Write((UInt16)((TypeID + streamID) << 8));
 
 			//Insert our number
 			Write(Flip(rNumber));
@@ -84,13 +88,6 @@ namespace InfServer.Protocol
 				_dataRead = (ushort)remaining;
 				Write(data, offset, _dataRead);
 			}
-		}
-
-		/// <summary>
-		/// Deserializes the data present in the packet contents into data fields in the class.
-		/// </summary>
-		public override void Deserialize()
-		{	
 		}
 
 		/// <summary>

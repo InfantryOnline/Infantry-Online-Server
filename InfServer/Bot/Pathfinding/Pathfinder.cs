@@ -129,18 +129,8 @@ namespace InfServer.Bots
 		/// </summary>
 		private void pathfinder(Object obj)
 		{
-			while (true)
-			{	//Do we have any requests to process?
-				if (pathingQueue.Count == 0)
-				{
-					Thread.Sleep(10);
-					continue;
-				}
-
-				//Take one!
-				PathfindReq req = pathingQueue.Take();
-
-				//Solve the path
+			foreach (PathfindReq req in pathingQueue.GetConsumingEnumerable())
+			{	//Solve the path
 				int[] path;
 
 				if (!calculatePath(req.startX, req.startY, req.endX, req.endY, out path))

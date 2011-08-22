@@ -22,9 +22,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerUpdate(player, pkt);
+				}
+			);
 		}
 
 		/// <summary>
@@ -38,9 +40,11 @@ namespace InfServer.Logic
 				return;
 			}
 
-			using (DdMonitor.Lock(player._arena._sync))
-				using (LogAssume.Assume(player._arena._logger))
+			player._arena.handleEvent(delegate(Arena arena)
+				{
 					player._arena.handlePlayerDeath(player, pkt);
+				}
+			);
 		}
 
 		/// <summary>

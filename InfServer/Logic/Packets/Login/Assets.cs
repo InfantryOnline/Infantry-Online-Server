@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 using InfServer.Protocol;
 using InfServer.Game;
@@ -24,34 +25,44 @@ namespace InfServer.Logic
 				return;
 			}
 
-			//Prepare a list of cached assets
-			List<SC_AssetUpdateInfo.AssetUpdate> cache = new List<SC_AssetUpdateInfo.AssetUpdate>();
+			//Delegate it to another thread so we don't spend ages caching
+			LogClient logger = Log.getCurrent();
 
-			foreach (CS_RequestUpdate.Update update in pkt.updates)
-			{	//Find the matching cached asset
-				AssetManager.Cache.CachedAsset cached = player._server._assets.AssetCache[update.filename];
-				if (cached == null)
-				{	//Strange
-					Log.write(TLog.Warning, "Unable to find cache for requested asset '{0}'", update.filename);
-					continue;
+			ThreadPool.QueueUserWorkItem(
+				delegate(object state)
+				{
+					using (LogAssume.Assume(logger))
+					{	//Prepare a list of cached assets
+						List<SC_AssetUpdateInfo.AssetUpdate> cache = new List<SC_AssetUpdateInfo.AssetUpdate>();
+
+						foreach (CS_RequestUpdate.Update update in pkt.updates)
+						{	//Find the matching cached asset
+							AssetManager.Cache.CachedAsset cached = player._server._assets.AssetCache[update.filename];
+							if (cached == null)
+							{	//Strange
+								Log.write(TLog.Warning, "Unable to find cache for requested asset '{0}'", update.filename);
+								continue;
+							}
+
+							//Good, add it to the list
+							SC_AssetUpdateInfo.AssetUpdate assetinfo = new SC_AssetUpdateInfo.AssetUpdate();
+
+							assetinfo.filename = update.filename;
+							assetinfo.compressedLength = cached.data.Length;
+
+							cache.Add(assetinfo);
+						}
+
+						//Send off our info list!
+						SC_AssetUpdateInfo info = new SC_AssetUpdateInfo();
+						info.updates = cache;
+
+						player._client.sendReliable(info);
+					}
 				}
-
-				//Good, add it to the list
-				SC_AssetUpdateInfo.AssetUpdate assetinfo = new SC_AssetUpdateInfo.AssetUpdate();
-
-				assetinfo.filename = update.filename;
-				assetinfo.compressedLength = cached.data.Length;
-
-				cache.Add(assetinfo);
-			}
-
-			//Send off our info list!
-			SC_AssetUpdateInfo info = new SC_AssetUpdateInfo();
-			info.updates = cache;
-			 
-			player._client.sendReliable(info);
+			);
 		}
-		        
+
 		/// <summary>
 		/// Triggered when the client is attempting to enter the game and sends his security reply
 		/// </summary>

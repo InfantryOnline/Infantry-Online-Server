@@ -47,27 +47,31 @@ namespace InfServer.Game.Commands.Chat
                 }
 
                 // Do we have the amount?
-                int buyAmount;
-                string limitAmount = null;
-                try
-                {
-                    limitAmount = split[1].Trim();
-                    if (limitAmount.StartsWith("#") && player.getInventory(item) != null)
-                    {
-                        // Check out how many we need to buy                      
-                        buyAmount = Convert.ToInt32(limitAmount.Substring(1)) - player.getInventory(item).quantity;
-                    }
-                    else
-                    {
-                        // Buying incremental amount
-                        buyAmount = Convert.ToInt32(limitAmount);
-                    }
-                }
-                catch (FormatException)
-                {
-                    player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
-                    continue;   
-                }
+                int buyAmount = 1;
+
+				if (split.Length > 1)
+				{
+					string limitAmount = null;
+					try
+					{
+						limitAmount = split[1].Trim();
+						if (limitAmount.StartsWith("#") && player.getInventory(item) != null)
+						{
+							// Check out how many we need to buy                      
+							buyAmount = Convert.ToInt32(limitAmount.Substring(1)) - player.getInventory(item).quantity;
+						}
+						else
+						{
+							// Buying incremental amount
+							buyAmount = Convert.ToInt32(limitAmount);
+						}
+					}
+					catch (FormatException)
+					{
+						player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
+						continue;
+					}
+				}
                 
                 // Buy the item! (after parsing errors handled)
                 player._arena.handlePlayerShop(player, item, buyAmount);                                
@@ -116,6 +120,62 @@ namespace InfServer.Game.Commands.Chat
             player.sendMessage(0, "Help request sent, when a moderator replies, use :: syntax to reply back");
         }
 
+		/// <summary>
+		/// Displays all players which are spectating
+		/// </summary>
+		public static void spec(Player player, Player recipient, string payload)
+		{
+			Player target = recipient;
+			if (recipient == null)
+				target = player;
+
+			if (target.IsSpectator)
+				return;
+
+			if (target._spectators.Count == 0)
+			{
+				player.sendMessage(0, "No spectators.");
+				return;
+			}
+
+			string result = "Spectating: ";
+
+			foreach (Player spectator in target._spectators)
+				result += spectator._alias + ", ";
+
+			player.sendMessage(0, result.TrimEnd(',', ' '));
+		}
+
+		/// <summary>
+        /// Displays lag statistics for a particular player
+        /// </summary>
+		public static void info(Player player, Player recipient, string payload)
+		{
+			Player target = recipient;
+			if (recipient == null)
+				target = player;
+
+			player.sendMessage(0, String.Format("Player Info: {0}  Squad: {1}", target._alias, target._squad == null ? "" : target._squad));
+			player.sendMessage(0, String.Format("~-    PING Current={0} ms  Average={1} ms  Low={2} ms  High={3} ms  Last={4} ms",
+				target._client._stats.clientCurrentUpdate, target._client._stats.clientAverageUpdate,
+				target._client._stats.clientShortestUpdate, target._client._stats.clientLongestUpdate,
+				target._client._stats.clientLastUpdate));
+			player.sendMessage(0, String.Format("~-    PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
+				target._client._stats.C2SPacketLoss.ToString("F"), target._client._stats.S2CPacketLoss.ToString("F")));
+		}
+
+		/// <summary>
+		/// Displays lag statistics for self
+		/// </summary>
+		public static void lag(Player player, Player recipient, string payload)
+		{
+			if (recipient != null)
+				return;
+
+			player.sendMessage(0, String.Format("PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
+				player._client._stats.C2SPacketLoss.ToString("F"), player._client._stats.S2CPacketLoss.ToString("F")));
+		}
+
         /// <summary>
         /// Registers all handlers
         /// </summary>
@@ -137,6 +197,18 @@ namespace InfServer.Game.Commands.Chat
 			yield return new HandlerDescriptor(arena, "arena",
 				"Displays all arenas availble to join",
 				"?arena");
+
+			yield return new HandlerDescriptor(spec, "spec",
+				"Displays all players which are spectating you or another player",
+				"?spec or ::?spec");
+
+			yield return new HandlerDescriptor(info, "info",
+				"Displays lag statistics for you or another player",
+				"?info or ::?info");
+
+			yield return new HandlerDescriptor(lag, "lag",
+				"Displays lag statistics for yourself",
+				"?lag");
         }
     }
 }

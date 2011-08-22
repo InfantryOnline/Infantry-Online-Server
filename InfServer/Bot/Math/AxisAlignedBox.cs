@@ -51,7 +51,7 @@ namespace Axiom.Math
 	/// </summary>
 	/// <remarks>
 	///		This class represents a simple box which is aligned with the
-	///	    axes. It stores 2 points as the extremeties of
+	///	    axes. It stores 2 Points as the extremeties of
 	///	    the box, one which is the minima of all 3 axes, and the other
 	///	    which is the maxima of all 3 axes. This class is typically used
 	///	    for an axis-aligned bounding box (AABB) for collision and
@@ -493,16 +493,16 @@ namespace Axiom.Math
 		}
 
 		/// <summary>
-		///		Returns an array of 8 corner points, useful for
+		///		Returns an array of 8 corner Points, useful for
 		///		collision vs. non-aligned objects.
 		/// </summary>
 		/// <remarks>
 		///		If the order of these corners is important, they are as
-		///		follows: The 4 points of the minimum Z face (note that
+		///		follows: The 4 Points of the minimum Z face (note that
 		///		because we use right-handed coordinates, the minimum Z is
 		///		at the 'back' of the box) starting with the minimum point of
 		///		all, then anticlockwise around this face (if you are looking
-		///		onto the face from outside the box). Then the 4 points of the
+		///		onto the face from outside the box). Then the 4 Points of the
 		///		maximum Z face, starting with maximum point of all, then
 		///		anticlockwise around this face (looking onto the face from
 		///		outside the box). Like this:

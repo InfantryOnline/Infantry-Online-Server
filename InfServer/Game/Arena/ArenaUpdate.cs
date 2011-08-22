@@ -162,7 +162,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Triggered when a bot is killed
 		/// </summary>
-		public virtual void handleBotDeath(Bot dead, Player killer)
+		public virtual void handleBotDeath(Bot dead, Player killer, int weaponID)
 		{ }
 
 		#endregion

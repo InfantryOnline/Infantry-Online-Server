@@ -20,12 +20,14 @@ namespace InfServer.Protocol
 			Car = 5,
 		}
 
-		//Type of warp to perform
-		public enum WarpMode
+		public enum ResetFlags
 		{
-			Normal = 0,
-			Respawn = 7,
-		}
+			ResetNone = 0,
+			ResetEnergy = 1,
+			ResetHealth = 2,
+			ResetVelocity = 4,
+			ResetAll = 7,
+		};
 
 		//Type of chat
 		public enum Chat_Type
@@ -145,8 +147,8 @@ namespace InfServer.Protocol
 			SC_PlayerState si = new SC_PlayerState();
 
 			si.cash = p.Cash;
-			si.experienceRemaining = p.ExperienceTotal;
-			si.experience = p.Experience;
+			si.experienceRemaining = p.Experience;
+			si.experience = p.ExperienceTotal;
 
 			si.inventoryCount = p._inventory.Count;
 			si.inventory = p._inventory.Values;
@@ -217,6 +219,32 @@ namespace InfServer.Protocol
 		static public void Player_ClearProjectiles(Player p)
 		{
 			p._client.sendReliable(new SC_ClearProjectiles());
+		}
+
+		/// <summary>
+		/// Activates a multiitem for the client
+		/// </summary>
+		static public void Player_UseMultiItems(Player p, short itemid, short itemcount)
+		{
+			SC_PlayerMultiItem multi = new SC_PlayerMultiItem();
+
+			multi.multiItemID = itemid;
+			multi.itemCount = itemcount;
+
+			p._client.sendReliable(multi);
+		}
+
+		/// <summary>
+		/// Sets a player's bounty
+		/// </summary>
+		static public void Player_SetBounty(Player p, short bounty)
+		{
+			SC_PlayerSetBounty bty = new SC_PlayerSetBounty();
+
+			bty.playerID = p._id;
+			bty.bounty = bounty;
+
+			p._client.sendReliable(bty);
 		}
 
 		/// <summary>

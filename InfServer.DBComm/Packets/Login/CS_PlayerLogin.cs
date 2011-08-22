@@ -96,8 +96,8 @@ namespace InfServer.Protocol
 
 			bCreateAlias = _contentReader.ReadBoolean();
 
-			alias = ReadString();
-			ticketid = ReadString();
+			alias = ReadNullString();
+			ticketid = ReadNullString();
 
 			UID1 = _contentReader.ReadUInt32();
 			UID2 = _contentReader.ReadUInt32();

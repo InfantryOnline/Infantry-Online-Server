@@ -110,11 +110,11 @@ namespace InfServer.Game
 				//Store our cached asset data
 				asset.data = buf.ToArray();
 				asset.uncompressedSize = (int)fs.Length;
-				
+				asset.bCached = true;
+
 				fs.Close();
 				buf.Close();
 
-				File.WriteAllBytes("cache.dat", asset.data);
 				return asset;
 			}
 
@@ -131,11 +131,14 @@ namespace InfServer.Game
 						return null;
 
 					//Is it currently cached?
-					if (!cache.bCached)
-						//Quickly cache it
-						return cacheFile(cache);
-					else
-						return cache;
+					lock (cache)
+					{
+						if (!cache.bCached)
+							//Quickly cache it
+							return cacheFile(cache);
+						else
+							return cache;
+					}
 				}
 			}
 		}

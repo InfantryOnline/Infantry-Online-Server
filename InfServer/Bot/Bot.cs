@@ -16,14 +16,16 @@ namespace InfServer.Bots
     public class Bot : Vehicle, IEventObject
 	{	// Member variables
 		///////////////////////////////////////////////////
-        public new VehInfo.Car _type;				//The car type we represent
-		public MovementController _movement;		//Our movement controller
-		public WeaponController _weapon;			//Our trusty weapon controller
+        public new VehInfo.Car _type;					//The car type we represent
+		public MovementController _movement;			//Our movement controller
+		public WeaponController _weapon;				//Our trusty weapon controller
+			
+		public int _itemUseID;							//The item we're using
 
-		public int _itemUseID;						//The item we're using
+		public List<ItemInfo.UtilityItem> _activeEquip;	//Our active equipment
 
-        private int _tickLastPoll;					//The last tick at which poll was called
-		private int _tickLastUpdate;				//HACK: For stemming the flow of updates
+        private int _tickLastPoll;						//The last tick at which poll was called
+		private int _tickLastUpdate;					//HACK: For stemming the flow of updates
 
 		#region EventObject
 		/// <summary>
@@ -122,10 +124,13 @@ namespace InfServer.Bots
 
 			_movement = new MovementController(_type, _state, arena);
 			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
+			_activeEquip = new List<ItemInfo.UtilityItem>();
 
 			_tickLastPoll = Environment.TickCount;
 
 			_bBotVehicle = true;
+
+			configureBot();
 		}
 
 		/// <summary>
@@ -141,10 +146,13 @@ namespace InfServer.Bots
 
 			_movement = new MovementController(_type, _state, arena);
 			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
+			_activeEquip = new List<ItemInfo.UtilityItem>();
 
 			_tickLastPoll = Environment.TickCount;
 
 			_bBotVehicle = true;
+
+			configureBot();
 		}
 
 		/// <summary>
@@ -160,17 +168,35 @@ namespace InfServer.Bots
 
 			_movement = movement;
 			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
+			_activeEquip = new List<ItemInfo.UtilityItem>();
 
 			_tickLastPoll = Environment.TickCount;
 
 			_bBotVehicle = true;
+
+			configureBot();
+		}
+
+		/// <summary>
+		/// Configures the bot based on the vehicle information
+		/// </summary>
+		protected virtual void configureBot()
+		{	//Are we using any equipment?
+			foreach (int item in _type.InventoryItems)
+			{
+				ItemInfo.UtilityItem util = AssetManager.Manager.getItemByID(item) as ItemInfo.UtilityItem;
+				if (util == null)
+					continue;
+
+				_activeEquip.Add(util);
+			}
 		}
 
 		#region State
 		/// <summary>
 		/// Causes the vehicle to die
 		/// </summary>
-		public override void kill(Player killer)
+		public override void kill(Player killer, int weaponID)
 		{	//Die, and then cease movement
 			_state.health = 0;
 			_tickDead = Environment.TickCount;
@@ -179,7 +205,7 @@ namespace InfServer.Bots
 			_movement.bEnabled = false;
 
 			//Notify the arena
-			_arena.handleBotDeath(this, killer);
+			_arena.handleBotDeath(this, killer, weaponID);
 		}
 
 		/// <summary>
@@ -187,9 +213,9 @@ namespace InfServer.Bots
 		/// </summary>
 		public override void destroy(bool bRestoreBase, bool bRemove)
 		{	//Notify the arena of our destruction
-			_arena.lostBot(this);
-
 			base.destroy(bRestoreBase, bRemove);
+
+			_arena.lostBot(this);
 		}
 
 		/// <summary>
@@ -218,7 +244,15 @@ namespace InfServer.Bots
 			{	//Should we remove ourself from the world?
 				if (_type.RemoveDeadTimer != 0 && _tickDead != 0 &&
 					tickCount - _tickDead > (_type.RemoveDeadTimer * 1000))
-					destroy(false);
+					destroy(true);
+				else
+				{	//Keep sending 'corpse' updates
+					if (tickCount - _tickLastUpdate > 1500)
+					{
+						_tickLastUpdate = tickCount;
+						return true;
+					}
+				}
 			}
 			else
 			{
@@ -227,7 +261,7 @@ namespace InfServer.Bots
 
 				if (_itemUseID == 0)
 				{
-					if (tickCount - _tickLastUpdate > 160)
+					if (tickCount - _tickLastUpdate > 200)
 					{
 						_tickLastUpdate = tickCount;
 						return true;
@@ -248,6 +282,14 @@ namespace InfServer.Bots
 		public override void applyExplosion(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
 		{	//Apply our damage
 			applyExplosionDamage(true, attacker, dmgX, dmgY, wep);
+		}
+
+		/// <summary>
+		/// Causes the zombie to cease movement for the specified period of time
+		/// </summary>		
+		public void freezeMovement(int duration)
+		{
+			_movement.freezeMovement(duration);
 		}
 		#endregion
     }

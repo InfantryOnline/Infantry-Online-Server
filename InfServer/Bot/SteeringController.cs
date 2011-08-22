@@ -67,6 +67,7 @@ namespace InfServer.Bots
 				stopThrusting();
 				stopStrafing();
 
+				steerDelegate = null;
 				return base.updateState(delta);
 			}
 
@@ -130,6 +131,7 @@ namespace InfServer.Bots
 			bSkipAim = false;
 			bSkipRotate = false;
 
+			steerDelegate = null;
 			return base.updateState(delta);
 		}
 

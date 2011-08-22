@@ -12,7 +12,26 @@ namespace InfServer.Protocol
 	/// Provides a series of functions for easily serialization of packets
 	/// </summary>
 	public partial class Helpers
-	{	///////////////////////////////////////////////////
+	{	// Member Classes
+		//////////////////////////////////////////////////
+		public enum ChartType
+		{
+			ScoreOnlinePlayers = 0,
+			ScoreLifetime = 1,
+			ScoreCurrentGame = 2,
+			ScoreDaily = 3,
+			ScoreWeekly = 4,
+			ScoreMonthly = 5,
+			ScoreYearly = 6,
+			ScoreHistoryDaily = 7,
+			ScoreHistoryWeekly = 8,
+			ScoreHistoryMonthly = 9,
+			ScoreHistoryYearly = 10,
+			ScorePreviousGame = 17,
+			ScoreCurrentSession = 18,
+		}
+		
+		///////////////////////////////////////////////////
 		// Member Functions
 		//////////////////////////////////////////////////
 		/// <summary>
@@ -63,6 +82,54 @@ namespace InfServer.Protocol
 			//Send it to all arena participants
 			foreach (Player player in players)
 				player._client.sendReliable(chat);
+		}
+
+		/// <summary>
+		/// Sends a player banner update to a list of players
+		/// </summary>
+		static public void Social_ArenaBanners(IEnumerable<Player> players, Player player)
+		{	//Got a banner?
+			if (player._bannerData == null)
+				return;
+
+			//Send each player's banner
+			SC_Banner banner = new SC_Banner();
+			banner.player = player;
+
+			foreach (Player plyr in players)
+				if (plyr != player)
+					plyr._client.sendReliable(banner, 1);
+		}
+
+		/// <summary>
+		/// Sends all player banners in an arena to a specific player
+		/// </summary>
+		static public void Social_ArenaBanners(Player player, Arena arena)
+		{	//Send each player's banner
+			foreach (Player plyr in arena.Players)
+			{	//Got a banner?
+				if (plyr._bannerData == null)
+					return;
+
+				SC_Banner banner = new SC_Banner();
+				banner.player = plyr;
+
+				player._client.sendReliable(banner, 1);
+			}
+		}
+
+		/// <summary>
+		/// Sets a player's banner
+		/// </summary>
+		static public void Social_UpdateBanner(Player player)
+		{	//Got a banner?
+			if (player._bannerData == null)
+				return;
+
+			SC_Banner banner = new SC_Banner();
+			banner.player = player;
+
+			player._client.sendReliable(banner, 1);
 		}
 
 		/// <summary>

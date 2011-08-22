@@ -25,17 +25,19 @@ namespace InfServer.Game
 		public bool _shouldFire;						//Should we fire?
 		public bool _sendUpdate;						//Should we send an update?
 
-		private int _tickShotTime;						//The last time at which we fired a shot
-		private int _tickReloadTime;					//The last time at which we started reloading
-		private int _ammoRemaining;						//The amount of ammo we have remaining in our clip
+		protected int _tickLastUpdate;					//The last time at which we sent an update packet
+		protected int _tickShotTime;					//The last time at which we fired a shot
+		protected int _tickReloadTime;					//The last time at which we started reloading
+		protected int _ammoRemaining;						//The amount of ammo we have remaining in our clip
 
 		//Turret settings
 		public ItemInfo _primaryGun;					//The weapon we're using to shoot
 		public ItemInfo.Projectile _primaryProjectile;	//The main projectile we're considering for aiming
-		private int _reloadTime;						//The time taken to reload
-		private int _ammoType;							//Ammo settings
-		private int _ammoCount;							//
-		private int _ammoCapacity;						//
+		protected int _fireDelay;						//The delay between firing shots
+		protected int _reloadTime;						//The time taken to reload
+		protected int _ammoType;						//Ammo settings
+		protected int _ammoCount;						//
+		protected int _ammoCapacity;					//
 
 
 		///////////////////////////////////////////////////
@@ -66,6 +68,7 @@ namespace InfServer.Game
 				{
 					ItemInfo.MultiUse mug = (ItemInfo.MultiUse)_primaryGun;
 					_reloadTime = mug.reloadDelayNormal * 10;
+					_fireDelay = mug.fireDelay * 10;
 
 					//Assume the first item is the tracking projectile
 					_primaryProjectile = ((ItemInfo.Projectile)am.getItemByID(mug.childItems[0].id));
@@ -74,6 +77,7 @@ namespace InfServer.Game
 				{
 					_primaryProjectile = (ItemInfo.Projectile)_primaryGun;
 					_reloadTime = _primaryProjectile.reloadDelayNormal * 10;
+					_fireDelay = _primaryProjectile.fireDelay * 10;
 				}
 				else
 					//Treat it as no weapon
@@ -89,16 +93,21 @@ namespace InfServer.Game
 		/// Keeps the vehicle state updated, and sends an update packet if necessary
 		/// </summary>
 		/// <returns>A boolean indicating whether an update packet should be sent</returns>
-		public bool poll()
-		{	//If it isn't a turret then do nothing
-			if (_primaryGun == null) 
-				return false;
-			
-			//If not reloaded yet don't fire
-			if (_tickShotTime + (_primaryProjectile.fireDelay * 10) > Environment.TickCount ||
-				_tickReloadTime + (_primaryProjectile.reloadDelayNormal * 10) > Environment.TickCount) 
-				return false;
+		public virtual bool poll()
+		{	//If it isn't a turret then send an update tick every now and then for health
+			int now = Environment.TickCount;
 
+			if (_primaryGun == null)
+			{
+				if (now - _tickLastUpdate > 2000)
+				{
+					_tickLastUpdate = now;
+					return true;
+				}
+
+				return false;
+			}
+			
 			//If below non-operational HP don't fire
 			if (_state.health < _type.HitpointsRequiredToOperate) 
 				return false;
@@ -108,7 +117,22 @@ namespace InfServer.Game
 			if (target == null) 
 				return false;
 
+			//Look at our target!
 			_state.fireAngle = Helpers.computeLeadFireAngle(_state, target._state, _primaryProjectile.muzzleVelocity / 1000);
+
+			//If not reloaded yet don't fire
+			if (_tickShotTime + _fireDelay > now ||
+				_tickReloadTime > now)
+			{	//But maybe send an update packet?
+				if (now - _tickLastUpdate > 300)
+				{
+					_tickLastUpdate = now;
+					return true;
+				}
+
+				return false;
+			}
+			
 			_shouldFire = true;
 			_tickShotTime = Environment.TickCount;
 
@@ -125,7 +149,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Returns the closest valid target, if any
 		/// </summary>		
-		private Player getClosestValidTarget()
+		protected Player getClosestValidTarget()
 		{
 			List<Player> inTrackingRange = _arena.getPlayersInRange(
 			_state.positionX, _state.positionY, _type.TrackingRadius);
@@ -149,7 +173,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Compute if a player is a valid target that satisfies the turret's config parameters
 		/// </summary>		
-		private bool isValidTarget(Player p)
+		protected virtual bool isValidTarget(Player p)
 		{					
 			// Don't fire at spectators
 			if (p.IsSpectator) return false;
@@ -175,7 +199,6 @@ namespace InfServer.Game
             if (IsPlayerOccluded(p)) return false;
 
 			return true;
-			
 		}
 
         /// <summary>
@@ -183,13 +206,16 @@ namespace InfServer.Game
         /// </summary>
         /// <param name="p">player to check</param>
         /// <returns>true if player cannot be seen</returns>
-        private Boolean IsPlayerOccluded(Player p)
+		protected Boolean IsPlayerOccluded(Player p)
         {
-			return Helpers.calcBresenhemsPredicate(p._arena, _state.positionX, _state.positionY, p._state.positionX, p._state.positionY,
+			return !Helpers.calcBresenhemsPredicate(p._arena, _state.positionX, _state.positionY, p._state.positionX, p._state.positionY,
 				delegate(LvlInfo.Tile t)
 				{
 					short physLow = AssetManager.Manager.Level.PhysicsLow[t.Physics];
 					short physHigh = AssetManager.Manager.Level.PhysicsHigh[t.Physics];
+
+					if (physLow == 0 && physHigh == 0)
+						return true;
 
 					//Are we within the physics?
 					return (_type.FireHeight >= physLow && _type.FireHeight <= physHigh);	
@@ -202,7 +228,7 @@ namespace InfServer.Game
         /// </summary>
         /// <param name="p">Player to check</param>
         /// <returns>true if player is in firing range</returns>
-		private Boolean InRange(Player p)
+		protected Boolean InRange(Player p)
 		{
 			double d = Math.Sqrt(squaredDistanceTo(p));
 
@@ -215,9 +241,21 @@ namespace InfServer.Game
 		/// <summary>
 		/// Returns squared norm distance from turret to this player
 		/// </summary>		
-		private double squaredDistanceTo(Player p)
+		protected double squaredDistanceTo(Player p)
 		{
 			return Math.Pow(p._state.positionX - _state.positionX, 2) + Math.Pow(p._state.positionY - _state.positionY, 2);
+		}
+
+		/// <summary>
+		/// Causes the vehicle to die
+		/// </summary>
+		public override void kill(Player killer)
+		{	//Set our health to 0
+			_state.health = 0;
+			_tickDead = Environment.TickCount;
+
+			//Computer vehicles don't linger, so destroy it
+			destroy(true);
 		}
 
 		/// <summary>
@@ -230,7 +268,7 @@ namespace InfServer.Game
 			//Did we die?
 			if (_state.health <= 0)
 			{	//Computer vehicles don't linger, so destroy it
-				destroy(false);
+				destroy(true);
 			}
 
 			_sendUpdate = true;

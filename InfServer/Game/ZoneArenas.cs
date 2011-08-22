@@ -35,6 +35,12 @@ namespace InfServer.Game
 			Arena.maxItems = _config["arena/maxArenaItems"].intValue;
 			Arena.maxVehicles = _config["arena/maxArenaVehicles"].intValue;
 			Arena.gameCheckInterval = _config["arena/gameCheckInterval"].intValue;
+			Arena.routeRange = _config["arena/routing/routeRange"].intValue;
+			Arena.routeWeaponRange = _config["arena/routing/routeWeaponRange"].intValue;
+			Arena.routeRadarRange = _config["arena/routing/routeRadarRange"].intValue;
+			Arena.routeRadarRangeFactor = _config["arena/routing/routeRadarRangeFactor"].intValue;
+			Arena.routeRadarRangeFar = _config["arena/routing/routeRadarRangeFar"].intValue;
+			Arena.routeRadarRangeFarFactor = _config["arena/routing/routeRadarRangeFarFactor"].intValue;
 
 			if (Arena.maxVehicles > UInt16.MaxValue - ZoneServer.maxPlayers)
 			{	//Complain
@@ -78,7 +84,7 @@ namespace InfServer.Game
 				}
 
                 // Sleep for a bit
-				//Thread.Sleep(10);
+				Thread.Sleep(5);
 			}
 		}
 

@@ -71,7 +71,7 @@ namespace Assets
                 vehicleMaker.itemType = (ItemType)CSVReader.GetInt(values[0]);
                 vehicleMaker.version = CSVReader.GetInt(values[1].Trim('v'));
                 vehicleMaker.id = CSVReader.GetInt(values[2]);
-                vehicleMaker.name = CSVReader.GetString(values[3]);
+                vehicleMaker.name = CSVReader.GetQuotedString(values[3]);
                 vehicleMaker.category = CSVReader.GetString(values[4]);
 				vehicleMaker.skillLogic = CSVReader.GetQuotedString(values[5]);
                 vehicleMaker.description = CSVReader.GetString(values[6]);
@@ -151,6 +151,12 @@ namespace Assets
 				_ammoID = ammoID;
 				_ammoCount = ammoUsedPerShot;
 				_ammoCapacity = ammoCapacity;
+				return true;
+			}
+
+			public override bool getRouteRange(out int range)
+			{
+				range = routeRange;
 				return true;
 			}
         }

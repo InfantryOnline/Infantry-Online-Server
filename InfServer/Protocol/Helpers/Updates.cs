@@ -7,6 +7,7 @@ using InfServer.Network;
 using InfServer.Game;
 using InfServer.Bots;
 
+using Assets;
 
 namespace InfServer.Protocol
 {	/// <summary>
@@ -17,40 +18,73 @@ namespace InfServer.Protocol
 		// Member Functions
 		//////////////////////////////////////////////////
 		/// <summary>
+		/// Obtains a list of valid targets to route the update to
+		/// </summary>
+		static public List<Player> getRouteList(Arena arena, Helpers.ObjectState state, bool bWeapon, int weaponRouteRange, IEnumerable<Player> additionals, int oldPosX, int oldPosY)
+		{	//Which range does it qualify for?
+			int range = Arena.routeRange;
+
+			//If the weapon has a route range, use it
+			if (bWeapon && weaponRouteRange != 0)
+				range = weaponRouteRange;
+			else
+			{
+				if (bWeapon)
+					range = Arena.routeWeaponRange;
+				else if (state.updateNumber % Arena.routeRadarRangeFarFactor == 0)
+					range = Arena.routeRadarRangeFar;
+				else if (state.updateNumber % Arena.routeRadarRangeFactor == 0)
+					range = Arena.routeRadarRange;
+			}
+
+			//Get the eligible players
+			List<Player> audience = arena.getPlayersAndSpecInRange(state.positionX, state.positionY, range);
+
+			if (additionals != null)
+			{
+				foreach (Player p in additionals)
+					if (!audience.Contains(p))
+						audience.Add(p);
+			}
+
+			//Is our old position far from our new? (warped?)
+			if (Math.Sqrt(Math.Pow(state.positionX - oldPosX, 2) + Math.Pow(state.positionY - oldPosY, 2)) > Arena.routeRange)
+			{	//We want our old audience to be notified too
+				List<Player> extraAudience = arena.getPlayersAndSpecInRange(oldPosX, oldPosY, Arena.routeRadarRangeFar);
+				foreach (Player p in extraAudience)
+					if (!audience.Contains(p))
+						audience.Add(p);
+			}
+
+			return audience;
+		}
+
+		/// <summary>
 		/// Provides an easy means of routing computer vehicle update messages
 		/// </summary>
-		static public void Update_RouteComputer(IEnumerable<Player> p, Computer update)
+		static public void Update_RouteComputer(Computer update)
 		{	//Prepare the appropriate packets
 			SC_PlayerTeamUpdate tu = new SC_PlayerTeamUpdate();
 
+			tu.tickUpdate = Environment.TickCount;
 			tu.player = null;
 			tu.vehicle = update;
 			tu.itemID = (short)(update._shouldFire ? update._primaryGun.id : -1);			
 
 			tu.activeEquip = new List<ushort>();
 
-			/*//Prepare the appropriate packets
-			SC_PlayerUpdate up = new SC_PlayerUpdate();
+			//TODO: Should we use SC_PlayerUpdate for computers too?
 
-			up.updateType = Update_Type.Car;
-			up.playerID = 0xFFFF;
-			up.tickCount = (short) Environment.TickCount;
-			up.itemID = update._shouldFire ? (short) update._primaryGun.id : (short) -1;
-			up.vehicleID = update._id;
-			up.health = update._state.health;
-			up.velocityX = update._state.velocityX;
-			up.velocityY = update._state.velocityY;
-			up.velocityZ = update._state.velocityZ;
-			up.positionX = update._state.positionX;
-			up.positionY = update._state.positionY;
-			up.positionZ = update._state.positionZ;
-			up.yaw = update._state.yaw;
-			up.direction = update._state.direction;
-			up.unk3 = update._state.unk1;
-			up.activeEquip = new List<ushort>(0);*/
+			//Get the audience
+			int weaponRouteRange = 0;
+			if (update._primaryGun != null)
+				update._primaryGun.getRouteRange(out weaponRouteRange);
+
+			List<Player> audience = getRouteList(update._arena, update._state, update._shouldFire, weaponRouteRange, null, 
+				update._state.positionX, update._state.positionY);
 
 			//Send our updates..
-			foreach (Player player in p)
+			foreach (Player player in audience)
 				player._client.send(tu);				
 
 			// Disable fire
@@ -61,10 +95,11 @@ namespace InfServer.Protocol
 		/// <summary>
 		/// Provides an easy means of routing movement update messages between players
 		/// </summary>
-		static public void Update_RoutePlayer(IEnumerable<Player> p, Player update, CS_PlayerUpdate pkt)
+		static public void Update_RoutePlayer(Player update, CS_PlayerUpdate pkt, int updateTick, int oldPosX, int oldPosY)
 		{	//Prepare the appropriate packets
 			SC_PlayerTeamUpdate tu = new SC_PlayerTeamUpdate();
 
+			tu.tickUpdate = updateTick;
 			tu.player = update;
 			tu.vehicle = update.ActiveVehicle;
 			tu.itemID = pkt.itemID;
@@ -73,55 +108,79 @@ namespace InfServer.Protocol
 
 			SC_PlayerUpdate up = new SC_PlayerUpdate();
 
-			up.updateType = Update_Type.Car;
-			up.playerID = update._id;
-			up.tickCount = (short)Environment.TickCount;
-			up.itemID = (pkt.itemID == 0 ? (short)-1 : pkt.itemID);
-			up.vehicleID = (update._occupiedVehicle == null) ? update._id : update._occupiedVehicle._id;
-			up.health = update._state.health;
-			up.velocityX = update._state.velocityX;
-			up.velocityY = update._state.velocityY;
-			up.velocityZ = update._state.velocityZ;
-			up.positionX = update._state.positionX;
-			up.positionY = update._state.positionY;
-			up.positionZ = update._state.positionZ;
-			up.yaw = update._state.yaw;
-			up.direction = (UInt16)update._state.direction;
-			up.unk3 = update._state.unk1;
+			up.tickUpdate = updateTick;
+			up.player = update;
+			up.vehicle = update.ActiveVehicle;
+			up.itemID = pkt.itemID;
+
 			up.activeEquip = pkt.activeEquip;
-			
+
+			//Get the routing audience
+			int weaponRouteRange = 0;
+			if (pkt.itemID != 0)
+			{
+				ItemInfo item = AssetManager.Manager.getItemByID(pkt.itemID);
+				if (item != null)
+					item.getRouteRange(out weaponRouteRange);
+			}
+
+			List<Player> audience = getRouteList(update._arena, update._state, (pkt.itemID != 0), weaponRouteRange, update._spectators, oldPosX, oldPosY);
+
 			//Send our updates..
-			foreach (Player player in p)
+			foreach (Player player in audience)
 			{	//Don't send duplicates
 				if (player == update)
 					continue;
 
-				//if (player._team == update._team)
+				if (player.IsSpectator || player._team == update._team)
 					player._client.send(tu);
-				//else
-				//	player._client.send(up);
+				else
+					player._client.send(up);
 			}
 		}
 
 		/// <summary>
 		/// Provides an easy means of routing bot update packets to players
 		/// </summary>
-		static public void Update_RouteBot(IEnumerable<Player> p, Bot update)
+		static public void Update_RouteBot(Bot update)
 		{	//Prepare the appropriate packets
 			SC_PlayerTeamUpdate tu = new SC_PlayerTeamUpdate();
 
+			tu.tickUpdate = Environment.TickCount;
 			tu.player = null;
 			tu.vehicle = update;
 			tu.itemID = (short)update._itemUseID;
+			tu.activeUtilities = update._activeEquip;
 			tu.bBot = true;
 
-			//Send our updates..
-			foreach (Player player in p)
+			SC_PlayerUpdate up = new SC_PlayerUpdate();
+
+			up.tickUpdate = Environment.TickCount;
+			up.player = null;
+			up.vehicle = update;
+			up.itemID = (short)update._itemUseID;
+			up.activeUtilities = update._activeEquip;
+			up.bBot = true;
+			
+			//Get the routing audience
+			int weaponRouteRange = 0;
+			if (update._itemUseID != 0)
 			{
-				//if (player._team == update._team)
-				player._client.send(tu);
-				//else
-				//	player._client.send(up);
+				ItemInfo item = AssetManager.Manager.getItemByID(update._itemUseID);
+				if (item != null)
+					item.getRouteRange(out weaponRouteRange);
+			}
+
+			List<Player> audience = getRouteList(update._arena, update._state, (update._itemUseID != 0), weaponRouteRange, null, 
+				update._state.positionX, update._state.positionY);
+
+			//Send our updates..
+			foreach (Player player in audience)
+			{
+				if (player.IsSpectator || player._team == update._team)
+					player._client.send(tu);
+				else
+					player._client.send(up);
 			}
 		}
 	}

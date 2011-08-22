@@ -22,7 +22,7 @@ namespace InfServer.Logic
 		{	//Search for our namespace
 			List<MethodInfo> regFunctions = new List<MethodInfo>();
 			IEnumerable<Type> classes = asm.GetTypes().Where(
-				type => (type.Namespace != null && type.Namespace.StartsWith("InfServer.Logic")));
+				type => (type.Namespace != null));
 
 			foreach (Type type in classes)
 			{

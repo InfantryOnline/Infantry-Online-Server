@@ -27,7 +27,7 @@ namespace InfServer.Game
 
 		public ZoneServer _server;				//The server we work for!
 
-		private volatile bool bDestroyed;		//Have we already been destroyed?
+		public volatile bool bDestroyed;		//Have we already been destroyed?
 		public bool _bIngame;					//Are we in the game, or in an arena transition?
 		public bool _bLoggedIn;					//Have we made it past the login process, and are able to enter arenas?
 
@@ -59,13 +59,21 @@ namespace InfServer.Game
 		#endregion
 
 		#region Player state
-		public int _bounty;							//Our current bounty
+		public Player _spectating;				//The player we're currently spectating
+		public List<Player> _spectators;		//The players that are currently spectating us
+
+		public byte[] _bannerData;				//The data for our current banner
+		public int _bounty;						//Our current bounty
 
 		public Dictionary<int, InventoryItem> _inventory;	//Our current inventory
-		public Dictionary<int, InventoryItem> _idToItem;
 		public Dictionary<int, SkillItem> _skills;	//Our current skill inventory
 
 		public bool _bDBLoaded;						//Has the player's statistics been loaded from the database?
+
+		//Suspended player state
+		private Data.PlayerStats _suspStats;
+		private Dictionary<int, InventoryItem> _suspInventory;
+		private Dictionary<int, SkillItem> _suspSkills;
 		#endregion
 
 		#region Events
@@ -91,6 +99,8 @@ namespace InfServer.Game
 					_bounty = 30000;
 				else
 					_bounty = value;
+
+				Helpers.Player_SetBounty(this, (short)_bounty);
 			}
 		}
 
@@ -200,6 +210,9 @@ namespace InfServer.Game
 			_alias = "";
 
 			_state = new Helpers.ObjectState();
+			_bounty = 1;
+
+			_spectators = new List<Player>();
 		}
 
 		#region State
@@ -234,7 +247,14 @@ namespace InfServer.Game
 		/// The player has left the arena, reset assets
 		/// </summary>
 		public void leftArena()
-		{	//If we're currently in a vehicle, we want to desert it
+		{	//Stop spectating
+			if (_spectating != null)
+			{
+				_spectating._spectators.Remove(this);
+				_spectating = null;
+			}
+
+			//If we're currently in a vehicle, we want to desert it
 			if (_occupiedVehicle != null)
 				_occupiedVehicle.playerLeave(true);
 			_occupiedVehicle = null;
@@ -293,8 +313,14 @@ namespace InfServer.Game
 			baseVehicle._bBaseVehicle = true;
 			baseVehicle._arena = _arena;
 			baseVehicle._id = _id;
+
+			//Dispose of the old basevehicle
 			if (_baseVehicle._inhabitant != null)
+			{
 				baseVehicle._inhabitant = _baseVehicle._inhabitant;
+				_baseVehicle._inhabitant = null;
+				_baseVehicle.bCondemned = true;
+			}
 
 			//Player and basevehicle share same state
 			baseVehicle._state = _state;
@@ -566,6 +592,7 @@ namespace InfServer.Game
 			//A multi item?
 			else if (item.itemType == ItemInfo.ItemType.Multi)
 			{	//Apply it!
+				useMultiItem(item, (short)adjust);
 				applyMultiItem(bSync, (ItemInfo.MultiItem)item, adjust);
 				return true;
 			}
@@ -582,10 +609,7 @@ namespace InfServer.Game
 
 				//Do we have enough items?
 				if (ii.quantity + adjust < 0)
-				{
-					Log.write(TLog.Warning, "Attempted to remove too many items from player {0}.", this);
 					return false;
-				}
 
 				//Will there be any items left?
 				if (adjust < 0 && (ii.quantity + adjust == 0))
@@ -595,14 +619,13 @@ namespace InfServer.Game
 			}
 			else if (adjust < 0)
 			{
-				Log.write(TLog.Warning, "Attempted to remove items which didn't exist from player {0}.", this);
 				return false;
 			}
 			else
 			{	//Is there enough space?
 				if (item.maxAllowed < 0)
 					adjust = Math.Min(-item.maxAllowed, adjust);
-				
+
 				//We need to add a new inventory item
 				ii = new InventoryItem();
 
@@ -660,13 +683,11 @@ namespace InfServer.Game
 		private void applyMultiItem(bool bSync, ItemInfo.MultiItem multiItem, int repeat)
 		{	//Adjust stats as necessary
 			if (multiItem.Cash != 0)
-				this.Cash += multiItem.Cash;
+				this.Cash += multiItem.Cash * repeat;
 
 			if (multiItem.Experience != 0)
-				this.Experience += multiItem.Experience;
+				this.Experience += multiItem.Experience * repeat;
 
-			//TODO: Implement modification of energy, health and repair
-			
 			//Give the player his items
 			foreach (ItemInfo.MultiItem.Slot slot in multiItem.slots)
 			{	//Valid item?
@@ -682,12 +703,8 @@ namespace InfServer.Game
 				}
 
 				//Add an item!
-				inventoryModify(false, item, 1);
+				inventoryModify(false, item, repeat);
 			}
-
-			//Do we repeat?
-			if (repeat > 1)
-				applyMultiItem(false, multiItem, repeat - 1);
 
 			if (bSync)
 				syncState();
@@ -698,38 +715,42 @@ namespace InfServer.Game
 		/// </summary>
 		private void applyUpgradeItem(bool bSyncInv, ItemInfo.UpgradeItem upgradeItem, int repeat)
 		{	//Find the first input item which matches
-			foreach (ItemInfo.UpgradeItem.Upgrade upgrade in upgradeItem.upgrades)
-			{	//Valid entry?
-				if (upgrade.inputID == 0 && upgrade.outputID == 0)
-					continue;
+			bool bNoAdd = false;
 
-				//If there is no input item..
-				if (upgrade.inputID == 0)
-				{	//Just gift the output item!
-					inventoryModify(false, upgrade.outputID, 1);
+			while (repeat-- > 0 && !bNoAdd)
+			{
+				bNoAdd = true;
+
+				foreach (ItemInfo.UpgradeItem.Upgrade upgrade in upgradeItem.upgrades)
+				{	//Valid entry?
+					if (upgrade.inputID == 0 && upgrade.outputID == 0)
+						continue;
+
+					//If there is no input item..
+					if (upgrade.inputID == 0)
+					{	//Just gift the output item!
+						inventoryModify(false, upgrade.outputID, 1);
+						break;
+					}
+
+					//Do we have such an item?
+					InventoryItem ii;
+					_inventory.TryGetValue(upgrade.inputID, out ii);
+
+					if (ii == null || ii.quantity <= 0)
+						continue;
+
+					//Yes! Remove the item
+					inventoryModify(false, upgrade.inputID, -1);
+
+					//Do we replace with an output item?
+					if (upgrade.outputID != 0)
+						inventoryModify(false, upgrade.outputID, 1);
+
+					bNoAdd = false;
 					break;
 				}
-
-				//Do we have such an item?
-				InventoryItem ii;
-				_inventory.TryGetValue(upgrade.inputID, out ii);
-
-				if (ii == null || ii.quantity <= 0)
-					continue;
-
-				//Yes! Remove the item
-				inventoryModify(false, upgrade.inputID, -1);
-
-				//Do we replace with an output item?
-				if (upgrade.outputID != 0)
-					inventoryModify(false, upgrade.outputID, 1);
-
-				break;
 			}
-
-			//Do we repeat?
-			if (repeat > 1)
-				applyUpgradeItem(false, upgradeItem, repeat - 1);
 
 			if (bSyncInv)
 				syncInventory();
@@ -783,6 +804,29 @@ namespace InfServer.Game
 			Helpers.Player_RouteItemUsed(this, healer, this._id, (Int16)item.id, posX, posY, 0); 
 		}
 
+		/// <summary>
+		/// Sets the energy for the player
+		/// </summary>
+		public void setEnergy(short energy)
+		{
+			Helpers.Vehicle_SetEnergy(this, energy);
+		}
+
+		/// <summary>
+		/// Resets the player vehicle's state
+		/// </summary>
+		public void resetState(bool resetEnergy, bool resetHealth, bool resetVelocity)
+		{
+			Helpers.Vehicle_ResetState(this, resetEnergy, resetHealth, resetVelocity);
+		}
+
+		/// <summary>
+		/// Applies a multi item's effects to the player's client
+		/// </summary>
+		public void useMultiItem(ItemInfo item, short count)
+		{
+			Helpers.Player_UseMultiItems(this, (short)item.id, count);
+		}
 		#endregion
 
 		#region Helpers
@@ -847,6 +891,16 @@ namespace InfServer.Game
 				return false;
 			if (!IsSpectator)
 				return false;
+
+			//Stop spectating
+			if (_spectating != null)
+			{
+				_spectating._spectators.Remove(this);
+				_spectating = null;
+			}
+			
+			toSpectate._spectators.Add(this);
+			_spectating = toSpectate;
 
 			Helpers.Player_SpectatePlayer(this, toSpectate);
 			return true;
@@ -947,7 +1001,7 @@ namespace InfServer.Game
 		/// </summary>
 		public void warp(Player warpTo)
 		{	//Warp away!
-			warp(Helpers.WarpMode.Normal, -1, warpTo._state.positionX, warpTo._state.positionY);
+			warp(Helpers.ResetFlags.ResetNone, -1, warpTo._state.positionX, warpTo._state.positionY);
 		}
 
 		/// <summary>
@@ -955,20 +1009,20 @@ namespace InfServer.Game
 		/// </summary>
 		public void warp(int posX, int posY)
 		{	//Warp away!
-			warp(Helpers.WarpMode.Normal, -1, (short)posX, (short)posY);
+			warp(Helpers.ResetFlags.ResetNone, -1, (short)posX, (short)posY);
 		}
 
 		/// <summary>
 		/// Sends the player a warp request
 		/// </summary>
-		public void warp(Helpers.WarpMode mode, Helpers.ObjectState state, short radius, short energy, short invulnTime)
+		public void warp(Helpers.ResetFlags flags, Helpers.ObjectState state, short radius, short energy, short invulnTime)
 		{	//Do we need to apply a radius?
 			if (radius == 0)
-				warp(mode, energy, state.positionX, state.positionY, state.positionX, state.positionY, invulnTime);
+				warp(flags, energy, state.positionX, state.positionY, state.positionX, state.positionY, invulnTime);
 			else
 			{	//Calculate coordinates
 				radius /= 2;
-				warp(mode, energy,
+				warp(flags, energy,
 					(short)(state.positionX - radius), (short)(state.positionY - radius),
 					(short)(state.positionX + radius), (short)(state.positionY + radius), invulnTime);
 			}
@@ -977,23 +1031,23 @@ namespace InfServer.Game
 		/// <summary>
 		/// Sends the player a warp request
 		/// </summary>
-		public void warp(Helpers.WarpMode mode, short energy, short posX, short posY)
+		public void warp(Helpers.ResetFlags flags, short energy, short posX, short posY)
 		{	//Relay
-			warp(mode, energy, posX, posY, posX, posY, (short)_server._zoneConfig.vehicle.warpDamageIgnoreTime);
+			warp(flags, energy, posX, posY, posX, posY, (short)_server._zoneConfig.vehicle.warpDamageIgnoreTime);
 		}
 
 		/// <summary>
 		/// Sends the player a warp request
 		/// </summary>
-		public void warp(Helpers.WarpMode mode, short energy, short topX, short topY, short bottomX, short bottomY)
+		public void warp(Helpers.ResetFlags flags, short energy, short topX, short topY, short bottomX, short bottomY)
 		{	//Relay
-			warp(mode, energy, topX, topY, bottomX, bottomY, (short)_server._zoneConfig.vehicle.warpDamageIgnoreTime);
+			warp(flags, energy, topX, topY, bottomX, bottomY, (short)_server._zoneConfig.vehicle.warpDamageIgnoreTime);
 		}
 
 		/// <summary>
 		/// Sends the player a warp request
 		/// </summary>
-		public void warp(Helpers.WarpMode mode, short energy, short topX, short topY, short bottomX, short bottomY, short invulnTime)
+		public void warp(Helpers.ResetFlags flags, short energy, short topX, short topY, short bottomX, short bottomY, short invulnTime)
 		{	//Approximate the player's new position
 			_state.positionX = (short)(((topX - bottomX) / 2) + bottomX);
 			_state.positionY = (short)(((topY - bottomY) / 2) + bottomY);
@@ -1001,7 +1055,7 @@ namespace InfServer.Game
 			//Prepare our packet
 			SC_PlayerWarp warp = new SC_PlayerWarp();
 
-			warp.warpMode = mode;
+			warp.warpFlags = flags;
 			warp.energy = energy;
 			warp.invulnTime = invulnTime;
 			warp.topX = topX; warp.topY = topY;
@@ -1020,7 +1074,7 @@ namespace InfServer.Game
 			//Prepare our packet
 			SC_PlayerWarp warp = new SC_PlayerWarp();
 
-			warp.warpMode = Helpers.WarpMode.Respawn;
+			warp.warpFlags = Helpers.ResetFlags.ResetAll;
 			warp.energy = -1;
 			warp.invulnTime = 0;
 			warp.topX = -1; warp.topY = -1;
@@ -1065,6 +1119,14 @@ namespace InfServer.Game
 		{	//Senddit
 			Helpers.Social_TickerMessage(this, colour, timer, message);
 		}
+
+		/// <summary>
+		/// Routes a private chat message to the player
+		/// </summary>
+		public void sendPlayerChat(Player from, CS_Chat chat)
+		{
+			Helpers.Player_RouteChat(this, from, chat);
+		}
 		#endregion
 
 		#region Event Implementations
@@ -1106,30 +1168,47 @@ namespace InfServer.Game
 		{	//Create a new object..
 			Data.PlayerStats stats = new InfServer.Data.PlayerStats();
 
-			//Copy basic stats
-			stats.altstat1 = _stats.altstat1;
-			stats.altstat2 = _stats.altstat2;
-			stats.altstat3 = _stats.altstat3;
-			stats.altstat4 = _stats.altstat4;
-			stats.altstat5 = _stats.altstat5;
-			stats.altstat6 = _stats.altstat6;
-			stats.altstat7 = _stats.altstat7;
-			stats.altstat8 = _stats.altstat8;
+			//Which stats object should we be using?
+			Data.PlayerStats sourceStats = StatsTotal;
+			IEnumerable<InventoryItem> inv = _inventory.Values;
+			IEnumerable<SkillItem> skills = _skills.Values;
 
-			stats.points = _stats.points;
-			stats.killPoints = _stats.killPoints;
-			stats.deathPoints = _stats.deathPoints;
-			stats.assistPoints = _stats.assistPoints;
-			stats.bonusPoints = _stats.bonusPoints;
-			stats.vehicleKills = _stats.vehicleKills;
-			stats.vehicleDeaths = _stats.vehicleDeaths;
-			stats.playSeconds = _stats.playSeconds;
+			if (_suspStats != null)
+			{
+				sourceStats = _suspStats;
+				inv = _suspInventory.Values;
+				skills = _suspSkills.Values;
+			}
+
+			//Copy basic stats
+			stats.zonestat1 = sourceStats.zonestat1;
+			stats.zonestat2 = sourceStats.zonestat2;
+			stats.zonestat3 = sourceStats.zonestat3;
+			stats.zonestat4 = sourceStats.zonestat4;
+			stats.zonestat5 = sourceStats.zonestat5;
+			stats.zonestat6 = sourceStats.zonestat6;
+			stats.zonestat7 = sourceStats.zonestat7;
+			stats.zonestat8 = sourceStats.zonestat8;
+			stats.zonestat9 = sourceStats.zonestat9;
+			stats.zonestat10 = sourceStats.zonestat10;
+			stats.zonestat11 = sourceStats.zonestat11;
+			stats.zonestat12 = sourceStats.zonestat12;
+
+			stats.kills = sourceStats.kills;
+			stats.deaths = sourceStats.deaths;
+			stats.killPoints = sourceStats.killPoints;
+			stats.deathPoints = sourceStats.deathPoints;
+			stats.assistPoints = sourceStats.assistPoints;
+			stats.bonusPoints = sourceStats.bonusPoints;
+			stats.vehicleKills = sourceStats.vehicleKills;
+			stats.vehicleDeaths = sourceStats.vehicleDeaths;
+			stats.playSeconds = sourceStats.playSeconds;
 			
 			//Convert our inventory
-			stats.cash = _stats.cash;
+			stats.cash = sourceStats.cash;
 			stats.inventory = new List<InfServer.Data.PlayerStats.InventoryStat>();
 
-			foreach (InventoryItem ii in _inventory.Values)
+			foreach (InventoryItem ii in inv)
 			{
 				Data.PlayerStats.InventoryStat stat = new Data.PlayerStats.InventoryStat();
 
@@ -1140,11 +1219,11 @@ namespace InfServer.Game
 			}
 
 			//Convert our skills
-			stats.experience = _stats.experience;
-			stats.experienceTotal = _stats.experienceTotal;
+			stats.experience = sourceStats.experience;
+			stats.experienceTotal = sourceStats.experienceTotal;
 			stats.skills = new List<InfServer.Data.PlayerStats.SkillStat>();
 
-			foreach (SkillItem si in _skills.Values)
+			foreach (SkillItem si in skills)
 			{
 				Data.PlayerStats.SkillStat stat = new Data.PlayerStats.SkillStat();
 
@@ -1168,6 +1247,7 @@ namespace InfServer.Game
 
 			//No basic stats
 			_stats = new InfServer.Data.PlayerStats();
+			_statsSession = new Data.PlayerStats();
 			_statsGame = null;
 			_statsLastGame = null;
 
@@ -1189,6 +1269,7 @@ namespace InfServer.Game
 
 			//Copy basic stats
 			_stats = stats;
+			_statsSession = new Data.PlayerStats();
 			_statsGame = null;
 			_statsLastGame = null;
 

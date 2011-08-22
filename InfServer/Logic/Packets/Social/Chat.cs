@@ -37,12 +37,18 @@ namespace InfServer.Logic
 				//Do we have a recipient?
 				Player recipient = null;
 				if (pkt.chatType == Helpers.Chat_Type.Whisper)
-					recipient = player._server.getPlayer(pkt.recipient);
+				{
+					if ((recipient = player._server.getPlayer(pkt.recipient)) == null)
+						return;
+				}
 
 				//Route it to our arena!
-				using (DdMonitor.Lock(player._arena._sync))
-					using (LogAssume.Assume(player._arena._logger))
-						player._arena.playerChatCommand(player, recipient, command, payload);
+				player._arena.handleEvent(delegate(Arena arena)
+					{
+						arena.playerChatCommand(player, recipient, command, payload);
+					}
+				);
+						
 				return;
 			}
 			else if (pkt.message[0] == '*' && pkt.message.Length > 1)
@@ -62,12 +68,18 @@ namespace InfServer.Logic
 				//Do we have a recipient?
 				Player recipient = null;
 				if (pkt.chatType == Helpers.Chat_Type.Whisper)
-					recipient = player._server.getPlayer(pkt.recipient);
+				{
+					if ((recipient = player._server.getPlayer(pkt.recipient)) == null)
+						return;
+				}
 
 				//Route it to our arena!
-				using (DdMonitor.Lock(player._arena._sync))
-					using (LogAssume.Assume(player._arena._logger))
+				player._arena.handleEvent(delegate(Arena arena)
+					{
 						player._arena.playerModCommand(player, recipient, command, payload);
+					}
+				);
+
 				return;
 			}
 
@@ -76,9 +88,11 @@ namespace InfServer.Logic
 			{
 				case Helpers.Chat_Type.Normal:
 					//Send it to our arena!
-					using (DdMonitor.Lock(player._arena._sync))
-						using (LogAssume.Assume(player._arena._logger))
+					player._arena.handleEvent(delegate(Arena arena)
+						{
 							player._arena.playerArenaChat(player, pkt);
+						}
+					);
 					break;
 
 				case Helpers.Chat_Type.Team:
@@ -87,9 +101,15 @@ namespace InfServer.Logic
 					break;
 
 				case Helpers.Chat_Type.Whisper:
-					//Send it to the target player
-					player._team.playerEnemyTeamChat(player, pkt);
+					{	//Find our recipient
+						Player recipient = player._server.getPlayer(pkt.recipient);
+						
+						//Send it to the target player
+						if (recipient != null)
+							recipient.sendPlayerChat(player, pkt);
+					}
 					break;
+
 				case Helpers.Chat_Type.Squad:
 					string squad = player._squad;
 					//Look up the squad that the player is currently in

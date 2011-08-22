@@ -28,6 +28,8 @@ namespace InfServer.Protocol
 		public bool bFirstTimeSetup;				//Is it the first time the player is setting up inventory?
 		public Data.PlayerStats stats;				//The player's statistics
 
+		public byte[] banner;						//The player's stored banner information
+
 		//Packet routing
 		public const ushort TypeID = 2;
 		static public event Action<SC_PlayerLogin<T>, T> Handlers;
@@ -99,6 +101,14 @@ namespace InfServer.Protocol
 				return;
 
 			stats.Serialize(this);
+
+			if (banner != null && banner.Length == 432)
+			{
+				Write((bool)true);
+				Write(banner);
+			}
+			else
+				Write((bool)false);
 		}
 
 		/// <summary>
@@ -111,13 +121,13 @@ namespace InfServer.Protocol
 
 			bNewAlias = _contentReader.ReadBoolean();
 			bSuccess = _contentReader.ReadBoolean();
-			loginMessage = ReadString();
+			loginMessage = ReadNullString();
 
 			//If login failed, there's no need to read further
 			if (!bSuccess)
 				return;
 
-			squad = ReadString();
+			squad = ReadNullString();
 			permission = (InfServer.Data.PlayerPermission)_contentReader.ReadByte();
 
 			bFirstTimeSetup = _contentReader.ReadBoolean();
@@ -127,6 +137,10 @@ namespace InfServer.Protocol
 				return;
 
 			stats = PlayerStats.Deserialize(_contentReader);
+
+			bool bBanner = _contentReader.ReadBoolean();
+			if (bBanner)
+				banner = _contentReader.ReadBytes(432);
 		}
 
 		/// <summary>

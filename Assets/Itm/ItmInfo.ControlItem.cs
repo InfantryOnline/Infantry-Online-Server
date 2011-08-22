@@ -142,6 +142,12 @@ namespace Assets
 				_ammoCapacity = ammoCapacity;
 				return true;
 			}
+
+			public override bool getRouteRange(out int range)
+			{
+				range = routeRange;
+				return true;
+			}
         }
     }
 }

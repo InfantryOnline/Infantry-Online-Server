@@ -38,11 +38,16 @@ namespace InfServer.Game
 			{	//Does it need to send an update?
 				if (bot.poll())
 				{	//Prepare and send an update packet for the vehicle
-					Helpers.Update_RouteBot(Players, bot);
+					bot._state.updateNumber++;
+
+					Helpers.Update_RouteBot(bot);
 
 					//Update the bot's state
 					if (!bot.bCondemned)
+					{
 						_vehicles.updateObjState(bot, bot._state);
+						_bots.updateObjState(bot, bot._state);
+					}
 
 					//Only shoot once!
 					bot._itemUseID = 0;
@@ -203,6 +208,28 @@ namespace InfServer.Game
 		public void lostBot(Bot bot)
 		{	//Mark it for deletion
 			bot.bCondemned = true;
+		}
+
+		/// <summary>
+		/// Determines whether there is a bot antiwarping the player in the specified area
+		/// </summary>
+		public Bot checkBotAntiwarp(Player player)
+		{	//Get the list of bots in the area
+			IEnumerable<Bot> candidates = _bots.getObjsInRange(player._state.positionX, player._state.positionY, 1000);
+			
+			foreach (Bot candidate in candidates)
+			{	//Any anti-warp utils?
+				if (!candidate._activeEquip.Any(util => util.antiWarpDistance != -1))
+					continue;
+
+				//Is it within the distance?
+				int dist = (int)(player._state.position().Distance(candidate._state.position()) * 100);
+
+				if (candidate._activeEquip.Any(util => util.antiWarpDistance >= dist))
+					return candidate;
+			}
+
+			return null;
 		}
 	}
 }

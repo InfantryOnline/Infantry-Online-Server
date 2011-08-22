@@ -8,7 +8,7 @@ using InfServer.Data;
 using InfServer.Game;
 
 namespace InfServer.Logic
-{	// Logic_Connection Class
+{	// Logic_Player Class
 	/// Deals with player specific database packets
 	///////////////////////////////////////////////////////
 	class Logic_Player
@@ -38,8 +38,10 @@ namespace InfServer.Logic
 
 			//Do we want to load stats?
 			if (!pkt.bFirstTimeSetup)
-				//Assign the player stats
+			{	//Assign the player stats
 				player.assignStats(pkt.stats);
+				player._bannerData = pkt.banner;
+			}
 			else
 				//First time loading!
 				player.assignFirstTimeStats();

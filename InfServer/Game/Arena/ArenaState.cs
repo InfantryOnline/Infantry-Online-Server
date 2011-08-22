@@ -145,7 +145,8 @@ namespace InfServer.Game
 			Helpers.Object_Players(player, player);
 
 			//Make sure the player is aware of every player in the arena
-		    Helpers.Object_Players(player, Players);
+			List<Player> audience = Players.ToList();
+			Helpers.Object_Players(player, audience);
 
 			//Load the arena's item state  
 			Helpers.Object_Items(player, _items.Values);         
@@ -162,7 +163,10 @@ namespace InfServer.Game
 			Helpers.Player_StateInit(player,
 				delegate()
 				{	//And make sure everyone is aware of him
-					Helpers.Object_Players(Players, player);
+					Helpers.Object_Players(audience, player);
+
+					//.. and his banner
+					Helpers.Social_ArenaBanners(Players, player);
 
 					//Consider him loaded!
 					player.spec("spec");
@@ -170,6 +174,9 @@ namespace InfServer.Game
 
 					//Load the tickers
 					Helpers.Arena_Message(player, _tickers.Values);
+
+					//Load all the banners
+					Helpers.Social_ArenaBanners(player, this);
 				}
 			);
 		}
@@ -204,7 +211,8 @@ namespace InfServer.Game
 		public void lostPlayer(Player player)
 		{	//Sob, let him go
 			_players.Remove(player);
-			_playersIngame.Remove(player);
+			if (!player.IsSpectator)
+				playerLeave(player);
 
 			player.onLeaveArena();
 			
@@ -257,6 +265,14 @@ namespace InfServer.Game
 		/// Creates and adds a new vehicle to the arena
 		/// </summary>
 		public Vehicle newVehicle(VehInfo type, Team team, Player creator, Helpers.ObjectState state, Action<Vehicle> setupCB)
+		{
+			return newVehicle(type, team, creator, state, setupCB, null);
+		}
+
+		/// <summary>
+		/// Creates and adds a new vehicle to the arena
+		/// </summary>
+		public Vehicle newVehicle(VehInfo type, Team team, Player creator, Helpers.ObjectState state, Action<Vehicle> setupCB, Type classType)
 		{	//Too many vehicles?
 			if (_vehicles.Count == maxVehicles)
 			{
@@ -290,11 +306,16 @@ namespace InfServer.Game
 
 			//Create our vehicle class		
 			Vehicle veh;
-			
-			if (type.Type == VehInfo.Types.Computer)
-				veh = new Computer(type as VehInfo.Computer, this);
+
+			if (classType == null)
+			{
+				if (type.Type == VehInfo.Types.Computer)
+					veh = new Computer(type as VehInfo.Computer, this);
+				else
+					veh = new Vehicle(type, this);
+			}
 			else
-				veh = new Vehicle(type, this);
+				veh = Activator.CreateInstance(classType, type, this) as Vehicle;
 
 			veh._id = vk;
 
@@ -352,6 +373,9 @@ namespace InfServer.Game
 				);
 
 				veh._childs.Add(child);
+
+				//Notify everyone of the new vehicle
+				Helpers.Object_Vehicles(Players, child);
 			}
 
 			//If it's not a spectator or dependent vehicle, let the arena pass it to the script
@@ -418,9 +442,37 @@ namespace InfServer.Game
 		/// <summary>
 		/// Creates an item drop at the specified location
 		/// </summary>
+		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, short range)
+		{
+			int attempts = 0;
+
+			while (true)
+			{	//Make sure we're not doing this infinitely
+				if (attempts++ > 200)
+					break;
+
+				//Generate some random coordinates
+				short pX = positionX;
+				short pY = positionY;
+
+				Helpers.randomPositionInArea(this, ref pX, ref pY, (short)range, (short)range);
+
+				//Is it blocked?
+				if (getTile(pX, pY).Blocked)
+					//Try again
+					continue;
+
+				return itemSpawn(item, quantity, (short)pX, (short)pY);
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Creates an item drop at the specified location
+		/// </summary>
 		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY)
-		{			
-			//Too many items?
+		{	//Too many items?
 			if (_items.Count == maxItems)
 			{
 				Log.write(TLog.Warning, "Item count full.");
