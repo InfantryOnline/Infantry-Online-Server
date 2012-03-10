@@ -124,9 +124,6 @@ namespace InfServer.Game
 			if (player._alias == "aaerox" || player._alias == "HellSpawn")
 				player._permissionTemp = InfServer.Data.PlayerPermission.Sysop;
 
-            if (player._alias == "unethical")
-                player._permissionTemp = InfServer.Data.PlayerPermission.SMod;
-
 			//Find his natural vehicle id and prepare the class
 			Player.SkillItem baseSkill = player._skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);
 			int baseVehicleID = (baseSkill == null) ? _server._zoneConfig.publicProfile.defaultVItemId : baseSkill.skill.DefaultVehicleId;
