@@ -86,7 +86,11 @@ namespace InfServer.Game
 			int id = 0;
 
 			foreach (CfgInfo.TeamInfo ti in _server._zoneConfig.teams)
-			{	//Populate the new class
+			{
+                if (_teams.ContainsKey(ti.name.ToLower()))
+                    continue;
+
+                //Populate the new class
 				newTeam = new Team(this, _server);
 
 				newTeam._name = ti.name;
@@ -95,6 +99,7 @@ namespace InfServer.Game
 				newTeam._info = ti;
 
 				_teams.Add(ti.name.ToLower(), newTeam);
+
 				_freqTeams.Add(id++, newTeam);
 			}
 		}
@@ -116,8 +121,11 @@ namespace InfServer.Game
 			player._team = _teams["spec"];
 
 			//TEMP: Just to make stuff easier
-			if (player._alias == "aaerox")
+			if (player._alias == "aaerox" || player._alias == "HellSpawn")
 				player._permissionTemp = InfServer.Data.PlayerPermission.Sysop;
+
+            if (player._alias == "unethical")
+                player._permissionTemp = InfServer.Data.PlayerPermission.SMod;
 
 			//Find his natural vehicle id and prepare the class
 			Player.SkillItem baseSkill = player._skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);

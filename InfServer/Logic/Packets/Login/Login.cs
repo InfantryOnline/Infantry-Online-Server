@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Text.RegularExpressions;
 using InfServer.Protocol;
 using InfServer.Game;
 
@@ -19,6 +19,18 @@ namespace InfServer.Logic
 		{	//Let's escalate our client's status to player!
 			ZoneServer server = (client._handler as ZoneServer);
 			Player newPlayer = server.newPlayer(client, pkt.Username);
+
+            String alias = newPlayer._alias;
+
+            //Check alias for illegal characters, may need overhauling.
+            if (alias.Length == 0)
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias cannot be blank.");
+            if (!char.IsLetterOrDigit(alias, 0) ||
+                char.IsWhiteSpace(alias, 0) ||
+                char.IsWhiteSpace(alias, alias.Length - 1))
+            {   //Boot him..
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, Cannot start or end with a space.");
+            }
 
 			//If it failed for some reason, present a failure message
 			if (newPlayer == null)
