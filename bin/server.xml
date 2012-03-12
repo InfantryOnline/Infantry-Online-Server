@@ -12,8 +12,8 @@
 	
 	<server>
 		<version value="155" />
-		<zoneConfig value="usl.cfg" />
-		<gameType value="GameType_TDM" />
+		<zoneConfig value="zzv2old.cfg" />
+		<gameType value="GameType_ZombieZone" />
 		<loadBlobs value="true" />
 		<logPackets value="false" />
 	</server>
