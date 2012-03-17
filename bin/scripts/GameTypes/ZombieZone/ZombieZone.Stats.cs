@@ -40,8 +40,10 @@ namespace InfServer.Script.GameType_ZombieZone
 			zombieExpLookup.Add(101, 55);		//Disruptor zombie
 			zombieExpLookup.Add(119, 100);		//Sentient zombie
 			zombieExpLookup.Add(116, 115);		//Wraith zombie
-			zombieExpLookup.Add(120, 120);		//Teleporter zombie
+			zombieExpLookup.Add(120, 150);		//Teleporter zombie
 			zombieExpLookup.Add(118, 120);		//Spawner zombie
+            zombieExpLookup.Add(126, 120);		//Fire zombie
+            zombieExpLookup.Add(127, 80);		//Ammo-Eater zombie
 		}
 
 		/// <summary>
@@ -70,6 +72,10 @@ namespace InfServer.Script.GameType_ZombieZone
 				zombies.Add(118);
 			if (player.findSkill(120) != null)		//Teleporter zombie
 				zombies.Add(120);
+            if (player.findSkill(126) != null)		//Fire zombie
+                zombies.Add(126);
+            if (player.findSkill(127) != null)		//Ammo-Eater zombie
+                zombies.Add(127);
 
 			return AssetManager.Manager.getVehicleByID(zombies[player._arena._rand.Next(zombies.Count)]);
 		}
@@ -110,6 +116,10 @@ namespace InfServer.Script.GameType_ZombieZone
 				return 4;
 			if (zombieid == 118)		//Spawner zombie
 				return 4;
+            if (zombieid == 126)		//Fire zombie
+                return 4;
+            if (zombieid == 127)		//Ammo-Eater zombie
+                return 4;
 
 			return 0;
 		}
