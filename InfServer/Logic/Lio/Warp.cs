@@ -91,15 +91,21 @@ namespace InfServer.Logic
 		/// Handles an item pickup request from a client
 		/// </summary>
 		static public void Warp(Helpers.ResetFlags flags, Player player, LioInfo.WarpField warp, int invulnTime)
-		{	//Resolve our box
+		{
+            LvlInfo level = player._server._assets.Level;
+
+            int x = warp.GeneralData.OffsetX - (level.OffsetX * 16);
+            int y = warp.GeneralData.OffsetY - (level.OffsetY * 16);
+            
+            //Resolve our box
 			short height = (short)(warp.GeneralData.Height / 2);
 			short width = (short)(warp.GeneralData.Width / 2);
 
 			//Use our first warp!
 			player.warp(flags,
 				(short)-1,
-				(short)(warp.GeneralData.OffsetX - width), (short)(warp.GeneralData.OffsetY - height),
-				(short)(warp.GeneralData.OffsetX + width), (short)(warp.GeneralData.OffsetY + height),
+                (short)(x - width), (short)(y - height),
+                (short)(x + width), (short)(y + height),
 				(short)invulnTime);
 		}
 	}

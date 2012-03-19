@@ -49,8 +49,7 @@ namespace InfServer.DirectoryServer
             }
 
             //Good to go!
-            Log.write("");
-            Log.write("Starting server..");
+            Log.write("Listening for requests...");
             server.Begin();
         }
     }

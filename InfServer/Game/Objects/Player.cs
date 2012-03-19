@@ -1051,7 +1051,7 @@ namespace InfServer.Game
 		{	//Approximate the player's new position
 			_state.positionX = (short)(((topX - bottomX) / 2) + bottomX);
 			_state.positionY = (short)(((topY - bottomY) / 2) + bottomY);
-			
+
 			//Prepare our packet
 			SC_PlayerWarp warp = new SC_PlayerWarp();
 
@@ -1060,7 +1060,6 @@ namespace InfServer.Game
 			warp.invulnTime = invulnTime;
 			warp.topX = topX; warp.topY = topY;
 			warp.bottomX = bottomX; warp.bottomY = bottomY;
-
 			_client.sendReliable(warp);
 		}
 

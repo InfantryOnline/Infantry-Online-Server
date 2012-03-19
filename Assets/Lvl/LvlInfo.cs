@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace Assets
 {
@@ -9,10 +10,18 @@ namespace Assets
         public int Height;
         public BlobReference[] ObjectBlobs;
         public BlobReference[] FloorBlobs;
-		public int[] TerrainLookup;
+        public int[] TerrainLookup = new int[128];
+        public uint LightColorWhite;
+        public uint LightColorRed;
+        public uint LightColorGreen;
+        public uint LightColorBlue;
+
         public short[] PhysicsLow;
         public short[] PhysicsHigh;
+
         public Tile[] Tiles;
+        public int OffsetX;
+        public int OffsetY;
 
         /// <summary>
         /// Returns the tile a position (x, y) in the level.
@@ -94,6 +103,9 @@ namespace Assets
 
             Header header = input.ReadStructure<Header>();
 
+            lvlInfo.OffsetX = header.OffsetX;
+            lvlInfo.OffsetY = header.OffsetY;
+
             #region Version < 4
             if (header.Version < 4)
             {
@@ -102,10 +114,10 @@ namespace Assets
                     header.PhysicsLow[i] = 0;
                 }
 
-                header.Unknown0AA0 = 0xFFFFFF00;
-                header.Unknown0AA4 = 0x0000FF00;
-                header.Unknown0AA8 = 0x00FF0000;
-                header.Unknown0AAC = 0xFF000000;
+                header.LightColorWhite = 0xFFFFFF00u;
+                header.LightColorRed = 0x0000FF00u;
+                header.LightColorGreen = 0x00FF0000u;
+                header.LightColorBlue = 0xFF000000u;
 
                 header.PhysicsHigh[0] = 0;
                 header.PhysicsHigh[1] = 1024;

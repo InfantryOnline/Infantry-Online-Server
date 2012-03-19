@@ -77,6 +77,7 @@
     <Compile Include="Directory\Logic\Packets\ZoneListing.cs" />
     <Compile Include="Directory\Protocol\Factory.cs" />
     <Compile Include="Directory\Protocol\Helpers\Zone.cs" />
+    <Compile Include="Directory\Protocol\Helpers\XmlZoneListing.cs" />
     <Compile Include="Directory\Protocol\Helpers\ZoneStream.cs" />
     <Compile Include="Directory\Protocol\Packets\CS_AckZoneList.cs" />
     <Compile Include="Directory\Protocol\Packets\CS_Initiate.cs" />

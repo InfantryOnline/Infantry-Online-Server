@@ -115,7 +115,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     string[] coords = payload.Split(',');
                     int x = Convert.ToInt32(coords[0]) * 16;
-                    int y = Convert.ToInt32(coords[0]) * 16;
+                    int y = Convert.ToInt32(coords[1]) * 16;
 
                     player.warp(x, y);
                 }

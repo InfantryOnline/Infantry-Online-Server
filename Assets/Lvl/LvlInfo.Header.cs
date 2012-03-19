@@ -1,53 +1,65 @@
+/* Copyright (c) 2011 Rick (rick 'at' gibbed 'dot' us)
+ * 
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would
+ *    be appreciated but is not required.
+ * 
+ * 2. Altered source versions must be plainly marked as such, and must not
+ *    be misrepresented as being the original software.
+ * 
+ * 3. This notice may not be removed or altered from any source
+ *    distribution.
+ */
+
 using System.Runtime.InteropServices;
 
 namespace Assets
 {
     public partial class LvlInfo
     {
-        [StructLayout(LayoutKind.Explicit, Size = 5152)]
+        [StructLayout(LayoutKind.Sequential, Pack = 1/*, Size = 5152*/)]
         private struct Header
         {
-            [FieldOffset(0x0000)]
             public int Version;
 
-            [FieldOffset(0x0004)]
             public int Width;
-
-            [FieldOffset(0x0008)]
             public int Height;
 
-            [FieldOffset(0x000C)]
             public int EntityCount;
-
-            [FieldOffset(0x0010)]
             public int FloorCount;
-
-            [FieldOffset(0x0014)]
             public int ObjectCount;
 
-            [FieldOffset(0x0820)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 512)]
+            public uint[] MinimapPalette;
+
+            public int OffsetX;
+            public int OffsetY;
+
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
             public int[] TerrainLookup;
 
-            [FieldOffset(0x0A20)]
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
             public short[] PhysicsLow;
 
-            [FieldOffset(0x0A60)]
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
             public short[] PhysicsHigh;
 
-            [FieldOffset(0x0AA0)]
-            public uint Unknown0AA0;
+            public uint LightColorWhite;
+            public uint LightColorRed;
+            public uint LightColorGreen;
+            public uint LightColorBlue;
 
-            [FieldOffset(0x0AA4)]
-            public uint Unknown0AA4;
-
-            [FieldOffset(0x0AA8)]
-            public uint Unknown0AA8;
-
-            [FieldOffset(0x0AAC)]
-            public uint Unknown0AAC;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2416)]
+            public byte[] Padding;
         }
     }
 }
