@@ -491,7 +491,7 @@ namespace InfServer.Game
 					return;
 
 				//Pick a team
-				Team pick = pickAppropriateTeam(from);
+                Team pick = pickAppropriateTeam(from);
 
 				if (pick != null)
 					//Great, use it

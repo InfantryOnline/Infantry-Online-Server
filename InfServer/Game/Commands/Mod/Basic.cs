@@ -294,7 +294,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
                 //Fake a game join
-                target._arena.handlePlayerJoin(target, false);
+                target._arena.handlePlayerJoin(target, true);
         }
 
         /// <summary>
@@ -320,6 +320,17 @@ namespace InfServer.Game.Commands.Mod
                 //Sync and clean up
                 target.syncState();
             }
+        }
+
+        /// <summary>
+        /// Sends a arena/system message
+        /// </summary>
+        static public void arena(Player player, Player recipient, string payload)
+        {
+            if (payload == "")
+                player.sendMessage(0, "Message can not be empty");
+            else
+                player._arena.sendArenaMessage(payload);
         }
 
         /// <summary>
@@ -376,6 +387,10 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(help, "help",
                 "Gives the user help information on a given command.",
                 "*help [commandName]");
+
+            yield return new HandlerDescriptor(arena, "arena",
+                "Send a arena-wide system message.",
+                "*arena message");
 
             yield return new HandlerDescriptor(warp, "warp",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",

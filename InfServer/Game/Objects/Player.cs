@@ -441,14 +441,28 @@ namespace InfServer.Game
 					inventoryModify(false, item.id, ia.Quantity);
 				}
 
+
+
 				//Finally, do we use a new defaultvehicle?
 				if (skill.DefaultVehicleId != -1)
 				{	//Yes, create and apply it
 					VehInfo baseType = _server._assets.getVehicleByID(skill.DefaultVehicleId);
+
 					if (baseType == null)
 						Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
-					else if (_arena != null)
-						setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
+                    else if (_arena != null)
+                    {   //Unspecced?
+                        if (!IsSpectator)
+                        {
+                            //Set relative vehicle if required, no need for any if statement here :]
+                            VehInfo vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
+                            setDefaultVehicle(vehicle);
+                        }
+                        else
+                        {   //Hes in spectator mode
+                            setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
+                        }
+                    }
 				}
 			}
 			else
@@ -986,6 +1000,10 @@ namespace InfServer.Game
 			//Destroy our spectator vehicle
 			_occupiedVehicle.destroy(true);
 			_bSpectator = false;
+
+            //Set relative vehicle if required, no need for any if statement here :]
+            VehInfo vehicle = _server._assets.getVehicleByID(getDefaultVehicle().Id + _server._zoneConfig.teams[team._id].relativeVehicle);
+            setDefaultVehicle(vehicle);
 
 			//Run the exit spec event
 			Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.exitSpectatorMode);
