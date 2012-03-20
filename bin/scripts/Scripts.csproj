@@ -155,6 +155,7 @@
   <ItemGroup>
     <Compile Include="Bots\DuelBot\DuelBot.cs" />
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
+    <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />
     <Compile Include="GameTypes\TDM\TDM.cs" />
     <Compile Include="GameTypes\CTF\CTF_OvD\OvD.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />
