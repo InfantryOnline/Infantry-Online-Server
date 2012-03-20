@@ -451,17 +451,13 @@ namespace InfServer.Game
 					if (baseType == null)
 						Log.write(TLog.Error, "Invalid vehicleID #{0} for default skill vehicle.", skill.DefaultVehicleId);
                     else if (_arena != null)
-                    {   //Unspecced?
-                        if (!IsSpectator)
-                        {
-                            //Set relative vehicle if required, no need for any if statement here :]
-                            VehInfo vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
+                    {
+                        setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
+                        //Set relative vehicle if required, no need for any if statement here :]
+                        VehInfo vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
+                        //Make sure we're not switching twice..
+                        if (getDefaultVehicle() != vehicle)
                             setDefaultVehicle(vehicle);
-                        }
-                        else
-                        {   //Hes in spectator mode
-                            setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
-                        }
                     }
 				}
 			}
