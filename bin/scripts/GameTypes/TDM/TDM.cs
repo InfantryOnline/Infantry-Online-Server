@@ -25,7 +25,7 @@ namespace InfServer.Script.GameType_TDM
 		private CfgInfo _config;				//The zone config
 
 		private Team _victoryTeam;				//The team currently winning!
-
+        private int _tickGameLastTickerUpdate;	
 		private int _lastGameCheck;				//The tick at which we last checked for game viability
 		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
 		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
@@ -68,6 +68,17 @@ namespace InfServer.Script.GameType_TDM
                 _arena.setTicker(1, 1, 0, "Not Enough Players");
                 _arena.gameReset();
             }
+
+            //Update our tickers
+            if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
+            {
+                if (now - _tickGameLastTickerUpdate > 5000)
+                {
+                    updateTickers();
+                    _tickGameLastTickerUpdate = now;
+                }
+            }
+
             //Do we have enough players to start a game?
             else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
@@ -110,9 +121,9 @@ namespace InfServer.Script.GameType_TDM
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
 
+
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
-
             _arena.setTicker(1, 1, _config.deathMatch.timer * 100, "Time Left: ",
             delegate()
             {	//Trigger game end.
@@ -124,6 +135,25 @@ namespace InfServer.Script.GameType_TDM
             return true;
         }
 
+        /// <summary>
+        /// Updates our tickers
+        /// </summary>
+        public void updateTickers()
+        {
+                string format;
+                if (_arena.ActiveTeams.Count() > 1)
+                {
+                    format = String.Format("{0}={1} - {2}={3}",
+                        _arena.ActiveTeams.ElementAt(0)._name,
+                        _arena.ActiveTeams.ElementAt(0)._calculatedKills,
+                        _arena.ActiveTeams.ElementAt(1)._name,
+                        _arena.ActiveTeams.ElementAt(1)._calculatedKills);
+                    _arena.setTicker(1, 0, 0, format);
+                }
+
+
+        }
+
 		/// <summary>
 		/// Called when the game ends
 		/// </summary>
@@ -133,10 +163,7 @@ namespace InfServer.Script.GameType_TDM
 
             _arena.sendArenaMessage("Game Over");
 
-            foreach (Team t in _arena.ActiveTeams)
-            {
-                _arena.sendArenaMessage(String.Format("!{0} - (K={1} D={2})", t._name, t._calculatedKills, t._calculatedDeaths));
-            }
+            _arena.breakdown(false);
 
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
