@@ -29,5 +29,9 @@
 			<inheritDefaultScripts value="true" />
 			<scriptDir value="GameTypes\TDM" />
 		</type>
+		<type value="GameType_Dodgeball">
+			<inheritDefaultScripts value="true" />
+			<scriptDir value="GameTypes\Dodgeball" />
+		</type>
 	</scripts>
 </xml>
