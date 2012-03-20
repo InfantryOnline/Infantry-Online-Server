@@ -281,6 +281,8 @@ namespace InfServer.Game
 		private void addAssetData(AbstractAsset abstractAsset)
 		{
 		    AssetInfo newAsset = new AssetInfo(abstractAsset.Filename, abstractAsset.Checksum);
+
+            if (_assetList.Contains(newAsset) == false)
 			_assetList.Add(newAsset);
 		}
 

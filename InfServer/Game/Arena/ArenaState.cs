@@ -87,6 +87,7 @@ namespace InfServer.Game
 
 			foreach (CfgInfo.TeamInfo ti in _server._zoneConfig.teams)
 			{
+                //Duplicate checking..
                 if (_teams.ContainsKey(ti.name.ToLower()))
                     continue;
 

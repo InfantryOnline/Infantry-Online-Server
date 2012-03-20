@@ -63,6 +63,11 @@ namespace InfServer.Game
 					cache.bCached = false;
 					cache.checksum = asset.checksum;
 
+                    //Duplicate?
+                    if (_cache.ContainsKey(Path.GetFileName(cache.filepath)))
+                        continue;
+
+                    //Add it
 					_cache.Add(Path.GetFileName(asset.filepath), cache);
 				}
 			}
