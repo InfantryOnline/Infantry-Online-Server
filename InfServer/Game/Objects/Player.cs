@@ -453,11 +453,15 @@ namespace InfServer.Game
                     else if (_arena != null)
                     {
                         setDefaultVehicle(_server._assets.getVehicleByID(skill.DefaultVehicleId));
-                        //Set relative vehicle if required, no need for any if statement here :]
-                        VehInfo vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
-                        //Make sure we're not switching twice..
-                        if (getDefaultVehicle() != vehicle)
-                            setDefaultVehicle(vehicle);
+                        
+                        //Set relative vehicle
+                        if (!IsSpectator)
+                        {
+                            VehInfo vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
+                            //Make sure we're not switching twice..
+                            if (getDefaultVehicle() != vehicle)
+                                setDefaultVehicle(vehicle);
+                        }
                     }
 				}
 			}

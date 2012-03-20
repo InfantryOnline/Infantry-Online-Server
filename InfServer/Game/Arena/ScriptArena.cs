@@ -829,6 +829,8 @@ namespace InfServer.Game
                 return;
             }
 
+
+
             //Fall out of our vehicle and die!
             if (from._occupiedVehicle != null)
                 from._occupiedVehicle.playerLeave(true);
@@ -839,6 +841,44 @@ namespace InfServer.Game
             //Mark him as dead!
             from._bEnemyDeath = true;
             from._deathTime = Environment.TickCount;
+
+            //Create our own list as to not cause dumb things..
+            Dictionary<ItemInfo, int> itemsToRemove = new Dictionary<ItemInfo, int>();
+
+            //Do we have any items to prune/drop?
+            foreach (KeyValuePair<int, Player.InventoryItem> itm in from._inventory)
+            {
+                ItemInfo item = itm.Value.item;
+                
+
+                //Are we dropping this item at all?
+                if (item.pruneOdds == 0)
+                    continue;
+
+                int chance = _rand.Next(item.pruneOdds, 1000);
+
+                //Do our bits of math..blahblahblah
+                decimal i = Math.Abs(item.pruneDropPercent);
+                decimal percent = (i / 1000);
+                int quantity = (int)(itm.Value.quantity * percent);
+
+                //You've got to ask yourself one question: 'Do I feel lucky?' Well, do ya punk?
+                if (chance >= item.pruneOdds)
+                {   //BOOM, drop some items.
+                    itemsToRemove.Add(item, quantity);
+
+                    itemSpawn(item,
+                        (ushort)quantity,
+                        from._state.positionX,
+                        from._state.positionY,
+                        (short)_server._zoneConfig.arena.pruneDropRadius);
+                }
+               //Done
+            }
+            
+            //Now remove them..
+            foreach (KeyValuePair<ItemInfo, int> itm in itemsToRemove)
+                from.inventoryModify(itm.Key.id, -itm.Value);
 
             //Prompt the player death event
             if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type, update))
@@ -872,12 +912,14 @@ namespace InfServer.Game
                             Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
                         }
 
+
                         killer.Kills++;
                         from.Deaths++;
                     }
 
                     return;
                 }
+
             }
 
             //Reset any flags held

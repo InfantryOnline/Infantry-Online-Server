@@ -64,7 +64,7 @@ namespace InfServer.Logic
 			victim.DeathPoints += killerPoints;
 
 			//Update his bounty
-			killer.Bounty += (int)(cfg.bounty.fixedToKillerBounty +
+			killer.Bounty += (int)((cfg.bounty.fixedToKillerBounty / 1000) +
 				(killerPoints * (((float)cfg.bounty.percentToKillerBounty) / 1000)));
 
 			//Check for players in the share radius

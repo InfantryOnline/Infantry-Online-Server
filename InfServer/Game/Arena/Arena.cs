@@ -565,6 +565,18 @@ namespace InfServer.Game
 			return null;
 		}
 
+        /// <summary>
+        /// Gets a player of the specified id
+        /// </summary>
+        public Player getPlayerById(uint id)
+        {	//Attempt to find him
+            foreach (Player player in _players)
+                if (player._id.Equals(id))
+                    return player;
+
+            return null;
+        }
+
 		/// <summary>
 		/// Determines whether the player should be able to see this arena
 		/// </summary>
