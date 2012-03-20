@@ -65,7 +65,9 @@ namespace InfServer.Game
 		}
 
 		#region Events
-		/// <summary>
+
+        #region playerEnter
+        /// <summary>
 		/// Called when a player enters the game
 		/// </summary>
 		public override void playerEnter(Player player)
@@ -73,8 +75,10 @@ namespace InfServer.Game
 			base.playerEnter(player);
 			callsync("Player.Enter", false, player);
 		}
+        #endregion
 
-		/// <summary>
+        #region playerLeave
+        /// <summary>
 		/// Called when a player leaves the game
 		/// </summary>
 		public override void playerLeave(Player player)
@@ -82,8 +86,10 @@ namespace InfServer.Game
 			base.playerLeave(player);
 			callsync("Player.Leave", false, player);
 		}
+        #endregion
 
-		/// <summary>
+        #region gameStart
+        /// <summary>
 		/// Called when the game begins
 		/// </summary>
 		public override void gameStart()
@@ -136,8 +142,10 @@ namespace InfServer.Game
 			//Pass it to the script environment
 			callsync("Game.Start", false);
 		}
+        #endregion
 
-		/// <summary>
+        #region gameEnd
+        /// <summary>
 		/// Called when the game ends
 		/// </summary>
 		public override void gameEnd()
@@ -163,8 +171,10 @@ namespace InfServer.Game
 			//Pass it to the script environment
 			callsync("Game.End", false);
 		}
+        #endregion
 
-		/// <summary>
+        #region gameReset
+        /// <summary>
 		/// Called to reset the game state
 		/// </summary>
 		public override void gameReset()
@@ -176,8 +186,10 @@ namespace InfServer.Game
 			//Pass it to the script environment
 			callsync("Game.Reset", false);
 		}
+        #endregion
 
-		/// <summary>
+        #region individualBreakdown
+        /// <summary>
 		/// Creates a breakdown tailored for one player
 		/// </summary>
 		public override void individualBreakdown(Player from, bool bCurrent)
@@ -253,8 +265,10 @@ namespace InfServer.Game
 				}
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region breakdown
+        /// <summary>
 		/// Called when the game needs to display end game statistics
 		/// </summary>
 		public override void breakdown(bool bCurrent)
@@ -262,9 +276,12 @@ namespace InfServer.Game
 			foreach (Player p in Players)
 				individualBreakdown(p, bCurrent);
 		}
+        #endregion
 
-		#region Handlers
-		/// <summary>
+        #region Handlers
+
+        #region handlePlayerPickup
+        /// <summary>
 		/// Triggered when a player requests to pick up an item
 		/// </summary>
 		public override void handlePlayerPickup(Player from, CS_PlayerPickup update)
@@ -308,8 +325,10 @@ namespace InfServer.Game
 				Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerDrop
+        /// <summary>
 		/// Triggered when a player requests to drop an item
 		/// </summary>
 		public override void handlePlayerDrop(Player from, CS_PlayerDrop update)
@@ -337,8 +356,10 @@ namespace InfServer.Game
 					itemSpawn(item, update.quantity, update.positionX, update.positionY);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerPortal
+        /// <summary>
 		/// Handles a player's portal request
 		/// </summary>
 		public override void handlePlayerPortal(Player from, LioInfo.Portal portal)
@@ -364,8 +385,10 @@ namespace InfServer.Game
 				Logic_Lio.Warp(Helpers.ResetFlags.ResetNone, from, warp);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerProduce
+        /// <summary>
 		/// Handles a player's produce request
 		/// </summary>
 		public override void handlePlayerProduce(Player from, ushort computerVehID, ushort produceItem)
@@ -416,8 +439,10 @@ namespace InfServer.Game
 				produceRequest(from, computer, product);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerSwitch
+        /// <summary>
 		/// Handles a player's switch request
 		/// </summary>
 		public override void handlePlayerSwitch(Player from, bool bOpen, LioInfo.Switch swi)
@@ -427,8 +452,10 @@ namespace InfServer.Game
 				switchRequest(false, bOpen, from, swi);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerFlag
+        /// <summary>
 		/// Handles a player's flag request
 		/// </summary>
 		public override void handlePlayerFlag(Player from, bool bPickup, bool bInPlace, LioInfo.Flag flag)
@@ -438,8 +465,10 @@ namespace InfServer.Game
 				flagRequest(false, bPickup, bInPlace, from, flag);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerSpawn
+        /// <summary>
 		/// Handles the spawn of a player
 		/// </summary>
 		public override void handlePlayerSpawn(Player from, bool bDeath)
@@ -458,8 +487,10 @@ namespace InfServer.Game
 				}
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerJoin
+        /// <summary>
 		/// Triggered when a player wants to spec or unspec
 		/// </summary>
 		public override void handlePlayerJoin(Player from, bool bSpec)
@@ -500,53 +531,57 @@ namespace InfServer.Game
 					from.sendMessage(-1, "Unable to pick a team.");
 			}
 		}
+        #endregion
 
-		/// <summary>
-		/// Triggered when a player wants to enter a vehicle
-		/// </summary>
-		public override void handlePlayerEnterVehicle(Player from, bool bEnter, ushort vehicleID)
-		{	//Are we trying to leave our current vehicle?
-			if (!bEnter)
-			{	//Forward to our script
-				if (!exists("Player.LeaveVehicle") || (bool)callsync("Player.LeaveVehicle", false, from, from._occupiedVehicle))
-				{   //Let's leave it!
-					from._occupiedVehicle.playerLeave(true);
+        #region handlePlayerEnterVehicle
+        /// <summary>
+        /// Triggered when a player wants to enter a vehicle
+        /// </summary>
+        public override void handlePlayerEnterVehicle(Player from, bool bEnter, ushort vehicleID)
+        {	//Are we trying to leave our current vehicle?
+            if (!bEnter)
+            {	//Forward to our script
+                if (!exists("Player.LeaveVehicle") || (bool)callsync("Player.LeaveVehicle", false, from, from._occupiedVehicle))
+                {   //Let's leave it!
+                    from._occupiedVehicle.playerLeave(true);
 
-					//Warp the player away from the vehicle to keep him from getting "stuck"
-					Random exitRadius = new Random();
-					from.warp(from._state.positionX + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius),
-					from._state.positionY + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius));
-				}
+                    //Warp the player away from the vehicle to keep him from getting "stuck"
+                    Random exitRadius = new Random();
+                    from.warp(from._state.positionX + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius),
+                    from._state.positionY + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius));
+                }
 
-				return;
-			}
+                return;
+            }
 
-			//Otherwise, do we have such a vehicle?
-			Vehicle entry;
+            //Otherwise, do we have such a vehicle?
+            Vehicle entry;
 
-			if ((entry = _vehicles.getObjByID(vehicleID)) == null)
-			{
-				Log.write(TLog.Warning, "Player {0} attempted to enter invalid vehicle.", from);
-				return;
-			}
+            if ((entry = _vehicles.getObjByID(vehicleID)) == null)
+            {
+                Log.write(TLog.Warning, "Player {0} attempted to enter invalid vehicle.", from);
+                return;
+            }
 
-			//It must be in range
-			if (!Helpers.isInRange(_server._zoneConfig.arena.vehicleGetInDistance,
-									entry._state.positionX, entry._state.positionY,
-									from._state.positionX, from._state.positionY))
-				return;
+            //It must be in range
+            if (!Helpers.isInRange(_server._zoneConfig.arena.vehicleGetInDistance,
+                                    entry._state.positionX, entry._state.positionY,
+                                    from._state.positionX, from._state.positionY))
+                return;
 
-			//Can't enter dead vehicles
-			if (entry.IsDead)
-				return;
+            //Can't enter dead vehicles
+            if (entry.IsDead)
+                return;
 
-			//Forward to our script
-			if (!exists("Player.EnterVehicle") || (bool)callsync("Player.EnterVehicle", false, from, entry))
-				//Attempt to enter the vehicle!
-				from.enterVehicle(entry);
-		}
+            //Forward to our script
+            if (!exists("Player.EnterVehicle") || (bool)callsync("Player.EnterVehicle", false, from, entry))
+                //Attempt to enter the vehicle!
+                from.enterVehicle(entry);
+        } 
+        #endregion
 
-		/// <summary>
+        #region handlePlayerExplosion
+        /// <summary>
 		/// Triggered when a player notifies the server of an explosion
 		/// </summary>
 		public override void handlePlayerExplosion(Player from, CS_Explosion update)
@@ -565,303 +600,337 @@ namespace InfServer.Game
 				int maxDamageRadius = Helpers.getMaxBlastRadius(usedWep);
 
 				List<Vehicle> vechs = _vehicles.getObjsInRange(update.positionX, update.positionY, maxDamageRadius + 500);
+                List<Player> players = from._arena.getPlayersInRange(update.positionX, update.positionY, usedWep.damageEventRadius);
 
-				//Notify all vehicles in the vicinity
+
+                //Run any event logic on players..
+                foreach (Player p in players)
+                {
+                    //Will this weapon even harm us?
+                    switch (usedWep.damageMode)
+                    {
+                        case 2:			//Enemy
+                            if (from._team == p._team)
+                                return;
+                            break;
+
+                        case 3:			//Friendly but self
+                            if (from._team != p._team)
+                                return;
+                            break;
+
+                        case 4:			//Friendly
+                            if (from._team != p._team)
+                                return;
+                            break;
+                    }
+                    //Run it!
+                    Logic_Assets.RunEvent(p, usedWep.damageEventString);
+                }
+                    
+				
+                //Notify all vehicles in the vicinity
 				foreach (Vehicle v in vechs)	
 					if (!v.IsDead)
 						v.applyExplosion(from, update.positionX, update.positionY, usedWep);
 			}
 		}
+        #endregion
 
-		/// <summary>
-		/// Triggered when a player has sent an update packet
-		/// </summary>
-		public override void handlePlayerUpdate(Player from, CS_PlayerUpdate update)
-		{	//Should we ignore this?
-			if (update.bIgnored)
-				return;
+        #region handlePlayerUpdate
+        /// <summary>
+        /// Triggered when a player has sent an update packet
+        /// </summary>
+        public override void handlePlayerUpdate(Player from, CS_PlayerUpdate update)
+        {	//Should we ignore this?
+            if (update.bIgnored)
+                return;
 
-			//Is it firing an item?
-			if (update.itemID != 0)
-			{	//Let's inspect this action a little closer
-				ItemInfo info = _server._assets.getItemByID(update.itemID);
-				if (info == null)
-				{
-					Log.write(TLog.Warning, "Player {0} attempted to fire non-existent item.", from);
-					return;
-				}
+            //Is it firing an item?
+            if (update.itemID != 0)
+            {	//Let's inspect this action a little closer
+                ItemInfo info = _server._assets.getItemByID(update.itemID);
+                if (info == null)
+                {
+                    Log.write(TLog.Warning, "Player {0} attempted to fire non-existent item.", from);
+                    return;
+                }
 
-				//Does he have it?
-				Player.InventoryItem ii = from.getInventory(info);
-				if (ii == null)
-				{	//Is it a default item?
-					if (!from.ActiveVehicle._type.InventoryItems.Any(item => item == update.itemID))
-					{
-						Log.write(TLog.Warning, "Player {0} attempted to fire unowned item.", from);
-						return;
-					}
-				}
+                //Does he have it?
+                Player.InventoryItem ii = from.getInventory(info);
+                if (ii == null)
+                {	//Is it a default item?
+                    if (!from.ActiveVehicle._type.InventoryItems.Any(item => item == update.itemID))
+                    {
+                        Log.write(TLog.Warning, "Player {0} attempted to fire unowned item.", from);
+                        return;
+                    }
+                }
 
-				//And does he have the appropriate skills?
-				if (!Logic_Assets.SkillCheck(from, info.skillLogic))
-				{
-					Log.write(TLog.Warning, "Player {0} attempted unqualified use of item.", from);
-					return;
-				}
+                //And does he have the appropriate skills?
+                if (!Logic_Assets.SkillCheck(from, info.skillLogic))
+                {
+                    Log.write(TLog.Warning, "Player {0} attempted unqualified use of item.", from);
+                    return;
+                }
 
-				//Check timings
-				/*if (update.itemID != 0 && from._lastItemUse != 0 && from._lastItemUseID == update.itemID)
-				{
-					if (info.itemType == ItemInfo.ItemType.Projectile)
-					{	//Is it nicely timed?
-						ItemInfo.Projectile proj = (ItemInfo.Projectile)info;
-						if (update.tickCount - from._lastItemUse < (proj.fireDelay - (proj.fireDelay / 2) + (proj.fireDelay / 4)) &&
-							update.tickCount - from._lastItemUse < (proj.fireDelayOther - (proj.fireDelayOther / 2) + (proj.fireDelayOther / 4)))
-						{
-							update.itemID = 0;
-							Log.write(TLog.Warning, "Player {0} had a suspicious reload timer.", from);
-							triggerMessage(2, 1500, from._alias + " was kicked for knobbery.");
-							from.disconnect();
-							return;
-						}
-					}
-					else if (info.itemType == ItemInfo.ItemType.MultiUse)
-					{	//Is it nicely timed?
-						ItemInfo.MultiUse multi = (ItemInfo.MultiUse)info;
-						if (update.tickCount - from._lastItemUse < (multi.fireDelay - (multi.fireDelay / 2) + (multi.fireDelay / 4)) &&
-							update.tickCount - from._lastItemUse < (multi.fireDelayOther - (multi.fireDelayOther / 2) + (multi.fireDelayOther / 4)))
-						{	//Kick the fucker
-							Log.write(TLog.Warning, "Player {0} had a suspicious reload timer.", from);
-							triggerMessage(2, 1500, from._alias + " was kicked for knobbery.");
-							from.disconnect();
-							return;
-						}
-					}
-				}*/
+                //Check timings
+                /*if (update.itemID != 0 && from._lastItemUse != 0 && from._lastItemUseID == update.itemID)
+                {
+                    if (info.itemType == ItemInfo.ItemType.Projectile)
+                    {	//Is it nicely timed?
+                        ItemInfo.Projectile proj = (ItemInfo.Projectile)info;
+                        if (update.tickCount - from._lastItemUse < (proj.fireDelay - (proj.fireDelay / 2) + (proj.fireDelay / 4)) &&
+                            update.tickCount - from._lastItemUse < (proj.fireDelayOther - (proj.fireDelayOther / 2) + (proj.fireDelayOther / 4)))
+                        {
+                            update.itemID = 0;
+                            Log.write(TLog.Warning, "Player {0} had a suspicious reload timer.", from);
+                            triggerMessage(2, 1500, from._alias + " was kicked for knobbery.");
+                            from.disconnect();
+                            return;
+                        }
+                    }
+                    else if (info.itemType == ItemInfo.ItemType.MultiUse)
+                    {	//Is it nicely timed?
+                        ItemInfo.MultiUse multi = (ItemInfo.MultiUse)info;
+                        if (update.tickCount - from._lastItemUse < (multi.fireDelay - (multi.fireDelay / 2) + (multi.fireDelay / 4)) &&
+                            update.tickCount - from._lastItemUse < (multi.fireDelayOther - (multi.fireDelayOther / 2) + (multi.fireDelayOther / 4)))
+                        {	//Kick the fucker
+                            Log.write(TLog.Warning, "Player {0} had a suspicious reload timer.", from);
+                            triggerMessage(2, 1500, from._alias + " was kicked for knobbery.");
+                            from.disconnect();
+                            return;
+                        }
+                    }
+                }*/
 
-				from._lastItemUseID = update.itemID;
-				if (update.itemID != 0)
-					from._lastItemUse = update.tickCount;
+                from._lastItemUseID = update.itemID;
+                if (update.itemID != 0)
+                    from._lastItemUse = update.tickCount;
 
-				//We should be good. Check for ammo
-				int ammoType;
-				int ammoCount;
+                //We should be good. Check for ammo
+                int ammoType;
+                int ammoCount;
 
-				if (info.getAmmoType(out ammoType, out ammoCount))
-					if (ammoType != 0 && !from.inventoryModify(false, ammoType, -ammoCount))
-						update.itemID = 0;
-			}
+                if (info.getAmmoType(out ammoType, out ammoCount))
+                    if (ammoType != 0 && !from.inventoryModify(false, ammoType, -ammoCount))
+                        update.itemID = 0;
+            }
 
-			//Update the player's state
-			int now = Environment.TickCount;
-			int updateTick = ((now >> 16) << 16) + (update.tickCount & 0xFFFF);
-			int oldPosX = from._state.positionX, oldPosY = from._state.positionY;
+            //Update the player's state
+            int now = Environment.TickCount;
+            int updateTick = ((now >> 16) << 16) + (update.tickCount & 0xFFFF);
+            int oldPosX = from._state.positionX, oldPosY = from._state.positionY;
 
-			from._state.energy = update.energy;
+            from._state.energy = update.energy;
 
-			from._state.velocityX = update.velocityX;
-			from._state.velocityY = update.velocityY;
-			from._state.velocityZ = update.velocityZ;
+            from._state.velocityX = update.velocityX;
+            from._state.velocityY = update.velocityY;
+            from._state.velocityZ = update.velocityZ;
 
-			from._state.positionX = update.positionX;
-			from._state.positionY = update.positionY;
-			from._state.positionZ = update.positionZ;
-			
-			from._state.yaw = update.yaw;
-			from._state.direction = (Helpers.ObjectState.Direction)update.direction;
-			from._state.unk1 = update.unk1;
-			from._state.pitch = update.pitch;
+            from._state.positionX = update.positionX;
+            from._state.positionY = update.positionY;
+            from._state.positionZ = update.positionZ;
 
-			from._state.lastUpdate = updateTick;
-			from._state.lastUpdateServer = now;
+            from._state.yaw = update.yaw;
+            from._state.direction = (Helpers.ObjectState.Direction)update.direction;
+            from._state.unk1 = update.unk1;
+            from._state.pitch = update.pitch;
 
-			//If the player is inside a vehicle..
-			if (from._occupiedVehicle != null)
-			{
-				//Update the vehicle state too..
-				from._occupiedVehicle._state.health = update.health;
+            from._state.lastUpdate = updateTick;
+            from._state.lastUpdateServer = now;
 
-				from._occupiedVehicle._state.positionX = update.positionX;
-				from._occupiedVehicle._state.positionY = update.positionY;
-				from._occupiedVehicle._state.positionZ = update.positionZ;
+            //If the player is inside a vehicle..
+            if (from._occupiedVehicle != null)
+            {
+                //Update the vehicle state too..
+                from._occupiedVehicle._state.health = update.health;
 
-				from._occupiedVehicle._state.velocityX = update.velocityX;
-				from._occupiedVehicle._state.velocityY = update.velocityY;
-				from._occupiedVehicle._state.velocityZ = update.velocityZ;
+                from._occupiedVehicle._state.positionX = update.positionX;
+                from._occupiedVehicle._state.positionY = update.positionY;
+                from._occupiedVehicle._state.positionZ = update.positionZ;
 
-				from._occupiedVehicle._state.yaw = update.yaw;
-				from._occupiedVehicle._state.direction = (Helpers.ObjectState.Direction)update.direction;
-				from._occupiedVehicle._state.unk1 = update.unk1;
-				from._occupiedVehicle._state.pitch = update.pitch;
+                from._occupiedVehicle._state.velocityX = update.velocityX;
+                from._occupiedVehicle._state.velocityY = update.velocityY;
+                from._occupiedVehicle._state.velocityZ = update.velocityZ;
 
-				from._occupiedVehicle._state.lastUpdate = updateTick;
+                from._occupiedVehicle._state.yaw = update.yaw;
+                from._occupiedVehicle._state.direction = (Helpers.ObjectState.Direction)update.direction;
+                from._occupiedVehicle._state.unk1 = update.unk1;
+                from._occupiedVehicle._state.pitch = update.pitch;
 
-				//Update spatial data
-				_vehicles.updateObjState(from._occupiedVehicle, from._occupiedVehicle._state);
+                from._occupiedVehicle._state.lastUpdate = updateTick;
 
-				//Propagate the state
-				from._occupiedVehicle.propagateState();
-			}
-			else
-			{
-				from._state.health = update.health;
-			}
+                //Update spatial data
+                _vehicles.updateObjState(from._occupiedVehicle, from._occupiedVehicle._state);
 
-			//Send player coord updates to update spatial data
-			_players.updateObjState(from, from._state);
-			if (!from._bSpectator)
-				_playersIngame.updateObjState(from, from._state);
+                //Propagate the state
+                from._occupiedVehicle.propagateState();
+            }
+            else
+            {
+                from._state.health = update.health;
+            }
 
-			//If it's a spectator, we should not route
-			if (from.IsSpectator)
-			{	//Are we still spectating a player?
-				if (update.playerSpectating == -1 && from._spectating != null)
-				{
-					from._spectating._spectators.Remove(from);
-					from._spectating = null;
-				}
+            //Send player coord updates to update spatial data
+            _players.updateObjState(from, from._state);
+            if (!from._bSpectator)
+                _playersIngame.updateObjState(from, from._state);
 
-				return;
-			}
+            //If it's a spectator, we should not route
+            if (from.IsSpectator)
+            {	//Are we still spectating a player?
+                if (update.playerSpectating == -1 && from._spectating != null)
+                {
+                    from._spectating._spectators.Remove(from);
+                    from._spectating = null;
+                }
 
-			//Route it to all players!
-			from._state.updateNumber++;
+                return;
+            }
 
-			Helpers.Update_RoutePlayer(from, update, updateTick, oldPosX, oldPosY);
-		}
+            //Route it to all players!
+            from._state.updateNumber++;
 
-		/// <summary>
-		/// Triggered when a player has sent a death packet
-		/// </summary>
-		public override void handlePlayerDeath(Player from, CS_VehicleDeath update)
-		{	//Store variables to pass to the event at the end
-			Player killer = null;
+            Helpers.Update_RoutePlayer(from, update, updateTick, oldPosX, oldPosY);
+        } 
+        #endregion
 
-			//Was it a player kill?
-			if (update.type == Helpers.KillType.Player)
-			{	//Sanity checks
-				killer = _players.getObjByID((ushort)update.killerPlayerID);
+        #region handlePlayerDeath
+        /// <summary>
+        /// Triggered when a player has sent a death packet
+        /// </summary>
+        public override void handlePlayerDeath(Player from, CS_VehicleDeath update)
+        {	//Store variables to pass to the event at the end
+            Player killer = null;
 
-				//Was it a player we can't find?
-				if (update.killerPlayerID < 5001 && killer == null)
-					Log.write(TLog.Warning, "Player {0} gave invalid player killer ID.", from);
-			}
+            //Was it a player kill?
+            if (update.type == Helpers.KillType.Player)
+            {	//Sanity checks
+                killer = _players.getObjByID((ushort)update.killerPlayerID);
 
-			//Was it us that died?
-			if (update.killedID != from._id)
-			{	//Was it the vehicle we were in?
-				if (update.killedID == from._occupiedVehicle._id)
-				{	//Yes! Fall out of the vehicle
-					from._occupiedVehicle.kill(killer);
-					from._occupiedVehicle.playerLeave(true);
-					return;
-				}
+                //Was it a player we can't find?
+                if (update.killerPlayerID < 5001 && killer == null)
+                    Log.write(TLog.Warning, "Player {0} gave invalid player killer ID.", from);
+            }
 
-				//We shouldn't be able to 'kill' anything else
-				Log.write(TLog.Warning, "Player {0} died with invalid killedID #{1}", from._alias, update.killedID);
-				return;
-			}
+            //Was it us that died?
+            if (update.killedID != from._id)
+            {	//Was it the vehicle we were in?
+                if (update.killedID == from._occupiedVehicle._id)
+                {	//Yes! Fall out of the vehicle
+                    from._occupiedVehicle.kill(killer);
+                    from._occupiedVehicle.playerLeave(true);
+                    return;
+                }
 
-			//Fall out of our vehicle and die!
-			if (from._occupiedVehicle != null)
-				from._occupiedVehicle.playerLeave(true);
+                //We shouldn't be able to 'kill' anything else
+                Log.write(TLog.Warning, "Player {0} died with invalid killedID #{1}", from._alias, update.killedID);
+                return;
+            }
 
-			//Reset some life-specific stats
-			from.Bounty = 0;
+            //Fall out of our vehicle and die!
+            if (from._occupiedVehicle != null)
+                from._occupiedVehicle.playerLeave(true);
 
-			//Mark him as dead!
-			from._bEnemyDeath = true;
-			from._deathTime = Environment.TickCount;
+            //Reset some life-specific stats
+            from.Bounty = 0;
 
-			//Prompt the player death event
-			if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type, update))
-				return;
+            //Mark him as dead!
+            from._bEnemyDeath = true;
+            from._deathTime = Environment.TickCount;
 
-			//Was it a player kill?
-			if (update.type == Helpers.KillType.Player)
-			{	//Sanity checks
-				killer = _players.getObjByID((ushort)update.killerPlayerID);
+            //Prompt the player death event
+            if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type, update))
+                return;
 
-				//Was it a player?
-				if (update.killerPlayerID < 5001)
-				{
-					if (killer == null)
-					{
-						Log.write(TLog.Warning, "Player {0} gave invalid killer ID.", from);
-						return;
-					}
+            //Was it a player kill?
+            if (update.type == Helpers.KillType.Player)
+            {	//Sanity checks
+                killer = _players.getObjByID((ushort)update.killerPlayerID);
 
-					//Forward to our script
-					if (!exists("Player.PlayerKill") || (bool)callsync("Player.PlayerKill", false, from, killer))
-					{	//Handle any flags
-						flagHandleDeath(from, killer);
+                //Was it a player?
+                if (update.killerPlayerID < 5001)
+                {
+                    if (killer == null)
+                    {
+                        Log.write(TLog.Warning, "Player {0} gave invalid killer ID.", from);
+                        return;
+                    }
 
-						//Don't reward for teamkills
-						if (from._team == killer._team)
-							Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
-						else
-						{
-							Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedEnemy);
-							Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
-						}
+                    //Forward to our script
+                    if (!exists("Player.PlayerKill") || (bool)callsync("Player.PlayerKill", false, from, killer))
+                    {	//Handle any flags
+                        flagHandleDeath(from, killer);
 
-						killer.Kills++;
-						from.Deaths++;
-					}
+                        //Don't reward for teamkills
+                        if (from._team == killer._team)
+                            Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
+                        else
+                        {
+                            Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedEnemy);
+                            Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
+                        }
 
-					return;
-				}
-			}
+                        killer.Kills++;
+                        from.Deaths++;
+                    }
 
-			//Reset any flags held
-			flagResetPlayer(from);
+                    return;
+                }
+            }
 
-			//Was it a bot kill?
-			if (update.type == Helpers.KillType.Player && update.killerPlayerID >= 5001)
-			{	//Attempt to find the associated bot
-				Bots.Bot bot = _vehicles.getObjByID((ushort)update.killerPlayerID) as Bots.Bot;
-				
-				//Note: bot can be null, for when a player is killed by the bot's projectiles after the bot is dead
+            //Reset any flags held
+            flagResetPlayer(from);
 
-				//Forward to our script
-				if (!exists("Player.BotKill") || (bool)callsync("Player.BotKill", false, from, bot))
-				{	//Update stats
-					from.Deaths++;
+            //Was it a bot kill?
+            if (update.type == Helpers.KillType.Player && update.killerPlayerID >= 5001)
+            {	//Attempt to find the associated bot
+                Bots.Bot bot = _vehicles.getObjByID((ushort)update.killerPlayerID) as Bots.Bot;
 
-					//Yes. Spoof it
-					update.type = Helpers.KillType.Computer;
-					Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
-				}
-			}
-			else
-			{	//If he was killed by a computer vehicle..
-				if (update.type == Helpers.KillType.Computer)
-				{	//Get the related vehicle
-					Computer cvehicle = _vehicles.getObjByID((ushort)update.killerPlayerID) as Computer;
-					if (cvehicle == null)
-					{
-						Log.write(TLog.Warning, "Player {0} was killed by unidentifiable computer vehicle.", from);
-						return;
-					}
+                //Note: bot can be null, for when a player is killed by the bot's projectiles after the bot is dead
 
-					//Forward to our script
-					if (!exists("Player.ComputerKill") || (bool)callsync("Player.ComputerKill", false, from, cvehicle))
-					{	//Update stats
-						from.Deaths++;
+                //Forward to our script
+                if (!exists("Player.BotKill") || (bool)callsync("Player.BotKill", false, from, bot))
+                {	//Update stats
+                    from.Deaths++;
 
-						//Route
-						Logic_Rewards.calculateTurretKillRewards(from, cvehicle, update);
-						Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
-					}
-				}
-				else
-				{	//He was killed by another phenomenon, simply
-					//route the kill packet to all players.
-					Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
-				}
-			}
-		}
+                    //Yes. Spoof it
+                    update.type = Helpers.KillType.Computer;
+                    Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
+                }
+            }
+            else
+            {	//If he was killed by a computer vehicle..
+                if (update.type == Helpers.KillType.Computer)
+                {	//Get the related vehicle
+                    Computer cvehicle = _vehicles.getObjByID((ushort)update.killerPlayerID) as Computer;
+                    if (cvehicle == null)
+                    {
+                        Log.write(TLog.Warning, "Player {0} was killed by unidentifiable computer vehicle.", from);
+                        return;
+                    }
 
+                    //Forward to our script
+                    if (!exists("Player.ComputerKill") || (bool)callsync("Player.ComputerKill", false, from, cvehicle))
+                    {	//Update stats
+                        from.Deaths++;
+
+                        //Route
+                        Logic_Rewards.calculateTurretKillRewards(from, cvehicle, update);
+                        Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
+                    }
+                }
+                else
+                {	//He was killed by another phenomenon, simply
+                    //route the kill packet to all players.
+                    Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
+                }
+            }
+        } 
+        #endregion
+
+        #region handlePlayerShop
 		/// <summary>
 		/// Triggered when a player attempts to use the store
 		/// </summary>
@@ -927,8 +996,10 @@ namespace InfServer.Game
 				}
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerShopSkill
+        /// <summary>
 		/// Triggered when a player attempts to use the skill shop
 		/// </summary>
 		public override void handlePlayerShopSkill(Player from, SkillInfo skill)
@@ -939,8 +1010,10 @@ namespace InfServer.Game
 			//Perform the skill modify!
 			from.skillModify(skill, 1);
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerWarp
+        /// <summary>
 		/// Triggered when a player attempts to use a warp item
 		/// </summary>
 		public override void handlePlayerWarp(Player player, ItemInfo.WarpItem item, ushort targetPlayerID, short posX, short posY)
@@ -1112,8 +1185,10 @@ namespace InfServer.Game
 
 			player._client.sendReliable(rld);
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerMakeVehicle
+        /// <summary>
 		/// Triggered when a player attempts to use a vehicle creator
 		/// </summary>
 		public override void handlePlayerMakeVehicle(Player player, ItemInfo.VehicleMaker item, short posX, short posY)
@@ -1151,8 +1226,10 @@ namespace InfServer.Game
 				player._client.sendReliable(rld);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerItemExpire
+        /// <summary>
 		/// Triggered when a player's item expires
 		/// </summary>
 		public override void handlePlayerItemExpire(Player player, ushort itemTypeID)
@@ -1174,8 +1251,10 @@ namespace InfServer.Game
 			//Remove all items of this type
 			player.removeAllItemFromInventory(itemTypeID);
 		}
+        #endregion
 
-		/// <summary>
+        #region handlePlayerMakeItem
+        /// <summary>
 		/// Triggered when a player attempts to use an item creator
 		/// </summary>
         public override void handlePlayerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
@@ -1217,7 +1296,9 @@ namespace InfServer.Game
                 player.syncState();
 		    }
 		}
+        #endregion
 
+        #region handlePlayerChatCommand
         /// <summary>
         /// Triggered when a player sends a chat command
         /// </summary>
@@ -1227,8 +1308,10 @@ namespace InfServer.Game
             { 
             }
         }
+        #endregion
 
-		/// <summary>
+        #region handlePlayerRepair
+        /// <summary>
 		/// Triggered when a player attempts to repair/heal
 		/// </summary>
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
@@ -1363,8 +1446,10 @@ namespace InfServer.Game
 				Helpers.Player_RouteItemUsed(false, Players, player, targetVehicle, (Int16)item.id, posX, posY, 0);  
             }
         }
-		
-		/// <summary>
+        #endregion
+
+        #region handlePlayerSpectate
+        /// <summary>
 		/// Triggered when a player attempts to spectate another player
 		/// </summary>
 		public override void handlePlayerSpectate(Player player, ushort targetPlayerID)
@@ -1386,8 +1471,10 @@ namespace InfServer.Game
 			//Tell him yes!
 			player.spectate(target);
 		}
+        #endregion
 
-		/// <summary>
+        #region handleVehicleCreation
+        /// <summary>
 		/// Triggered when a vehicle is created
 		/// </summary>
 		/// <remarks>Doesn't catch spectator or dependent vehicle creation</remarks>
@@ -1397,8 +1484,10 @@ namespace InfServer.Game
 			{	
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handleVehicleDeath
+        /// <summary>
 		/// Triggered when a vehicle dies
 		/// </summary>
 		public override void handleVehicleDeath(Vehicle dead, Player killer, Player occupier)
@@ -1408,8 +1497,10 @@ namespace InfServer.Game
 				Helpers.Vehicle_RouteDeath(Players, killer, dead, occupier);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region handleBotDeath
+        /// <summary>
 		/// Triggered when a bot is killed
 		/// </summary>
 		public override void handleBotDeath(Bot dead, Player killer, int weaponID)
@@ -1418,8 +1509,10 @@ namespace InfServer.Game
 			{	//Route the death to the arena
 				Helpers.Vehicle_RouteDeath(Players, killer, dead, null);
 			}
-		}
-		#endregion
-		#endregion
-	}
+        }
+        #endregion
+        #endregion
+
+        #endregion
+    }
 }

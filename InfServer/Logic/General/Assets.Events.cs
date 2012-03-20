@@ -46,7 +46,7 @@ namespace InfServer.Logic
 		{	//If it's nothing, don't bother parsing
 			if (eventString == "")
 				return;
-			
+
 			//Use everything in lower case
 			eventString = eventString.ToLower();
 
@@ -64,7 +64,6 @@ namespace InfServer.Logic
 					string[] events = actionString.Substring(listStart + 1, listEnd - listStart).Split(';');
 					string chosenstring = events[player._arena._rand.Next(0, events.Length - 1)];
 					int _eqIdx = chosenstring.IndexOf('=');
-
 					if (_eqIdx == -1)
 						executeAction(player, chosenstring, "", state);
 					else
@@ -82,11 +81,12 @@ namespace InfServer.Logic
 				//Obtain the action and parameter, if any
 				int eqIdx = actionString.IndexOf('=');
 
-				if (eqIdx == -1)
-					executeAction(player, actionString, "", state);
-				else
-					executeAction(player, actionString.Substring(0, eqIdx),
-						actionString.Substring(eqIdx + 1), state);
+                if (eqIdx == -1)
+                    executeAction(player, actionString, "", state);
+                else
+                    executeAction(player, actionString.Substring(0, eqIdx),
+                        actionString.Substring(eqIdx + 1), state);
+
 			}
 
 			//Apply our state if neccessary
@@ -168,7 +168,9 @@ namespace InfServer.Logic
 		static private bool executeAction(bool bEnforceState, Player player, string action, string param, EventState state)
 		{	//What sort of action?
 			bool bChangedState = false;
-
+            //Trim our strings..
+            action = action.Trim('"');
+            param = param.Trim('"');
 			switch (action)
 			{
 				//Sends the player to the specified lio warp group
@@ -270,10 +272,10 @@ namespace InfServer.Logic
 				case "addinv":
 					{	//Check for a quantity
 						int colIdx = param.IndexOf(':');
-
 						if (colIdx == -1)
 						{	//Find the given item
 							ItemInfo item = player._server._assets.getItemByName(param);
+                            Log.write(item.name);
 							if (item != null)
 								player.inventoryModify(false, item, 1);
 						}
