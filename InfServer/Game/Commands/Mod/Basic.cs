@@ -358,6 +358,30 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
+        /// <summary>
+        /// Permits a player in a permission-only zone
+        /// </summary>
+        static public void permit(Player player, Player recipient, string payload)
+        {   //Does he want a list?
+            if (payload.ToLower() == "list")
+            {
+                player.sendMessage(0, Logic.Logic_Permit.listPermit());
+                return;
+            }
+            //Are we adding or removing?
+            if (Logic.Logic_Permit.checkPermit(payload))
+            {   //Remove
+                player.sendMessage(0, "Player removed from permission list");
+                Logic.Logic_Permit.removePermit(payload);
+            }
+            
+            else
+            {   //Adding
+                player.sendMessage(0, "Player added to permission list");
+                Logic.Logic_Permit.addPermit(payload);
+            }
+        }
+
 		/// <summary>
 		/// Removes a player from the server
 		/// </summary>
@@ -387,6 +411,10 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(help, "help",
                 "Gives the user help information on a given command.",
                 "*help [commandName]");
+
+            yield return new HandlerDescriptor(permit, "permit",
+                "Permits target player to enter a permission-only zone.",
+                "*permit alias");
 
             yield return new HandlerDescriptor(arena, "arena",
                 "Send a arena-wide system message.",

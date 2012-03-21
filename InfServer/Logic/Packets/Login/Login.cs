@@ -20,6 +20,12 @@ namespace InfServer.Logic
 			ZoneServer server = (client._handler as ZoneServer);
 			Player newPlayer = server.newPlayer(client, pkt.Username);
 
+            if (server._config["server/permitMode"].boolValue)
+            {
+                if (!Logic_Permit.checkPermit(newPlayer._alias))
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
+            }
+
             String alias = newPlayer._alias;
 
             //Check alias for illegal characters, may need overhauling.
