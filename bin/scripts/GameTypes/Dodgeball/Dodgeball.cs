@@ -91,7 +91,7 @@ namespace InfServer.Script.GameType_Dodgeball
             else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
-                _arena.setTicker(1, 1, 20 * 100, "Next game: ",
+                _arena.setTicker(1, 1, 8 * 100, "Next game: ",
                     delegate()
                     {	//Trigger the game start
 
@@ -102,8 +102,48 @@ namespace InfServer.Script.GameType_Dodgeball
             return true;
         }
 
+
+
 		#region Events
 	
+        /// <summary>
+		/// Triggered when a player notifies the server of an explosion
+		/// </summary>
+        [Scripts.Event("Player.Explosion")]
+        public bool playerExplosion(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
+        {	//Is a hit?
+            if (weapon.id == 1011)
+            {   //Are they trying to catch?
+                IEnumerable<Player> players = player._arena.getPlayersInRange(posX, posY, 15);
+                if (players.Count() > 0)
+                {
+                    if (players.First().getInventoryAmount(28) > 0)
+                    {//Yes, lets summon a teammate back in
+                        foreach (Player p in players.First()._team.ActivePlayers)
+                        {
+                            if (p.IsDead)
+                                continue;
+
+                            if (inPlayers.ContainsKey(p))
+                                continue;
+
+                            if (p._team == team1)
+                                team1Count++;
+                            else
+                                team2Count++;
+
+                            inPlayers.Add(p, true);
+                            Player warpTo = players.First();
+                            p.warp(warpTo._state.positionX + _rand.Next(0, 15), warpTo._state.positionY + _rand.Next(0, 15));
+                            break;
+                        }
+                    }
+                }
+
+
+            }
+            return true;
+        }
 
 		/// <summary>
 		/// Called when a player enters the game
@@ -281,7 +321,7 @@ namespace InfServer.Script.GameType_Dodgeball
                 else
                     team2Count--;
 
-                inPlayers[player] = false;
+                inPlayers.Remove(player);
             }
             
 
@@ -311,7 +351,7 @@ namespace InfServer.Script.GameType_Dodgeball
 
 
             killer.setVar("Hits", killer.getVarInt("Hits") + 1);
-            inPlayers[victim] = false;
+            inPlayers.Remove(victim);
 			return true;
 		}
 		#endregion

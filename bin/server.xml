@@ -16,6 +16,7 @@
 		<gameType value="GameType_ZombieZone" />
 		<loadBlobs value="true" />
 		<logPackets value="false" />
+		<permitMode value="false" />
 	</server>
 	
 	<protocol>
