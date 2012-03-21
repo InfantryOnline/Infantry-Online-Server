@@ -52,7 +52,6 @@ namespace Assets
             public int reloadDelayAsynchronousPartial;
             public int routeRange;
             public int routeRotationalRange;
-            public bool routeFriendly;
             public int recoil;
             public int verticalRecoil;
             public int prefireDelay;

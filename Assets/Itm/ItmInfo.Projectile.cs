@@ -41,7 +41,6 @@ namespace Assets
             public int reloadDelayAsynchronousPartial;
             public int routeRange;
             public int routeRotationalRange;
-            public int routeFriendly;
             public int recoil;
             public int verticle;
             public int prefireDelay;
@@ -185,7 +184,7 @@ namespace Assets
                 projectile.reloadDelayAsynchronousPartial = CSVReader.GetInt(values[61]);
                 projectile.routeRange = CSVReader.GetInt(values[62]);
                 projectile.routeRotationalRange = CSVReader.GetInt(values[63]);
-                projectile.routeFriendly = CSVReader.GetInt(values[65]);
+                projectile.routeFriendly = CSVReader.GetBool(values[65]);
                 projectile.recoil = CSVReader.GetInt(values[66]);
                 projectile.verticle = CSVReader.GetInt(values[67]);
                 projectile.prefireDelay = CSVReader.GetInt(values[68]);

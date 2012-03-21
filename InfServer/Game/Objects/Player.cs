@@ -67,6 +67,8 @@ namespace InfServer.Game
 
 		public Dictionary<int, InventoryItem> _inventory;	//Our current inventory
 		public Dictionary<int, SkillItem> _skills;	//Our current skill inventory
+        public List<ItemInfo.UtilityItem> activeUtilities;	//Active Utilities
+        
 
 		public bool _bDBLoaded;						//Has the player's statistics been loaded from the database?
 
@@ -213,6 +215,8 @@ namespace InfServer.Game
 			_bounty = 1;
 
 			_spectators = new List<Player>();
+
+            activeUtilities = new List<ItemInfo.UtilityItem>();
 		}
 
 		#region State
@@ -242,6 +246,47 @@ namespace InfServer.Game
 			Helpers.Player_Disconnect(this);
 			destroy();
 		}
+
+        /// <summary>
+        /// Updates active equipment
+        /// </summary>
+        /// <param name="equip"></param>
+        public void updateActiveEquip(List<ushort> equip)
+        {
+            activeUtilities = new List<ItemInfo.UtilityItem>();
+
+            foreach (ushort utility in equip)
+            {
+                activeUtilities.Add(_server._assets.getItemByID(utility) as ItemInfo.UtilityItem);
+            }
+        }
+
+        /// <summary>
+        /// Checks for anti warps.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns></returns>
+        public Player checkAntiWarp()
+        {	//Get the list of bots in the area
+            IEnumerable<Player> candidates = _arena.getPlayersInRange(_state.positionX, _state.positionY, 1000);
+
+            foreach (Player candidate in candidates)
+            {   //Ignore teammates..
+                if (candidate._team == _team)
+                    continue;
+                
+                //Any anti-warp utils?
+                if (!candidate.activeUtilities.Any(util => util.antiWarpDistance != -1))
+                    continue;
+                //Is it within the distance?
+                int dist = (int)(_state.position().Distance(candidate._state.position()) * 100);
+
+                if (candidate.activeUtilities.Any(util => util.antiWarpDistance >= dist))
+                    return candidate;
+            }
+
+            return null;
+        }
 
 		/// <summary>
 		/// The player has left the arena, reset assets

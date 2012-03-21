@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace Assets
 {
@@ -57,6 +58,8 @@ namespace Assets
         public int heldCategoryType;
         public int pruneDropPercent;
         public int pruneOdds;
+        public bool routeFriendly;
+
 
         public static void LoadGeneralSettings1(ItemInfo item, List<string> values)
         {

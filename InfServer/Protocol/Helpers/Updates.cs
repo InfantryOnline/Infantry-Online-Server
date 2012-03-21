@@ -115,11 +115,12 @@ namespace InfServer.Protocol
 
 			up.activeEquip = pkt.activeEquip;
 
+            ItemInfo item = _server._assets.getItemByID(pkt.itemID);
+
 			//Get the routing audience
 			int weaponRouteRange = 0;
 			if (pkt.itemID != 0)
-			{
-				ItemInfo item = AssetManager.Manager.getItemByID(pkt.itemID);
+            {
 				if (item != null)
 					item.getRouteRange(out weaponRouteRange);
 			}
@@ -132,6 +133,19 @@ namespace InfServer.Protocol
 				if (player == update)
 					continue;
 
+                //Our we updating an item?
+                if (pkt.itemID != 0)
+                {
+                    //Route friendly?
+                    if (item.routeFriendly)
+                    {
+                        //Route only to teammates.
+                        if (player._team == update._team)
+                            player._client.send(tu);
+                        continue;
+                    }
+                }
+                
 				if (player.IsSpectator || player._team == update._team)
 					player._client.send(tu);
 				else

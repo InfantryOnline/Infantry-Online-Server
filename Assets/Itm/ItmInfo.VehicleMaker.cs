@@ -43,7 +43,6 @@ namespace Assets
             public int asynchronousPartialReloadDelay;
             public int routeRange;
             public int routeRotationalRange;
-            public int routeFriendly;
             public int recoil;
             public int verticalRecoil;
             public int prefireDelay;
@@ -118,7 +117,7 @@ namespace Assets
                 vehicleMaker.asynchronousPartialReloadDelay = CSVReader.GetInt(values[61]);
                 vehicleMaker.routeRange = CSVReader.GetInt(values[62]);
                 vehicleMaker.routeRotationalRange = CSVReader.GetInt(values[63]);
-                vehicleMaker.routeFriendly = CSVReader.GetInt(values[65]);
+                vehicleMaker.routeFriendly = CSVReader.GetBool(values[65]);
                 vehicleMaker.recoil = CSVReader.GetInt(values[66]);
                 vehicleMaker.verticalRecoil = CSVReader.GetInt(values[67]);
                 vehicleMaker.prefireDelay = CSVReader.GetInt(values[68]);
