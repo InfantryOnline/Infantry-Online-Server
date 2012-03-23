@@ -52,7 +52,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Deserialize()
 		{	//What sort of chat is this?
-			chatType = (Helpers.Chat_Type)_contentReader.ReadInt16();
+			chatType = (Helpers.Chat_Type)_contentReader.ReadByte();
             bong = _contentReader.ReadByte();
 
 			switch (chatType)
@@ -81,6 +81,11 @@ namespace InfServer.Protocol
 					recipient = ReadNullString();
 					message = ReadNullString();
 					break;
+
+                case Helpers.Chat_Type.Macro:
+                    recipient = ReadNullString();
+                    message = ReadNullString();
+                    break;
 
 				default:
 					message = "";

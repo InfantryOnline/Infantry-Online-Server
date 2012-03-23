@@ -22,7 +22,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Restarts the server
 		/// </summary>
-		static public void recycle(Player player, Player recipient, string payload)
+        static public void recycle(Player player, Player recipient, string payload, int bong)
 		{
 			InfServer.Program.restart();
 		}
@@ -30,7 +30,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Queries environment information from a player
 		/// </summary>
-		static public void environment(Player player, Player recipient, string payload)
+        static public void environment(Player player, Player recipient, string payload, int bong)
 		{	//Send him an environment packet!
 			SC_Environment env = new SC_Environment();
 
@@ -43,7 +43,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Just handy for testing packet functionality
 		/// </summary>
-		static public void testPacket(Player player, Player recipient, string payload)
+        static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
 			SC_Test test = new SC_Test();
 			recipient._client.sendReliable(test);
@@ -52,7 +52,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Displays a gif
 		/// </summary>
-		static public void showGif(Player player, Player recipient, string payload)
+        static public void showGif(Player player, Player recipient, string payload, int bong)
 		{	//Download the gif!
 			WebClient client = new WebClient();
 			Stream file = client.OpenRead(payload);

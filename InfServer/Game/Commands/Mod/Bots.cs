@@ -16,7 +16,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Spawns a bot of the specified vehicle id
 		/// </summary>
-		static public void spawnBot(Player player, Player recipient, string payload)
+		static public void spawnBot(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
 			if (payload == "" ||
 				recipient != null)

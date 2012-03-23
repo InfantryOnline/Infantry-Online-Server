@@ -53,7 +53,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Provides server networking stats per-player
 		/// </summary>
-		static public void playernetstat(Player player, Player recipient, string payload)
+        static public void playernetstat(Player player, Player recipient, string payload, int bong)
 		{	//Generate some server statistics!
 			double totalSendBPS = 0;
 			double totalRecvBPS = 0;
@@ -77,7 +77,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Provides server networking stats
 		/// </summary>
-		static public void netstat(Player player, Player recipient, string payload)
+        static public void netstat(Player player, Player recipient, string payload, int bong)
 		{	//Are we targetting a player?
 			if (recipient != null)
 			{

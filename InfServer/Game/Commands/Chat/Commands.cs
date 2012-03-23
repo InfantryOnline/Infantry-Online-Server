@@ -18,7 +18,7 @@ namespace InfServer.Game.Commands.Chat
       	/// <summary>
         /// Presents the player with a list of arenas available to join
         /// </summary>
-		public static void arena(Player player, Player recipient, string payload)
+        public static void arena(Player player, Player recipient, string payload, int bong)
 		{	//Form the list packet to send to him..
 			SC_ArenaList arenaList = new SC_ArenaList(player._server._arenas.Values, player);
 
@@ -28,7 +28,7 @@ namespace InfServer.Game.Commands.Chat
         /// <summary>
         /// Purchases items in the form item1:x1, item2:x2 and so on
         /// </summary>
-        public static void buy(Player player, Player recipient, string payload)
+        public static void buy(Player player, Player recipient, string payload, int bong)
         {	           
             char[] splitArr = {','};
             string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);          
@@ -72,9 +72,18 @@ namespace InfServer.Game.Commands.Chat
 						continue;
 					}
 				}
-                
+
+                //Make sure he has enough cash first..
+                int buyPrice = item.buyPrice * buyAmount;
+                if (buyPrice > player.Cash)
+                {
+                    player.sendMessage(-1, String.Format("You do not have enough cash to make this purchase ({0})", item.name));
+                    return;
+                }
+
                 // Buy the item! (after parsing errors handled)
-                player._arena.handlePlayerShop(player, item, buyAmount);                                
+                player._arena.handlePlayerShop(player, item, buyAmount);
+                player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash - buyPrice));
             }            
 
         }
@@ -82,7 +91,7 @@ namespace InfServer.Game.Commands.Chat
         /// <summary>
         /// displays current game statistics
         /// </summary>
-        public static void breakdown(Player player, Player recipient, string payload)
+        public static void breakdown(Player player, Player recipient, string payload, int bong)
         {
             player._arena.individualBreakdown(player, true);
         }
@@ -90,7 +99,7 @@ namespace InfServer.Game.Commands.Chat
         /// <summary>
         /// Sends help request to moderators..
         /// </summary>
-        public static void help(Player player, Player recipient, string payload)
+        public static void help(Player player, Player recipient, string payload, int bong)
         {
             //Ignore help requests in stand alone mode
             if (player._server.IsStandalone)
@@ -123,7 +132,7 @@ namespace InfServer.Game.Commands.Chat
 		/// <summary>
 		/// Displays all players which are spectating
 		/// </summary>
-		public static void spec(Player player, Player recipient, string payload)
+        public static void spec(Player player, Player recipient, string payload, int bong)
 		{
 			Player target = recipient;
 			if (recipient == null)
@@ -149,7 +158,7 @@ namespace InfServer.Game.Commands.Chat
 		/// <summary>
         /// Displays lag statistics for a particular player
         /// </summary>
-		public static void info(Player player, Player recipient, string payload)
+        public static void info(Player player, Player recipient, string payload, int bong)
 		{
 			Player target = recipient;
 			if (recipient == null)
@@ -167,7 +176,7 @@ namespace InfServer.Game.Commands.Chat
 		/// <summary>
 		/// Displays lag statistics for self
 		/// </summary>
-		public static void lag(Player player, Player recipient, string payload)
+        public static void lag(Player player, Player recipient, string payload, int bong)
 		{
 			if (recipient != null)
 				return;

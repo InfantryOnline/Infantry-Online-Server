@@ -122,7 +122,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Handles a moderator command received from a player
 		/// </summary>
-		public void playerModCommand(Player from, Player recipient, string command, string payload)
+		public void playerModCommand(Player from, Player recipient, string command, string payload, int bong)
 		{	//Attempt to find the appropriate handler
 			HandlerDescriptor handler;
 
@@ -137,7 +137,7 @@ namespace InfServer.Game
 
 			try
 			{	//Handle it!
-				handler.handler(from, recipient, payload);
+				handler.handler(from, recipient, payload, bong);
 			}
 			catch (Exception ex)
 			{
@@ -153,7 +153,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Handles a typical chat command received from a player
 		/// </summary>
-		public void playerChatCommand(Player from, Player recipient, string command, string payload)
+		public void playerChatCommand(Player from, Player recipient, string command, string payload, int bong)
 		{	//Attempt to find the appropriate handler
 			HandlerDescriptor handler;
 
@@ -165,7 +165,7 @@ namespace InfServer.Game
 
 			try
 			{	//Handle it!
-				handler.handler(from, recipient, payload);
+				handler.handler(from, recipient, payload, bong);
 			}
 			catch (Exception ex)
 			{

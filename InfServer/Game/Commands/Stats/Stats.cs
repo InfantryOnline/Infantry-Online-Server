@@ -18,7 +18,7 @@ namespace InfServer.Game.Commands.Chat
 		/// <summary>
 		/// Displays a chart of each player's lag statistics
 		/// </summary>
-		public static void lagchart(Player player, Player recipient, string payload)
+        public static void lagchart(Player player, Player recipient, string payload, int bong)
 		{	//Set the title and columns
 			SC_Chart chart = new SC_Chart();
 
@@ -42,7 +42,7 @@ namespace InfServer.Game.Commands.Chat
 		/// <summary>
 		/// Displays a chart containing information regarding each player
 		/// </summary>
-		public static void playerchart(Player player, Player recipient, string payload)
+        public static void playerchart(Player player, Player recipient, string payload, int bong)
 		{	//Set the title and columns
 			SC_Chart chart = new SC_Chart();
 

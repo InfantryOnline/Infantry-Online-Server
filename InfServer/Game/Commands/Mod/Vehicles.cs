@@ -15,7 +15,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Sets the player's default vehicle to the one specified
 		/// </summary>
-		static public void defaultVehicle(Player player, Player recipient, string payload)
+        static public void defaultVehicle(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
 			if (payload == "")
 			{
@@ -39,7 +39,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Spawns a vehicle of the specified type
 		/// </summary>
-		static public void spawnVehicle(Player player, Player recipient, string payload)
+        static public void spawnVehicle(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
 			if (payload == "" ||
 				recipient != null)

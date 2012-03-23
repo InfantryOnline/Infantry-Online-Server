@@ -19,7 +19,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Restarts the current game
 		/// </summary>
-		static public void restart(Player player, Player recipient, string payload)
+        static public void restart(Player player, Player recipient, string payload, int bong)
 		{	//End the current game
 			player._arena.gameEnd();
 		}

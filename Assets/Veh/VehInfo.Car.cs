@@ -114,13 +114,10 @@
                     this.SpriteShadow.ParseV2(parser);
                 }
 
-                this.SoundIdle = parser.GetInstance<SoundBlob>();
-                this.SoundThrust = parser.GetInstance<SoundBlob>();
-                this.SoundRotate = parser.GetInstance<SoundBlob>();
-
                 if (this.Version >= 4)
                 {
                     this.SoundDeath = parser.GetInstance<SoundBlob>();
+                    base.blofiles.Add(SoundDeath.BlobName);
                 }
                 else
                 {
@@ -141,7 +138,22 @@
                     this.SoundIdle.FixBlobId();
                     this.SoundThrust.FixBlobId();
                     this.SoundRotate.FixBlobId();
+
                 }
+
+                base.blofiles.Add(SpriteRoll.BlobName);
+                base.blofiles.Add(SpriteEmpty.BlobName);
+                base.blofiles.Add(SpriteBroken.BlobName);
+                base.blofiles.Add(SpriteThrust.BlobName);
+                base.blofiles.Add(SpriteSmoke.BlobName);
+                base.blofiles.Add(SpriteStopped.BlobName);
+                this.SoundIdle = parser.GetInstance<SoundBlob>();
+                this.SoundThrust = parser.GetInstance<SoundBlob>();
+                this.SoundRotate = parser.GetInstance<SoundBlob>();
+                base.blofiles.Add(SoundIdle.BlobName);
+                base.blofiles.Add(SoundThrust.BlobName);
+                base.blofiles.Add(SoundRotate.BlobName);
+
             }
         }
     }

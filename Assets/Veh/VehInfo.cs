@@ -118,6 +118,7 @@ namespace Assets
         public int EnemyRadarColor; // 018
         public short[] HoldItemLimits = new short[30]; // 01C
         public short[] HoldItemExtendedLimits = new short[30]; // 058
+        public List<string> blofiles = new List<string>();
 
         public override string ToString()
         {
@@ -198,6 +199,8 @@ namespace Assets
             {
                 this.Sprites[0].Parse(this.Version, parser);
                 this.Sprites[1].Parse(this.Version, parser);
+                blofiles.Add(Sprites[0].Blob.BlobName);
+                blofiles.Add(Sprites[1].Blob.BlobName);
             }
 
             this.EnergyMax = (this.Version >= 5) ? parser.GetInt() : -1;

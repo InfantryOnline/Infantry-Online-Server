@@ -113,11 +113,6 @@ namespace InfServer.Game
 				if (!_nameToSkill.ContainsKey(it.Name.ToLower()))
 					_nameToSkill.Add(it.Name.ToLower(), it);
 
-			//Make vehicle map
-			_idToVehicle = new SortedDictionary<int, VehInfo>();
-			foreach (VehInfo it in vehs.Data)
-				_idToVehicle.Add(it.Id, it);
-
 			//Make lio map
 			_idToLio = new SortedDictionary<int, LioInfo>();
 			foreach (LioInfo it in lios.Data)
@@ -133,6 +128,14 @@ namespace InfServer.Game
 			foreach (LvlInfo.BlobReference blob in Level.FloorBlobs)
 				loadBloFile(blob.FileName);
 
+            //Make vehicle map
+            _idToVehicle = new SortedDictionary<int, VehInfo>();
+            foreach (VehInfo it in vehs.Data)
+            {
+                _idToVehicle.Add(it.Id, it);
+                foreach (string blo in it.blofiles)
+                    loadBloFile(blo + ".blo");
+            }
 			foreach (string blo in _bloList)
 			{	//Attempt to load it
 				BloFile blof = AssetFileFactory.CreateFromFile<BloFile>(blo);
@@ -175,6 +178,9 @@ namespace InfServer.Game
 			string lower = filename.ToLower();
 			if (lower == "none.blo")
 				return;
+
+            if (lower == ".blo")
+                return;
 
 			//Make sure we don't already have this blo file
 			if (_bloList.Contains(lower))

@@ -47,7 +47,7 @@ namespace Assets
         public SoccerMvp soccerMvp;
         public Stat stat;
         public Bubble bubble;
-        public List<NamedArena> areans = new List<NamedArena>();
+        public List<NamedArena> arenas = new List<NamedArena>();
         public Jackpot jackpot;
         public QuickSkill quickSkill;
         public Uiart uiart;
@@ -149,7 +149,7 @@ namespace Assets
 				if (!stringTree.ContainsKey("NamedArena" + i))
 					continue;
 
-                cfgInfo.areans.Add(new NamedArena(ref stringTree, i));
+                cfgInfo.arenas.Add(new NamedArena(ref stringTree, i));
             }
             cfgInfo.jackpot = new Jackpot(ref stringTree);
             cfgInfo.quickSkill = new QuickSkill(ref stringTree);

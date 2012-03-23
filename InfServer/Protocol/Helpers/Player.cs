@@ -33,11 +33,12 @@ namespace InfServer.Protocol
 		public enum Chat_Type
 		{
 			Normal = 0,
+            Macro = 1,
 			Whisper = 2,
 			Team = 3,
 			EnemyTeam = 4,
 			Arena = 5,
-			Squad = 7,
+			Squad = 7
 		}
 
 		//Ways in which players can be killed
@@ -169,6 +170,7 @@ namespace InfServer.Protocol
 
 			schat.from = from._alias;
 			schat.message = chat.message;
+            schat.bong = chat.bong;
 
 			//Go!
 			p._client.sendReliable(schat);
@@ -185,6 +187,7 @@ namespace InfServer.Protocol
 
 			schat.from = from._alias;
 			schat.message = chat.message;
+            schat.bong = chat.bong;
 
 			//Go!
 			foreach (Player player in target.getChatTargets())

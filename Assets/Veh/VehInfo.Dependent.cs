@@ -82,6 +82,13 @@
                     this.SpriteBroken.FixUnknown18();
                     this.SoundRotate.FixBlobId();
                 }
+
+
+                base.blofiles.Add(SpriteOccupied.BlobName);
+                base.blofiles.Add(SpriteEmpty.BlobName);
+                base.blofiles.Add(SpriteBroken.BlobName);
+                base.blofiles.Add(SoundRotate.BlobName);
+
             }
         }
     }

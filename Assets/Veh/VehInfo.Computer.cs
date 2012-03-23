@@ -110,6 +110,9 @@
                     this.SpriteTurret.FixUnknown18();
                 }
 
+                base.blofiles.Add(SpriteBase.BlobName);
+                base.blofiles.Add(SpriteTurret.BlobName);
+
                 if (this.Version >= 22)
                 {
                     for (int i = 0; i < 16; i++)

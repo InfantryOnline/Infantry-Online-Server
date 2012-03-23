@@ -16,8 +16,10 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_CS_Chat(CS_Chat pkt, Player player)
 		{	//Ignore blank messages
-			if (pkt.message == "")
+            if (pkt.message == "")
 				return;
+
+
 
 			//Is it a server command?
 			if (pkt.message[0] == '?' && pkt.message.Length > 1)
@@ -45,7 +47,7 @@ namespace InfServer.Logic
 				//Route it to our arena!
 				player._arena.handleEvent(delegate(Arena arena)
 					{
-						arena.playerChatCommand(player, recipient, command, payload);
+						arena.playerChatCommand(player, recipient, command, payload, pkt.bong);
 					}
 				);
 						
@@ -76,7 +78,7 @@ namespace InfServer.Logic
 				//Route it to our arena!
 				player._arena.handleEvent(delegate(Arena arena)
 					{
-						player._arena.playerModCommand(player, recipient, command, payload);
+						player._arena.playerModCommand(player, recipient, command, payload, pkt.bong);
 					}
 				);
 
@@ -94,6 +96,11 @@ namespace InfServer.Logic
 						}
 					);
 					break;
+
+                case Helpers.Chat_Type.Macro:
+                    pkt.chatType = Helpers.Chat_Type.Normal;
+                    Handle_CS_Chat(pkt, player);
+                    break;
 
 				case Helpers.Chat_Type.Team:
 					//Send it to the player's team

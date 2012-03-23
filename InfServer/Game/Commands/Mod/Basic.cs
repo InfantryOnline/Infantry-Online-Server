@@ -19,7 +19,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Gives the user help information on a given command
         /// </summary>
-        static public void help(Player player, Player recipient, string payload)
+        static public void help(Player player, Player recipient, string payload, int bong)
         {
             if (payload == "")
             {	//List all mod commands
@@ -57,7 +57,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Warps the player to a specified location or player
         /// </summary>
-        static public void warp(Player player, Player recipient, string payload)
+        static public void warp(Player player, Player recipient, string payload, int bong)
         {	//Do we have a target?
             if (recipient != null)
             {	//Do we have a destination?
@@ -125,7 +125,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Summons the specified player to yourself
         /// </summary>
-        static public void summon(Player player, Player recipient, string payload)
+        static public void summon(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
             if (recipient == null)
             {
@@ -140,7 +140,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Puts another player, or yourself, on a specified team
         /// </summary>
-        static public void team(Player player, Player recipient, string payload)
+        static public void team(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
             if (payload == "")
             {
@@ -165,7 +165,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Spawns an item on the ground or in a player's inventory
         /// </summary>
-        static public void prize(Player player, Player recipient, string payload)
+        static public void prize(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
             if (payload == "")
             {
@@ -210,7 +210,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Forces a player to spectate another
 		/// </summary>
-		static public void spectate(Player player, Player recipient, string payload)
+        static public void spectate(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
 			if (payload == "")
 			{
@@ -252,7 +252,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Puts a player into spectator mode
         /// </summary>
-        static public void spec(Player player, Player recipient, string payload)
+        static public void spec(Player player, Player recipient, string payload, int bong)
         {	//Shove him in spec!
             Player target = (recipient == null) ? player : recipient;
 
@@ -275,7 +275,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Gets a player in spectator mode, and puts him out onto a team
         /// </summary>
-        static public void unspec(Player player, Player recipient, string payload)
+        static public void unspec(Player player, Player recipient, string payload, int bong)
         {	//Find our target
             Player target = (recipient == null) ? player : recipient;
 
@@ -300,7 +300,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Prizes target player cash.
         /// </summary>
-        static public void cash(Player player, Player recipient, string payload)
+        static public void cash(Player player, Player recipient, string payload, int bong)
         {	//Find our target
             Player target = (recipient == null) ? player : recipient;
 
@@ -325,18 +325,18 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Sends a arena/system message
         /// </summary>
-        static public void arena(Player player, Player recipient, string payload)
+        static public void arena(Player player, Player recipient, string payload, int bong)
         {
             if (payload == "")
                 player.sendMessage(0, "Message can not be empty");
             else
-                player._arena.sendArenaMessage(payload);
+                player._arena.sendArenaMessage(payload, bong);
         }
 
         /// <summary>
         /// Prizes target player experience.
         /// </summary>
-        static public void experience(Player player, Player recipient, string payload)
+        static public void experience(Player player, Player recipient, string payload, int bong)
         {	//Find our target
             Player target = (recipient == null) ? player : recipient;
 
@@ -361,7 +361,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Permits a player in a permission-only zone
         /// </summary>
-        static public void permit(Player player, Player recipient, string payload)
+        static public void permit(Player player, Player recipient, string payload, int bong)
         {   //Does he want a list?
             if (payload.ToLower() == "list")
             {
@@ -385,7 +385,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Removes a player from the server
 		/// </summary>
-		static public void kill(Player player, Player recipient, string payload)
+        static public void kill(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
 			if (recipient == null)
 			{

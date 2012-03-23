@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using InfServer.Protocol;
 
 namespace InfServer.Game.Commands
 {
@@ -142,7 +143,7 @@ namespace InfServer.Game.Commands
 	/// </summary>
 	public struct HandlerDescriptor
 	{
-		public Action<Player, Player, string> handler;
+		public Action<Player, Player, string, int> handler;
 
 		public string handlerCommand;
 		public string commandDescription;
@@ -150,7 +151,7 @@ namespace InfServer.Game.Commands
 
 		public Data.PlayerPermission permissionLevel;
 
-		public HandlerDescriptor(Action<Player, Player, string> _handler, string _handlerCommand, string _commandDescription, string _usage)
+		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage)
 		{
 			handler = _handler;
 			handlerCommand = _handlerCommand;
@@ -160,7 +161,7 @@ namespace InfServer.Game.Commands
 			permissionLevel = InfServer.Data.PlayerPermission.Normal;
 		}
 
-		public HandlerDescriptor(Action<Player, Player, string> _handler, string _handlerCommand, string _commandDescription, string _usage, Data.PlayerPermission _permissionLevel)
+		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage, Data.PlayerPermission _permissionLevel)
 		{
 			handler = _handler;
 			handlerCommand = _handlerCommand;
