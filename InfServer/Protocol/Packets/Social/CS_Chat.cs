@@ -14,6 +14,7 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public Helpers.Chat_Type chatType;
+        public byte bong;
 
 		public string message;
 		public string recipient;
@@ -52,6 +53,7 @@ namespace InfServer.Protocol
 		public override void Deserialize()
 		{	//What sort of chat is this?
 			chatType = (Helpers.Chat_Type)_contentReader.ReadInt16();
+            bong = _contentReader.ReadByte();
 
 			switch (chatType)
 			{
