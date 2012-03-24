@@ -182,6 +182,9 @@ namespace InfServer.Game
             if (lower == ".blo")
                 return;
 
+            if (lower == "nosound.blo")
+                return;
+
 			//Make sure we don't already have this blo file
 			if (_bloList.Contains(lower))
 				return;
