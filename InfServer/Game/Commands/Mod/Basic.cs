@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using Assets;
-
+using InfServer.Game;
 using InfServer.Bots;
 using InfServer.Protocol;
 
@@ -382,6 +382,19 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
+        /// <summary>
+        /// Spits out information about a player's zone profile
+        /// </summary>
+        static public void profile(Player player, Player recipient, string payload, int bong)
+        {
+            Player target = (recipient == null) ? player : recipient;
+            player.sendMessage(0, String.Format("&{0} Profile:", target._alias));
+            foreach (KeyValuePair<int, Player.InventoryItem> itm in target._inventory)
+                player.sendMessage(0, String.Format("{0}:{1},", itm.Value.quantity, itm.Value.item.name));
+            foreach (KeyValuePair<int,Player.SkillItem> skill in target._skills)
+                player.sendMessage(0, String.Format("{0}:{1},", skill.Value.quantity, skill.Value.skill.Name));
+        }
+
 		/// <summary>
 		/// Removes a player from the server
 		/// </summary>
@@ -414,11 +427,18 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(permit, "permit",
                 "Permits target player to enter a permission-only zone.",
-                "*permit alias");
+                "*permit alias",
+               InfServer.Data.PlayerPermission.Mod);
 
             yield return new HandlerDescriptor(arena, "arena",
                 "Send a arena-wide system message.",
-                "*arena message");
+                "*arena message",
+               InfServer.Data.PlayerPermission.Mod);
+
+            yield return new HandlerDescriptor(profile, "profile",
+                "Displays a player's inventory.",
+                "/*profile or :player:*profile",
+                InfServer.Data.PlayerPermission.Mod);
 
             yield return new HandlerDescriptor(warp, "warp",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",

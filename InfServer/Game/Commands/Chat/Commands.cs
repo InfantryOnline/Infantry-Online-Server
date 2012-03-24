@@ -6,6 +6,7 @@ using System.Text;
 using InfServer.Protocol;
 using InfServer.Game.Commands;
 using Assets;
+using InfServer.Logic;
 
 namespace InfServer.Game.Commands.Chat
 {
@@ -29,12 +30,13 @@ namespace InfServer.Game.Commands.Chat
         /// Purchases items in the form item1:x1, item2:x2 and so on
         /// </summary>
         public static void buy(Player player, Player recipient, string payload, int bong)
-        {	           
-            char[] splitArr = {','};
-            string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);          
+        {
+            char[] splitArr = { ',' };
+            string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             // parse the buy string
-            foreach( string itemAmount in items ) {
+            foreach (string itemAmount in items)
+            {
 
                 string[] split = itemAmount.Trim().Split(':');
                 ItemInfo item = player._server._assets.getItemByName(split[0].Trim());
@@ -49,29 +51,48 @@ namespace InfServer.Game.Commands.Chat
                 // Do we have the amount?
                 int buyAmount = 1;
 
-				if (split.Length > 1)
-				{
-					string limitAmount = null;
-					try
-					{
-						limitAmount = split[1].Trim();
-						if (limitAmount.StartsWith("#") && player.getInventory(item) != null)
-						{
-							// Check out how many we need to buy                      
-							buyAmount = Convert.ToInt32(limitAmount.Substring(1)) - player.getInventory(item).quantity;
-						}
-						else
-						{
-							// Buying incremental amount
-							buyAmount = Convert.ToInt32(limitAmount);
-						}
-					}
-					catch (FormatException)
-					{
-						player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
-						continue;
-					}
-				}
+                if (split.Length > 1)
+                {
+                    string limitAmount = null;
+                    try
+                    {
+                        limitAmount = split[1].Trim();
+                        if (limitAmount.StartsWith("#") && player.getInventory(item) != null)
+                        {
+                            // Check out how many we need to buy                      
+                            buyAmount = Convert.ToInt32(limitAmount.Substring(1)) - player.getInventory(item).quantity;
+                        }
+                        else
+                        {
+                            // Buying incremental amount
+                            buyAmount = Convert.ToInt32(limitAmount);
+                        }
+                    }
+                    catch (FormatException)
+                    {
+                        player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
+                        continue;
+                    }
+                }
+
+                //Get the player's related inventory item
+                Player.InventoryItem ii = player.getInventory(item);
+
+                //Buying. Are we able to?
+                if (item.buyPrice == 0)
+                    return;
+
+                //Do we have the skills required?
+                if (!Logic_Assets.SkillCheck(player, item.skillLogic))
+                    return;
+
+                //Check limits
+                if (item.maxAllowed != 0)
+                {
+                    int constraint = Math.Abs(item.maxAllowed) - ((ii == null) ? (ushort)0 : ii.quantity);
+                    if (buyAmount > constraint)
+                        buyAmount = constraint;
+                }
 
                 //Make sure he has enough cash first..
                 int buyPrice = item.buyPrice * buyAmount;
@@ -80,12 +101,13 @@ namespace InfServer.Game.Commands.Chat
                     player.sendMessage(-1, String.Format("You do not have enough cash to make this purchase ({0})", item.name));
                     return;
                 }
-
-                // Buy the item! (after parsing errors handled)
-                player._arena.handlePlayerShop(player, item, buyAmount);
-                player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash - buyPrice));
-            }            
-
+                else
+                {
+                    player.Cash -= buyPrice;
+                    player.inventoryModify(item, buyAmount);
+                    player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash - buyPrice));
+                }
+            }
         }
 
         /// <summary>
