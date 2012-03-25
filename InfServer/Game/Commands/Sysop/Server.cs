@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.Web;
 using System.IO;
+using System.Timers;
 
 using Assets;
 
@@ -24,8 +25,15 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void recycle(Player player, Player recipient, string payload, int bong)
 		{
-			InfServer.Program.restart();
+            foreach (KeyValuePair<string, Arena> arena in player._server._arenas)
+            {
+                arena.Value.sendArenaMessage("!Server is restarting...");
+                foreach (Player p in arena.Value.Players)
+                    p.disconnect();
+            }
+            InfServer.Program.restart();
 		}
+
 
 		/// <summary>
 		/// Queries environment information from a player

@@ -16,10 +16,9 @@ namespace InfServer
 		/// </summary>
         public static void restart()
         {
-            Thread.Sleep(5000);
-            Log.close();
-            Process.Start(Environment.CurrentDirectory + "/InfServer.exe");
-            Environment.Exit(1);
+            System.Diagnostics.Process.Start(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            // Closes the current process
+            Environment.Exit(0);
         }
 
 		/// <summary>
