@@ -209,6 +209,28 @@ namespace InfServer.Game
 				handleArenas();
 		}
 
+        /// <summary>
+        /// Recycles our zoneserver
+        /// </summary>
+        public void recycle()  
+        {
+            try
+            {
+
+                foreach (KeyValuePair<string, Arena> arena in _arenas)
+                {
+                    foreach (Player p in arena.Value.Players)
+                        p.disconnect();
+                }
+            }
+            finally
+            {
+                InfServer.Program.Restart();
+            }
+
+        }
+
+
 		///////////////////////////////////////////////////
 		// Member Classes
 		///////////////////////////////////////////////////

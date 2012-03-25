@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
+using System.Collections;
 
 namespace InfServer
 {
@@ -11,15 +12,13 @@ namespace InfServer
 	{
 		static Game.ZoneServer server;
 
-		/// <summary>
-		/// Used to exit and spawn a new instance of the server
-		/// </summary>
-        public static void restart()
+        public static void Restart()
         {
-            System.Diagnostics.Process.Start(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            // Closes the current process
-            Environment.Exit(0);
+            Process process = Process.GetCurrentProcess();
+            Process.Start(Environment.CurrentDirectory + "/InfServer.exe");
+            process.Kill();
         }
+
 
 		/// <summary>
 		/// Makes a note of all unhandled exceptions

@@ -24,15 +24,32 @@ namespace InfServer.Game.Commands.Mod
 		/// Restarts the server
 		/// </summary>
         static public void recycle(Player player, Player recipient, string payload, int bong)
-		{
+        {
+            int delay = 30;
+
+            if (payload.Length > 0)
+            {
+                delay = Int32.Parse(payload);
+            }
+
+            player._arena.setTicker(0, 0, delay * 100, "Server closing in: ", player._server.recycle);
+            player._arena.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
+
+
             foreach (KeyValuePair<string, Arena> arena in player._server._arenas)
             {
-                arena.Value.sendArenaMessage("!Server is restarting...");
-                foreach (Player p in arena.Value.Players)
-                    p.disconnect();
+                if (arena.Value == player._arena)
+                    continue;
+
+                arena.Value.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
+                arena.Value.setTicker(0, 0, delay * 100, "Server closing in:");
             }
-            InfServer.Program.restart();
-		}
+
+            
+        }
+
+
+        
 
 
 		/// <summary>
