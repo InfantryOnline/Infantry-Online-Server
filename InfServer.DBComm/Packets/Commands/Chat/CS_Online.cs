@@ -9,17 +9,15 @@ namespace InfServer.Protocol
 {	/// <summary>
     /// 
     /// </summary>
-    public class CS_FindPlayer<T> : PacketBase
+    public class CS_Online<T> : PacketBase
         where T : IClient
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public string findAlias;
-
         public string alias;               //Whos looking
 
         //Packet routing
-        public const ushort TypeID = 7;
-        static public event Action<CS_FindPlayer<T>, T> Handlers;
+        public const ushort TypeID = 8;
+        static public event Action<CS_Online<T>, T> Handlers;
 
 
         ///////////////////////////////////////////////////
@@ -29,7 +27,7 @@ namespace InfServer.Protocol
         /// Creates an empty packet of the specified type. This is used
         /// for constructing new packets for sending.
         /// </summary>
-        public CS_FindPlayer()
+        public CS_Online()
             : base(TypeID)
         { }
 
@@ -39,7 +37,7 @@ namespace InfServer.Protocol
         /// </summary>
         /// <param name="typeID">The type of the received packet.</param>
         /// <param name="buffer">The received data.</param>
-        public CS_FindPlayer(ushort typeID, byte[] buffer, int index, int count)
+        public CS_Online(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
         {
         }
@@ -59,7 +57,6 @@ namespace InfServer.Protocol
         public override void Serialize()
         {	//Type ID
             Write((byte)TypeID);
-            Write(findAlias, 0);
             Write(alias, 0);
         }
 
@@ -68,7 +65,6 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            findAlias = ReadNullString();
             alias = ReadNullString();
         }
 

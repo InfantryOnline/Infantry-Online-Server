@@ -77,7 +77,14 @@ namespace InfServer
         /// </summary>
         public Player getPlayer(string alias)
         {
-            return _players.Values.First(p => p.alias == alias);
+
+            foreach (KeyValuePair<int, Player> p in _players)
+            {
+                if (p.Value.alias == alias)
+                return p.Value;
+            }
+
+            return null;
         }
 
 		/// <summary>

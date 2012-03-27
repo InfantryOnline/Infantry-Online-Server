@@ -149,6 +149,14 @@ namespace InfServer.Data
 					packet = new SC_PlayerStatsResponse<T>(typeID, buffer, offset, size);
 					break;
 
+                case SC_FindPlayer<T>.TypeID:
+                    packet = new SC_FindPlayer<T>(typeID, buffer, offset, size);
+                    break;
+
+                case SC_Online<T>.TypeID:
+                    packet = new SC_Online<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

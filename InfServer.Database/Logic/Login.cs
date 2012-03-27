@@ -112,7 +112,7 @@ namespace InfServer.Logic
 					if (split[1].Length != 32)
 					{
 						plog.bSuccess = false;
-						plog.loginMessage = "Invalid password string.";
+						plog.loginMessage = "Invalid Session Id.";
 
 						zone._client.send(plog);
 						return;
@@ -148,7 +148,8 @@ namespace InfServer.Logic
 					}
 				}
 				else
-					account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
+					
+                account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
 
 				if (account == null)
 				{	//They're trying to trick us, jim!

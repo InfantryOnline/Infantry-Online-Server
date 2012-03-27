@@ -161,6 +161,14 @@ namespace InfServer.Data
 					packet = new CS_PlayerStatsRequest<T>(typeID, buffer, offset, size);
 					break;
 
+                case CS_FindPlayer<T>.TypeID:
+                    packet = new CS_FindPlayer<T>(typeID, buffer, offset, size);
+                    break;
+
+                case CS_Online<T>.TypeID:
+                    packet = new CS_Online<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

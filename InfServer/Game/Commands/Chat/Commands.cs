@@ -30,11 +30,18 @@ namespace InfServer.Game.Commands.Chat
         public static void find(Player player, Player recipient, string payload, int bong)
         {
             CS_FindPlayer<Data.Database> findPlayer = new CS_FindPlayer<Data.Database>();
-
             findPlayer.findAlias = payload;
             findPlayer.alias = player._alias;
 
-            player._client.sendReliable(findPlayer);
+            player._server._db.send(findPlayer);
+        }
+
+        public static void online(Player player, Player recipient, string payload, int bong)
+        {
+            CS_Online<Data.Database> online = new CS_Online<Data.Database>();
+            online.alias = player._alias;
+
+            player._server._db.send(online);
         }
 
         /// <summary>
@@ -231,6 +238,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(find, "find",
                 "Finds a player.",
                 "?find alias");
+
+            yield return new HandlerDescriptor(online, "online",
+                "Lists zones and their playercount",
+                 "?online");
 
             yield return new HandlerDescriptor(breakdown, "breakdown",
                 "Displays current game statistics",

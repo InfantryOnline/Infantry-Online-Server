@@ -9,25 +9,16 @@ namespace InfServer.Protocol
 {	/// <summary>
     /// 
     /// </summary>
-    public class SC_FindPlayer<T> : PacketBase
+    public class SC_Online<T> : PacketBase
         where T : IClient
     {
-        public FindResult result;   //Whether or not hes online
-        public string findAlias;
         public string alias;        //Whos looking
-        public string zone;         //The zone hes in.
-        public string arena;        //The arena hes in.
-
-
-        public enum FindResult
-        {
-            Online,
-            Offline,
-        }
+        public string zone;        
+        public uint online;
 
         //Packet routing
-        public const ushort TypeID = 7;
-        static public event Action<SC_FindPlayer<T>, T> Handlers;
+        public const ushort TypeID = 8;
+        static public event Action<SC_Online<T>, T> Handlers;
 
         		///////////////////////////////////////////////////
 		// Member Functions
@@ -36,12 +27,10 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-        public SC_FindPlayer()
+        public SC_Online()
 			: base(TypeID)
 		{
             zone = "";
-            arena = "";
-            findAlias = "";
             alias = "";
 		}
 
@@ -51,7 +40,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		/// <param name="typeID">The type of the received packet.</param>
 		/// <param name="buffer">The received data.</param>
-        public SC_FindPlayer(ushort typeID, byte[] buffer, int index, int count)
+        public SC_Online(ushort typeID, byte[] buffer, int index, int count)
 			: base(typeID, buffer, index, count)
 		{
 		}
@@ -71,11 +60,10 @@ namespace InfServer.Protocol
         public override void Serialize()
         {	//Type ID
             Write((byte)TypeID);
-            Write((byte)result);
-            Write(findAlias, 0);
             Write(alias, 0);
             Write(zone, 0);
-            Write(arena, 0);
+            Write(online);
+
         }
 
         /// <summary>
@@ -83,11 +71,9 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            result = (FindResult)_contentReader.ReadByte();
-            findAlias = ReadNullString();
             alias = ReadNullString();
             zone = ReadNullString();
-            arena = ReadNullString();
+            online = _contentReader.ReadUInt16();
         }
 
         /// <summary>

@@ -32,7 +32,7 @@ namespace InfServer.Game.Commands.Mod
 		{
 			yield return new HandlerDescriptor(restart, "restart",
 				"Restarts the current game.",
-				"*restart");
+				"*restart", InfServer.Data.PlayerPermission.Mod);
 		}
 	}
 }
