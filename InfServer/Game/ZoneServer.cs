@@ -220,7 +220,7 @@ namespace InfServer.Game
                 foreach (KeyValuePair<string, Arena> arena in _arenas)
                 {
                     foreach (Player p in arena.Value.Players)
-                        p.disconnect();
+                        p.destroy();
                 }
             }
             finally
