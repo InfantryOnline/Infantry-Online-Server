@@ -72,6 +72,14 @@ namespace InfServer
 			return player;
 		}
 
+        /// <summary>
+        /// Retrieves a player with the given alias
+        /// </summary>
+        public Player getPlayer(string alias)
+        {
+            return _players.Values.First(p => p.alias == alias);
+        }
+
 		/// <summary>
 		/// Does the zone have a player online under the given account?
 		/// </summary>

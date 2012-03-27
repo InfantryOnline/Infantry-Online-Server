@@ -165,6 +165,7 @@
     <Compile Include="Bot\Math\Vector2.cs" />
     <Compile Include="Bot\WeaponController.cs" />
     <Compile Include="Database\Database.cs" />
+    <Compile Include="Database\Logic\Commands\Chat.cs" />
     <Compile Include="Database\Logic\Connection.cs" />
     <Compile Include="Database\Logic\Player.cs" />
     <Compile Include="Database\Logic\Stats.cs" />

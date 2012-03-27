@@ -26,6 +26,17 @@ namespace InfServer.Game.Commands.Chat
 			player._client.sendReliable(arenaList);
 		}
 
+
+        public static void find(Player player, Player recipient, string payload, int bong)
+        {
+            CS_FindPlayer<Data.Database> findPlayer = new CS_FindPlayer<Data.Database>();
+
+            findPlayer.findAlias = payload;
+            findPlayer.alias = player._alias;
+
+            player._client.sendReliable(findPlayer);
+        }
+
         /// <summary>
         /// Purchases items in the form item1:x1, item2:x2 and so on
         /// </summary>
@@ -216,6 +227,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(help, "help",
                 "Asks moderator for help.",
                 "?help question");
+
+            yield return new HandlerDescriptor(find, "find",
+                "Finds a player.",
+                "?find alias");
 
             yield return new HandlerDescriptor(breakdown, "breakdown",
                 "Displays current game statistics",

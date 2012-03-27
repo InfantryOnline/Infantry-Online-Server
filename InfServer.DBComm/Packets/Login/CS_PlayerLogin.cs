@@ -15,7 +15,6 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public PlayerInstance player;		//The player instance we're referring to
-
 		public bool bCreateAlias;			//Is this a create alias attempt?
 
 		public string alias;				//The alias we wish to login as
