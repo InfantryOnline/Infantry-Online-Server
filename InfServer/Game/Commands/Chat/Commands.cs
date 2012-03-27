@@ -49,10 +49,126 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void buy(Player player, Player recipient, string payload, int bong)
         {
+            //Can you buy from this location?
+            if (player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled == 1)
+            {
+                char[] splitArr = { ',' };
+                string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
+                // parse the buy string
+                foreach (string itemAmount in items)
+                {
+
+                    string[] split = itemAmount.Trim().Split(':');
+                    ItemInfo item = player._server._assets.getItemByName(split[0].Trim());
+
+                    // Did we find the item?
+                    if (split.Count() == 0 || item == null)
+                    {
+                        player.sendMessage(-1, "Can't find item for " + itemAmount);
+                        continue;
+                    }
+
+                    // Do we have the amount?
+                    int buyAmount = 1;
+
+                    if (split.Length > 1)
+                    {
+                        string limitAmount = null;
+                        try
+                        {
+                            limitAmount = split[1].Trim();
+                            if (limitAmount.StartsWith("#"))
+                            {
+                                if (player.getInventory(item) != null)
+                                {
+                                    // Check out how many we need to buy                      
+                                    buyAmount = Convert.ToInt32(limitAmount.Substring(1)) - player.getInventory(item).quantity;
+                                }
+                                else
+                                {
+                                    buyAmount = Convert.ToInt32(limitAmount.Substring(1));
+                                }
+                            }
+                            else
+                            {
+                                // Buying incremental amount
+                                buyAmount = Convert.ToInt32(limitAmount);
+                            }
+                        }
+                        catch (FormatException)
+                        {
+                            player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
+                            continue;
+                        }
+                    }
+
+                    //Get the player's related inventory item
+                    Player.InventoryItem ii = player.getInventory(item);
+
+                    //Buying. Are we able to?
+                    if (item.buyPrice == 0)
+                        return;
+
+                   //Check limits
+                    if (item.maxAllowed != 0)
+                    {
+                        int constraint = Math.Abs(item.maxAllowed) - ((ii == null) ? (ushort)0 : ii.quantity);
+                        if (buyAmount > constraint)
+                            buyAmount = constraint;
+                        if (buyAmount == 0)
+                        {
+                            player.sendMessage(-1, String.Format("You already have the maximum {0}", item.name));
+                            continue;
+                        }
+                    }
+
+                    //Make sure he has enough cash first..
+                    int buyPrice = item.buyPrice * buyAmount;
+                    if (buyPrice > player.Cash)
+                    {
+                        player.sendMessage(-1, String.Format("You do not have enough cash to make this purchase ({0})", item.name));
+                        return;
+                    }
+                    else
+                    {
+                        player.Cash -= buyPrice;
+                        player.inventoryModify(item, buyAmount);
+                        if (buyAmount < 0)
+                        {
+                            player.sendMessage(0, String.Format("Items Sold: {0} {1} (value={2}) (cash-left={3})", -buyAmount, item.name, -buyPrice, player.Cash));
+                        }
+                        else
+                        {
+                            player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                player.sendMessage(-1, "You cannot buy from this location");
+            }
+        }
+
+        /// <summary>
+        /// displays current game statistics
+        /// </summary>
+        public static void breakdown(Player player, Player recipient, string payload, int bong)
+        {
+            player._arena.individualBreakdown(player, true);
+        }
+
+        /// <summary>
+        /// Drops items at the player's location in the form item1:x1, item2:x2 and so on
+        /// </summary>
+        public static void drop(Player player, Player recipient, string payload, int bong)
+        {
+            
             char[] splitArr = { ',' };
             string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
-            // parse the buy string
+            // parse the drop string
             foreach (string itemAmount in items)
             {
 
@@ -67,7 +183,7 @@ namespace InfServer.Game.Commands.Chat
                 }
 
                 // Do we have the amount?
-                int buyAmount = 1;
+                int dropAmount = 1;
 
                 if (split.Length > 1)
                 {
@@ -75,20 +191,22 @@ namespace InfServer.Game.Commands.Chat
                     try
                     {
                         limitAmount = split[1].Trim();
-                        if (limitAmount.StartsWith("#") && player.getInventory(item) != null)
+                        if (player.getInventory(item) != null)
                         {
-                            // Check out how many we need to buy                      
-                            buyAmount = Convert.ToInt32(limitAmount.Substring(1)) - player.getInventory(item).quantity;
-                        }
-                        else
-                        {
-                            // Buying incremental amount
-                            buyAmount = Convert.ToInt32(limitAmount);
+                            if (limitAmount.StartsWith("#"))
+                            {
+                                //Handle the # if included in the drop string                    
+                                dropAmount = Convert.ToInt32(limitAmount.Substring(1));
+                            }
+                            else
+                            {
+                                dropAmount = Convert.ToInt32(limitAmount);
+                            }
                         }
                     }
                     catch (FormatException)
                     {
-                        player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
+                        player.sendMessage(-1, "invalid drop amount " + limitAmount + " for item " + split[0]);
                         continue;
                     }
                 }
@@ -96,44 +214,45 @@ namespace InfServer.Game.Commands.Chat
                 //Get the player's related inventory item
                 Player.InventoryItem ii = player.getInventory(item);
 
-                //Buying. Are we able to?
-                if (item.buyPrice == 0)
-                    return;
-
-                //Do we have the skills required?
-                if (!Logic_Assets.SkillCheck(player, item.skillLogic))
-                    return;
-
-                //Check limits
-                if (item.maxAllowed != 0)
+                //Make sure item is can be dropped
+                if (!item.droppable)
                 {
-                    int constraint = Math.Abs(item.maxAllowed) - ((ii == null) ? (ushort)0 : ii.quantity);
-                    if (buyAmount > constraint)
-                        buyAmount = constraint;
+                    continue;
                 }
 
-                //Make sure he has enough cash first..
-                int buyPrice = item.buyPrice * buyAmount;
-                if (buyPrice > player.Cash)
+                //Item does not exist in their inventory
+                if (ii == null)
                 {
-                    player.sendMessage(-1, String.Format("You do not have enough cash to make this purchase ({0})", item.name));
-                    return;
+                    player.sendMessage(-1, String.Format("You do not have any ({0}) to drop", item.name));
+                    continue;
                 }
-                else
+                
+                //If the drop amount exceeds the amount in the inventory assign it to the amount in inventory
+                if (ii.quantity < dropAmount)
                 {
-                    player.Cash -= buyPrice;
-                    player.inventoryModify(item, buyAmount);
-                    player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash - buyPrice));
+                    dropAmount = ii.quantity;
                 }
+
+                //If the terrain restricts items from being dropped remove the amount but do not spawn the items
+                if (player._arena.getTerrain(player._state.positionX, player._state.positionY).prizeExpire != 1)
+                {
+                    if (player._arena.getItemCountInRange(item, player.getState().positionX, player.getState().positionY, 200) < 0)
+                    {
+                        player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY);
+
+                    }
+                    else
+                    {
+                        //TODO: group dropped items together
+                        player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY);
+                    }
+                }
+
+             
+                player.sendMessage(0, String.Format("Drop Confirmed: {0} {1}", dropAmount, item.name));
+                //Remove items from inventory
+                player.inventoryModify(item, -dropAmount);
             }
-        }
-
-        /// <summary>
-        /// displays current game statistics
-        /// </summary>
-        public static void breakdown(Player player, Player recipient, string payload, int bong)
-        {
-            player._arena.individualBreakdown(player, true);
         }
 
         /// <summary>
@@ -250,6 +369,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(buy, "buy",
                 "Buys items",
                 "?buy item1:amount1,item2:#absoluteAmount2");
+
+            yield return new HandlerDescriptor(drop, "drop",
+                "Drops items",
+                "?drop item1:amount1,item2:#absoluteAmount2");
 
 			yield return new HandlerDescriptor(arena, "arena",
 				"Displays all arenas availble to join",
