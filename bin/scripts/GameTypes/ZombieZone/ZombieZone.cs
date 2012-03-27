@@ -382,7 +382,8 @@ namespace InfServer.Script.GameType_ZombieZone
 			spawnItemInArea(AssetManager.Manager.getItemByName("Engineer Kit"), 1, posX, posY, c_startAreaRadius);
 			spawnItemInArea(AssetManager.Manager.getItemByName("Heavy Marine Kit"), 1, posX, posY, c_startAreaRadius);
 			spawnItemInArea(AssetManager.Manager.getItemByName("Squad Leader Kit"), 1, posX, posY, c_startAreaRadius);
-		}
+            spawnItemInArea(AssetManager.Manager.getItemByName("Scout Kit"), 1, posX, posY, c_startAreaRadius);
+        }
 
 		/// <summary>
 		/// Sets up a player for a new game as a marine
@@ -581,8 +582,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			player.setVar("targetTeam", target);
 
 			//Modify inventory as appropriate
-			player.inventoryModify(false, AssetManager.Manager.getItemByName("convertRealToFake"), 500);
-			player.inventoryModify(false, AssetManager.Manager.getItemByName("removeTempItem"), 9999);
+            player.inventoryModify(false, AssetManager.Manager.getItemByName("removeTempItem"), 9999);
 
 			player.inventorySet(AssetManager.Manager.getItemByName("Fury Sprint"), 2);
 			
@@ -1468,6 +1468,22 @@ namespace InfServer.Script.GameType_ZombieZone
 				else
 					player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(30));
 			}
+            else if (drop.item.name == "Scout Kit")
+            {   //Only marines can change class
+                if (player._baseVehicle._type.Id < 10 || player._baseVehicle._type.Id > 14)
+                    return false;
+
+                player.inventoryModify(AssetManager.Manager.getItemByName("convertRealToFakeScout"), 16);
+
+                if (player.findSkill(37) != null)
+                    player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(37));
+                else if (player.findSkill(36) != null)
+                    player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(36));
+                else if (player.findSkill(35) != null)
+                    player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(35));
+                else
+                    player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(34));
+            }
 
 			return true;
 		}
@@ -1491,7 +1507,6 @@ namespace InfServer.Script.GameType_ZombieZone
 			{	//Make him a zombie!
 				player.unspec(_zombieHorde);
 				spawnZombiePlayer(player);
-
 				player.sendMessage(-1, "&The game is already in progress so you have been spawned as a zombie.");
 				return false;
 			}

@@ -31,6 +31,7 @@ namespace InfServer.Script.GameType_Dodgeball
         Team team2;
         int team1Count;
         int team2Count;
+        Dictionary<Player, int> queue;
         Dictionary<Player, bool> inPlayers;
 		private int _lastGameCheck;				//The tick at which we last checked for game viability
 		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
@@ -56,6 +57,7 @@ namespace InfServer.Script.GameType_Dodgeball
             team1 = _arena.getTeamByName(_config.teams[0].name);
             team2 = _arena.getTeamByName(_config.teams[1].name);
             _minPlayers = 2;
+            queue = new Dictionary<Player, int>();
 			return true;
 		}
 
@@ -117,9 +119,10 @@ namespace InfServer.Script.GameType_Dodgeball
                 IEnumerable<Player> players = player._arena.getPlayersInRange(posX, posY, 15);
                 if (players.Count() > 0)
                 {
+                    IEnumerable<Player> teamPlayers = players.First()._team.ActivePlayers.OrderBy(plyr => _rand.Next(0, 200));
                     if (players.First().getInventoryAmount(28) > 0)
                     {//Yes, lets summon a teammate back in
-                        foreach (Player p in players.First()._team.ActivePlayers)
+                        foreach (Player p in teamPlayers)
                         {
                             if (p.IsDead)
                                 continue;
@@ -132,6 +135,9 @@ namespace InfServer.Script.GameType_Dodgeball
                             else
                                 team2Count++;
 
+                            _arena.triggerMessage(5, 500, String.Format("{0} caught {1}'s ball and returned {2} to the court.", players.First()._alias, player._alias, p._alias));
+                            players.First().Cash += 800;
+                            players.First().sendMessage(0, "Catch award: (Cash=800)");
                             inPlayers.Add(p, true);
                             Player warpTo = players.First();
                             p.warp(warpTo._state.positionX + _rand.Next(0, 15), warpTo._state.positionY + _rand.Next(0, 15));
@@ -159,7 +165,9 @@ namespace InfServer.Script.GameType_Dodgeball
 		[Scripts.Event("Player.Leave")]
 		public void playerLeave(Player player)
 		{
+            updateQueue(queue);
 		}
+
 
 		/// <summary>
 		/// Called when the game begins
@@ -259,7 +267,18 @@ namespace InfServer.Script.GameType_Dodgeball
             }
 
             foreach (Player p in _arena.Players)
+            {
+                int hits = p.getVarInt("Hits");
+                int cash = 300 * hits;
+                int experience = 200 * hits;
+                int points = 100 * hits;
+                p.Cash += cash;
+                p.KillPoints += points;
+                p.ExperienceTotal += experience;
+                p.sendMessage(0, String.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, experience, points)); 
                 p.resetVars();
+                p.syncState();
+            }
 
 			return true;
 		}
@@ -304,9 +323,51 @@ namespace InfServer.Script.GameType_Dodgeball
 		[Scripts.Event("Player.JoinGame")]
 		public bool playerJoinGame(Player player)
 		{
-
+            if (_arena.PlayersIngame.Count() == _config.arena.playingMax)
+                enqueue(player);
 			return true;
 		}
+
+        /// <summary>
+        /// Enqueues a player to unspec when there is an opening.
+        /// </summary>
+        /// <param name="player"></param>
+        public void enqueue(Player player)
+        {
+            if (!queue.ContainsKey(player))
+            {
+                queue.Add(player, queue.Count());
+                player.sendMessage(-1, String.Format("The game is full, (Queue={0})", queue[player]));
+            }
+            else
+            {
+                queue.Remove(player);
+                player.sendMessage(-1, "Removed from queue");
+            }
+        }
+
+        public void updateQueue(Dictionary<Player, int> queue)
+        {   //Nonsense!
+            if (_arena.PlayersIngame.Count() == _config.arena.playingMax)
+                return;
+
+            if (queue.Count > 0)
+            {
+
+                if (team1.ActivePlayerCount < 8)
+                    queue.ElementAt(0).Key.unspec(team1._name);
+                else if (team2.ActivePlayerCount < 8)
+                    queue.ElementAt(0).Key.unspec(team2._name);
+
+                queue.Remove(queue.ElementAt(0).Key);
+
+                foreach (KeyValuePair<Player, int> player in queue)
+                {
+                    queue[player.Key] = queue[player.Key] - 1;
+                    player.Key.sendMessage(0, String.Format("Queue position is now {0}", queue[player.Key]));
+                }
+            }
+        }
 
 		/// <summary>
 		/// Triggered when a player wants to spec and leave the game
@@ -314,7 +375,7 @@ namespace InfServer.Script.GameType_Dodgeball
 		[Scripts.Event("Player.LeaveGame")]
 		public bool playerLeaveGame(Player player)
 		{
-            if (inPlayers[player])
+            if (inPlayers.ContainsKey(player))
             {
                 if (player._team == team1)
                     team1Count--;
@@ -322,9 +383,10 @@ namespace InfServer.Script.GameType_Dodgeball
                     team2Count--;
 
                 inPlayers.Remove(player);
+                return true;
             }
-            
 
+            updateQueue(queue);
 			return true;
 		}
 
