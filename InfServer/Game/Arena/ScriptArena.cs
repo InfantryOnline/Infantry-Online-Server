@@ -263,6 +263,10 @@ namespace InfServer.Game
 						(bCurrent ? p.StatsCurrentGame.deaths : p.StatsLastGame.deaths),
 						p._alias));
 				}
+                string personalFormat = "@Personal Score: (K={0} D={1})";
+                from.sendMessage(0, String.Format(personalFormat,
+                    (bCurrent ? from.StatsCurrentGame.kills : from.StatsLastGame.kills),
+                    (bCurrent ? from.StatsCurrentGame.deaths : from.StatsLastGame.deaths)));
 			}
 		}
         #endregion

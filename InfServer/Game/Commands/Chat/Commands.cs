@@ -26,22 +26,12 @@ namespace InfServer.Game.Commands.Chat
 			player._client.sendReliable(arenaList);
 		}
 
-
-        public static void find(Player player, Player recipient, string payload, int bong)
+        /// <summary>
+        /// displays current game statistics
+        /// </summary>
+        public static void breakdown(Player player, Player recipient, string payload, int bong)
         {
-            CS_FindPlayer<Data.Database> findPlayer = new CS_FindPlayer<Data.Database>();
-            findPlayer.findAlias = payload;
-            findPlayer.alias = player._alias;
-
-            player._server._db.send(findPlayer);
-        }
-
-        public static void online(Player player, Player recipient, string payload, int bong)
-        {
-            CS_Online<Data.Database> online = new CS_Online<Data.Database>();
-            online.alias = player._alias;
-
-            player._server._db.send(online);
+            player._arena.individualBreakdown(player, true);
         }
 
         /// <summary>
@@ -152,14 +142,6 @@ namespace InfServer.Game.Commands.Chat
         }
 
         /// <summary>
-        /// displays current game statistics
-        /// </summary>
-        public static void breakdown(Player player, Player recipient, string payload, int bong)
-        {
-            player._arena.individualBreakdown(player, true);
-        }
-
-        /// <summary>
         /// Drops items at the player's location in the form item1:x1, item2:x2 and so on
         /// </summary>
         public static void drop(Player player, Player recipient, string payload, int bong)
@@ -234,16 +216,16 @@ namespace InfServer.Game.Commands.Chat
                 }
 
                 //If the terrain restricts items from being dropped remove the amount but do not spawn the items
-                if (player._arena.getTerrain(player._state.positionX, player._state.positionY).prizeExpire != 1)
+                if (player._arena.getTerrain(player._state.positionX, player._state.positionY).prizeExpire > 1)
                 {
-                    if (player._arena.getItemCountInRange(item, player.getState().positionX, player.getState().positionY, 200) < 0)
-                    {
-                        player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY);
-
+                    if (player._arena.getItemCountInRange(item, player.getState().positionX, player.getState().positionY, 50) > 0)
+                    {      
+                        //If there is another item nearby increases quantity instead of spawning new item
+                        player._arena.itemStackSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 50);                        
                     }
                     else
-                    {
-                        //TODO: group dropped items together
+                    {                        
+                        //Spawn new item since there are no other items nearby
                         player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY);
                     }
                 }
@@ -254,6 +236,18 @@ namespace InfServer.Game.Commands.Chat
                 player.inventoryModify(item, -dropAmount);
             }
         }
+
+        /// <summary>
+        /// Searches for a player and returns location
+        /// </summary>        
+        public static void find(Player player, Player recipient, string payload, int bong)
+        {
+            CS_FindPlayer<Data.Database> findPlayer = new CS_FindPlayer<Data.Database>();
+            findPlayer.findAlias = payload;
+            findPlayer.alias = player._alias;
+
+            player._server._db.send(findPlayer);
+        }        
 
         /// <summary>
         /// Sends help request to moderators..
@@ -288,6 +282,47 @@ namespace InfServer.Game.Commands.Chat
             player.sendMessage(0, "Help request sent, when a moderator replies, use :: syntax to reply back");
         }
 
+        /// <summary>
+        /// Displays lag statistics for a particular player
+        /// </summary>
+        public static void info(Player player, Player recipient, string payload, int bong)
+        {
+            Player target = recipient;
+            if (recipient == null)
+                target = player;
+
+            player.sendMessage(0, String.Format("Player Info: {0}  Squad: {1}", target._alias, target._squad == null ? "" : target._squad));
+            player.sendMessage(0, String.Format("~-    PING Current={0} ms  Average={1} ms  Low={2} ms  High={3} ms  Last={4} ms",
+                target._client._stats.clientCurrentUpdate, target._client._stats.clientAverageUpdate,
+                target._client._stats.clientShortestUpdate, target._client._stats.clientLongestUpdate,
+                target._client._stats.clientLastUpdate));
+            player.sendMessage(0, String.Format("~-    PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
+                target._client._stats.C2SPacketLoss.ToString("F"), target._client._stats.S2CPacketLoss.ToString("F")));
+        }
+
+        /// <summary>
+        /// Displays lag statistics for self
+        /// </summary>
+        public static void lag(Player player, Player recipient, string payload, int bong)
+        {
+            if (recipient != null)
+                return;
+
+            player.sendMessage(0, String.Format("PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
+                player._client._stats.C2SPacketLoss.ToString("F"), player._client._stats.S2CPacketLoss.ToString("F")));
+        }
+
+        /// <summary>
+        /// Displays the number of players in each zone
+        /// </summary>      
+        public static void online(Player player, Player recipient, string payload, int bong)
+        {
+            CS_Online<Data.Database> online = new CS_Online<Data.Database>();
+            online.alias = player._alias;
+
+            player._server._db.send(online);
+        }
+
 		/// <summary>
 		/// Displays all players which are spectating
 		/// </summary>
@@ -314,81 +349,51 @@ namespace InfServer.Game.Commands.Chat
 			player.sendMessage(0, result.TrimEnd(',', ' '));
 		}
 
-		/// <summary>
-        /// Displays lag statistics for a particular player
-        /// </summary>
-        public static void info(Player player, Player recipient, string payload, int bong)
-		{
-			Player target = recipient;
-			if (recipient == null)
-				target = player;
-
-			player.sendMessage(0, String.Format("Player Info: {0}  Squad: {1}", target._alias, target._squad == null ? "" : target._squad));
-			player.sendMessage(0, String.Format("~-    PING Current={0} ms  Average={1} ms  Low={2} ms  High={3} ms  Last={4} ms",
-				target._client._stats.clientCurrentUpdate, target._client._stats.clientAverageUpdate,
-				target._client._stats.clientShortestUpdate, target._client._stats.clientLongestUpdate,
-				target._client._stats.clientLastUpdate));
-			player.sendMessage(0, String.Format("~-    PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
-				target._client._stats.C2SPacketLoss.ToString("F"), target._client._stats.S2CPacketLoss.ToString("F")));
-		}
-
-		/// <summary>
-		/// Displays lag statistics for self
-		/// </summary>
-        public static void lag(Player player, Player recipient, string payload, int bong)
-		{
-			if (recipient != null)
-				return;
-
-			player.sendMessage(0, String.Format("PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
-				player._client._stats.C2SPacketLoss.ToString("F"), player._client._stats.S2CPacketLoss.ToString("F")));
-		}
-
         /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ChatCommand)]
         public static IEnumerable<Commands.HandlerDescriptor> Register()
         {
-            yield return new HandlerDescriptor(help, "help",
-                "Asks moderator for help.",
-                "?help question");
-
-            yield return new HandlerDescriptor(find, "find",
-                "Finds a player.",
-                "?find alias");
-
-            yield return new HandlerDescriptor(online, "online",
-                "Lists zones and their playercount",
-                 "?online");
+            yield return new HandlerDescriptor(arena, "arena",
+                "Displays all arenas availble to join",
+                "?arena");
 
             yield return new HandlerDescriptor(breakdown, "breakdown",
-                "Displays current game statistics",
-                "?breakdown");
+               "Displays current game statistics",
+               "?breakdown");
 
             yield return new HandlerDescriptor(buy, "buy",
                 "Buys items",
                 "?buy item1:amount1,item2:#absoluteAmount2");
 
             yield return new HandlerDescriptor(drop, "drop",
-                "Drops items",
-                "?drop item1:amount1,item2:#absoluteAmount2");
+               "Drops items",
+               "?drop item1:amount1,item2:#absoluteAmount2");            
 
-			yield return new HandlerDescriptor(arena, "arena",
-				"Displays all arenas availble to join",
-				"?arena");
+            yield return new HandlerDescriptor(find, "find",
+                "Finds a player.",
+                "?find alias");
+
+            yield return new HandlerDescriptor(help, "help",
+                "Asks moderator for help.",
+                "?help question");
+
+            yield return new HandlerDescriptor(info, "info",
+                "Displays lag statistics for you or another player",
+                "?info or ::?info");
+
+            yield return new HandlerDescriptor(lag, "lag",
+                "Displays lag statistics for yourself",
+                "?lag");
+
+            yield return new HandlerDescriptor(online, "online",
+                "Lists zones and their playercount",
+                 "?online");
 
 			yield return new HandlerDescriptor(spec, "spec",
 				"Displays all players which are spectating you or another player",
-				"?spec or ::?spec");
-
-			yield return new HandlerDescriptor(info, "info",
-				"Displays lag statistics for you or another player",
-				"?info or ::?info");
-
-			yield return new HandlerDescriptor(lag, "lag",
-				"Displays lag statistics for yourself",
-				"?lag");
+				"?spec or ::?spec");	
         }
     }
 }

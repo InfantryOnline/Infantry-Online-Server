@@ -528,6 +528,42 @@ namespace InfServer.Game
 			Helpers.Object_ItemDrop(Players, id);
 			return id;
 		}
+
+        /// <summary>
+		/// Updates a stack of items to increase the quantity or creates item drop
+		/// </summary>
+        public ItemDrop itemStackSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, short range)
+        {
+            //Too many items?
+            if (_items.Count == maxItems)
+            {
+                Log.write(TLog.Warning, "Item count full.");
+                return null;
+            }
+            else if (item == null)
+            {
+                Log.write(TLog.Error, "Attempted to spawn invalid item.");
+                return null;
+            }
+
+            ItemDrop id = null;
+            //Returns an ItemDrop object if there is another of the same item within the range
+            id = getItemInRange(item, positionX, positionY, range);
+
+            //If another item exist add to its quantity rather than placing another item
+            if (id != null)
+            {
+               id.quantity += (short)quantity;
+                Helpers.Object_ItemDropUpdate(Players, id.id, (ushort)id.quantity);
+            }
+            else
+            {
+                //Add new item if none nearby exists
+                itemSpawn(item, quantity, positionX, positionY);
+            }
+            return id;
+        }
+
 		#endregion
 	}
 }

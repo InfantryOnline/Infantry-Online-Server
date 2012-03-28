@@ -760,6 +760,69 @@ namespace InfServer.Game
 		}
 		#endregion
 
+        /// <summary>
+        /// Returns a specific item in the specified area
+        /// </summary>
+        public ItemDrop getItemInRange(ItemInfo item, short x, short y, int range)
+        {
+            ItemDrop returnDrop = null;
+
+            int bestX = -1;
+            int bestY = -1;
+            
+            foreach (ItemDrop drop in _items.Values)
+            {	//Is it the same item?
+                if (item != null && drop.item != item)
+                    continue;
+                
+                //In the given area?
+                if ((x + range) > drop.positionX)
+                {
+                    if ((x - range) < drop.positionX)
+                    {
+                        if ((y + range) > drop.positionY)
+                        {
+                            if ((y - range) < drop.positionY)
+                            {                                
+                                //No other items found in range
+                                if (bestX == -1 && bestY == -1)
+                                {
+                                    bestX = drop.positionX;
+                                    bestY = drop.positionY;
+                                    returnDrop = drop;                                    
+                                }
+                                //Compare against other items in range to see which is closer to the location
+                                if ((Math.Abs(bestX - x) + Math.Abs(bestY - y)) > (Math.Abs(drop.positionX - x) + Math.Abs(drop.positionY - y)))
+                                {
+                                    bestX = drop.positionX;
+                                    bestY = drop.positionY;
+                                    returnDrop = drop;                                   
+                                }
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    continue;
+                }              
+            }
+
+            return returnDrop;
+        }
+
 		#region Delayed Actions
 		/// <summary>
 		/// Registers a delayed action to be executed at a later date
