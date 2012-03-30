@@ -62,6 +62,11 @@ namespace InfServer.Protocol
 					message = ReadNullString();
 					break;
 
+                case Helpers.Chat_Type.PrivateChat:
+                    recipient = ReadNullString();
+                    message = ReadNullString();
+                    break;
+
 				case Helpers.Chat_Type.Whisper:
 					recipient = ReadNullString();
 					message = ReadNullString();

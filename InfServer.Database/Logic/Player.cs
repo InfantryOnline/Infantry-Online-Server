@@ -5,6 +5,7 @@ using System.Text;
 
 using InfServer.Protocol;
 using InfServer.Data;
+using InfServer;
 
 namespace InfServer.Logic
 {	// Logic_Player Class
@@ -100,6 +101,27 @@ namespace InfServer.Logic
 			}
 		}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pkt"></param>
+        /// <param name="zone"></param>
+        static public void Handle_CS_Whisper(CS_Whisper<Zone> pkt, Zone zone)
+        {
+            foreach (Zone z in zone._server._zones)
+            {
+                if (z.hasAliasPlayer(pkt.recipient))
+                {
+                    SC_Whisper<Zone> reply = new SC_Whisper<Zone>();
+                    reply.bong = pkt.bong;
+                    reply.message = pkt.message;
+                    reply.recipient = pkt.recipient;
+                    reply.from = pkt.from;
+                    z._client.send(reply);
+                }
+            }
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -108,6 +130,7 @@ namespace InfServer.Logic
 		{
 			CS_PlayerUpdate<Zone>.Handlers += Handle_CS_PlayerUpdate;
 			CS_PlayerBanner<Zone>.Handlers += Handle_CS_PlayerBanner;
+            CS_Whisper<Zone>.Handlers += Handle_CS_Whisper;
 		}
 	}
 }

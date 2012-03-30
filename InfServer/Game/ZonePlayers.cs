@@ -93,7 +93,7 @@ namespace InfServer.Game
 				Log.write(TLog.Normal, "New player: " + alias);
 
 				_players[pk] = newPlayer;
-				_nameToPlayer[alias] = newPlayer;
+				_nameToPlayer[alias.ToLower()] = newPlayer;
 
 				return newPlayer;
 			}
@@ -151,8 +151,10 @@ namespace InfServer.Game
 		{	//Attempt to find him
 			Player player;
 
-			if (!_nameToPlayer.TryGetValue(name, out player))
-				return null;
+            if (!_nameToPlayer.ContainsKey(name.ToLower()))
+                return null;
+            else
+                player = _nameToPlayer[name.ToLower()];
 
 			return player;
 		}

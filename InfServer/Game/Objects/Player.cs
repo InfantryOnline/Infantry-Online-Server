@@ -1189,6 +1189,14 @@ namespace InfServer.Game
 		{
 			Helpers.Player_RouteChat(this, from, chat);
 		}
+
+        /// <summary>
+        /// Routes a private chat message to the player
+        /// </summary>
+        public void sendPlayerChat(Player from, SC_Whisper<Data.Database> chat)
+        {
+            Helpers.Player_RouteChat(this, from, chat);
+        }
 		#endregion
 
 		#region Event Implementations

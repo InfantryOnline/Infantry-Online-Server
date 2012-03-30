@@ -17,6 +17,7 @@ namespace InfServer.Protocol
 
 		public string message;
 		public string from;
+        public string chat;
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.Chat;
 
@@ -39,7 +40,7 @@ namespace InfServer.Protocol
 		{	//Type ID
 			Write((byte)TypeID);
 			Write((byte)chatType);
-			Write(bong);
+            Write(bong);
 
 				//What sort of chat is this?
 			switch (chatType)
@@ -73,6 +74,11 @@ namespace InfServer.Protocol
 					Write(from, 0);
 					Write(message, 0);
 					break;
+
+                case Helpers.Chat_Type.PrivateChat:
+                    Write(from, 0);
+                    Write(message, 0);
+                    break;
 			}
 		}
 

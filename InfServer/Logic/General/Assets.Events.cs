@@ -298,6 +298,24 @@ namespace InfServer.Logic
 
 			        break;
 
+
+                //Triggers the first vehicle event string
+                case "vehicleevent2":
+                    if (player._baseVehicle != null)
+                        //Get the vehicle string
+                        RunEvent(player, player._baseVehicle._type.EventString2, null);
+
+                    break;
+
+
+                //Triggers the first vehicle event string
+                case "vehicleevent3":
+                    if (player._baseVehicle != null)
+                        //Get the vehicle string
+                        RunEvent(player, player._baseVehicle._type.EventString3, null);
+
+                    break;
+
 				//Triggers the team event string
 				case "teamevent":
 					//Execute!

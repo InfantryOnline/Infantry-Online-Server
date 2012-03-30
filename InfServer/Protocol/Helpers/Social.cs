@@ -50,6 +50,31 @@ namespace InfServer.Protocol
 			target._client.sendReliable(chat);
 		}
 
+        ///////////////////////////////////////////////////
+        // Member Functions
+        //////////////////////////////////////////////////
+        /// <summary>
+        /// Sends arena messages to a player
+        /// </summary>
+        static public void Social_ArenaChat(Arena target, string chat, string from, string message)
+        {	//Prepare the chat packet
+            SC_Chat schat = new SC_Chat();
+
+            schat.chatType = Chat_Type.PrivateChat;
+            schat.message = chat + ":" + message;
+            schat.from = from;
+            
+
+            foreach (Player p in target.Players)
+            {
+                if (p._alias == from)
+                    continue;
+
+                p._client.sendReliable(schat);
+            }
+            Log.write(schat.DataDump);
+        }
+
 		/// <summary>
 		/// Sends arena messages to players
 		/// </summary>

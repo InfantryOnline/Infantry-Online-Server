@@ -157,6 +157,26 @@ namespace InfServer.Data
                     packet = new SC_Online<T>(typeID, buffer, offset, size);
                     break;
 
+                case SC_Whisper<T>.TypeID:
+                    packet = new SC_Whisper<T>(typeID, buffer, offset, size);
+                    break;
+
+                case SC_JoinChat<T>.TypeID:
+                    packet = new SC_JoinChat<T>(typeID, buffer, offset, size);
+                    break;
+
+                case SC_LeaveChat<T>.TypeID:
+                    packet = new SC_LeaveChat<T>(typeID, buffer, offset, size);
+                    break;
+
+                case SC_PrivateChat<T>.TypeID:
+                    packet = new SC_PrivateChat<T>(typeID, buffer, offset, size);
+                    break;
+
+                case SC_Chat<T>.TypeID:
+                    packet = new SC_Chat<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

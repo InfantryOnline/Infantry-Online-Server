@@ -25,19 +25,19 @@ namespace InfServer.DirectoryServer.Directory
         {
             //Initialize our XML Serializer
             serializer = new Serializer();
-            /*
-            // Defines a default XMLZoneListing
+            
+            /*// Defines a default XMLZoneListing
             XmlZoneListing zone = new XmlZoneListing();
             zone.Address = "127.0.0.1";
             zone.Description = "Test";
-            zone.Name = "Hellspawn is cool";
+            zone.Name = "Setting server up. -HS";
             zone.IsAdvanced = false;
             zone.Port = 1337;
 
             List<XmlZoneListing> list = new List<XmlZoneListing>();
             list.Add(zone);
-            serializer.SerializeToXML(list);
-            */
+            serializer.SerializeToXML(list);*/
+            
         }
 
         public bool Init()

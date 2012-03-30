@@ -31,10 +31,13 @@ namespace InfServer
 		/// </summary>
 		public class Player
 		{
-			public long acctid;			//The player's account id
-			public long aliasid;		//The player's alias id
-			public long dbid;			//The player's id in the database
-			public string alias;		//The player's alias
+			public long acctid;			        //The player's account id
+			public long aliasid;		        //The player's alias id
+			public long dbid;			        //The player's id in the database
+			public string alias;		        //The player's alias
+            public Zone zone;                   //The zone he's in.
+            public string arena;                //The arena he's in.
+            public int permission;              //His permission level.
 		}
 
 		///////////////////////////////////////////////////
@@ -80,7 +83,7 @@ namespace InfServer
 
             foreach (KeyValuePair<int, Player> p in _players)
             {
-                if (p.Value.alias == alias)
+                if (p.Value.alias.ToLower() == alias.ToLower())
                 return p.Value;
             }
 
@@ -103,6 +106,14 @@ namespace InfServer
 			return _players.Values.Any(p => p.aliasid == id);
 		}
 
+        /// <summary>
+        /// Does the zone have a given player alias online?
+        /// </summary>
+        public bool hasAliasPlayer(string alias)
+        {
+            return _players.Values.Any(p => p.alias.ToLower() == alias.ToLower());
+        }
+
 		/// <summary>
 		/// Indicates that a player has joined the zone server
 		/// </summary>
@@ -113,9 +124,16 @@ namespace InfServer
 			player.acctid = dbplayer.alias1.account1.id;
 			player.aliasid = dbplayer.alias1.id;
 			player.dbid = dbplayer.id;
-			player.alias = alias;
+            player.alias = alias;
+            player.permission = dbplayer.permission;
+            player.zone = this;
+            player.arena = "";
+           
 
 			_players[id] = player;
+
+            //Alert our boss!
+            _server.newPlayer(player);
 		}
 
 		/// <summary>
@@ -123,7 +141,8 @@ namespace InfServer
 		/// </summary>
 		public void lostPlayer(int id)
 		{	//Attempt to remove him
-			_players.Remove(id);
+            _server.lostPlayer(_players[id]);
+            _players.Remove(id);
 		}
 		#endregion
 

@@ -28,7 +28,7 @@ namespace InfServer.Logic
             //Online!
             if (pkt.result == SC_FindPlayer<Database>.FindResult.Online)
             {
-                player.sendMessage(0, String.Format("Found {0} Zone={1} Arena={2}", pkt.findAlias, pkt.zone, pkt.arena));
+                player.sendMessage(0, String.Format("Found {0} - (Zone={1})", pkt.findAlias, pkt.zone));
             }
         }
 

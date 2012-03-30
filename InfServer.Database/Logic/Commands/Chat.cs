@@ -23,7 +23,7 @@ namespace InfServer.Logic
             foreach (Zone z in zone._server._zones)
             {
 
-                if (z.getPlayer(pkt.findAlias) != null)
+                if (z.getPlayer(pkt.findAlias.ToLower()) != null)
                 {
                     reply.zone = z._zone.name;
                     reply.arena = z._zone.name;

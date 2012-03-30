@@ -51,6 +51,28 @@ namespace InfServer.Logic
             player._permissionStatic = pkt.permission;
 		}
 
+        static public void Handle_SC_Whisper(SC_Whisper<Database> pkt, Database db)
+        {
+            Player recipient = db._server.getPlayer(pkt.recipient);
+            Player from = db._server.getPlayer(pkt.from);
+            
+            if (recipient != null)
+                recipient.sendPlayerChat(from, pkt);
+        }
+
+        /// <summary>
+        /// Handles re-routing of db related messages.
+        /// </summary>
+        static public void Handle_DB_Chat(SC_Chat<Data.Database> pkt, Data.Database db)
+        {
+            Log.write(pkt.recipient);
+            Player p = db._server.getPlayer(pkt.recipient.ToLower());
+            if (p == null)
+                return;
+            //Route it.
+            Helpers.Social_ArenaChat(p, pkt.message, 0);
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -58,6 +80,8 @@ namespace InfServer.Logic
 		static public void Register()
 		{
 			SC_PlayerLogin<Database>.Handlers += Handle_SC_PlayerLogin;
+            SC_Whisper<Database>.Handlers += Handle_SC_Whisper;
+            SC_Chat<Database>.Handlers += Handle_DB_Chat;
 		}
 	}
 }

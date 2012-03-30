@@ -77,6 +77,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Infantry.dbml</DependentUpon>
     </Compile>
+    <Compile Include="Logic\Chats.cs" />
     <Compile Include="Logic\Commands\Chat.cs" />
     <Compile Include="Logic\Login.cs" />
     <Compile Include="Logic\Player.cs" />
@@ -89,6 +90,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Server\DBServer.cs" />
+    <Compile Include="Server\Objects\Chat.cs" />
     <Compile Include="Server\Objects\Zone.cs" />
   </ItemGroup>
   <ItemGroup>

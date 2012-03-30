@@ -16,6 +16,44 @@ namespace InfServer.Game.Commands.Chat
     /// </summary>
     public class Normal
     {
+
+
+
+        public static void chat(Player player, Player recipient, string payload, int bong)
+        {
+            if (payload.Contains(':'))
+                return;
+
+            if (payload.ToLower() == "off")
+            {
+                CS_LeaveChat<Data.Database> leave = new CS_LeaveChat<Data.Database>();
+                leave.chat = "off";
+                leave.from = player._alias;
+                player._server._db.send(leave);
+                return;
+            }
+
+            if (payload == "")
+            {
+                CS_JoinChat<Data.Database> leave = new CS_JoinChat<Data.Database>();
+                leave.chat = "list";
+                leave.from = player._alias;
+                player._server._db.send(leave);
+            }
+
+            char[] splitArr = { ',' };
+            string[] chats = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string chat in chats)
+            {
+                CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
+                join.chat = chat;
+                join.from = player._alias;
+                player._server._db.send(join);
+            }
+           
+        }
+
       	/// <summary>
         /// Presents the player with a list of arenas available to join
         /// </summary>
@@ -149,7 +187,6 @@ namespace InfServer.Game.Commands.Chat
             
             char[] splitArr = { ',' };
             string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
-
             // parse the drop string
             foreach (string itemAmount in items)
             {
@@ -358,6 +395,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(arena, "arena",
                 "Displays all arenas availble to join",
                 "?arena");
+
+            yield return new HandlerDescriptor(chat, "chat",
+                "Joins or leaves specified chats",
+                "?chat chat1,chat2,chat3. ?chat off leaves all");
 
             yield return new HandlerDescriptor(breakdown, "breakdown",
                "Displays current game statistics",

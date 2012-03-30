@@ -169,6 +169,22 @@ namespace InfServer.Data
                     packet = new CS_Online<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_Whisper<T>.TypeID:
+                    packet = new CS_Whisper<T>(typeID, buffer, offset, size);
+                    break;
+
+                case CS_JoinChat<T>.TypeID:
+                    packet = new CS_JoinChat<T>(typeID, buffer, offset, size);
+                    break;
+
+                case CS_LeaveChat<T>.TypeID:
+                    packet = new CS_LeaveChat<T>(typeID, buffer, offset, size);
+                    break;
+
+                case CS_PrivateChat<T>.TypeID:
+                    packet = new CS_PrivateChat<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

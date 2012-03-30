@@ -38,6 +38,7 @@ namespace InfServer.Protocol
 			Team = 3,
 			EnemyTeam = 4,
 			Arena = 5,
+            PrivateChat = 6,
 			Squad = 7
 		}
 
@@ -175,6 +176,40 @@ namespace InfServer.Protocol
 			//Go!
 			p._client.sendReliable(schat);
 		}
+
+        /// <summary>
+        /// Provides an easy means of routing chat messages between players
+        /// </summary>
+        static public void Player_RouteChat(Player p, Player from, SC_Whisper<Data.Database> chat)
+        {	//Formulate the chat notification!
+            SC_Chat schat = new SC_Chat();
+
+            schat.chatType = Chat_Type.Whisper;
+
+            schat.from = chat.from;
+            schat.message = chat.message;
+            schat.bong = chat.bong;
+
+            //Go!
+            p._client.sendReliable(schat);
+        }
+
+
+
+        /// <summary>
+        /// Provides an easy means of routing chat messages between players
+        /// </summary>
+        static public void Player_RouteChat(Player p, SC_PrivateChat<Data.Database> pkt)
+        {	//Formulate the chat notification!
+            SC_Chat schat = new SC_Chat();
+
+            schat.chatType = Chat_Type.PrivateChat;
+            schat.message = pkt.message;
+            schat.from = pkt.from;
+
+            //Go!
+            p._client.sendReliable(schat);
+        }
 
 		/// <summary>
 		/// Like the above, but sends messages to multiple players

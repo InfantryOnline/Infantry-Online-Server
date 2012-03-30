@@ -92,6 +92,7 @@ namespace InfServer.Logic
 					//Send it to our arena!
 					player._arena.handleEvent(delegate(Arena arena)
 						{
+                            pkt.bong = 0;
 							player._arena.playerArenaChat(player, pkt);
 						}
 					);
@@ -107,15 +108,37 @@ namespace InfServer.Logic
 					player._team.playerTeamChat(player, pkt);
 					break;
 
-				case Helpers.Chat_Type.Whisper:
-					{	//Find our recipient
-						Player recipient = player._server.getPlayer(pkt.recipient);
-						
-						//Send it to the target player
-						if (recipient != null)
-							recipient.sendPlayerChat(player, pkt);
-					}
-					break;
+                case Helpers.Chat_Type.PrivateChat:
+                    CS_PrivateChat<Data.Database> pchat = new CS_PrivateChat<Data.Database>();
+                    pchat.chat = pkt.recipient;
+                    pchat.message = pkt.message;
+                    pchat.from = player._alias;
+                    player._server._db.send(pchat);
+                    break;
+
+                case Helpers.Chat_Type.Whisper:
+                    {	//Find our recipient
+                        Player recipient = player._server.getPlayer(pkt.recipient);
+
+                        //Are we connected to a database?
+                        if (!player._server.IsStandalone)
+                        {   //Yeah, lets route it through the DB so we can pm globally!
+                            CS_Whisper<Data.Database> whisper = new CS_Whisper<Data.Database>();
+                            whisper.bong = pkt.bong;
+                            whisper.recipient = pkt.recipient;
+                            whisper.message = pkt.message;
+                            whisper.from = player._alias;
+                            player._server._db.send(whisper);
+                        }
+                        else
+                        {
+                            //Send it to the target player
+                            if (recipient != null)
+                                recipient.sendPlayerChat(player, pkt);
+                        }
+
+                    }
+                    break;
 
 				case Helpers.Chat_Type.Squad:
 					string squad = player._squad;
@@ -123,6 +146,7 @@ namespace InfServer.Logic
 					break;
 			}
 		}
+
 
 		/// <summary>
 		/// Registers all handlers

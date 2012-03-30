@@ -20,6 +20,8 @@ namespace InfServer
 		///////////////////////////////////////////////////
 		public ConfigSetting _config;			//Our server config
 		public new LogClient _logger;			//Our zone server log
+        public Dictionary<string, Chat> _chats;
+        public Dictionary<string, Zone.Player> _players;      //A list of every connected player
 
 		public List<Zone> _zones;				//The zones currently connected
 
@@ -39,7 +41,49 @@ namespace InfServer
 		{
 			_config = ConfigSetting.Blank;
 			_zones = new List<Zone>();
+            _chats = new Dictionary<string, Chat>();
+            _players = new Dictionary<string, Zone.Player>();
 		}
+
+        public void newPlayer(Zone.Player player)
+        {
+            if (_players.ContainsValue(player))
+                return;
+
+            _players.Add(player.alias, player);
+        }
+
+        public void lostPlayer(Zone.Player player)
+        {
+            if (!_players.ContainsValue(player))
+                return;
+            _players.Remove(player.alias);
+        }
+
+        public Chat getChat(string name)
+        {
+            Chat chat;
+            if (!_chats.TryGetValue(name, out chat))
+                return null;
+            return chat;
+        }
+
+        public Zone.Player getPlayer(string name)
+        {
+            Zone.Player player;
+            if (!_players.TryGetValue(name, out player))
+                return null;
+            return player;
+        }
+
+        public void sendMessage(Zone zone, string player, string message)
+        {
+            SC_Chat<Zone> msg = new SC_Chat<Zone>();
+            msg.message = message;
+            msg.recipient = player;
+            zone._client.send(msg);
+            Log.write("sent db message");
+        }
 
 		/// <summary>
 		/// Allows the server to preload all assets.
