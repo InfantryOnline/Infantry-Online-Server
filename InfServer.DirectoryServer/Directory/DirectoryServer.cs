@@ -82,7 +82,7 @@ namespace InfServer.DirectoryServer.Directory
 
             httpJsonResponder.Start();
 
-            var timer = new Timer(2500);
+            var timer = new Timer(5000);
             timer.Enabled = true;
             timer.AutoReset = true;
             timer.Elapsed += (sender, e) => Zones.ForEach(z => z.PollServerForPlayers());

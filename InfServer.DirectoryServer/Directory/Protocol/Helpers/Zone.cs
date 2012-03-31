@@ -46,6 +46,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             return byteZoneChunk;
         }
 
+
         public void PollServerForPlayers()
         {
             var endpoint = new IPEndPoint(new IPAddress(BitConverter.GetBytes(Address)), Port + 1);
@@ -59,15 +60,21 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             }
             catch(Exception e)
             {
+                udpClient.Close();
                 Console.WriteLine(e.ToString());
             }
         }
 
         private void ReadReceivedData(IAsyncResult ar)
         {
+            if(ar == null || ar.AsyncState == null)
+            {
+                return;
+            }
+
             var data = (UdpData) ar.AsyncState;
 
-            Byte[] receiveBytes = data.Client.EndReceive(ar, ref data.EndPoint);
+            var receiveBytes = data.Client.EndReceive(ar, ref data.EndPoint);
 
             PlayerCount = BitConverter.ToInt32(receiveBytes, 0);
 
