@@ -54,7 +54,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             {
                 var data = new UdpData {EndPoint = endpoint, Client = udpClient};
                 udpClient.Connect(endpoint);
-                udpClient.Send(new byte[] {0, 0, 0, 0}, 4);
+                udpClient.Send(new byte[] {00, 00, 00, 01}, 4);
                 udpClient.BeginReceive(ReadReceivedData, data);
             }
             catch(Exception e)
