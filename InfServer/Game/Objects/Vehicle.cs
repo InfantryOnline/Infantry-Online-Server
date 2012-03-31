@@ -126,7 +126,7 @@ namespace InfServer.Game
 		/// </summary>
 		public void assignDefaultState()
 		{
-			_state.health = (short)(_arena._server._zoneConfig.soul.energyShieldMode == 2 ? 1 : _type.Hitpoints);
+			_state.health = (short)(_type.Hitpoints == 0 ? 1 : _type.Hitpoints);
 			_state.energy = (short)_type.EnergyMax;
 		}
 

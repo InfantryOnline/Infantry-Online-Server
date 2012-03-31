@@ -759,9 +759,12 @@ namespace InfServer.Game
 				{
 					Log.write(TLog.Warning, "MultiItem {0} attempted to spawn invalid item #{1}", multiItem.name, slot.value);
 					continue;
-				}
+                }
 
-				//Add an item!
+                if (!Logic_Assets.SkillCheck(this, item.skillLogic))
+                    continue;
+
+                //Add an item!
 				inventoryModify(false, item, repeat);
 			}
 

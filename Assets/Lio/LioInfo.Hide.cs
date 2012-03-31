@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace Assets
 {
@@ -58,7 +59,9 @@ namespace Assets
             /// <param name="values">CSV-formatted line containing properties of a Hide object</param>
             public sealed override void ExtractCsvLine(List<string> values)
             {
+                Console.WriteLine("LIO Hide has {0}/31 expected fields", values.Count);
                 base.ExtractCsvLine(values);
+                Console.WriteLine("Version: {0}", GeneralData.Version);
 
                 HideData.InitialCount = CSVReader.GetInt(values[10]);
                 HideData.AttemptDelay = CSVReader.GetInt(values[11]);
@@ -80,9 +83,18 @@ namespace Assets
                 HideData.AssignFrequency = CSVReader.GetInt(values[25]);
                 HideData.ClumpRadius = CSVReader.GetInt(values[26]);
                 HideData.ClumpQuantity = CSVReader.GetInt(values[27]);
-                HideData.TurretSwitchedFrequency = CSVReader.GetInt(values[28]);
-                HideData.TurretInverseState = CSVReader.GetInt(values[29]);
-                HideData.RtsStateNumber = CSVReader.GetInt(values[30]);
+                if (GeneralData.Version != "v25") // LIO versions are kept in the format 'vXX', VEH records however parse this as an int
+                {
+                    HideData.TurretSwitchedFrequency = -2;
+                    HideData.TurretInverseState = 0;
+                    HideData.RtsStateNumber = -1;
+                }
+                else
+                {
+                    HideData.TurretSwitchedFrequency = CSVReader.GetInt(values[28]);
+                    HideData.TurretInverseState = CSVReader.GetInt(values[29]);
+                    HideData.RtsStateNumber = CSVReader.GetInt(values[30]);
+                }
             }
         }
     }
