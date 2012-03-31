@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 
 namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
@@ -44,10 +46,45 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             return byteZoneChunk;
         }
 
-        private int Address;
-        private ushort Port;
-        private string Title;
-        private bool IsAdvanced;
-        private string Description;
+        public void PollServerForPlayers()
+        {
+            var endpoint = new IPEndPoint(new IPAddress(BitConverter.GetBytes(Address)), Port + 1);
+            var udpClient = new UdpClient();
+            try
+            {
+                var data = new UdpData {EndPoint = endpoint, Client = udpClient};
+                udpClient.Connect(endpoint);
+                udpClient.Send(new byte[] {0, 0, 0, 0}, 4);
+                udpClient.BeginReceive(ReadReceivedData, data);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        private void ReadReceivedData(IAsyncResult ar)
+        {
+            var data = (UdpData) ar.AsyncState;
+
+            Byte[] receiveBytes = data.Client.EndReceive(ar, ref data.EndPoint);
+
+            PlayerCount = BitConverter.ToInt32(receiveBytes, 0);
+
+            data.Client.Close();
+        }
+
+        class UdpData
+        {
+            public UdpClient Client;
+            public IPEndPoint EndPoint;
+        }
+
+        public Int32 Address { get; private set; }
+        public UInt16 Port { get; private set; }
+        public String Title { get; private set; }
+        public Boolean IsAdvanced { get; private set; }
+        public String Description { get; private set; }
+        public Int32 PlayerCount { get; private set; }
     }
 }

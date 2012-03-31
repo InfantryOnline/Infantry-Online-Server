@@ -12,9 +12,13 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             if (zones == null)
                 throw new ArgumentNullException("zones");
 
+            Zones = zones;
+
             Packets = new List<SC_ZoneList>();
-            Serialize(zones);
+            Serialize(Zones);
         }
+
+        public List<Zone> Zones { get; private set; } 
 
         public List<SC_ZoneList> Packets;
 

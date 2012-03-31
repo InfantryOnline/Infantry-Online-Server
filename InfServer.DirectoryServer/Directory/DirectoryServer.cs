@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Timers;
 using DirectoryServer.Directory.Protocol;
+using InfServer.DirectoryServer.Directory.Protocol;
 using InfServer.DirectoryServer.Directory.Protocol.Helpers;
 using InfServer.Network;
 using System.Text;
@@ -9,7 +11,6 @@ namespace InfServer.DirectoryServer.Directory
 {
     public class DirectoryServer : Server
     {
-        
         /// <summary>
         /// Initial client connections are listened on this port.
         /// </summary>
@@ -19,13 +20,14 @@ namespace InfServer.DirectoryServer.Directory
         public new LogClient _logger;
         public ZoneStream ZoneStream;
         public Serializer serializer;
+        public List<Zone> Zones { get { return ZoneStream.Zones; } }
 
-        public DirectoryServer()
-            : base(new Factory(), new DirectoryClient())
+        public DirectoryServer() : base(new Factory(), new DirectoryClient())
         {
             //Initialize our XML Serializer
             serializer = new Serializer();
-            
+            httpJsonResponder = new HttpJsonResponder(this);
+
             /*// Defines a default XMLZoneListing
             XmlZoneListing zone = new XmlZoneListing();
             zone.Address = "127.0.0.1";
@@ -37,7 +39,7 @@ namespace InfServer.DirectoryServer.Directory
             List<XmlZoneListing> list = new List<XmlZoneListing>();
             list.Add(zone);
             serializer.SerializeToXML(list);*/
-            
+
         }
 
         public bool Init()
@@ -78,12 +80,22 @@ namespace InfServer.DirectoryServer.Directory
             IPEndPoint listenPoint = new IPEndPoint(IPAddress.Any, 4850);
             begin(listenPoint);
 
+            httpJsonResponder.Start();
+
+            var timer = new Timer(2500);
+            timer.Enabled = true;
+            timer.AutoReset = true;
+            timer.Elapsed += (sender, e) => Zones.ForEach(z => z.PollServerForPlayers());
+            timer.Start();
+
             while (true)
             {
                 // No need to do anything at the moment
                 // NOTE: Implement autoreloading zone listing? Hmm..
             }
         }
+
+        private HttpJsonResponder httpJsonResponder;
     }
 }
 	  

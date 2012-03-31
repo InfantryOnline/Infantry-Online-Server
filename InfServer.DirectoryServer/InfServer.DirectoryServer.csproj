@@ -62,6 +62,9 @@
     <CodeAnalysisRuleDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\branches\InfLauncher\Libraries\JSON.Net\Bin\Net\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -79,6 +82,7 @@
     <Compile Include="Directory\Protocol\Helpers\Zone.cs" />
     <Compile Include="Directory\Protocol\Helpers\XmlZoneListing.cs" />
     <Compile Include="Directory\Protocol\Helpers\ZoneStream.cs" />
+    <Compile Include="Directory\Protocol\HttpJsonResponder.cs" />
     <Compile Include="Directory\Protocol\Packets\CS_AckZoneList.cs" />
     <Compile Include="Directory\Protocol\Packets\CS_Initiate.cs" />
     <Compile Include="Directory\Protocol\Packets\CS_Version.cs" />
