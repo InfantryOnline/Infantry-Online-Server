@@ -17,20 +17,17 @@ namespace InfServer.Logic
         //Handles private chat entries.
         static public void Handle_SC_JoinChat(SC_JoinChat<Database> pkt, Database db)
         {   //Todo: refactor this entire func
-            Log.write(pkt.DataDump);
             Player player = db._server.getPlayer(pkt.from);
 
             if (player == null)
                 return;
-
-            player.sendMessage(0, String.Format("{0}: {1}", pkt.chat, pkt.users));
 
             char[] splitArr = { ',' };
             string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             SC_Chat notify = new SC_Chat();
             notify.chatType = Helpers.Chat_Type.PrivateChat;
-            notify.message = pkt.chat + ":<<Entered chat>>";
+            notify.message = pkt.chat + ":<< Entered chat >>";
             notify.from = pkt.from;
 
             foreach (string user in users)
@@ -48,6 +45,25 @@ namespace InfServer.Logic
 
         static public void Handle_SC_LeaveChat(SC_LeaveChat<Database> pkt, Database db)
         {
+            char[] splitArr = { ',' };
+            string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
+            SC_Chat notify = new SC_Chat();
+            notify.chatType = Helpers.Chat_Type.PrivateChat;
+            notify.message = pkt.chat + ":<< Leaving Chat >>";
+            notify.from = pkt.from;
+
+            foreach (string user in users)
+            {
+                Player p = db._server.getPlayer(user);
+                if (p == null)
+                    continue;
+
+                if (p._alias == pkt.from)
+                    continue;
+
+                p._client.send(notify);
+            }
         }
 
         static public void Handle_SC_Chat(SC_PrivateChat<Database> pkt, Database db)

@@ -61,7 +61,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             catch(Exception e)
             {
                 udpClient.Close();
-                Console.WriteLine(e.ToString());
+                //Console.WriteLine(e.ToString());
             }
         }
 
@@ -72,13 +72,19 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
                 return;
             }
 
-            var data = (UdpData) ar.AsyncState;
+            try
+            {
+                var data = (UdpData)ar.AsyncState;
 
-            var receiveBytes = data.Client.EndReceive(ar, ref data.EndPoint);
+                var receiveBytes = data.Client.EndReceive(ar, ref data.EndPoint);
 
-            PlayerCount = BitConverter.ToInt32(receiveBytes, 0);
+                PlayerCount = BitConverter.ToInt32(receiveBytes, 0);
 
-            data.Client.Close();
+                data.Client.Close();
+            }
+            catch (Exception e)
+            {
+            }
         }
 
         class UdpData

@@ -16,51 +16,63 @@ namespace InfServer.Logic
         {
             DBServer server = zone._server;
             Zone.Player player = server.getPlayer(pkt.from);
-            Chat chat = server.getChat(pkt.chat);
-            string name = pkt.chat.ToLower();
+            char[] splitArr = { ',' };
+            string[] chats = pkt.chat.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             //Hey, how'd you get here?!
             if (player == null)
                 return;
 
-            //New chat
-            if (chat == null)
+            //He wants to see the player list of each chat..
+            if (pkt.chat.Length == 0)
             {
-                chat = new Chat(server, pkt.chat);
+                foreach (var chat in server._chats.Values)
+                {
+                    if (chat.hasPlayer(pkt.from))
+                        server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat._name, chat.List()));
+                }
+                return;
             }
 
-            //Add him
-            if (!chat.hasPlayer(pkt.from))
+            foreach (string chat in chats)
             {
-                chat.newPlayer(pkt.from);
-                chat.sendList(pkt.from);
-            }
+                Chat _chat = server.getChat(chat);
 
-            //Custom preset chat stuff...
-            switch (name)
-            {
-                case "off:":
+                //Remove him from everything..
+                if (chat == "off")
+                {
                     foreach (var c in server._chats)
                     {
                         if (c.Value.hasPlayer(pkt.from))
                             c.Value.lostPlayer(pkt.from);
                     }
                     server.sendMessage(player.zone, player.alias, "No Chat Channels Defined");
-                    break;
+                    return;
+                }
 
-                case "modchat":
-                    break;
+                //New chat
+                if (!server._chats.ContainsValue(_chat))
+                {
+                    _chat = new Chat(server, chat);
+                }
 
-                case "list":
+                //Add him
+                if (!_chat.hasPlayer(pkt.from))
+                    _chat.newPlayer(pkt.from);
 
-                    break;
+                //Send him the updated list..
+                server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", _chat._name, _chat.List()));
             }
-        }
 
-
-
-        static public void Handle_CS_LeaveChat(CS_LeaveChat<Zone> pkt, Zone zone)
-        {
+            //Remove him from any chats that didn't come over in the packet.
+            foreach (Chat c in server._chats.Values)
+            {
+                if (!chats.Contains(c._name))
+                {
+                    if (c.hasPlayer(pkt.from) == true)
+                        c.lostPlayer(pkt.from);
+                }
+            }
         }
 
 
@@ -96,7 +108,6 @@ namespace InfServer.Logic
         static public void Register()
         {
             CS_JoinChat<Zone>.Handlers += Handle_CS_JoinChat;
-            CS_LeaveChat<Zone>.Handlers += Handle_CS_LeaveChat;
             CS_PrivateChat<Zone>.Handlers += Handle_CS_Chat;
         }
     }

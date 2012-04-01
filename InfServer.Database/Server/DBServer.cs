@@ -22,6 +22,7 @@ namespace InfServer
 		public new LogClient _logger;			//Our zone server log
         public Dictionary<string, Chat> _chats;
         public Dictionary<string, Zone.Player> _players;      //A list of every connected player
+        public int playerPeak;
 
 		public List<Zone> _zones;				//The zones currently connected
 
@@ -49,12 +50,23 @@ namespace InfServer
         {
             if (_players.ContainsValue(player))
                 return;
-
+           
             _players.Add(player.alias, player);
+
+            if (_players.Count() > playerPeak)
+                playerPeak = _players.Count();
         }
 
         public void lostPlayer(Zone.Player player)
         {
+            //Remove him from any chats that didn't come over in the packet.
+            foreach (Chat c in _chats.Values)
+            {
+                if (c.hasPlayer(player.alias) == true)
+                    c.lostPlayer(player.alias);
+
+            }
+
             if (!_players.ContainsValue(player))
                 return;
             _players.Remove(player.alias);
@@ -82,7 +94,6 @@ namespace InfServer
             msg.message = message;
             msg.recipient = player;
             zone._client.send(msg);
-            Log.write("sent db message");
         }
 
 		/// <summary>

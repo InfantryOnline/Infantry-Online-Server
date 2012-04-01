@@ -29,11 +29,30 @@ namespace InfServer
         public void newPlayer(string player)
         {
             _players.Add(player);
+            SC_JoinChat<Zone> join = new SC_JoinChat<Zone>();
+            join.from = player;
+            join.chat = _name;
+            join.users = List();
+
+            foreach (Zone z in _server._zones)
+            {
+                z._client.send(join);
+            }
         }
 
         public void lostPlayer(string player)
         {
             _players.Remove(player);
+
+            SC_LeaveChat<Zone> leave = new SC_LeaveChat<Zone>();
+            leave.from = player;
+            leave.chat = _name;
+            leave.users = List();
+
+            foreach (Zone z in _server._zones)
+            {
+                z._client.send(leave);
+            }
         }
 
         public bool hasPlayer(string player)

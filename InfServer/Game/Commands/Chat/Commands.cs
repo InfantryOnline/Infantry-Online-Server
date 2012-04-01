@@ -24,34 +24,10 @@ namespace InfServer.Game.Commands.Chat
             if (payload.Contains(':'))
                 return;
 
-            if (payload.ToLower() == "off")
-            {
-                CS_LeaveChat<Data.Database> leave = new CS_LeaveChat<Data.Database>();
-                leave.chat = "off";
-                leave.from = player._alias;
-                player._server._db.send(leave);
-                return;
-            }
-
-            if (payload == "")
-            {
-                CS_JoinChat<Data.Database> leave = new CS_JoinChat<Data.Database>();
-                leave.chat = "list";
-                leave.from = player._alias;
-                player._server._db.send(leave);
-            }
-
-            char[] splitArr = { ',' };
-            string[] chats = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string chat in chats)
-            {
-                CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
-                join.chat = chat;
-                join.from = player._alias;
-                player._server._db.send(join);
-            }
-           
+            CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
+            join.chat = payload;
+            join.from = player._alias;
+            player._server._db.send(join);
         }
 
       	/// <summary>

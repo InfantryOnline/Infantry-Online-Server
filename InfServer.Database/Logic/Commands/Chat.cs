@@ -12,49 +12,39 @@ namespace InfServer.Logic
     class Logic_ChatCommands
     {
         /// <summary>
-		/// Handles a findplayer packet.
+		/// Handles a ?find packet.
 		/// </summary>
         static public void Handle_CS_FindPlayer(CS_FindPlayer<Zone> pkt, Zone zone)
         {
-            SC_FindPlayer<Zone> reply = new SC_FindPlayer<Zone>();
-            reply.findAlias = pkt.findAlias;
-            reply.alias = pkt.alias;
-
-            foreach (Zone z in zone._server._zones)
+            bool found = false;
+            foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
             {
-
-                if (z.getPlayer(pkt.findAlias.ToLower()) != null)
+                if (player.Key.ToLower().Contains(pkt.findAlias.ToLower()))
                 {
-                    reply.zone = z._zone.name;
-                    reply.arena = z._zone.name;
-                    reply.result = SC_FindPlayer<Zone>.FindResult.Online;
-                    break;
+                    zone._server.sendMessage(zone, pkt.alias,
+                        String.Format("Found {0} - (Zone={1}) (Arena={2})",
+                        player.Value.alias, player.Value.zone._zone.name, player.Value.arena));
+                    found = true;
                 }
             }
 
-            if (reply.zone == "")
-                reply.result = SC_FindPlayer<Zone>.FindResult.Offline;
-
-            zone._client.send(reply);
+            if (!found)
+                zone._server.sendMessage(zone, pkt.alias, "Sorry, we couldn't locate any players online by that alias");
         }
 
 
         /// <summary>
-        /// Handles a findplayer packet.
+        /// Handles a ?online packet.
         /// </summary>
         static public void Handle_CS_Online(CS_Online<Zone> pkt, Zone zone)
         {
+            DBServer server = zone._server;
 
             foreach (Zone z in zone._server._zones)
             {
-                SC_Online<Zone> reply = new SC_Online<Zone>();
-                reply.alias = pkt.alias;
-                reply.zone = z._zone.name;
-                reply.online = (uint)z._players.Count();
-                zone._client.send(reply);
+                server.sendMessage(zone, pkt.alias, String.Format("~Server={0} Players={1}", z._zone.name, z._players.Count()));
             }
-
-            
+            zone._server.sendMessage(zone, pkt.alias, String.Format("Infantry (Total={0}) (Peak={1})", server._players.Count(), server.playerPeak));
         }
 
         /// <summary>
