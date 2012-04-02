@@ -229,11 +229,26 @@ namespace InfServer.Logic
 					//TODO: Figure out how to implement this
 					break;
 
-				//Wipes all player skills
-				case "wipeskill":
-					player._skills.Clear();
-					bChangedState = true;
-					break;
+                //goes in Player.executeAction()
+                //indentation is probably fucked up :X
+                //Wipes all player skills
+                case "wipeskill":
+                    if (param != "")
+                    { //Param is the name of the skill to remove OR the id
+                        KeyValuePair<int, Player.SkillItem> i = player._skills.FirstOrDefault(sk => (sk.Value.skill.Name == param || sk.Key == Convert.ToInt32(param)));
+                        if (i.Key != 0)
+                        {
+                            player._skills.Remove(i.Key);
+                            bChangedState = true;
+                        }
+                    }
+                    else
+                    { //No parameters, erase all skills
+                        player._skills.Clear();
+                        bChangedState = true;
+                    }
+
+                    break;
 
 				//Wipes the player's inventory
 				case "wipeinv":

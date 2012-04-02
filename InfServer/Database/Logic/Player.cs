@@ -65,8 +65,7 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_DB_Chat(SC_Chat<Data.Database> pkt, Data.Database db)
         {
-            Log.write(pkt.recipient);
-            Player p = db._server.getPlayer(pkt.recipient.ToLower());
+            Player p = db._server.getPlayer(pkt.recipient);
             if (p == null)
                 return;
             //Route it.

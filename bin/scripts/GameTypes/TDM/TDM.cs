@@ -123,13 +123,19 @@ namespace InfServer.Script.GameType_TDM
 
 
             //Let everyone know
-            _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
+            _arena.sendArenaMessage("Game has started!", 1);
             _arena.setTicker(1, 1, _config.deathMatch.timer * 100, "Time Left: ",
             delegate()
             {	//Trigger game end.
                 _arena.gameEnd();
             }
             );
+
+            foreach (Team t in _arena.Teams)
+            {
+                t._calculatedKills = 0;
+                t._calculatedDeaths = 0;
+            }
 
            
             return true;
@@ -241,8 +247,6 @@ namespace InfServer.Script.GameType_TDM
 		[Scripts.Event("Player.PlayerKill")]
 		public bool playerPlayerKill(Player victim, Player killer)
 		{
-            victim._team._calculatedDeaths++;
-            killer._team._calculatedKills++;
 			return true;
 		}
 		#endregion

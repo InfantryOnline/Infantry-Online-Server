@@ -46,7 +46,7 @@ namespace InfServer.Logic
                         if (c.Value.hasPlayer(pkt.from))
                             c.Value.lostPlayer(pkt.from);
                     }
-                    server.sendMessage(player.zone, player.alias, "No Chat Channels Defined");
+                    server.sendMessage(zone, pkt.from, "No Chat Channels Defined");
                     return;
                 }
 

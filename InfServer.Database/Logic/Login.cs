@@ -65,6 +65,11 @@ namespace InfServer.Logic
 			zone._client.Destruct += delegate(NetworkClient nc)
 			{
 				server._zones.Remove(zone);
+                //Remove them from the base db server list.
+                foreach (var player in zone._players.Values)
+                {
+                    zone._server.lostPlayer(player);
+                }
 			};
 
 			//Success!
