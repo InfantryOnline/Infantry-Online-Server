@@ -26,7 +26,7 @@ namespace InfServer.Protocol
         }
 
         //Packet routing
-        public const ushort TypeID = 7;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.Find;
         static public event Action<SC_FindPlayer<T>, T> Handlers;
 
         		///////////////////////////////////////////////////

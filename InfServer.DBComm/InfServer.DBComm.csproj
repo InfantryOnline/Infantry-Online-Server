@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="C2SFactory.cs" />
     <Compile Include="Helpers\Database.cs" />
+    <Compile Include="Helpers\PacketIDs.cs" />
     <Compile Include="Packets\Commands\Chat\CS_Online.cs" />
     <Compile Include="Packets\Commands\Chat\SC_Online.cs" />
     <Compile Include="Packets\Commands\Chat\SC_Find.cs" />

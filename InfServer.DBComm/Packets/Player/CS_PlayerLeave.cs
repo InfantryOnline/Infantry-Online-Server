@@ -18,7 +18,7 @@ namespace InfServer.Protocol
 		public string alias;				//Alias of the player in question
 
 		//Packet routing
-		public const ushort TypeID = 4;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.PlayerLeave;
 		static public event Action<CS_PlayerLeave<T>, T> Handlers;
 
 

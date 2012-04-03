@@ -22,7 +22,7 @@ namespace InfServer.Protocol
 		public byte[] data;									//The stats data
 
 		//Packet routing
-		public const ushort TypeID = 3;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.PlayerStatsResponse;
 		static public event Action<SC_PlayerStatsResponse<T>, T> Handlers;
 
 

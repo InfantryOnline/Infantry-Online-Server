@@ -26,7 +26,7 @@ namespace InfServer.Protocol
 		public uint UID4;					//
 
 		//Packet routing
-		public const ushort TypeID = 2;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.PlayerLogin;
 		static public event Action<CS_PlayerLogin<T>, T> Handlers;
 
 

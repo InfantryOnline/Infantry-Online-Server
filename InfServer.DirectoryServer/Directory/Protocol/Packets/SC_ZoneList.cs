@@ -5,7 +5,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
 {
     public class SC_ZoneList : PacketBase
     {
-        public const ushort TypeID = 3;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.ZoneList;
         public byte[] data;
         public UInt32 frameNum;
         public UInt32 streamSizeInBytes;

@@ -18,7 +18,7 @@ namespace InfServer.Protocol
         public string alias;               //Whos looking
 
         //Packet routing
-        public const ushort TypeID = 7;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Find;
         static public event Action<CS_FindPlayer<T>, T> Handlers;
 
 

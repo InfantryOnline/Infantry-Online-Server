@@ -17,7 +17,7 @@ namespace InfServer.Protocol
         public uint online;
 
         //Packet routing
-        public const ushort TypeID = 8;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.Online;
         static public event Action<SC_Online<T>, T> Handlers;
 
         		///////////////////////////////////////////////////

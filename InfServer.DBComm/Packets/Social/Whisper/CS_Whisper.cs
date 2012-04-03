@@ -20,7 +20,7 @@ namespace InfServer.Protocol
         public string from;
 
         //Packet routing
-        public const ushort TypeID = 9;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Whisper;
         static public event Action<CS_Whisper<T>, T> Handlers;
 
 

@@ -4,7 +4,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
 {
     public class CS_Version : PacketBase
     {
-        public const ushort TypeID = 3;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.Version;
 
         public CS_Version() : base(TypeID)
         {

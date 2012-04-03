@@ -17,7 +17,7 @@ namespace InfServer.Protocol
 		public string password;		//Our password for entering the zone
 
 		//Packet routing
-		public const ushort TypeID = 1;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Auth;
 		static public event Action<CS_Auth<T>, Client<T>> Handlers;
 
 

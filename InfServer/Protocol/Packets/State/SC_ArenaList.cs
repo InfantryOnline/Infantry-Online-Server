@@ -48,7 +48,15 @@ namespace InfServer.Protocol
 				Write((byte)TypeID);
 
 				Write(arena._name, 32);
-				Write((Int16)arena.TotalPlayerCount);
+                //Is he in the arena?
+                if (requestee._arena == arena)
+                {
+                    Write(-(Int16)arena.TotalPlayerCount);
+                }
+                else
+                {
+                    Write((Int16)arena.TotalPlayerCount);
+                }
 			}
 		}
 

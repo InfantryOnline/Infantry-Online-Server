@@ -19,7 +19,7 @@ namespace InfServer.Protocol
         public string from;
 
         //Packet routing
-        public const ushort TypeID = 13;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.LeaveChat;
         static public event Action<SC_LeaveChat<T>, T> Handlers;
 
 

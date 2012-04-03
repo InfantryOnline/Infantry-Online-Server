@@ -25,7 +25,7 @@ namespace InfServer.Protocol
 		}
 
 		//Packet routing
-		public const ushort TypeID = 1;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.Auth;
 		static public event Action<SC_Auth<T>, T> Handlers;
 
 

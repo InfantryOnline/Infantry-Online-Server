@@ -7,7 +7,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
     {
         static public event Action<CS_AckZoneList, DirectoryClient> Handlers;
 
-        public const ushort TypeID = 0x0b;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.AckZoneList;
 
         public UInt16 frameReceived;
 

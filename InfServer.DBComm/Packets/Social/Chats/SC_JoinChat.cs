@@ -19,7 +19,7 @@ namespace InfServer.Protocol
         public string users;
 
         //Packet routing
-        public const ushort TypeID = 11;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.JoinChat;
         static public event Action<SC_JoinChat<T>, T> Handlers;
 
 

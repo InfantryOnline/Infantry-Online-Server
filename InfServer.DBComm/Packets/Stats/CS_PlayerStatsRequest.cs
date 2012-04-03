@@ -37,7 +37,7 @@ namespace InfServer.Protocol
 		}
 
 		//Packet routing
-		public const ushort TypeID = 6;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.PlayerStatsRequest;
 		static public event Action<CS_PlayerStatsRequest<T>, T> Handlers;
 
 

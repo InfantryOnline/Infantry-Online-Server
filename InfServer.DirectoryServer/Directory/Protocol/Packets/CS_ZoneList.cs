@@ -7,7 +7,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
     {
         static public event Action<CS_ZoneList, DirectoryClient> Handlers;
 
-        public const ushort TypeID = 5;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.ZoneList;
         public UInt32 Token;
 
         public CS_ZoneList() : base(TypeID)

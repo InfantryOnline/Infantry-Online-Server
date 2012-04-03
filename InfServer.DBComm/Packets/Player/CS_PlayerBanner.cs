@@ -19,7 +19,7 @@ namespace InfServer.Protocol
 		public byte[] banner;
 
 		//Packet routing
-		public const ushort TypeID = 5;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.PlayerBanner;
 		static public event Action<CS_PlayerBanner<T>, T> Handlers;
 
 

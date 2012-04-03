@@ -5,7 +5,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
 {
     public class SC_Initiate : PacketBase
     {
-        public const ushort TypeID = 2;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.Initiate;
 
         public UInt32 RandChallengeToken;
 

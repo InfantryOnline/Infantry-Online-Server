@@ -20,7 +20,7 @@ namespace InfServer.Protocol
         public string users;
 
         //Packet routing
-        public const ushort TypeID = 10;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.PrivateChat;
         static public event Action<SC_PrivateChat<T>, T> Handlers;
 
 

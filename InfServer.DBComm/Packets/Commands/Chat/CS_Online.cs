@@ -16,7 +16,7 @@ namespace InfServer.Protocol
         public string alias;               //Whos looking
 
         //Packet routing
-        public const ushort TypeID = 8;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Online;
         static public event Action<CS_Online<T>, T> Handlers;
 
 

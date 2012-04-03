@@ -18,7 +18,7 @@ namespace InfServer.Protocol
         public string recipient;
 
         //Packet routing
-        public const ushort TypeID = 14;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.Chat;
         static public event Action<SC_Chat<T>, T> Handlers;
 
 

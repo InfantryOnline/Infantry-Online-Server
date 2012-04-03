@@ -18,7 +18,7 @@ namespace InfServer.Protocol
         public string from;
 
         //Packet routing
-        public const ushort TypeID = 12;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.JoinChat;
         static public event Action<CS_JoinChat<T>, T> Handlers;
 
 

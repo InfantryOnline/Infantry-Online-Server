@@ -31,7 +31,7 @@ namespace InfServer.Protocol
 		public byte[] banner;						//The player's stored banner information
 
 		//Packet routing
-		public const ushort TypeID = 2;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.PlayerLogin;
 		static public event Action<SC_PlayerLogin<T>, T> Handlers;
 
 

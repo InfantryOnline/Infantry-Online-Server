@@ -19,7 +19,7 @@ namespace InfServer.Protocol
 		public Data.PlayerStats stats;	
 
 		//Packet routing
-		public const ushort TypeID = 3;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.PlayerUpdate;
 		static public event Action<CS_PlayerUpdate<T>, T> Handlers;
 
 

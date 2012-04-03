@@ -79,6 +79,7 @@
     <Compile Include="Directory\Logic\Packets\Challenge.cs" />
     <Compile Include="Directory\Logic\Packets\ZoneListing.cs" />
     <Compile Include="Directory\Protocol\Factory.cs" />
+    <Compile Include="Directory\Protocol\Helpers\PacketIDs.cs" />
     <Compile Include="Directory\Protocol\Helpers\Zone.cs" />
     <Compile Include="Directory\Protocol\Helpers\XmlZoneListing.cs" />
     <Compile Include="Directory\Protocol\Helpers\ZoneStream.cs" />

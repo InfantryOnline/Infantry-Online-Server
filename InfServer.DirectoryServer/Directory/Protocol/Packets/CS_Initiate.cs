@@ -7,7 +7,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Packets
     {
         static public event Action<CS_Initiate, DirectoryClient> Handlers;
 
-        public const ushort TypeID = 1;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.Initiate;
 
         public UInt32 RandChallengeToken;
 
