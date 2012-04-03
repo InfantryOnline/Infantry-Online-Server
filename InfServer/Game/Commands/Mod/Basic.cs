@@ -289,12 +289,27 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                //Unspec him
-                target.unspec(newTeam);
+                if (player.IsSpectator)
+                {   //Unspec him
+                    target.unspec(newTeam);                    
+                }
+                else
+                {   //Change team
+                    newTeam.addPlayer(target);
+                }
             }
             else
-                //Fake a game join
-                target._arena.handlePlayerJoin(target, true);
+            {
+                //Join next available team
+                if (target._arena.pickAppropriateTeam(target) != null)
+                {   //Great, use it
+                    target.unspec(target._arena.pickAppropriateTeam(target));
+                }
+                else
+                {
+                    player.sendMessage(-1, "Unable to unspec on that team");
+                }
+            }
         }
 
         /// <summary>
@@ -331,6 +346,64 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(0, "Message can not be empty");
             else
                 player._arena.sendArenaMessage(payload, bong);
+        }
+
+        /// <summary>
+        /// Sets a ticker to display a timer
+        /// </summary>
+        static public void timer(Player player, Player recipient, string payload, int bong)
+        {            
+            if (payload == "")
+            {   //Clear current timer if payload is empty
+                player._arena.setTicker(1,1,0,"");
+            }
+            else
+            {
+                try
+                {
+                    int minutes = 0;
+                    int seconds = 0;
+                    if (payload.Contains(":"))
+                    {   //Split the payload up if it contains a semi-colon
+                        char[] splitArr = { ':' };
+                        string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
+                        if (items.Count() > 1)
+                        {   //Format: *timer xx:xx
+                            minutes = Convert.ToInt32(items[0].Trim());
+                            seconds = Convert.ToInt32(items[1].Trim());
+                        }
+                        else
+                        {
+                            if (payload.StartsWith(":"))
+                            {   //Format: *timer :xx
+                                seconds = Convert.ToInt32(items[0].Trim());
+                            }
+                            else
+                            {   //Format: *timer xx:
+                                minutes = Convert.ToInt32(items[0].Trim());
+                            }
+                        }           
+                    }
+                    else
+                    {   //Format: *timer xx                   
+                        minutes = Convert.ToInt32(payload.Trim());
+                    }
+                    
+                    if (minutes > 0 || seconds > 0)
+                    {   //Timer works on increments of 10ms, excludes negative timers
+                        player._arena.setTicker(1, 1, minutes * 6000 + seconds * 100, "Time Remaining: ");
+                    }
+                    else
+                    {
+                        player._arena.setTicker(1, 1, 0, "");
+                    }
+                }
+                catch
+                {
+                    player.sendMessage(-1, "Invalid timer amount.  Format: *timer xx or *timer xx:xx");
+                }
+            }                
         }
 
         /// <summary>
@@ -453,6 +526,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(team, "team",
                 "Puts another player, or yourself, on a specified team",
                 "*team [teamname] or ::*team [teamname]",
+                InfServer.Data.PlayerPermission.ArenaMod);
+
+            yield return new HandlerDescriptor(timer, "timer",
+                "Sets a ticker to display a timer",
+                "Syntax: *timer xx or *timer xx:xx",
                 InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(prize, "prize",
