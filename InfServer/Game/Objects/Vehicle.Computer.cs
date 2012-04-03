@@ -33,6 +33,7 @@ namespace InfServer.Game
 		//Turret settings
 		public ItemInfo _primaryGun;					//The weapon we're using to shoot
 		public ItemInfo.Projectile _primaryProjectile;	//The main projectile we're considering for aiming
+        public List<ItemInfo.UtilityItem> _activeEquip;	//Our active equipment
 		protected int _fireDelay;						//The delay between firing shots
 		protected int _reloadTime;						//The time taken to reload
 		protected int _ammoType;						//Ammo settings
@@ -87,7 +88,25 @@ namespace InfServer.Game
 			{
 				_primaryGun = null;
 			}
+
+            configureComp();
 		}
+
+        /// <summary>
+        /// Configures the computer based on the vehicle information
+        /// </summary>
+        protected virtual void configureComp()
+        {	//Are we using any equipment?
+            _activeEquip = new List<ItemInfo.UtilityItem>();
+            foreach (int item in _type.InventoryItems)
+            {
+                ItemInfo.UtilityItem util = AssetManager.Manager.getItemByID(item) as ItemInfo.UtilityItem;
+                if (util == null)
+                    continue;
+                else
+                    _activeEquip.Add(util);
+            }
+        }
 
 		/// <summary>
 		/// Keeps the vehicle state updated, and sends an update packet if necessary
@@ -216,9 +235,11 @@ namespace InfServer.Game
 
 					if (physLow == 0 && physHigh == 0)
 						return true;
-
+                    else
+                        return false;
 					//Are we within the physics?
-					return (_type.FireHeight >= physLow && _type.FireHeight <= physHigh);	
+                    
+					//return (_type.FireHeight >= physLow && _type.FireHeight <= physHigh);	
 				}
 			);
         }
@@ -256,7 +277,7 @@ namespace InfServer.Game
 
 			//Computer vehicles don't linger, so destroy it
 			destroy(true);
-		}
+		}        
 
 		/// <summary>
 		/// Handles damage from explosions triggered nearby

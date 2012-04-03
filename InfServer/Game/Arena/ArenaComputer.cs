@@ -234,5 +234,37 @@ namespace InfServer.Game
 			else
 				return false;
 		}
+
+        /// <summary>
+        /// Determines whether there is a vehicle antiwarping the player in the specified area
+        /// </summary>
+        public Computer checkVehAntiWarp(Player player)
+        {            
+            ObjTracker<Computer> computers = new ObjTracker<Computer>();
+            foreach (Vehicle vehicle in _vehicles)
+			{	//Cast it properly
+				Computer computer = vehicle as Computer;
+				if (computer == null)
+					continue;
+                else                   
+                    computers.Add(computer);               
+            }
+            
+            //Get the list of computers in the area
+            List<Computer> candidates = candidates = computers.getObjsInRange(player._state.positionX, player._state.positionY, 1000);
+            
+            foreach (Computer candidate in candidates)
+            {	//Any anti-warp utils?
+                if (!candidate._activeEquip.Any(util => util.antiWarpDistance != -1))
+                    continue;
+
+                //Is it within the distance?
+                int dist = (int)(player._state.position().Distance(candidate._state.position()) * 100);
+                if (candidate._activeEquip.Any(util => util.antiWarpDistance >= dist))
+                    return candidate;               
+            }
+
+            return null;
+        }
 	}
 }

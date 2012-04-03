@@ -1052,12 +1052,20 @@ namespace InfServer.Game
 				player.sendMessage(-1, "You are being antiwarped by a " + antiWarpBot._type.Name);
 				return;
 			}
+           
+            Computer antiWarpVeh = checkVehAntiWarp(player);
+            if (antiWarpVeh != null)
+            {
+                player.sendMessage(-1, "You are being antiwarped by a " + antiWarpVeh._type.Name);
+                return;
+            }
 
             //How about a player?
             Player antiWarp = player.checkAntiWarp();
             if (antiWarp != null)
             {
                 player.sendMessage(-1, String.Format("You are being antiwarped by {0}", antiWarp._alias));
+                return;
             }
 
 			//What sort of warp item are we dealing with?
