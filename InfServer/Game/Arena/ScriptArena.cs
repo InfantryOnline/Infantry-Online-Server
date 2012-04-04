@@ -149,7 +149,10 @@ namespace InfServer.Game
 		/// Called when the game ends
 		/// </summary>
 		public override void gameEnd()
-		{	//We've stopped
+		{	//Show breakdown
+            breakdown(true);
+
+            //We've stopped
 			_bGameRunning = false;
 			_tickGameEnded = Environment.TickCount;
 
@@ -1243,6 +1246,49 @@ namespace InfServer.Game
 				return;
 			}
 
+            //If the vehicle is a computer
+            if (vehinfo.Type == VehInfo.Types.Computer)
+            {              
+                VehInfo.Computer newComp = vehinfo as VehInfo.Computer;
+                int sameType = 0;
+                int totalAmount = 0;
+                
+                if (newComp != null)
+                {   //Get a list of vehicles in the computer's density radius                 
+                    List<Vehicle> vehicles = player._arena.getVehiclesInRange(player._state.positionX, player._state.positionY, newComp.DensityRadius);
+
+                    if (vehicles != null)
+                    {
+                        foreach (Vehicle veh in vehicles)
+                        {   //Iterate through the list checking for computers
+                            Computer comp = veh as Computer;
+                            if (comp != null)
+                            {   //If the computer is on the same team as the one the player is trying to add increment the counter
+                                if (comp._team._name == player._team._name)
+                                {
+                                    totalAmount++;
+                                    if (comp._type.Name == newComp.Name)
+                                    {   //If the computer is of the same type and on the same team as the one the player is trying to add increment other counter
+                                        sameType++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+               
+                if (totalAmount >= newComp.FrequencyDensityMaxActive)
+                {   //Exceeds the amount within the density radius for overall number
+                    player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area");
+                    return;
+                }
+                if (sameType >= newComp.FrequencyDensityMaxType)
+                {   //Exceeds the amount within the density radius for the specific type
+                    player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area");
+                    return;
+                }
+            }            
+
 			//Expensive stuff, vehicle creation
 			int ammoID;
 			int ammoCount;
@@ -1261,7 +1307,7 @@ namespace InfServer.Game
 			if (!exists("Player.MakeVehicle") || (bool)callsync("Player.MakeVehicle", false, player, item, posX, posY))
 			{	//Attempt to create it 
 				Vehicle vehicle = newVehicle(vehinfo, player._team, player, player._state);
-
+                
 				//Indicate that it was successful
 				SC_ItemReload rld = new SC_ItemReload();
 				rld.itemID = (short)item.id;
