@@ -152,11 +152,8 @@ namespace InfServer.Game
                 addAssetData(nws);
 
             //Load the helpMenu files
-            for (int i = zoneConf.helpMenu.links.GetLowerBound(0); i <= zoneConf.helpMenu.links.GetUpperBound(0); i++)
-            {
-                if (zoneConf.helpMenu.links[i].name==null)
-                    continue;
-                
+            for (int i = 0; i <= zoneConf.helpMenu.links.Count - 1; i++)
+            {             
                 AssetFile helpMenu = AssetFileFactory.CreateFromFile<AssetFile>(zoneConf.helpMenu.links[i].name);
                 if (helpMenu != null)
                     addAssetData(helpMenu);
