@@ -64,8 +64,9 @@ namespace InfServer.Logic
 				plogin.ticketid = pkt.TicketID;
 				plogin.UID1 = pkt.UID1;
 				plogin.UID2 = pkt.UID2;
-				plogin.UID3 = pkt.UID3;
+                plogin.UID3 = pkt.UID3;
 				plogin.UID4 = pkt.NICInfo;
+                plogin.ipaddress = pkt._client._ipe.Address.ToString();
 
 				server._db.send(plogin);
 			}

@@ -51,6 +51,24 @@ namespace Assets
             return t;
         }
 
+        public static TAsset CreateFromGlobalFile<TAsset>(string filename) where TAsset : AbstractAsset, new()
+        {	//Sanity checks
+            if (filename == null)
+                throw new ArgumentNullException("Null filename.");
+
+            //Attempt to find the file in the directory structure
+            string filePath = findAssetFile(filename, "..\\Global\\");
+            if (filePath == null)
+            {	//It's missing!
+                _missingFiles.Add(filename);
+                return null;
+            }
+
+            TAsset t = new TAsset();
+            t.ReadFile(filePath);
+            return t;
+        }
+
 		/// <summary>
         /// Locates an asset file in the server's directory tree
         /// </summary>

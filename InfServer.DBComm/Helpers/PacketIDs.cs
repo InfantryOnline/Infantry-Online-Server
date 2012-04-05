@@ -33,6 +33,7 @@ namespace InfServer.Protocol
                 JoinChat = 12,
                 LeaveChat = 13,
                 ZoneList = 15,
+                Query = 16,
             }
             ///<summary>
             ///Contains S2C packet ids

@@ -19,15 +19,13 @@ namespace InfServer.Game.Commands.Chat
 
 
 
-        public static void chat(Player player, Player recipient, string payload, int bong)
+        public static void accountinfo(Player player, Player recipient, string payload, int bong)
         {
-            if (payload.Contains(':'))
-                return;
-
-            CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
-            join.chat = payload;
-            join.from = player._alias;
-            player._server._db.send(join);
+            player.sendMessage(0, "Grabbing account info...");
+            CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+            query.alias = player._alias;
+            query.queryType = CS_Query<Data.Database>.QueryType.accountinfo;
+            player._server._db.send(query);
         }
 
       	/// <summary>
@@ -39,6 +37,8 @@ namespace InfServer.Game.Commands.Chat
 
 			player._client.sendReliable(arenaList);
 		}
+
+
 
         /// <summary>
         /// displays current game statistics
@@ -153,6 +153,18 @@ namespace InfServer.Game.Commands.Chat
             {
                 player.sendMessage(-1, "You cannot buy from this location");
             }
+        }
+
+
+        public static void chat(Player player, Player recipient, string payload, int bong)
+        {
+            if (payload.Contains(':'))
+                return;
+
+            CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
+            join.chat = payload;
+            join.from = player._alias;
+            player._server._db.send(join);
         }
 
         /// <summary>
@@ -371,6 +383,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(arena, "arena",
                 "Displays all arenas availble to join",
                 "?arena");
+
+            yield return new HandlerDescriptor(accountinfo, "accountinfo",
+                "Displays all aliases registered to a single account.",
+                "?accountinfo");
 
             yield return new HandlerDescriptor(chat, "chat",
                 "Joins or leaves specified chats",

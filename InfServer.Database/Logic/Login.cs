@@ -136,6 +136,7 @@ namespace InfServer.Logic
 						account.lastAccess = DateTime.Now;
 						account.email = "none@nowhere.com";
 						account.ticket = "";
+                        account.IPAddress = pkt.ipaddress;
 
 						db.accounts.InsertOnSubmit(account);
 
@@ -208,6 +209,7 @@ namespace InfServer.Logic
 					alias.name = pkt.alias;
 					alias.creation = DateTime.Now;
 					alias.account1 = account;
+                    alias.IPAddress = pkt.ipaddress;
 
 					db.alias.InsertOnSubmit(alias);
 
@@ -299,10 +301,12 @@ namespace InfServer.Logic
 						DBHelpers.binToSkills(plog.stats.skills, player.skills);
 
 					plog.bSuccess = true;
+                    
 				}
 
 				zone._client.sendReliable(plog);
-
+                alias.IPAddress = pkt.ipaddress;
+                alias.lastAccess = DateTime.Now;
 				//Submit our modifications
 				db.SubmitChanges();
 
@@ -318,6 +322,17 @@ namespace InfServer.Logic
 		static public void Handle_CS_PlayerLeave(CS_PlayerLeave<Zone> pkt, Zone zone)
 		{	//He's gone!
 			Log.write("Player {0} left zone {1}", pkt.alias, zone._zone.name);
+
+            using (InfantryDataContext db = zone._server.getContext())
+            {
+                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
+                TimeSpan ts = DateTime.Now - alias.lastAccess.Value;
+                Int64 minutes = ts.Minutes;
+                alias.timeplayed += minutes;
+
+                db.SubmitChanges();
+            }
+
 			zone.lostPlayer(pkt.player.id);
 		}
 

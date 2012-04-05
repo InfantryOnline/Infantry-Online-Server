@@ -25,7 +25,7 @@
       <Column Name="cash" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="experience" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="experienceTotal" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-	  <Column Name="kills" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="kills" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="deaths" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="killPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="deathPoints" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
@@ -34,14 +34,14 @@
       <Column Name="vehicleKills" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="vehicleDeaths" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="playSeconds" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat1" Storage="_zonestat1" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat2" Storage="_zonestat2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat3" Storage="_zonestat3" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat4" Storage="_zonestat4" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat5" Storage="_zonestat5" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat6" Storage="_zonestat6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat7" Storage="_zonestat7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="zonestat8" Storage="_zonestat8" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat1" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat2" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat3" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat4" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat5" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat6" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat7" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="zonestat8" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="zonestat9" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="zonestat10" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="zonestat11" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
@@ -60,6 +60,7 @@
       <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="permission" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="email" Type="System.String" DbType="VarChar(256) NOT NULL" CanBeNull="false" />
+      <Column Name="IPAddress" Type="System.String" DbType="VarChar(15)" CanBeNull="false" />
       <Association Name="account_alias" Member="alias" ThisKey="id" OtherKey="account" Type="alias" />
     </Type>
   </Table>
@@ -81,6 +82,9 @@
       <Column Name="account" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="creation" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="IPAddress" Type="System.String" DbType="VarChar(15)" CanBeNull="true" UpdateCheck="Never" />
+      <Column Name="timeplayed" Type="System.Int64" DbType="bigint" CanBeNull="true" />
+      <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Association Name="alias_player" Member="players" ThisKey="id" OtherKey="alias" Type="player" />
       <Association Name="account_alias" Member="account1" ThisKey="account" OtherKey="id" Type="account" IsForeignKey="true" />
     </Type>

@@ -214,10 +214,9 @@ namespace InfServer.Game
         public void loadAdditionalAssets()
         {	//Load up our assets config file
             ConfigSetting cfg = new Xmlconfig("assets.xml", false).Settings;
-
             foreach (ConfigSetting asset in cfg.GetNamedChildren("asset"))
             {	//Insert it into the asset list
-                AssetFile assetf = AssetFileFactory.CreateFromFile<AssetFile>(asset.Value);
+                AssetFile assetf = AssetFileFactory.CreateFromGlobalFile<AssetFile>(asset.Value);
 
                 if (assetf != null)
                     addAssetData(assetf);

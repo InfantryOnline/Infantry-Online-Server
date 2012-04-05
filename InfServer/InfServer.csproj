@@ -183,6 +183,7 @@
     <Compile Include="Game\Assets\AssetManager.cs" />
     <Compile Include="Game\Commands\Chat\Commands.cs" />
     <Compile Include="Game\Commands\Game\Game.cs" />
+    <Compile Include="Game\Commands\Mod\Account.cs" />
     <Compile Include="Game\Commands\Mod\Basic.cs" />
     <Compile Include="Game\Commands\Mod\Bots.cs" />
     <Compile Include="Game\Commands\Mod\Vehicles.cs" />

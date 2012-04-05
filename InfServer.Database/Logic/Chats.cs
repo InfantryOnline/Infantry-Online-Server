@@ -17,7 +17,7 @@ namespace InfServer.Logic
             DBServer server = zone._server;
             Zone.Player player = server.getPlayer(pkt.from);
             char[] splitArr = { ',' };
-            string[] chats = pkt.chat.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            string[] chats = pkt.chat.ToLower().Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             //Hey, how'd you get here?!
             if (player == null)
@@ -36,10 +36,11 @@ namespace InfServer.Logic
 
             foreach (string chat in chats)
             {
-                Chat _chat = server.getChat(chat);
+                string name = chat.ToLower();
+                Chat _chat = server.getChat(name);
 
                 //Remove him from everything..
-                if (chat == "off")
+                if (name == "off")
                 {
                     foreach (var c in server._chats)
                     {
@@ -53,7 +54,7 @@ namespace InfServer.Logic
                 //New chat
                 if (!server._chats.ContainsValue(_chat))
                 {
-                    _chat = new Chat(server, chat);
+                    _chat = new Chat(server, name);
                 }
 
                 //Add him

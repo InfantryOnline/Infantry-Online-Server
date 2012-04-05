@@ -333,8 +333,15 @@ namespace InfServer.Network
 		{	//Log packets?
 			if (_bLogPackets)
 				Log.write(TLog.Normal, "--> Packet: {0}\r\n{1}", _logger, packet.Dump, packet.DataDump);
-
-			_sock.SendTo(data, ep);
+            try
+            {
+                _sock.SendTo(data, ep);
+            }
+            catch (Exception e)
+            {
+                //Log.write(TLog.Exception, e.Message);
+                Log.write(TLog.Exception, packet.DataDump);
+            }
 
 			//Add it to our sent amount
 			_totalBytesSent += packet._size;

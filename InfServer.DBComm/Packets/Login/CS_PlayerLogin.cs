@@ -19,6 +19,7 @@ namespace InfServer.Protocol
 
 		public string alias;				//The alias we wish to login as
 		public string ticketid;				//The ticketid associated with our account
+        public string ipaddress;
 
 		public uint UID1;					//The player's unique identifiers
 		public uint UID2;					//
@@ -78,6 +79,7 @@ namespace InfServer.Protocol
 
 			Write(alias, 0);
 			Write(ticketid, 0);
+            Write(ipaddress, 0);
 
 			Write(UID1);
 			Write(UID2);
@@ -97,6 +99,7 @@ namespace InfServer.Protocol
 
 			alias = ReadNullString();
 			ticketid = ReadNullString();
+            ipaddress = ReadNullString();
 
 			UID1 = _contentReader.ReadUInt32();
 			UID2 = _contentReader.ReadUInt32();

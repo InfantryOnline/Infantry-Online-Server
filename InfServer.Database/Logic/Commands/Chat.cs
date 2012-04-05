@@ -32,6 +32,53 @@ namespace InfServer.Logic
                 zone._server.sendMessage(zone, pkt.alias, "Sorry, we couldn't locate any players online by that alias");
         }
 
+        /// <summary>
+        /// Handles a query packet
+        /// </summary>
+        static public void Handle_CS_Query(CS_Query<Zone> pkt, Zone zone)
+        {
+            using (InfantryDataContext db = zone._server.getContext())
+            {
+
+                switch (pkt.queryType)
+                {
+                    case CS_Query<Zone>.QueryType.accountinfo:
+                        var from = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
+                        var aliases = db.alias.Where(a => a.account.Equals(from.account));
+                        zone._server.sendMessage(zone, pkt.alias, "!Account Info:");
+                        foreach (var alias in aliases)
+                        {
+
+                            int hrs = (int)alias.timeplayed / 60;
+                            int mins = (int)alias.timeplayed - (hrs * 60);
+
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("{0}({1}:{2}h)", alias.name, hrs, mins));
+                        }
+                        break;
+
+                    case CS_Query<Zone>.QueryType.whois:
+                        //Query for an IP?
+                        if (pkt.ipaddress.Length > 0)
+                            aliases = db.alias.Where(a => a.IPAddress.Equals(pkt.ipaddress));
+                        //Alias!
+                        else
+                        {
+                            Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.recipient));
+                            aliases = db.alias.Where(a => a.account.Equals(who.account));
+                        }
+                       
+
+                        //Loop through them and display
+                        foreach (var alias in aliases)
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("&{0} (IP={1}) - (Account={2})", alias.name, alias.IPAddress, alias.account));
+                        break;
+
+                    case CS_Query<Zone>.QueryType.aliastransfer:
+                        break;
+                }
+            }
+        }
+
 
         /// <summary>
         /// Handles a ?online packet.
@@ -55,6 +102,7 @@ namespace InfServer.Logic
         {
             CS_FindPlayer<Zone>.Handlers += Handle_CS_FindPlayer;
             CS_Online<Zone>.Handlers += Handle_CS_Online;
+            CS_Query<Zone>.Handlers += Handle_CS_Query;
         }
     }
 }
