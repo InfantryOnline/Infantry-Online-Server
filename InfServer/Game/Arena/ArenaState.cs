@@ -55,6 +55,17 @@ namespace InfServer.Game
 			}
 		}
 
+        /// <summary>
+        /// Returns a list of vehicles present in the arena
+        /// </summary>
+        public IEnumerable<Vehicle> Vehicles
+        {
+            get
+            {
+                return _vehicles;
+            }
+        }
+
 		/// <summary>
 		/// Returns a list of teams with active players
 		/// </summary>
@@ -122,8 +133,8 @@ namespace InfServer.Game
 			player._team = _teams["spec"];
 
 			//TEMP: Just to make stuff easier
-			/*if (player._alias == "aaerox" || player._alias == "HellSpawn")
-				player._permissionTemp = InfServer.Data.PlayerPermission.Sysop;*/
+			if (player._alias == "aaerox" || player._alias == "Hellspawn")
+				player._permissionTemp = InfServer.Data.PlayerPermission.Sysop;
 
 			//Find his natural vehicle id and prepare the class
 			Player.SkillItem baseSkill = player._skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);
