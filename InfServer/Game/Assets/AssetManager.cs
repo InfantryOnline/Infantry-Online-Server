@@ -146,6 +146,22 @@ namespace InfServer.Game
 			//Initialize our lio data
 			Lios = new Lio(this);
 
+            //Load news file
+            AssetFile nws = AssetFileFactory.CreateFromFile<AssetFile>(zoneConf.level.nwsFile);
+            if (nws != null)
+                addAssetData(nws);
+
+            //Load the helpMenu files
+            for (int i = zoneConf.helpMenu.links.GetLowerBound(0); i <= zoneConf.helpMenu.links.GetUpperBound(0); i++)
+            {
+                if (zoneConf.helpMenu.links[i].name==null)
+                    continue;
+                
+                AssetFile helpMenu = AssetFileFactory.CreateFromFile<AssetFile>(zoneConf.helpMenu.links[i].name);
+                if (helpMenu != null)
+                    addAssetData(helpMenu);
+            }
+
 			//Load everything else
 			loadAdditionalAssets();
 
@@ -192,21 +208,21 @@ namespace InfServer.Game
 			_bloList.Add(lower);
 		}
 
-		/// <summary>
-		/// Gets the ItemInfo of a particular ID
-		/// </summary>		
-		public void loadAdditionalAssets()
-		{	//Load up our assets config file
-			ConfigSetting cfg = new Xmlconfig("assets.xml", false).Settings;
+        /// <summary>
+        /// Loads additional assets specified by assets.xml
+        /// </summary>		
+        public void loadAdditionalAssets()
+        {	//Load up our assets config file
+            ConfigSetting cfg = new Xmlconfig("assets.xml", false).Settings;
 
-			foreach (ConfigSetting asset in cfg.GetNamedChildren("asset"))
-			{	//Insert it into the asset list
-				AssetFile assetf = AssetFileFactory.CreateFromFile<AssetFile>(asset.Value);
+            foreach (ConfigSetting asset in cfg.GetNamedChildren("asset"))
+            {	//Insert it into the asset list
+                AssetFile assetf = AssetFileFactory.CreateFromFile<AssetFile>(asset.Value);
 
-				if (assetf != null)
-					addAssetData(assetf);
-			}
-		}
+                if (assetf != null)
+                    addAssetData(assetf);
+            }
+        }
 
 		/// <summary>
 		/// Gets the ItemInfo of a particular ID

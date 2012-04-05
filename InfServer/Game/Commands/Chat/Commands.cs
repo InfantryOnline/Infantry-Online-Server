@@ -54,7 +54,7 @@ namespace InfServer.Game.Commands.Chat
         public static void buy(Player player, Player recipient, string payload, int bong)
         {
             //Can you buy from this location?
-            if (player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled == 1)
+            if ((player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled == 1) || (player._team.IsSpec && player._server._zoneConfig.arena.spectatorStore))
             {
                 char[] splitArr = { ',' };
                 string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);

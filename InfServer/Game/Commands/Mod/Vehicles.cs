@@ -57,7 +57,13 @@ namespace InfServer.Game.Commands.Mod
 				return;
 			}
 
-			//Attempt to create it
+            //You can't spawn dependent vehicles or the Infantry world implodes (literally)
+            if (vehicle.Type == Assets.VehInfo.Types.Dependent)
+            {
+                player.sendMessage(-1, "Can't spawn dependent vehicles.");
+                return;
+            }
+                //Attempt to create it
 			player._arena.newVehicle(
 				vehicle,
 				player._team, player,

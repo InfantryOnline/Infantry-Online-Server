@@ -178,18 +178,6 @@ namespace InfServer.Script.GameType_Dodgeball
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
 
-            //Spread players across the public teams
-            IEnumerable<Player> players = _arena.PlayersIngame.OrderBy(plyr => _rand.Next(0, 200));
-
-            List<Team> publicTeams = new List<Team>();
-
-            publicTeams.Add(_arena.getTeamByName("Cougars"));
-            publicTeams.Add(_arena.getTeamByName("Titans"));
-
-            int playerCount = _arena.PlayerCount;
-            int _teamCount = 2;
-            int playerPerTeam = (int)Math.Ceiling((float)playerCount / (float)_teamCount);
-
             inPlayers = new Dictionary<Player, bool>();
 
             foreach (Player p in _arena.PlayersIngame)
@@ -279,6 +267,38 @@ namespace InfServer.Script.GameType_Dodgeball
                 p.resetVars();
                 p.syncState();
             }
+
+            //Shuffle the players up randomly into a new list
+            var random = _rand;
+            Player[] shuffledPlayers = _arena.PlayersIngame.ToArray(); //Arrays ftw
+            for (int i = shuffledPlayers.Length - 1; i >= 0; i--)
+            {
+                int swap = random.Next(i + 1);
+                Player tmp = shuffledPlayers[i];
+                shuffledPlayers[i] = shuffledPlayers[swap];
+                shuffledPlayers[swap] = tmp;
+            }
+
+            //Assign the new list of players to teams
+            int j = 1;
+            foreach (Player p in shuffledPlayers)
+            {
+                if (j <= Math.Ceiling((double)shuffledPlayers.Length / 2)) //Team 1 always get the extra player :)
+                {
+                    if (p._team != team1) //Only change his team if he's not already on the team d00d
+                        team1.addPlayer(p);
+                }
+                else
+                {
+                    if(p._team != team2)
+                        team2.addPlayer(p);
+                }
+                j++;
+
+            }
+
+            //Notify players of the scramble
+            _arena.sendArenaMessage("Teams have been scrambled!");
 
 			return true;
 		}
