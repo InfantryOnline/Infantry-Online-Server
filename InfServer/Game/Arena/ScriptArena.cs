@@ -840,11 +840,12 @@ namespace InfServer.Game
                 return;
             }
 
-
-
             //Fall out of our vehicle and die!
             if (from._occupiedVehicle != null)
+            {
+                from._occupiedVehicle._tickDead = Environment.TickCount;
                 from._occupiedVehicle.playerLeave(true);
+            }
 
             //Reset some life-specific stats
             from.Bounty = 0;
@@ -1251,10 +1252,29 @@ namespace InfServer.Game
             {              
                 VehInfo.Computer newComp = vehinfo as VehInfo.Computer;
                 int sameType = 0;
+                int densityAmount = 0;
                 int totalAmount = 0;
                 
                 if (newComp != null)
-                {   //Get a list of vehicles in the computer's density radius                 
+                {   //Get a list of the vehicles in the arena
+                    IEnumerable<Vehicle> vehs = player._arena.Vehicles;
+
+                    if (vehs != null)
+                    {
+                        foreach (Vehicle veh in vehs)
+                        {
+                            Computer comp = veh as Computer;
+                            if (comp != null)
+                            {   //If the computer is on the same team as the one the player is trying to add increment the counter
+                                if (comp._team._name == player._team._name)
+                                {
+                                    totalAmount++;                                                                       
+                                }
+                            }
+                        }
+                    }
+
+                    //Get a list of vehicles in the computer's density radius                 
                     List<Vehicle> vehicles = player._arena.getVehiclesInRange(player._state.positionX, player._state.positionY, newComp.DensityRadius);
 
                     if (vehicles != null)
@@ -1264,9 +1284,9 @@ namespace InfServer.Game
                             Computer comp = veh as Computer;
                             if (comp != null)
                             {   //If the computer is on the same team as the one the player is trying to add increment the counter
-                                if (comp._team._name == player._team._name)
+                                if (comp._team._name == player._team._name)  
                                 {
-                                    totalAmount++;
+                                    densityAmount++;                                
                                     if (comp._type.Name == newComp.Name)
                                     {   //If the computer is of the same type and on the same team as the one the player is trying to add increment other counter
                                         sameType++;
@@ -1277,8 +1297,13 @@ namespace InfServer.Game
                     }
                 }
                
-                if (totalAmount >= newComp.FrequencyDensityMaxActive)
-                {   //Exceeds the amount within the density radius for overall number
+                if (totalAmount >= newComp.FrequencyMaxActive)
+                {   //Exceeds the total amount of computer vehicles for the team
+                    player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles");
+                    return;
+                }
+                if (densityAmount >= newComp.FrequencyDensityMaxActive)
+                {   //Exceeds the total amount of computer vehicles for the team in the area
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area");
                     return;
                 }
@@ -1287,6 +1312,7 @@ namespace InfServer.Game
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area");
                     return;
                 }
+                
             }            
 
 			//Expensive stuff, vehicle creation

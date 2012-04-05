@@ -444,13 +444,13 @@ namespace InfServer.Game
 
 								//Check for expiration timers
 								if (carInfo.RemoveGlobalTimer != 0 && vehicle._tickCreation != 0 &&
-									now - vehicle._tickCreation > (carInfo.RemoveGlobalTimer * 1000))
+									(now - vehicle._tickCreation) > (carInfo.RemoveGlobalTimer * 1000))
 									vehicle.destroy(true);
 								else if (carInfo.RemoveDeadTimer != 0 && vehicle._tickDead != 0 &&
-									now - vehicle._tickDead > (carInfo.RemoveDeadTimer * 1000))
+									(now - vehicle._tickDead) > (carInfo.RemoveDeadTimer * 1000))
 									vehicle.destroy(true);
 								else if (carInfo.RemoveUnoccupiedTimer != 0 && vehicle._tickUnoccupied != 0 &&
-									now - vehicle._tickUnoccupied > (carInfo.RemoveUnoccupiedTimer * 1000))
+									(now - vehicle._tickUnoccupied) > (carInfo.RemoveUnoccupiedTimer * 1000))
 									vehicle.destroy(true);
 							}
 							break;

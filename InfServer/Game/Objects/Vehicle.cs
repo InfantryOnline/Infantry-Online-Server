@@ -295,11 +295,14 @@ namespace InfServer.Game
 			//We're no longer inhabited
 			_inhabitant._occupiedVehicle = null;
 			_inhabitant = null;
+            _tickUnoccupied = Environment.TickCount;
 
 			testForUnoccupied();
 
 			Helpers.Object_VehicleBind(_arena.Players, this, null);
 		}
+
+
 
 		/// <summary>
 		/// Handles damage from explosions triggered nearby
