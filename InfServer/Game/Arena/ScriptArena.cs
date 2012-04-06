@@ -1051,14 +1051,14 @@ namespace InfServer.Game
 		public override void handlePlayerWarp(Player player, ItemInfo.WarpItem item, ushort targetPlayerID, short posX, short posY)
 		{	//Is this warp being prevented by a bot?
 			Bot antiWarpBot = checkBotAntiwarp(player);
-			if (antiWarpBot != null)
+			if (antiWarpBot != null && antiWarpBot._team != player._team)
 			{
 				player.sendMessage(-1, "You are being antiwarped by a " + antiWarpBot._type.Name);
 				return;
 			}
            
             Computer antiWarpVeh = checkVehAntiWarp(player);
-            if (antiWarpVeh != null)
+            if (antiWarpVeh != null && antiWarpVeh._team != player._team)
             {
                 player.sendMessage(-1, "You are being antiwarped by a " + antiWarpVeh._type.Name);
                 return;
