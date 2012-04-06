@@ -1297,17 +1297,17 @@ namespace InfServer.Game
                     }
                 }
                
-                if (totalAmount >= newComp.FrequencyMaxActive)
+                if (totalAmount >= newComp.FrequencyMaxActive && newComp.FrequencyMaxActive != -1)
                 {   //Exceeds the total amount of computer vehicles for the team
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles");
                     return;
                 }
-                if (densityAmount >= newComp.FrequencyDensityMaxActive)
+                if (densityAmount >= newComp.FrequencyDensityMaxActive && newComp.FrequencyDensityMaxActive != -1)
                 {   //Exceeds the total amount of computer vehicles for the team in the area
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area");
                     return;
                 }
-                if (sameType >= newComp.FrequencyDensityMaxType)
+                if (sameType >= newComp.FrequencyDensityMaxType && newComp.FrequencyDensityMaxType != -1)
                 {   //Exceeds the amount within the density radius for the specific type
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area");
                     return;
