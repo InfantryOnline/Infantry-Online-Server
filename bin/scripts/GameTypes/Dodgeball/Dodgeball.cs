@@ -268,37 +268,7 @@ namespace InfServer.Script.GameType_Dodgeball
                 p.syncState();
             }
 
-            //Shuffle the players up randomly into a new list
-            var random = _rand;
-            Player[] shuffledPlayers = _arena.PlayersIngame.ToArray(); //Arrays ftw
-            for (int i = shuffledPlayers.Length - 1; i >= 0; i--)
-            {
-                int swap = random.Next(i + 1);
-                Player tmp = shuffledPlayers[i];
-                shuffledPlayers[i] = shuffledPlayers[swap];
-                shuffledPlayers[swap] = tmp;
-            }
-
-            //Assign the new list of players to teams
-            int j = 1;
-            foreach (Player p in shuffledPlayers)
-            {
-                if (j <= Math.Ceiling((double)shuffledPlayers.Length / 2)) //Team 1 always get the extra player :)
-                {
-                    if (p._team != team1) //Only change his team if he's not already on the team d00d
-                        team1.addPlayer(p);
-                }
-                else
-                {
-                    if(p._team != team2)
-                        team2.addPlayer(p);
-                }
-                j++;
-
-            }
-
-            //Notify players of the scramble
-            _arena.sendArenaMessage("Teams have been scrambled!");
+            ScriptHelpers.scrambleTeams(_arena, true);
 
 			return true;
 		}

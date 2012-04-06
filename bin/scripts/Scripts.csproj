@@ -172,6 +172,7 @@
     <Compile Include="GameTypes\ZombieZone\ZombieTransitions.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieZone.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieZone.Stats.cs" />
+    <Compile Include="Helpers\Functions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
