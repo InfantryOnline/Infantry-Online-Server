@@ -95,6 +95,13 @@ namespace InfServer.Game
 
 				_assets.bUseBlobs = _config["server/loadBlobs"].boolValue;
 
+                //Grab the latest global news if specified
+                if (_config["server/updateGlobalNws"].Value.Length > 0)
+                {
+                    Log.write(TLog.Normal, String.Format("Grabbing latest global news from {0}...", _config["server/updateGlobalNws"].Value));
+                    _assets.grabGlobalNews(_config["server/updateGlobalNws"].Value, "..\\Global\\global.nws");
+                }
+
 				if (!_assets.load(_zoneConfig, _config["server/zoneConfig"].Value))
 				{	//We're unable to continue
 					Log.write(TLog.Error, "Files missing, unable to continue.");

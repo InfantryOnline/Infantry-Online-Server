@@ -206,6 +206,23 @@ namespace InfServer.Game
 		}
 
         /// <summary>
+        /// Downloads latest global news from a specified url
+        /// </summary>	
+        public void grabGlobalNews(string fileUrl, string fileLocation)
+        {
+            try
+            {
+                System.Net.WebClient dlclient = new System.Net.WebClient();
+                dlclient.DownloadFile(fileUrl,fileLocation);
+                dlclient.Dispose();
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Error, String.Format("Error grabGlobalNews: {0}", e.ToString()));
+            };
+        }
+
+        /// <summary>
         /// Loads additional assets specified by assets.xml
         /// </summary>		
         public void loadAdditionalAssets()
