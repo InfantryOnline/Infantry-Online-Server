@@ -214,8 +214,12 @@ namespace InfServer.Game
 
 			// TODO: do not fire at people out of turret angle limits
 
-			// TODO: do not fire at people out of LOS (complicated calculation)
-            if (IsPlayerOccluded(p)) return false;
+            //Check if player is within turrets vision
+            if (_type.ObeyLos != 0)
+            {
+                if (IsPlayerOccluded(p))
+                    return false;
+            }
 
 			return true;
 		}
@@ -226,22 +230,26 @@ namespace InfServer.Game
         /// <param name="p">player to check</param>
         /// <returns>true if player cannot be seen</returns>
 		protected Boolean IsPlayerOccluded(Player p)
-        {
-			return !Helpers.calcBresenhemsPredicate(p._arena, _state.positionX, _state.positionY, p._state.positionX, p._state.positionY,
-				delegate(LvlInfo.Tile t)
-				{
-					short physLow = AssetManager.Manager.Level.PhysicsLow[t.Physics];
-					short physHigh = AssetManager.Manager.Level.PhysicsHigh[t.Physics];
+        {   //Pretty ugly way to get it done but it works perfectly. Vision tiles are all calculated seemingly fine. If you have a better way of doing it, by all means. - Super-man
+            int tileSize = 8; //8 is nonexistant.
+            int tileDistance = 0;
+            List<LvlInfo.Tile> tiles = Helpers.calcBresenhems(p._arena, _state.positionX, _state.positionY, p._state.positionX, p._state.positionY);
+            for (int i = 0; i <= tiles.Count - 1; i++)
+            {
+                if (tiles[i].Vision > 0)
+                {
+                    if (tiles[i].Vision <= tileSize)
+                    {
+                        //Take note of this vision tile
+                        tileSize = tiles[i].Vision;
+                        tileDistance = i;
+                    }
+                }
+            }
+            if (tileSize == 8 || tiles.Count < tileSize + tileDistance)
+                return false;
 
-					if (physLow == 0 && physHigh == 0)
-						return true;
-                    else
-                        return false;
-					//Are we within the physics?
-                    
-					//return (_type.FireHeight >= physLow && _type.FireHeight <= physHigh);	
-				}
-			);
+            return true;
         }
 
         /// <summary>
