@@ -222,6 +222,10 @@ namespace InfServer.Game
 				if (!candidate._activeEquip.Any(util => util.antiWarpDistance != -1))
 					continue;
 
+                //Ignore your own team
+                if (candidate._team._name == player._team._name)
+                    continue;
+
 				//Is it within the distance?
 				int dist = (int)(player._state.position().Distance(candidate._state.position()) * 100);
 
