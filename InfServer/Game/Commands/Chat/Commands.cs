@@ -107,12 +107,21 @@ namespace InfServer.Game.Commands.Chat
                         }
                     }
 
+                    if (buyAmount < 0)
+                    {
+                        player.sendMessage(-1, "Cannot buy a negative amount. Please use ?sell");
+                        continue;
+                    }
+
                     //Get the player's related inventory item
                     Player.InventoryItem ii = player.getInventory(item);
 
                     //Buying. Are we able to?
                     if (item.buyPrice == 0)
-                        return;
+                    {
+                        player.sendMessage(-1, String.Format("{0} cannot be bought.", item.name));
+                        continue;
+                    }
 
                    //Check limits
                     if (item.maxAllowed != 0)
@@ -127,6 +136,41 @@ namespace InfServer.Game.Commands.Chat
                         }
                     }
 
+                    //Held category checks (mirrored in Player#inventoryModify)
+                    if (ii == null && item.heldCategoryType > 0)
+                    {
+                        int alreadyHolding = player._inventory
+                            .Where(it => it.Value.item.heldCategoryType == item.heldCategoryType)
+                            .Sum(it => 1);
+                        //Veh editor says a held category is "maximum number of unique types of items of this category type"
+                        //Vehicle hold categories take precedence over the cfg values
+                        if (player.ActiveVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
+                        {
+                            if (1 + alreadyHolding > player.ActiveVehicle._type.HoldItemLimits[item.heldCategoryType])
+                            {
+                                player.sendMessage(-1, "You are already carrying the maximum amount of items in this category.");
+                                continue;
+                            }
+                        }
+                        else if (player.ActiveVehicle != player._baseVehicle &&
+                            player._baseVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
+                        {
+                            if (1 + alreadyHolding > player._baseVehicle._type.HoldItemLimits[item.heldCategoryType])
+                            {
+                                player.sendMessage(-1, "You are already carrying the maximum amount of items in this category.");
+                                continue;
+                            }
+                        }
+                        else if (player._server._zoneConfig.heldCategory.limit[item.heldCategoryType] != -1)
+                        {
+                            if (1 + alreadyHolding > player._server._zoneConfig.heldCategory.limit[item.heldCategoryType])
+                            {
+                                player.sendMessage(-1, "You are already carrying the maximum amount of items in this category.");
+                                continue;
+                            }
+                        }
+                    }
+
                     //Make sure he has enough cash first..
                     int buyPrice = item.buyPrice * buyAmount;
                     if (buyPrice > player.Cash)
@@ -138,14 +182,7 @@ namespace InfServer.Game.Commands.Chat
                     {
                         player.Cash -= buyPrice;
                         player.inventoryModify(item, buyAmount);
-                        if (buyAmount < 0)
-                        {
-                            player.sendMessage(0, String.Format("Items Sold: {0} {1} (value={2}) (cash-left={3})", -buyAmount, item.name, -buyPrice, player.Cash));
-                        }
-                        else
-                        {
-                            player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash));
-                        }
+                        player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash));
                     }
                 }
             }
@@ -155,6 +192,91 @@ namespace InfServer.Game.Commands.Chat
             }
         }
 
+        /// <summary>
+        /// Purchases items in the form item1:x1, item2:x2 and so on
+        /// </summary>
+        public static void sell(Player player, Player recipient, string payload, int bong)
+        {
+            //Can you buy from this location?
+            if ((player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled == 1) || (player._team.IsSpec && player._server._zoneConfig.arena.spectatorStore))
+            {
+                char[] splitArr = { ',' };
+                string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
+                // parse the buy string
+                foreach (string itemAmount in items)
+                {
+
+                    string[] split = itemAmount.Trim().Split(':');
+                    ItemInfo item = player._server._assets.getItemByName(split[0].Trim());
+
+                    // Did we find the item?
+                    if (split.Count() == 0 || item == null)
+                    {
+                        player.sendMessage(-1, "Can't find item for " + itemAmount);
+                        continue;
+                    }
+
+                    //Get the player's related inventory item
+                    Player.InventoryItem ii = player.getInventory(item);
+                    if (ii == null)
+                    {
+                        player.sendMessage(-1, String.Format("You have no {0} to sell", item.name));
+                        continue;
+                    }
+
+                    // Do we have the amount?
+                    int sellAmount = 1;
+                    if (split.Length > 1)
+                    {
+                        string limitAmount = null;
+                        try
+                        {
+                            limitAmount = split[1].Trim();
+                            if (limitAmount.StartsWith("#"))
+                            {
+                                sellAmount = Convert.ToInt32(limitAmount.Substring(1));
+                            }
+                            else
+                            {
+                                // Buying incremental amount
+                                sellAmount = Convert.ToInt32(limitAmount);
+                            }
+                        }
+                        catch (FormatException)
+                        {
+                            player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
+                            continue;
+                        }
+                    }
+                    if (sellAmount < 0)
+                    {
+                        player.sendMessage(-1, "Cannot sell a negative amount, use ?buy");
+                        continue;
+                    }
+                    if (sellAmount > ii.quantity)
+                        sellAmount = ii.quantity;
+
+                    //Buying. Are we able to?
+                    if (item.sellPrice == -1)
+                    {
+                        player.sendMessage(-1, String.Format("{0} cannot be sold", item.name));
+                        continue;
+                    }
+
+                    //Check limits (we dont have to)
+
+                    int sellPrice = item.sellPrice * sellAmount;
+                    player.Cash += sellPrice;
+                    player.inventoryModify(item, -sellAmount);
+                    player.sendMessage(0, String.Format("Items Sold: {0} {1} (value={2}) (cash-left={3})", sellAmount, item.name, sellPrice, player.Cash));
+                }
+            }
+            else
+            {
+                player.sendMessage(-1, "You cannot buy from this location");
+            }
+        }
 
         public static void chat(Player player, Player recipient, string payload, int bong)
         {
@@ -399,6 +521,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(buy, "buy",
                 "Buys items",
                 "?buy item1:amount1,item2:#absoluteAmount2");
+
+            yield return new HandlerDescriptor(sell, "sell",
+                "Sells items",
+                "?sell item1:amount1,item2:amount2");
 
             yield return new HandlerDescriptor(drop, "drop",
                "Drops items",
