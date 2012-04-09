@@ -1333,6 +1333,7 @@ namespace InfServer.Game
                 if (totalType >= newComp.FrequencyMaxType && newComp.FrequencyMaxType != -1)
                 {   //Exceeds the total amount of computer vehicles of this type for the team
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type");
+                    return;
                 }
                 if (densityAmount >= newComp.FrequencyDensityMaxActive && newComp.FrequencyDensityMaxActive != -1)
                 {   //Exceeds the total amount of computer vehicles for the team in the area
