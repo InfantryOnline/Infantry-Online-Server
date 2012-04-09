@@ -1057,6 +1057,7 @@ namespace InfServer.Game
 				return;
 			}
            
+            //By a computer vehicle?
             Computer antiWarpVeh = checkVehAntiWarp(player);
             if (antiWarpVeh != null)
             {
@@ -1072,10 +1073,26 @@ namespace InfServer.Game
                 return;
             }
 
+            List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
+
+            player.sendMessage(0, "flags: " + carried.Count());
+            foreach (FlagState carry in carried)
+            {   //If the terrain number is 0-15
+
+                int terrainNum = player._arena.getTerrain(posX, posY).id;
+                player.sendMessage(0, "terrainNum: " + terrainNum);
+                if (terrainNum >= 0 && terrainNum <= 15)
+                {   //Check the FlagDroppableTerrains for that specific terrain id
+                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
+                        flagResetPlayer(player);
+                }
+            }
+
 			//What sort of warp item are we dealing with?
 			switch (item.warpMode)
 			{
 				case ItemInfo.WarpItem.WarpMode.Lio:
+                    player.sendMessage(0, "Lio");
 					//Are we warpable?
 					if (!player.ActiveVehicle._type.IsWarpable)
 						return;
@@ -1099,6 +1116,7 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.WarpTeam:
 					{	//Are we warpable?
+                        player.sendMessage(0,"WarpTeam");
 						if (!player.ActiveVehicle._type.IsWarpable)
 							return;
 
@@ -1134,6 +1152,7 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.WarpAnyone:
 					{	//Are we warpable?
+                        player.sendMessage(0, "WarpAnyone");
 						if (!player.ActiveVehicle._type.IsWarpable)
 							return;
 
@@ -1162,6 +1181,7 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.SummonTeam:
 					{	//Find the player in question
+                        player.sendMessage(0, "SummonTeam");
 						Player target = _playersIngame.getObjByID(targetPlayerID);
 						if (target == null)
 							return;
@@ -1193,6 +1213,7 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.SummonAnyone:
 					{	//Find the player in question
+                        player.sendMessage(0, "SummonAnyone");
 						Player target = _playersIngame.getObjByID(targetPlayerID);
 						if (target == null)
 							return;
@@ -1220,8 +1241,10 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.Portal:
 					{	//Just forward it to the script for now
-						if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
-							return;
+                        player.sendMessage(0, "Portal");
+                        if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))                                                  
+                            return;
+                        
 					}
 					break;
 			}
@@ -1251,9 +1274,10 @@ namespace InfServer.Game
             if (vehinfo.Type == VehInfo.Types.Computer)
             {              
                 VehInfo.Computer newComp = vehinfo as VehInfo.Computer;
-                int sameType = 0;
+                int densityType = 0;
                 int densityAmount = 0;
                 int totalAmount = 0;
+                int totalType = 0;
                 
                 if (newComp != null)
                 {   //Get a list of the vehicles in the arena
@@ -1267,8 +1291,12 @@ namespace InfServer.Game
                             if (comp != null)
                             {   //If the computer is on the same team as the one the player is trying to add increment the counter
                                 if (comp._team._name == player._team._name)
-                                {
-                                    totalAmount++;                                                                       
+                                {   
+                                    totalAmount++;
+                                    if (comp._type.Name == newComp.Name)
+                                    {
+                                        totalType++;
+                                    }                             
                                 }
                             }
                         }
@@ -1289,7 +1317,7 @@ namespace InfServer.Game
                                     densityAmount++;                                
                                     if (comp._type.Name == newComp.Name)
                                     {   //If the computer is of the same type and on the same team as the one the player is trying to add increment other counter
-                                        sameType++;
+                                        densityType++;
                                     }
                                 }
                             }
@@ -1302,17 +1330,20 @@ namespace InfServer.Game
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles");
                     return;
                 }
+                if (totalType >= newComp.FrequencyMaxType && newComp.FrequencyMaxType != -1)
+                {   //Exceeds the total amount of computer vehicles of this type for the team
+                    player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type");
+                }
                 if (densityAmount >= newComp.FrequencyDensityMaxActive && newComp.FrequencyDensityMaxActive != -1)
                 {   //Exceeds the total amount of computer vehicles for the team in the area
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area");
                     return;
                 }
-                if (sameType >= newComp.FrequencyDensityMaxType && newComp.FrequencyDensityMaxType != -1)
+                if (densityType >= newComp.FrequencyDensityMaxType && newComp.FrequencyDensityMaxType != -1)
                 {   //Exceeds the amount within the density radius for the specific type
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area");
                     return;
-                }
-                
+                }        
             }            
 
 			//Expensive stuff, vehicle creation
