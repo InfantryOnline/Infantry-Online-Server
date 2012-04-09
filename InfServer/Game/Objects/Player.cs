@@ -656,6 +656,32 @@ namespace InfServer.Game
 				return true;
 			}
 
+            //Held category checks
+            if (adjust > 0 && item.heldCategoryType > 0)
+            {
+                int alreadyHolding = _inventory
+                    .Where(it => it.Value.item.heldCategoryType == item.heldCategoryType)
+                    .Sum(it => 1); 
+                //Veh editor says a held category is "maximum number of unique types of items of this category type"
+                //Vehicle hold categories take precedence over the cfg values
+                if (ActiveVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
+                {
+                    if (1 + alreadyHolding > ActiveVehicle._type.HoldItemLimits[item.heldCategoryType])
+                        return false;
+                }
+                else if (ActiveVehicle != _baseVehicle &&
+                    _baseVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
+                {
+                    if (1 + alreadyHolding > _baseVehicle._type.HoldItemLimits[item.heldCategoryType])
+                        return false;
+                }
+                else if (_server._zoneConfig.heldCategory.limit[item.heldCategoryType] != -1)
+                {
+                    if (1 + alreadyHolding > _server._zoneConfig.heldCategory.limit[item.heldCategoryType])
+                        return false;
+                }
+            }
+
 			//Do we already have such an item?
 			InventoryItem ii;
 			_inventory.TryGetValue(item.id, out ii);
@@ -1058,6 +1084,8 @@ namespace InfServer.Game
 
 			//Make sure the arena knows we've entered
 			_arena.playerEnter(this);
+
+            Bounty = _server._zoneConfig.bounty.start;
 
 			return true;
 		}

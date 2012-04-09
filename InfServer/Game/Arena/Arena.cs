@@ -42,6 +42,7 @@ namespace InfServer.Game
         public int _tickGameStarted;					//The tick at which our game started
 		public int _tickGameEnded;						//The tick at which our game ended
         public BreakdownSettings _breakdownSettings;
+        private int _bountyTick;                        //Last time AutoBounty ticked
 
 		public int _levelWidth;
 		public int _levelHeight;
@@ -399,6 +400,11 @@ namespace InfServer.Game
 				if (bMinor)
 					_tickLastMinorPoll = now;
 
+				CfgInfo.Terrain t;
+				bool tickTerrainBty = now - _bountyTick > 30000; //run every 30 seconds
+				if (tickTerrainBty)
+					_bountyTick = now;
+
 				foreach (Player player in PlayersIngame)
 				{	//Is he awaiting a respawn?
 					if (player._deathTime != 0 && now - player._deathTime > _server._zoneConfig.timing.enterDelay * 10)
@@ -410,6 +416,15 @@ namespace InfServer.Game
 					//Update play seconds
 					if (bMinor && _bGameRunning)
 						player.PlaySeconds++;
+
+					if (tickTerrainBty)
+					{
+						t = getTerrain(player._state.positionX, player._state.positionY);
+						if (t.bountyAutoRate < 1 || player._bounty >= t.bountyAutoMax)
+							continue;
+						// bountyAutoRate: 33 = 33% chance to give a bty.. 400 = give 4 bty
+						player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
+					}
 				}
 
 				if (bMinor)

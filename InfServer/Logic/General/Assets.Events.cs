@@ -229,22 +229,37 @@ namespace InfServer.Logic
 					//TODO: Figure out how to implement this
 					break;
 
-                //goes in Player.executeAction()
-                //indentation is probably fucked up :X
+                //Wipes all player attributes
+                case "wipeattr":
+                    if (param == "")
+                    {   //Wipe all attributes
+                        List<Player.SkillItem> removes = player._skills.Values.Where(skl => skl.skill.SkillId < 0).ToList();
+                        foreach (Player.SkillItem skl in removes)
+                            player._skills.Remove(skl.skill.SkillId);
+                        bChangedState = true;
+                    }
+                    else
+                        Log.write(TLog.Warning, "Use wipeskill=attribute to wipe specific attributes");
+                    break;
+
                 //Wipes all player skills
                 case "wipeskill":
                     if (param != "")
                     { //Param is the name of the skill to remove OR the id
-                        KeyValuePair<int, Player.SkillItem> i = player._skills.FirstOrDefault(sk => (sk.Value.skill.Name == param || sk.Key == Convert.ToInt32(param)));
-                        if (i.Key != 0)
+                        int i;
+                        Int32.TryParse(param, out i);
+                        KeyValuePair<int, Player.SkillItem> skill = player._skills.FirstOrDefault(sk => i == sk.Key || param == sk.Value.skill.Name.ToLower());
+                        if (skill.Key != 0)
                         {
-                            player._skills.Remove(i.Key);
+                            player._skills.Remove(skill.Key);
                             bChangedState = true;
                         }
                     }
                     else
                     { //No parameters, erase all skills
-                        player._skills.Clear();
+                        List<Player.SkillItem> removes = player._skills.Values.Where(sk => sk.skill.SkillId > 0).ToList();
+                        foreach (Player.SkillItem sk in removes)
+                            player._skills.Remove(sk.skill.SkillId);
                         bChangedState = true;
                     }
 
