@@ -847,9 +847,6 @@ namespace InfServer.Game
                 from._occupiedVehicle.playerLeave(true);
             }
 
-            //Reset some life-specific stats
-            from.Bounty = 0;
-
             //Mark him as dead!
             from._bEnemyDeath = true;
             from._deathTime = Environment.TickCount;
