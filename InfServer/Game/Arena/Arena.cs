@@ -238,6 +238,15 @@ namespace InfServer.Game
 			//Find the associated terrain type
 			return _server._zoneConfig.terrains[_server._assets.Level.TerrainLookup[tile.TerrainLookup]];
 		}
+
+        /// <summary>
+        /// Gets the terrain ID at a specified location
+        /// </summary>
+        /// <remarks>The position given should be in map ticks.</remarks>
+        public int getTerrainID(int x, int y)
+        {
+            return _server._assets.Level.TerrainLookup[_tiles[((y/16) * _levelWidth) + (x/16)].TerrainLookup];
+        }
 		#endregion Accessors
 
 		///////////////////////////////////////////////////

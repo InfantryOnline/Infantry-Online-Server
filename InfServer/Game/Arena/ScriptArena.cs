@@ -1079,7 +1079,7 @@ namespace InfServer.Game
             foreach (FlagState carry in carried)
             {   //If the terrain number is 0-15
 
-                int terrainNum = player._arena.getTerrain(posX, posY).id;
+                int terrainNum = player._arena.getTerrainID(posX, posY);
                 player.sendMessage(0, "terrainNum: " + terrainNum);
                 if (terrainNum >= 0 && terrainNum <= 15)
                 {   //Check the FlagDroppableTerrains for that specific terrain id
