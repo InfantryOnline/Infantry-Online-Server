@@ -38,7 +38,7 @@ namespace InfClient
             client = new InfClient();
 
             //Connects to Cow Cloning Facility for now.
-            IPEndPoint serverLoc = new IPEndPoint(IPAddress.Parse("64.34.162.172"), 9002);
+            IPEndPoint serverLoc = new IPEndPoint(IPAddress.Parse("64.34.162.172"), 1800);
 
             //Initialize everything..
             if (!client.init())
@@ -53,7 +53,8 @@ namespace InfClient
 
             while (true)
             {
-                Console.Read();
+                string line = Console.ReadLine();
+                InfClient.SendChat(line);
             }
         }
     }

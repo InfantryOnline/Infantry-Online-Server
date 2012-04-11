@@ -157,14 +157,6 @@ namespace InfClient
             //So what was the typeid?
             switch (typeID)
             {
-                case SC_Initial.TypeID:
-                    packet = new SC_Initial(typeID, buffer, offset, size);
-                    break;
-
-                case SC_State.TypeID:
-                    packet = new SC_State(typeID, buffer, offset, size);
-                    break;
-
                 case SC_Login.TypeID:
                     packet = new SC_Login(typeID, buffer, offset, size);
                     break;

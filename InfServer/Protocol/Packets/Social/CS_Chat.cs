@@ -38,6 +38,11 @@ namespace InfServer.Protocol
 		{
 		}
 
+        public CS_Chat()
+            : base(TypeID)
+        {
+        }
+
 		/// <summary>
 		/// Routes a new packet to various relevant handlers
 		/// </summary>
@@ -46,6 +51,53 @@ namespace InfServer.Protocol
 			if (Handlers != null)
 				Handlers(this, ((Client<Player>)_client)._obj);
 		}
+
+        public override void Serialize()
+        {
+            //Type ID
+            Write((byte)TypeID);
+            Write((byte)chatType);
+            Write((byte)bong);
+
+            //What sort of chat is this?
+            switch (chatType)
+            {
+                case Helpers.Chat_Type.Normal:
+                    Write(recipient, 0);
+                    Write(message, 0);
+                    break;
+
+                case Helpers.Chat_Type.Whisper:
+                    Write(recipient, 0);
+                    Write(message, 0);
+                    break;
+
+                case Helpers.Chat_Type.Team:
+                    Write(recipient, 0);
+                    Write(message, 0);
+                    break;
+
+                case Helpers.Chat_Type.EnemyTeam:
+                    Write(recipient, 0);
+                    Write(message, 0);
+                    break;
+
+                case Helpers.Chat_Type.Arena:
+                    Write(recipient, 0);
+                    Write(message, 0);
+                    break;
+
+                case Helpers.Chat_Type.Squad:
+                    Write(recipient, 0);
+                    Write(message, 0);
+                    break;
+
+                case Helpers.Chat_Type.PrivateChat:
+                    Write(recipient, 0);
+                    Write(message, 0);
+                    break;
+            }
+        }
 
 		/// <summary>
 		/// Deserializes the data present in the packet contents into data fields in the class.

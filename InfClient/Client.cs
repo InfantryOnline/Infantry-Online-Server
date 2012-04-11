@@ -34,6 +34,7 @@ namespace InfClient
 
             _logger = Log.createClient("Client");
             _conn._logger = _logger;
+            Client.connectionTimeout = 2000;
         }
 
         //Place holder atm.
@@ -81,6 +82,17 @@ namespace InfClient
         public void destroy()
         {
 
+        }
+
+        static public void SendChat(string chat)
+        {
+            CS_Chat c = new CS_Chat();
+            c.chatType = Helpers.Chat_Type.Normal;
+            c.bong = 0;
+            c.message = chat;
+            c.recipient = "";
+
+            _conn._client.send(c);
         }
     }
 }
