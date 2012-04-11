@@ -386,6 +386,23 @@ namespace InfServer.Game
 				return;
 			}
 
+            /* Tried to remove flags when player uses a blink to dropship 
+             * ineffective due to returning to the blink gets checked neither here nor handlePlayerWarp
+            List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == from).ToList();
+
+            foreach (FlagState carry in carried)
+            {   //If the terrain number is 0-15
+
+                int terrainNum = from._arena.getTerrainID(from._state.positionX, from._state.positionY);
+                if (terrainNum >= 0 && terrainNum <= 15)
+                {   //Check the FlagDroppableTerrains for that specific terrain id
+                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
+                        flagResetPlayer(from);
+                }
+            }
+             */
+            
+
 			//Forward to our script
 			if (!exists("Player.Portal") || (bool)callsync("Player.Portal", false, from, portal))
 			{	//Do some warpage
@@ -1070,26 +1087,10 @@ namespace InfServer.Game
                 return;
             }
 
-            List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
-
-            player.sendMessage(0, "flags: " + carried.Count());
-            foreach (FlagState carry in carried)
-            {   //If the terrain number is 0-15
-
-                int terrainNum = player._arena.getTerrainID(posX, posY);
-                player.sendMessage(0, "terrainNum: " + terrainNum);
-                if (terrainNum >= 0 && terrainNum <= 15)
-                {   //Check the FlagDroppableTerrains for that specific terrain id
-                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
-                        flagResetPlayer(player);
-                }
-            }
-
 			//What sort of warp item are we dealing with?
 			switch (item.warpMode)
 			{
 				case ItemInfo.WarpItem.WarpMode.Lio:
-                    player.sendMessage(0, "Lio");
 					//Are we warpable?
 					if (!player.ActiveVehicle._type.IsWarpable)
 						return;
@@ -1113,7 +1114,6 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.WarpTeam:
 					{	//Are we warpable?
-                        player.sendMessage(0,"WarpTeam");
 						if (!player.ActiveVehicle._type.IsWarpable)
 							return;
 
@@ -1149,7 +1149,6 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.WarpAnyone:
 					{	//Are we warpable?
-                        player.sendMessage(0, "WarpAnyone");
 						if (!player.ActiveVehicle._type.IsWarpable)
 							return;
 
@@ -1178,7 +1177,6 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.SummonTeam:
 					{	//Find the player in question
-                        player.sendMessage(0, "SummonTeam");
 						Player target = _playersIngame.getObjByID(targetPlayerID);
 						if (target == null)
 							return;
@@ -1210,7 +1208,6 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.SummonAnyone:
 					{	//Find the player in question
-                        player.sendMessage(0, "SummonAnyone");
 						Player target = _playersIngame.getObjByID(targetPlayerID);
 						if (target == null)
 							return;
@@ -1238,7 +1235,6 @@ namespace InfServer.Game
 
 				case ItemInfo.WarpItem.WarpMode.Portal:
 					{	//Just forward it to the script for now
-                        player.sendMessage(0, "Portal");
                         if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))                                                  
                             return;
                         
