@@ -45,6 +45,14 @@ namespace InfServer.Protocol
 		{
 		}
 
+        /// <summary>
+        /// Generic constructor for creating new empty packets
+        /// </summary>
+        public CS_Login()
+            : base(TypeID)
+        {
+        }
+
 		/// <summary>
 		/// Routes a new packet to various relevant handlers
 		/// </summary>
@@ -75,6 +83,28 @@ namespace InfServer.Protocol
 			UID3 = _contentReader.ReadUInt32();
 			NICInfo = _contentReader.ReadUInt32();
 		}
+
+        /// <summary>
+        /// Serializes the data present
+        /// </summary>
+        public override void Serialize()
+        {
+            Write((byte)TypeID);
+            Write(bCreateAlias);
+            Write(Version);
+
+            Write(0);
+
+            Write(Username, 32);
+            Write(SysopPass, 32);
+            Write(TicketID, 64);
+            Write(0);
+
+            Write(UID1);
+            Write(UID2);
+            Write(UID3);
+            Write(NICInfo);
+        }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data

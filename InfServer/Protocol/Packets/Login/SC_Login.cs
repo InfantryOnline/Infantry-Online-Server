@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using InfServer.Network;
+using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
@@ -19,6 +20,7 @@ namespace InfServer.Protocol
 		public string popupMessage;			//Message to present the user with, if any
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.Login;
+        static public event Action<SC_Login, Client> Handlers;
 
 		public enum Login_Result
 		{
@@ -27,6 +29,15 @@ namespace InfServer.Protocol
 			Failed = 2,					//Do not login!
 			ZonePassword = 6,			//Ask for a zone password
 		}
+
+        /// <summary>
+        /// Routes a new packet to various relevant handlers
+        /// </summary>
+        public override void Route()
+        {	//Call all handlers!
+            if (Handlers != null)
+                Handlers(this, (Client)_client);
+        }
 
 
 		///////////////////////////////////////////////////
@@ -39,6 +50,12 @@ namespace InfServer.Protocol
 		public SC_Login()
 			: base(TypeID)
 		{ }
+
+
+        public SC_Login(ushort typeID, byte[] buffer, int index, int count)
+			: base(typeID, buffer, index, count)
+		{
+		}
 
 		/// <summary>
 		/// Serializes the data stored in the packet class into a byte array ready for sending.
@@ -53,6 +70,17 @@ namespace InfServer.Protocol
 			Write(zoneConfig, 24);
 			Write(popupMessage, 0);
 		}
+
+        /// <summary>
+        /// Serializes the data stored in the packet class into a byte array ready for sending.
+        /// </summary>
+        public override void  Deserialize()
+        {
+            result = (Login_Result)_contentReader.ReadByte();
+            serverVersion = _contentReader.ReadUInt16();
+            zoneConfig = ReadNullString();
+            popupMessage = ReadNullString();
+        }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data
