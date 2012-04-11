@@ -55,7 +55,7 @@ namespace InfServer.Protocol
 		{	//Type ID
 			Write((byte)TypeID);
 			Write((byte)chatType);
-            Write(bong);
+            Write((byte)bong);
 
 				//What sort of chat is this?
 			switch (chatType)
@@ -81,7 +81,7 @@ namespace InfServer.Protocol
 					break;
 
 				case Helpers.Chat_Type.Arena:
-					Write(from, 0);
+                    Write(from, 0);
 					Write(message, 0);
 					break;
 
@@ -125,6 +125,11 @@ namespace InfServer.Protocol
                     break;
 
                 case Helpers.Chat_Type.Team:
+                    from = ReadNullString();
+                    message = ReadNullString();
+                    break;
+
+                case Helpers.Chat_Type.Arena:
                     from = ReadNullString();
                     message = ReadNullString();
                     break;

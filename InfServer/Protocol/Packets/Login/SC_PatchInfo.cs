@@ -64,9 +64,9 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             Unk1 = _contentReader.ReadBoolean();
-            patchServer = ReadNullString();
+            patchServer = ReadString(64);
             patchPort = _contentReader.ReadUInt16();
-            patchXml = ReadNullString();
+            patchXml = ReadString(128);
         }
 
 		/// <summary>

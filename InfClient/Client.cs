@@ -68,10 +68,19 @@ namespace InfClient
         }
 
         /// <summary>
+        /// Disconnects our current session with the database server
+        /// </summary>
+        public void disconnect()
+        {
+            _conn._client.destroy();
+        }
+
+        /// <summary>
         /// Destroys our client properly.
         /// </summary>
         public void destroy()
         {
+
         }
     }
 }

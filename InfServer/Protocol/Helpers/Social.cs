@@ -72,7 +72,6 @@ namespace InfServer.Protocol
 
                 p._client.sendReliable(schat);
             }
-            Log.write(schat.DataDump);
         }
 
 		/// <summary>

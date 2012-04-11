@@ -20,9 +20,9 @@ namespace InfClient
         static void Main(string[] args)
         {
             Log.init();
-            DdMonitor.bNoSync = false;
+            DdMonitor.bNoSync = true;
             DdMonitor.bEnabled = true;
-            DdMonitor.DefaultTimeout = -1;
+            DdMonitor.DefaultTimeout = 2000;
 
             //Register our catch-all exception handler
             Thread.GetDomain().UnhandledException += onException;
