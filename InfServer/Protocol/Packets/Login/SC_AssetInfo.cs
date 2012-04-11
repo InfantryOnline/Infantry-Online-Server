@@ -17,7 +17,8 @@ namespace InfServer.Protocol
 		public List<AssetInfo> assets;
 		public bool bOptionalUpdate;
 
-		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.AssetInfo;		
+		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.AssetInfo;
+        static public event Action<SC_AssetInfo, Client> Handlers;
 
 
 		///////////////////////////////////////////////////
@@ -32,6 +33,20 @@ namespace InfServer.Protocol
 		{
 			assets = assetList;
 		}
+
+        public SC_AssetInfo(ushort typeID, byte[] buffer, int index, int count)
+			: base(typeID, buffer, index, count)
+		{
+		}
+
+        /// <summary>
+        /// Routes a new packet to various relevant handlers
+        /// </summary>
+        public override void Route()
+        {	//Call all handlers!
+            if (Handlers != null)
+                Handlers(this, (Client)_client);
+        }
 
 		/// <summary>
 		/// Serializes the data stored in the packet class into a byte array ready for sending.
@@ -54,6 +69,11 @@ namespace InfServer.Protocol
 				Write(bOptionalUpdate);
 			}
 		}
+
+        public override void Deserialize()
+        {
+           
+        }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data

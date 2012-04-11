@@ -39,6 +39,11 @@ namespace InfServer.Protocol
 		{
 		}
 
+        public CS_ArenaJoin()
+            : base(TypeID)
+        {
+        }
+
 		/// <summary>
 		/// Routes a new packet to various relevant handlers
 		/// </summary>
@@ -60,6 +65,17 @@ namespace InfServer.Protocol
 			Unk3 = _contentReader.ReadUInt16();
 			ArenaName = ReadString(16);
 		}
+
+        public override void Serialize()
+        {
+            Write((byte)TypeID);
+            Write(Unk1);
+            Write(EXEChecksum);
+            Write(AssetChecksum);
+            Write(Unk2);
+            Write(Unk3);
+            Write(ArenaName, 16);
+        }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data

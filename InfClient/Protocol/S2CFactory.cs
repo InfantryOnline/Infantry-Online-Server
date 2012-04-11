@@ -37,6 +37,22 @@ namespace InfClient
                     packet = new SC_State(typeID, buffer, offset, size);
                     break;
 
+                case SC_PatchInfo.TypeID:
+                    packet = new SC_PatchInfo(typeID, buffer, offset, size);
+                    break;
+
+                case SC_AssetInfo.TypeID:
+                    packet = new SC_AssetInfo(typeID, buffer, offset, size);
+                    break;
+
+                case SC_SetIngame.TypeID:
+                    packet = new SC_SetIngame(typeID, buffer, offset, size);
+                    break;
+
+                case SC_Chat.TypeID:
+                    packet = new SC_Chat(typeID, buffer, offset, size);
+                    break;
+
                 case BoxPacket.TypeID:
                     packet = new BoxPacket(typeID, buffer, offset, size);
                     break;
@@ -152,6 +168,23 @@ namespace InfClient
                 case SC_Login.TypeID:
                     packet = new SC_Login(typeID, buffer, offset, size);
                     break;
+
+                case SC_PatchInfo.TypeID:
+                    packet = new SC_PatchInfo(typeID, buffer, offset, size);
+                    break;
+
+                case SC_AssetInfo.TypeID:
+                    packet = new SC_AssetInfo(typeID, buffer, offset, size);
+                    break;
+
+                case SC_SetIngame.TypeID:
+                    packet = new SC_SetIngame(typeID, buffer, offset, size);
+                    break;
+
+                case SC_Chat.TypeID:
+                    packet = new SC_Chat(typeID, buffer, offset, size);
+                    break;
+
 
                 default:
                     //An undefined packet.

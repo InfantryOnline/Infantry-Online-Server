@@ -22,6 +22,13 @@ namespace InfServer.Protocol
 		///////////////////////////////////////////////////
 		// Member Functions
 		//////////////////////////////////////////////////
+
+
+        public CS_Ready()
+            : base(TypeID)
+        {
+        }
+
 		/// <summary>
 		/// Creates an instance of the dummy packet used to debug communication or 
 		/// to represent unknown packets.
@@ -48,6 +55,14 @@ namespace InfServer.Protocol
 		public override void Deserialize()
 		{	
 		}
+
+        /// <summary>
+        /// Deserializes the data present in the packet contents into data fields in the class.
+        /// </summary>
+        public override void Serialize()
+        {
+            Write((byte)TypeID);
+        }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data

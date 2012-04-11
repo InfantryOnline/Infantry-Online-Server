@@ -47,6 +47,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol\C2SFactory.cs" />
+    <Compile Include="Protocol\Logic\Login\Login.cs" />
+    <Compile Include="Protocol\Logic\Social\Chat.cs" />
     <Compile Include="Protocol\S2CFactory.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -57,7 +57,7 @@ namespace InfServer.Logic
 			if (client._bInitialized)
 			{	//Make a note
 				Log.write(TLog.Warning, "Server attempted to initialize connection twice.");
-				client.destroy();
+				//client.destroy();
 				return;
 			}
 

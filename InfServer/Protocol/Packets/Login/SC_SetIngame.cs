@@ -13,6 +13,7 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.SetInGame;
+        static public event Action<SC_SetIngame, Client> Handlers;
 
 
 		///////////////////////////////////////////////////
@@ -26,6 +27,21 @@ namespace InfServer.Protocol
 			: base(TypeID)
 		{ }
 
+
+        public SC_SetIngame(ushort typeID, byte[] buffer, int index, int count)
+			: base(typeID, buffer, index, count)
+		{
+		}
+
+        /// <summary>
+        /// Routes a new packet to various relevant handlers
+        /// </summary>
+        public override void Route()
+        {	//Call all handlers!
+            if (Handlers != null)
+                Handlers(this, (Client)_client);
+        }
+
 		/// <summary>
 		/// Serializes the data stored in the packet class into a byte array ready for sending.
 		/// </summary>
@@ -33,6 +49,10 @@ namespace InfServer.Protocol
 		{	//Just need the id
 			Write((byte)TypeID);
 		}
+
+        public override void Deserialize()
+        {
+        }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data

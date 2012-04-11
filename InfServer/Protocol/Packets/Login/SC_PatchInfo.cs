@@ -19,6 +19,7 @@ namespace InfServer.Protocol
 		public string patchXml;			//Location of the patch XML file on the server
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.PatchInfo;
+        static public event Action<SC_PatchInfo, Client> Handlers;
 
 
 		///////////////////////////////////////////////////
@@ -31,6 +32,20 @@ namespace InfServer.Protocol
 		public SC_PatchInfo()
 			: base(TypeID)
 		{ }
+
+        public SC_PatchInfo(ushort typeID, byte[] buffer, int index, int count)
+			: base(typeID, buffer, index, count)
+		{
+		}
+
+        /// <summary>
+        /// Routes a new packet to various relevant handlers
+        /// </summary>
+        public override void Route()
+        {	//Call all handlers!
+            if (Handlers != null)
+                Handlers(this, (Client)_client);
+        }
 
 		/// <summary>
 		/// Serializes the data stored in the packet class into a byte array ready for sending.
@@ -45,6 +60,14 @@ namespace InfServer.Protocol
 			Write(patchPort);
 			Write(patchXml, 128);
 		}
+
+        public override void Deserialize()
+        {
+            Unk1 = _contentReader.ReadBoolean();
+            patchServer = ReadNullString();
+            patchPort = _contentReader.ReadUInt16();
+            patchXml = ReadNullString();
+        }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data

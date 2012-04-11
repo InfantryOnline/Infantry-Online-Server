@@ -68,67 +68,6 @@ namespace InfClient
         }
 
         /// <summary>
-        /// Handles the initial packet sent by the server
-        /// </summary>
-        static public void Handle_SC_Initial(SC_Initial pkt, Client client)
-        {   CS_State csi = new CS_State();
-
-
-            csi.tickCount = (ushort)Environment.TickCount;
-            csi.packetsSent = client._packetsSent;
-            csi.packetsReceived = client._packetsReceived;
-
-            _conn._client.send(csi);
-        }
-
-        /// <summary>
-        /// Handles the servers's state packet
-        /// </summary>
-        static public void Handle_SC_State(SC_State pkt, Client client)
-        {	//Consider the connection started now, time to send our login info..
-            CS_Login login = new CS_Login();
-            
-            //Lets put some bogus stuff together...
-            login.bCreateAlias = false;
-            login.UID1 = 1;
-            login.UID2 = 2;
-            login.UID3 = 3;
-            login.NICInfo = 4;
-            login.SysopPass = "";
-            login.Username = "Spawn";
-            login.Version = (ushort)154;
-            login.TicketID = "2d9df516-2578-45a1-9a9b-957edbc1c028";
-
-            //Send it!
-            _conn._client.send(login);
-        }
-
-
-        /// <summary>
-        /// Handles the server's login reply
-        /// </summary>
-        static public void Handle_SC_Login(SC_Login pkt, Client client)
-        {
-            //Log the response!
-            Log.write("(Result={0}) -  (Config={1})", pkt.result, pkt.zoneConfig);
-        }
-
-
-
-        /// <summary>
-        /// Registers all handlers
-        /// </summary>
-        [InfServer.Logic.RegistryFunc]
-        static public void Register()
-        {
-            SC_Initial.Handlers += Handle_SC_Initial;
-            SC_State.Handlers += Handle_SC_State;
-            SC_Login.Handlers += Handle_SC_Login;
-        }
-
-
-
-        /// <summary>
         /// Destroys our client properly.
         /// </summary>
         public void destroy()
