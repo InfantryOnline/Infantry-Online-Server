@@ -93,6 +93,18 @@ namespace InfServer.Game
 			newTeam._id = 1000;
 			_teams.Add("spec", newTeam);
 
+            //computer team -1, shoots at nobody
+            newTeam = new Team(this, _server);
+            newTeam._isPrivate = true;
+            newTeam._id = -1;
+            _freqTeams.Add(-1, newTeam);
+
+            //computer team 9999, shoots at everybody
+            newTeam = new Team(this, _server);
+            newTeam._isPrivate = true;
+            newTeam._id = 9999;
+            _freqTeams.Add(9999, newTeam);
+            
 			//Create all our teams, as per the zone config
 			int id = 0;
 

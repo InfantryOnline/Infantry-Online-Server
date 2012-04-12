@@ -24,7 +24,7 @@ namespace InfServer.Game
 		///////////////////////////////////////////////////
 		private List<Scripts.IScript> _scripts;		//The scripts we're currently supporting
 		private string _scriptType;					//The type of scripts we're instancing
-
+        private CfgInfo.StartGame _startCfg; 
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -50,6 +50,13 @@ namespace InfServer.Game
 
 			//Load the associated scripts
 			_scripts = Scripts.instanceScripts(this, _scriptType);
+
+            //Cache this just because
+            _startCfg = _server._zoneConfig.startGame;
+
+            //Run initial hides if it doesn't depend on a game running
+            if (!_startCfg.initialHides)
+                initialHideSpawns();
 		}
 
 		/// <summary>
@@ -102,15 +109,13 @@ namespace InfServer.Game
 			flagReset();
 
 			//What else do we need to reset?
-			CfgInfo.StartGame startCfg = _server._zoneConfig.startGame;
-
-			if (startCfg.prizeReset)
+			if (_startCfg.prizeReset)
 				resetItems();
 
-			if (startCfg.vehicleReset)
+			if (_startCfg.vehicleReset)
 				resetVehicles();
 
-			if (startCfg.initialHides)
+			if (_startCfg.initialHides)
 				initialHideSpawns();
 
 			//Handle the start for all players
@@ -121,17 +126,17 @@ namespace InfServer.Game
 				player.clearCurrentStats();
 
 				//Reset anything else we're told to
-				if (startCfg.clearProjectiles)
+				if (_startCfg.clearProjectiles)
 					player.clearProjectiles();
 
-				if (startCfg.resetInventory && startCfg.resetCharacter)
+				if (_startCfg.resetInventory && _startCfg.resetCharacter)
 				{
 					player.resetInventory(false);
 					player.resetSkills(true);
 				}
-				else if (startCfg.resetCharacter)
+				else if (_startCfg.resetCharacter)
 					player.resetSkills(true);
-				else if (startCfg.resetInventory)
+				else if (_startCfg.resetInventory)
 					player.resetInventory(true);
 
 				//Run the event if necessary
@@ -183,8 +188,10 @@ namespace InfServer.Game
 		public override void gameReset()
 		{	//Reset the game state
 			flagReset();
-			resetItems();
-			resetVehicles();
+			if (_startCfg.prizeReset)
+				resetItems();
+			if (_startCfg.vehicleReset)
+				resetVehicles();
 
 			//Pass it to the script environment
 			callsync("Game.Reset", false);

@@ -161,7 +161,7 @@ namespace InfServer.Game
 			}
 
 			//Look after our hides if the game is running
-			if (_bGameRunning)
+			if (_bGameRunning || !_server._zoneConfig.startGame.initialHides)
 			{
 				foreach (HideState hs in _hides)
 				{	//Time to reattempt?
@@ -211,6 +211,10 @@ namespace InfServer.Game
 				return false;
             
 			//TODO: Hide lio spawn probability
+			//needs testing, probability = 0 hides should run only on the initial hide
+			//probability 1 means always run, stupidest definition of probability ever
+            //if (hs.Hide.HideData.Probability == 0)
+            //    return false;
 
 			//Spawn it!
 			if (hs.Hide.HideData.HideId > 0)
@@ -293,9 +297,11 @@ namespace InfServer.Game
 					return false;
 				}
 
-                // Can this item be spawned at all?
-                if (hs.Hide.HideData.InitialCount == 0 && hs.Hide.HideData.HideQuantity == 0)
-                    return false;
+				// Can this item be spawned at all?
+				//LIO Ed says Hide Quantity doesnt matter for vehicles
+				//and the initialCount check is not needed..
+				/*if (hs.Hide.HideData.InitialCount == 0 && hs.Hide.HideData.HideQuantity == 0)
+					return false;*/
 
 				//Check for the amount of similiar vehicles
 				int objArea = 0;
@@ -333,6 +339,7 @@ namespace InfServer.Game
 
 				_freqTeams.TryGetValue(hs.Hide.HideData.AssignFrequency, out team);
 
+				int attempts = 0;
 				//Great! We can spawn it
 				while (spawns > 0)
 				{	//Generate some random coordinates
@@ -344,8 +351,15 @@ namespace InfServer.Game
 
 					//Is it blocked?
 					if (getTile(pX, pY).Blocked)
+					{
+						if (attempts++ > 100)
+						{
+							Log.write(TLog.Warning, "Blocked vehicle spawn {0} (ignored)", vehicle.Name);
+							break;
+						}
 						//Try again
 						continue;
+					}
 
 					//Create a suitable state
 					Helpers.ObjectState state = new Helpers.ObjectState();

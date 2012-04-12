@@ -131,6 +131,10 @@ namespace InfServer.Game
 			if (_state.health < _type.HitpointsRequiredToOperate) 
 				return false;
 
+			//Are we a peaceful vehicle?
+			if (_team._id == -1)
+				return false;
+
 			//See if there are any valid targets within the tracking radius
 			Player target = getClosestValidTarget();
 			if (target == null) 

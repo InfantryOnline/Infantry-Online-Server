@@ -109,7 +109,7 @@ namespace InfServer.Game.Commands.Chat
 
                     if (buyAmount < 0)
                     {
-                        player.sendMessage(-1, "Cannot buy a negative amount. Please use ?sell");
+                        sell(player, recipient, String.Format("{0}:{1}", item.name, -buyAmount), bong);
                         continue;
                     }
 
