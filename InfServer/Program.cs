@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -14,9 +15,22 @@ namespace InfServer
 
         public static void Restart()
         {
-            Process process = Process.GetCurrentProcess();
-            Process.Start(Environment.CurrentDirectory + "/InfServer.exe");
-            process.Kill();
+            ConfigSetting config = new Xmlconfig("server.xml", false).Settings;
+            if (config["server/copyServerFrom"].Value.Length > 0)
+            {
+                //We want to update InfServer before recycling
+                Process process = Process.GetCurrentProcess();
+                Process.Start(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).ToString(), "InfRecycler.exe"),
+                    String.Format("-dr1:\"{0}\" -dr2:\"{1}\" -run", config["server/copyServerFrom"], Directory.GetCurrentDirectory()));
+
+                process.Kill();
+            }
+            else
+            {
+                Process process = Process.GetCurrentProcess();
+                Process.Start(Environment.CurrentDirectory + "/InfServer.exe");
+                process.Kill();
+            }
         }
 
 
