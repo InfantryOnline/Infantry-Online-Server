@@ -269,8 +269,8 @@ namespace InfServer.Game
 					}
 
 					//Generate some random coordinates
-					short pX = hs.Hide.GeneralData.OffsetX;
-					short pY = hs.Hide.GeneralData.OffsetY;
+                    short pX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
+                    short pY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
 
 					Helpers.randomPositionInArea(this, ref pX, ref pY,
 						(short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
@@ -343,8 +343,8 @@ namespace InfServer.Game
 				//Great! We can spawn it
 				while (spawns > 0)
 				{	//Generate some random coordinates
-					short pX = hs.Hide.GeneralData.OffsetX;
-					short pY = hs.Hide.GeneralData.OffsetY;
+                    short pX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
+                    short pY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
 
 					Helpers.randomPositionInArea(this, ref pX, ref pY, 
 						(short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
