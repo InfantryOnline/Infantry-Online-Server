@@ -57,7 +57,7 @@ namespace Assets
                 throw new ArgumentNullException("Null filename.");
 
             //Attempt to find the file in the directory structure
-            string filePath = findAssetFile(filename, @".\");
+            string filePath = findAssetFile(filename, @"../Global/");
             if (filePath == null)
             {	//It's missing!
                 _missingFiles.Add(filename);
