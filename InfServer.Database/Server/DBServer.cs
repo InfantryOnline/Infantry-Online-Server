@@ -74,8 +74,8 @@ namespace InfServer
 
         public Chat getChat(string name)
         {
-            Chat chat;
-            if (!_chats.TryGetValue(name, out chat))
+            Chat chat = _chats.Values.SingleOrDefault(c => c._name.ToLower() == name.ToLower());
+            if (chat == null)
                 return null;
             return chat;
         }

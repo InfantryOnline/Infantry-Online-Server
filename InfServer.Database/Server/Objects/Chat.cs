@@ -15,20 +15,20 @@ namespace InfServer
     public class Chat
     {
         DBServer _server;                       //Who we work for..
-        public List<string> _players;   //The players in our chat..
+        public Dictionary<string, string[]> _players;    //The players in our chat..
         public string _name;                    //The name of our chat             
 
         public Chat(DBServer server, string chat)
         {
             _server = server;
-            _players = new List<string>();
+            _players = new Dictionary<string, string[]>();
             _name = chat;
             server._chats.Add(chat, this);
         }
 
-        public void newPlayer(string player)
+        public void newPlayer(string player, string[] chats)
         {
-            _players.Add(player);
+            _players.Add(player, chats);
             SC_JoinChat<Zone> join = new SC_JoinChat<Zone>();
             join.from = player;
             join.chat = _name;
@@ -57,7 +57,7 @@ namespace InfServer
 
         public bool hasPlayer(string player)
         {
-            if (_players.Contains(player))
+            if (_players.ContainsKey(player))
                 return true;
             return false;
         }
@@ -77,8 +77,8 @@ namespace InfServer
         public string List()
         {
             StringBuilder builder = new StringBuilder();
-            foreach (string player in _players)
-                builder.Append(player).Append(",");
+            foreach (var player in _players)
+                builder.Append(player.Key).Append(",");
 
             return builder.ToString().TrimEnd(',');
         }

@@ -305,7 +305,6 @@ namespace InfServer.Logic
 						if (colIdx == -1)
 						{	//Find the given item
 							ItemInfo item = player._server._assets.getItemByName(param);
-                            Log.write(item.name);
 							if (item != null)
 								player.inventoryModify(false, item, 1);
 						}

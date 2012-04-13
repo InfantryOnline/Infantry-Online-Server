@@ -8,6 +8,9 @@ namespace InfServer.DirectoryServer.Directory.Logic.Packets
     {
         public static void Handle_CS_ZoneList(CS_ZoneList pkt, DirectoryClient client)
         {
+            //Update the zone list first..
+            Program.server.grabZones();
+
             // Begin sending the zone list packets
             client.ZoneListToken = pkt.Token;
 
@@ -20,6 +23,9 @@ namespace InfServer.DirectoryServer.Directory.Logic.Packets
 
         public static void Handle_CS_AckZoneList(CS_AckZoneList pkt, DirectoryClient client)
         {
+            //Update the zone list first..
+            Program.server.grabZones();
+
             List<SC_ZoneList> packets = Program.server.ZoneStream.Packets;
 
             UInt16 frame = pkt.frameReceived;

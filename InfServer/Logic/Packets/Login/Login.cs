@@ -66,7 +66,7 @@ namespace InfServer.Logic
 				plogin.UID2 = pkt.UID2;
                 plogin.UID3 = pkt.UID3;
 				plogin.UID4 = pkt.NICInfo;
-                plogin.ipaddress = pkt._client._ipe.Address.ToString();
+                plogin.ipaddress = pkt._client._ipe.Address.ToString().Trim();
 
 				server._db.send(plogin);
 			}
@@ -91,10 +91,11 @@ namespace InfServer.Logic
 				//Send him the asset list	
 				SC_AssetInfo assets = new SC_AssetInfo(Helpers._server._assets.getAssetList());
 
+                //Optional updates?
                 if (player.PermissionLevel == Data.PlayerPermission.Sysop)
-				assets.bOptionalUpdate = true;
+                    assets.bOptionalUpdate = true;
                 else
-                assets.bOptionalUpdate = true;
+                    assets.bOptionalUpdate = false;
 
 				player._client.sendReliable(assets);
 

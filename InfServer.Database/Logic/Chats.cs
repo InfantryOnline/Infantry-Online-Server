@@ -17,7 +17,7 @@ namespace InfServer.Logic
             DBServer server = zone._server;
             Zone.Player player = server.getPlayer(pkt.from);
             char[] splitArr = { ',' };
-            string[] chats = pkt.chat.ToLower().Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            string[] chats = pkt.chat.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             //Hey, how'd you get here?!
             if (player == null)
@@ -26,6 +26,7 @@ namespace InfServer.Logic
             //He wants to see the player list of each chat..
             if (pkt.chat.Length == 0)
             {
+
                 foreach (var chat in server._chats.Values)
                 {
                     if (chat.hasPlayer(pkt.from))
@@ -37,7 +38,7 @@ namespace InfServer.Logic
             foreach (string chat in chats)
             {
                 string name = chat.ToLower();
-                Chat _chat = server.getChat(name);
+                Chat _chat = server.getChat(chat);
 
                 //Remove him from everything..
                 if (name == "off")
@@ -54,15 +55,15 @@ namespace InfServer.Logic
                 //New chat
                 if (!server._chats.ContainsValue(_chat))
                 {
-                    _chat = new Chat(server, name);
+                    _chat = new Chat(server, chat);
                 }
 
                 //Add him
                 if (!_chat.hasPlayer(pkt.from))
-                    _chat.newPlayer(pkt.from);
+                    _chat.newPlayer(pkt.from, chats);
 
                 //Send him the updated list..
-                server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", _chat._name, _chat.List()));
+                server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat, _chat.List()));
             }
 
             //Remove him from any chats that didn't come over in the packet.
@@ -80,7 +81,7 @@ namespace InfServer.Logic
         static public void Handle_CS_Chat(CS_PrivateChat<Zone> pkt, Zone zone)
         {
             DBServer server = zone._server;
-            Chat chat = server.getChat(pkt.chat);
+            Chat chat = server.getChat(pkt.chat.ToLower());
 
             //WTF MATE?
             if (chat == null)

@@ -305,7 +305,7 @@ namespace InfServer.Logic
 				}
 
 				zone._client.sendReliable(plog);
-                alias.IPAddress = pkt.ipaddress;
+                alias.IPAddress = pkt.ipaddress.Trim();
                 alias.lastAccess = DateTime.Now;
 				//Submit our modifications
 				db.SubmitChanges();

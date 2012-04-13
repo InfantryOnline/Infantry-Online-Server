@@ -13,16 +13,24 @@ namespace InfServer
 	{
 		static Game.ZoneServer server;
 
+        /// <summary>
+        /// Recycles our gameserver... PS, super-man is a noob.
+        /// </summary>
         public static void Restart()
         {
             ConfigSetting config = new Xmlconfig("server.xml", false).Settings;
             if (config["server/copyServerFrom"].Value.Length > 0)
             {
                 //We want to update InfServer before recycling
-                Process process = Process.GetCurrentProcess();
-                Process.Start(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).ToString(), "InfRecycler.exe"),
-                    String.Format("-dr1:\"{0}\" -dr2:\"{1}\" -run", config["server/copyServerFrom"], Directory.GetCurrentDirectory()));
+                Process recycler = new Process();
+                recycler.StartInfo.FileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).ToString(), @"Global\InfRecycler.exe");
+                recycler.StartInfo.Arguments = String.Format("-d1:\"{0}\" -d2:\"{1}\" -run", config["server/copyServerFrom"].Value, Directory.GetCurrentDirectory().ToString());
 
+                //Start the recycler
+                recycler.Start();
+
+                //Kill current process
+                Process process = Process.GetCurrentProcess();
                 process.Kill();
             }
             else

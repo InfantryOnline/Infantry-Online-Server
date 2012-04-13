@@ -46,39 +46,51 @@ namespace InfServer.DirectoryServer.Directory
         {
             // Load the zone list from the XML here.
             Log.write("Loading zones from XML..");
+            grabZones();
+            return true;
+        }
+
+        public void grabZones()
+        {
 
             List<XmlZoneListing> xmlList = serializer.DeserializeFromXML();
 
 
             //Do we have any?
             if (xmlList.Count == 0)
-            Log.write(TLog.Warning, "Found no zones to load.");
-            
+                Log.write(TLog.Warning, "Found no zones to load.");
+
             //Convert our XmlList into a ZoneList
             var zones = new List<Zone>();
             foreach (XmlZoneListing zone in xmlList)
             {
                 IPAddress address = IPAddress.Parse(zone.Address);
-                zones.Add(new Zone(address.GetAddressBytes(), 
-                    zone.Port, 
-                    zone.Name, 
+                zones.Add(new Zone(address.GetAddressBytes(),
+                    zone.Port,
+                    zone.Name,
                     zone.IsAdvanced,
                     zone.Description));
-               
+
             }
 
             //Done
             ZoneStream = new ZoneStream(zones);
-            return true;
         }
 
         public void Begin()
         {
             _logger = Log.createClient("Zone");
             base._logger = Log.createClient("Network");
-
             IPEndPoint listenPoint = new IPEndPoint(IPAddress.Any, 4850);
-            begin(listenPoint);
+            try
+            {
+
+                begin(listenPoint);
+
+            }
+            catch (System.NullReferenceException e)
+            {
+            }
 
             httpJsonResponder.Start();
 

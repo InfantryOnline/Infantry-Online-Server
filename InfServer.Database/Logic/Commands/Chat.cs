@@ -43,14 +43,19 @@ namespace InfServer.Logic
                 switch (pkt.queryType)
                 {
                     case CS_Query<Zone>.QueryType.accountinfo:
-                        var from = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
-                        var aliases = db.alias.Where(a => a.account.Equals(from.account));
+                        Data.DB.alias from = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
+                        var aliases = db.alias.Where(a => a.account == from.account);
                         zone._server.sendMessage(zone, pkt.alias, "!Account Info:");
                         foreach (var alias in aliases)
                         {
+                            int hrs = 0;
+                            int mins = 0;
 
-                            int hrs = (int)alias.timeplayed / 60;
-                            int mins = (int)alias.timeplayed - (hrs * 60);
+                            if (alias.timeplayed.HasValue)
+                            {
+                                hrs = (int)alias.timeplayed / 60;
+                                mins = (int)alias.timeplayed - (hrs * 60);
+                            }
 
                             zone._server.sendMessage(zone, pkt.alias, String.Format("{0}({1}:{2}h)", alias.name, hrs, mins));
                         }
