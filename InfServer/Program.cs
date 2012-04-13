@@ -21,16 +21,18 @@ namespace InfServer
             ConfigSetting config = new Xmlconfig("server.xml", false).Settings;
             if (config["server/copyServerFrom"].Value.Length > 0)
             {
+                //Current process
+                Process process = Process.GetCurrentProcess();
+
                 //We want to update InfServer before recycling
                 Process recycler = new Process();
                 recycler.StartInfo.FileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).ToString(), @"Global\InfRecycler.exe");
-                recycler.StartInfo.Arguments = String.Format("-d1:\"{0}\" -d2:\"{1}\" -run", config["server/copyServerFrom"].Value, Directory.GetCurrentDirectory().ToString());
+                recycler.StartInfo.Arguments = String.Format("-d1:\"{0}\" -d2:\"{1}\" -id:\"{2}\"", config["server/copyServerFrom"].Value, Directory.GetCurrentDirectory().ToString(), process.Id);
 
                 //Start the recycler
                 recycler.Start();
 
                 //Kill current process
-                Process process = Process.GetCurrentProcess();
                 process.Kill();
             }
             else
