@@ -137,6 +137,7 @@ namespace Assets
         /// General properties associated with this object.
         /// </summary>
         public GeneralSettings GeneralData;
+        public static List<string> BlobsToLoad = new List<string>();
 
         /// <summary>
         /// Extracts properties for this object from a CSV-formatted line.

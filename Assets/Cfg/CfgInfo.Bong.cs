@@ -36,6 +36,9 @@ namespace Assets
                 for (int i = 1; i <= 30; i++)
                 {
                     bongs.Add(Parser.GetString(string.Format("Bong{0}", i)));
+                    
+                    //Load the blob
+                    BlobsToLoad.Add(Parser.GetBlob(bongs[i - 1]));
                 }
             }
         }

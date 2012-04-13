@@ -47,6 +47,7 @@ namespace Assets
         public string BlobName;
         public string BlobId;
         public List<InventoryMutator> InventoryMutators = new List<InventoryMutator>();
+        public static List<string> BlobsToLoad = new List<string>();
 
         public void Parse(ICsvParser parser)
         {
@@ -63,6 +64,7 @@ namespace Assets
             Logic = parser.GetString();
             Description = parser.GetString();
             BlobName = parser.GetString();
+            BlobsToLoad.Add(BlobName);
             BlobId = parser.GetString();
 
             while(!parser.AtEnd)

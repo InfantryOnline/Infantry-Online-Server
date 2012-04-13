@@ -121,13 +121,18 @@ namespace InfServer.Game
 			//Load blo files
 			_bloList = new List<string>();
 
-			foreach (string file in ItemInfo.BlobsToLoad)
-				loadBloFile(file + ".blo");
-			foreach (LvlInfo.BlobReference blob in Level.ObjectBlobs)
-				loadBloFile(blob.FileName);
-			foreach (LvlInfo.BlobReference blob in Level.FloorBlobs)
-				loadBloFile(blob.FileName);
-
+            foreach (string file in ItemInfo.BlobsToLoad)
+                loadBloFile(file + ".blo");
+            foreach (string file in CfgInfo.BlobsToLoad)
+                loadBloFile(file + ".blo");
+            foreach (string file in LioInfo.BlobsToLoad)
+                loadBloFile(file + ".blo");
+            foreach (string file in SkillInfo.BlobsToLoad)
+                loadBloFile(file + ".blo");
+            foreach (LvlInfo.BlobReference blob in Level.ObjectBlobs)
+                loadBloFile(blob.FileName);
+            foreach (LvlInfo.BlobReference blob in Level.FloorBlobs)
+                loadBloFile(blob.FileName);
             //Make vehicle map
             _idToVehicle = new SortedDictionary<int, VehInfo>();
             foreach (VehInfo it in vehs.Data)
@@ -227,7 +232,7 @@ namespace InfServer.Game
         /// </summary>		
         public void loadAdditionalAssets()
         {	//Load up our assets config file
-            ConfigSetting cfg = new Xmlconfig("assets.xml", false).Settings;
+            ConfigSetting cfg = new Xmlconfig(@"../Global/assets.xml", false).Settings;
             foreach (ConfigSetting asset in cfg.GetNamedChildren("asset"))
             {	//Insert it into the asset list
                 AssetFile assetf = AssetFileFactory.CreateFromGlobalFile<AssetFile>(asset.Value);

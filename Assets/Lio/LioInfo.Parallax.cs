@@ -53,6 +53,9 @@ namespace Assets
                 ParallaxData.Saturation = CSVReader.GetInt(values[18]);
                 ParallaxData.Value = CSVReader.GetInt(values[19]);
                 ParallaxData.AnimationTime = CSVReader.GetInt(values[20]);
+
+                //Load the blobs
+                BlobsToLoad.Add(ParallaxData.ParallaxBlobName);
             }
         }
     }

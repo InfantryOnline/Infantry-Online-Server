@@ -163,6 +163,11 @@ namespace Assets
                 FlagData.SoundDropBlobName = CSVReader.GetQuotedString(values[74]);
                 FlagData.SoundDropBlobId = CSVReader.GetQuotedString(values[75]);
                 FlagData.SoundDropSimultaneous = CSVReader.GetInt(values[76]);
+
+                //Load the blobs
+                BlobsToLoad.Add(FlagData.FlagGfxBlobName);
+                BlobsToLoad.Add(FlagData.SoundDropBlobName);
+                BlobsToLoad.Add(FlagData.SoundPickupBlobName);
             }
         }
     }

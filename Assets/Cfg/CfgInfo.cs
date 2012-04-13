@@ -60,6 +60,7 @@ namespace Assets
         public HeldCategory heldCategory;
         public FlagMvp flagMvp;
         public RtsStateDefault rtsStateDefault;
+        public static List<string> BlobsToLoad = new List<string>();
 
         public static CfgInfo Load(string filename)
         {
@@ -221,6 +222,22 @@ namespace Assets
                     return Convert.ToBoolean(Int16.Parse(values[value]));
                 else
                     return false;
+            }
+
+            public static string GetBlob(string value)
+            {
+                value = value.Trim();
+
+                if (value.Contains(","))
+                {
+                    string[] tmp = new string[2];
+                    tmp = value.Split(',');
+                    return tmp[0];
+                }
+                else
+                {
+                    return value;
+                }
             }
         }
     }

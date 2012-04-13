@@ -93,6 +93,11 @@ namespace Assets
                 PortalData.PortalSoundBlobName = CSVReader.GetQuotedString(values[32]);
                 PortalData.PortalSoundBlobId = CSVReader.GetQuotedString(values[33]);
                 PortalData.Simultaneous = CSVReader.GetInt(values[34]);
+
+                //Load the blobs
+                BlobsToLoad.Add(PortalData.PortalGfxBlobName);
+                BlobsToLoad.Add(PortalData.PortalSoundBlobName);
+                BlobsToLoad.Add(PortalData.RadarGfxBlobName);
             }
         }
     }

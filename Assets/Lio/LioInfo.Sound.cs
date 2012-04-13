@@ -75,6 +75,10 @@ namespace Assets
                 SoundData.SoundBlobName = CSVReader.GetQuotedString(values[26]);
                 SoundData.SoundBlobId = CSVReader.GetQuotedString(values[27]);
                 SoundData.Simultaneous = CSVReader.GetInt(values[28]);
+
+                //Load the blobs
+                BlobsToLoad.Add(SoundData.SoundBlobName);
+                BlobsToLoad.Add(SoundData.SoundGfxBlobName);
             }
         }
     }

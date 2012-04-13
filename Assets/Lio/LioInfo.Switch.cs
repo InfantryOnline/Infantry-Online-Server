@@ -94,6 +94,10 @@ namespace Assets
                 SwitchData.SwitchSoundBlobName = CSVReader.GetQuotedString(values[48]);
                 SwitchData.SwitchSoundBlobId = CSVReader.GetQuotedString(values[49]);
                 SwitchData.SwitchSoundSimultaneous = CSVReader.GetInt(values[50]);
+
+                //Load the blobs
+                BlobsToLoad.Add(SwitchData.SwitchGfxBlobName);
+                BlobsToLoad.Add(SwitchData.SwitchSoundBlobName);
             }
         }
     }

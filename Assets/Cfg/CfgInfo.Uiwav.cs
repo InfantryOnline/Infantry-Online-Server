@@ -27,6 +27,16 @@ namespace Assets
                 warpIn = Parser.GetString("WarpIn");
                 noAmmo = Parser.GetString("NoAmmo");
                 pickup = Parser.GetString("Pickup");
+                
+                //Load the blobs
+                BlobsToLoad.Add(Parser.GetBlob(melt));
+                BlobsToLoad.Add(Parser.GetBlob(changeIn));
+                BlobsToLoad.Add(Parser.GetBlob(rClick));
+                BlobsToLoad.Add(Parser.GetBlob(cantFire));
+                BlobsToLoad.Add(Parser.GetBlob(pickMenu));
+                BlobsToLoad.Add(Parser.GetBlob(warpIn));
+                BlobsToLoad.Add(Parser.GetBlob(noAmmo));
+                BlobsToLoad.Add(Parser.GetBlob(pickup));
             }
         }
     }

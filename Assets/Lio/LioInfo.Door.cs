@@ -81,6 +81,11 @@ namespace Assets
                 DoorData.SoundCloseBlobName = CSVReader.GetQuotedString(values[30]);
                 DoorData.SoundCloseBlobId = CSVReader.GetQuotedString(values[31]);
                 DoorData.CloseSimultaneous = CSVReader.GetInt(values[32]);
+
+                //Load the blobs
+                BlobsToLoad.Add(DoorData.GfxHorizontalTopBlobName);
+                BlobsToLoad.Add(DoorData.SoundCloseBlobName);
+                BlobsToLoad.Add(DoorData.SoundOpenBlobName);
             }
         }
     }

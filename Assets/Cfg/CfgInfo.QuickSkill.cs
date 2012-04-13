@@ -79,6 +79,11 @@ namespace Assets
                 listSelectFontColor = Parser.GetInt("ListSelectFontColor");
                 textFont = Parser.GetInt("TextFont");
                 textFontColor = Parser.GetInt("TextFontColor");
+
+                //Load the blobs
+                BlobsToLoad.Add(Parser.GetBlob(backGraphic));
+                BlobsToLoad.Add(Parser.GetBlob(cancelGraphic));
+                BlobsToLoad.Add(Parser.GetBlob(selectGraphic));
             }
         }
     }

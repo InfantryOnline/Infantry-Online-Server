@@ -41,6 +41,9 @@ namespace Assets
                 loseCrownExpire = Parser.GetBool("LoseCrownExpire");
                 showTimer = Parser.GetBool("ShowTimer");
                 startBubble = Parser.GetBool("StartBubble");
+
+                //Load the blobs
+                BlobsToLoad.Add(Parser.GetBlob(crownGraphic));
             }
         }
     }

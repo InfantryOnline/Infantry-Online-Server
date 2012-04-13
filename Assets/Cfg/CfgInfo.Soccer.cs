@@ -117,6 +117,15 @@ namespace Assets
                 invisibleFulfillTime = Parser.GetInt("InvisibleFulfillTime");
                 countMultiPointGoals = Parser.GetBool("CountMultiPointGoals");
                 relativeId = Parser.GetInt("RelativeId");
+
+                //Load the blobs
+                BlobsToLoad.Add(Parser.GetBlob(ballGraphic));
+                BlobsToLoad.Add(Parser.GetBlob(shadowGraphic));
+                BlobsToLoad.Add(Parser.GetBlob(trailGraphic));
+                BlobsToLoad.Add(Parser.GetBlob(bounceSound));
+                BlobsToLoad.Add(Parser.GetBlob(catchSound));
+                BlobsToLoad.Add(Parser.GetBlob(throwSound));
+                BlobsToLoad.Add(Parser.GetBlob(requestSound));
             }
         }
     }
