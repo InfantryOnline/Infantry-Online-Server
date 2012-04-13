@@ -157,6 +157,7 @@ namespace InfServer.Script.GameType_CTF
 				if (_victoryTeam != null)
 				{
 					_tickVictoryStart = 0;
+                    _tickNextVictoryNotice = 0;
 					_victoryTeam = null;
 
 					_arena.sendArenaMessage("Victory has been aborted.", _config.flag.victoryAbortedBong);
@@ -171,12 +172,9 @@ namespace InfServer.Script.GameType_CTF
 		public void gameVictory(Team victors)
 		{	//Let everyone know
 			if (_config.flag.useJackpot)
-				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);
+				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);            
 
-            //Stop the game
-            _arena.gameEnd();
-
-			_arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);
+			_arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);            
 
             //TODO: Move this calculation to breakdown() in ScriptArena?
 			//Calculate the jackpot for each player
@@ -202,10 +200,10 @@ namespace InfServer.Script.GameType_CTF
                 p.Cash += cashReward;
                 p.Experience += experienceReward;
                 p.BonusPoints += pointReward;
-
-                //Call teh Breakdownz
-                _arena.individualBreakdown(p, false);
             }
+
+            //Stop the game
+            _arena.gameEnd();
 		}
 
         /// <summary>
@@ -321,7 +319,21 @@ namespace InfServer.Script.GameType_CTF
 		/// </summary>
 		[Scripts.Event("Player.Portal")]
 		public bool playerPortal(Player player, LioInfo.Portal portal)
-		{
+		{           
+            List<Arena.FlagState> carried = _arena._flags.Values.Where(flag => flag.carrier == player).ToList();
+            
+            foreach (Arena.FlagState carry in carried)
+            {   //If the terrain number is 0-15
+
+                int terrainNum = player._arena.getTerrainID(player._state.positionX, player._state.positionY);                
+                if (terrainNum >= 0 && terrainNum <= 15)
+                {   //Check the FlagDroppableTerrains for that specific terrain id
+                    
+                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
+                        _arena.flagResetPlayer(player);
+                }
+            }
+             
 			return true;
 		}
 
@@ -448,7 +460,7 @@ namespace InfServer.Script.GameType_CTF
 		/// </summary>
 		[Scripts.Event("Player.WarpItem")]
 		public bool playerWarpItem(Player player, ItemInfo.WarpItem item, ushort targetPlayerID, short posX, short posY)
-		{
+		{                
 			return true;
 		}
 

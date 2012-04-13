@@ -578,17 +578,17 @@ namespace InfServer.Game
 				fs.posY = player._state.positionY;
 				Helpers.randomPositionInArea(this, fs.flag.FlagData.DropRadius, ref fs.posX, ref fs.posY);
 
-				fs.lastOperation = Environment.TickCount;
-
-				//Do we notify players?
-				if (_server._zoneConfig.flag.announceTransfers)
-				{	//Yep
-					if (carried.Count > 1)
-						triggerMessage(1, 500, player._alias + " lost a flag to " + killer._alias);
-					else
-						triggerMessage(1, 500, player._alias + " lost " + carried.Count + " flags to " + killer._alias);
-				}
+				fs.lastOperation = Environment.TickCount;				
 			}
+
+            //Do we notify players?
+            if (_server._zoneConfig.flag.announceTransfers)
+            {	//Yep
+                if (carried.Count == 1)
+                    triggerMessage(1, 500, player._alias + " lost a flag to " + killer._alias);
+                else
+                    triggerMessage(1, 500, player._alias + " lost " + carried.Count + " flags to " + killer._alias);
+            }
 
 			//Update
 			Helpers.Object_Flags(Players, carried);

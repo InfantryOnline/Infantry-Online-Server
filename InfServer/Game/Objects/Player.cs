@@ -272,7 +272,7 @@ namespace InfServer.Game
 
             foreach (Player candidate in candidates)
             {   //Ignore teammates..
-                if (candidate._team == _team)
+                if (candidate._team == _team || candidate.IsDead)
                     continue;
                 
                 //Any anti-warp utils?
