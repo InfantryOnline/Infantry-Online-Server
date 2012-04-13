@@ -497,6 +497,22 @@ namespace InfServer.Game.Commands.Chat
 		}
 
         /// <summary>
+        /// Provides the user with a list of zones
+        /// </summary>
+        public static void zonelist(Player player, Player recipient, string payload, int bong)
+        {
+            //Temp zone list until I can get zone data properly (Zone name, zone players, zone ip, zone port)
+            List<ZoneServer> zones = new List<ZoneServer>();
+            ZoneServer tempZone = new ZoneServer();
+            tempZone._name = "Ask nearest programmer to fix";
+            zones.Add(tempZone);
+
+            SC_ZoneList zoneList = new SC_ZoneList(zones, player);
+
+            player._client.sendReliable(zoneList);
+        }
+
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ChatCommand)]
@@ -550,9 +566,13 @@ namespace InfServer.Game.Commands.Chat
                 "Lists zones and their playercount",
                  "?online");
 
-			yield return new HandlerDescriptor(spec, "spec",
-				"Displays all players which are spectating you or another player",
-				"?spec or ::?spec");	
+            yield return new HandlerDescriptor(spec, "spec",
+                "Displays all players which are spectating you or another player",
+                "?spec or ::?spec");
+
+            yield return new HandlerDescriptor(zonelist, "zonelist",
+                "Displays a list of zones",
+                "?zonelist");
         }
     }
 }
