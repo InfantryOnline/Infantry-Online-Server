@@ -189,6 +189,10 @@ namespace InfServer.Data
                     packet = new CS_Query<T>(typeID, buffer, offset, size);
                     break;
 
+                case Disconnect<T>.TypeID:
+                    packet = new Disconnect<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

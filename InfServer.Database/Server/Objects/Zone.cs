@@ -61,6 +61,8 @@ namespace InfServer
 		/// </summary>
 		public void destroy()
 		{
+            _server._zones.Remove(this);
+            Log.write("{0} disconnected gracefully", _zone.name);
 		}
 
 		/// <summary>

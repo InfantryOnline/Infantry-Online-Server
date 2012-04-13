@@ -219,22 +219,28 @@ namespace InfServer.Game
         /// <summary>
         /// Recycles our zoneserver
         /// </summary>
-        public void recycle()  
+        public void recycle()
         {
-            try
+            //Loop through each arena and save stats for each player in that arena.
+            Dictionary<string, Arena> alist = _arenas;
+            foreach (KeyValuePair<string, Arena> arena in alist)
             {
-
-                foreach (KeyValuePair<string, Arena> arena in _arenas)
+                IEnumerable<Player> plist = arena.Value.Players;
+                foreach (Player p in plist)
                 {
-                    foreach (Player p in arena.Value.Players)
-                        p.destroy();
+                    //Update his stats first
+                    _db.updatePlayer(p);
                 }
             }
-            finally
-            {
-                InfServer.Program.Restart();
-            }
 
+            //Disconnect from the database gracefully..
+            _db.send(new Disconnect<Database>());
+
+            //Add a little delay...
+            Thread.Sleep(2000);
+
+            //Restart!
+            InfServer.Program.Restart();
         }
 
 

@@ -336,6 +336,14 @@ namespace InfServer.Logic
 			zone.lostPlayer(pkt.player.id);
 		}
 
+        /// <summary>
+		/// Handles a graceful zone disconnect
+		/// </summary>
+        static public void Handle_Disconnect(Disconnect<Zone> pkt, Zone zone)
+        {
+            zone.destroy();
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -345,6 +353,7 @@ namespace InfServer.Logic
 			CS_Auth<Zone>.Handlers += Handle_CS_Auth;
 			CS_PlayerLogin<Zone>.Handlers += Handle_CS_PlayerLogin;
 			CS_PlayerLeave<Zone>.Handlers += Handle_CS_PlayerLeave;
+            Disconnect<Zone>.Handlers += Handle_Disconnect;
 		}
 	}
 }

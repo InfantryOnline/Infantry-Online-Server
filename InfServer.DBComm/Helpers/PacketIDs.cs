@@ -34,6 +34,7 @@ namespace InfServer.Protocol
                 LeaveChat = 13,
                 ZoneList = 15,
                 Query = 16,
+                Disconnect = 17,
             }
             ///<summary>
             ///Contains S2C packet ids
@@ -51,6 +52,7 @@ namespace InfServer.Protocol
                 LeaveChat = 13,
                 Chat = 14,
                 ZoneList = 15,
+                Disconnect = 17,
             }
         }
     }
