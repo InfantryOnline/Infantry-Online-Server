@@ -195,6 +195,7 @@ namespace InfServer.Game
 					Helpers.Object_Players(audience, player);
 
 					//.. and his banner
+                    Helpers.Social_UpdateBanner(player);
 					Helpers.Social_ArenaBanners(Players, player);
 
 					//Consider him loaded!
