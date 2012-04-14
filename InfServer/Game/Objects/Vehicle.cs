@@ -42,7 +42,7 @@ namespace InfServer.Game
         private int _relativeID;            //Relative ID of the vehicle, can be overridden
         public int relativeID               //when the vehicle spawns
         {
-            get { return (_relativeID == null ? _type.RelativeId : _relativeID); }
+            get { return (_relativeID == 0 ? _type.RelativeId : _relativeID); }
             set { _relativeID = value; }
         }
 
