@@ -5,7 +5,7 @@
 		<port value="7777" />
 		
 		<zoneid value="12" />
-		<password value="JD32szD5" />
+		<password value="" />
 		
 		<connectionAttempts value="1" />
 	</database>
