@@ -434,6 +434,20 @@ namespace InfServer.Game
 						// bountyAutoRate: 33 = 33% chance to give a bty.. 400 = give 4 bty
 						player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
 					}
+
+                    //Check packetloss every 20 seconds or so
+                    if ((now - player._state.lastUpdate) > 20000)
+                    {
+                        //Check packetloss
+                        if (player._client._stats.C2SPacketLoss >= _server._config["arena/maxPacketLoss"].floatValue ||
+                            player._client._stats.S2CPacketLoss >= _server._config["arena/maxPacketLoss"].floatValue)
+                        {
+                            //Spec the guy!
+                            player.spec("spec");
+                            player.sendMessage(-1, "You have been sent to spectator mode for high packetloss.");
+                        }
+                    }
+
 				}
 
 				if (bMinor)

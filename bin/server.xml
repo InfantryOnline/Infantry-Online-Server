@@ -2,22 +2,23 @@
 <xml>
 	<database>
 		<ip value="127.0.0.1" />
-		<port value="34966" />
+		<port value="7777" />
 		
-		<zoneid value="1" />
-		<password value="abc123" />
+		<zoneid value="12" />
+		<password value="JD32szD5" />
 		
 		<connectionAttempts value="1" />
 	</database>
 	
 	<server>
 		<version value="155" />
-		<zoneConfig value="ctfpl.cfg" />
-		<gameType value="GameType_CTF" />
-		<updateGlobalNws value="http://freeinfantry.org/svn.php?count=10" />
+		<zoneConfig value="frontlines.cfg" />
+		<gameType value="GameType_FL_SnD" />
+		<updateGlobalNws value="http://freeinfantry.org/svn.php?count=30" />
+		<copyServerFrom value="D:\INFANTRY\source\trunk\bin\" />
 		<loadBlobs value="false" />
-		<logPackets value="false" />
-		<permitMode value="false" />
+		<logPackets value="true" />
+		<permitMode value="true" />
 	</server>
 	
 	<protocol>
@@ -31,7 +32,7 @@
 	<arena>
 		<maxArenaVehicles value="10000" />
 		<maxArenaItems value="10000" />
-
+		<maxPacketLoss value="3.25" />
 		<gameCheckInterval value="250" />
 
 		<routing>
@@ -51,5 +52,5 @@
 	<maxPlayers value="5000" />
 	
 	<bindIP value="0.0.0.0" />
-	<bindPort value="1337" />
+	<bindPort value="9002" />
 </xml>

@@ -46,18 +46,41 @@ namespace InfServer.Logic
                         Data.DB.alias from = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
                         var aliases = db.alias.Where(a => a.account == from.account);
                         zone._server.sendMessage(zone, pkt.alias, "!Account Info:");
+
+
+                        Int64 total = 0;
+                        int days = 0;
+                        int hrs = 0;
+                        int mins = 0;
+                        //Loop through each alias to calculate time played
                         foreach (var alias in aliases)
                         {
-                            int hrs = 0;
-                            int mins = 0;
 
+
+                            //Does this alias even have any time played?
                             if (alias.timeplayed.HasValue)
                             {
-                                hrs = (int)alias.timeplayed / 60;
-                                mins = (int)alias.timeplayed - (hrs * 60);
+                                TimeSpan timeplayed = TimeSpan.FromMinutes(alias.timeplayed.Value);
+                                days = (int)timeplayed.Days;
+                                hrs = (int)timeplayed.Hours;
+                                mins = (int)timeplayed.Minutes;
+
+                                total += alias.timeplayed.Value;
                             }
 
-                            zone._server.sendMessage(zone, pkt.alias, String.Format("{0}({1}:{2}h)", alias.name, hrs, mins));
+                            //Send it
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("{0}({1}d{2}h{3}m)", alias.name, days, hrs, mins));
+                            
+                        }
+                        //Calculate total time played across all aliases.
+                        if (total != 0)
+                        {
+                            TimeSpan totaltime = TimeSpan.FromMinutes(total);
+                            days = (int)totaltime.Days;
+                            hrs = (int)totaltime.Hours;
+                            mins = (int)totaltime.Minutes;
+                            //Send it
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("Total: ({0}d{1}h{2}m)", days, hrs, mins));
                         }
                         break;
 

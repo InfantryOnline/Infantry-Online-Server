@@ -241,6 +241,7 @@ namespace InfServer
             set { Value = value.ToString(); }
             
         }
+
         /// <summary>
         /// bool value of the specific Configuration Node
         /// </summary>
