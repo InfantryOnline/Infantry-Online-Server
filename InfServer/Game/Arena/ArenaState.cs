@@ -501,7 +501,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Creates an item drop at the specified location
 		/// </summary>
-		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY)
+		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, int relativeID)
 		{	//Too many items?
 			if (_items.Count == maxItems)
 			{
@@ -544,6 +544,7 @@ namespace InfServer.Game
 			id.quantity = (short)quantity;
 			id.positionX = positionX;
 			id.positionY = positionY;
+			id.relativeID = (relativeID == 0 ? item.relativeID : relativeID);
 
 			//Add it to our list
 			_items[ik] = id;
@@ -551,6 +552,11 @@ namespace InfServer.Game
 			//Notify the arena
 			Helpers.Object_ItemDrop(Players, id);
 			return id;
+		}
+
+		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY)
+		{
+			return itemSpawn(item, quantity, positionX, positionY, 0);
 		}
 
         /// <summary>

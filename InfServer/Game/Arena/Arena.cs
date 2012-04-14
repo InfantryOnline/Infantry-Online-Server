@@ -273,6 +273,7 @@ namespace InfServer.Game
 			public short quantity;		//The amount in the pile
 			public short positionX;		//The location of the pile
 			public short positionY;		//
+			public int relativeID;      //Relative ID of the item or the hide
 		}
 
 		/// <summary>
@@ -463,7 +464,7 @@ namespace InfServer.Game
 				}
 
 				//Keep car vehicles in line
-				foreach (Vehicle vehicle in _vehicles)
+				foreach (Vehicle vehicle in _vehicles.ToList())
 				{	//We don't need to bother maintaining bot vehicles
 					if (vehicle.bCondemned)
 						_condemnedVehicles.Add(vehicle);

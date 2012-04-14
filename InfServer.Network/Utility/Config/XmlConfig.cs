@@ -129,7 +129,7 @@ namespace InfServer
             catch
             {
                 if (!create)
-                    throw new Exception("xmldoc.Load() failed! Probably file does NOT exist!");
+                    throw new Exception(String.Format("xmldoc.Load() failed! Probably file does NOT exist!\nMissing: {0}", filename));
                 else
                 {
                     xmldoc.LoadXml("<xml></xml>");

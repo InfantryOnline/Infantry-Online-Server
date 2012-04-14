@@ -186,6 +186,64 @@ namespace InfServer.Game
 			}
 		}
 
+        //I need to build a list of relative IDs
+        //This list reflects computers, flags, and the active vehicle of players (and bots by extension)
+        //and items laying around in the arena
+        private bool findRelativeID(int huntFreq, int relID, ref short posX, ref short posY)
+        {
+            var vehicles = from v in Vehicles
+                           where ((v._type.Type == VehInfo.Types.Computer && v.relativeID == relID)
+                              || (v._type.Type == VehInfo.Types.Car && v.relativeID == relID && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
+                              || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null && v.relativeID == relID)) //this can probably be taken out
+                           select v;
+            var flags = from f in _flags.Values
+                        where f.bActive && f.flag.FlagData.FlagRelativeId == relID
+                        select f;
+            var items = from it in _items.Values
+                        where it.relativeID == relID
+                        select it;
+            if (items.Count() > 0)
+            {
+                ItemDrop item;
+                if (items.Count() > 1)
+                    item = items.OrderBy(x => Guid.NewGuid()).Take(1).Single();
+                else item = items.First();
+
+                if (item != null)
+                {
+                    posX = item.positionX;
+                    posY = item.positionY;
+                    return true;
+                }
+            }
+            
+            return false;
+            /*
+            if (vehicles.Count() == 0)
+                return false;
+
+            if (huntFreq == -1 || huntFreq > 0)
+            {   //Look for a specific team (-1 is hostile turret team)
+                Vehicle[] demVehicles = vehicles.Where(v => v._team._id == huntFreq).ToArray();
+                if (demVehicles.Count() > 0)
+                {
+                    Vehicle v = demVehicles[_rand.Next(demVehicles.Count())];
+                    posX = v._state.positionX;
+                    posY = v._state.positionY;
+                    return true;
+                }
+                else
+                    return false;
+            }
+            else if (huntFreq == -2)
+            {   //Any freq
+                return false;
+            }
+
+            return false;
+             */
+        }
+
 		/// <summary>
 		/// Attempts to trigger a hide spawn
 		/// </summary>
@@ -200,6 +258,20 @@ namespace InfServer.Game
 				return false;
 			if (players < hs.Hide.HideData.MinPlayers)
 				return false;
+
+            short posX, posY;
+            if (hs.Hide.GeneralData.RelativeId == 0)
+            {
+                posX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
+                posY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
+            }
+            else
+            {   //
+                posX = 0;
+                posY = 0;
+                if (!findRelativeID(hs.Hide.GeneralData.HuntFrequency, hs.Hide.GeneralData.RelativeId, ref posX, ref posY))
+                    return false;
+            }
             
 			//Look out for distant players
 			if (hs.Hide.HideData.MinPlayerDistance != 0 &&
@@ -239,13 +311,17 @@ namespace InfServer.Game
 					objLevel += drop.quantity;
 
 					//In the given area?
-					if (hs.Hide.GeneralData.OffsetX + w2 < drop.positionX)
+					//if (hs.Hide.GeneralData.OffsetX + w2 < drop.positionX)
+					if (posX + w2 < drop.positionX)
 						continue;
-					if (hs.Hide.GeneralData.OffsetX - w2 > drop.positionX)
+					//if (hs.Hide.GeneralData.OffsetX - w2 > drop.positionX)
+					if (posX - w2 > drop.positionX)
 						continue;
-					if (hs.Hide.GeneralData.OffsetY + h2 < drop.positionY)
+					//if (hs.Hide.GeneralData.OffsetY + h2 < drop.positionY)
+					if (posY + h2 < drop.positionY)
 						continue;
-					if (hs.Hide.GeneralData.OffsetY - h2 > drop.positionY)
+					//if (hs.Hide.GeneralData.OffsetY - h2 > drop.positionY)
+					if (posY - h2 > drop.positionY)
 						continue;
 
 					objArea += drop.quantity;
@@ -269,8 +345,10 @@ namespace InfServer.Game
 					}
 
 					//Generate some random coordinates
-                    short pX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
-                    short pY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
+                    //short pX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
+                    //short pY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
+                    short pX = posX;
+                    short pY = posY;
 
 					Helpers.randomPositionInArea(this, ref pX, ref pY,
 						(short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
@@ -280,7 +358,7 @@ namespace InfServer.Game
 						//Try again
 						continue;
 
-					itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, (short)pX, (short)pY);
+					itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, (short)pX, (short)pY, hs.Hide.HideData.RelativeId);
 					spawns--;
 				}
 
@@ -353,8 +431,9 @@ namespace InfServer.Game
 					if (getTile(pX, pY).Blocked)
 					{
 						if (attempts++ > 100)
-						{
+						{   //Delay it from running when this happens
 							Log.write(TLog.Warning, "Blocked vehicle spawn {0} (ignored)", vehicle.Name);
+							hs.Hide.HideData.AttemptDelay += 5000;
 							break;
 						}
 						//Try again
@@ -368,6 +447,10 @@ namespace InfServer.Game
 					state.positionY = (short)pY;
 
 					Vehicle spawn = newVehicle(vehicle, team, null, state);
+
+					//Set relative ID
+					if (hs.Hide.HideData.RelativeId != 0)
+						spawn.relativeID = hs.Hide.HideData.RelativeId;
 
 					spawns--;
 				}

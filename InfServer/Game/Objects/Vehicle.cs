@@ -39,6 +39,13 @@ namespace InfServer.Game
 
 		public ushort _id;					//Our vehicle ID
 
+        private int _relativeID;            //Relative ID of the vehicle, can be overridden
+        public int relativeID               //when the vehicle spawns
+        {
+            get { return (_relativeID == null ? _type.RelativeId : _relativeID); }
+            set { _relativeID = value; }
+        }
+
 		#region Game state
 		public Helpers.ObjectState _state;	//The state of our vehicle!
 		public List<Player> _attackers;		//The list of players which have damaged this vehicle
