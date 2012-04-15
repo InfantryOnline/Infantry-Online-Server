@@ -268,7 +268,7 @@ namespace InfServer.Game
         /// <returns></returns>
         public Player checkAntiWarp()
         {	//Get the list of bots in the area
-            IEnumerable<Player> candidates = _arena.getPlayersInRange(_state.positionX, _state.positionY, 1000);
+            IEnumerable<Player> candidates = _arena.getPlayersInRange(_state.positionX, _state.positionY, 5000);
 
             foreach (Player candidate in candidates)
             {   //Ignore teammates..

@@ -75,7 +75,7 @@ namespace InfServer.Protocol
 					Write(vehicle._state.positionZ);
 					Write(vehicle._state.yaw);
 					Write((UInt16)vehicle._state.direction);
-					Write(vehicle._state.unk1);
+					Write((byte)vehicle._state.unk1);
 					break;
 
 				case VehInfo.Types.Dependent:
@@ -89,7 +89,7 @@ namespace InfServer.Protocol
 					Write(vehicle._state.pitch);
 					Write(vehicle._state.yaw);
 					Write(vehicle._state.yaw);
-					Write(vehicle._state.unk1);
+					Write((byte)vehicle._state.unk1);
 					break;
 
 				case VehInfo.Types.Computer:
@@ -103,7 +103,7 @@ namespace InfServer.Protocol
 					Write((short)0);
 					Write(vehicle._state.fireAngle);	//Base yaw?
 					Write(vehicle._state.fireAngle);	//Turret yaw?
-					Write((short)206);
+					Write((byte)206);
 					break;
 			}
 

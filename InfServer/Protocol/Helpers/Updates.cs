@@ -69,9 +69,9 @@ namespace InfServer.Protocol
 			tu.tickUpdate = Environment.TickCount;
 			tu.player = null;
 			tu.vehicle = update;
-			tu.itemID = (short)(update._shouldFire ? update._primaryGun.id : -1);			
+			tu.itemID = (short)(update._shouldFire ? update._primaryGun.id : -1);
 
-			tu.activeEquip = new List<ushort>();
+            tu.activeUtilities = update._activeEquip;
 
 			//TODO: Should we use SC_PlayerUpdate for computers too?
 

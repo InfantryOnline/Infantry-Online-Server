@@ -251,7 +251,7 @@ namespace InfServer.Game
             }
             
             //Get the list of computers in the area
-            List<Computer> candidates = candidates = computers.getObjsInRange(player._state.positionX, player._state.positionY, 1000);
+            List<Computer> candidates = candidates = computers.getObjsInRange(player._state.positionX, player._state.positionY, 5000);
             
             foreach (Computer candidate in candidates)
             {	//Any anti-warp utils?
