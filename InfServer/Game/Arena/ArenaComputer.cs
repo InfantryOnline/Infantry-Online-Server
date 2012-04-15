@@ -42,7 +42,7 @@ namespace InfServer.Game
 		{	//Handle each computer vehicle
 			int now = Environment.TickCount;
 
-			foreach (Vehicle vehicle in _vehicles)
+			foreach (Vehicle vehicle in _vehicles.ToList())
 			{	//Cast it properly
 				Computer computer = vehicle as Computer;
 				if (computer == null)
