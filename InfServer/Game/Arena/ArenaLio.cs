@@ -157,6 +157,8 @@ namespace InfServer.Game
 				{	//Set and update!
 					ss.bOpen = false;
 					Helpers.Object_LIOs(Players, ss);
+                    //Update map tiles
+                    updateDoors();
 				}
 			}
 
@@ -173,6 +175,46 @@ namespace InfServer.Game
 				}
 			}
 		}
+
+        /// <summary>
+        /// Updates the map tiles based on doors. TODO: Include linked doors, will only updated doors specified by Switch
+        /// </summary>
+        private void updateDoors()
+        {
+            foreach (SwitchState ss in _switches.Values)
+            {
+                foreach (int doorid in ss.Switch.SwitchData.SwitchLioId)
+                {   //Update map level info with whether or not door is open or closed
+                    if (doorid == 0) //Is a door specified?
+                        continue;
+
+                    //The door that's being switched
+                    LioInfo.Door door = _server._assets.Lios.Doors.FirstOrDefault(d => d.GeneralData.Id == doorid);
+                    bool isBlocked = !ss.bOpen; //Is the door closed?
+
+                    if (door.DoorData.InverseState == 1)//Is the state inversed?
+                        isBlocked = !isBlocked;
+
+                    for (int y = 0; y < door.DoorData.PhysicsHeight; y++)
+                    {
+                        int posy = (door.GeneralData.OffsetY / 16) - _server._assets.Level.OffsetY + door.DoorData.RelativePhysicsTileY + y;
+                        for (int x = 0; x < door.DoorData.PhysicsWidth; x++)
+                        {
+                            int posx = (door.GeneralData.OffsetX / 16) - _server._assets.Level.OffsetX + door.DoorData.RelativePhysicsTileX + x;
+                            int t = posy * _levelWidth + posx;
+                            //are we removing tiles or adding tiles?
+                            if (isBlocked)
+                                //Recreate the tile
+                                _tiles[t].PhysicsVision = _originaltiles[t].PhysicsVision;
+                            else
+                                //Clear the tile
+                                _tiles[t].PhysicsVision = (byte)0x00;
+                        }
+                    }
+                }
+            }
+            sendArenaMessage("Update doors called");
+        }
 
 		/// <summary>
 		/// Performs all the initial hide spawns
@@ -534,6 +576,7 @@ namespace InfServer.Game
 			//We've done it! Update everything
 			ss.bOpen = bOpen;
 			ss.lastOperation = Environment.TickCount;
+            updateDoors();
 
 			Helpers.Object_LIOs(Players, ss);
 			return true;

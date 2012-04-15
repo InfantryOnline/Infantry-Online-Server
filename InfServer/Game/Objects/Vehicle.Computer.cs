@@ -250,7 +250,7 @@ namespace InfServer.Game
                     }
                 }
             }
-            if (tileSize == 8 || tiles.Count < tileSize + tileDistance)
+            if (tileSize == 8 || tiles.Count < Math.Floor(tileSize * 1.8) + tileDistance)
                 return false;
 
             return true;

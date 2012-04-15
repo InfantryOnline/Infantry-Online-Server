@@ -62,7 +62,7 @@ namespace Assets
                 DoorData.RelativePhysicsTileX = CSVReader.GetInt(values[10]);
                 DoorData.RelativePhysicsTileY = CSVReader.GetInt(values[11]);
                 DoorData.PhysicsWidth = CSVReader.GetInt(values[12]);
-                DoorData.PhysicsWidth = CSVReader.GetInt(values[13]);
+                DoorData.PhysicsHeight = CSVReader.GetInt(values[13]);
                 DoorData.OpenOdds = CSVReader.GetInt(values[14]);
                 DoorData.LinkedDoorId = CSVReader.GetInt(values[15]);
                 DoorData.InitialState = CSVReader.GetInt(values[16]);

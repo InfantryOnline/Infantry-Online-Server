@@ -47,6 +47,7 @@ namespace InfServer.Game
 		public int _levelWidth;
 		public int _levelHeight;
 		public LvlInfo.Tile[] _tiles;					//The terrain tiles in the arena, can be updated to reflect switches, etc
+        public LvlInfo.Tile[] _originaltiles;           //The original tiles in the arena to revert to when switched
 
 		public Commands.Registrar _commandRegistrar;	//Our chat/mod command registrar
 
@@ -363,10 +364,12 @@ namespace InfServer.Game
 			//Instance our tiles array
 			LvlInfo lvl = server._assets.Level;
 			_tiles = new LvlInfo.Tile[lvl.Tiles.Length];
+            _originaltiles = new LvlInfo.Tile[lvl.Tiles.Length];
 			_levelWidth = lvl.Width;
 			_levelHeight = lvl.Height;
 
 			Array.Copy(lvl.Tiles, _tiles, lvl.Height * lvl.Width);
+            Array.Copy(lvl.Tiles, _originaltiles, lvl.Height * lvl.Width);
 
 			//Initialize our command registrar
 			_commandRegistrar = new InfServer.Game.Commands.Registrar();

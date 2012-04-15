@@ -194,10 +194,6 @@ namespace InfServer.Game
 				{	//And make sure everyone is aware of him
 					Helpers.Object_Players(audience, player);
 
-					//.. and his banner
-                    Helpers.Social_UpdateBanner(player);
-					Helpers.Social_ArenaBanners(Players, player);
-
 					//Consider him loaded!
 					player.spec("spec");
 					player.setIngame();
@@ -206,7 +202,9 @@ namespace InfServer.Game
 					Helpers.Arena_Message(player, _tickers.Values);
 
 					//Load all the banners
-					Helpers.Social_ArenaBanners(player, this);
+                    Helpers.Social_UpdateBanner(player); //Players banner
+                    Helpers.Social_ArenaBanners(Players, player); //Inform arena of his banner
+					Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
 				}
 			);
 		}

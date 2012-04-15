@@ -38,6 +38,17 @@ namespace InfServer.Game
 				}
 			}
 
+            /// <summary>
+            /// Returns the list of door objects
+            /// </summary>
+            public IEnumerable<LioInfo.Door> Doors
+            {
+                get
+                {
+                    return _manager._idToLio.Values.OfType<LioInfo.Door>();
+                }
+            }
+
 			/// <summary>		
 			/// Returns the list of flag objects
 			/// </summary>
