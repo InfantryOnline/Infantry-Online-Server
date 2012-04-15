@@ -213,7 +213,6 @@ namespace InfServer.Game
                     }
                 }
             }
-            sendArenaMessage("Update doors called");
         }
 
 		/// <summary>
