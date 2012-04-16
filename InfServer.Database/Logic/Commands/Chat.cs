@@ -16,19 +16,37 @@ namespace InfServer.Logic
 		/// </summary>
         static public void Handle_CS_FindPlayer(CS_FindPlayer<Zone> pkt, Zone zone)
         {
-            bool found = false;
+            int minlength = 3;
+            var results = new List<KeyValuePair<string,Zone.Player>>();
+
             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
             {
-                if (player.Key.ToLower().Contains(pkt.findAlias.ToLower()))
+                if (player.Key.ToLower().Equals(pkt.findAlias.ToLower()))
                 {
-                    zone._server.sendMessage(zone, pkt.alias,
-                        String.Format("Found {0} - (Zone={1}) (Arena={2})",
-                        player.Value.alias, player.Value.zone._zone.name, player.Value.arena));
-                    found = true;
+                    //Have they found the exact player they were looking for?
+                    results.Add(player);
+                    break;
                 }
+                else if (pkt.findAlias.Length < minlength)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "Search query must contain at least " + minlength + " characters%-1");
+                    break;
+                }
+                else if (player.Key.ToLower().Contains(pkt.findAlias.ToLower()))
+                    results.Add(player);
             }
 
-            if (!found)
+            if(results.Count > 0)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "&Search Results");
+                foreach (KeyValuePair<string, Zone.Player> result in results)
+                {
+                    zone._server.sendMessage(zone, pkt.alias,
+                        String.Format("*Found: {0} (Zone: {1})", //TODO: Arena??
+                        result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
+                }
+            }
+            else
                 zone._server.sendMessage(zone, pkt.alias, "Sorry, we couldn't locate any players online by that alias");
         }
 
@@ -45,7 +63,7 @@ namespace InfServer.Logic
                     case CS_Query<Zone>.QueryType.accountinfo:
                         Data.DB.alias from = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
                         var aliases = db.alias.Where(a => a.account == from.account);
-                        zone._server.sendMessage(zone, pkt.alias, "!Account Info:");
+                        zone._server.sendMessage(zone, pkt.alias, "Account Info");
 
 
                         Int64 total = 0;
@@ -69,7 +87,7 @@ namespace InfServer.Logic
                             }
 
                             //Send it
-                            zone._server.sendMessage(zone, pkt.alias, String.Format("{0}({1}d{2}h{3}m)", alias.name, days, hrs, mins));
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("~{0} ({1}d {2}h {3}m)", alias.name, days, hrs, mins));
                             
                         }
                         //Calculate total time played across all aliases.
@@ -80,25 +98,31 @@ namespace InfServer.Logic
                             hrs = (int)totaltime.Hours;
                             mins = (int)totaltime.Minutes;
                             //Send it
-                            zone._server.sendMessage(zone, pkt.alias, String.Format("Total: ({0}d{1}h{2}m)", days, hrs, mins));
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("!Grand Total: {0}d {1}h {2}m", days, hrs, mins));
                         }
                         break;
 
                     case CS_Query<Zone>.QueryType.whois:
+                        zone._server.sendMessage(zone, pkt.alias, "&Whois Information");
+
                         //Query for an IP?
                         if (pkt.ipaddress.Length > 0)
+                        {
                             aliases = db.alias.Where(a => a.IPAddress.Equals(pkt.ipaddress));
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("*Payload: {0} Account ID: {1}", pkt.ipaddress, aliases.ElementAt(0).account));
+                        }
                         //Alias!
                         else
                         {
                             Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.recipient));
                             aliases = db.alias.Where(a => a.account.Equals(who.account));
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("*Payload: {0} Account ID: {1}", pkt.recipient, aliases.ElementAt(0).account));
                         }
-                       
 
+                        zone._server.sendMessage(zone, pkt.alias, "&Aliases");
                         //Loop through them and display
                         foreach (var alias in aliases)
-                            zone._server.sendMessage(zone, pkt.alias, String.Format("&{0} (IP={1}) - (Account={2})", alias.name, alias.IPAddress, alias.account));
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("*{0} (IP={1})", alias.name, alias.IPAddress));
                         break;
 
                     case CS_Query<Zone>.QueryType.aliastransfer:

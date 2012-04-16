@@ -21,7 +21,6 @@ namespace InfServer.Game.Commands.Chat
 
         public static void accountinfo(Player player, Player recipient, string payload, int bong)
         {
-            player.sendMessage(0, "Grabbing account info...");
             CS_Query<Data.Database> query = new CS_Query<Data.Database>();
             query.alias = player._alias;
             query.queryType = CS_Query<Data.Database>.QueryType.accountinfo;

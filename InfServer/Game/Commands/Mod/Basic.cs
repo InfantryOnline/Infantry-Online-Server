@@ -323,14 +323,14 @@ namespace InfServer.Game.Commands.Mod
             int cashVal;
             if (!Int32.TryParse(payload, out cashVal))
             {   //Uh oh
-                player.sendMessage(0, "Payload can only contain numbers (0-9)");
+                player.sendMessage(-1, "Payload can only contain numbers (0-9)");
             }
             else
             {	//Give our target player some cash!
                 target.Cash += cashVal;
 
                 //Alert the player
-                player.sendMessage(0, "Target has been prized the specified amount of cash.");
+                player.sendMessage(-3, "Target has been prized the specified amount of cash.");
 
                 //Sync and clean up
                 target.syncState();
@@ -343,7 +343,7 @@ namespace InfServer.Game.Commands.Mod
         static public void arena(Player player, Player recipient, string payload, int bong)
         {
             if (payload == "")
-                player.sendMessage(0, "Message can not be empty");
+                player.sendMessage(-1, "Message can not be empty");
             else
                 player._arena.sendArenaMessage(payload, bong);
         }
@@ -424,7 +424,7 @@ namespace InfServer.Game.Commands.Mod
                 target.Experience += expVal;
 
                 //Alert the player
-                player.sendMessage(-1, "Target has been prized the specified amount of experience.");
+                player.sendMessage(-3, "Target has been prized the specified amount of experience.");
 
                 //Sync and clean up
                 target.syncState();
@@ -444,13 +444,13 @@ namespace InfServer.Game.Commands.Mod
             //Are we adding or removing?
             if (Logic.Logic_Permit.checkPermit(payload))
             {   //Remove
-                player.sendMessage(0, "Player removed from permission list");
+                player.sendMessage(-3, "Player removed from permission list");
                 Logic.Logic_Permit.removePermit(payload);
             }
             
             else
             {   //Adding
-                player.sendMessage(0, "Player added to permission list");
+                player.sendMessage(-3, "Player added to permission list");
                 Logic.Logic_Permit.addPermit(payload);
             }
         }
@@ -461,11 +461,14 @@ namespace InfServer.Game.Commands.Mod
         static public void profile(Player player, Player recipient, string payload, int bong)
         {
             Player target = (recipient == null) ? player : recipient;
-            player.sendMessage(0, String.Format("&{0} Profile:", target._alias));
+            player.sendMessage(-3, "&Player Profile Information");
+            player.sendMessage(0, "*" + target._alias);
+            player.sendMessage(0, "Items");
             foreach (KeyValuePair<int, Player.InventoryItem> itm in target._inventory)
-                player.sendMessage(0, String.Format("{0}:{1},", itm.Value.quantity, itm.Value.item.name));
+                player.sendMessage(0, String.Format("~{0}={1}", itm.Value.item.name, itm.Value.quantity));
+            player.sendMessage(0, "Skills");
             foreach (KeyValuePair<int,Player.SkillItem> skill in target._skills)
-                player.sendMessage(0, String.Format("{0}:{1},", skill.Value.quantity, skill.Value.skill.Name));
+                player.sendMessage(0, String.Format("~{0}={1}", skill.Value.skill.Name, skill.Value.quantity));
         }
 
 		/// <summary>
