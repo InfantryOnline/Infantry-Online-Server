@@ -109,20 +109,20 @@ namespace InfServer.Logic
                         if (pkt.ipaddress.Length > 0)
                         {
                             aliases = db.alias.Where(a => a.IPAddress.Equals(pkt.ipaddress));
-                            zone._server.sendMessage(zone, pkt.alias, String.Format("*Payload: {0} Account ID: {1}", pkt.ipaddress, aliases.ElementAt(0).account));
+                            zone._server.sendMessage(zone, pkt.alias, "*" + pkt.ipaddress);
                         }
                         //Alias!
                         else
                         {
                             Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.recipient));
                             aliases = db.alias.Where(a => a.account.Equals(who.account));
-                            zone._server.sendMessage(zone, pkt.alias, String.Format("*Payload: {0} Account ID: {1}", pkt.recipient, aliases.ElementAt(0).account));
+                            zone._server.sendMessage(zone, pkt.alias, "*" + pkt.recipient);
                         }
 
                         zone._server.sendMessage(zone, pkt.alias, "&Aliases");
                         //Loop through them and display
                         foreach (var alias in aliases)
-                            zone._server.sendMessage(zone, pkt.alias, String.Format("*{0} (IP={1})", alias.name, alias.IPAddress));
+                            zone._server.sendMessage(zone, pkt.alias, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
                         break;
 
                     case CS_Query<Zone>.QueryType.aliastransfer:
