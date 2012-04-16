@@ -121,8 +121,8 @@ namespace InfServer.Protocol
 			banner.player = player;
 
 			foreach (Player plyr in players)
-				if (plyr != player)
-					plyr._client.sendReliable(banner, 1);
+                if (plyr != player)
+                    plyr._client.sendReliable(banner, 1);
 		}
 
 		/// <summary>
@@ -138,7 +138,9 @@ namespace InfServer.Protocol
 				SC_Banner banner = new SC_Banner();
 				banner.player = plyr;
 
-				player._client.sendReliable(banner, 1);
+                if (plyr != player)
+                    player._client.sendReliable(banner, 1);
+
 			}
 		}
 

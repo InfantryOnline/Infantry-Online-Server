@@ -13,7 +13,7 @@ namespace InfServer.Protocol
 	public class SC_Test : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-		public const ushort TypeID = (ushort)0x31;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.SendBanner;
 
 
 		///////////////////////////////////////////////////
@@ -34,14 +34,18 @@ namespace InfServer.Protocol
 		{	//Just need the id
 			Write((byte)TypeID);
 
-			Write((int)1);
-			Write((int)2);
+            Write((int)1);
+
+            for (int i = 0; i < 432; i++)
+            {
+                Write((byte)200);
+            }
 		}
 
-		/// <summary>
-		/// Returns a meaningful of the packet's data
-		/// </summary>
-		public override string Dump
+        /// <summary>
+        /// Returns a meaningful of the packet's data
+        /// </summary>
+        public override string Dump
 		{
 			get
 			{

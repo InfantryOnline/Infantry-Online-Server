@@ -21,7 +21,7 @@ namespace InfServer.Logic
 
             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
             {
-                if (player.Key.ToLower().Equals(pkt.findAlias.ToLower()))
+                if (player.Key.ToLower() == pkt.findAlias.ToLower())
                 {
                     //Have they found the exact player they were looking for?
                     results.Add(player);
@@ -29,8 +29,8 @@ namespace InfServer.Logic
                 }
                 else if (pkt.findAlias.Length < minlength)
                 {
-                    zone._server.sendMessage(zone, pkt.alias, "Search query must contain at least " + minlength + " characters%-1");
-                    break;
+                    zone._server.sendMessage(zone, pkt.alias, "Search query must contain at least " + minlength + " characters");
+                    return;
                 }
                 else if (player.Key.ToLower().Contains(pkt.findAlias.ToLower()))
                     results.Add(player);
@@ -119,7 +119,7 @@ namespace InfServer.Logic
                             zone._server.sendMessage(zone, pkt.alias, "*" + pkt.recipient);
                         }
 
-                        zone._server.sendMessage(zone, pkt.alias, "&Aliases");
+                        zone._server.sendMessage(zone, pkt.alias, "&Aliases: " + aliases.Count());
                         //Loop through them and display
                         foreach (var alias in aliases)
                             zone._server.sendMessage(zone, pkt.alias, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
