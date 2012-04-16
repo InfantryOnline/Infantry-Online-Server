@@ -43,6 +43,7 @@ namespace InfServer.Game
 		public int _tickGameEnded;						//The tick at which our game ended
         public BreakdownSettings _breakdownSettings;
         private int _bountyTick;                        //Last time AutoBounty ticked
+        public List<ItemDrop> _condemnedItems;
 
 		public int _levelWidth;
 		public int _levelHeight;
@@ -275,6 +276,7 @@ namespace InfServer.Game
 			public short positionX;		//The location of the pile
 			public short positionY;		//
 			public int relativeID;      //Relative ID of the item or the hide
+            public int tickDropped;
 		}
 
 		/// <summary>
@@ -346,7 +348,7 @@ namespace InfServer.Game
 
 			_teams = new Dictionary<string, Team>();
 			_freqTeams = new SortedDictionary<int, Team>();
-
+            _condemnedItems = new List<ItemDrop>();
 			_condemnedVehicles = new List<Vehicle>();
 			_vehicles = new ObjTracker<Vehicle>();
 			_lastVehicleKey = (ushort)5001;						//The vehicle IDs must start at 5001, everything before
@@ -417,6 +419,36 @@ namespace InfServer.Game
 				bool tickTerrainBty = now - _bountyTick > 30000; //run every 30 seconds
 				if (tickTerrainBty)
 					_bountyTick = now;
+
+                //Keep our itemdrops in line
+                foreach (var itm in _items.Values)
+                {
+                    //Get our terrain id
+                    int terrainID = getTerrainID(itm.positionX, itm.positionY);
+                    int prizeExpire = _server._zoneConfig.terrains[terrainID].prizeExpire;
+
+                    //Ignore 
+                    if (prizeExpire == 0)
+                        continue;
+
+
+                    //Is this item expired?
+                    if ((now - itm.tickDropped) > (prizeExpire * 1000))
+                    {
+                        //Condemn it
+                        _condemnedItems.Add(itm);
+                    }
+                }
+
+                //Remove expired items
+                foreach (ItemDrop item in _condemnedItems)
+                {
+                    //Update the players of the status..
+                    Helpers.Object_ItemDropUpdate(Players, item.id, 0);
+                    _items.Remove(item.id);
+                }
+                _condemnedItems.Clear();
+                
 
 				foreach (Player player in PlayersIngame)
 				{	//Is he awaiting a respawn?

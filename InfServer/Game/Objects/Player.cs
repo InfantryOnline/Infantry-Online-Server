@@ -512,7 +512,6 @@ namespace InfServer.Game
 			}
 			else
 			{   //Attributes
-
 				//Do we have enough experience for this skill?
 				if (skill.Price <= Experience)
 				{
@@ -523,10 +522,14 @@ namespace InfServer.Game
 			//Add the skill to our skill list
 			if (sk != null)
 			{	//Will there be any attributes left?
-				if (adjust < 0 && (sk.quantity + adjust == 0))
-					_inventory.Remove(skill.SkillId);
-				else
-					sk.quantity = (short)(sk.quantity + adjust);
+                if (adjust < 0 && (sk.quantity + adjust == 0))
+                {
+                    _skills.Remove(skill.SkillId);
+                }
+                else
+                {
+                    sk.quantity = (short)(sk.quantity + adjust);
+                }
 			}
 			else
 			{	//We need to add a new skill item, should we reset other skills?

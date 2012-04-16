@@ -542,6 +542,7 @@ namespace InfServer.Game
 			id.quantity = (short)quantity;
 			id.positionX = positionX;
 			id.positionY = positionY;
+            id.tickDropped = Environment.TickCount;
 			id.relativeID = (relativeID == 0 ? item.relativeID : relativeID);
 
 			//Add it to our list
