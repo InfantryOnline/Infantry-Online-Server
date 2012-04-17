@@ -458,8 +458,8 @@ namespace InfServer.Game
 						player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
 					}
 
-                    //Check packetloss every 20 seconds or so
-                    if ((now - player._state.lastUpdate) > 20000)
+                    //Check packetloss every 10 seconds or so
+                    if ((now - player._state.lastUpdate) > 10000)
                     {
                         //Check packetloss
                         if (player._client._stats.C2SPacketLoss >= _server._config["arena/maxPacketLoss"].floatValue ||

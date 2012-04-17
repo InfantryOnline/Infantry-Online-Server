@@ -991,17 +991,17 @@ namespace InfServer.Game
 		{	//What is this nonsense?
 			if (quantity == 0)
 				return;
-
-			//Do we have the skills required?
-			if (!Logic_Assets.SkillCheck(from, item.skillLogic))
-				return;
-
+				
 			//Get the player's related inventory item
 			Player.InventoryItem ii = from.getInventory(item);
 
 			//Are we buying or selling?
 			if (quantity > 0)
-			{	//Buying. Are we able to?
+			{
+                //Do we have the skills required (if we're buying)
+                if (!Logic_Assets.SkillCheck(from, item.skillLogic))
+                
+                //Buying. Are we able to?
 				if (item.buyPrice == 0)
 					return;
 
