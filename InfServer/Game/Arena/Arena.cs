@@ -276,7 +276,8 @@ namespace InfServer.Game
 			public short positionX;		//The location of the pile
 			public short positionY;		//
 			public int relativeID;      //Relative ID of the item or the hide
-            public int tickDropped;
+			public int tickDropped;
+			public int freq = -1;       //Owning frequency
 		}
 
 		/// <summary>

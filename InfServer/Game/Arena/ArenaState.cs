@@ -499,7 +499,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Creates an item drop at the specified location
 		/// </summary>
-		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, int relativeID)
+		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, int relativeID, int freq)
 		{	//Too many items?
 			if (_items.Count == maxItems)
 			{
@@ -544,6 +544,7 @@ namespace InfServer.Game
 			id.positionY = positionY;
             id.tickDropped = Environment.TickCount;
 			id.relativeID = (relativeID == 0 ? item.relativeID : relativeID);
+            id.freq = freq;
 
 			//Add it to our list
 			_items[ik] = id;
@@ -555,7 +556,7 @@ namespace InfServer.Game
 
 		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY)
 		{
-			return itemSpawn(item, quantity, positionX, positionY, 0);
+			return itemSpawn(item, quantity, positionX, positionY, 0, -1);
 		}
 
         /// <summary>

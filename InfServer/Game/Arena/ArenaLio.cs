@@ -91,6 +91,22 @@ namespace InfServer.Game
 				}
 			}
 		}
+
+        /// <summary>
+        /// Represents a relative object others can spawn from
+        /// </summary>
+        public class RelativeObj
+        {
+            public short posX;
+            public short posY;
+            public int freq;
+            public RelativeObj(short _posX, short _posY, int _freq)
+            {
+                posX = _posX;
+                posY = _posY;
+                freq = _freq;
+            }
+        }
 		#endregion
 
 
@@ -230,59 +246,196 @@ namespace InfServer.Game
         //I need to build a list of relative IDs
         //This list reflects computers, flags, and the active vehicle of players (and bots by extension)
         //and items laying around in the arena
-        private bool findRelativeID(int huntFreq, int relID, ref short posX, ref short posY)
+        private List<RelativeObj> findRelativeID(int huntFreq, int relID)
         {
-            var vehicles = from v in Vehicles
-                           where ((v._type.Type == VehInfo.Types.Computer && v.relativeID == relID)
-                              || (v._type.Type == VehInfo.Types.Car && v.relativeID == relID && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
-                              || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null && v.relativeID == relID)) //this can probably be taken out
-                           select v;
-            var flags = from f in _flags.Values
-                        where f.bActive && f.flag.FlagData.FlagRelativeId == relID
-                        select f;
-            var items = from it in _items.Values
-                        where it.relativeID == relID
-                        select it;
-            if (items.Count() > 0)
-            {
-                ItemDrop item;
-                if (items.Count() > 1)
-                    item = items.OrderBy(x => Guid.NewGuid()).Take(1).Single();
-                else item = items.First();
-
-                if (item != null)
-                {
-                    posX = item.positionX;
-                    posY = item.positionY;
-                    return true;
-                }
-            }
-            
-            return false;
-            /*
-            if (vehicles.Count() == 0)
-                return false;
-
-            if (huntFreq == -1 || huntFreq > 0)
-            {   //Look for a specific team (-1 is hostile turret team)
-                Vehicle[] demVehicles = vehicles.Where(v => v._team._id == huntFreq).ToArray();
-                if (demVehicles.Count() > 0)
-                {
-                    Vehicle v = demVehicles[_rand.Next(demVehicles.Count())];
-                    posX = v._state.positionX;
-                    posY = v._state.positionY;
-                    return true;
-                }
-                else
-                    return false;
+            List<RelativeObj> possibilities = new List<RelativeObj> { };
+            possibilities.AddRange(from v in Vehicles
+                                   where (v.relativeID == relID &&
+                                         (v._type.Type == VehInfo.Types.Computer)
+                                      || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
+                                      || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
+                                   select new RelativeObj(v._state.positionX, v._state.positionY, v._team._id));
+            possibilities.AddRange(from f in _flags.Values
+                                   where f.bActive && f.flag.FlagData.FlagRelativeId == relID
+                                   select new RelativeObj(f.posX, f.posY, f.team._id));
+            possibilities.AddRange(from it in _items.Values
+                                   where it.relativeID == relID
+                                   select new RelativeObj(it.positionX, it.positionY, 0));
+            if (huntFreq >= -1)
+            {   //limit to this frequency
+                return possibilities.Where(p => p.freq == huntFreq).ToList();
             }
             else if (huntFreq == -2)
-            {   //Any freq
-                return false;
+            {   //any freq, return all matches
+                return possibilities;
             }
+            else if (huntFreq == -3)
+            {   //any-unowned ?? I guess this means turret teams
+                return possibilities.Where(p => p.freq == -1 || p.freq == 9999).ToList();
+            }
+            //huntFreq -4 only applies to warp groups
 
+            return null;
+        }
+
+        /*
+         * Changes made to hideSpawn() (notes)
+         * moved the actual spawning of items/vehs into separate functions
+         * try to build the lists we need only once when hidespawn() is called and pass them around
+         * check objlevel before the new function is called and try to optimize the check for objs in area (maybe i can cache it somehow)
+         * 
+         */
+        private bool hideItem(HideState hs, List<RelativeObj> spawnPoints, ItemInfo item, List<ItemDrop> sameItems)
+        {
+            foreach (RelativeObj sp in spawnPoints)
+            {
+                if (hs.Hide.HideData.MinPlayerDistance != 0 &&
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
+				    continue;
+                if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
+				    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
+				    continue;
+
+                if (hs.Hide.HideData.MaxTypeInArea != -1)
+                {   //Check for the amount of similiar objects
+                    int objArea = 0;
+                    int w2 = hs.Hide.GeneralData.Width / 2;
+                    int h2 = hs.Hide.GeneralData.Height / 2;
+
+                    foreach (ItemDrop drop in sameItems)
+                    {	//In the given area?
+                        if (sp.posX + w2 < drop.positionX)
+                            continue;
+                        if (sp.posX - w2 > drop.positionX)
+                            continue;
+                        if (sp.posY + h2 < drop.positionY)
+                            continue;
+                        if (sp.posY - h2 > drop.positionY)
+                            continue;
+
+                        objArea += drop.quantity;
+                    }
+
+                    //Can we spawn another?
+                    if (objArea >= hs.Hide.HideData.MaxTypeInArea)
+                        continue;
+                }
+
+                //Generate some random coordinates
+                short pX = 0;
+                short pY = 0;
+                int attempts = 0;
+                int clumpQuantity = (hs.Hide.HideData.ClumpQuantity == 0 ? 1 : hs.Hide.HideData.ClumpQuantity);
+                for(; attempts < 10; attempts++)
+                {
+                    pX = sp.posX;
+                    pY = sp.posY;
+                    if (hs.Hide.HideData.ClumpRadius > 0)
+                        //This is not true clustering, it should be a circle around the point but I don't feel like making a new method for it
+                        Helpers.randomPositionInArea(this, ref pX, ref pY,
+                            (short)hs.Hide.HideData.ClumpRadius, (short)hs.Hide.HideData.ClumpRadius);
+                    else
+                        Helpers.randomPositionInArea(this, ref pX, ref pY,
+                            (short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
+
+                    //Is it blocked?
+                    if (getTile(pX, pY).Blocked)
+                    	//Try again
+                        continue;
+
+                    itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, pX, pY, hs.Hide.HideData.RelativeId, hs.Hide.HideData.AssignFrequency);
+
+                    if (clumpQuantity > 1)
+                    {   //Have more to spawn, so make sure it runs again
+                        clumpQuantity--;
+                        attempts -= 5;
+                        continue;
+                    }
+                    
+
+                    break;
+                }
+                if (attempts == 10)
+                    continue;
+
+                return true;
+            }
             return false;
-             */
+        }
+
+        private bool hideVehicle(HideState hs, List<RelativeObj> spawnPoints, VehInfo vehicle, List<Vehicle> sameVehicles, Team team)
+        {
+            foreach (RelativeObj sp in spawnPoints)
+            {   
+                if (hs.Hide.HideData.MinPlayerDistance != 0 &&
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
+				    continue;
+                if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
+				    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
+				    continue;
+
+                if (hs.Hide.HideData.MaxTypeInArea != -1)
+                {   //Check for the amount of similiar vehicles
+                    int objArea = 0;
+                    int w2 = hs.Hide.GeneralData.Width / 2;
+                    int h2 = hs.Hide.GeneralData.Height / 2;
+
+                    foreach (Vehicle veh in sameVehicles)
+                    {	//In the given area?
+                        if (sp.posX + w2 < veh._state.positionX)
+                            continue;
+                        if (sp.posX - w2 > veh._state.positionX)
+                            continue;
+                        if (sp.posY + h2 < veh._state.positionY)
+                            continue;
+                        if (sp.posY - h2 > veh._state.positionY)
+                            continue;
+
+                        objArea++;
+                    }
+
+                    //Can we spawn another?
+                    if (objArea >= hs.Hide.HideData.MaxTypeInArea)
+                    {
+                        sendArenaMessage(String.Format("Too many in area {0}/{1}", objArea, hs.Hide.HideData.MaxTypeInArea));
+                        continue;
+                    }
+                }
+
+                short pX = 0;
+                short pY = 0;
+                int attempts = 0;
+                for (; attempts < 10; attempts++)
+                {
+                    pX = sp.posX;
+                    pY = sp.posY;
+                    Helpers.randomPositionInArea(this, ref pX, ref pY,
+                        (short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
+
+                    //Is it blocked?
+                    if (getTile(pX, pY).Blocked)
+                        continue;
+
+                    break;
+                }
+                if (attempts == 10) //spawn was blocked
+                    continue;
+
+                //Create a suitable state
+                Helpers.ObjectState state = new Helpers.ObjectState();
+
+                state.positionX = pX;
+                state.positionY = pY;
+
+                Vehicle spawn = newVehicle(vehicle, team, null, state);
+
+                //Set relative ID
+                if (hs.Hide.HideData.RelativeId != 0)
+                    spawn.relativeID = hs.Hide.HideData.RelativeId;
+
+                return true;
+            }
+            return false;
         }
 
 		/// <summary>
@@ -300,206 +453,98 @@ namespace InfServer.Game
 			if (players < hs.Hide.HideData.MinPlayers)
 				return false;
 
-            short posX, posY;
+            // Can this item be spawned at all?
+			//LIO Ed says Hide Quantity doesnt matter for vehicles
+			//and the initialCount check is not needed..
+			/*if (hs.Hide.HideData.InitialCount == 0 && hs.Hide.HideData.HideQuantity == 0)
+				return false;*/
+
+            List<RelativeObj> spawnPoints;
             if (hs.Hide.GeneralData.RelativeId == 0)
-            {
-                posX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
-                posY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
+            {   //Fake an object for the spawn point
+                spawnPoints = new List<RelativeObj> { new RelativeObj(
+                    (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16)),
+                    (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16)),
+                    0) };
             }
             else
-            {   //
-                posX = 0;
-                posY = 0;
-                if (!findRelativeID(hs.Hide.GeneralData.HuntFrequency, hs.Hide.GeneralData.RelativeId, ref posX, ref posY))
+            { 
+                spawnPoints = findRelativeID(hs.Hide.GeneralData.HuntFrequency, hs.Hide.GeneralData.RelativeId);
+                if (spawnPoints == null || spawnPoints.Count == 0)
                     return false;
             }
-            
-			//Look out for distant players
-			if (hs.Hide.HideData.MinPlayerDistance != 0 &&
-				getPlayersInRange(hs.Hide.GeneralData.OffsetX, hs.Hide.GeneralData.OffsetY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
-				return false;
 
-			if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
-				getPlayersInRange(hs.Hide.GeneralData.OffsetX, hs.Hide.GeneralData.OffsetY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
-				return false;
-            
-			//TODO: Hide lio spawn probability
-			//needs testing, probability = 0 hides should run only on the initial hide
-			//probability 1 means always run, stupidest definition of probability ever
-            //if (hs.Hide.HideData.Probability == 0)
-            //    return false;
+            int spawned = 0;
+            if (hs.Hide.HideData.HideId > 0)
+            {   //Inventory item
+                ItemInfo item = _server._assets.getItemByID(hs.Hide.HideData.HideId);
+                if (item == null)
+                {   //No such item? Add a day delay each time this hits
+                    Log.write(TLog.Error, "Hide {0} referenced invalid object id #{1}", hs.Hide, hs.Hide.HideData.HideId);
+                    hs.Hide.HideData.AttemptDelay += (24 * 60 * 60) * 1000;
+                    return false;
+                }
 
-			//Spawn it!
-			if (hs.Hide.HideData.HideId > 0)
-			{	//Inventory item, get the item type
-				ItemInfo item = _server._assets.getItemByID(hs.Hide.HideData.HideId);
-				if (item == null)
-				{
-					Log.write(TLog.Error, "Hide {0} referenced invalid object id #{1}", hs.Hide, hs.Hide.HideData.HideId);
-					return false;
-				}
+                //Filter list before sending to hideItem()
+                List<ItemDrop> sameItems = new List<ItemDrop>{};
+                foreach (ItemDrop drop in _items.Values)
+                {
+                    if (drop.item == item)
+                        sameItems.Add(drop);
+                }
 
-				//Check for the amount of similiar objects
-				int objArea = 0;
-				int objLevel = 0;
-				int w2 = hs.Hide.GeneralData.Width / 2;
-				int h2 = hs.Hide.GeneralData.Height / 2;
+                //Too many in the level?
+                if (hs.Hide.HideData.MaxTypeInlevel != -1 && sameItems.Sum(it => it.quantity) >= hs.Hide.HideData.MaxTypeInlevel)
+                    return false;
 
-				foreach (ItemDrop drop in _items.Values)
-				{	//Is it of the same time?
-					if (drop.item != item)
-						continue;
-					objLevel += drop.quantity;
+                //Try to spawn it
+                for (; spawns > 0; spawns--)
+                    if (hideItem(hs, spawnPoints, item, sameItems))
+                        spawned++;
+            }
+            else
+            {   //Vehicle
+                VehInfo vehicle = _server._assets.getVehicleByID(-hs.Hide.HideData.HideId);
+                if (vehicle == null)
+                {   //No such vehicle
+                    Log.write(TLog.Error, "Hide {0} referenced invalid vehicle id #{1}", hs.Hide.GeneralData.Name, -hs.Hide.HideData.HideId);
+                    hs.Hide.HideData.AttemptDelay += (24 * 60 * 60) * 1000;
+                    return false;
+                }
 
-					//In the given area?
-					//if (hs.Hide.GeneralData.OffsetX + w2 < drop.positionX)
-					if (posX + w2 < drop.positionX)
-						continue;
-					//if (hs.Hide.GeneralData.OffsetX - w2 > drop.positionX)
-					if (posX - w2 > drop.positionX)
-						continue;
-					//if (hs.Hide.GeneralData.OffsetY + h2 < drop.positionY)
-					if (posY + h2 < drop.positionY)
-						continue;
-					//if (hs.Hide.GeneralData.OffsetY - h2 > drop.positionY)
-					if (posY - h2 > drop.positionY)
-						continue;
+                //Find same vehicles
+                List<Vehicle> sameVehicles = new List<Vehicle>{};
+                foreach (Vehicle veh in _vehicles.ToList())
+                {
+                    if (veh._type == vehicle)
+                        sameVehicles.Add(veh);
+                }
 
-					objArea += drop.quantity;
-				}
+                //Too many in level?
+                if (hs.Hide.HideData.MaxTypeInlevel != -1 && sameVehicles.Count >= hs.Hide.HideData.MaxTypeInlevel)
+                    return false;
 
-				//Can we spawn another?
-				if (hs.Hide.HideData.MaxTypeInArea != -1 && objArea > hs.Hide.HideData.MaxTypeInArea)
-					return false;
-				if (hs.Hide.HideData.MaxTypeInlevel != -1 && objLevel > hs.Hide.HideData.MaxTypeInlevel)
-					return false;
+                //Find the associated team
+                Team team = null;
+                _freqTeams.TryGetValue(hs.Hide.HideData.AssignFrequency, out team);
 
-				//Great! We can spawn it
-				int attempts = 0;
+                //Try to spawn it
+                for (; spawns > 0; spawns--)
+                    if (hideVehicle(hs, spawnPoints, vehicle, sameVehicles, team))
+                        spawned++;
+            }
 
-				while (spawns > 0)
-				{	//Make sure we're not doing this infinitely
-					if (attempts++ > 200)
-					{
-						Log.write(TLog.Error, "Unable to satisfy hide spawn for '{0}'.", hs.Hide);
-						break;
-					}
+            if (spawned == 0)
+                return false;
 
-					//Generate some random coordinates
-                    //short pX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
-                    //short pY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
-                    short pX = posX;
-                    short pY = posY;
+            hs._tickLastSuccessAttempt = Environment.TickCount;
 
-					Helpers.randomPositionInArea(this, ref pX, ref pY,
-						(short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
+            //Announce it
+            //TODO: change to trigger message
+            if (hs.Hide.HideData.HideAnnounce.Length > 0)
+                sendArenaMessage(hs.Hide.HideData.HideAnnounce);
 
-					//Is it blocked?
-					if (getTile(pX, pY).Blocked)
-						//Try again
-						continue;
-
-					itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, (short)pX, (short)pY, hs.Hide.HideData.RelativeId);
-					spawns--;
-				}
-
-				//We're good for now!
-				hs._tickLastSuccessAttempt = Environment.TickCount;
-				return true;
-			}
-			else
-			{	//It's a vehicle! Get the vehicle type
-				VehInfo vehicle = _server._assets.getVehicleByID(- hs.Hide.HideData.HideId);
-				if (vehicle == null)
-				{
-					Log.write(TLog.Error, "Hide {0} referenced invalid vehicle id #{1}", hs.Hide, hs.Hide.HideData.HideId);
-					return false;
-				}
-
-				// Can this item be spawned at all?
-				//LIO Ed says Hide Quantity doesnt matter for vehicles
-				//and the initialCount check is not needed..
-				/*if (hs.Hide.HideData.InitialCount == 0 && hs.Hide.HideData.HideQuantity == 0)
-					return false;*/
-
-				//Check for the amount of similiar vehicles
-				int objArea = 0;
-				int objLevel = 0;
-				int w2 = hs.Hide.GeneralData.Width / 2;
-				int h2 = hs.Hide.GeneralData.Height / 2;
-
-				foreach (Vehicle veh in _vehicles)
-				{	//Is it of the same time?
-					if (veh._type != vehicle)
-						continue;
-					objLevel++;
-
-					//In the given area?
-					if (hs.Hide.GeneralData.OffsetX + w2 < veh._state.positionX)
-						continue;
-					if (hs.Hide.GeneralData.OffsetX - w2 > veh._state.positionX)
-						continue;
-					if (hs.Hide.GeneralData.OffsetY + h2 < veh._state.positionY)
-						continue;
-					if (hs.Hide.GeneralData.OffsetY - h2 > veh._state.positionY)
-						continue;
-
-					objArea++;
-				}
-
-				//Can we spawn another?
-				if (hs.Hide.HideData.MaxTypeInArea != -1 && objArea > hs.Hide.HideData.MaxTypeInArea)
-					return false;
-				if (hs.Hide.HideData.MaxTypeInlevel != -1 && objLevel > hs.Hide.HideData.MaxTypeInlevel)
-					return false;
-
-				//Find the associated team
-				Team team = null;
-
-				_freqTeams.TryGetValue(hs.Hide.HideData.AssignFrequency, out team);
-
-				int attempts = 0;
-				//Great! We can spawn it
-				while (spawns > 0)
-				{	//Generate some random coordinates
-                    short pX = (short)(hs.Hide.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16));
-                    short pY = (short)(hs.Hide.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16));
-
-					Helpers.randomPositionInArea(this, ref pX, ref pY, 
-						(short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
-
-					//Is it blocked?
-					if (getTile(pX, pY).Blocked)
-					{
-						if (attempts++ > 100)
-						{   //Delay it from running when this happens
-							Log.write(TLog.Warning, "Blocked vehicle spawn {0} (ignored)", vehicle.Name);
-							hs.Hide.HideData.AttemptDelay += 5000;
-							break;
-						}
-						//Try again
-						continue;
-					}
-
-					//Create a suitable state
-					Helpers.ObjectState state = new Helpers.ObjectState();
-
-					state.positionX = (short)pX;
-					state.positionY = (short)pY;
-
-					Vehicle spawn = newVehicle(vehicle, team, null, state);
-
-					//Set relative ID
-					if (hs.Hide.HideData.RelativeId != 0)
-						spawn.relativeID = hs.Hide.HideData.RelativeId;
-
-					spawns--;
-				}
-
-				//We're good for now!
-				hs._tickLastSuccessAttempt = Environment.TickCount;
-				return true;
-			}
+            return true;
 		}
 
 		/// <summary>
