@@ -888,8 +888,17 @@ namespace InfServer.Game
                     //Now remove them from the player's inventory
                     from.inventoryModify(item.Key, -item.Value);
                 }
-            }   //Done
-            
+            }
+
+            //Innate Drop items?
+            VehInfo vehicle = _server._assets.getVehicleByID(from._baseVehicle._type.Id);
+            if (vehicle.DropItemId != 0)
+            {
+                ItemInfo item = _server._assets.getItemByID(vehicle.DropItemId);
+                if (item != null)
+                    itemSpawn(item, (ushort)vehicle.DropItemQuantity, from._state.positionX, from._state.positionY);
+            }
+
 
             //Prompt the player death event
             if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type, update))
@@ -988,10 +997,7 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to use the store
 		/// </summary>
 		public override void handlePlayerShop(Player from, ItemInfo item, int quantity)
-		{	//What is this nonsense?
-			if (quantity == 0)
-				return;
-				
+		{	
 			//Get the player's related inventory item
 			Player.InventoryItem ii = from.getInventory(item);
 
@@ -1642,6 +1648,15 @@ namespace InfServer.Game
 			if (!exists("Vehicle.Death") || (bool)callsync("Vehicle.Death", false, dead, killer))
 			{	//Route the death to the arena
 				Helpers.Vehicle_RouteDeath(Players, killer, dead, occupier);
+
+                //Innate Drop items?
+                VehInfo vehicle = _server._assets.getVehicleByID(dead._type.Id);
+                if (vehicle.DropItemId != 0)
+                {
+                    ItemInfo item = _server._assets.getItemByID(vehicle.DropItemId);
+                    if (item != null)
+                        itemSpawn(item, (ushort)vehicle.DropItemQuantity, dead._state.positionX, dead._state.positionY);
+                }
 			}
 		}
         #endregion
