@@ -68,8 +68,11 @@ namespace InfServer.Protocol
 			Write((short)0);			//Unknown
 			Write((short)skillCount);
 
-			foreach (Player.SkillItem skill in skills)
-				Write((ushort)skill.skill.SkillId);
+            foreach (Player.SkillItem skill in skills)
+                if (skill.skill.SkillId >= 0)
+                    Write((short)skill.skill.SkillId);
+                else
+                    Write((short)skill.skill.SkillId * 1000 - skill.quantity);
 
 			Skip((Player.SkillItem.MaxSkills - skillCount) * 8);
 
