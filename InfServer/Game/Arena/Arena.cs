@@ -276,7 +276,7 @@ namespace InfServer.Game
 			public short positionX;		//The location of the pile
 			public short positionY;		//
 			public int relativeID;      //Relative ID of the item or the hide
-			public int tickDropped;
+			public int tickExpire;      //Tick the item expires on
 			public int freq = -1;       //Owning frequency
 		}
 
@@ -416,29 +416,11 @@ namespace InfServer.Game
 				if (bMinor)
 					_tickLastMinorPoll = now;
 
-				CfgInfo.Terrain t;
-				bool tickTerrainBty = now - _bountyTick > 30000; //run every 30 seconds
-				if (tickTerrainBty)
-					_bountyTick = now;
-
                 //Keep our itemdrops in line
                 foreach (var itm in _items.Values)
                 {
-                    //Get our terrain id
-                    int terrainID = getTerrainID(itm.positionX, itm.positionY);
-                    int prizeExpire = _server._zoneConfig.terrains[terrainID].prizeExpire;
-
-                    //Ignore 
-                    if (prizeExpire == 0)
-                        continue;
-
-
-                    //Is this item expired?
-                    if ((now - itm.tickDropped) > (prizeExpire * 1000))
-                    {
-                        //Condemn it
+                    if (itm.tickExpire != 0 && now > itm.tickExpire)
                         _condemnedItems.Add(itm);
-                    }
                 }
 
                 //Remove expired items
@@ -449,7 +431,11 @@ namespace InfServer.Game
                     _items.Remove(item.id);
                 }
                 _condemnedItems.Clear();
-                
+
+                CfgInfo.Terrain t;
+                bool tickTerrainBty = now - _bountyTick > 30000; //run every 30 seconds
+                if (tickTerrainBty)
+                    _bountyTick = now;
 
 				foreach (Player player in PlayersIngame)
 				{	//Is he awaiting a respawn?

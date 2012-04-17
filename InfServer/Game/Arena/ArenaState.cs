@@ -542,9 +542,11 @@ namespace InfServer.Game
 			id.quantity = (short)quantity;
 			id.positionX = positionX;
 			id.positionY = positionY;
-            id.tickDropped = Environment.TickCount;
 			id.relativeID = (relativeID == 0 ? item.relativeID : relativeID);
             id.freq = freq;
+
+            int expire = getTerrain(positionX, positionY).prizeExpire;
+            id.tickExpire = (expire > 0 ? (Environment.TickCount + (expire * 1000)) : 0);
 
 			//Add it to our list
 			_items[ik] = id;

@@ -396,10 +396,7 @@ namespace InfServer.Game
 
                     //Can we spawn another?
                     if (objArea >= hs.Hide.HideData.MaxTypeInArea)
-                    {
-                        sendArenaMessage(String.Format("Too many in area {0}/{1}", objArea, hs.Hide.HideData.MaxTypeInArea));
                         continue;
-                    }
                 }
 
                 short pX = 0;
