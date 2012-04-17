@@ -71,7 +71,6 @@ Global
 		{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}.Release|Mixed Platforms.ActiveCfg = Release|Itanium
 		{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}.Release|Mixed Platforms.Build.0 = Release|Itanium
 		{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}.Release|x86.ActiveCfg = Release|x86
-		{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}.Release|x86.Build.0 = Release|x86
 		{3581E182-401E-4E42-BEEC-A5952C9987D5}.Debug|Mixed Platforms.ActiveCfg = Debug|Itanium
 		{3581E182-401E-4E42-BEEC-A5952C9987D5}.Debug|Mixed Platforms.Build.0 = Debug|Itanium
 		{3581E182-401E-4E42-BEEC-A5952C9987D5}.Debug|x86.ActiveCfg = Debug|x86

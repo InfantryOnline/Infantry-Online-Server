@@ -42,7 +42,6 @@ namespace InfServer
 			//Assume it
 			if (m_bActive)
 				Log.assume(client);
-
 			m_client = client;
 		}
 
@@ -52,7 +51,6 @@ namespace InfServer
 			//resources will already be disposed
 			Dispose(false);
 		}
-
 		//IDisposable implementation
 		public void Dispose()
 		{	//Dispose of both resources
@@ -721,6 +719,25 @@ namespace InfServer
 		{
 			write(type, Message, client, true);
 		}
+
+        static public List<string> readLog()
+        {
+            List<string> logs = new List<string>();
+            FileStream exceptions = new FileStream("logs/exceptions.txt", FileMode.Open, FileAccess.Read, System.IO.FileShare.ReadWrite);
+            FileStream errors = new FileStream("logs/exceptions.txt", FileMode.Open, FileAccess.Read, System.IO.FileShare.ReadWrite);
+            
+            string line;
+            //Read exceptions by default for now..
+            StreamReader reader = new StreamReader(exceptions);
+            while ((line = reader.ReadLine()) != null)
+            {
+                logs.Add(line);
+            }
+            exceptions.Close();
+
+
+            return logs;
+        }
 
 		internal static void write(TLog type, string Message, LogClient client, bool bCautious)
 		{	//Ignore fake clients

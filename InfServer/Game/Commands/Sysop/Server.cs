@@ -48,6 +48,30 @@ namespace InfServer.Game.Commands.Mod
             
         }
 
+        /// <summary>
+        /// Grabs logs
+        /// </summary>
+        static public void log(Player player, Player recipient, string payload, int bong)
+        {
+            List<string> logs = Log.readLog();
+
+            if (logs == null)
+                return;
+
+            //Do we even have any?
+            if (logs.Count() == 0)
+            {
+                player.sendMessage(0, "No exception logs.");
+                return;
+            }
+
+            //Send em!
+            foreach (string log in logs)
+            {
+                player.sendMessage(0, String.Format("!{0}", log));
+            }
+        }
+
 
         
 
@@ -101,6 +125,11 @@ namespace InfServer.Game.Commands.Mod
 				"Restarts the current zone",
 				"*recycle",
 				InfServer.Data.PlayerPermission.Sysop);
+
+            yield return new HandlerDescriptor(log, "log",
+                "Grabs exception logs for the current zone",
+                "*log",
+                InfServer.Data.PlayerPermission.Sysop);
 
 			yield return new HandlerDescriptor(environment, "environment",
 				"Queries environment information from a player",

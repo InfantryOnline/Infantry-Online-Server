@@ -113,16 +113,16 @@ namespace InfServer.Protocol
 		/// </summary>
 		static public void Social_ArenaBanners(IEnumerable<Player> players, Player player)
 		{	//Got a banner?
-			if (player._bannerData == null)
-				return;
+            if (player._bannerData == null)
+                return;
 
 			//Send each player's banner
 			SC_Banner banner = new SC_Banner();
 			banner.player = player;
 
-			foreach (Player plyr in players)
+			foreach (Player plyr in player._arena.Players)
                 if (plyr != player)
-                    plyr._client.sendReliable(banner, 1);
+                    plyr._client.sendReliable(banner);
 		}
 
 		/// <summary>
@@ -139,8 +139,7 @@ namespace InfServer.Protocol
 				banner.player = plyr;
 
                 if (plyr != player)
-                    player._client.sendReliable(banner, 1);
-
+                    player._client.sendReliable(banner);
 			}
 		}
 
@@ -155,7 +154,7 @@ namespace InfServer.Protocol
 			SC_Banner banner = new SC_Banner();
 			banner.player = player;
 
-			player._client.sendReliable(banner, 1);
+			player._client.sendReliable(banner);
 		}
 
 		/// <summary>

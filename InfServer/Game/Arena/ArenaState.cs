@@ -191,7 +191,12 @@ namespace InfServer.Game
 			//Initialize the player's state
 			Helpers.Player_StateInit(player,
 				delegate()
-				{	//And make sure everyone is aware of him
+				{
+                    
+
+
+                    
+                    //And make sure everyone is aware of him
 					Helpers.Object_Players(audience, player);
 
 					//Consider him loaded!
@@ -201,10 +206,10 @@ namespace InfServer.Game
 					//Load the tickers
 					Helpers.Arena_Message(player, _tickers.Values);
 
-					//Load all the banners
+                    //Load all the banners
                     Helpers.Social_UpdateBanner(player); //Players banner
-                    Helpers.Social_ArenaBanners(Players, player); //Inform arena of his banner
-					Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
+                    Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
+                    Helpers.Social_ArenaBanners(player._arena.Players, player); //Inform arena of his banner
 				}
 			);
 		}

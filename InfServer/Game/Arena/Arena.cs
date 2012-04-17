@@ -72,6 +72,8 @@ namespace InfServer.Game
 		static public int routeRadarRangeFar;			//The range at which packets are routed, but even slower
 		static public int routeRadarRangeFarFactor;		//The factor at which the far packets are routed
 
+        public delegate void LogMessage(string message);
+
 		#region EventObject
 		/// <summary>
 		/// The event logger, if exists, for this class
