@@ -246,7 +246,7 @@ namespace InfServer.Game
         //I need to build a list of relative IDs
         //This list reflects computers, flags, and the active vehicle of players (and bots by extension)
         //and items laying around in the arena
-        private List<RelativeObj> findRelativeID(int huntFreq, int relID)
+        private List<RelativeObj> findRelativeID(int huntFreq, int relID, Player requestingPlayer)
         {
             List<RelativeObj> possibilities = new List<RelativeObj> { };
             possibilities.AddRange(from v in Vehicles
@@ -270,10 +270,21 @@ namespace InfServer.Game
                 return possibilities;
             }
             else if (huntFreq == -3)
-            {   //any-unowned ?? I guess this means turret teams
+            {   //requesting player's frequency first then any-unowned
+                if (requestingPlayer != null)
+                {   //This is a warp request
+                    var subp = possibilities.Where(p => p.freq == requestingPlayer._team._id).ToList();
+                    if (subp.Count > 0)
+                        return subp;
+                }
                 return possibilities.Where(p => p.freq == -1 || p.freq == 9999).ToList();
             }
-            //huntFreq -4 only applies to warp groups
+            else if (huntFreq == -4 && requestingPlayer != null)
+            {   //requesting player's frequency only
+                var subp = possibilities.Where(p => p.freq == requestingPlayer._team._id).ToList();
+                if (subp.Count > 0)
+                    return subp;
+            }
 
             return null;
         }
@@ -466,7 +477,7 @@ namespace InfServer.Game
             }
             else
             { 
-                spawnPoints = findRelativeID(hs.Hide.GeneralData.HuntFrequency, hs.Hide.GeneralData.RelativeId);
+                spawnPoints = findRelativeID(hs.Hide.GeneralData.HuntFrequency, hs.Hide.GeneralData.RelativeId, null);
                 if (spawnPoints == null || spawnPoints.Count == 0)
                     return false;
             }
