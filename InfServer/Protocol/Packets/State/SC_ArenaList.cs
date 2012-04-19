@@ -50,13 +50,9 @@ namespace InfServer.Protocol
 				Write(arena._name, 32);
                 //Is he in the arena?
                 if (requestee._arena == arena)
-                {
-                    Write(-(Int16)arena.TotalPlayerCount);
-                }
+                    Write((short)(arena.TotalPlayerCount * -1));
                 else
-                {
-                    Write((Int16)arena.TotalPlayerCount);
-                }
+                    Write((short)arena.TotalPlayerCount);
 			}
 		}
 

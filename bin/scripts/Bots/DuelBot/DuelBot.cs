@@ -27,9 +27,9 @@ namespace InfServer.Script.DuelBot
 		private Player _victim;						//The player we're currently stalking
 
 		private int _stalkRadius = 1000;			//The distance away we'll look for a victim (in pixels?)
-		private int _optimialDistance = 100;		//The optimal distance from the player we want to be
-		private int _optimalDistanceTolerance = 20;	//The distance tolerance as we're moving back towards the player
-		private int _distanceTolerance = 120;		//The tolerance from the optimal distance we accept
+		private int _optimialDistance = 150;		//The optimal distance from the player we want to be
+		private int _optimalDistanceTolerance = 50;	//The distance tolerance as we're moving back towards the player
+		private int _distanceTolerance = 150;		//The tolerance from the optimal distance we accept
 
 		private int _tickNextStrafeChange;			//The last time we changed strafe direction
 
@@ -48,29 +48,25 @@ namespace InfServer.Script.DuelBot
 			_bot = invoker as Bot;
 			_rand = new Random();
 
-			/*//Equip ourselves a maklov!
-			switch (_rand.Next(0, 5))
+			//Equip ourselves an assault rifle
+			switch (_rand.Next(0, 4))
 			{
-				case 0:*/
-					_bot._weapon.equip(AssetManager.Manager.getItemByName("Claw"));	
-					/*break;
+				case 0:
+					_bot._weapon.equip(AssetManager.Manager.getItemByName("Maklov AR mk 606"));	
+					break;
 
 				case 1:
-					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Unittech BR2000"));	
+					_bot._weapon.equip(AssetManager.Manager.getItemByName("Kuchler AR249"));	
 					break;
 
-				case 2:
-					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Kuchler CR 102"));	
-					break;
+                case 2:
+                    _bot._weapon.equip(AssetManager.Manager.getItemByName("Titan Arms AR 2mv"));
+                    break;
 
-				case 3:
-					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Gravitron"));	
-					break;
-
-				case 4:
-					_bot._weapon.equip(_bot.AssetManager.Manager.getItemByName("Maklov GL 8a"));
-					break;
-			}*/
+                case 3:
+                    _bot._weapon.equip(AssetManager.Manager.getItemByName("Maklov G2 ACW"));
+                    break;
+			}
 
 			return true;
 		}
@@ -84,6 +80,18 @@ namespace InfServer.Script.DuelBot
 
 			//Get our current tick
 			int tickCount = Environment.TickCount;
+
+            //Are we dead?
+            if (_bot.IsDead)
+            {
+                _bot.destroy(true);
+                return false;
+            }
+
+            //Did we kill our victim?
+            if (_victim != null && _victim.IsDead)
+                //Taunt him!
+                _bot._itemUseID = 1095;
 
 			//Is our victim still valid?
 			if (_victim == null ||
