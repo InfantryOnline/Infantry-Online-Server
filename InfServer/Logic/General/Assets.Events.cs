@@ -267,8 +267,23 @@ namespace InfServer.Logic
 
 				//Wipes the player's inventory
 				case "wipeinv":
-					player._inventory.Clear();
-					bChangedState = true;
+					if (param != "")
+					{   //Erase all of a specified item
+						int id;
+						if (!Int32.TryParse(param, out id))
+						{
+							ItemInfo item = player._server._assets.getItemByName(param);
+							if (item == null)
+								return false;
+							id = item.id;
+						}
+						player.removeAllItemFromInventory(true, id);
+					}
+					else
+					{   //Erase whole inventory
+						player._inventory.Clear();
+						bChangedState = true;
+					}
 					break;
 
 				//Wipes the player's score
