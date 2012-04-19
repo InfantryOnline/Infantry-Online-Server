@@ -335,6 +335,9 @@ namespace InfServer.Game
 				//Add the pickup to inventory!
 				from.inventoryModify(drop.item, update.quantity);
 
+                //Update his bounty.
+                from.Bounty += drop.item.prizeBountyPoints;
+
 				//Remove the item from player's clients
 				Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
 			}

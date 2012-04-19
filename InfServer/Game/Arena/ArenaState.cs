@@ -208,8 +208,8 @@ namespace InfServer.Game
 
                     //Load all the banners
                     Helpers.Social_UpdateBanner(player); //Players banner
-                    Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
                     Helpers.Social_ArenaBanners(player._arena.Players, player); //Inform arena of his banner
+                    Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
 				}
 			);
 		}

@@ -130,7 +130,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		static public void Social_ArenaBanners(Player player, Arena arena)
 		{	//Send each player's banner
-			foreach (Player plyr in arena.Players)
+			foreach (Player plyr in player._arena.Players)
 			{	//Got a banner?
 				if (plyr._bannerData == null)
 					return;
