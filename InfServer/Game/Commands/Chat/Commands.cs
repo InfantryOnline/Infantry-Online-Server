@@ -503,6 +503,13 @@ namespace InfServer.Game.Commands.Chat
             if (payload == "")
                 //Don't do anything if there is no payload, client will handle it
                 return;
+            
+            //Valid terrain?
+            if (player._arena.getTerrain(player._state.positionX, player._state.positionY).teamChangeEnabled != 1)
+            {
+                player.sendMessage(-1, "Can't change team from this terrain");
+                return;
+            }
 
             //First check to make sure they're allowed to switch teams
             if (player._arena._server._zoneConfig.arena.allowManualTeamSwitch)
