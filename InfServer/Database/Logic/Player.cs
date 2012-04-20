@@ -44,7 +44,7 @@ namespace InfServer.Logic
 			}
 			else
 				//First time loading!
-				player.assignFirstTimeStats();
+				player.assignFirstTimeStats(true);
 
 			//Let him in!
 			Helpers.Login_Response(player._client, SC_Login.Login_Result.Success, pkt.loginMessage);

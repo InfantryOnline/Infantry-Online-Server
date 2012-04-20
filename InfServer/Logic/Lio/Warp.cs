@@ -26,8 +26,9 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Warp(Helpers.ResetFlags flags, Player player, IEnumerable<LioInfo.WarpField> warpGroup, int invulnTime)
 		{	//Search for valid warps to use
-			List<LioInfo.WarpField> valid = new List<LioInfo.WarpField>();
-			LioInfo.WarpField unassignedEscape = null;
+			//List<LioInfo.WarpField> valid = new List<LioInfo.WarpField>();
+            List<Arena.RelativeObj> valid = new List<Arena.RelativeObj>();
+			Arena.RelativeObj unassignedEscape = null;
 
 			foreach (LioInfo.WarpField warp in warpGroup)
 			{	//Do we have the appropriate skills?
@@ -42,31 +43,46 @@ namespace InfServer.Logic
 				if (warp.WarpFieldData.MaxPlayerCount < playerCount)
 					continue;
 
-				//Check player concentration
-				playerCount = player._arena.getPlayersInBox(
-					warp.GeneralData.OffsetX, warp.GeneralData.OffsetY,
-					warp.GeneralData.Width, warp.GeneralData.Height).Count;
+                //Specific team warp but we're on the wrong team
+                if (warp.WarpFieldData.WarpMode == LioInfo.WarpField.WarpMode.SpecificTeam && 
+                    player._team._id != warp.WarpFieldData.WarpModeParameter)
+                    continue;
 
-				if (warp.WarpFieldData.MinPlayersInArea > playerCount)
-					continue;
-				if (warp.WarpFieldData.MaxPlayersInArea < playerCount)
-					continue;
+                List<Arena.RelativeObj> spawnPoints;
+                if (warp.GeneralData.RelativeId != 0)
+                {   //Search for possible points to warp from
+                    spawnPoints = player._arena.findRelativeID(warp.GeneralData.HuntFrequency, warp.GeneralData.RelativeId, player);
+                    if (spawnPoints == null)
+                        continue;
+                }
+                else
+                {   //Fake it to make it
+                    spawnPoints = new List<Arena.RelativeObj> {
+                        new Arena.RelativeObj(warp.GeneralData.OffsetX, warp.GeneralData.OffsetY, 0)
+                    };
+                }
 
-				//Satisfy our warpmode option
-				switch (warp.WarpFieldData.WarpMode)
-				{
-					case LioInfo.WarpField.WarpMode.Unassigned:
-						unassignedEscape = warp;
-						continue;
+                foreach (Arena.RelativeObj point in spawnPoints)
+                {   //Check player concentration
+                    playerCount = player._arena.getPlayersInBox(
+                        point.posX, point.posY,
+                        warp.GeneralData.Width, warp.GeneralData.Height).Count;
 
-					case LioInfo.WarpField.WarpMode.SpecificTeam:
-						//Are we on the correct frequency?
-						if (player._team._id != warp.WarpFieldData.WarpModeParameter)
-							continue;
-						break;
-				}
+                    if (warp.WarpFieldData.MinPlayersInArea > playerCount)
+                        continue;
+                    if (warp.WarpFieldData.MaxPlayersInArea < playerCount)
+                        continue;
 
-				valid.Add(warp);
+                    point.warp = warp;
+
+                    if (warp.WarpFieldData.WarpMode == LioInfo.WarpField.WarpMode.Unassigned)
+                    {   //TODO find uses of this
+                        unassignedEscape = point;
+                        break;
+                    }
+
+                    valid.Add(point);
+                }
 			}
 
 			if (valid.Count == 0)
@@ -88,18 +104,18 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
-		/// Handles an item pickup request from a client
-		/// </summary>
-		static public void Warp(Helpers.ResetFlags flags, Player player, LioInfo.WarpField warp, int invulnTime)
+        /// Handles an item pickup request from a client
+    	/// </summary>
+	    static public void Warp(Helpers.ResetFlags flags, Player player, Arena.RelativeObj warp, int invulnTime)
 		{
             LvlInfo level = player._server._assets.Level;
 
-            int x = warp.GeneralData.OffsetX - (level.OffsetX * 16);
-            int y = warp.GeneralData.OffsetY - (level.OffsetY * 16);
+            int x = warp.posX - (level.OffsetX * 16);
+            int y = warp.posY - (level.OffsetY * 16);
             
             //Resolve our box
-			short height = (short)(warp.GeneralData.Height / 2);
-			short width = (short)(warp.GeneralData.Width / 2);
+			short height = (short)(warp.warp.GeneralData.Height / 2);
+			short width = (short)(warp.warp.GeneralData.Width / 2);
 
 			//Use our first warp!
 			player.warp(flags,

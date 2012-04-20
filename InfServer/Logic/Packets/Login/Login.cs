@@ -48,7 +48,7 @@ namespace InfServer.Logic
 			//Are we in standalone mode?
 			if (server.IsStandalone)
 			{	//Always first time setup in standalone mode
-				newPlayer.assignFirstTimeStats();
+				newPlayer.assignFirstTimeStats(false);
 
 				//Success! Let him in.
 				Helpers.Login_Response(client, SC_Login.Login_Result.Success, "This server is currently in stand-alone mode. Your character's scores and stats will not be saved.");

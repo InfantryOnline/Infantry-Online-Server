@@ -615,7 +615,28 @@ namespace InfServer.Game
 		/// Modifies and updates the player's inventory
 		/// </summary>
 		public bool inventoryModify(bool bSync, ItemInfo item, int adjust)
-		{	//Is this item an upgrade item?
+		{
+            //Do we already have such an item?
+            InventoryItem ii;
+            _inventory.TryGetValue(item.id, out ii);
+            if (ii != null && adjust < 0)
+            {
+                //Trying to take away too many?? I dont understand why wouldn't just wrap to -ii.quantity 
+                if (ii.quantity + adjust < 0) // but I'll keep this how it was
+                    return false;
+
+                //Will there be any items left?
+                if (ii.quantity + adjust == 0)
+                    _inventory.Remove(item.id);
+                else
+                    ii.quantity = (ushort)(ii.quantity + adjust);
+
+                if (bSync)
+                    syncInventory();
+                return true;
+            }
+
+            //Is this item an upgrade item?
 			if (item.itemType == ItemInfo.ItemType.Upgrade)
 			{	//Apply it!
 				applyUpgradeItem(bSync, (ItemInfo.UpgradeItem)item, adjust);
@@ -658,10 +679,6 @@ namespace InfServer.Game
 				applyMultiItem(bSync, (ItemInfo.MultiItem)item, adjust);
 				return true;
 			}
-
-			//Do we already have such an item?
-			InventoryItem ii;
-			_inventory.TryGetValue(item.id, out ii);
 
             //Held category checks
             if (adjust > 0 && ii == null && item.heldCategoryType > 0)
@@ -1344,7 +1361,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Gives the player items and skill appropriate for a first time player
 		/// </summary>
-		public void assignFirstTimeStats()
+		public void assignFirstTimeStats(bool runEvents)
 		{	//Create some new lists
 			_inventory = new Dictionary<int, InventoryItem>();
 			_skills = new Dictionary<int, SkillItem>();
@@ -1355,13 +1372,19 @@ namespace InfServer.Game
 			_statsGame = null;
 			_statsLastGame = null;
 
-			//Execute the first time setup events
-			Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
-			Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeInvSetup);
+            if (runEvents)
+                //Execute the first time setup events
+                firstTimeEvents();
 
 			//Consider him loaded
 			_bDBLoaded = true;
 		}
+
+        public void firstTimeEvents()
+        {
+            Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
+            Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeInvSetup);
+        }
 
 		/// <summary>
 		/// Uses the data stats structure to populate the player's statistics

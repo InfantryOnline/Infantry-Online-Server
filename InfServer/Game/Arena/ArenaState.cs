@@ -159,6 +159,9 @@ namespace InfServer.Game
 
 			player._baseVehicle = baseVehicle;
 
+            //Run the initial events 
+            if (_server.IsStandalone)
+                player.firstTimeEvents();
 
 			///////////////////////////////////////////////
 			// Send the player state

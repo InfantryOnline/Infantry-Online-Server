@@ -97,9 +97,10 @@ namespace InfServer.Game
         /// </summary>
         public class RelativeObj
         {
-            public short posX;
-            public short posY;
-            public int freq;
+            public short posX;              //
+            public short posY;              //
+            public int freq;                //Owning team
+            public LioInfo.WarpField warp;  //Associated warp
             public RelativeObj(short _posX, short _posY, int _freq)
             {
                 posX = _posX;
@@ -246,7 +247,7 @@ namespace InfServer.Game
         //I need to build a list of relative IDs
         //This list reflects computers, flags, and the active vehicle of players (and bots by extension)
         //and items laying around in the arena
-        private List<RelativeObj> findRelativeID(int huntFreq, int relID, Player requestingPlayer)
+        public List<RelativeObj> findRelativeID(int huntFreq, int relID, Player requestingPlayer)
         {
             List<RelativeObj> possibilities = new List<RelativeObj> { };
             possibilities.AddRange(from v in Vehicles
