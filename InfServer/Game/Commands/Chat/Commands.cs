@@ -553,7 +553,7 @@ namespace InfServer.Game.Commands.Chat
 
                         if (newteam.ActivePlayerCount < teammaxplayers)
                         {
-                            newteam.addPlayer(player);
+                            newteam.addPlayer(player, true);
                             return;
                         }
 
@@ -565,7 +565,7 @@ namespace InfServer.Game.Commands.Chat
                     {   //Password matches. Is the team full?
                         if (newteam.ActivePlayerCount < player._arena._server._zoneConfig.arena.maxPerFrequency)
                         {
-                            newteam.addPlayer(player);
+                            newteam.addPlayer(player, true);
                             return;
                         }
 
@@ -579,7 +579,7 @@ namespace InfServer.Game.Commands.Chat
                         if (newteam._isPrivate && newteam.ActivePlayerCount == 0)
                         {
                             newteam._password = teampassword; //update the password
-                            newteam.addPlayer(player); //add the player
+                            newteam.addPlayer(player, true); //add the player
                             return;
                         }
 
@@ -607,7 +607,7 @@ namespace InfServer.Game.Commands.Chat
 
                         //Create the team and add the player
                         player._arena.createTeam(privteam);
-                        privteam.addPlayer(player);
+                        privteam.addPlayer(player, true);
                         return;
                     }
                 }

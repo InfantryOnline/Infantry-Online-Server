@@ -134,7 +134,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Adds the given player to the team and notifies others
 		/// </summary>
-		public void addPlayer(Player player)
+		public void addPlayer(Player player, bool manualJoin)
 		{	//Sanity checks
 			if (player._bIngame && player._team == this)
 			{
@@ -160,9 +160,19 @@ namespace InfServer.Game
 			player.sendMessage(0, "Team joined: " + _name);
 
 			//If he isn't a spectator, trigger the event too
-			if (!player.IsSpectator)
-				Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.joinTeam);
+            if (!player.IsSpectator)
+            {
+                if (manualJoin)
+                    Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.manualJoinTeam);
+                else
+                    Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.joinTeam);
+            }
 		}
+
+        public void addPlayer(Player player)
+        {
+            addPlayer(player, false);
+        }
 
 		/// <summary>
 		/// Handles the loss of a player
