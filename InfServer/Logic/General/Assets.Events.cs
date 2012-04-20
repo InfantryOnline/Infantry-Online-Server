@@ -227,6 +227,14 @@ namespace InfServer.Logic
 				//Sets the player's energy to the amount defined
 				case "setenergy":
 					//TODO: Figure out how to implement this
+                    int energy;
+                    if (Int32.TryParse(param, out energy))
+                    {
+                        //Log.write(TLog.Warning, "  Setting {0} to {1} nrg", player._alias, energy);
+                        player.setEnergy((short)energy);
+                        player._state.energy = (short)energy;
+                        bChangedState = true;
+                    }
 					break;
 
                 //Wipes all player attributes

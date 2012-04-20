@@ -450,10 +450,10 @@ namespace InfServer.Game
 			}
 
 			//It must be in range
-			if (!Helpers.isInRange( 100,
-									computer._state.positionX, computer._state.positionY,
-									from._state.positionX, from._state.positionY))
-				return;
+            if (!Helpers.isInRange(150 + (int)computer._type.PhysicalRadius,
+                                    computer._state.positionX, computer._state.positionY,
+                                    from._state.positionX, from._state.positionY))
+                return;
 
 			//Can't produce from dead or non-computer vehicles
 			if (computer.IsDead || computer._type.Type != VehInfo.Types.Computer)
@@ -634,34 +634,36 @@ namespace InfServer.Game
 				int maxDamageRadius = Helpers.getMaxBlastRadius(usedWep);
 
 				List<Vehicle> vechs = _vehicles.getObjsInRange(update.positionX, update.positionY, maxDamageRadius + 500);
-                List<Player> players = from._arena.getPlayersInRange(update.positionX, update.positionY, usedWep.damageEventRadius);
 
-
-                //Run any event logic on players..
-                foreach (Player p in players)
+                //Don't bother running empty events
+                if (usedWep.damageEventString != "\"\"")
                 {
-                    //Will this weapon even harm us?
-                    switch (usedWep.damageMode)
+                    List<Player> players = from._arena.getPlayersInRange(update.positionX, update.positionY, usedWep.damageEventRadius);
+                    //Run any event logic on players..
+                    foreach (Player p in players)
                     {
-                        case 2:			//Enemy
-                            if (from._team == p._team)
-                                return;
-                            break;
+                        //Will this weapon even harm us?
+                        switch (usedWep.damageMode)
+                        {
+                            case 2:			//Enemy
+                                if (from._team == p._team)
+                                    return;
+                                break;
 
-                        case 3:			//Friendly but self
-                            if (from._team != p._team)
-                                return;
-                            break;
+                            case 3:			//Friendly but self
+                                if (from._team != p._team)
+                                    return;
+                                break;
 
-                        case 4:			//Friendly
-                            if (from._team != p._team)
-                                return;
-                            break;
+                            case 4:			//Friendly
+                                if (from._team != p._team)
+                                    return;
+                                break;
+                        }
+                        //Run it!
+                        Logic_Assets.RunEvent(p, usedWep.damageEventString);
                     }
-                    //Run it!
-                    Logic_Assets.RunEvent(p, usedWep.damageEventString);
                 }
-                    
 				
                 //Notify all vehicles in the vicinity
 				foreach (Vehicle v in vechs)	
