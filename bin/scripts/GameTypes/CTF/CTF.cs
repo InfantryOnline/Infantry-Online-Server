@@ -244,6 +244,9 @@ namespace InfServer.Script.GameType_CTF
 			_tickGameStart = Environment.TickCount;
 			_tickGameStarting = 0;
 
+            //Scramble the teams!
+            ScriptHelpers.scrambleTeams(_arena, true);
+
 			//Spawn our flags!
 			_arena.flagSpawn();
 

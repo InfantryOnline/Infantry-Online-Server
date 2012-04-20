@@ -163,6 +163,33 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Renames public team names
+        /// </summary>
+        static public void teamname(Player player, Player recipient, string payload, int bong)
+        {
+            if (payload == "")
+            {
+                player.sendMessage(-1, "Syntax: *teamname [teamname1,teamname2,...]");
+            }
+            
+            List<string> teamNames = new List<string>();
+            List<Team> teams = new List<Team>(player._arena.Teams);
+
+            if (payload.IndexOf(",") != -1)
+                teamNames = new List<string>(payload.Split(','));
+            else
+                teamNames.Add(payload);
+
+            //Spec everybody in the arena and rename team names
+            foreach (Player unspecced in player._arena.PlayersIngame.ToArray())
+                unspecced.spec("spec");
+
+            for(int i = 0; i < teamNames.Count; i++)
+                //Add 1 to avoid renaming spec team
+                teams[i + 1]._name = teamNames[i];
+        }
+
+        /// <summary>
         /// Spawns an item on the ground or in a player's inventory
         /// </summary>
         static public void prize(Player player, Player recipient, string payload, int bong)
@@ -529,6 +556,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(team, "team",
                 "Puts another player, or yourself, on a specified team",
                 "*team [teamname] or ::*team [teamname]",
+                InfServer.Data.PlayerPermission.ArenaMod);
+
+            yield return new HandlerDescriptor(teamname, "teamname",
+                "Renames public team names in the arena",
+                "*teamname [teamname1,teamname2,...]",
                 InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(timer, "timer",

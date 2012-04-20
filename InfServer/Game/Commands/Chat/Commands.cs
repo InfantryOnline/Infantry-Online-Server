@@ -494,6 +494,123 @@ namespace InfServer.Game.Commands.Chat
 
 			player.sendMessage(0, result.TrimEnd(',', ' '));
 		}
+        
+        /// <summary>
+        /// Allows the user to change teams or create private teams
+        /// </summary>
+        public static void team(Player player, Player recipient, string payload, int bong)
+        {
+            if (payload == "")
+                //Don't do anything if there is no payload, client will handle it
+                return;
+
+            //First check to make sure they're allowed to switch teams
+            if (player._arena._server._zoneConfig.arena.allowManualTeamSwitch)
+            {
+                string teamname;
+                string teampassword;
+
+                if (payload.Contains(":"))
+                {
+                    
+                    teamname = payload.Split(':').ElementAt(0);
+                    teampassword = payload.Split(':').ElementAt(1);
+                }
+                else
+                {
+                    teamname = payload;
+                    teampassword = "";
+                }
+
+                //Are they looking to switch to an existing team?
+                Team newteam = player._arena.getTeamByName(teamname);
+
+                if (newteam != null)
+                {
+                    if (newteam.IsSpec)
+                    {   //Unspecced players aren't allowed on team spec
+                        if (player.IsSpectator)
+                        {
+                            newteam.addPlayer(player);
+                            return;
+                        }
+
+                        //They're not a spectator!
+                        player.sendMessage(-1, "Must be a spectator to join this team");
+                        return;
+                    }
+                    else if (!newteam._isPrivate)
+                    {   //Yes! Public team. Let's check to make sure that the team isn't full
+                        int teammaxplayers = player._arena._server._zoneConfig.teams[newteam._id].maxPlayers;
+                        teammaxplayers = (teammaxplayers == 0) ? teammaxplayers = player._arena._server._zoneConfig.arena.maxPerFrequency : teammaxplayers;
+
+                        if (newteam.ActivePlayerCount < teammaxplayers)
+                        {
+                            newteam.addPlayer(player);
+                            return;
+                        }
+
+                        //Team is full :(
+                        player.sendMessage(-1, "Team is full");
+                        return;
+                    }
+                    else if (newteam._password == teampassword)
+                    {   //Password matches. Is the team full?
+                        if (newteam.ActivePlayerCount < player._arena._server._zoneConfig.arena.maxPerFrequency)
+                        {
+                            newteam.addPlayer(player);
+                            return;
+                        }
+
+                        //Team is full :(
+                        player.sendMessage(-1, "Team is full");
+                        return;
+                    }
+                    else
+                    {
+                        //The team might be empty. We should put the player on and change the password
+                        if (newteam._isPrivate && newteam.ActivePlayerCount == 0)
+                        {
+                            newteam._password = teampassword; //update the password
+                            newteam.addPlayer(player); //add the player
+                            return;
+                        }
+
+                        player.sendMessage(-1, "Invalid password for specified team");
+                        return;
+                    }
+                }
+                else
+                {   //Team they're trying to join doesn't exist
+                    if (!player._arena._server._zoneConfig.arena.allowPrivateFrequencies)
+                    {
+                        player.sendMessage(-1, "Private teams are disabled");
+                        return;
+                    }
+                    else
+                    {
+                        //They want to create a private team
+                        Team privteam = new Team(player._arena, player._arena._server);
+
+                        //Assign some information to the team
+                        privteam._name = teamname;
+                        privteam._isPrivate = true;
+                        privteam._password = teampassword;
+                        privteam._id = (short)player._arena.Teams.Count();
+
+                        //Create the team and add the player
+                        player._arena.createTeam(privteam);
+                        privteam.addPlayer(player);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                player.sendMessage(-1, "Manual team switching is disabled");
+                return;
+            }
+        }
 
         /// <summary>
         /// Provides the user with a list of zones
@@ -568,6 +685,9 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(spec, "spec",
                 "Displays all players which are spectating you or another player",
                 "?spec or ::?spec");
+            yield return new HandlerDescriptor(team, "team",
+                "Displays a list of teams or joins a specified team",
+                "?team or ?team name:password");
 
             yield return new HandlerDescriptor(zonelist, "zonelist",
                 "Displays a list of zones",

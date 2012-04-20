@@ -182,6 +182,20 @@ namespace InfServer.Game
 			}
 		}
 
+        public IEnumerable<Player> PublicPlayersInGame
+        {
+            get
+            {
+                List<Player> pubPlayers = new List<Player>();
+                foreach (Player plyr in _playersIngame)
+                {
+                    if (!plyr._team._isPrivate)
+                        pubPlayers.Add(plyr);
+                }
+                return pubPlayers;
+            }
+        }
+
 		/// <summary>
 		/// Returns the total amount of players that are in the arena
 		/// </summary>
@@ -611,10 +625,21 @@ namespace InfServer.Game
 		{	//Attempt to find it
 			Team team;
 
-			if (!_teams.TryGetValue(name.ToLower(), out team))
-				return null;
-			return team;
+			if (_teams.TryGetValue(name.ToLower(), out team))
+                //Check _teams
+				return team;
+            foreach (Team arenaTeam in Teams)
+                //Check Teams
+                if (arenaTeam._name.ToLower() == name.ToLower())
+                    return arenaTeam;
+            //Still nothing? team doesn't exist
+			return null;
 		}
+
+        public void createTeam(Team team)
+        {
+            _teams.Add(team._name, team);
+        }
 
 		/// <summary>
 		/// Gets a player of the specified name
