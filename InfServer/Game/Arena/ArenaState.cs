@@ -40,20 +40,20 @@ namespace InfServer.Game
 		{
 			get
 			{
-				return _teams.Values.Where(team => team.IsPublic);
+				return _teams.Values.Where(team => team.IsPublic && team.ActivePlayerCount > 0);
 			}
 		}
 
 		/// <summary>
 		/// Returns a list of teams present in the arena
 		/// </summary>
-		public IEnumerable<Team> Teams
-		{
-			get
-			{
-				return _teams.Values;
-			}
-		}
+        public IEnumerable<Team> Teams
+        {
+            get
+            {
+                return _teams.Values;
+            }
+        }
 
         /// <summary>
         /// Returns a list of vehicles present in the arena

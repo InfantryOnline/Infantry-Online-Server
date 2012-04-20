@@ -45,7 +45,7 @@ namespace InfServer.Script
             int newteam;
             foreach (Player p in shuffledPlayers)
             {
-                Math.DivRem(j, arena.ActiveTeams.Count(), out newteam);
+                Math.DivRem(j, arena.PublicTeams.Count(), out newteam);
                 newteam += 1; //Add 1 to account for spec
                 if (p._team != arena.Teams.ElementAt(newteam))
                     arena.Teams.ElementAt(newteam).addPlayer(p);
