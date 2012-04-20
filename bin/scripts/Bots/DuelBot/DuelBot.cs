@@ -27,9 +27,9 @@ namespace InfServer.Script.DuelBot
 		private Player _victim;						//The player we're currently stalking
 
 		private int _stalkRadius = 1000;			//The distance away we'll look for a victim (in pixels?)
-		private int _optimialDistance = 150;		//The optimal distance from the player we want to be
-		private int _optimalDistanceTolerance = 50;	//The distance tolerance as we're moving back towards the player
-		private int _distanceTolerance = 150;		//The tolerance from the optimal distance we accept
+		private int _optimialDistance = 120;		//The optimal distance from the player we want to be
+		private int _optimalDistanceTolerance = 20;	//The distance tolerance as we're moving back towards the player
+		private int _distanceTolerance = 120;		//The tolerance from the optimal distance we accept
 
 		private int _tickNextStrafeChange;			//The last time we changed strafe direction
 
@@ -48,25 +48,7 @@ namespace InfServer.Script.DuelBot
 			_bot = invoker as Bot;
 			_rand = new Random();
 
-			//Equip ourselves an assault rifle
-			switch (_rand.Next(0, 4))
-			{
-				case 0:
-					_bot._weapon.equip(AssetManager.Manager.getItemByName("Maklov AR mk 606"));	
-					break;
-
-				case 1:
-					_bot._weapon.equip(AssetManager.Manager.getItemByName("Kuchler AR249"));	
-					break;
-
-                case 2:
-                    _bot._weapon.equip(AssetManager.Manager.getItemByName("Titan Arms AR 2mv"));
-                    break;
-
-                case 3:
-                    _bot._weapon.equip(AssetManager.Manager.getItemByName("Maklov G2 ACW"));
-                    break;
-			}
+            _bot._weapon.equip(AssetManager.Manager.getItemByID(_bot._type.InventoryItems[0]));
 
 			return true;
 		}

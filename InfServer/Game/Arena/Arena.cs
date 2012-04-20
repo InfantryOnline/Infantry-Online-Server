@@ -638,7 +638,7 @@ namespace InfServer.Game
 
         public void createTeam(Team team)
         {
-            _teams.Add(team._name, team);
+            _teams.Add(team._name.ToLower(), team);
         }
 
 		/// <summary>

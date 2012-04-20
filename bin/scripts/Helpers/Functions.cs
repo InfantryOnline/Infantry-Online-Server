@@ -31,7 +31,7 @@ namespace InfServer.Script
 
             //Shuffle the players up randomly into a new list
             var random = _rand;
-            Player[] shuffledPlayers = arena.PublicPlayersInGame.ToArray(); //Arrays ftw
+            Player[] shuffledPlayers = arena.PublicPlayersInGame.ToArray();
             for (int i = shuffledPlayers.Length - 1; i >= 0; i--)
             {
                 int swap = random.Next(i + 1);
@@ -45,7 +45,7 @@ namespace InfServer.Script
             int newteam;
             foreach (Player p in shuffledPlayers)
             {
-                Math.DivRem(j, arena.PublicTeams.Count(), out newteam);
+                Math.DivRem(j, arena.PublicTeams.Where(t => t.ActivePlayerCount > 0).Count(), out newteam);
                 newteam += 1; //Add 1 to account for spec
                 if (p._team != arena.Teams.ElementAt(newteam))
                     arena.Teams.ElementAt(newteam).addPlayer(p);

@@ -40,7 +40,7 @@ namespace InfServer.Game
 		{
 			get
 			{
-				return _teams.Values.Where(team => team.IsPublic && team.ActivePlayerCount > 0);
+				return _teams.Values.Where(team => team.IsPublic);
 			}
 		}
 
