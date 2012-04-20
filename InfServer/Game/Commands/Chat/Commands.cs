@@ -505,7 +505,7 @@ namespace InfServer.Game.Commands.Chat
                 return;
             
             //Valid terrain?
-            if (player._arena.getTerrain(player._state.positionX, player._state.positionY).teamChangeEnabled != 1)
+            if (player._arena.getTerrain(player._state.positionX, player._state.positionY).teamChangeEnabled != 1 && player.IsSpectator == false)
             {
                 player.sendMessage(-1, "Can't change team from this terrain");
                 return;
