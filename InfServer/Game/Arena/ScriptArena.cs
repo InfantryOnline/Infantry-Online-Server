@@ -450,7 +450,7 @@ namespace InfServer.Game
 			}
 
 			//It must be in range
-            if (!Helpers.isInRange(150 + (int)computer._type.PhysicalRadius,
+            if (!Helpers.isInRange(_server._zoneConfig.vehicle.computerProduceRadius,
                                     computer._state.positionX, computer._state.positionY,
                                     from._state.positionX, from._state.positionY))
                 return;

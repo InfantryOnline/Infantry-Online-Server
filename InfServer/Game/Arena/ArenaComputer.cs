@@ -60,29 +60,26 @@ namespace InfServer.Game
                 }
             }
 
-            lock (_vehicles)
-            {
-                foreach (Vehicle vehicle in _vehicles)
-                {	//Cast it properly
-                    Computer computer = vehicle as Computer;
-                    if (computer == null)
-                        continue;
+            foreach (Vehicle vehicle in _vehicles.ToList())
+            {	//Cast it properly
+                Computer computer = vehicle as Computer;
+                if (computer == null)
+                    continue;
 
-                    //Is it time to remove it?
-                    if (computer._type.RemoveGlobalTimer != 0 &&
-                        now - computer._tickCreation > computer._type.RemoveGlobalTimer * 1000)
-                    {	//Mark for destruction
-                        computer.destroy(true);
-                        continue;
-                    }
+                //Is it time to remove it?
+                if (computer._type.RemoveGlobalTimer != 0 &&
+                    now - computer._tickCreation > computer._type.RemoveGlobalTimer * 1000)
+                {	//Mark for destruction
+                    computer.destroy(true);
+                    continue;
+                }
 
-                    //Does it need to send an update?
-                    if (computer.poll() || computer._sendUpdate)
-                    {	//Prepare and send an update packet for the vehicle
-                        computer._state.updateNumber++;
+                //Does it need to send an update?
+                if (computer.poll() || computer._sendUpdate)
+                {	//Prepare and send an update packet for the vehicle
+                    computer._state.updateNumber++;
 
-                        Helpers.Update_RouteComputer(computer);
-                    }
+                    Helpers.Update_RouteComputer(computer);
                 }
             }
         }
