@@ -29,28 +29,15 @@ namespace InfServer.Script
         {
             Random _rand = new Random();
 
-            //Shuffle the players up randomly into a new list
-            var random = _rand;
-            Player[] shuffledPlayers = arena.PublicPlayersInGame.ToArray();
-            for (int i = shuffledPlayers.Length - 1; i >= 0; i--)
-            {
-                int swap = random.Next(i + 1);
-                Player tmp = shuffledPlayers[i];
-                shuffledPlayers[i] = shuffledPlayers[swap];
-                shuffledPlayers[swap] = tmp;
-            }
+            List<Player> shuffledPlayers = arena.PublicPlayersInGame.OrderBy(plyr => _rand.Next(0, 500)).ToList();
+            int numTeams = (shuffledPlayers.Count <=
+                arena._server._zoneConfig.arena.desiredFrequencies * arena._server._zoneConfig.teams[0].maxPlayers)
+                ? arena._server._zoneConfig.arena.desiredFrequencies
+                : (int)Math.Ceiling((double)shuffledPlayers.Count / (double)arena._server._zoneConfig.teams[0].maxPlayers);
 
-            //Assign the new list of players to teams
-            int j = 1;
-            int newteam;
-            foreach (Player p in shuffledPlayers)
+            for (int i = 0; i < shuffledPlayers.Count; i++)
             {
-                Math.DivRem(j, arena.PublicTeams.Where(t => t.ActivePlayerCount > 0).Count(), out newteam);
-                newteam += 1; //Add 1 to account for spec
-                if (p._team != arena.Teams.ElementAt(newteam))
-                    arena.Teams.ElementAt(newteam).addPlayer(p);
-                j++;
-
+                arena.PublicTeams.ElementAt(i % numTeams).addPlayer(shuffledPlayers[i]);
             }
 
             //Notify players of the scramble
