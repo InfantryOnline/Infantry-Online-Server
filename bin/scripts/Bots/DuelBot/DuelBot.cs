@@ -67,22 +67,18 @@ namespace InfServer.Script.DuelBot
                     {
                         case "radius":
                             _stalkRadius = Convert.ToInt32(paramvalue);
-                            _bot._arena.sendArenaMessage("radius: " + _stalkRadius);
                             break;
 
                         case "distance":
                             _optimalDistance = Convert.ToInt32(paramvalue);
-                            _bot._arena.sendArenaMessage("distance: " + _optimalDistance);
                             break;
 
                         case "tolerance":
                             _optimalDistanceTolerance = Convert.ToInt32(paramvalue);
-                            _bot._arena.sendArenaMessage("tolerance: " + _optimalDistanceTolerance);
                             break;
 
                         case "strafe":
                             _distanceTolerance = Convert.ToInt32(paramvalue);
-                            _bot._arena.sendArenaMessage("strafe: " + _distanceTolerance);
                             break;
                     }
                 }
