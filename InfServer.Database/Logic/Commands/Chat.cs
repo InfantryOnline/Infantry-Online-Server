@@ -27,12 +27,7 @@ namespace InfServer.Logic
                     results.Add(player);
                     break;
                 }
-                else if (pkt.findAlias.Length < minlength)
-                {
-                    zone._server.sendMessage(zone, pkt.alias, "Search query must contain at least " + minlength + " characters");
-                    return;
-                }
-                else if (player.Key.ToLower().Contains(pkt.findAlias.ToLower()))
+                else if (player.Key.ToLower().Contains(pkt.findAlias.ToLower()) && pkt.findAlias.Length >= minlength)
                     results.Add(player);
             }
 
@@ -46,6 +41,8 @@ namespace InfServer.Logic
                         result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
                 }
             }
+            else if (pkt.findAlias.Length < minlength)
+                zone._server.sendMessage(zone, pkt.alias, "Search query must contain at least " + minlength + " characters");
             else
                 zone._server.sendMessage(zone, pkt.alias, "Sorry, we couldn't locate any players online by that alias");
         }
