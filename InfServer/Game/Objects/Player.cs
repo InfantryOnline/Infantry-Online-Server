@@ -276,12 +276,12 @@ namespace InfServer.Game
                     continue;
                 
                 //Any anti-warp utils?
-                if (!candidate.activeUtilities.Any(util => util.antiWarpDistance != -1))
+                if (!candidate.activeUtilities.Any(util => util != null && util.antiWarpDistance != -1))
                     continue;
                 //Is it within the distance?
                 int dist = (int)(_state.position().Distance(candidate._state.position()) * 100);
 
-                if (candidate.activeUtilities.Any(util => util.antiWarpDistance >= dist))
+                if (candidate.activeUtilities.Any(util => util != null && util.antiWarpDistance >= dist))
                     return candidate;
             }
 
