@@ -793,6 +793,9 @@ namespace InfServer.Game
 			if (multiItem.Experience != 0)
 				this.Experience += multiItem.Experience * repeat;
 
+            if (multiItem.Energy != 0)
+                setEnergy((short)(_state.energy + (repeat * multiItem.Energy)));
+
 			//Give the player his items
 			foreach (ItemInfo.MultiItem.Slot slot in multiItem.slots)
 			{	//Valid item?
