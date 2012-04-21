@@ -27,7 +27,7 @@ namespace InfServer.Script.DuelBot
 		private Player _victim;						//The player we're currently stalking
 
 		private int _stalkRadius = 1000;			//The distance away we'll look for a victim (in pixels?)
-		private int _optimialDistance = 120;		//The optimal distance from the player we want to be
+		private int _optimalDistance = 100;		    //The optimal distance from the player we want to be
 		private int _optimalDistanceTolerance = 20;	//The distance tolerance as we're moving back towards the player
 		private int _distanceTolerance = 120;		//The tolerance from the optimal distance we accept
 
@@ -47,8 +47,46 @@ namespace InfServer.Script.DuelBot
 		{	//Populate our variables
 			_bot = invoker as Bot;
 			_rand = new Random();
-
+            
+            //Equip and fix up our bot! :)
             _bot._weapon.equip(AssetManager.Manager.getItemByID(_bot._type.InventoryItems[0]));
+
+            //Maybe they want to assign custom settings?
+            if(_bot._type.Description.Length >= 4 && _bot._type.Description.Substring(0,4).ToLower().Equals("bot="))
+            {
+                string[] botparams;
+                botparams = _bot._type.Description.Substring(4, _bot._type.Description.Length - 4).Split(',');
+                foreach (string botparam in botparams)
+                {
+                    if(!botparam.Contains(':'))
+                        continue;
+
+                    string paramname = botparam.Split(':').ElementAt(0).ToLower();
+                    string paramvalue = botparam.Split(':').ElementAt(1).ToLower();
+                    switch (paramname)
+                    {
+                        case "radius":
+                            _stalkRadius = Convert.ToInt32(paramvalue);
+                            _bot._arena.sendArenaMessage("radius: " + _stalkRadius);
+                            break;
+
+                        case "distance":
+                            _optimalDistance = Convert.ToInt32(paramvalue);
+                            _bot._arena.sendArenaMessage("distance: " + _optimalDistance);
+                            break;
+
+                        case "tolerance":
+                            _optimalDistanceTolerance = Convert.ToInt32(paramvalue);
+                            _bot._arena.sendArenaMessage("tolerance: " + _optimalDistanceTolerance);
+                            break;
+
+                        case "strafe":
+                            _distanceTolerance = Convert.ToInt32(paramvalue);
+                            _bot._arena.sendArenaMessage("strafe: " + _distanceTolerance);
+                            break;
+                    }
+                }
+            }
 
 			return true;
 		}
@@ -105,11 +143,11 @@ namespace InfServer.Script.DuelBot
 				else
 					_bot._movement.rotateLeft();
 
-				if ((!_bChasing && distance < (_optimialDistance + _distanceTolerance) &&
-					distance > (_optimialDistance - _distanceTolerance))
+				if ((_bChasing && distance < (_optimalDistance + _distanceTolerance) &&
+					distance > (_optimalDistance - _distanceTolerance))
 					||
-					(_bChasing && distance < (_optimialDistance + _optimalDistanceTolerance) &&
-					distance > (_optimialDistance - _optimalDistanceTolerance)))
+					(!_bChasing && distance < (_optimalDistance + _optimalDistanceTolerance) &&
+					distance > (_optimalDistance - _optimalDistanceTolerance)))
 				{	//We're in dueling range, and must no longer be chasing
 					_bChasing = false;
 
@@ -136,7 +174,7 @@ namespace InfServer.Script.DuelBot
 
 				double difference = Helpers.calculateDifferenceInAngles(_bot._state.yaw, degrees);
 
-				if (distance > _optimialDistance)
+				if (distance > _optimalDistance)
 					_bot._movement.thrustForward();
 				else
 					_bot._movement.thrustBackward();
