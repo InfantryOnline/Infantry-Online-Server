@@ -300,47 +300,51 @@ namespace InfServer.Game
 		/// </summary>
 		public override void handlePlayerPickup(Player from, CS_PlayerPickup update)
 		{	//Find the itemdrop in question
-			ItemDrop drop;
+  		lock(_items)
+  		{
+  			ItemDrop drop;
 
-			if (!_items.TryGetValue(update.itemID, out drop))
-				//Doesn't exist
-				return;
+  			if (!_items.TryGetValue(update.itemID, out drop))
+  				//Doesn't exist
+  				return;
 
-			//In range?
-			if (!Helpers.isInRange(_server._zoneConfig.arena.itemPickupDistance,
-									drop.positionX, drop.positionY,
-									from._state.positionX, from._state.positionY))
-				return;
+  			//In range? 
+  			if (!Helpers.isInRange(_server._zoneConfig.arena.itemPickupDistance,
+	  								drop.positionX, drop.positionY,
+	  								from._state.positionX, from._state.positionY))
+	  			return;
 
-			//Do we allow pickup?
-			if (!_server._zoneConfig.level.allowUnqualifiedPickup &&
-				!Logic_Assets.SkillCheck(from, drop.item.skillLogic))
-				return;
+	  		//Do we allow pickup?
+  			if (!_server._zoneConfig.level.allowUnqualifiedPickup &&
+  				!Logic_Assets.SkillCheck(from, drop.item.skillLogic))
+  				return;
 
-			//Sanity checks
-			if (update.quantity > drop.quantity)
-				return;
+	  		//Sanity checks
+  			if (update.quantity > drop.quantity)
+	  			return;
 
-			//Forward to our script
-			if (!exists("Player.ItemPickup") || (bool)callsync("Player.ItemPickup", false, from, drop, update.quantity))
-			{
-				if (update.quantity == drop.quantity)
-				{	//Delete the drop
-					_items.Remove(drop.id);
-					drop.quantity = 0;
-				}
-				else
-					drop.quantity = (short)(drop.quantity - update.quantity);
-                
-				//Add the pickup to inventory!
-				from.inventoryModify(drop.item, update.quantity);
+	  		//Forward to our script
+  			if (!exists("Player.ItemPickup") || (bool)callsync("Player.ItemPickup", false, from, drop, update.quantity))
+	  		{
+	  			if (update.quantity == drop.quantity)
+	  			{	//Delete the drop
+	  				_items.Remove(drop.id);
+	  				drop.quantity = 0;
+	  			}
+	  			else
+	  				drop.quantity = (short)(drop.quantity - update.quantity);
+                  
+	  			//Add the pickup to inventory!
+	  			from.inventoryModify(drop.item, update.quantity);
 
                 //Update his bounty.
                 from.Bounty += drop.item.prizeBountyPoints;
 
-				//Remove the item from player's clients
-				Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
-			}
+	  			//Remove the item from player's clients
+	  			Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
+			  }
+			
+		  }
 		}
         #endregion
 

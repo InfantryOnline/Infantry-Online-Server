@@ -491,7 +491,7 @@ namespace InfServer.Game
 
 				if (bMinor)
 				{	//Keep our tickers in line
-					foreach (TickerInfo ticker in _tickers.Values)
+					foreach (TickerInfo ticker in _tickers.Values.ToList())
 					{	//If it's timed out
 						if (ticker.timer != -1 && ticker.timer < now)
 						{	//Ticker has expired
