@@ -361,25 +361,28 @@ namespace InfServer.Game.Commands.Chat
                     dropAmount = ii.quantity;
                 }
 
-                //If the terrain restricts items from being dropped remove the amount but do not spawn the items
-                if (player._arena.getTerrain(player._state.positionX, player._state.positionY).prizeExpire > 1)
+                if (!player._arena.exists("Player.ItemDrop") || (bool)player._arena.callsync("Player.ItemDrop", false, player, item, dropAmount))
                 {
-                    if (player._arena.getItemCountInRange(item, player.getState().positionX, player.getState().positionY, 50) > 0)
-                    {      
-                        //If there is another item nearby increases quantity instead of spawning new item
-                        player._arena.itemStackSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 50);                        
+                    //If the terrain restricts items from being dropped remove the amount but do not spawn the items
+                    if (player._arena.getTerrain(player._state.positionX, player._state.positionY).prizeExpire > 1)
+                    {
+                        if (player._arena.getItemCountInRange(item, player.getState().positionX, player.getState().positionY, 50) > 0)
+                        {
+                            //If there is another item nearby increases quantity instead of spawning new item
+                            player._arena.itemStackSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 50);
+                        }
+                        else
+                        {
+                            //Spawn new item since there are no other items nearby
+                            player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY);
+                        }
                     }
-                    else
-                    {                        
-                        //Spawn new item since there are no other items nearby
-                        player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY);
-                    }
-                }
 
-             
-                player.sendMessage(0, String.Format("Drop Confirmed: {0} {1}", dropAmount, item.name));
-                //Remove items from inventory
-                player.inventoryModify(item, -dropAmount);
+
+                    player.sendMessage(0, String.Format("Drop Confirmed: {0} {1}", dropAmount, item.name));
+                    //Remove items from inventory
+                    player.inventoryModify(item, -dropAmount);
+                }
             }
         }
 

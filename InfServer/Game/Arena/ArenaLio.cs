@@ -186,9 +186,9 @@ namespace InfServer.Game
 				{	//Time to reattempt?
 					if (hs._tickLastSuccessAttempt != 0 && tickUpdate - hs._tickLastSuccessAttempt > (hs.Hide.HideData.SucceedDelay * 100))
 						//Yes! Do it
-						hideSpawn(hs, 1);
+						hideSpawn(hs, 1, false);
 					else if (tickUpdate - hs._tickLastAttempt > (hs.Hide.HideData.AttemptDelay * 100))
-						hideSpawn(hs, 1);
+						hideSpawn(hs, 1, false);
 				}
 			}
 		}
@@ -200,6 +200,10 @@ namespace InfServer.Game
         {
             foreach (SwitchState ss in _switches.Values)
             {
+                if (ss.Switch.SwitchData.Switch == 1)
+                    //This is a turret switch, not a door.
+                    continue;
+
                 foreach (int doorid in ss.Switch.SwitchData.SwitchLioId)
                 {   //Update map level info with whether or not door is open or closed
                     if (doorid == 0) //Is a door specified?
@@ -240,7 +244,7 @@ namespace InfServer.Game
 			foreach (HideState hs in _hides)
 			{	//Spawn it the requested amount of times
 				if (hs.Hide.HideData.InitialCount != 0)
-					hideSpawn(hs, hs.Hide.HideData.InitialCount);
+					hideSpawn(hs, hs.Hide.HideData.InitialCount, true);
 			}
 		}
 
@@ -450,10 +454,14 @@ namespace InfServer.Game
 		/// <summary>
 		/// Attempts to trigger a hide spawn
 		/// </summary>
-		private bool hideSpawn(HideState hs, int spawns)
+		private bool hideSpawn(HideState hs, int spawns, bool initialHide)
 		{   //Mark out last attempt
 			hs._tickLastAttempt = Environment.TickCount;
 			hs._tickLastSuccessAttempt = 0;
+
+            //Probability = 0 means only run on the initial hide
+            if (!initialHide && hs.Hide.HideData.Probability == 0)
+                return false;
 
 			//Do we have enough players in the game?
 			int players = PlayerCount;
@@ -461,12 +469,6 @@ namespace InfServer.Game
 				return false;
 			if (players < hs.Hide.HideData.MinPlayers)
 				return false;
-
-            // Can this item be spawned at all?
-			//LIO Ed says Hide Quantity doesnt matter for vehicles
-			//and the initialCount check is not needed..
-			/*if (hs.Hide.HideData.InitialCount == 0 && hs.Hide.HideData.HideQuantity == 0)
-				return false;*/
 
             List<RelativeObj> spawnPoints;
             if (hs.Hide.GeneralData.RelativeId == 0)
