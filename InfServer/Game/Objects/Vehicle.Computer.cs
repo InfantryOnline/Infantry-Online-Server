@@ -287,6 +287,8 @@ namespace InfServer.Game
 			_state.health = 0;
 			_tickDead = Environment.TickCount;
 
+            _arena._turretGroups.Remove(this);
+
 			//Computer vehicles don't linger, so destroy it
 			destroy(true);
 		}        

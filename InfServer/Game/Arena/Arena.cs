@@ -636,6 +636,18 @@ namespace InfServer.Game
 			return null;
 		}
 
+        public Team getTeamByID(int id)
+        {
+            Team team;
+
+            if (_freqTeams.TryGetValue(id, out team))
+                return team;
+            foreach (Team arenaTeam in Teams)
+                if (arenaTeam._id == id)
+                    return arenaTeam;
+            return null;
+        }
+
         public void createTeam(Team team)
         {
             _teams.Add(team._name.ToLower(), team);

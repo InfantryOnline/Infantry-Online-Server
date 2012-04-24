@@ -23,7 +23,7 @@ namespace InfServer.Game
 		public Dictionary<int, SwitchState> _switches;
 		public Dictionary<int, FlagState> _flags;
 		public List<HideState> _hides;
-
+        public TurretGroupMan _turretGroups;
 
 		///////////////////////////////////////////////////
 		// Member Classes
@@ -108,6 +108,92 @@ namespace InfServer.Game
                 freq = _freq;
             }
         }
+
+        public class TurretGroupMan
+        {
+            public Dictionary <int, List<Tuple<LioInfo.Hide, Computer>>> turrets;
+            public TurretGroupMan()
+            {
+                turrets = new Dictionary<int, List<Tuple<LioInfo.Hide, Computer>>> { };
+            }
+            
+            //Add a vehicle when it spawns
+            public void Add(LioInfo.Hide hide, Computer veh)
+            {
+                if (!turrets.ContainsKey(hide.HideData.HideTurretGroup))
+                    turrets[hide.HideData.HideTurretGroup] = new List<Tuple<LioInfo.Hide, Computer>> { };
+                turrets[hide.HideData.HideTurretGroup].Add(Tuple.Create(hide, veh));
+            }
+
+            //Switch all turrets in a group
+            public bool Switch(int turretGroup, Player player, bool bOpen)
+            {
+                if (!turrets.ContainsKey(turretGroup))
+                    return false;
+
+                bool anySwitched = false;
+                foreach (var turret in turrets[turretGroup])
+                {
+                    if (bOpen && turret.Item1.HideData.TurretInverseState == 0 )
+                    {   //Normal acting turret
+                        if (turret.Item1.HideData.TurretSwitchedFrequency == -2)
+                        {   //Set to player's freq
+                            Team newTeam = player._team;
+                            turret.Item2._team = newTeam;
+                            player.sendMessage(0, "Switched to your freq");
+                            anySwitched = true;
+                        }
+                        else
+                        {   //freq -1 .. 9999
+                            Team newTeam = player._arena.getTeamByID(turret.Item1.HideData.TurretSwitchedFrequency);
+                            if (newTeam != null)
+                            {
+                                turret.Item2._team = newTeam;
+                                player.sendMessage(0, String.Format("Switched to {0}", newTeam._id));
+                                anySwitched = true;
+                            }
+                        }
+                    }
+                    else if (!bOpen || (turret.Item1.HideData.TurretInverseState == 1 && bOpen))
+                    {   //The turret should do the opposite, switch is flipped and the turret goes off
+                        Team newTeam = player._arena.getTeamByID(turret.Item1.HideData.AssignFrequency);
+                        if (newTeam != null)
+                        {
+                            turret.Item2._team = newTeam;
+                            player.sendMessage(0, String.Format("Reset to assign freq {0}", newTeam._id));
+                            anySwitched = true;
+                        }
+                    }
+                }
+                return anySwitched;
+            }
+
+            public void Switch(int[] turretGroups, Player player, bool bOpen)
+            {
+                foreach (int tg in turretGroups)
+                {
+                    Switch(tg, player, bOpen);
+                }
+            }
+
+            //Remove a turret because it died
+            public void Remove(Computer veh)
+            {
+                Tuple<LioInfo.Hide, Computer> res = null;
+                int goodGravy = 0;
+                foreach (var tg in turrets)
+                {
+                    res = tg.Value.Find(t => t.Item2 == veh);
+                    if (res != null)
+                    {
+                        goodGravy = tg.Key;
+                        break;
+                    }
+                }
+                if (goodGravy != 0)
+                    turrets[goodGravy].Remove(res);
+            }
+        }
 		#endregion
 
 
@@ -150,6 +236,7 @@ namespace InfServer.Game
 
 			//Initialize our list of hide states
 			_hides = new List<HideState>();
+            _turretGroups = new TurretGroupMan();
 			foreach (LioInfo.Hide hide in _server._assets.Lios.Hides)
 			{	//Create our state
 				HideState hs = new HideState();
@@ -174,8 +261,11 @@ namespace InfServer.Game
 				{	//Set and update!
 					ss.bOpen = false;
 					Helpers.Object_LIOs(Players, ss);
-                    //Update map tiles
-                    updateDoors();
+                    if (ss.Switch.SwitchData.Switch == 0)
+                        //Update map tiles
+                        updateDoors();
+                    else
+                        _turretGroups.Switch(ss.Switch.SwitchData.SwitchLioId, null, false);
 				}
 			}
 
@@ -265,7 +355,7 @@ namespace InfServer.Game
                                    select new RelativeObj(f.posX, f.posY, f.team._id));
             possibilities.AddRange(from it in _items.Values
                                    where it.relativeID == relID
-                                   select new RelativeObj(it.positionX, it.positionY, 0));
+                                   select new RelativeObj(it.positionX, it.positionY, it.freq));
             if (huntFreq >= -1)
             {   //limit to this frequency
                 return possibilities.Where(p => p.freq == huntFreq).ToList();
@@ -445,6 +535,10 @@ namespace InfServer.Game
                 //Set relative ID
                 if (hs.Hide.HideData.RelativeId != 0)
                     spawn.relativeID = hs.Hide.HideData.RelativeId;
+
+                //Add to turret group
+                if (hs.Hide.HideData.HideTurretGroup != 0 && vehicle.Type == VehInfo.Types.Computer)
+                    _turretGroups.Add(hs.Hide, spawn as Computer);
 
                 return true;
             }
@@ -628,10 +722,14 @@ namespace InfServer.Game
 			if (!bValid)
 				return false;
 
-			//We've done it! Update everything
-			ss.bOpen = bOpen;
-			ss.lastOperation = Environment.TickCount;
-            updateDoors();
+            //We've done it! Update everything
+            ss.bOpen = bOpen;
+            ss.lastOperation = Environment.TickCount;
+            if (swi.SwitchData.Switch == 0)
+                updateDoors();
+            else
+                //This is a turret switch
+                _turretGroups.Switch(swi.SwitchData.SwitchLioId, player, bOpen);
 
 			Helpers.Object_LIOs(Players, ss);
 			return true;
@@ -684,8 +782,9 @@ namespace InfServer.Game
 			if (!Logic_Assets.SkillCheck(player, flag.FlagData.SkillLogic))
 				return false;
 
+            bool turfFlag = fs.flag.FlagData.FlagCarriable == 0;
 			//We've done it! Update everything
-			if (bPickup)
+			if (bPickup && !turfFlag)
 				fs.carrier = player;
 			else
 				fs.carrier = null;
@@ -694,13 +793,23 @@ namespace InfServer.Game
 			{
 				fs.oldTeam = fs.team;
 
-				if (bPickup)
-					fs.team = (flag.FlagData.IsFlagOwnedWhenCarried ? player._team : null);
-				else
-					fs.team = (flag.FlagData.IsFlagOwnedWhenDropped ? player._team : null);
+                if (bPickup)
+                {
+                    fs.team = (flag.FlagData.IsFlagOwnedWhenCarried ? player._team : null);
+                    if (fs.flag.FlagData.TurretrGroupId != 0)
+                        //Switch these turrets
+                        _turretGroups.Switch(fs.flag.FlagData.TurretrGroupId, player, true);
+                }
+                else
+                    fs.team = (flag.FlagData.IsFlagOwnedWhenDropped ? player._team : null);
 
-				fs.posX = player._state.positionX;
-				fs.posY = player._state.positionY;
+                if (!turfFlag)
+                {
+                    fs.posX = player._state.positionX;
+                    fs.posY = player._state.positionY;
+                }
+
+
 			}
 			else
 				fs.team = fs.oldTeam;
