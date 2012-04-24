@@ -531,6 +531,7 @@ namespace InfServer.Game.Commands.Chat
                     teamname = payload;
                     teampassword = "";
                 }
+                teamname = teamname.Trim();
 
                 //Are they looking to switch to an existing team?
                 Team newteam = player._arena.getTeamByName(teamname);
