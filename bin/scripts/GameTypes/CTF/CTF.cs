@@ -50,7 +50,7 @@ namespace InfServer.Script.GameType_CTF
 			_arena = invoker as Arena;
 			_config = _arena._server._zoneConfig;
 
-			_minPlayers = 1;
+            _minPlayers = Int32.MaxValue;
 
 			foreach (Arena.FlagState fs in _arena._flags.Values)
 			{	//Determine the minimum number of players
@@ -60,6 +60,10 @@ namespace InfServer.Script.GameType_CTF
 				//Register our flag change events
 				fs.TeamChange += onFlagChange;
 			}
+
+            if (_minPlayers == Int32.MaxValue)
+                //No flags? Run blank games
+                _minPlayers = 1;
 
 			return true;
 		}

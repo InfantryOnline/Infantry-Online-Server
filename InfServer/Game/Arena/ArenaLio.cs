@@ -140,7 +140,6 @@ namespace InfServer.Game
                         {   //Set to player's freq
                             Team newTeam = player._team;
                             turret.Item2._team = newTeam;
-                            player.sendMessage(0, "Switched to your freq");
                             anySwitched = true;
                         }
                         else
@@ -149,7 +148,6 @@ namespace InfServer.Game
                             if (newTeam != null)
                             {
                                 turret.Item2._team = newTeam;
-                                player.sendMessage(0, String.Format("Switched to {0}", newTeam._id));
                                 anySwitched = true;
                             }
                         }
@@ -160,7 +158,6 @@ namespace InfServer.Game
                         if (newTeam != null)
                         {
                             turret.Item2._team = newTeam;
-                            player.sendMessage(0, String.Format("Reset to assign freq {0}", newTeam._id));
                             anySwitched = true;
                         }
                     }
