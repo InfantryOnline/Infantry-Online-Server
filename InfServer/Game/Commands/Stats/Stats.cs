@@ -5,6 +5,7 @@ using System.Text;
 
 using InfServer.Protocol;
 using InfServer.Game.Commands;
+using InfServer.Logic;
 using Assets;
 
 namespace InfServer.Game.Commands.Chat
@@ -62,6 +63,12 @@ namespace InfServer.Game.Commands.Chat
 			player._client.sendReliable(chart, 1);
 		}
 
+        public static void wipecharacter(Player player, Player recipient, string payload, int bong)
+        {
+            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.selfWipe);
+            player.sendMessage(0, "Your character has been reset (probably)");
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -75,6 +82,10 @@ namespace InfServer.Game.Commands.Chat
 			yield return new HandlerDescriptor(playerchart, "playerchart",
 				"Displays a chart containing information regarding each player.",
 				"?playerchart");
+
+            yield return new HandlerDescriptor(wipecharacter, "wipecharacter",
+                "Reset your stats",
+                "?wipecharacter");
 		}
 	}
 }
