@@ -25,7 +25,7 @@ namespace InfServer.Data
 		ArenaMod = 1,
 		Mod = 2,
 		SMod = 3,
-		Sysop = 4,
+        Sysop = 4,
 	}
 
 	/// <summary>

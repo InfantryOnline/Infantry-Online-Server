@@ -513,10 +513,10 @@ namespace InfServer.Game
 			else
 			{   //Attributes
 				//Do we have enough experience for this skill?
-				if (skill.Price <= Experience)
-				{
-					//TODO: Remove experience?
-				}
+                if (skill.Price <= Experience)
+                    Experience -= skill.Price;
+                else
+                    return false;
 			}
 
 			//Add the skill to our skill list

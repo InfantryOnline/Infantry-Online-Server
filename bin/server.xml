@@ -4,7 +4,7 @@
 		<ip value="127.0.0.1" />
 		<port value="7777" />
 		
-		<zoneid value="12" />
+		<zoneid value="" />
 		<password value="" />
 		
 		<connectionAttempts value="1" />
@@ -12,13 +12,14 @@
 	
 	<server>
 		<version value="155" />
-		<zoneConfig value="frontlines.cfg" />
-		<gameType value="GameType_FL_SnD" />
+		<zoneConfig value="dodgeball.cfg" />
+		<gameType value="GameType_Dodgeball" />
 		<updateGlobalNws value="http://freeinfantry.org/svn.php?count=30" />
 		<copyServerFrom value="D:\INFANTRY\source\trunk\bin\" />
 		<loadBlobs value="false" />
-		<logPackets value="true" />
+		<logPackets value="false" />
 		<permitMode value="true" />
+		<pathFindingEnabled value="false" />
 	</server>
 	
 	<protocol>
@@ -52,5 +53,5 @@
 	<maxPlayers value="5000" />
 	
 	<bindIP value="0.0.0.0" />
-	<bindPort value="9002" />
+	<bindPort value="1337" />
 </xml>

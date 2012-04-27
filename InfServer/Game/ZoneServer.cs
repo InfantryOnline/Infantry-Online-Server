@@ -172,9 +172,16 @@ namespace InfServer.Game
 				return false;
 			}
 
-			Log.write("Initializing pathfinder..");
-			_pathfinder = new Bots.Pathfinder(this);
-			_pathfinder.beginThread();
+            if (_config["server/pathFindingEnabled"].boolValue)
+            {
+                Log.write("Initializing pathfinder..");
+                _pathfinder = new Bots.Pathfinder(this);
+                _pathfinder.beginThread();
+            }
+            else
+            {
+                Log.write("Pathfinder disabled, skipping..");
+            }
 
 			// Connect to the database
 			///////////////////////////////////////////////
