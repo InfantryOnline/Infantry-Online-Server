@@ -520,7 +520,7 @@ namespace InfServer.Game
 				return null;
 			}
 
-            if (item.itemType == ItemInfo.ItemType.Multi && (item as ItemInfo.MultiItem).ExpandRadius != 0)
+            if (item.itemType == ItemInfo.ItemType.Multi)
             {   //Do we need to expand?
                 ItemInfo.MultiItem multi = item as ItemInfo.MultiItem;
                 if (multi.ExpandRadius != 0)
@@ -529,6 +529,9 @@ namespace InfServer.Game
                     ItemDrop spawn = null;
                     foreach (ItemInfo.MultiItem.Slot it in multi.slots)
                     {
+                        if (it.value == 0)
+                            break;
+
                         short pX;
                         short pY;
                         while (true)
