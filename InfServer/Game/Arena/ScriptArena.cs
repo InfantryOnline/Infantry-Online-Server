@@ -374,7 +374,7 @@ namespace InfServer.Game
 			{	//Update his inventory
 				if (from.inventoryModify(item, -update.quantity))
 					//Create an item spawn
-					itemSpawn(item, update.quantity, update.positionX, update.positionY);
+					itemSpawn(item, update.quantity, update.positionX, update.positionY, 0, (int)from._team._id);
 			}
 		}
         #endregion
@@ -1445,7 +1445,7 @@ namespace InfServer.Game
 		    if (!exists("Player.MakeItem") || (bool) callsync("Player.MakeItem", false, player, item, posX, posY))
 		    {   //Do we create it in the inventory or arena?
 				if (item.itemMakerQuantity > 0)
-					itemSpawn(itminfo, (ushort)item.itemMakerQuantity, posX, posY);
+					itemSpawn(itminfo, (ushort)item.itemMakerQuantity, posX, posY, 0, (int)player._team._id);
 				else
 					player.inventoryModify(itminfo, Math.Abs(item.itemMakerQuantity));
 

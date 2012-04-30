@@ -374,7 +374,7 @@ namespace InfServer.Game.Commands.Chat
                         else
                         {
                             //Spawn new item since there are no other items nearby
-                            player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY);
+                            player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 0, (int)player._team._id);
                         }
                     }
 

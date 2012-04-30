@@ -13,6 +13,7 @@ namespace Assets
             public int Health;
             public int Repair;
             public int Experience;
+            public int ExpandRadius;
             public struct Slot
             {
                 public int number;
@@ -44,9 +45,8 @@ namespace Assets
                     multiItem.slots.Add(new Slot(i, value));
                 }
 
-
-
-
+                if (multiItem.version >= 53) // Version == field count?? 
+                    multiItem.ExpandRadius = CSVReader.GetInt(values[52]);
 
                 return multiItem;
             }

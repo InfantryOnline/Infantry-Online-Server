@@ -520,6 +520,39 @@ namespace InfServer.Game
 				return null;
 			}
 
+            if (item.itemType == ItemInfo.ItemType.Multi && (item as ItemInfo.MultiItem).ExpandRadius != 0)
+            {   //Do we need to expand?
+                ItemInfo.MultiItem multi = item as ItemInfo.MultiItem;
+                if (multi.ExpandRadius != 0)
+                {
+                    int blockedAttempts = 30;
+                    ItemDrop spawn = null;
+                    foreach (ItemInfo.MultiItem.Slot it in multi.slots)
+                    {
+                        short pX;
+                        short pY;
+                        while (true)
+                        {
+                            pX = positionX;
+                            pY = positionY;
+                            Helpers.randomPositionInArea(this, _server._zoneConfig.arena.pruneDropRadius, ref pX, ref pY);
+                            if (getTile(pX, pY).Blocked)
+                            {
+                                blockedAttempts--;
+                                if (blockedAttempts <= 0)
+                                    //Consider the spawn to be blocked
+                                    return null;
+                                continue;
+                            }
+
+                            spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)it.number, pX, pY, 0, freq);
+                            break;
+                        }
+                    }
+                    return spawn;
+                }
+            }
+
 			//We want to continue wrapping around the vehicleid limits
 			//looking for empty spots.
 			ushort ik;

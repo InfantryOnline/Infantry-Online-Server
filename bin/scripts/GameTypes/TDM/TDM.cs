@@ -44,7 +44,7 @@ namespace InfServer.Script.GameType_TDM
 			_arena = invoker as Arena;
 			_config = _arena._server._zoneConfig;
 
-            _minPlayers = 2;
+            _minPlayers = _config.deathMatch.minimumPlayers;
 
 			return true;
 		}
