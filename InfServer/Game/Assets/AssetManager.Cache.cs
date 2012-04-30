@@ -98,8 +98,16 @@ namespace InfServer.Game
 				//Quickly compare the checksum
 				if (asset.checksum != Assets.CRC32.fileChecksum(asset.filepath))
 				{
-					Log.write(TLog.Error, "Checksum mismatch on asset '{0}' while attempting to cache.", asset.filepath);
-					return null;
+                    //Global files? if so don't bother with the checksum
+                    if (asset.filepath.Contains("Global"))
+                    {
+
+                    }
+                    else
+                    {
+                        Log.write(TLog.Error, "Checksum mismatch on asset '{0}' while attempting to cache.", asset.filepath);
+                        return null;
+                    }
 				}
 
 				//Load the file into memory
