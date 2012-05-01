@@ -212,6 +212,12 @@ namespace InfServer.Logic
 					bChangedState = true;
 					break;
 
+                //Sets the player's bounty to the amount given
+                case "setbounty":
+                    player.Bounty = Convert.ToInt32(param);
+                    bChangedState = true;
+                    break;
+
 				//Adds the amount given to the player's experience
 				case "addexp":
 					player.Experience += Convert.ToInt32(param);
@@ -224,6 +230,12 @@ namespace InfServer.Logic
 					bChangedState = true;
 					break;
 
+                //Add the amount of bounty to the player
+                case "addbounty":
+                    player.Bounty += Convert.ToInt32(param);
+                    bChangedState = true;
+                    break;
+
 				//Sets the player's energy to the amount defined
 				case "setenergy":
 					//TODO: Figure out how to implement this
@@ -232,8 +244,7 @@ namespace InfServer.Logic
                     {
                         //Log.write(TLog.Warning, "  Setting {0} to {1} nrg", player._alias, energy);
                         player.setEnergy((short)energy);
-                        player._state.energy = (short)energy;
-                        bChangedState = true;
+                        bChangedState = false;
                     }
 					break;
 
@@ -344,6 +355,7 @@ namespace InfServer.Logic
 
 				//Triggers the first vehicle event string
                 case "vehicleevent":
+                case "vehicleevent1":
                     if(player._baseVehicle != null)
 			            //Get the vehicle string
 			            RunEvent(player, player._baseVehicle._type.EventString1, null);
@@ -373,6 +385,12 @@ namespace InfServer.Logic
 					//Execute!
 					RunEvent(player, player._team._info.eventString, state);
 					break;
+
+                //Run the event for the terrain
+                case "terrainevent":
+                    if (!player.IsSpectator)
+                        RunEvent(player, player._arena.getTerrain(player._state.positionX, player._state.positionY).eventString, null);
+                    break;
 			}
 
 			if (player._bIngame && bEnforceState && bChangedState)
