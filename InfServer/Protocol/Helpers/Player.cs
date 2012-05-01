@@ -338,5 +338,26 @@ namespace InfServer.Protocol
 				if (!bSkipSelf || player != from)
 					player._client.sendReliable(used);
 		}
+
+        /// <summary>
+        /// Give or take crowns from a list of people
+        /// </summary>
+        static public void Player_Crowns(Arena arena, bool bCrown, List<Player> players, Player target)
+        {
+            SC_PlayerCrowns pkt = new SC_PlayerCrowns();
+            pkt.bCrown = bCrown;
+            pkt.players = players.Select(p => (short)p._id).ToList();
+
+            if (target == null)
+                foreach (Player p in arena.Players)
+                    p._client.sendReliable(pkt);
+            else
+                target._client.sendReliable(pkt);
+        }
+
+        static public void Player_Crowns(Arena arena, bool bCrown, List<Player> players)
+        {
+            Player_Crowns(arena, bCrown, players, null);
+        }
 	}
 }
