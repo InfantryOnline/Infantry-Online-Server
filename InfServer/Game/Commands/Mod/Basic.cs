@@ -55,6 +55,21 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Log the player in. Stand-Alone Mode only.
+        /// </summary>
+        static public void authenticate(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone && player._server._config["server/managerPassword"].Value.Length > 0)
+            {
+                if (payload.Trim() == player._server._config["server/managerPassword"].Value)
+                {
+                    player._permissionTemp = Data.PlayerPermission.SMod;
+                    player.sendMessage(1, "You have been granted");
+                }
+            }
+        }
+
+        /// <summary>
         /// Warps the player to a specified location or player
         /// </summary>
         static public void warp(Player player, Player recipient, string payload, int bong)
@@ -527,6 +542,10 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(help, "help",
                 "Gives the user help information on a given command.",
                 "*help [commandName]");
+
+            yield return new HandlerDescriptor(authenticate, "auth",
+                "Log in during Stand-Alone Mode",
+                "*auth password");
 
             yield return new HandlerDescriptor(permit, "permit",
                 "Permits target player to enter a permission-only zone.",
