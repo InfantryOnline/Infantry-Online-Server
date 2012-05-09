@@ -77,7 +77,10 @@ namespace Assets
                 if (line.Length > 0 && line[0] == '[')
                 {
                     if (values.Count > 0)
+                    {
+                        if(!stringTree.ContainsKey(currentHeader))
                         stringTree.Add(currentHeader, values);
+                    }
                     values = new Dictionary<string, string>();
                     currentHeader = line.Trim(removeFromParsing.ToCharArray());
                 }
@@ -93,6 +96,7 @@ namespace Assets
                     }
                 }
             }
+            if (!stringTree.ContainsKey(currentHeader))
             stringTree.Add(currentHeader, values);
 
             cfgInfo.message = new Message(ref stringTree);

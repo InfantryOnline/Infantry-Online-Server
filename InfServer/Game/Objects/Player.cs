@@ -56,6 +56,8 @@ namespace InfServer.Game
 
 		public int _lastItemUseID;				//The id and ticktime at which the last item
 		public int _lastItemUse;				//was fired.
+
+        public int _lastMovement;               //The tickcount at which the player last made a movement
 		#endregion
 
 		#region Player state

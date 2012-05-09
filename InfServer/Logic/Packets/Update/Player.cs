@@ -21,7 +21,6 @@ namespace InfServer.Logic
 				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
 				return;
 			}
-
 			player._arena.handleEvent(delegate(Arena arena)
 				{
 					player._arena.handlePlayerUpdate(player, pkt);

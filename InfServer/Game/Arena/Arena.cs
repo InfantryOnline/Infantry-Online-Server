@@ -275,9 +275,12 @@ namespace InfServer.Game
 		/// Our configurable Breakdown Class.
 		/// </summary>
 		public class BreakdownSettings
-		{   //All true by default
+		{ 
+            //Generics
 			public bool bDisplayTeam = true;
 			public bool bDisplayIndividual = true;
+            //Gametype Specific
+            public bool bDisplayFlagMVP = false;
 		} 
 
 		/// <summary>
@@ -460,6 +463,13 @@ namespace InfServer.Game
 						player._deathTime = 0;
 						handlePlayerSpawn(player, true);
 					}
+
+                    //Check inactivity
+                    if ((now - player._lastMovement) > (_server._zoneConfig.arena.inactivityTimeout * 1000) && player._lastMovement != 0)
+                    {
+                        player.spec("spec");
+                        player.sendMessage(-1, "You have been sent to spectator mode for being inactive");
+                    }
 
 					//Update play seconds
 					if (bMinor && _bGameRunning)

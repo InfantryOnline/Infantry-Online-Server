@@ -772,6 +772,10 @@ namespace InfServer.Game
             from._state.velocityY = update.velocityY;
             from._state.velocityZ = update.velocityZ;
 
+            //Update the lastmovement tick if his position state has changed
+            if (from._state.positionX != update.positionX | from._state.positionY != update.positionY | from._state.positionZ != update.positionZ)
+                from._lastMovement = now;
+
             from._state.positionX = update.positionX;
             from._state.positionY = update.positionY;
             from._state.positionZ = update.positionZ;

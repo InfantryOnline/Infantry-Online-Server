@@ -22,6 +22,7 @@ namespace InfServer.Game
 		///////////////////////////////////////////////////
 		public Dictionary<int, SwitchState> _switches;
 		public Dictionary<int, FlagState> _flags;
+        public int _lastFlagReward;
 		public List<HideState> _hides;
         public TurretGroupMan _turretGroups;
 
@@ -250,6 +251,65 @@ namespace InfServer.Game
 		private void pollLio()
 		{	//Look after our switches
 			int tickUpdate = Environment.TickCount;
+            int flagDelay = _server._zoneConfig.flag.periodicRewardDelay * 1000;
+
+            if ((tickUpdate - _lastFlagReward) > flagDelay)
+            {
+
+                foreach (Team rewardees in ActiveTeams)
+                {
+                    int cashReward = 0;
+                    int expReward = 0;
+                    int pointReward = 0;
+
+                    foreach (FlagState fs in _flags.Values)
+                    {
+                       
+                        if (fs.team != rewardees)
+                            continue;
+
+                        LioInfo.Flag.FlagSettings flagSettings = fs.flag.FlagData;
+                        //Periodic reward?
+                        if (flagSettings.PeriodicCashReward == 0 && flagSettings.PeriodicExperienceReward == 0 && flagSettings.PeriodicPointsReward == 00)
+                            continue;
+
+                        //Cash
+                        if (flagSettings.PeriodicCashReward < 0)
+                            cashReward += (Math.Abs(flagSettings.PeriodicCashReward) * _playersIngame.Count()) / 1000;
+                        else
+                            cashReward += Math.Abs(flagSettings.PeriodicCashReward);
+                        //Experience
+                        if (flagSettings.PeriodicExperienceReward < 0)
+                            expReward += (Math.Abs(flagSettings.PeriodicExperienceReward) * _playersIngame.Count()) / 1000;
+                        else
+                            expReward += Math.Abs(flagSettings.PeriodicExperienceReward);
+                        //Points
+                        if (flagSettings.PeriodicPointsReward < 0)
+                            pointReward += (Math.Abs(flagSettings.PeriodicPointsReward) * _playersIngame.Count()) / 1000;
+                        else
+                            pointReward += Math.Abs(flagSettings.PeriodicPointsReward);
+
+                    }
+
+                    //Format the message
+                    string format = String.Format
+                        ("&Reward (Cash={0} Experience={1} Points={2}) Next reward in {3} seconds.",
+                        cashReward, expReward, pointReward, _server._zoneConfig.flag.periodicRewardDelay);
+
+                    //Send it.
+                    rewardees.sendArenaMessage(format, _server._zoneConfig.flag.periodicBong);
+
+                    //Reward each player on the rewardees team
+                    foreach (Player player in rewardees.ActivePlayers)
+                    {
+                        player.Cash += cashReward;
+                        player.Experience += expReward;
+                        player.syncState();
+                    }
+                }
+
+                _lastFlagReward = Environment.TickCount;
+            }
 
 			foreach (SwitchState ss in _switches.Values)
 			{	//Does it require autoclosing?
@@ -298,6 +358,11 @@ namespace InfServer.Game
 
                     //The door that's being switched
                     LioInfo.Door door = _server._assets.Lios.Doors.FirstOrDefault(d => d.GeneralData.Id == doorid);
+
+                    //???
+                    if (door == null)
+                        continue;
+
                     bool isBlocked = !ss.bOpen; //Is the door closed?
 
                     if (door.DoorData.InverseState == 1)//Is the state inversed?

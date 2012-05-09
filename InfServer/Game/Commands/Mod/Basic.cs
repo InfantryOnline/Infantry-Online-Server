@@ -16,6 +16,26 @@ namespace InfServer.Game.Commands.Mod
     /// </summary>
     public class Basic
     {
+
+
+        static public void addball(Player player, Player recipient, string payload, int bong)
+        {
+            SC_BallState state = new SC_BallState();
+            state.positionX = player._state.positionX;
+            state.positionY = player._state.positionY;
+            state.positionZ = player._state.positionZ;
+            state.ballID = 1;
+            state.playerID = (short)player._id;
+            state.TimeStamp = Environment.TickCount;
+
+            foreach (Player p in player._arena.Players)
+            {
+                p._client.send(state);
+                p.sendMessage(0, "Ball Added");
+            }
+
+        }
+
         /// <summary>
         /// Gives the user help information on a given command
         /// </summary>
@@ -550,6 +570,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(permit, "permit",
                 "Permits target player to enter a permission-only zone.",
                 "*permit alias",
+               InfServer.Data.PlayerPermission.Mod);
+
+            yield return new HandlerDescriptor(addball, "addball",
+    "Adds a ball to the arena.",
+    "*addball",
                InfServer.Data.PlayerPermission.Mod);
 
             yield return new HandlerDescriptor(arena, "arena",
