@@ -88,7 +88,7 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// Returns whether the team is a public team
+		/// Returns whether the team is a spectator team
 		/// </summary>
 		public bool IsSpec
 		{
@@ -97,6 +97,31 @@ namespace InfServer.Game
 				return _name.Equals("spec", StringComparison.OrdinalIgnoreCase);
 			}
 		}
+
+        /// <summary>
+        /// Returns whether the team is full
+        /// </summary>
+        public bool IsFull
+        {
+            get
+            {
+                return _players.Count(player => (!player.IsSpectator)) >= MaxPlayers;
+            }
+        }
+
+        /// <summary>
+        /// Returns the number of maximum players allowed on this team
+        /// </summary>
+        public int MaxPlayers
+        {
+            get
+            {
+                if (_isPrivate || (_id < _server._zoneConfig.arena.desiredFrequencies && _info.maxPlayers == 0))
+                    return _server._zoneConfig.arena.maxPerFrequency;
+                else
+                    return _info.maxPlayers;
+            }
+        }
 
 		/// <summary>
 		/// Gives a short summary of this team

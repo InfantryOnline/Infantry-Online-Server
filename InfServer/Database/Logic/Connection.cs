@@ -77,7 +77,6 @@ namespace InfServer.Logic
 				if (pkt.message != "")
 					Log.write(TLog.Normal, "Login info: {0}", pkt.message);
 
-				db._server._name = "TODO: Send server name";
 				db._bLoginSuccess = true;
 			}
 

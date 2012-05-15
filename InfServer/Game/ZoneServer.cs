@@ -34,9 +34,49 @@ namespace InfServer.Game
 
 		private bool _bStandalone;				//Are we in standalone mode?
 
-        public string _name;                    //The zone's name
+        private string _name;                    //The zones name
+        private string _description;             //The zones description
+        private bool _isAdvanced;                //Is the zone normal/advanced?
+        private string _bindIP;                  //The IP the zone is binded to
+        private int _bindPort;                   //The port the zone is binded to
 
 	    private ClientPingResponder _pingResponder;
+
+        ///////////////////////////////////////////////////
+        // Accessors
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Gets the name of the zone
+        /// </summary>
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+        }
+
+        /// <summary>
+        /// Gets the description of the zone
+        /// </summary>
+        public string Description
+        {
+            get
+            {
+                return _description;
+            }
+        }
+
+        /// <summary>
+        /// Gets whether this zone is advanced
+        /// </summary>
+        public bool IsAdvanced
+        {
+            get
+            {
+                return _isAdvanced;
+            }
+        }
 
 		/// <summary>
 		/// Indicates whether the server is in standalone (no database) mode
@@ -54,6 +94,38 @@ namespace InfServer.Game
 			}
 		}
 
+        /// <summary>
+        /// Gets the current IP this instance of the zoneserver is running on
+        /// </summary>
+        public string IP
+        {
+            get
+            {
+                return _bindIP;
+            }
+        }
+
+        /// <summary>
+        /// Gets the current port this instance of the zoneserver is binded to
+        /// </summary>
+        public int Port
+        {
+            get
+            {
+                return _bindPort;
+            }
+        }
+
+        /// <summary>
+        /// Gets the connection string in "IP,port" format (used by ?zonelist)
+        /// </summary>
+        public string ConnectionString
+        {
+            get
+            {
+                return _bindIP + "," + _bindPort;
+            }
+        }
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////
@@ -183,6 +255,14 @@ namespace InfServer.Game
                 Log.write("Pathfinder disabled, skipping..");
             }
 
+            // Sets the zone settings
+            //////////////////////////////////////////////
+            _name = _config["zoneName"].Value;
+            _description = _config["zoneDescription"].Value;
+            _isAdvanced = _config["zoneIsAdvanced"].boolValue;
+            _bindIP = _config["bindIP"].Value;
+            _bindPort = _config["bindPort"].intValue;
+
 			// Connect to the database
 			///////////////////////////////////////////////
 			//Attempt to connect to our database
@@ -213,10 +293,10 @@ namespace InfServer.Game
 			base._logger = Log.createClient("Network");
 
 			IPEndPoint listenPoint = new IPEndPoint(
-				IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue);
+				IPAddress.Parse(_bindIP), _bindPort);
 			base.begin(listenPoint);
 
-		    _pingResponder.Begin(new IPEndPoint(IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue + 1));
+            _pingResponder.Begin(new IPEndPoint(IPAddress.Parse(_bindIP), _bindPort + 1));
 
 			//Start handling our arenas);
 			using (LogAssume.Assume(_logger))

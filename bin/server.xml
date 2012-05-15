@@ -1,5 +1,25 @@
 <!-- Main configuration file -->
 <xml>
+	
+	<zoneName value="Dodgeball" />
+	<zoneDescription value="Play some dodgeball meng" />
+	<zoneIsAdvanced value="false" />
+	<bindIP value="127.0.0.1" />
+	<bindPort value="1337" />
+	<maxPlayers value="5000" />
+	
+	<server>
+		<version value="155" />
+		<zoneConfig value="dodgeball.cfg" />
+		<gameType value="GameType_Dodgeball" />
+		<updateGlobalNws value="" />
+		<copyServerFrom value="" />
+		<loadBlobs value="false" />
+		<logPackets value="false" />
+		<permitMode value="true" />
+		<pathFindingEnabled value="false" />
+	</server>
+	
 	<database>
 		<ip value="127.0.0.1" />
 		<port value="7777" />
@@ -9,18 +29,6 @@
 		
 		<connectionAttempts value="1" />
 	</database>
-	
-	<server>
-		<version value="155" />
-		<zoneConfig value="dodgeball.cfg" />
-		<gameType value="GameType_Dodgeball" />
-		<updateGlobalNws value="http://freeinfantry.org/svn.php?count=30" />
-		<copyServerFrom value="D:\INFANTRY\source\trunk\bin\" />
-		<loadBlobs value="false" />
-		<logPackets value="false" />
-		<permitMode value="true" />
-		<pathFindingEnabled value="false" />
-	</server>
 	
 	<protocol>
 		<udpMaxSize value="496" />
@@ -50,8 +58,4 @@
 		</namedArena>
 	</arena>
 	
-	<maxPlayers value="5000" />
-	
-	<bindIP value="0.0.0.0" />
-	<bindPort value="1337" />
 </xml>

@@ -60,8 +60,8 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             }
             catch(Exception e)
             {
+                //Log.write(e.ToString());
                 udpClient.Close();
-                //Console.WriteLine(e.ToString());
             }
         }
 

@@ -41,13 +41,15 @@ namespace InfServer.Protocol
 		{	//Write out each asset
 			foreach (ZoneServer zone in zones)
 			{
-                string zoneConnection = "1.2.3.4,1337";
+                int countModifier = (requestee._server.Equals(zone)) ? -1 : 1;
+                int playercount = countModifier * zone._clients.Count();
+
 				//Not sure why it does this for each entry
 				Write((byte)TypeID);
 
-				Write(zone._name, 32);
-                Write(-(Int16)1337);
-                Write(zoneConnection, 32);
+				Write(zone.Name, 32);
+                Write((Int16)playercount);
+                Write(zone.ConnectionString, 32);
 			}
 		}
 

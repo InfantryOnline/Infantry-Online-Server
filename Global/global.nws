@@ -1,0 +1,290 @@
+~B~1Infantry News~2~B
+---------------------------------------------------------------------------------------------
+Welcome to Infantry 2.0.  Our servers are in continuous development, We're constantly fixing bugs and adding new features to our servers and zones.
+
+Infantry is actually many different games using the same engine.  Make sure and try out all the different zones that we offer as each one provides a different gaming experience.
+
+If you need help with a specific bug or would like to report/suggest/give ideas. Feel free to drop in on our forums at www.freeinfantry.org or check out our IRC channel
+at irc.rabid-duck.net, channel: #Infantry.
+
+~B~1Patch/Update Notes~2~B
+---------------------------------------------------------------------------------------------
+
+~B~4Revision: 260		Saturday, May 12th, 2012	5:00 AM~2~B
+
+~BNotes: ~B
+~BModifications~B
+	A /trunk/InfServer/Protocol/Packets/Game/State/SC_BallState.cs
+~BCommited by:~B hellspawninf
+
+~B~4Revision: 259		Wednesday, May 9th, 2012	5:04 AM~2~B
+
+~BNotes: ~BImplemented Inactivity Timeout and Periodic Flag Rewards
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaState.cs
+	M /trunk/Assets/Cfg/CfgInfo.cs
+	M /trunk/InfServer/Game/Arena/ArenaLio.cs
+	M /trunk/InfServer/Game/Arena/ScriptArena.cs
+	M /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	M /trunk/InfServer/Game/Commands/Sysop/Server.cs
+	M /trunk/InfServer/Game/Objects/Player.cs
+	M /trunk/bin/scripts/GameTypes/Dodgeball/Dodgeball.cs
+	M /trunk/InfServer/Game/Arena/Arena.cs
+	M /trunk/InfServer/Logic/Packets/Update/Player.cs
+~BCommited by:~B hellspawninf
+
+~B~4Revision: 258		Friday, May 4th, 2012	7:10 AM~2~B
+
+~BNotes: ~BMod login during stand-alone mode
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Commands/Mod/Basic.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 257		Tuesday, May 1st, 2012	4:42 AM~2~B
+
+~BNotes: ~BAdded setBounty, addBounty, terrainEvent
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Logic/General/Assets.Events.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 256		Tuesday, May 1st, 2012	1:01 AM~2~B
+
+~BNotes: ~Bkoth gametype beta
+---fowl
+~BModifications~B
+	A /trunk/bin/scripts/GameTypes/KOTH
+	M /trunk/InfServer/Protocol/Helpers/Player.cs
+	A /trunk/bin/scripts/GameTypes/KOTH/KOTH.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 255		Monday, April 30th, 2012	3:16 AM~2~B
+
+~BNotes: ~BIgnored checksum checks on global assets and disabled optional updates.
+~BModifications~B
+	M /trunk/InfServer/Game/Assets/AssetManager.Cache.cs
+	M /trunk/InfServer/Logic/Packets/Login/Login.cs
+~BCommited by:~B hellspawninf
+
+~B~4Revision: 254		Monday, April 30th, 2012	1:21 AM~2~B
+
+~BNotes: ~Bfixed a derp
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaState.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 253		Sunday, April 29th, 2012	10:36 PM~2~B
+
+~BNotes: ~BParse ExpandRadius for Multi-Items
+Set TDM minimum players based on zone cfg
+Implement multi-item expand radius
+--- fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaState.cs
+	M /trunk/InfServer/Game/Arena/ScriptArena.cs
+	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	M /trunk/bin/scripts/GameTypes/TDM/TDM.cs
+	M /trunk/Assets/Itm/ItmInfo.MultiItem.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 252		Friday, April 27th, 2012	2:18 PM~2~B
+
+~BNotes: ~BAdded an option in server.xml for disabling pathfinder.
+~BModifications~B
+	M /trunk/bin/server.xml
+	M /trunk/InfServer/Game/ZoneServer.cs
+	M /trunk/InfServer/Game/Objects/Player.cs
+	M /trunk/InfServer.DBComm/Structures/Player.cs
+~BCommited by:~B hellspawninf
+
+~B~4Revision: 251		Thursday, April 26th, 2012	9:21 PM~2~B
+
+~BNotes: ~BAdded the original Website PS layout file. Needs to be converted to a dark theme.
+~BModifications~B
+	A /branches/Design Files/Website.psd
+~BCommited by:~B jovan92647
+
+~B~4Revision: 250		Thursday, April 26th, 2012	11:54 AM~2~B
+
+~BNotes: ~Bimplemented ?wipecharacter 
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Commands/Stats/Stats.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 249		Wednesday, April 25th, 2012	3:05 PM~2~B
+
+~BNotes: ~BFix minor bug in CTF GameType
+Remove debug messages from turret switching
+--- fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaLio.cs
+	M /trunk/bin/scripts/GameTypes/CTF/CTF.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 248		Tuesday, April 24th, 2012	12:16 AM~2~B
+
+~BNotes: ~BTrim whitespace from team names
+--- fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 247		Monday, April 23rd, 2012	9:34 PM~2~B
+
+~BNotes: ~BImplemented turret groups, switches controlling turrets
+Static Flags will no longer get picked up
+--- FOWL
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaLio.cs
+	M /trunk/InfServer/Game/Objects/Vehicle.Computer.cs
+	M /trunk/InfServer/Game/Arena/Arena.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 246		Monday, April 23rd, 2012	2:33 AM~2~B
+
+~BNotes: ~BFixed an error if a zone has no doors
+Added probability checking for Hides 
+Make ?drop call drop item event 
+--- fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaLio.cs
+	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 245		Sunday, April 22nd, 2012	12:52 PM~2~B
+
+~BNotes: ~Bmoar fixes
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ScriptArena.cs
+	M /trunk/InfServer/Game/Arena/Arena.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 244		Saturday, April 21st, 2012	3:24 PM~2~B
+
+~BNotes: ~BAntiWarp fix from mastar
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Objects/Player.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 243		Saturday, April 21st, 2012	2:49 PM~2~B
+
+~BNotes: ~BRespect [vehicle] computerProduceRadius
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ScriptArena.cs
+	M /trunk/InfServer/Game/Arena/ArenaComputer.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 242		Saturday, April 21st, 2012	12:36 PM~2~B
+
+~BNotes: ~BAnother fix for master
+Multi Items can set energy (needs some testing)
+---fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Objects/Player.cs
+	M /trunk/InfServer/Game/Arena/ArenaComputer.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 241		Saturday, April 21st, 2012	2:47 AM~2~B
+
+~BNotes: ~B
+~BModifications~B
+	M /trunk/bin/scripts/Helpers/Functions.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 240		Friday, April 20th, 2012	9:03 PM~2~B
+
+~BNotes: ~BFixed ?find
+~BModifications~B
+	M /trunk/InfServer.Database/Logic/Commands/Chat.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 239		Friday, April 20th, 2012	8:34 PM~2~B
+
+~BNotes: ~B
+~BModifications~B
+	M /trunk/bin/scripts/Bots/DuelBot/DuelBot.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 238		Friday, April 20th, 2012	7:09 PM~2~B
+
+~BNotes: ~BUpdates to DuelBot
+~BModifications~B
+	M /trunk/bin/scripts/Bots/DuelBot/DuelBot.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 237		Friday, April 20th, 2012	5:46 PM~2~B
+
+~BNotes: ~BMastar fixed up a bit of the production process
+Don't try to run on contact events if there is none
+setenergy event somewhat implemented
+--- fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ScriptArena.cs
+	M /trunk/InfServer/Game/Objects/Player.cs
+	M /trunk/InfServer/Logic/General/Assets.Events.cs
+	M /trunk/InfServer/Game/Arena/ArenaComputer.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 236		Friday, April 20th, 2012	4:59 AM~2~B
+
+~BNotes: ~B
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaState.cs
+	M /trunk/bin/scripts/Helpers/Functions.cs
+	M /trunk/bin/scripts/Bots/DuelBot/DuelBot.cs
+	M /trunk/InfServer/Game/Arena/Arena.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 235		Thursday, April 19th, 2012	11:55 PM~2~B
+
+~BNotes: ~Bno comment :(
+~BModifications~B
+	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 234		Thursday, April 19th, 2012	11:51 PM~2~B
+
+~BNotes: ~BRun the ManualJoinTeam event when manually switching team
+--- fowl
+~BModifications~B
+	M /trunk/InfServer/Game/Objects/Team.cs
+	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 233		Thursday, April 19th, 2012	11:38 PM~2~B
+
+~BNotes: ~BAdded terrain checking for ?team command. *sigh*
+~BModifications~B
+	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 232		Thursday, April 19th, 2012	11:29 PM~2~B
+
+~BNotes: ~BFixed stupid mistake in the scrambler.
+~BModifications~B
+	M /trunk/InfServer/Game/Arena/ArenaState.cs
+	M /trunk/bin/scripts/Helpers/Functions.cs
+~BCommited by:~B nebezb
+
+~B~4Revision: 231		Thursday, April 19th, 2012	10:44 PM~2~B
+
+~BNotes: ~BUpdated ScrambleTeams function to account for only players of public teams.
+Updated CTF script to scramble teams upon game restarts.
+Implemented *teamname command (*teamname 1,2,3,...)
+Implemented ?team command
+Implemented private teams
+~BModifications~B
+	M /trunk/bin/scripts/Helpers/Functions.cs
+	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	M /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	M /trunk/bin
+	M /trunk/bin/scripts/GameTypes/CTF/CTF.cs
+	M /trunk/InfServer/Game/Arena/Arena.cs
+~BCommited by:~B nebezb
+

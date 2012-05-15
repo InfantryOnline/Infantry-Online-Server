@@ -94,17 +94,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
-			SC_Test test = new SC_Test();
-            test.bCrown = true;
-            test.players = new List<short>();
-
-            foreach (Player p in player._arena.Players)
-            {
-                test.players.Add((short)p._id);
-            }
-
-            foreach (Player p in player._arena.Players)
-                p._client.sendReliable(test);
+			//What the fuck was that?
 		}
 
 		/// <summary>

@@ -250,6 +250,7 @@
     <Compile Include="Protocol\Packets\Game\Action\SC_ShopFinished.cs" />
     <Compile Include="Protocol\Packets\Game\SC_BindVehicle.cs" />
     <Compile Include="Protocol\Packets\Game\SC_ChangeTeam.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_BallState.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_Flags.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_ClearProjectiles.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_LIOUpdates.cs" />

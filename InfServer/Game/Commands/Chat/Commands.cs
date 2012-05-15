@@ -16,9 +16,9 @@ namespace InfServer.Game.Commands.Chat
     /// </summary>
     public class Normal
     {
-
-
-
+        /// <summary>
+        /// Queries the database and returns a list of aliases associated with the player
+        /// </summary>
         public static void accountinfo(Player player, Player recipient, string payload, int bong)
         {
             CS_Query<Data.Database> query = new CS_Query<Data.Database>();
@@ -417,7 +417,7 @@ namespace InfServer.Game.Commands.Chat
             {   //Display to every type of "moderator"
                 if (mod._permissionStatic > 0)
                 {
-                    mod.sendMessage(0, String.Format("&HELP:(Zone={0} Arena={1} Player={2}) Reason={3}", player._server._name, player._arena._name, player._alias, payload));
+                    mod.sendMessage(0, String.Format("&HELP:(Zone={0} Arena={1} Player={2}) Reason={3}", player._server.Name, player._arena._name, player._alias, payload));
                     mods += 1;
                 }
             }
@@ -506,7 +506,7 @@ namespace InfServer.Game.Commands.Chat
             if (payload == "")
                 //Don't do anything if there is no payload, client will handle it
                 return;
-            
+
             //Valid terrain?
             if (player._arena.getTerrain(player._state.positionX, player._state.positionY).teamChangeEnabled != 1 && player.IsSpectator == false)
             {
@@ -517,12 +517,13 @@ namespace InfServer.Game.Commands.Chat
             //First check to make sure they're allowed to switch teams
             if (player._arena._server._zoneConfig.arena.allowManualTeamSwitch)
             {
+                //Manual team switching is enabled
                 string teamname;
                 string teampassword;
 
                 if (payload.Contains(":"))
                 {
-                    
+
                     teamname = payload.Split(':').ElementAt(0);
                     teampassword = payload.Split(':').ElementAt(1);
                 }
@@ -531,15 +532,17 @@ namespace InfServer.Game.Commands.Chat
                     teamname = payload;
                     teampassword = "";
                 }
-                teamname = teamname.Trim();
 
                 //Are they looking to switch to an existing team?
                 Team newteam = player._arena.getTeamByName(teamname);
 
+                //Does the team exist?
                 if (newteam != null)
                 {
+                    //The team exists!
                     if (newteam.IsSpec)
-                    {   //Unspecced players aren't allowed on team spec
+                    {
+                        //Only spectators may join team spec
                         if (player.IsSpectator)
                         {
                             newteam.addPlayer(player);
@@ -550,51 +553,41 @@ namespace InfServer.Game.Commands.Chat
                         player.sendMessage(-1, "Must be a spectator to join this team");
                         return;
                     }
-                    else if (!newteam._isPrivate)
-                    {   //Yes! Public team. Let's check to make sure that the team isn't full
-                        int teammaxplayers = player._arena._server._zoneConfig.teams[newteam._id].maxPlayers;
-                        teammaxplayers = (teammaxplayers == 0) ? teammaxplayers = player._arena._server._zoneConfig.arena.maxPerFrequency : teammaxplayers;
-
-                        if (newteam.ActivePlayerCount < teammaxplayers)
+                    else if (newteam.IsPublic || newteam._password == teampassword)
+                    {
+                        //Public team or password for private teams match!
+                        if (!newteam.IsFull)
                         {
+                            //Sadly the team is full :(
                             newteam.addPlayer(player, true);
                             return;
                         }
 
-                        //Team is full :(
-                        player.sendMessage(-1, "Team is full");
-                        return;
-                    }
-                    else if (newteam._password == teampassword)
-                    {   //Password matches. Is the team full?
-                        if (newteam.ActivePlayerCount < player._arena._server._zoneConfig.arena.maxPerFrequency)
-                        {
-                            newteam.addPlayer(player, true);
-                            return;
-                        }
-
-                        //Team is full :(
                         player.sendMessage(-1, "Team is full");
                         return;
                     }
                     else
                     {
-                        //The team might be empty. We should put the player on and change the password
+                        //Team is private and passwords don't match
                         if (newteam._isPrivate && newteam.ActivePlayerCount == 0)
                         {
+                            //The team is empty. We should put the player on and change the password
                             newteam._password = teampassword; //update the password
                             newteam.addPlayer(player, true); //add the player
                             return;
                         }
 
+                        //The team isn't empty! Invalid password, brah
                         player.sendMessage(-1, "Invalid password for specified team");
                         return;
                     }
                 }
                 else
-                {   //Team they're trying to join doesn't exist
+                {
+                    //Team they're trying to join doesn't exist
                     if (!player._arena._server._zoneConfig.arena.allowPrivateFrequencies)
                     {
+                        //Private Frequencies are disabled
                         player.sendMessage(-1, "Private teams are disabled");
                         return;
                     }
@@ -618,6 +611,7 @@ namespace InfServer.Game.Commands.Chat
             }
             else
             {
+                //Manual team switching is disabled
                 player.sendMessage(-1, "Manual team switching is disabled");
                 return;
             }
@@ -628,11 +622,10 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void zonelist(Player player, Player recipient, string payload, int bong)
         {
-            //Temp zone list until I can get zone data properly (Zone name, zone players, zone ip, zone port)
+            //TODO: This needs major fixing! Needs to include every zone connected to database
+            //TODO: Also handle their connection strings (IP,port)
             List<ZoneServer> zones = new List<ZoneServer>();
-            ZoneServer tempZone = new ZoneServer();
-            tempZone._name = "Ask nearest programmer to fix";
-            zones.Add(tempZone);
+            zones.Add(player._server);
 
             SC_ZoneList zoneList = new SC_ZoneList(zones, player);
 

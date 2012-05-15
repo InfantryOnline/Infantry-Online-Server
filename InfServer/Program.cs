@@ -14,7 +14,7 @@ namespace InfServer
 		static Game.ZoneServer server;
 
         /// <summary>
-        /// Recycles our gameserver... PS, super-man is a noob.
+        /// Recycles our gameserver...
         /// </summary>
         public static void Restart()
         {
@@ -30,7 +30,7 @@ namespace InfServer
                 recycler.StartInfo.Arguments = String.Format("-d1:\"{0}\" -d2:\"{1}\" -id:\"{2}\"", config["server/copyServerFrom"].Value, Directory.GetCurrentDirectory().ToString(), process.Id);
 
                 //Start the recycler
-                recycler.Start();
+                recycler.Start(); //The recycler waits for this process to end before starting recycle/copy
 
                 //Kill current process
                 process.Kill();
