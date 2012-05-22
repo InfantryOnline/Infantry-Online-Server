@@ -253,7 +253,7 @@ namespace InfServer.Game
 			int tickUpdate = Environment.TickCount;
             int flagDelay = _server._zoneConfig.flag.periodicRewardDelay * 1000;
 
-            if ((tickUpdate - _lastFlagReward) > flagDelay)
+            if (flagDelay != 0 && (tickUpdate - _lastFlagReward) > flagDelay)
             {
 
                 foreach (Team rewardees in ActiveTeams)
@@ -290,6 +290,9 @@ namespace InfServer.Game
                             pointReward += Math.Abs(flagSettings.PeriodicPointsReward);
 
                     }
+
+                    if (cashReward == 0 && expReward == 0 && pointReward == 0)
+                        continue;
 
                     //Format the message
                     string format = String.Format
