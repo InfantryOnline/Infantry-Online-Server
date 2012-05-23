@@ -607,6 +607,17 @@ namespace InfServer.Game
                                     from._state.positionX, from._state.positionY))
                 return;
 
+            if (entry._type.PickupItemId != 0)
+            { //This vehicle becomes an item when it is picked up
+                ItemInfo item = _server._assets.getItemByID(entry._type.PickupItemId);
+                if (item != null)
+                {
+                    from.inventoryModify(item, 1);
+                    entry.destroy(true, true);
+                    return;
+                }
+            }
+
             //Can't enter dead vehicles
             if (entry.IsDead)
                 return;
