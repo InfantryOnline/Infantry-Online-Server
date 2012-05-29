@@ -57,6 +57,8 @@ namespace InfServer.Game
 		public int _lastItemUseID;				//The id and ticktime at which the last item
 		public int _lastItemUse;				//was fired.
 
+        public int _lastVehicleEntry;           //The tick at which the player last entered or exited a vehicle
+
         public int _lastMovement;               //The tickcount at which the player last made a movement
 		#endregion
 
@@ -690,20 +692,20 @@ namespace InfServer.Game
                     .Sum(it => 1);
                 //Veh editor says a held category is "maximum number of unique types of items of this category type"
                 //Vehicle hold categories take precedence over the cfg values
-                if (ActiveVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
+                if (ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
                 {
-                    if (1 + alreadyHolding > ActiveVehicle._type.HoldItemLimits[item.heldCategoryType])
+                    if (1 + alreadyHolding > ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
                         return false;
                 }
                 else if (ActiveVehicle != _baseVehicle &&
-                    _baseVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
+                    _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
                 {
-                    if (1 + alreadyHolding > _baseVehicle._type.HoldItemLimits[item.heldCategoryType])
+                    if (1 + alreadyHolding > _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
                         return false;
                 }
-                else if (_server._zoneConfig.heldCategory.limit[item.heldCategoryType] != -1)
+                else if (_server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1] != -1)
                 {
-                    if (1 + alreadyHolding > _server._zoneConfig.heldCategory.limit[item.heldCategoryType])
+                    if (1 + alreadyHolding > _server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1])
                         return false;
                 }
             }

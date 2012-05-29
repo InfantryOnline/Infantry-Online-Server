@@ -143,7 +143,7 @@ namespace InfServer.Game
             }
 			foreach (string blo in _bloList)
 			{	//Attempt to load it
-				BloFile blof = AssetFileFactory.CreateFromFile<BloFile>(blo);
+                BloFile blof = AssetFileFactory.LoadBlobFromFile<BloFile>(blo);
 				if (blof != null)
 					addAssetData(blof);
 			}

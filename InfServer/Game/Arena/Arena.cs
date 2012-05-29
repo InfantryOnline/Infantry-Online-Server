@@ -484,16 +484,15 @@ namespace InfServer.Game
 						player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
 					}
 
-                    //Check packetloss every 10 seconds or so
+                    //Check tick diff every 10 seconds or so
                     if ((now - player._state.lastUpdate) > 10000)
                     {
-                        //Check packetloss
-                        if (player._client._stats.C2SPacketLoss >= _server._config["arena/maxPacketLoss"].floatValue ||
-                            player._client._stats.S2CPacketLoss >= _server._config["arena/maxPacketLoss"].floatValue)
+                        //Check diff
+                        if (player._client._stats.clientCurrentUpdate >= _server._config["arena/maxPing"].floatValue)
                         {
                             //Spec the guy!
                             player.spec("spec");
-                            player.sendMessage(-1, "You have been sent to spectator mode for high packetloss.");
+                            player.sendMessage(-1, "You have been sent to spectator mode for high latency");
                         }
                     }
 

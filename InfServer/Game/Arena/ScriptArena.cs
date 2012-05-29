@@ -576,7 +576,10 @@ namespace InfServer.Game
         /// Triggered when a player wants to enter a vehicle
         /// </summary>
         public override void handlePlayerEnterVehicle(Player from, bool bEnter, ushort vehicleID)
-        {	//Are we trying to leave our current vehicle?
+        {
+            int now = Environment.TickCount;
+            
+            //Are we trying to leave our current vehicle?
             if (!bEnter)
             {	//Forward to our script
                 if (!exists("Player.LeaveVehicle") || (bool)callsync("Player.LeaveVehicle", false, from, from._occupiedVehicle))
@@ -587,6 +590,7 @@ namespace InfServer.Game
                     Random exitRadius = new Random();
                     from.warp(from._state.positionX + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius),
                     from._state.positionY + exitRadius.Next(-_server._zoneConfig.arena.vehicleExitWarpRadius, _server._zoneConfig.arena.vehicleExitWarpRadius));
+                    from._lastVehicleEntry = Environment.TickCount;
                 }
 
                 return;
@@ -594,6 +598,11 @@ namespace InfServer.Game
 
             //Otherwise, do we have such a vehicle?
             Vehicle entry;
+
+            //Check warpGetInDelay
+            int delay = (_server._zoneConfig.vehicle.warpGetInDelay / 60) * 1000;
+            if ((now - from._lastVehicleEntry) < delay)
+                return;
 
             if ((entry = _vehicles.getObjByID(vehicleID)) == null)
             {
@@ -626,6 +635,8 @@ namespace InfServer.Game
             if (!exists("Player.EnterVehicle") || (bool)callsync("Player.EnterVehicle", false, from, entry))
                 //Attempt to enter the vehicle!
                 from.enterVehicle(entry);
+            //Update our last entry/exit
+            from._lastVehicleEntry = Environment.TickCount;
         } 
         #endregion
 
@@ -951,10 +962,10 @@ namespace InfServer.Game
                         if (from._team == killer._team)
                             Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
                         else
-                        {
                             Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedEnemy);
-                            Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
-                        }
+
+                        //Calculate rewards
+                        Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
 
 
                         killer.Kills++;
@@ -1425,8 +1436,8 @@ namespace InfServer.Game
 				return;
 			}
 
-			//Remove all items of this type
-			player.removeAllItemFromInventory(itemTypeID);
+			//Remove ONE item of this type... dummies!
+			player.inventoryModify(itemTypeID, -1);
 		}
         #endregion
 
