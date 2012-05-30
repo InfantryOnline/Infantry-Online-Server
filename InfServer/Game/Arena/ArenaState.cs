@@ -144,9 +144,9 @@ namespace InfServer.Game
 			player._bSpectator = true;
 			player._team = _teams["spec"];
 
-			//TEMP: Just to make stuff easier
-			if (player._alias == "aaerox" || player._alias == "HellSpawn")
-				player._permissionTemp = InfServer.Data.PlayerPermission.Sysop;
+			//TEMP: This is not necessary any more, set up managerPassword in server.xml
+			/*if (player._alias == "aaerox" || player._alias == "HellSpawn")
+				player._permissionTemp = InfServer.Data.PlayerPermission.Sysop;*/
 
 			//Find his natural vehicle id and prepare the class
 			Player.SkillItem baseSkill = player._skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);

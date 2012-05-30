@@ -616,6 +616,7 @@ namespace InfServer.Game
                                     from._state.positionX, from._state.positionY))
                 return;
 
+            /* Move to a function to handle the vehicle pickup packet #16
             if (entry._type.PickupItemId != 0)
             { //This vehicle becomes an item when it is picked up
                 ItemInfo item = _server._assets.getItemByID(entry._type.PickupItemId);
@@ -625,7 +626,7 @@ namespace InfServer.Game
                     entry.destroy(true, true);
                     return;
                 }
-            }
+            } */
 
             //Can't enter dead vehicles
             if (entry.IsDead)
