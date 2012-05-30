@@ -40,13 +40,13 @@ namespace InfServer.Logic
 			}
 			
 			//Is the zone in active rotation?
-			if (dbZone.active == 0)
+			/*if (dbZone.active == 0)
 			{	//Fail!
 				SC_Auth<Zone> reply = new SC_Auth<Zone>();
 				reply.result = SC_Auth<Zone>.LoginResult.Inactive;
 				client.sendReliable(reply);
 				return;
-			}
+			}*/
 
 			//Are the passwords a match?
 			if (dbZone.password != pkt.password)
@@ -74,11 +74,15 @@ namespace InfServer.Logic
 
 			//Success!
 			SC_Auth<Zone> success = new SC_Auth<Zone>();
-
+            
 			success.result = SC_Auth<Zone>.LoginResult.Success;
 		    success.message = dbZone.notice;
 
 			client.sendReliable(success);
+
+            //Activate the zone for our directory server
+            using (InfantryDataContext db = server.getContext())
+                db.ExecuteCommand("UPDATE zone SET active={0} WHERE id={1}", 1, dbZone.id);
 
 			Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
 		}
