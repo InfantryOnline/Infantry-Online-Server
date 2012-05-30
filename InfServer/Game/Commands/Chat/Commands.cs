@@ -497,6 +497,59 @@ namespace InfServer.Game.Commands.Chat
 
 			player.sendMessage(0, result.TrimEnd(',', ' '));
 		}
+
+        /// <summary>
+        /// Ignore Summon Request
+        /// </summary>
+        public static void summon(Player player, Player recipient, string payload, int bong)
+        {
+            //wutwut
+            if (payload == "")
+                return;
+
+            //Clear and reinitialize each time as the client keeps track of the list aswell.
+            //Makes things simple
+            player._summonIgnore = new List<Player>();
+
+            //Multiple Players?
+            if (payload.Contains(','))
+            {
+                string[] players = payload.Split(',');
+                foreach (string alias in players)
+                {
+                    //Find them
+                    Player p = player._server.getPlayer(alias);
+
+                    //Hrmm?
+                    if (p == null)
+                    continue;
+
+                    //Ignore the guy!!!111oneone
+                    player._summonIgnore.Add(p);
+                }
+            }
+            //Singular Player
+            else
+            {
+                //Find him
+                Player p = player._server.getPlayer(payload);
+                if (p == null)
+                    player.sendMessage(0, "Player does not exist.");
+                else
+                    player._summonIgnore.Add(p);
+            }
+
+            //Relay his current ignore list back to him!
+            StringBuilder listBuild = new StringBuilder();
+            foreach (Player p in player._summonIgnore)
+            {
+                listBuild.Append(p._alias + ",");
+            }
+            //Trim the last comma (theres obviously a better way to go about this but I'm feeling lazy)
+            string iList = listBuild.ToString().TrimEnd(',');
+
+            player.sendMessage(0, String.Format("You are currently summon-ignoring {0}", iList));
+        }
         
         /// <summary>
         /// Allows the user to change teams or create private teams
@@ -689,6 +742,11 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(spec, "spec",
                 "Displays all players which are spectating you or another player",
                 "?spec or ::?spec");
+
+            yield return new HandlerDescriptor(summon, "summon",
+                "Ignores summons from the specified player(s)",
+                "?summon Player1,Player2,Player3");
+
             yield return new HandlerDescriptor(team, "team",
                 "Displays a list of teams or joins a specified team",
                 "?team or ?team name:password");

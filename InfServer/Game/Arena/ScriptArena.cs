@@ -1230,6 +1230,13 @@ namespace InfServer.Game
 						if (target == null)
 							return;
 
+                        //Is the target player ignoring this player's summons?
+                        if (target._summonIgnore.Contains(player))
+                        {
+                            player.sendMessage(-1, "Summon Ignored");
+                            return;
+                        }
+
 						//Is he on the correct team?
 						if (target._team != player._team)
 							return;

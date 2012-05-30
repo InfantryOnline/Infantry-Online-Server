@@ -65,6 +65,7 @@ namespace InfServer.Game
 		#region Player state
 		public Player _spectating;				//The player we're currently spectating
 		public List<Player> _spectators;		//The players that are currently spectating us
+        public List<Player> _summonIgnore;      //The players that are currently summon-ignored.
 
 		public byte[] _bannerData;				//The data for our current banner
 		public int _bounty;						//Our current bounty
@@ -219,6 +220,7 @@ namespace InfServer.Game
 			_bounty = 1;
 
 			_spectators = new List<Player>();
+            _summonIgnore = new List<Player>();
 
             activeUtilities = new List<ItemInfo.UtilityItem>();
 		}

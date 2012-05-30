@@ -40,6 +40,7 @@ namespace InfServer.Protocol
 				PlayerUseItem = 0x0F,
 				ChartRequest = 0x11,
 				Frames = 0x15,
+                AllowSpec = 0x16,
 				PlayerDrop = 0x17,
 				Chat = 0x18,
 				PlayerUpdate = 0x1C,
