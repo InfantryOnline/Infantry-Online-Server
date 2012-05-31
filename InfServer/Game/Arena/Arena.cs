@@ -465,7 +465,9 @@ namespace InfServer.Game
 					}
 
                     //Check inactivity
-                    if ((now - player._lastMovement) > (_server._zoneConfig.arena.inactivityTimeout * 1000) && player._lastMovement != 0)
+                    if ((_server._zoneConfig.arena.inactivityTimeout > 0) &&
+                        (now - player._lastMovement) > (_server._zoneConfig.arena.inactivityTimeout * 1000) &&
+                        player._lastMovement != 0)
                     {
                         player.spec("spec");
                         player.sendMessage(-1, "You have been sent to spectator mode for being inactive");
