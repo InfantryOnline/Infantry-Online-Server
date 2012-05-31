@@ -48,7 +48,7 @@ namespace InfServer.Protocol
                 Online = 08,
                 Whisper = 09,
                 PrivateChat = 10,
-                JoinChat = 12, //HellSpawn: Why was this TypeID = 11 and not 12?
+                JoinChat = 12,
                 LeaveChat = 13,
                 Chat = 14,
                 ZoneList = 15,
