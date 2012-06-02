@@ -83,7 +83,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 if (payload.Trim() == player._server._config["server/managerPassword"].Value)
                 {
-                    player._permissionTemp = Data.PlayerPermission.SMod;
+                    player._permissionTemp = Data.PlayerPermission.Sysop;
                     player.sendMessage(1, "You have been granted");
                 }
             }

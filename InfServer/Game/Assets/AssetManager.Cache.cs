@@ -99,11 +99,7 @@ namespace InfServer.Game
 				if (asset.checksum != Assets.CRC32.fileChecksum(asset.filepath))
 				{
                     //Global files? if so don't bother with the checksum
-                    if (asset.filepath.Contains("Global"))
-                    {
-
-                    }
-                    else
+                    if (!asset.filepath.Contains("Global"))
                     {
                         Log.write(TLog.Error, "Checksum mismatch on asset '{0}' while attempting to cache.", asset.filepath);
                         return null;

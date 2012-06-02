@@ -16,8 +16,9 @@
 		<copyServerFrom value="" />
 		<loadBlobs value="false" />
 		<logPackets value="false" />
-		<permitMode value="true" />
+		<permitMode value="false" />
 		<pathFindingEnabled value="false" />
+		<managerPassword value="p" />
 	</server>
 	
 	<database>
@@ -27,7 +28,7 @@
 		<zoneid value="" />
 		<password value="" />
 		
-		<connectionAttempts value="1" />
+		<connectionAttempts value="0" />
 	</database>
 	
 	<protocol>

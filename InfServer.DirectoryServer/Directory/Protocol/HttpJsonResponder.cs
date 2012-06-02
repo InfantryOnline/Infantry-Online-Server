@@ -55,8 +55,6 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         /// </summary>
         private void InitializeListener()
         {
-            var prefixes = new [] {@"http://0.0.0.0:1637/directory/"};
-
             //prefixes.ToList().ForEach(p => httpListener.Prefixes.Add(p));
             httpListener.Prefixes.Add("http://*:80/directory/");
         }
