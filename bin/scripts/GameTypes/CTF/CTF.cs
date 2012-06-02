@@ -249,7 +249,7 @@ namespace InfServer.Script.GameType_CTF
 			_tickGameStarting = 0;
 
             //Scramble the teams!
-            ScriptHelpers.scrambleTeams(_arena, true);
+            ScriptHelpers.scrambleTeams(_arena, 2, true);
 
 			//Spawn our flags!
 			_arena.flagSpawn();
