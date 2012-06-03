@@ -116,16 +116,6 @@ namespace InfServer.Game
             }
         }
 
-        /// <summary>
-        /// Gets the connection string in "IP,port" format (used by ?zonelist)
-        /// </summary>
-        public string ConnectionString
-        {
-            get
-            {
-                return _bindIP + "," + _bindPort;
-            }
-        }
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////
@@ -257,11 +247,11 @@ namespace InfServer.Game
 
             // Sets the zone settings
             //////////////////////////////////////////////
-            _name = _config["zoneName"].Value;
-            _description = _config["zoneDescription"].Value;
-            _isAdvanced = _config["zoneIsAdvanced"].boolValue;
-            _bindIP = _config["bindIP"].Value;
-            _bindPort = _config["bindPort"].intValue;
+            _name = _config["server/zoneName"].Value;
+            _description = _config["server/zoneDescription"].Value;
+            _isAdvanced = _config["server/zoneIsAdvanced"].boolValue;
+            _bindIP = _config["server/bindIP"].Value;
+            _bindPort = _config["server/bindPort"].intValue;
 
 			// Connect to the database
 			///////////////////////////////////////////////

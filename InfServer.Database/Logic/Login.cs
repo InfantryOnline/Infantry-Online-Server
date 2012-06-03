@@ -38,15 +38,6 @@ namespace InfServer.Logic
 				client.sendReliable(reply);
 				return;
 			}
-			
-			//Is the zone in active rotation?
-			/*if (dbZone.active == 0)
-			{	//Fail!
-				SC_Auth<Zone> reply = new SC_Auth<Zone>();
-				reply.result = SC_Auth<Zone>.LoginResult.Inactive;
-				client.sendReliable(reply);
-				return;
-			}*/
 
 			//Are the passwords a match?
 			if (dbZone.password != pkt.password)

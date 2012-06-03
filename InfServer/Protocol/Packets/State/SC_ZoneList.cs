@@ -49,7 +49,7 @@ namespace InfServer.Protocol
 
 				Write(zone.Name, 32);
                 Write((Int16)playercount);
-                Write(zone.ConnectionString, 32);
+                Write(zone.IP + "," + zone.Port, 32);
 			}
 		}
 

@@ -63,6 +63,7 @@ namespace InfServer
 		{
             using(InfantryDataContext db = _server.getContext())
                 db.ExecuteCommand("UPDATE zone SET active={0} WHERE id={1}", 0, _zone.id);
+            
 
             _server._zones.Remove(this);
             Log.write("{0} disconnected gracefully", _zone.name);

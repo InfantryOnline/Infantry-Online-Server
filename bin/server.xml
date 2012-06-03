@@ -1,23 +1,28 @@
 <!-- Main configuration file -->
 <xml>
-	
-	<zoneName value="Dodgeball" />
-	<zoneDescription value="Play some dodgeball meng" />
-	<zoneIsAdvanced value="false" />
-	<bindIP value="127.0.0.1" />
-	<bindPort value="1337" />
-	<maxPlayers value="5000" />
-	
 	<server>
 		<version value="155" />
+		
 		<zoneConfig value="dodgeball.cfg" />
 		<gameType value="GameType_Dodgeball" />
+		
+		<zoneName value="Dodgeball" />
+		<zoneDescription value="Play some dodgeball meng" />
+		<zoneIsAdvanced value="false" />
+		
+		<bindIP value="127.0.0.1" />
+		<bindPort value="1337" />
+		
+		<maxPlayers value="5000" />
+		
 		<updateGlobalNws value="" />
 		<copyServerFrom value="" />
+		
 		<loadBlobs value="false" />
 		<logPackets value="false" />
 		<permitMode value="false" />
 		<pathFindingEnabled value="false" />
+		
 		<managerPassword value="p" />
 	</server>
 	
@@ -58,5 +63,4 @@
 			<gameType value="GameType_CTF_OvD" />
 		</namedArena>
 	</arena>
-	
 </xml>

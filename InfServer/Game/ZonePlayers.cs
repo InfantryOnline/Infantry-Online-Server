@@ -40,7 +40,7 @@ namespace InfServer.Game
 			_lastPlayerKey = 1;			//We don't want to be giving players an id of 0
 
 			//Load some settings
-			maxPlayers = _config["maxPlayers"].intValue;
+			maxPlayers = _config["server/maxPlayers"].intValue;
 			return true;
 		}
 
