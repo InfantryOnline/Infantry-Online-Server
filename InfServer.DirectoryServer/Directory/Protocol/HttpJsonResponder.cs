@@ -71,7 +71,11 @@ namespace InfServer.DirectoryServer.Directory.Protocol
             switch(request.HttpMethod)
             {
                 case "GET":
-                    var responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new {zone.Title, zone.PlayerCount}));
+                    byte[] responseString;
+                    if (request.Url.LocalPath.Contains("notz"))
+                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones where !zone.Title.Contains("I:TZ") select new { zone.Title, zone.PlayerCount }));
+                    else
+                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { zone.Title, zone.PlayerCount }));
                     response.ContentLength64 = responseString.Length;
                     response.OutputStream.Write(responseString, 0, responseString.Length);
                     response.OutputStream.Close();

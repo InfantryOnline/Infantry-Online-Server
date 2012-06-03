@@ -91,14 +91,11 @@ namespace InfServer.Logic
 				//Send him the asset list	
 				SC_AssetInfo assets = new SC_AssetInfo(Helpers._server._assets.getAssetList());
 
-                /*Optional updates?
+                //Optional updates?
                 if (player.PermissionLevel == Data.PlayerPermission.Sysop)
                     assets.bOptionalUpdate = true;
                 else
                     assets.bOptionalUpdate = false;
-                 */
-
-                assets.bOptionalUpdate = false;
 
 				player._client.sendReliable(assets);
 
