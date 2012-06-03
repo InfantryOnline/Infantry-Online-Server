@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Net;
 using System.Timers;
 using DirectoryServer.Directory.Protocol;
 using InfServer.DirectoryServer.Directory.Protocol;
 using InfServer.DirectoryServer.Directory.Protocol.Helpers;
 using InfServer.Network;
-using System.Text;
 
 namespace InfServer.DirectoryServer.Directory
 {
@@ -19,45 +20,44 @@ namespace InfServer.DirectoryServer.Directory
         public ConfigSetting _config;
         public new LogClient _logger;
         public ZoneStream ZoneStream;
-        public Serializer serializer;
         public List<Zone> Zones { get { return ZoneStream.Zones; } }
+
+        private SqlConnection db;
 
         public DirectoryServer() : base(new Factory(), new DirectoryClient())
         {
-            //Initialize our XML Serializer
-            serializer = new Serializer();
             httpJsonResponder = new HttpJsonResponder(this);
         }
 
         public bool Init()
         {
-            // Load the zone list from the XML here.
-            Log.write("Loading zones from XML..");
+            //Connect to our database
+            Log.write("Connecting to database...");
+            db = new SqlConnection("Server=FREEINFANTRY\\INFANTRY;Database=Data;Trusted_Connection=True;");
+            db.Open();
             grabZones();
             return true;
         }
 
         public void grabZones()
         {
-
-            List<XmlZoneListing> xmlList = serializer.DeserializeFromXML();
-
-
-            //Do we have any?
-            if (xmlList.Count == 0)
-                Log.write(TLog.Warning, "Found no zones to load.");
-
-            //Convert our XmlList into a ZoneList
+            var activezones = new SqlCommand("SELECT * FROM zone WHERE active=1", db);
             var zones = new List<Zone>();
-            foreach (XmlZoneListing zone in xmlList)
-            {
-                IPAddress address = IPAddress.Parse(zone.Address);
-                zones.Add(new Zone(address.GetAddressBytes(),
-                    zone.Port,
-                    zone.Name,
-                    zone.IsAdvanced,
-                    zone.Description));
 
+            using (var reader = activezones.ExecuteReader())
+            {
+                if (!reader.HasRows)
+                    Log.write(TLog.Warning, "Found no active zones to load");
+                
+                while (reader.Read())
+                {
+                    IPAddress ipadd = IPAddress.Parse(reader["ip"].ToString());
+                    zones.Add(new Zone(ipadd.GetAddressBytes(),
+                        Convert.ToUInt16(reader["port"]),
+                        reader["name"].ToString(),
+                        Convert.ToBoolean(reader["advanced"]),
+                        reader["description"].ToString()));
+                }
             }
 
             //Done

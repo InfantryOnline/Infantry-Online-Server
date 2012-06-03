@@ -81,7 +81,6 @@
     <Compile Include="Directory\Protocol\Factory.cs" />
     <Compile Include="Directory\Protocol\Helpers\PacketIDs.cs" />
     <Compile Include="Directory\Protocol\Helpers\Zone.cs" />
-    <Compile Include="Directory\Protocol\Helpers\XmlZoneListing.cs" />
     <Compile Include="Directory\Protocol\Helpers\ZoneStream.cs" />
     <Compile Include="Directory\Protocol\HttpJsonResponder.cs" />
     <Compile Include="Directory\Protocol\Packets\CS_AckZoneList.cs" />
