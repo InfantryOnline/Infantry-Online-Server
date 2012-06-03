@@ -97,6 +97,10 @@
       <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
       <Name>Assets</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\InfServer.DBComm\InfServer.DBComm.csproj">
+      <Project>{8817E7B9-441E-45EF-B2BF-9E637DCCB868}</Project>
+      <Name>InfServer.DBComm</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\InfServer.Network\InfServer.Network.csproj">
       <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
       <Name>InfServer.Network</Name>
@@ -155,8 +159,11 @@
   <ItemGroup>
     <Compile Include="Bots\DuelBot\DuelBot.cs" />
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
+    <Compile Include="GameTypes\HQ\Headquarters.cs" />
     <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />
     <Compile Include="GameTypes\Frontlines\TDM.cs" />
+    <Compile Include="GameTypes\HQ\Events.cs" />
+    <Compile Include="GameTypes\HQ\Objects\HQ.cs" />
     <Compile Include="GameTypes\TDM\TDM.cs" />
     <Compile Include="GameTypes\CTF\CTF_OvD\OvD.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />
