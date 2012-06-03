@@ -71,9 +71,10 @@ namespace InfServer.Logic
 
 			client.sendReliable(success);
 
-            //Activate the zone for our directory server
+            //Update and activate the zone for our directory server
             using (InfantryDataContext db = server.getContext())
-                db.ExecuteCommand("UPDATE zone SET active={0} WHERE id={1}", 1, dbZone.id);
+                db.ExecuteCommand("UPDATE zone SET name={0}, description={1}, ip={2}, port={3}, active=1 WHERE id={4}",
+                    pkt.zoneName, pkt.zoneDescription, pkt.zoneIP, pkt.zonePort, pkt.zoneID);
 
 			Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
 		}

@@ -15,6 +15,12 @@ namespace InfServer.Protocol
 		///////////////////////////////////////////////////
 		public int zoneID;			//The ID of the zone we represent
 		public string password;		//Our password for entering the zone
+        // The zone data
+        public string zoneName;
+        public string zoneDescription;
+        public bool zoneIsAdvanced;
+        public string zoneIP;
+        public int zonePort;
 
 		//Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Auth;
@@ -61,6 +67,11 @@ namespace InfServer.Protocol
 
 			Write(zoneID);
 			Write(password, 0);
+            Write(zoneName, 0);
+            Write(zoneDescription, 0);
+            Write(zoneIsAdvanced);
+            Write(zoneIP, 0);
+            Write(zonePort);
 		}
 
 		/// <summary>
@@ -70,6 +81,11 @@ namespace InfServer.Protocol
 		{
 			zoneID = _contentReader.ReadInt32();
 			password = ReadNullString();
+            zoneName = ReadNullString();
+            zoneDescription = ReadNullString();
+            zoneIsAdvanced = _contentReader.ReadBoolean();
+            zoneIP = ReadNullString();
+            zonePort = _contentReader.ReadInt32();
 		}
 
 		/// <summary>

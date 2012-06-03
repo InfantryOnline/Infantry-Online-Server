@@ -39,6 +39,11 @@ namespace InfServer.Logic
 
 			auth.zoneID = db._config["zoneid"].intValue;
 			auth.password = db._config["password"].Value;
+            auth.zoneName = db._server._config["server/zoneName"].Value;
+            auth.zoneDescription = db._server._config["server/zoneDescription"].Value;
+            auth.zoneIsAdvanced = db._server._config["server/zoneIsAdvanced"].boolValue;
+            auth.zoneIP = db._server._config["server/bindIP"].Value;
+            auth.zonePort = db._server._config["server/bindPort"].intValue;
 
 			client.sendReliable(auth);
 		}
