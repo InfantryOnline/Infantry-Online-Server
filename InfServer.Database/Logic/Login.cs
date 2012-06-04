@@ -72,6 +72,9 @@ namespace InfServer.Logic
 			client.sendReliable(success);
 
             //Update and activate the zone for our directory server
+            dbZone.name = pkt.zoneName;
+            dbZone.description = pkt.zoneDescription;
+            dbZone.active = 1;
             using (InfantryDataContext db = server.getContext())
                 db.ExecuteCommand("UPDATE zone SET name={0}, description={1}, ip={2}, port={3}, advanced={4}, active=1 WHERE id={5}",
                     pkt.zoneName, pkt.zoneDescription, pkt.zoneIP, pkt.zonePort, Convert.ToInt16(pkt.zoneIsAdvanced), pkt.zoneID);
