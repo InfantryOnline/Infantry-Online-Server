@@ -83,20 +83,16 @@ namespace InfServer.Script.GameType_HQ
             {
                 //Reward time?
                 if ((now - tickLastUpdate) > (rewardDelay * 1000))
-                {
-
                     Events.periodicReward(hq);
-                    tickLastUpdate = now;
-                }
 
+                //Level up time?
                 if ((now - tickLastUpdate) > 1000)
-                {
-                    //Enough to level?
                     if (hq.bounty >= hq.nextLvl)
-                    {
                         Events.onHQLevelUp(hq);
-                    }
-                }
+
+                //Update our tick time if we're at the last HQ in the list
+                if(hq==_hqs.Last().Value)
+                    tickLastUpdate = now;
             }
 
 			return true;
