@@ -79,20 +79,22 @@ namespace InfServer.Script.GameType_HQ
 		public bool poll()
 		{	//Should we check game state yet?
 			int now = Environment.TickCount;
+
+            //TODO: Refactor this... wrong way of maintainings reward and levels
             foreach (HQ hq in _hqs.Values)
             {
                 //Reward time?
                 if ((now - tickLastUpdate) > (rewardDelay * 1000))
+                {
                     Events.periodicReward(hq);
-
+                    //Last HQ in line
+                    if (hq == _hqs.Last().Value)
+                        tickLastUpdate = now;
+                }
                 //Level up time?
                 if ((now - tickLastUpdate) > 1000)
                     if (hq.bounty >= hq.nextLvl)
                         Events.onHQLevelUp(hq);
-
-                //Update our tick time if we're at the last HQ in the list
-                if(hq==_hqs.Last().Value)
-                    tickLastUpdate = now;
             }
 
 			return true;
