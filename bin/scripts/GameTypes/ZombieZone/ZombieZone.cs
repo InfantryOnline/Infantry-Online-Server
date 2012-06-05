@@ -251,7 +251,7 @@ namespace InfServer.Script.GameType_ZombieZone
 				}
 
 				//Take care of each active team
-				foreach (TeamState team in _states.Values)
+				foreach (TeamState team in _states.Values.ToList())
 				{	//No zombie horde!
 					if (team.team._id == 0)
 						continue;
@@ -325,7 +325,7 @@ namespace InfServer.Script.GameType_ZombieZone
 						team.bCloaked = false;
 
 					//Any distractions require ending?
-					foreach (ZombieDistraction distract in team.distractions)
+					foreach (ZombieDistraction distract in team.distractions.ToList())
 						if (now > distract.tickDistractionEnd)
 						{
 							team.distractions.Remove(distract);
@@ -472,7 +472,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			spawnItemInArea(AssetManager.Manager.getItemByName("Energizer"), (ushort)_rand.Next(1, 2), posX, posY, c_supplyDropAreaRadius);
 
 			//Give each player some cash
-			foreach (Player p in team.ActivePlayers)
+			foreach (Player p in team.ActivePlayers.ToList())
 			{
 				int cashGained = c_playerSupplyDropCash + (state.supplyDropsFound * c_playerSupplyDropCashGrow);
 				p.Cash += cashGained;
@@ -487,7 +487,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			//Do we have a chemist in the team?
 			bool bChemistPresent = false;
 
-			foreach (Player p in team.ActivePlayers)
+			foreach (Player p in team.ActivePlayers.ToList())
 			{
 				if (p._baseVehicle._type.ClassId == 3 && !p.IsDead)
 				{
@@ -499,7 +499,7 @@ namespace InfServer.Script.GameType_ZombieZone
 
 			if (!bChemistPresent)
 			{	//Heal every player slightly
-				foreach (Player p in team.ActivePlayers)
+				foreach (Player p in team.ActivePlayers.ToList())
 					if (!p.IsDead)
 						p.heal(AssetManager.Manager.getItemByName("SupplyDrop Healing") as ItemInfo.RepairItem, opener);
 			}
@@ -558,7 +558,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			TeamState tstate = null;
 			int attackers = int.MaxValue;
 
-			foreach (TeamState team in _states.Values)
+			foreach (TeamState team in _states.Values.ToList())
 			{
 				if (!team.bPerished && team.team.ActivePlayerCount > 0 && team.zombiePlayers.Count < attackers)
 				{
@@ -620,7 +620,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			state.bPerished = true;
 
 			//Destroy all the bots!
-			foreach (ZombieBot bot in state.zombies)
+			foreach (ZombieBot bot in state.zombies.ToList())
 				bot.kill(null);
 			if (state.superZombie != null)
 				state.superZombie.destroy(true);
@@ -633,7 +633,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			//Is this the last team left?
 			bool bLastTeam = true;
 
-			foreach (TeamState t in _states.Values)
+			foreach (TeamState t in _states.Values.ToList())
 				if (!t.bPerished)
 					bLastTeam = false;
 
@@ -643,7 +643,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			else
 			{	//Warp all zombie players to a new team
 				List<Player> zombiePlayers = new List<Player>(state.zombiePlayers);
-				foreach (Player zombie in zombiePlayers)
+				foreach (Player zombie in zombiePlayers.ToList())
 					spawnZombiePlayer(zombie);
 			}
 		}
@@ -728,7 +728,7 @@ namespace InfServer.Script.GameType_ZombieZone
 		/// </summary>
 		public void maintainZombies(int now)
 		{	//Maintain the zombie population for each team!
-			foreach (Team team in _arena.Teams)
+			foreach (Team team in _arena.Teams.ToList())
 			{	//Ignore the zombie horde and teams with no active players
 				if (team._id == 0 || team.ActivePlayerCount == 0)
 					continue;
@@ -809,7 +809,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			if (_states.Values.Count(t => t.team.ActivePlayerCount > 0) > 1)
 			{
 				int zombiesKilled = 0;
-				foreach (TeamState st in _states.Values)
+				foreach (TeamState st in _states.Values.ToList())
 					zombiesKilled += st.totalZombieKills;
 				_jackpot = (int)((float)(zombiesKilled * 20) * Math.Pow(1.15f, _states.Values.Count));
 			}
@@ -829,7 +829,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			//Calculate the reward
 			int expReward = _stats.getZombieExp(zombieVID);
 
-			foreach (Player p in killer._team.ActivePlayers)
+			foreach (Player p in killer._team.ActivePlayers.ToList())
 			{
 				p.Experience += expReward;
 				p.syncState();
@@ -987,7 +987,7 @@ namespace InfServer.Script.GameType_ZombieZone
 				//Reward all players for assist damage
 				skillRating = ZombieZoneStats.getKillSkillRating(zombie._type.Id);
 
-				foreach (Player assist in zombie._attackers)
+				foreach (Player assist in zombie._attackers.ToList())
 				{
 					assist.Bounty += skillRating;
 					assist.ZoneStat8 += skillRating;
@@ -1077,7 +1077,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			int seperation = 0;
 			int count = 0;
 
-			foreach (Player p in team.ActivePlayers)
+			foreach (Player p in team.ActivePlayers.ToList())
 				if (!p.IsDead)
 				{
 					int xDiff = (p._state.positionX - posX);
@@ -1132,7 +1132,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			int posX = 0;
 			int posY = 0;
 
-			foreach (Player p in team.ActivePlayers)
+			foreach (Player p in team.ActivePlayers.ToList())
 				if (!p.IsDead)
 				{
 					posX += p._state.positionX;
@@ -1181,7 +1181,7 @@ namespace InfServer.Script.GameType_ZombieZone
 				{
 					bool bResurrected = false;
 
-					foreach (Player p in state.originalPlayers)
+					foreach (Player p in state.originalPlayers.ToList())
 					{	//Can we res him?
 						if (p.bDestroyed || p.IsDead || p.IsSpectator)
 							continue;
@@ -1547,7 +1547,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			_marineTeamCount = ((playerCount - 1) / 4) + 1;
 			int playerPerTeam = (int)Math.Ceiling((float)playerCount / (float)_marineTeamCount);
 
-			foreach (Player p in players)
+			foreach (Player p in players.ToList())
 			{	//Put him on an appropriate team
 				publicTeams[_marineTeamCount - ((playerCount + playerPerTeam - 1) / playerPerTeam) + 1].addPlayer(p);
 				playerCount--;
@@ -1556,11 +1556,11 @@ namespace InfServer.Script.GameType_ZombieZone
 			}
 
 			//Equip everyone in the arena!
-			foreach (Player marine in _arena.PlayersIngame)
+			foreach (Player marine in _arena.PlayersIngame.ToList())
 				setupMarinePlayer(marine);
 
 			//Spawn our teams seperately
-			foreach (Team team in _arena.Teams)
+			foreach (Team team in _arena.Teams.ToList())
 			{
 				if (team._id == 0 || team.ActivePlayerCount == 0)
 					continue;
@@ -1585,7 +1585,7 @@ namespace InfServer.Script.GameType_ZombieZone
 				}
 
 				//Spawn each player around this point
-				foreach (Player marine in team.ActivePlayers)
+				foreach (Player marine in team.ActivePlayers.ToList())
 				{
 					marine.warp(Helpers.ResetFlags.ResetAll, -1,
 								(short)(pX - c_startAreaRadius), (short)(pY - c_startAreaRadius),
@@ -1596,7 +1596,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			}
 
 			//After spawning all the teams, spawn a superzombie for each team
-			foreach (Team team in _arena.Teams)
+			foreach (Team team in _arena.Teams.ToList())
 				if (team.ActivePlayerCount > 1)
 					spawnSuperZombie(team);
 
@@ -1618,7 +1618,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			if (_victoryTeam != null)
 			{	//How many zombies have been killed?
 				int zombiesKilled = 0;
-				foreach (TeamState state in _states.Values)
+				foreach (TeamState state in _states.Values.ToList())
 					zombiesKilled += state.totalZombieKills;
 
 				_arena.sendArenaMessage("!" + zombiesKilled + " zombies were slaughtered!");
@@ -1639,7 +1639,7 @@ namespace InfServer.Script.GameType_ZombieZone
 				}
 
 				//Give everyone a skill reward
-				foreach (Player p in _arena.Players)
+				foreach (Player p in _arena.Players.ToList())
 				{
 					double zombieKills = p.getVarInt("zombieKills");
 					double skillRating = p.getVarInt("pureSkill");
@@ -1661,9 +1661,9 @@ namespace InfServer.Script.GameType_ZombieZone
 			_arena.breakdown(true);
 
 			//Reset all custom vars
-			foreach (Player p in _arena.Players)
+			foreach (Player p in _arena.Players.ToList())
 				p.resetVars();
-			foreach (Team t in _arena.Teams)
+			foreach (Team t in _arena.Teams.ToList())
 				t.resetVars();
 
 			return true;
@@ -1846,7 +1846,7 @@ namespace InfServer.Script.GameType_ZombieZone
 			{	//Give each team member the temporary cloak
 				ItemInfo cloak = AssetManager.Manager.getItemByName("Cloak");
 
-				foreach (Player p in player._team.ActivePlayers)
+				foreach (Player p in player._team.ActivePlayers.ToList())
 					p.inventorySet(cloak, 1);
 
 				//Mark the team as cloaked
