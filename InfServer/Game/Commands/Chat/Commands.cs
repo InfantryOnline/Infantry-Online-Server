@@ -523,7 +523,7 @@ namespace InfServer.Game.Commands.Chat
             //Tell him who he's currently ignoring
             string ignoreList = "";
             foreach (string p in player._summonIgnore)
-                ignoreList += p;
+                ignoreList += p + ", ";
 
             if (ignoreList.Length > 0)
             {
