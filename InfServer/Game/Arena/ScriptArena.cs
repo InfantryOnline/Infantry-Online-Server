@@ -1231,9 +1231,9 @@ namespace InfServer.Game
 							return;
 
                         //Is the target player ignoring this player's summons?
-                        if (target._summonIgnore.Contains(player))
+                        if (target._summonIgnore.Contains(player._alias) || target._summonIgnore.Contains("*"))
                         {
-                            player.sendMessage(-1, "Summon Ignored");
+                            player.sendMessage(-1, "The specified player is ignoring summons");
                             return;
                         }
 

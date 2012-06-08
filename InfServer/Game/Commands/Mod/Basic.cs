@@ -554,6 +554,22 @@ namespace InfServer.Game.Commands.Mod
 		}
 
         /// <summary>
+        /// Toggles a players ability to use the messaging system entirely
+        /// </summary>
+        static public void shutup(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity checks
+            if (recipient == null)
+            {
+                player.sendMessage(-1, "Syntax: ::*shutup");
+                return;
+            }
+
+            //Toggle his ability to speak
+            recipient._bSilenced = !recipient._bSilenced;
+        }
+
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ModCommand)]
@@ -575,17 +591,17 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(addball, "addball",
     "Adds a ball to the arena.",
     "*addball",
-               InfServer.Data.PlayerPermission.Mod);
+               InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(arena, "arena",
                 "Send a arena-wide system message.",
                 "*arena message",
-               InfServer.Data.PlayerPermission.Mod);
+               InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(profile, "profile",
                 "Displays a player's inventory.",
                 "/*profile or :player:*profile",
-                InfServer.Data.PlayerPermission.Mod);
+                InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(warp, "warp",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
@@ -642,10 +658,15 @@ namespace InfServer.Game.Commands.Mod
                 "*experience [amount] or ::*experience [amount]",
                 InfServer.Data.PlayerPermission.ArenaMod);
 
-			yield return new HandlerDescriptor(kill, "kill",
-			   "Removes the target player from the server",
-			   "::*kill",
-			   InfServer.Data.PlayerPermission.Mod);
+            yield return new HandlerDescriptor(kill, "kill",
+               "Removes the target player from the server",
+               "::*kill",
+               InfServer.Data.PlayerPermission.Mod);
+
+            yield return new HandlerDescriptor(shutup, "shutup",
+               "Toggles a players ability to use the messaging system entirely",
+               "::*shutup",
+               InfServer.Data.PlayerPermission.ArenaMod);
         }
     }
 }

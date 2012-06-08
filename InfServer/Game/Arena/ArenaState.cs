@@ -143,6 +143,7 @@ namespace InfServer.Game
 			//TODO: Check rules for whether player enters in spec
 			player._bSpectator = true;
 			player._team = _teams["spec"];
+            player._bSilenced = false;
 
 			//TEMP: This is not necessary any more, set up managerPassword in server.xml
 			/*if (player._alias == "aaerox" || player._alias == "HellSpawn")

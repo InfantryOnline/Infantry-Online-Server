@@ -19,7 +19,9 @@ namespace InfServer.Logic
             if (pkt.message == "")
 				return;
 
-
+            //Ignore messages from the silent
+            if (player._bSilenced)
+                return;
 
 			//Is it a server command?
 			if (pkt.message[0] == '?' && pkt.message.Length > 1)

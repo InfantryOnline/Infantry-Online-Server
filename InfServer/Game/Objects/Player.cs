@@ -45,6 +45,7 @@ namespace InfServer.Game
 		#region Game state
 		public bool _bIgnoreUpdates;			//Are we temporarily ignoring player updates? (Usually due to vehicle change)
 		public bool _bSpectator;				//Is the player in spectator mode?
+        public bool _bSilenced;                 //Is the player currently silenced?
 
 		public Helpers.ObjectState _state;		//The player's positional state
 
@@ -65,7 +66,7 @@ namespace InfServer.Game
 		#region Player state
 		public Player _spectating;				//The player we're currently spectating
 		public List<Player> _spectators;		//The players that are currently spectating us
-        public List<Player> _summonIgnore;      //The players that are currently summon-ignored.
+        public List<string> _summonIgnore;      //The players that are currently summon-ignored.
 
 		public byte[] _bannerData;				//The data for our current banner
 		public int _bounty;						//Our current bounty
@@ -220,7 +221,7 @@ namespace InfServer.Game
 			_bounty = 1;
 
 			_spectators = new List<Player>();
-            _summonIgnore = new List<Player>();
+            _summonIgnore = new List<string>();
 
             activeUtilities = new List<ItemInfo.UtilityItem>();
 		}

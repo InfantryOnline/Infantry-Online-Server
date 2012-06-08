@@ -503,52 +503,35 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void summon(Player player, Player recipient, string payload, int bong)
         {
-            //wutwut
             if (payload == "")
-                return;
-
-            //Clear and reinitialize each time as the client keeps track of the list aswell.
-            //Makes things simple
-            player._summonIgnore = new List<Player>();
-
-            //Multiple Players?
-            if (payload.Contains(','))
             {
-                string[] players = payload.Split(',');
-                foreach (string alias in players)
-                {
-                    //Find them
-                    Player p = player._server.getPlayer(alias);
-
-                    //Hrmm?
-                    if (p == null)
-                    continue;
-
-                    //Ignore the guy!!!111oneone
-                    player._summonIgnore.Add(p);
-                }
+                player.sendMessage(-1, "Invalid syntax. Use: ?summon Playername or ?summon * to ignore all summons");
+                return;
             }
-            //Singular Player
+
+            if (player._summonIgnore.Contains(payload))
+            {
+                player._summonIgnore.Remove(payload);
+                player.sendMessage(0, "Removed '" + payload + "' from summon-ignore list");
+            }
             else
             {
-                //Find him
-                Player p = player._server.getPlayer(payload);
-                if (p == null)
-                    player.sendMessage(0, "Player does not exist.");
-                else
-                    player._summonIgnore.Add(p);
+                player._summonIgnore.Add(payload);
+                player.sendMessage(0, "Added '" + payload + "' to summon-ignore list");
             }
 
-            //Relay his current ignore list back to him!
-            StringBuilder listBuild = new StringBuilder();
-            foreach (Player p in player._summonIgnore)
+            //Tell him who he's currently ignoring
+            string ignoreList = "";
+            foreach (string p in player._summonIgnore)
+                ignoreList += p;
+
+            if (ignoreList.Length > 0)
             {
-                listBuild.Append(p._alias + ",");
+                player.sendMessage(0, "&Summon Ignore List");
+                player.sendMessage(0, "*" + ignoreList.Substring(0, ignoreList.Length - 1));
             }
-            //Trim the last comma (theres obviously a better way to go about this but I'm feeling lazy)
-            string iList = listBuild.ToString().TrimEnd(',');
-
-            player.sendMessage(0, String.Format("You are currently summon-ignoring {0}", iList));
+            else
+                player.sendMessage(0, "&Summon Ignore List is Empty");
         }
         
         /// <summary>
