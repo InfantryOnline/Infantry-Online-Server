@@ -528,7 +528,7 @@ namespace InfServer.Game.Commands.Chat
             if (ignoreList.Length > 0)
             {
                 player.sendMessage(0, "&Summon Ignore List");
-                player.sendMessage(0, "*" + ignoreList.Substring(0, ignoreList.Length - 1));
+                player.sendMessage(0, "*" + ignoreList);
             }
             else
                 player.sendMessage(0, "&Summon Ignore List is Empty");
