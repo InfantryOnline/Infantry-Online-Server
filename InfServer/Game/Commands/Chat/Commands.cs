@@ -505,7 +505,17 @@ namespace InfServer.Game.Commands.Chat
         {
             if (payload == "")
             {
-                player.sendMessage(-1, "Invalid syntax. Use: ?summon Playername or ?summon * to ignore all summons");
+                //Tell him who he's currently ignoring
+                string ignoreList = "";
+                foreach (string p in player._summonIgnore)
+                    ignoreList += p + ", ";
+
+                player.sendMessage(0, "&Summon Ignore List");
+                if (ignoreList.Length > 0)
+                    player.sendMessage(0, "*" + ignoreList);
+                else
+                    player.sendMessage(0, "*Empty");
+
                 return;
             }
 
@@ -519,19 +529,6 @@ namespace InfServer.Game.Commands.Chat
                 player._summonIgnore.Add(payload);
                 player.sendMessage(0, "Added '" + payload + "' to summon-ignore list");
             }
-
-            //Tell him who he's currently ignoring
-            string ignoreList = "";
-            foreach (string p in player._summonIgnore)
-                ignoreList += p + ", ";
-
-            if (ignoreList.Length > 0)
-            {
-                player.sendMessage(0, "&Summon Ignore List");
-                player.sendMessage(0, "*" + ignoreList);
-            }
-            else
-                player.sendMessage(0, "&Summon Ignore List is Empty");
         }
         
         /// <summary>
@@ -658,8 +655,8 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void zonelist(Player player, Player recipient, string payload, int bong)
         {
-            //TODO: This needs major fixing! Needs to include every zone connected to database
-            //TODO: Also handle their connection strings (IP,port)
+            //TODO: If database connection is valid, query the dbserver to send a zonelist packet
+            //If database isn't connected, send a zonelist containing only this zone
             List<ZoneServer> zones = new List<ZoneServer>();
             zones.Add(player._server);
 
