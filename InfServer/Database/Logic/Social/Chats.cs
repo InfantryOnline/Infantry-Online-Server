@@ -27,7 +27,7 @@ namespace InfServer.Logic
 
             SC_Chat notify = new SC_Chat();
             notify.chatType = Helpers.Chat_Type.PrivateChat;
-            notify.message = pkt.chat + ":<< Entered chat >>";
+            notify.message = pkt.chat + ":<< Entering chat >>";
             notify.from = pkt.from;
 
             foreach (string user in users)

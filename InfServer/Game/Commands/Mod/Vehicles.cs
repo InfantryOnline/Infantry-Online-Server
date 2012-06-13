@@ -48,8 +48,21 @@ namespace InfServer.Game.Commands.Mod
 				return;
 			}
 
+            int vehicleid;
+            int vehicleamount;
+            if (payload.Contains(','))
+            {
+                vehicleid = Convert.ToInt32(payload.Split(',').ElementAt(0));
+                vehicleamount = Convert.ToInt32(payload.Split(',').ElementAt(1));
+            }
+            else
+            {
+                vehicleid = Convert.ToInt32(payload);
+                vehicleamount = 1;
+            }
+
 			//Obtain the vehicle indicated
-			Assets.VehInfo vehicle = player._server._assets.getVehicleByID(Convert.ToInt32(payload));
+			Assets.VehInfo vehicle = player._server._assets.getVehicleByID(Convert.ToInt32(vehicleid));
 
 			if (vehicle == null)
 			{
@@ -63,11 +76,25 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Can't spawn dependent vehicles.");
                 return;
             }
-                //Attempt to create it
-			player._arena.newVehicle(
-				vehicle,
-				player._team, player,
-				player._state);
+
+            //Create the vehicles and space them out evenly
+            for (int i = 0; i < vehicleamount; i++)
+            {
+                int radius = i * (int)(vehicle.TriggerRadius * 2.5);
+                int numturrets = i * 5 + 1;
+                for (int j = 0; j < numturrets; j++)
+                {
+                    Protocol.Helpers.ObjectState newState = new Protocol.Helpers.ObjectState();
+                    newState.positionX = Convert.ToInt16(player._state.positionX + radius * Math.Cos(Math.PI * 2 * ((double)j / numturrets)));
+                    newState.positionY = Convert.ToInt16(player._state.positionY + radius * Math.Sin(Math.PI * 2 * ((double)j / numturrets)));
+                    newState.positionZ = player._state.positionZ;
+                    newState.yaw = player._state.yaw;
+                    player._arena.newVehicle(
+                        vehicle,
+                        player._team, player,
+                        newState);
+                }
+            }
 		}
 
 		/// <summary>
