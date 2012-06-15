@@ -46,6 +46,7 @@ namespace InfServer.Game
 		public bool _bIgnoreUpdates;			//Are we temporarily ignoring player updates? (Usually due to vehicle change)
 		public bool _bSpectator;				//Is the player in spectator mode?
         public bool _bSilenced;                 //Is the player currently silenced?
+        public bool _bLocked;                   //Is the player locked in spec?
 
 		public Helpers.ObjectState _state;		//The player's positional state
 
@@ -1023,6 +1024,15 @@ namespace InfServer.Game
 			Helpers.Player_SpectatePlayer(this, toSpectate);
 			return true;
 		}
+
+        /// <summary>
+        /// Sends the player to spectator mode
+        /// </summary>
+        public bool spec()
+        {	//Redirect and return
+            return spec("spec");
+        }
+
 
 		/// <summary>
 		/// Sends the player to spectator mode

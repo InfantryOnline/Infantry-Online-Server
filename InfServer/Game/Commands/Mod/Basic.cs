@@ -217,7 +217,7 @@ namespace InfServer.Game.Commands.Mod
 
             //Spec everybody in the arena and rename team names
             foreach (Player unspecced in player._arena.PlayersIngame.ToArray())
-                unspecced.spec("spec");
+                unspecced.spec();
 
             for(int i = 0; i < teamNames.Count; i++)
                 //Add 1 to avoid renaming spec team
@@ -331,7 +331,7 @@ namespace InfServer.Game.Commands.Mod
                 target.spec(newTeam);
             }
             else
-                target.spec("spec");
+                target.spec();
         }
 
         /// <summary>
@@ -554,6 +554,31 @@ namespace InfServer.Game.Commands.Mod
 		}
 
         /// <summary>
+        /// Locks a player in spec
+        /// </summary>
+        static public void speclock(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity checks
+            if (recipient == null)
+            {
+                player.sendMessage(-1, "Syntax: ::*lock");
+                return;
+            }
+
+            //Toggle his locked status
+            recipient._bLocked = !recipient._bLocked;
+
+            //Notify some people and send him to spec
+            if (recipient._bLocked)
+            {
+                recipient.spec();
+                player.sendMessage(0, recipient._alias + " has been locked in spec");
+            }
+            else
+                player.sendMessage(0, recipient._alias + " has been been unlocked from spec");
+        }
+
+        /// <summary>
         /// Toggles a players ability to use the messaging system entirely
         /// </summary>
         static public void shutup(Player player, Player recipient, string payload, int bong)
@@ -567,6 +592,12 @@ namespace InfServer.Game.Commands.Mod
 
             //Toggle his ability to speak
             recipient._bSilenced = !recipient._bSilenced;
+
+            //Notify some people
+            if (recipient._bSilenced)
+                player.sendMessage(0, recipient._alias + " has been silenced");
+            else
+                player.sendMessage(0, recipient._alias + " has been unsilenced");
         }
 
         /// <summary>
@@ -589,8 +620,8 @@ namespace InfServer.Game.Commands.Mod
                InfServer.Data.PlayerPermission.Mod);
 
             yield return new HandlerDescriptor(addball, "addball",
-    "Adds a ball to the arena.",
-    "*addball",
+                "Adds a ball to the arena.",
+                "*addball",
                InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(arena, "arena",
@@ -662,6 +693,11 @@ namespace InfServer.Game.Commands.Mod
                "Removes the target player from the server",
                "::*kill",
                InfServer.Data.PlayerPermission.Mod);
+
+            yield return new HandlerDescriptor(speclock, "lock",
+                "Locks the target player into spec",
+                "::*lock",
+                InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(shutup, "shutup",
                "Toggles a players ability to use the messaging system entirely",

@@ -469,7 +469,7 @@ namespace InfServer.Game
                         (now - player._lastMovement) > (_server._zoneConfig.arena.inactivityTimeout * 1000) &&
                         player._lastMovement != 0)
                     {
-                        player.spec("spec");
+                        player.spec();
                         player.sendMessage(-1, "You have been sent to spectator mode for being inactive");
                     }
 
@@ -486,6 +486,8 @@ namespace InfServer.Game
 						player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
 					}
 
+                    //TODO: This is wrong... rewrite this part for proper lag checking.
+                    /*
                     //Check tick diff every 10 seconds or so
                     if ((now - player._state.lastUpdate) > 10000)
                     {
@@ -496,7 +498,7 @@ namespace InfServer.Game
                             player.spec("spec");
                             player.sendMessage(-1, "You have been sent to spectator mode for high latency");
                         }
-                    }
+                    }*/
 
 				}
 

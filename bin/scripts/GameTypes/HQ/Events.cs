@@ -80,7 +80,7 @@ namespace InfServer.Script.GameType_HQ
         public static void onHQDeath(HQ hq, Player killer)
         {
             string format = "*[HQ] - Destroyed! - {0}'s headquarters worth {1} bounty was destroyed by {2}";
-            killer._arena.sendArenaMessage(String.Format(format, hq.team._name, hq.bounty, killer._team));
+            killer._arena.sendArenaMessage(String.Format(format, hq.team._name, hq.bounty, killer._team._name));
 
             //Do we reward them with cash or bounty?
             if (Script_HQ._hqs.ContainsKey(killer._team))

@@ -61,11 +61,6 @@ namespace InfServer
 		/// </summary>
 		public void destroy()
 		{
-            //TODO: Need better way of doing this.
-            /*using(InfantryDataContext db = _server.getContext())
-                db.ExecuteCommand("UPDATE zone SET active={0} WHERE id={1}", 0, _zone.id);*/
-            
-
             _server._zones.Remove(this);
             Log.write("{0} disconnected gracefully", _zone.name);
 		}

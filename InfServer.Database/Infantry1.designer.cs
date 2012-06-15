@@ -1608,6 +1608,12 @@ namespace InfServer.Data.DB
 		
 		private short _active;
 		
+		private string _ip;
+		
+		private int _port;
+		
+		private short _advanced;
+		
 		private EntitySet<player> _players;
 		
 		private EntitySet<stats> _stats;
@@ -1628,6 +1634,12 @@ namespace InfServer.Data.DB
     partial void OnnoticeChanged();
     partial void OnactiveChanging(short value);
     partial void OnactiveChanged();
+    partial void OnipChanging(string value);
+    partial void OnipChanged();
+    partial void OnportChanging(int value);
+    partial void OnportChanged();
+    partial void OnadvancedChanging(short value);
+    partial void OnadvancedChanged();
     #endregion
 		
 		public zone()
@@ -1677,7 +1689,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_name", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_name", AutoSync=AutoSync.Always, DbType="VarChar(50) NOT NULL", CanBeNull=false)]
 		public string name
 		{
 			get
@@ -1697,7 +1709,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_description", DbType="Text NOT NULL", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_description", AutoSync=AutoSync.Always, DbType="Text NOT NULL", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
 		public string description
 		{
 			get
@@ -1737,7 +1749,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_active", DbType="SmallInt NOT NULL")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_active", AutoSync=AutoSync.Always, DbType="SmallInt NOT NULL")]
 		public short active
 		{
 			get
@@ -1753,6 +1765,66 @@ namespace InfServer.Data.DB
 					this._active = value;
 					this.SendPropertyChanged("active");
 					this.OnactiveChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ip", AutoSync=AutoSync.Always, DbType="VarChar(50) NULL", CanBeNull=false)]
+		public string ip
+		{
+			get
+			{
+				return this._ip;
+			}
+			set
+			{
+				if ((this._ip != value))
+				{
+					this.OnipChanging(value);
+					this.SendPropertyChanging();
+					this._ip = value;
+					this.SendPropertyChanged("ip");
+					this.OnipChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_port", AutoSync=AutoSync.Always, DbType="Int NULL")]
+		public int port
+		{
+			get
+			{
+				return this._port;
+			}
+			set
+			{
+				if ((this._port != value))
+				{
+					this.OnportChanging(value);
+					this.SendPropertyChanging();
+					this._port = value;
+					this.SendPropertyChanged("port");
+					this.OnportChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_advanced", AutoSync=AutoSync.Always, DbType="SmallInt NULL")]
+		public short advanced
+		{
+			get
+			{
+				return this._advanced;
+			}
+			set
+			{
+				if ((this._advanced != value))
+				{
+					this.OnadvancedChanging(value);
+					this.SendPropertyChanging();
+					this._advanced = value;
+					this.SendPropertyChanged("advanced");
+					this.OnadvancedChanged();
 				}
 			}
 		}

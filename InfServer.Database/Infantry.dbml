@@ -68,10 +68,13 @@
     <Type Name="zone">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
       <Column Name="password" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
-      <Column Name="name" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
-      <Column Name="description" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
+      <Column Name="name" AutoSync="Always" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="description" AutoSync="Always" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
       <Column Name="notice" Type="System.String" DbType="Text NOT NULL" CanBeNull="false" UpdateCheck="Never" />
-      <Column Name="active" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="active" AutoSync="Always" Type="System.Int16" DbType="SmallInt NOT NULL" CanBeNull="false" />
+      <Column Name="ip" AutoSync="Always" Type="System.String" DbType="VarChar(50) NULL" CanBeNull="false" />
+      <Column Name="port" AutoSync="Always" Type="System.Int32" DbType="Int NULL" CanBeNull="false" />
+      <Column Name="advanced" AutoSync="Always" Type="System.Int16" DbType="SmallInt NULL" CanBeNull="false" />
       <Association Name="zone_player" Member="players" ThisKey="id" OtherKey="zone" Type="player" />
       <Association Name="zone_stats" Member="stats" ThisKey="id" OtherKey="zone" Type="stats" />
     </Type>

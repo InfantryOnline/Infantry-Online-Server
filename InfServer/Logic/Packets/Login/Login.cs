@@ -22,8 +22,8 @@ namespace InfServer.Logic
 
             if (server._config["server/permitMode"].boolValue)
             {
-                if (!Logic_Permit.checkPermit(newPlayer._alias))
-                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
+                if (!Logic_Permit.checkPermit(newPlayer._alias) && newPlayer.PermissionLevel == 0)
+                    Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
             }
 
             String alias = newPlayer._alias;

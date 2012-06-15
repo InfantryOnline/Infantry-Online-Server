@@ -275,7 +275,7 @@ namespace InfServer.Script.GameType_CTF_OvD
 			/// <param name="ThePlayer">The player to kick</param>
 			public void KickPlayer(Player ThePlayer)
 			{
-				ThePlayer.spec("Spec");
+				ThePlayer.spec();
 				_PlayerList.Remove(ThePlayer);
 				UnInvite(ThePlayer);
 			}

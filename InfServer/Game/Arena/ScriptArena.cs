@@ -537,11 +537,19 @@ namespace InfServer.Game
 			{	//Forward to our script
 				if (!exists("Player.LeaveGame") || (bool)callsync("Player.LeaveGame", false, from))
 				{	//The player has effectively left the game
-					from.spec(getTeamByName("spec"));
+					from.spec();
 				}
 			}
 			else
-			{	//Do we have a full arena?
+			{
+                //Has be been locked in spec?
+                if (from._bLocked)
+                {
+                    from.sendMessage(-1, "You are locked in spectator mode.");
+                    return;
+                }
+
+                //Do we have a full arena?
 				if (PlayerCount >= _server._zoneConfig.arena.playingMax)
 				{	//Yep, tell him why he can't get in
 					from.sendMessage(255, "Game is full.");

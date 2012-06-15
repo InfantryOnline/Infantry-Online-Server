@@ -74,10 +74,10 @@ namespace InfServer.Logic
             //Update and activate the zone for our directory server
             dbZone.name = pkt.zoneName;
             dbZone.description = pkt.zoneDescription;
+            dbZone.ip = pkt.zoneIP;
+            dbZone.port = pkt.zonePort;
+            dbZone.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
             dbZone.active = 1;
-            using (InfantryDataContext db = server.getContext())
-                db.ExecuteCommand("UPDATE zone SET name={0}, description={1}, ip={2}, port={3}, advanced={4}, active=1 WHERE id={5}",
-                    pkt.zoneName, pkt.zoneDescription, pkt.zoneIP, pkt.zonePort, Convert.ToInt16(pkt.zoneIsAdvanced), pkt.zoneID);
 
 			Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
 		}
@@ -96,7 +96,7 @@ namespace InfServer.Logic
 				plog.player = pkt.player;
 
 				//Are they using the launcher?
-				if (pkt.ticketid == "")
+				if (pkt.ticketid == "" || pkt.ticketid.Contains(':'))
 				{	//They're trying to trick us, jim!
 					plog.bSuccess = false;
 					plog.loginMessage = "Please use the Infantry launcher to run the game.";
@@ -110,6 +110,8 @@ namespace InfServer.Logic
 
 				if (pkt.ticketid.Contains(':'))
 				{
+                    /* This method of logging in has deprecated and asks you to run the launcher
+                     * 
 					string[] split = pkt.ticketid.Split(':');
 
 					//Validate the password
@@ -151,6 +153,7 @@ namespace InfServer.Logic
 						zone._client.send(plog);
 						return;
 					}
+                    */
 				}
 				else
 					
@@ -311,7 +314,7 @@ namespace InfServer.Logic
 
 				//Consider him loaded!
 				zone.newPlayer(pkt.player.id, alias.name, player);
-				Log.write("Player {0} logged into zone {1}", pkt.alias, zone._zone.name);
+				Log.write("Player {0} logged into zone {1}", alias.name, zone._zone.name);
 			}
 		}
 
