@@ -23,18 +23,17 @@ namespace InfServer.Script.GameType_SKCTF
 		///////////////////////////////////////////////////
 		private Arena _arena;					//Pointer to our arena class
 		private CfgInfo _config;				//The zone config
+        private Tickets _tickets;               //Our tickets
 
-        //TODO: Make a "tickets" object to keep track of ticket, team, small # of change to tickets, etc.
-        //Use properties to trigger "events", like Tickets[team1].Count -= 1; would update the arena ticker
-        private Tickets _tickets;
+        //Timers
         private int _lastGameCheck;             //The last time we polled the arena
         private int _tickGameStart;
         private int _tickGameStarting;
+        private int _lastFlagCheck;
 
 		//Settings
 		private int _minPlayers;				//The minimum amount of players
-        private int _ticketSmallChange;         //The small change to # of tickets (ex: kills)
-        private int _ticketLargeChange;         //The large change to # of tickets (ex: flag caps)
+        private int _ticketSmallChange;         //The small change to # of tickets (ex: kills, periodic flag rewards)
 
 
 		///////////////////////////////////////////////////
@@ -86,21 +85,38 @@ namespace InfServer.Script.GameType_SKCTF
 				_arena.gameReset();
 			}
 			//Do we have enough players to start a game?
-			else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
-			{	//Great! Get going
-				_tickGameStarting = now;
-				_arena.setTicker(1, 1, _config.flag.startDelay * 100, "Next game: ",
-					delegate()
-					{	//Trigger the game start
-						_arena.gameStart();
-					}
-				);
-			}
+            else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
+            {	//Great! Get going
+                _tickGameStarting = now;
+                _arena.setTicker(1, 1, _config.flag.startDelay * 100, "Next game: ",
+                    delegate()
+                    {	//Trigger the game start
+                        _arena.gameStart();
+                    }
+                );
+            }
+            //Maybe the game is in progress...
+            else
+            {   //It is!
 
-            //The change to small/big ticket changes needs to be updated based on players in game constantly
-            //TODO: Calculate better changes for more balanced games
-            _ticketSmallChange = (int)Math.Ceiling((double)100 / _arena.PlayersIngame.Count());
-            _ticketLargeChange = _ticketSmallChange * 2; //For now we'll just double small change
+                //The change to small ticket changes needs to be updated based on players in game constantly
+                _ticketSmallChange = (int)Math.Ceiling((double)100 / _arena.PlayersIngame.Count());
+
+                //Let's update some points!
+                int flagdelay = 2500;
+                if (now - _lastFlagCheck >= flagdelay)
+                {   //It's time for a flag ticket update
+
+                    //Loop through every flag
+                    foreach (Arena.FlagState fs in _arena._flags.Values)
+                        //Subtract tickets from every team that doesn't own the flag
+                        foreach (Team t in _arena.DesiredTeams)
+                            if (t != fs.team)
+                                _tickets[t] -= _ticketSmallChange;
+                }
+                updateTickers();
+            }
+            
 			return true;
 		}
 
@@ -116,13 +132,8 @@ namespace InfServer.Script.GameType_SKCTF
 				if (fs.team != flag.team)
 					allFlags = false;
 
-            //TODO: Ticket subtraction here if they control all flags
             if (allFlags)
                 _arena.sendArenaMessage(flag.team._name + " controls all the flags!", 20);
-
-            //Also, lets remove a ticket from the old team
-            if(_tickets!=null)
-                _tickets[flag.team] -= _ticketLargeChange;
 		}
 
 		/// <summary>

@@ -266,7 +266,6 @@ namespace InfServer.Logic
 				}
 				else
 				{	//Load the player details and stats!
-                    plog.alias = alias.name;
 					plog.banner = player.banner;
 					plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
 					plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
@@ -311,7 +310,8 @@ namespace InfServer.Logic
 
 					plog.bSuccess = true;
 				}
-
+                //Rename him
+                plog.alias = alias.name;
 				zone._client.sendReliable(plog);
 
                 //Modify his alias IP address and access times
