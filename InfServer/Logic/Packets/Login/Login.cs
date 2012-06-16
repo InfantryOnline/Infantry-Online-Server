@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using InfServer.Protocol;
 using InfServer.Game;
+using InfServer.Protocol;
 
 namespace InfServer.Logic
 {	// Logic_Login Class
@@ -22,13 +18,14 @@ namespace InfServer.Logic
 
             if (server._config["server/permitMode"].boolValue)
             {
-                if (!Logic_Permit.checkPermit(newPlayer._alias) && newPlayer.PermissionLevel == 0)
+                if (!Logic_Permit.checkPermit(newPlayer._alias))
                     Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
             }
 
             String alias = newPlayer._alias;
 
-            //Check alias for illegal characters, may need overhauling.
+            //Check alias for illegal characters
+            //TOD: may need overhauling to limit to specific characters
             if (alias.Length == 0)
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias cannot be blank.");
             if (!char.IsLetterOrDigit(alias, 0) ||

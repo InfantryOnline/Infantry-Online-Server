@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
+using InfServer.Data;
 using InfServer.Network;
 using InfServer.Protocol;
-using InfServer.Data;
 
 namespace InfServer.Logic
 {	// Logic_Login Class
@@ -78,6 +77,8 @@ namespace InfServer.Logic
             dbZone.port = pkt.zonePort;
             dbZone.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
             dbZone.active = 1;
+            using (InfantryDataContext db = zone._server.getContext())
+                db.SubmitChanges();
 
 			Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
 		}
@@ -260,6 +261,7 @@ namespace InfServer.Logic
 				}
 				else
 				{	//Load the player details and stats!
+                    plog.alias = alias.name;
 					plog.banner = player.banner;
 					plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
 					plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
@@ -303,14 +305,16 @@ namespace InfServer.Logic
 						DBHelpers.binToSkills(plog.stats.skills, player.skills);
 
 					plog.bSuccess = true;
-                    
 				}
 
 				zone._client.sendReliable(plog);
+
+                //Modify his alias IP address and access times
                 alias.IPAddress = pkt.ipaddress.Trim();
                 alias.lastAccess = DateTime.Now;
-				//Submit our modifications
-				db.SubmitChanges();
+
+                //Submit our modifications
+                db.SubmitChanges();
 
 				//Consider him loaded!
 				zone.newPlayer(pkt.player.id, alias.name, player);

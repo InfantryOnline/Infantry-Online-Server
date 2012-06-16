@@ -15,6 +15,7 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public PlayerInstance player;				//The player instance we're referring to
+        public string alias;                        //The player alias
 
 		public bool bNewAlias;						//Should we ask the user if he wishes to create a new alias?
 
@@ -82,6 +83,7 @@ namespace InfServer.Protocol
 
 			Write(player.id);
 			Write(player.magic);
+            Write(alias, 0);
 
 			Write(bNewAlias);
 			Write(bSuccess);
@@ -118,6 +120,7 @@ namespace InfServer.Protocol
 		{
 			player.id = _contentReader.ReadUInt16();
 			player.magic = _contentReader.ReadInt32();
+            alias = ReadNullString();
 
 			bNewAlias = _contentReader.ReadBoolean();
 			bSuccess = _contentReader.ReadBoolean();

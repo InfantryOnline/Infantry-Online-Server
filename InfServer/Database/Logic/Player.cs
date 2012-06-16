@@ -49,6 +49,7 @@ namespace InfServer.Logic
 			//Let him in!
 			Helpers.Login_Response(player._client, SC_Login.Login_Result.Success, pkt.loginMessage);
             player._permissionStatic = pkt.permission;
+            player._alias = pkt.alias;
 		}
 
         static public void Handle_SC_Whisper(SC_Whisper<Database> pkt, Database db)
