@@ -24,19 +24,17 @@ namespace InfServer.Script.GameType_SKCTF
 		private Arena _arena;					//Pointer to our arena class
 		private CfgInfo _config;				//The zone config
 
-		private int _jackpot;					//The game's jackpot so far
-
-		private Team _victoryTeam;				//The team currently winning!
-		private int _tickVictoryStart;			//The tick at which the victory countdown began
-		private int _tickNextVictoryNotice;		//The tick at which we will next indicate imminent victory
-		private int _victoryNotice;				//The number of victory notices we've done
-
-		private int _lastGameCheck;				//The tick at which we last checked for game viability
-		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
-		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
+        //TODO: Make a "tickets" object to keep track of ticket, team, small # of change to tickets, etc.
+        //Use properties to trigger "events", like Tickets[team1].Count -= 1; would update the arena ticker
+        private Tickets _tickets;
+        private int _lastGameCheck;             //The last time we polled the arena
+        private int _tickGameStart;
+        private int _tickGameStarting;
 
 		//Settings
 		private int _minPlayers;				//The minimum amount of players
+        private int _ticketSmallChange;         //The small change to # of tickets (ex: kills)
+        private int _ticketLargeChange;         //The large change to # of tickets (ex: flag caps)
 
 
 		///////////////////////////////////////////////////
@@ -97,44 +95,12 @@ namespace InfServer.Script.GameType_SKCTF
 						_arena.gameStart();
 					}
 				);
-
-				//There will be a game soon, trigger the event
-				/*string soonGame = _server._zoneConfig.EventInfo.soonGame;
-				foreach (Player player in _players)
-					if (!player.IsSpectator)
-						Logic_Assets.RunEvent(player, soonGame);*/
 			}
 
-			//Is anybody experiencing a victory?
-			if (_tickVictoryStart != 0)
-			{	//Have they won yet?
-				if (now - _tickVictoryStart > (_config.flag.victoryHoldTime * 10))
-					//Yes! Trigger game victory
-					gameVictory(_victoryTeam);
-				else
-				{	//Do we have a victory notice to give?
-					if (_tickNextVictoryNotice != 0 && now > _tickNextVictoryNotice)
-					{	//Yes! Let's give it
-						int countdown = (_config.flag.victoryHoldTime / 100) - ((now - _tickVictoryStart) / 1000);
-						_arena.sendArenaMessage(String.Format("Victory for {0} in {1} seconds!",
-							_victoryTeam._name, countdown), _config.flag.victoryWarningBong);
-
-						//Plan the next notice
-						_tickNextVictoryNotice = _tickVictoryStart;
-						_victoryNotice++;
-
-						if (_victoryNotice == 1 && countdown >= 30)
-							//Default 2/3 time
-							_tickNextVictoryNotice += (_config.flag.victoryHoldTime / 3) * 10;
-						else if (_victoryNotice == 2 || (_victoryNotice == 1 && countdown >= 20))
-							//10 second marker
-							_tickNextVictoryNotice += (_config.flag.victoryHoldTime * 10) - 10000;
-						else
-							_tickNextVictoryNotice = 0;
-					}
-				}
-			}
-
+            //The change to small/big ticket changes needs to be updated based on players in game constantly
+            //TODO: Calculate better changes for more balanced games
+            _ticketSmallChange = (int)Math.Ceiling((double)100 / _arena.PlayersIngame.Count());
+            _ticketLargeChange = _ticketSmallChange * 2; //For now we'll just double small change
 			return true;
 		}
 
@@ -144,71 +110,63 @@ namespace InfServer.Script.GameType_SKCTF
 		/// </summary>
 		public void onFlagChange(Arena.FlagState flag)
 		{	//Does this team now have all the flags?
-			Team victoryTeam = flag.team;
+            bool allFlags = true;
 
 			foreach (Arena.FlagState fs in _arena._flags.Values)
-				if (fs.bActive && fs.team != victoryTeam)
-					victoryTeam = null;
+				if (fs.team != flag.team)
+					allFlags = false;
 
-			if (victoryTeam != null)
-			{	//Yes! Victory for them!
-				_arena.setTicker(1, 1, _config.flag.victoryHoldTime, "Victory in ");
-				_tickNextVictoryNotice = _tickVictoryStart = Environment.TickCount;
-				_victoryTeam = victoryTeam;
-			}
-			else
-			{	//Aborted?
-				if (_victoryTeam != null)
-				{
-					_tickVictoryStart = 0;
-                    _tickNextVictoryNotice = 0;
-					_victoryTeam = null;
+            //TODO: Ticket subtraction here if they control all flags
+            if (allFlags)
+                _arena.sendArenaMessage(flag.team._name + " controls all the flags!", 20);
 
-					_arena.sendArenaMessage("Victory has been aborted.", _config.flag.victoryAbortedBong);
-					_arena.setTicker(1, 1, 0, "");
-				}
-			}
+            //Also, lets remove a ticket from the old team
+            if(_tickets!=null)
+                _tickets[flag.team] -= _ticketLargeChange;
 		}
 
 		/// <summary>
 		/// Called when the specified team have won
 		/// </summary>
-		public void gameVictory(Team victors)
-		{	//Let everyone know
-			if (_config.flag.useJackpot)
-				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);            
-
-			_arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);            
-
-            //TODO: Move this calculation to breakdown() in ScriptArena?
-			//Calculate the jackpot for each player
-            foreach (Player p in _arena.Players)
-            {	//Spectating? Psh.
-                if (p.IsSpectator)
-                    continue;
-                //Find the base reward
-                int personalJackpot;
-
-                if (p._team == victors)
-                    personalJackpot = _jackpot * (_config.flag.winnerJackpotFixedPercent / 1000);
-                else
-                    personalJackpot = _jackpot * (_config.flag.loserJackpotFixedPercent / 1000);
-
-                //Obtain the respective rewards
-                int cashReward = personalJackpot * (_config.flag.cashReward / 1000);
-                int experienceReward = personalJackpot * (_config.flag.experienceReward / 1000);
-                int pointReward = personalJackpot * (_config.flag.pointReward / 1000);
-
-                p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
-
-                p.Cash += cashReward;
-                p.Experience += experienceReward;
-                p.BonusPoints += pointReward;
-            }
+		public void gameVictory(IEnumerable<Team> victors)
+		{	//Game is over.
+            //TODO: Calculate victory team rewards and rewards for all other players
 
             //Stop the game
             _arena.gameEnd();
 		}
+
+        /// <summary>
+        /// Called when a teams tickets have been modified
+        /// </summary>
+        public void onTicketModify(Team team, int tickets)
+        {
+            //Update tickers
+            _arena.setTicker(0, 0, 0,
+                delegate(Player p)
+                {
+                    //Update their ticker with current team ticket count
+                    return "Your Team: " + _tickets[p._team];
+                }
+            );
+            _arena.setTicker(0, 1, 0,
+                delegate(Player p)
+                {
+                    //Update their ticker with every other teams ticket count
+                    List<string> otherTeams = new List<string>();
+                    foreach (Team t in _arena.Teams)
+                        if (t != p._team)
+                            otherTeams.Add(t._name + ": " + _tickets[t]);
+
+                    return String.Join(",", otherTeams.ToArray());
+                }
+            );
+
+            //Check for game victory here
+            if (tickets == 0)
+                //They were the first team to lose all their tickets, they lose!
+                gameVictory(_arena.Teams.Where(t => t != team));
+        }
 
         /// <summary>
         /// Called when a player sends a chat command
@@ -216,10 +174,6 @@ namespace InfServer.Script.GameType_SKCTF
         [Scripts.Event("Player.ChatCommand")]
         public bool playerChatCommand(Player player, Player recipient, string command, string payload)
         {
-            if (command.ToLower() == "test")
-            {
-                player.sendMessage(0, "Test");
-            }
             return true;
         }
 
@@ -254,6 +208,11 @@ namespace InfServer.Script.GameType_SKCTF
 			//Spawn our flags!
 			_arena.flagSpawn();
 
+            //Create some tickets and subscribe to our ticket modification event
+            _tickets = null;
+            _tickets = new Tickets(_arena.Teams, 1000);
+            _tickets.TicketModify += onTicketModify;
+
 			//Let everyone know
 			_arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
 
@@ -266,11 +225,9 @@ namespace InfServer.Script.GameType_SKCTF
 		[Scripts.Event("Game.End")]
 		public bool gameEnd()
 		{	//Game finished, perhaps start a new one
+            _tickets = null;
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
-			_tickVictoryStart = 0;
-			_tickNextVictoryNotice = 0;
-			_victoryTeam = null;
 
 			return true;
 		}
@@ -293,12 +250,9 @@ namespace InfServer.Script.GameType_SKCTF
 		[Scripts.Event("Game.Reset")]
 		public bool gameReset()
 		{	//Game reset, perhaps start a new one
+            _tickets = null;
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
-			_tickVictoryStart = 0;
-			_tickNextVictoryNotice = 0;
-
-			_victoryTeam = null;
 
 			return true;
 		}
@@ -327,20 +281,6 @@ namespace InfServer.Script.GameType_SKCTF
 		[Scripts.Event("Player.Portal")]
 		public bool playerPortal(Player player, LioInfo.Portal portal)
 		{           
-            List<Arena.FlagState> carried = _arena._flags.Values.Where(flag => flag.carrier == player).ToList();
-            
-            foreach (Arena.FlagState carry in carried)
-            {   //If the terrain number is 0-15
-
-                int terrainNum = player._arena.getTerrainID(player._state.positionX, player._state.positionY);                
-                if (terrainNum >= 0 && terrainNum <= 15)
-                {   //Check the FlagDroppableTerrains for that specific terrain id
-                    
-                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
-                        _arena.flagResetPlayer(player);
-                }
-            }
-             
 			return true;
 		}
 
@@ -432,18 +372,33 @@ namespace InfServer.Script.GameType_SKCTF
 		[Scripts.Event("Player.Death")]
 		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
 		{
-            _arena.sendArenaMessage("Player " + victim._alias + " died");
+            //Subtract a ticket from the victims team!
+            _tickets[victim._team] -= _ticketSmallChange;
+
             //Was it a computer kill?
             if (killType == Helpers.KillType.Computer)
             {
                 //Let's find the vehicle!
                 Computer cvehicle = victim._arena.Vehicles.FirstOrDefault(v => v._id == update.killerPlayerID) as Computer;
+                Player vehKiller = cvehicle._creator;
                 //Does it exist?
-                if (cvehicle != null)
+                if (cvehicle != null && vehKiller != null)
 				{
-                    //Reward its creator!
-					_arena.sendArenaMessage("To computer vehicle " + cvehicle._type.Name + " created by " + cvehicle._creator._alias);
-                    Logic_Rewards.calculatePlayerKillRewards(victim, killer, update);
+                    //We'll take it from here...
+                    update.type = Helpers.KillType.Player;
+                    update.killerPlayerID = vehKiller._id;
+
+                    //Don't reward for teamkills
+                    if (vehKiller._team == victim._team)
+                        Logic_Assets.RunEvent(vehKiller, _arena._server._zoneConfig.EventInfo.killedTeam);
+                    else
+                        Logic_Assets.RunEvent(vehKiller, _arena._server._zoneConfig.EventInfo.killedEnemy);
+
+                    //Increase stats and notify arena of the kill!
+                    vehKiller.Kills++;
+                    victim.Deaths++;
+                    Logic_Rewards.calculatePlayerKillRewards(victim, cvehicle._creator, update);
+                    return false;
 				}
             }
             return true;

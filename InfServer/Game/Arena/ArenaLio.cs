@@ -409,18 +409,25 @@ namespace InfServer.Game
         public List<RelativeObj> findRelativeID(int huntFreq, int relID, Player requestingPlayer)
         {
             List<RelativeObj> possibilities = new List<RelativeObj> { };
-            possibilities.AddRange(from v in Vehicles
-                                   where (v.relativeID == relID &&
-                                         (v._type.Type == VehInfo.Types.Computer)
-                                      || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
-                                      || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
-                                   select new RelativeObj(v._state.positionX, v._state.positionY, v._team._id));
-            possibilities.AddRange(from f in _flags.Values
-                                   where f.bActive && f.flag.FlagData.FlagRelativeId == relID
-                                   select new RelativeObj(f.posX, f.posY, f.team._id));
-            possibilities.AddRange(from it in _items.Values
-                                   where it.relativeID == relID
-                                   select new RelativeObj(it.positionX, it.positionY, it.freq));
+            try
+            {
+                possibilities.AddRange(from v in Vehicles
+                                       where (v.relativeID == relID &&
+                                               (v._type.Type == VehInfo.Types.Computer)
+                                           || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
+                                           || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
+                                       select new RelativeObj(v._state.positionX, v._state.positionY, v._team._id));
+                possibilities.AddRange(from f in _flags.Values
+                                       where f.bActive && f.flag.FlagData.FlagRelativeId == relID
+                                       select new RelativeObj(f.posX, f.posY, f.team._id));
+                possibilities.AddRange(from it in _items.Values
+                                       where it.relativeID == relID
+                                       select new RelativeObj(it.positionX, it.positionY, it.freq));
+            }
+            catch (NullReferenceException)
+            {
+                Log.write(TLog.Warning, "Invalid Lio relative ID (" + relID + ")");
+            }
             if (huntFreq >= -1)
             {   //limit to this frequency
                 return possibilities.Where(p => p.freq == huntFreq).ToList();
@@ -438,6 +445,7 @@ namespace InfServer.Game
                         return subp;
                 }
                 return possibilities.Where(p => p.freq == -1 || p.freq == 9999).ToList();
+
             }
             else if (huntFreq == -4 && requestingPlayer != null)
             {   //requesting player's frequency only
@@ -445,7 +453,6 @@ namespace InfServer.Game
                 if (subp.Count > 0)
                     return subp;
             }
-
             return null;
         }
 

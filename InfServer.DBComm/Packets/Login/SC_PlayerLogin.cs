@@ -49,6 +49,7 @@ namespace InfServer.Protocol
 			stats = new InfServer.Data.PlayerStats();
 			player = new PlayerInstance();
 
+            alias = "";
 			loginMessage = "";
 			squad = "";
 		}
