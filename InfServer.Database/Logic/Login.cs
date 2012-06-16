@@ -70,16 +70,21 @@ namespace InfServer.Logic
 
 			client.sendReliable(success);
 
-            //Update and activate the zone for our directory server
-            dbZone.name = pkt.zoneName;
-            dbZone.description = pkt.zoneDescription;
-            dbZone.ip = pkt.zoneIP;
-            dbZone.port = pkt.zonePort;
-            dbZone.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
-            dbZone.active = 1;
             using (InfantryDataContext db = zone._server.getContext())
+            {
+                //Update and activate the zone for our directory server
+                //TODO: Don't know why it only works like this,
+                //modifying dbZone and submitting changes doesn't reflect
+                //in the database right away
+                Data.DB.zone zoneentry = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
+                zoneentry.name = pkt.zoneName;
+                zoneentry.description = pkt.zoneDescription;
+                zoneentry.ip = pkt.zoneIP;
+                zoneentry.port = pkt.zonePort;
+                zoneentry.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
+                zoneentry.active = 1;
                 db.SubmitChanges();
-
+            }
 			Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
 		}
 
