@@ -100,10 +100,10 @@ namespace InfServer.Script.GameType_SKCTF
             {   //It is!
 
                 //The change to small ticket changes needs to be updated based on players in game constantly
-                _ticketSmallChange = (int)Math.Ceiling((double)100 / _arena.PlayersIngame.Count());
+                _ticketSmallChange = (int)Math.Ceiling((double)25 / _arena.PlayersIngame.Count());
 
                 //Let's update some points!
-                int flagdelay = 2500;
+                int flagdelay = 2500; //1000 = 1 second
                 if (now - _lastFlagCheck >= flagdelay)
                 {   //It's time for a flag ticket update
 
@@ -111,8 +111,11 @@ namespace InfServer.Script.GameType_SKCTF
                     foreach (Arena.FlagState fs in _arena._flags.Values)
                         //Subtract tickets from every team that doesn't own the flag
                         foreach (Team t in _arena.DesiredTeams)
-                            if (t != fs.team)
+                            if (_arena.DesiredTeams.Contains(fs.team) && t != fs.team && _tickets != null)
                                 _tickets[t] -= _ticketSmallChange;
+
+                    //Update our tick
+                    _lastFlagCheck = now;
                 }
                 updateTickers();
             }
@@ -128,11 +131,13 @@ namespace InfServer.Script.GameType_SKCTF
 		{	//Does this team now have all the flags?
             bool allFlags = true;
 
-			foreach (Arena.FlagState fs in _arena._flags.Values)
-				if (fs.team != flag.team)
-					allFlags = false;
+            if(_arena._flags.Values.Count != 0)
+			    foreach (Arena.FlagState fs in _arena._flags.Values)
+                    if(fs.flag != null)
+				        if (fs.team != flag.team)
+					        allFlags = false;
 
-            if (allFlags)
+            if (allFlags && _arena.DesiredTeams.Contains(flag.team))
                 _arena.sendArenaMessage(flag.team._name + " controls all the flags!", 20);
 		}
 
@@ -156,7 +161,7 @@ namespace InfServer.Script.GameType_SKCTF
             updateTickers();
 
             //Check for game victory here
-            if (tickets == 0)
+            if (tickets <= 0)
                 //They were the first team to lose all their tickets, they lose!
                 gameVictory(_arena.DesiredTeams.Where(t => t != team));
         }
@@ -165,13 +170,17 @@ namespace InfServer.Script.GameType_SKCTF
         {
             if (_tickets != null)
             {
+                //Their teams tickets
                 _arena.setTicker(0, 0, 0,
                     delegate(Player p)
                     {
                         //Update their ticker with current team ticket count
+                        if(!_arena.DesiredTeams.Contains(p._team) && _tickets != null)
+                            return "";
                         return "Your Team: " + _tickets[p._team];
                     }
                 );
+                //Other teams tickets
                 _arena.setTicker(0, 1, 0,
                     delegate(Player p)
                     {
@@ -184,6 +193,8 @@ namespace InfServer.Script.GameType_SKCTF
                         return String.Join(",", otherTeams.ToArray());
                     }
                 );
+                //Ticket costs
+                _arena.setTicker(0, 2, 0, "Ticket costs: " + _ticketSmallChange);
             }
         }
 
@@ -392,7 +403,8 @@ namespace InfServer.Script.GameType_SKCTF
 		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
 		{
             //Subtract a ticket from the victims team!
-            _tickets[victim._team] -= _ticketSmallChange;
+            if(_tickets != null)
+                _tickets[victim._team] -= _ticketSmallChange;
 
             //Was it a computer kill?
             if (killType == Helpers.KillType.Computer)
