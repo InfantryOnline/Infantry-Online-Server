@@ -537,21 +537,47 @@ namespace InfServer.Game.Commands.Mod
 		/// Removes a player from the server
 		/// </summary>
         static public void kill(Player player, Player recipient, string payload, int bong)
-		{	//Sanity checks
-			if (recipient == null)
-			{
-				player.sendMessage(-1, "Syntax: ::*kill");
-				return;
-			}
-
+		{
 			//Kill all?
 			if (payload != null && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
 				foreach (Player p in player._arena.Players)
 					p.destroy();
 			else
-				//Destroy him!
-				recipient.destroy();
+                if(recipient != null)
+				    //Destroy him!
+				    recipient.destroy();
+                else
+                    player.sendMessage(-1, "Syntax: ::*kill or *kill all");
 		}
+
+        /// <summary>
+        /// Sets a ticker at the specified index with color/timer/messageSyntax: *ticker [message],[index],[color=optional],[timer=optional]
+        /// </summary>
+        static public void ticker(Player player, Player recipient, string payload, int bong)
+        {
+            if (payload == "" || !payload.Contains(','))
+            {
+                player.sendMessage(-1, "Syntax: *ticker [message],[index],[color=optional],[timer=optional]");
+            }
+            string tMessage;
+            int tIndex;
+            byte tColor;
+            int tTimer;
+
+            string[] parameters = payload.Split(',');
+            tMessage = parameters[0];
+            tIndex = Convert.ToInt32(parameters[1]);
+            if (parameters[2] != null)
+                tColor = Convert.ToByte(parameters[2]);
+            else
+                tColor = 0;
+            if (parameters[3] != null)
+                tTimer = Convert.ToInt32(parameters[3]);
+            else
+                tTimer = 0;
+
+            player._arena.setTicker(tColor, tIndex, tTimer, tMessage);
+        }
 
         /// <summary>
         /// Locks a player in spec
@@ -631,7 +657,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(profile, "profile",
                 "Displays a player's inventory.",
-                "/*profile or :player:*profile",
+                "/*profile or :player:*profile or *profile",
                 InfServer.Data.PlayerPermission.ArenaMod);
 
             yield return new HandlerDescriptor(warp, "warp",
@@ -691,7 +717,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(kill, "kill",
                "Removes the target player from the server",
-               "::*kill",
+               "::*kill or *kill all",
                InfServer.Data.PlayerPermission.Mod);
 
             yield return new HandlerDescriptor(speclock, "lock",
@@ -702,6 +728,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(shutup, "shutup",
                "Toggles a players ability to use the messaging system entirely",
                "::*shutup",
+               InfServer.Data.PlayerPermission.ArenaMod);
+
+            yield return new HandlerDescriptor(ticker, "ticker",
+               "Sets a ticker at the specified index with color/timer/message",
+               "*ticker [message],[index],[color=optional],[timer=optional]",
                InfServer.Data.PlayerPermission.ArenaMod);
         }
     }

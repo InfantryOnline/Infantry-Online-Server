@@ -103,7 +103,7 @@ namespace InfServer.Script.GameType_SKCTF
                 _ticketSmallChange = (int)Math.Ceiling((double)25 / _arena.PlayersIngame.Count());
 
                 //Let's update some points!
-                int flagdelay = 2500; //1000 = 1 second
+                int flagdelay = 5000; //1000 = 1 second
                 if (now - _lastFlagCheck >= flagdelay)
                 {   //It's time for a flag ticket update
 
@@ -117,9 +117,10 @@ namespace InfServer.Script.GameType_SKCTF
                     //Update our tick
                     _lastFlagCheck = now;
                 }
+
+                //Update the tickers while the game is running
                 updateTickers();
             }
-            
 			return true;
 		}
 
@@ -148,6 +149,10 @@ namespace InfServer.Script.GameType_SKCTF
 		{	//Game is over.
             //TODO: Calculate victory team rewards and rewards for all other players
 
+            //Clear out all tickers we use in updateTickers (1,2,3)
+            for (int i = 1; i <= 3; i++)
+                _arena.setTicker(0, i, 0, "");
+
             //Stop the game
             _arena.gameEnd();
 		}
@@ -171,17 +176,17 @@ namespace InfServer.Script.GameType_SKCTF
             if (_tickets != null)
             {
                 //Their teams tickets
-                _arena.setTicker(0, 0, 0,
+                _arena.setTicker(0, 1, 0,
                     delegate(Player p)
                     {
                         //Update their ticker with current team ticket count
-                        if(!_arena.DesiredTeams.Contains(p._team) && _tickets != null)
+                        if (!_arena.DesiredTeams.Contains(p._team) && _tickets != null)
                             return "";
                         return "Your Team: " + _tickets[p._team];
                     }
                 );
                 //Other teams tickets
-                _arena.setTicker(0, 1, 0,
+                _arena.setTicker(0, 2, 0,
                     delegate(Player p)
                     {
                         //Update their ticker with every other teams ticket count
@@ -194,7 +199,7 @@ namespace InfServer.Script.GameType_SKCTF
                     }
                 );
                 //Ticket costs
-                _arena.setTicker(0, 2, 0, "Ticket costs: " + _ticketSmallChange);
+                _arena.setTicker(0, 3, 0, "Ticket costs: " + _ticketSmallChange);
             }
         }
 

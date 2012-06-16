@@ -546,107 +546,113 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "Can't change team from this terrain");
                 return;
             }
-
-            //First check to make sure they're allowed to switch teams
-            if (player._arena._server._zoneConfig.arena.allowManualTeamSwitch)
+            try
             {
-                //Manual team switching is enabled
-                string teamname;
-                string teampassword;
-
-                if (payload.Contains(":"))
+                //First check to make sure they're allowed to switch teams
+                if (player._arena._server._zoneConfig.arena.allowManualTeamSwitch)
                 {
+                    //Manual team switching is enabled
+                    string teamname;
+                    string teampassword;
 
-                    teamname = payload.Split(':').ElementAt(0);
-                    teampassword = payload.Split(':').ElementAt(1);
-                }
-                else
-                {
-                    teamname = payload;
-                    teampassword = "";
-                }
-
-                //Are they looking to switch to an existing team?
-                Team newteam = player._arena.getTeamByName(teamname);
-
-                //Does the team exist?
-                if (newteam != null)
-                {
-                    //The team exists!
-                    if (newteam.IsSpec)
+                    if (payload.Contains(":"))
                     {
-                        //Only spectators may join team spec
-                        if (player.IsSpectator)
-                        {
-                            newteam.addPlayer(player);
-                            return;
-                        }
 
-                        //They're not a spectator!
-                        player.sendMessage(-1, "Must be a spectator to join this team");
-                        return;
-                    }
-                    else if (newteam.IsPublic || newteam._password == teampassword)
-                    {
-                        //Public team or password for private teams match!
-                        if (!newteam.IsFull)
-                        {
-                            //Sadly the team is full :(
-                            newteam.addPlayer(player, true);
-                            return;
-                        }
-
-                        player.sendMessage(-1, "Team is full");
-                        return;
+                        teamname = payload.Split(':').ElementAt(0);
+                        teampassword = payload.Split(':').ElementAt(1);
                     }
                     else
                     {
-                        //Team is private and passwords don't match
-                        if (newteam._isPrivate && newteam.ActivePlayerCount == 0)
+                        teamname = payload;
+                        teampassword = "";
+                    }
+
+                    //Are they looking to switch to an existing team?
+                    Team newteam = player._arena.getTeamByName(teamname);
+
+                    //Does the team exist?
+                    if (newteam != null)
+                    {
+                        //The team exists!
+                        if (newteam.IsSpec)
                         {
-                            //The team is empty. We should put the player on and change the password
-                            newteam._password = teampassword; //update the password
-                            newteam.addPlayer(player, true); //add the player
+                            //Only spectators may join team spec
+                            if (player.IsSpectator)
+                            {
+                                newteam.addPlayer(player);
+                                return;
+                            }
+
+                            //They're not a spectator!
+                            player.sendMessage(-1, "Must be a spectator to join this team");
                             return;
                         }
+                        else if (newteam.IsPublic || newteam._password == teampassword)
+                        {
+                            //Public team or password for private teams match!
+                            if (!newteam.IsFull)
+                            {
+                                //Sadly the team is full :(
+                                newteam.addPlayer(player, true);
+                                return;
+                            }
 
-                        //The team isn't empty! Invalid password, brah
-                        player.sendMessage(-1, "Invalid password for specified team");
-                        return;
+                            player.sendMessage(-1, "Team is full");
+                            return;
+                        }
+                        else
+                        {
+                            //Team is private and passwords don't match
+                            if (newteam._isPrivate && newteam.ActivePlayerCount == 0)
+                            {
+                                //The team is empty. We should put the player on and change the password
+                                newteam._password = teampassword; //update the password
+                                newteam.addPlayer(player, true); //add the player
+                                return;
+                            }
+
+                            //The team isn't empty! Invalid password, brah
+                            player.sendMessage(-1, "Invalid password for specified team");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        //Team they're trying to join doesn't exist
+                        if (!player._arena._server._zoneConfig.arena.allowPrivateFrequencies)
+                        {
+                            //Private Frequencies are disabled
+                            player.sendMessage(-1, "Private teams are disabled");
+                            return;
+                        }
+                        else
+                        {
+                            //They want to create a private team
+                            Team privteam = new Team(player._arena, player._arena._server);
+
+                            //Assign some information to the team
+                            privteam._name = teamname;
+                            privteam._isPrivate = true;
+                            privteam._password = teampassword;
+                            privteam._id = (short)player._arena.Teams.Count();
+
+                            //Create the team and add the player
+                            player._arena.createTeam(privteam);
+                            privteam.addPlayer(player, true);
+                            return;
+                        }
                     }
                 }
                 else
                 {
-                    //Team they're trying to join doesn't exist
-                    if (!player._arena._server._zoneConfig.arena.allowPrivateFrequencies)
-                    {
-                        //Private Frequencies are disabled
-                        player.sendMessage(-1, "Private teams are disabled");
-                        return;
-                    }
-                    else
-                    {
-                        //They want to create a private team
-                        Team privteam = new Team(player._arena, player._arena._server);
-
-                        //Assign some information to the team
-                        privteam._name = teamname;
-                        privteam._isPrivate = true;
-                        privteam._password = teampassword;
-                        privteam._id = (short)player._arena.Teams.Count();
-
-                        //Create the team and add the player
-                        player._arena.createTeam(privteam);
-                        privteam.addPlayer(player, true);
-                        return;
-                    }
+                    //Manual team switching is disabled
+                    player.sendMessage(-1, "Manual team switching is disabled");
+                    return;
                 }
             }
-            else
+            catch (NullReferenceException)
             {
-                //Manual team switching is disabled
-                player.sendMessage(-1, "Manual team switching is disabled");
-                return;
+                Log.write(TLog.Warning, "Error thrown while switching teams. Sender: '" + player._alias + "' payload: '" + payload);
             }
         }
 
