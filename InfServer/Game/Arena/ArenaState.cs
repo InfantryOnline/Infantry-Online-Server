@@ -77,6 +77,14 @@ namespace InfServer.Game
 			}
 		}
 
+        public IEnumerable<Team> DesiredTeams
+        {
+            get
+            {
+                return _teams.Values.Where(t => t._id < t._server._zoneConfig.arena.desiredFrequencies);
+            }
+        }
+
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////

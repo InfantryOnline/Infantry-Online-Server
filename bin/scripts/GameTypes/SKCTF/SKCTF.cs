@@ -141,31 +141,39 @@ namespace InfServer.Script.GameType_SKCTF
         /// </summary>
         public void onTicketModify(Team team, int tickets)
         {
-            //Update tickers
-            _arena.setTicker(0, 0, 0,
-                delegate(Player p)
-                {
-                    //Update their ticker with current team ticket count
-                    return "Your Team: " + _tickets[p._team];
-                }
-            );
-            _arena.setTicker(0, 1, 0,
-                delegate(Player p)
-                {
-                    //Update their ticker with every other teams ticket count
-                    List<string> otherTeams = new List<string>();
-                    foreach (Team t in _arena.Teams)
-                        if (t != p._team)
-                            otherTeams.Add(t._name + ": " + _tickets[t]);
-
-                    return String.Join(",", otherTeams.ToArray());
-                }
-            );
+            //Update the tickers
+            updateTickers();
 
             //Check for game victory here
             if (tickets == 0)
                 //They were the first team to lose all their tickets, they lose!
-                gameVictory(_arena.Teams.Where(t => t != team));
+                gameVictory(_arena.DesiredTeams.Where(t => t != team));
+        }
+
+        public void updateTickers()
+        {
+            if (_tickets != null)
+            {
+                _arena.setTicker(0, 0, 0,
+                    delegate(Player p)
+                    {
+                        //Update their ticker with current team ticket count
+                        return "Your Team: " + _tickets[p._team];
+                    }
+                );
+                _arena.setTicker(0, 1, 0,
+                    delegate(Player p)
+                    {
+                        //Update their ticker with every other teams ticket count
+                        List<string> otherTeams = new List<string>();
+                        foreach (Team t in _arena.DesiredTeams)
+                            if (t != p._team)
+                                otherTeams.Add(t._name + ": " + _tickets[t]);
+
+                        return String.Join(",", otherTeams.ToArray());
+                    }
+                );
+            }
         }
 
         /// <summary>
@@ -210,7 +218,7 @@ namespace InfServer.Script.GameType_SKCTF
 
             //Create some tickets and subscribe to our ticket modification event
             _tickets = null;
-            _tickets = new Tickets(_arena.Teams, 1000);
+            _tickets = new Tickets(_arena.DesiredTeams, 1000);
             _tickets.TicketModify += onTicketModify;
 
 			//Let everyone know

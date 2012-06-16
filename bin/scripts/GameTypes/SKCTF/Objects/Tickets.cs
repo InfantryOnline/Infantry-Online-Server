@@ -29,9 +29,7 @@ namespace InfServer.Script.GameType_SKCTF
         {
             _tickets = new Dictionary<int, int>();
             foreach (Team t in teams)
-            {
                 _tickets.Add(t._id, numTickets);
-            }
         }
 
         /// <summary>
