@@ -137,17 +137,16 @@ namespace InfServer.Game
 
             //Notify his superiors
             string sRecipient;
-            foreach(Arena a in from._server._arenas.Values)
-                foreach (Player p in a.Players)
-                    if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
-                        p.sendMessage(0, String.Format("@[Arena: {0}] {1}>{2} *{3} {4}",
-                            from._arena._name,
-                            from._alias,
-                            sRecipient = (recipient != null)
-                                ? " :" + recipient._alias + ":"
-                                : String.Empty,
-                            command,
-                            payload));
+            foreach (Player p in Players)
+                if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal && p.PermissionLevelLocal != Data.PlayerPermission.Normal)
+                    p.sendMessage(0, String.Format("@[Arena: {0}] {1}>{2} *{3} {4}",
+                        from._arena._name,
+                        from._alias,
+                        sRecipient = (recipient != null)
+                            ? " :" + recipient._alias + ":"
+                            : String.Empty,
+                        command,
+                        payload));
 
             //Log it in the history
             //TODO: Log it in the database

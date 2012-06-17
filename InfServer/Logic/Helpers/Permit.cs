@@ -31,8 +31,6 @@ namespace InfServer.Logic
             return result;
         }
 
-        
-
         static public string listPermit()
         {
             string s;
@@ -86,7 +84,6 @@ namespace InfServer.Logic
             //save back
             doc.Save("permit.xml");
         }
-
 
         static public void removePermit(string alias)
         {

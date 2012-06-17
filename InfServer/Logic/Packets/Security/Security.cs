@@ -23,39 +23,15 @@ namespace InfServer.Logic
 			player.setVar("envReq", null);
 
 			//Display to him the results
-			string acc = "";
-			int idx = 0;
 			target.sendMessage(0, "&Processes:");
 
 			foreach (string element in pkt.processes)
-			{
-				acc += element;
+                target.sendMessage(0, "*" + Logic_Text.RemoveIllegalCharacters(element));
 
-				if ((idx++ % 5) == 4)
-				{
-					target.sendMessage(0, acc);
-					acc = "";
-				}
-				else
-					acc += ", ";
-			}
-
-			acc = "";
-			idx = 0;
 			target.sendMessage(0, "&Windows:");
 
-			foreach (string element in pkt.windows)
-			{
-				acc += element;
-
-				if ((idx++ % 3) == 2)
-				{
-					target.sendMessage(0, acc);
-					acc = "";
-				}
-				else
-					acc += ", ";
-			}
+            foreach (string element in pkt.windows)
+                target.sendMessage(0, "*" + Logic_Text.RemoveIllegalCharacters(element));
 		}
 
 		/// <summary>

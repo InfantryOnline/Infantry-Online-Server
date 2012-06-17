@@ -82,8 +82,13 @@ namespace InfServer.Game.Commands.Mod
         static public void environment(Player player, Player recipient, string payload, int bong)
 		{	//Send him an environment packet!
 			SC_Environment env = new SC_Environment();
+            bool limit;
+            if (payload == "")
+                limit = false;
+            else
+                limit = true;
 
-			env.bLimitLength = false;
+			env.bLimitLength = limit;
 
 			recipient.setVar("envReq", player);
 			recipient._client.sendReliable(env);
