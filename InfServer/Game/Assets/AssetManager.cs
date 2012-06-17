@@ -133,6 +133,7 @@ namespace InfServer.Game
                 loadBloFile(blob.FileName);
             foreach (LvlInfo.BlobReference blob in Level.FloorBlobs)
                 loadBloFile(blob.FileName);
+
             //Make vehicle map
             _idToVehicle = new SortedDictionary<int, VehInfo>();
             foreach (VehInfo it in vehs.Data)
@@ -147,6 +148,10 @@ namespace InfServer.Game
 				if (blof != null)
 					addAssetData(blof);
 			}
+
+            //For debugging
+            _bloList.Sort();
+            System.IO.File.WriteAllLines(Environment.CurrentDirectory + "/bloList_" + configFilename + ".txt", _bloList);
 
 			//Initialize our lio data
 			Lios = new Lio(this);

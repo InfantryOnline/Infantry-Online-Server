@@ -3,9 +3,6 @@ using System.Collections.Generic;
 
 namespace Assets
 {
-    /// <summary>
-    /// cocks cocks cocks cocks
-    /// </summary>
     public abstract partial class VehInfo : ICsvParseable
     {
         protected static TType[] CreateInstances<TType>(int count)
