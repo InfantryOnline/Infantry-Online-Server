@@ -31,6 +31,7 @@ namespace Assets
                         break;
                     case "6":
                         Projectile projectile = Projectile.Load(values);
+                        BlobsToLoad.Add(projectile.iconGraphic.blobName);
                         BlobsToLoad.Add(projectile.fireGraphic.blobName);
                         BlobsToLoad.Add(projectile.projectileGraphic.blobName);
                         BlobsToLoad.Add(projectile.shadowGraphic.blobName);
