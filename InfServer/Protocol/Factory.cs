@@ -207,6 +207,10 @@ namespace InfServer.Protocol
 					packet = new CS_PlayerPortal(typeID, buffer, offset, size);
 					break;
 
+                case CS_AllowSpectator.TypeID:
+                    packet = new CS_AllowSpectator(typeID, buffer, offset, size);
+                    break;
+
 				case CS_RequestSpectator.TypeID:
 					packet = new CS_RequestSpectator(typeID, buffer, offset, size);
 					break;

@@ -405,6 +405,33 @@ namespace InfServer.Logic
 			);
 		}
 
+        /// <summary>
+        /// Handles an allow/disallow spectators request for a client
+        /// </summary>
+        static public void Handle_CS_AllowSpectator(CS_AllowSpectator pkt, Player player)
+        {   //Allow the player's arena to handle it
+            if (player._arena == null)
+            {
+                Log.write(TLog.Error, "Player {0} sent allow spectator request packet with no arena.", player);
+                return;
+            }
+
+            //Allow/disallow spectators
+            player._bAllowSpectator = pkt.allow;
+
+            //Remove all his current spectators
+            if (!player._bAllowSpectator)
+            {
+                foreach (Player p in player._spectators.ToList())
+                {
+                    p.sendMessage(-1, player._alias + " has disabled spectators");
+                    p._spectating = null;
+                    Helpers.Player_SpectatePlayer(p, player, true); //true = stop spectating
+                }
+                player._spectators.Clear();
+            }
+        }
+
 		/// <summary>
 		/// Handles an spectator request for a client
 		/// </summary>
@@ -463,6 +490,7 @@ namespace InfServer.Logic
 			CS_Shop.Handlers += Handle_CS_Shop;
 			CS_ShopSkill.Handlers += Handle_CS_ShopSkill;
 			CS_PlayerUseItem.Handlers += Handle_CS_PlayerUseItem;
+            CS_AllowSpectator.Handlers += Handle_CS_AllowSpectator;
 			CS_RequestSpectator.Handlers += Handle_CS_RequestSpectator;
 			CS_ItemExpired.Handlers += Handle_CS_ItemExpired;
 		}

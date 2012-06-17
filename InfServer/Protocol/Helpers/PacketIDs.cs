@@ -40,7 +40,7 @@ namespace InfServer.Protocol
 				PlayerUseItem = 0x0F,
 				ChartRequest = 0x11,
 				Frames = 0x15,
-                AllowSpec = 0x16,
+                AllowSpec = 0x16, //TODO: What is this?
 				PlayerDrop = 0x17,
 				Chat = 0x18,
 				PlayerUpdate = 0x1C,
@@ -51,6 +51,7 @@ namespace InfServer.Protocol
 				PlayerPortal = 0x22,
 				FileSend = 0x23,
 				Security = 0x25,
+                AllowSpectator = 0x2A,
 				RequestSpectator = 0x2B,
 			}
 
@@ -105,10 +106,9 @@ namespace InfServer.Protocol
 				SetBounty = 0x2E,
 				ConfirmFileSend = 0x2F,
 				DisplayChart = 0x30,
-				BannerTransfer = 0x31, //?
+				BannerTransfer = 0x31, //TODO: ?
 				BannerInfo = 0x32,
 				ItemReload = 0x33,
-				PlayerStopSpectate = 0x34,
 				PlayerSpectate = 0x35,
 				FileSend = 0x36,
 				ZoneList = 0x37,

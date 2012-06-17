@@ -47,6 +47,7 @@ namespace InfServer.Game
 		public bool _bSpectator;				//Is the player in spectator mode?
         public bool _bSilenced;                 //Is the player currently silenced?
         public bool _bLocked;                   //Is the player locked in spec?
+        public bool _bAllowSpectator;           //Is the player allowing spectators?
 
 		public Helpers.ObjectState _state;		//The player's positional state
 

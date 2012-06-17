@@ -1670,7 +1670,12 @@ namespace InfServer.Game
 			if (target.IsSpectator)
 				return;
 
-			//TODO: Check spectator permission
+			//Check spectator permission
+            if (!target._bAllowSpectator)
+            {
+                player.sendMessage(-1, "Specified player isn't allowing spectators");
+                return;
+            }
 
 			//Tell him yes!
 			player.spectate(target);

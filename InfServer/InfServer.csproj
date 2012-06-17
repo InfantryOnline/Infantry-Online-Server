@@ -233,6 +233,7 @@
     <Compile Include="Protocol\Helpers\Social.cs" />
     <Compile Include="Protocol\Helpers\Updates.cs" />
     <Compile Include="Protocol\Helpers\Vehicles.cs" />
+    <Compile Include="Protocol\Packets\Game\Action\CS_AllowSpectator.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerDrop.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerFlag.cs" />
     <Compile Include="Protocol\Packets\Game\Action\CS_PlayerPickup.cs" />
@@ -271,7 +272,6 @@
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerCrowns.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerMultiItem.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerSetBounty.cs" />
-    <Compile Include="Protocol\Packets\Game\Update\SC_PlayerStopSpectate.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_PlayerWarpEx.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_Skills.cs" />
     <Compile Include="Protocol\Packets\Game\Update\SC_VehicleDeath.cs" />
