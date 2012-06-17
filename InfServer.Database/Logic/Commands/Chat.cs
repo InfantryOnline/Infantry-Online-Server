@@ -122,7 +122,33 @@ namespace InfServer.Logic
                             zone._server.sendMessage(zone, pkt.alias, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
                         break;
 
-                    case CS_Query<Zone>.QueryType.aliastransfer:
+                    case CS_Query<Zone>.QueryType.emailupdate:
+                        zone._server.sendMessage(zone, pkt.alias, "&Email Update");
+
+                        string[] payload = pkt.payload.Split(',');
+                        string password = payload[0];
+                        string newemail = payload[1];
+
+                        Data.DB.alias accalias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
+                        Data.DB.account account = db.accounts.SingleOrDefault(acc => acc.alias.Equals(accalias));
+                        //Check his password
+                        System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
+                        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(password);
+                        bytes = x.ComputeHash(bytes); 
+                        string hashed = "";
+                        for (int i = 0; i < bytes.Length; i++)
+                            hashed += bytes[i].ToString("x2").ToLower();
+
+                        if (!account.password.Equals(hashed))
+                        {
+                            zone._server.sendMessage(zone, pkt.alias, "*Invalid account password");
+                            return;
+                        }
+                        
+                        //Update his email
+                        account.email = newemail;
+                        db.SubmitChanges();
+                        zone._server.sendMessage(zone, pkt.alias, "*Email updated to: " + newemail);
                         break;
                 }
             }

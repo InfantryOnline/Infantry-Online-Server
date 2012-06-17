@@ -203,10 +203,7 @@ namespace InfServer.Game
 			Helpers.Player_StateInit(player,
 				delegate()
 				{
-                    
-
-
-                    
+                    //TODO: Add stealthing/cloaking here
                     //And make sure everyone is aware of him
 					Helpers.Object_Players(audience, player);
 
@@ -221,6 +218,13 @@ namespace InfServer.Game
                     Helpers.Social_UpdateBanner(player); //Players banner
                     Helpers.Social_ArenaBanners(player._arena.Players, player); //Inform arena of his banner
                     Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
+
+                    //Trigger our event for player entering arena
+                    if (exists("Player.EnterArena"))
+                        callsync("Player.EnterArena", false, player);
+
+                    //Temporary player message, remove this later. This is just here to get old accounts to update their information
+                    player.sendMessage(-3, "[notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email password,email");
 				}
 			);
 		}

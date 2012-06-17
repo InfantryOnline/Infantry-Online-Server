@@ -16,7 +16,8 @@ namespace InfServer.Protocol
         public string alias;                //Whos looking..
         public string recipient;            //Recipient, appended if there is one.
         public QueryType queryType;         //Query type
-        public string ipaddress;                    //IPAddress, appended if there is one.
+        public string ipaddress;            //IPAddress, appended if there is one.
+        public string payload;              //Query payload
 
         //Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Query;
@@ -30,6 +31,7 @@ namespace InfServer.Protocol
             aliastransfer = 03,
             find = 04,
             online = 05,
+            emailupdate = 06,
         }
 
 
@@ -46,6 +48,7 @@ namespace InfServer.Protocol
             alias = "";
             recipient = "";
             ipaddress = "";
+            payload = "";
         }
 
         /// <summary>
@@ -89,6 +92,10 @@ namespace InfServer.Protocol
 
                 case QueryType.aliastransfer:
                     break;
+
+                case QueryType.emailupdate:
+                    Write(payload, 0);
+                    break;
             }
         }
 
@@ -111,6 +118,10 @@ namespace InfServer.Protocol
                     break;
 
                 case QueryType.aliastransfer:
+                    break;
+
+                case QueryType.emailupdate:
+                    payload = ReadNullString();
                     break;
             }
         }

@@ -158,6 +158,14 @@ namespace InfServer.Script.GameType_Dodgeball
 		public void playerEnter(Player player)
 		{
 		}
+		
+		/// <summary>
+		/// Called when a player enters the arena
+		/// </summary>
+		[Scripts.Event("Player.EnterArena")]
+		public void playerEnterArena(Player player)
+		{
+		}
 
 		/// <summary>
 		/// Called when a player leaves the game

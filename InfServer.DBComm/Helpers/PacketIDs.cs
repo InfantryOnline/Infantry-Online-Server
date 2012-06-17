@@ -17,7 +17,7 @@ namespace InfServer.Protocol
         {
             ///<summary>
             ///Contains C2S packet ids
-            //////</summary>
+            ///</summary>
             public enum C2S
             {
                 Auth = 01,
@@ -38,7 +38,7 @@ namespace InfServer.Protocol
             }
             ///<summary>
             ///Contains S2C packet ids
-            //////</summary>
+            ///</summary>
             public enum S2C
             {
                 Auth = 01,

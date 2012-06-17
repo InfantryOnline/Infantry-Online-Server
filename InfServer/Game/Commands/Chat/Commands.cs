@@ -387,6 +387,32 @@ namespace InfServer.Game.Commands.Chat
         }
 
         /// <summary>
+        /// Updates email address associated with players account
+        /// </summary>
+        public static void email(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity checks
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "There is no connection to the database");
+                return;
+            }
+
+            if (!payload.Contains(','))
+            {
+                player.sendMessage(-1, "Invalid syntax. Use ?email currentpassword,newemail");
+                return;
+            }
+
+            //Pass the payload off to the database
+            CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+            query.queryType = CS_Query<Data.Database>.QueryType.emailupdate;
+            query.alias = player._alias;
+            query.payload = payload;
+            player._server._db.send(query);
+        }
+
+        /// <summary>
         /// Searches for a player and returns location
         /// </summary>        
         public static void find(Player player, Player recipient, string payload, int bong)
@@ -703,7 +729,11 @@ namespace InfServer.Game.Commands.Chat
 
             yield return new HandlerDescriptor(drop, "drop",
                "Drops items",
-               "?drop item1:amount1,item2:#absoluteAmount2");            
+               "?drop item1:amount1,item2:#absoluteAmount2");
+
+            yield return new HandlerDescriptor(email, "email",
+                "Updates email address associated with players account",
+                "?email password,newemail");
 
             yield return new HandlerDescriptor(find, "find",
                 "Finds a player.",

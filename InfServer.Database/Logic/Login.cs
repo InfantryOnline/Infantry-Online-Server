@@ -102,7 +102,7 @@ namespace InfServer.Logic
 				plog.player = pkt.player;
 
 				//Are they using the launcher?
-				if (pkt.ticketid == "" || pkt.ticketid.Contains(':'))
+				if (pkt.ticketid == "")
 				{	//They're trying to trick us, jim!
 					plog.bSuccess = false;
 					plog.loginMessage = "Please use the Infantry launcher to run the game.";
@@ -110,60 +110,16 @@ namespace InfServer.Logic
 					zone._client.send(plog);
 					return;
 				}
+                if (pkt.ticketid.Contains(':'))
+                {   //They're using the old, outdated launcher
+                    plog.bSuccess = false;
+                    plog.loginMessage = "Please use the updated launcher from the website";
 
-				//Is it a normal ticketid or an auth request?
-				Data.DB.account account = null;
+                    zone._client.send(plog);
+                    return;
+                }
 
-				if (pkt.ticketid.Contains(':'))
-				{
-                    /* This method of logging in has deprecated and asks you to run the launcher
-                     * 
-					string[] split = pkt.ticketid.Split(':');
-
-					//Validate the password
-					if (split[1].Length != 32)
-					{
-						plog.bSuccess = false;
-						plog.loginMessage = "Invalid Session Id.";
-
-						zone._client.send(plog);
-						return;
-					}
-
-					//Can we find an account that matches?
-					account = db.accounts.SingleOrDefault(acct => acct.name == split[0]);
-
-					if (account == null)
-					{	//Account doesn't exist, create it!
-						account = new Data.DB.account();
-
-						account.name = split[0];
-						account.password = split[1];
-						account.dateCreated = DateTime.Now;
-						account.lastAccess = DateTime.Now;
-						account.email = "none@nowhere.com";
-						account.ticket = "";
-                        account.IPAddress = pkt.ipaddress;
-
-						db.accounts.InsertOnSubmit(account);
-
-						plog.loginMessage = "Your account has been created.";
-
-						db.SubmitChanges();
-					}
-					else if (!account.password.Equals(split[1], StringComparison.CurrentCultureIgnoreCase))
-					{	//Bad password!
-						plog.bSuccess = false;
-						plog.loginMessage = "Invalid password.";
-
-						zone._client.send(plog);
-						return;
-					}
-                    */
-				}
-				else
-					
-                account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
+				Data.DB.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
 
 				if (account == null)
 				{	//They're trying to trick us, jim!
