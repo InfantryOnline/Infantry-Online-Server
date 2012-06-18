@@ -78,7 +78,8 @@ namespace InfServer.Protocol
         {
             requestee = ReadNullString();
 
-            for (int i = 0; i < _contentReader.ReadInt32(); i++)
+            int zoneCount = _contentReader.ReadInt32();
+            for (int i = 0; i < zoneCount; i++)
             {
                 zoneList.Add(new ZoneInstance(0,
                     ReadNullString(),
