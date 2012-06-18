@@ -139,7 +139,7 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "Unknown login failure.";
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: Ban (" + banned.type.ToString() + ")");
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
@@ -149,7 +149,7 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "You have been temporarily suspended until " + banned.expiration.ToString("f", CultureInfo.CreateSpecificCulture("en-US"));
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: Ban (" + banned.type.ToString() + ")");
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
@@ -159,7 +159,7 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "You have been temporarily suspended from this zone until " + banned.expiration.ToString("f", CultureInfo.CreateSpecificCulture("en-US"));
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: Ban (" + banned.type.ToString() + ")");
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
@@ -169,7 +169,7 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "Your account has been temporarily suspended until " + banned.expiration.ToString("f", CultureInfo.CreateSpecificCulture("en-US"));
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: Ban (" + banned.type.ToString() + ")");
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
