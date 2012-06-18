@@ -111,11 +111,14 @@ namespace InfServer.Logic
 					break;
 
                 case Helpers.Chat_Type.PrivateChat:
-                    CS_PrivateChat<Data.Database> pchat = new CS_PrivateChat<Data.Database>();
-                    pchat.chat = pkt.recipient;
-                    pchat.message = pkt.message;
-                    pchat.from = player._alias;
-                    player._server._db.send(pchat);
+                    if (!player._server.IsStandalone)
+                    {
+                        CS_PrivateChat<Data.Database> pchat = new CS_PrivateChat<Data.Database>();
+                        pchat.chat = pkt.recipient;
+                        pchat.message = pkt.message;
+                        pchat.from = player._alias;
+                        player._server._db.send(pchat);
+                    }
                     break;
 
                 case Helpers.Chat_Type.Whisper:

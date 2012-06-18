@@ -400,23 +400,6 @@ namespace InfServer.Game
 				return;
 			}
 
-            /* Tried to remove flags when player uses a blink to dropship 
-             * ineffective due to returning to the blink gets checked neither here nor handlePlayerWarp
-            List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == from).ToList();
-
-            foreach (FlagState carry in carried)
-            {   //If the terrain number is 0-15
-
-                int terrainNum = from._arena.getTerrainID(from._state.positionX, from._state.positionY);
-                if (terrainNum >= 0 && terrainNum <= 15)
-                {   //Check the FlagDroppableTerrains for that specific terrain id
-                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
-                        flagResetPlayer(from);
-                }
-            }
-             */
-            
-
 			//Forward to our script
 			if (!exists("Player.Portal") || (bool)callsync("Player.Portal", false, from, portal))
 			{	//Do some warpage

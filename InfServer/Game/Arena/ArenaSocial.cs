@@ -148,8 +148,19 @@ namespace InfServer.Game
                         command,
                         payload));
 
-            //Log it in the history
-            //TODO: Log it in the database
+            //Log it in the history (ignore normal commands like *help, etc)
+            if (!_server.IsStandalone && from.PermissionLevelLocal != Data.PlayerPermission.Normal)
+            {
+                CS_ModCommand<Data.Database> pkt = new CS_ModCommand<Data.Database>();
+                pkt.sender = from._alias;
+                pkt.recipient = (recipient != null) ? recipient._alias : "none";
+                pkt.zone = from._server.Name;
+                pkt.arena = from._arena._name;
+                pkt.command = command + " " + payload;
+
+                //Send it!
+                from._server._db.send(pkt);
+            }
 
 			try
 			{	//Handle it!

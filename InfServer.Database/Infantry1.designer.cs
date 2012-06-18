@@ -49,6 +49,9 @@ namespace InfServer.Data
     partial void Insertban(InfServer.Data.DB.ban instance);
     partial void Updateban(InfServer.Data.DB.ban instance);
     partial void Deleteban(InfServer.Data.DB.ban instance);
+    partial void Inserthistory(InfServer.Data.DB.history instance);
+    partial void Updatehistory(InfServer.Data.DB.history instance);
+    partial void Deletehistory(InfServer.Data.DB.history instance);
     #endregion
 		
 		public InfantryDataContext() : 
@@ -134,6 +137,14 @@ namespace InfServer.Data
 			get
 			{
 				return this.GetTable<InfServer.Data.DB.ban>();
+			}
+		}
+		
+		public System.Data.Linq.Table<InfServer.Data.DB.history> histories
+		{
+			get
+			{
+				return this.GetTable<InfServer.Data.DB.history>();
 			}
 		}
 	}
@@ -2396,7 +2407,7 @@ namespace InfServer.Data.DB
 		
 		private System.DateTime _expires;
 		
-		private long _zone;
+		private System.Nullable<long> _zone;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -2420,7 +2431,7 @@ namespace InfServer.Data.DB
     partial void OncreatedChanged();
     partial void OnexpiresChanging(System.DateTime value);
     partial void OnexpiresChanged();
-    partial void OnzoneChanging(long value);
+    partial void OnzoneChanging(System.Nullable<long> value);
     partial void OnzoneChanged();
     #endregion
 		
@@ -2610,7 +2621,7 @@ namespace InfServer.Data.DB
 		}
 		
 		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zone", DbType="BigInt NULL")]
-		public long zone
+		public System.Nullable<long> zone
 		{
 			get
 			{
@@ -2625,6 +2636,212 @@ namespace InfServer.Data.DB
 					this._zone = value;
 					this.SendPropertyChanged("zone");
 					this.OnzoneChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.history")]
+	public partial class history : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private string _sender;
+		
+		private string _recipient;
+		
+		private string _zone;
+		
+		private string _arena;
+		
+		private string _command;
+		
+		private System.DateTime _date;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnsenderChanging(string value);
+    partial void OnsenderChanged();
+    partial void OnrecipientChanging(string value);
+    partial void OnrecipientChanged();
+    partial void OnzoneChanging(string value);
+    partial void OnzoneChanged();
+    partial void OnarenaChanging(string value);
+    partial void OnarenaChanged();
+    partial void OncommandChanging(string value);
+    partial void OncommandChanged();
+    partial void OndateChanging(System.DateTime value);
+    partial void OndateChanged();
+    #endregion
+		
+		public history()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_sender", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		public string sender
+		{
+			get
+			{
+				return this._sender;
+			}
+			set
+			{
+				if ((this._sender != value))
+				{
+					this.OnsenderChanging(value);
+					this.SendPropertyChanging();
+					this._sender = value;
+					this.SendPropertyChanged("sender");
+					this.OnsenderChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_recipient", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		public string recipient
+		{
+			get
+			{
+				return this._recipient;
+			}
+			set
+			{
+				if ((this._recipient != value))
+				{
+					this.OnrecipientChanging(value);
+					this.SendPropertyChanging();
+					this._recipient = value;
+					this.SendPropertyChanged("recipient");
+					this.OnrecipientChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zone", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		public string zone
+		{
+			get
+			{
+				return this._zone;
+			}
+			set
+			{
+				if ((this._zone != value))
+				{
+					this.OnzoneChanging(value);
+					this.SendPropertyChanging();
+					this._zone = value;
+					this.SendPropertyChanged("zone");
+					this.OnzoneChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_arena", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		public string arena
+		{
+			get
+			{
+				return this._arena;
+			}
+			set
+			{
+				if ((this._arena != value))
+				{
+					this.OnarenaChanging(value);
+					this.SendPropertyChanging();
+					this._arena = value;
+					this.SendPropertyChanged("arena");
+					this.OnarenaChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_command", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
+		public string command
+		{
+			get
+			{
+				return this._command;
+			}
+			set
+			{
+				if ((this._command != value))
+				{
+					this.OncommandChanging(value);
+					this.SendPropertyChanging();
+					this._command = value;
+					this.SendPropertyChanged("command");
+					this.OncommandChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_date", DbType="DateTime NOT NULL")]
+		public System.DateTime date
+		{
+			get
+			{
+				return this._date;
+			}
+			set
+			{
+				if ((this._date != value))
+				{
+					this.OndateChanging(value);
+					this.SendPropertyChanging();
+					this._date = value;
+					this.SendPropertyChanged("date");
+					this.OndateChanged();
 				}
 			}
 		}

@@ -85,6 +85,7 @@
     <Compile Include="Packets\Login\SC_PlayerLogin.cs" />
     <Compile Include="Packets\Social\Chats\SC_LeaveChat.cs" />
     <Compile Include="Packets\Social\Chats\CS_LeaveChat.cs" />
+    <Compile Include="Packets\Social\SC_ModCommand.cs" />
     <Compile Include="Packets\Social\Chats\SC_PrivateChat.cs" />
     <Compile Include="Packets\Social\Chats\CS_JoinChat.cs" />
     <Compile Include="Packets\Social\Chats\CS_PrivateChat.cs" />

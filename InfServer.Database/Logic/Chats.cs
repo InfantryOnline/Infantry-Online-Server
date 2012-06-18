@@ -7,7 +7,6 @@ namespace InfServer.Logic
 {
     class Logic_Chats
     {
-
         static public void Handle_CS_JoinChat(CS_JoinChat<Zone> pkt, Zone zone)
         {
             DBServer server = zone._server;
@@ -73,7 +72,6 @@ namespace InfServer.Logic
             }
         }
 
-
         static public void Handle_CS_Chat(CS_PrivateChat<Zone> pkt, Zone zone)
         {
             DBServer server = zone._server;
@@ -96,6 +94,21 @@ namespace InfServer.Logic
 
         }
 
+        static public void Handle_CS_ModCommand(CS_ModCommand<Zone> pkt, Zone zone)
+        {
+            using (Data.InfantryDataContext db = zone._server.getContext())
+            {
+                Data.DB.history hist = new Data.DB.history();
+                hist.sender = pkt.sender;
+                hist.recipient = pkt.recipient;
+                hist.zone = pkt.zone;
+                hist.arena = pkt.arena;
+                hist.command = pkt.command;
+                hist.date = DateTime.Now;
+                db.histories.InsertOnSubmit(hist);
+            }
+        }
+
 
 
 
@@ -107,6 +120,7 @@ namespace InfServer.Logic
         {
             CS_JoinChat<Zone>.Handlers += Handle_CS_JoinChat;
             CS_PrivateChat<Zone>.Handlers += Handle_CS_Chat;
+            CS_ModCommand<Zone>.Handlers += Handle_CS_ModCommand;
         }
     }
 

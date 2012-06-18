@@ -59,7 +59,7 @@
         <classShapeMoniker Id="66457bc7-6d17-4f80-874f-d842d4e0212b" />
       </nodes>
     </associationConnector>
-    <associationConnector edgePoints="[(5.5 : 5.29459757486979); (7.74804921875 : 5.29459757486979); (7.74804921875 : 3.41093180338542)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+    <associationConnector edgePoints="[(5.5 : 5.29459757486979); (6.60221088541667 : 5.29459757486979 : JumpStart); (6.76887755208333 : 5.29459757486979 : JumpEnd); (7.10026010416667 : 5.29459757486979 : JumpStart); (7.26692677083333 : 5.29459757486979 : JumpEnd); (7.74804921875 : 5.29459757486979); (7.74804921875 : 3.41093180338542)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/InfantryDataContext/squad/squad_player" />
       <nodes>
         <classShapeMoniker Id="eb8ae9f5-d5ad-4221-a00e-b106fb54ef99" />
@@ -84,6 +84,12 @@
       <DataClassMoniker Name="/InfantryDataContext/ban" />
       <nestedChildShapes>
         <elementListCompartment Id="6e33e67c-8afb-40b4-89ce-07aab8638fa6" absoluteBounds="0.765, 4.585, 1.9700000000000002, 1.8509318033854165" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="adffb084-c506-4f39-a132-7c533f789261" absoluteBounds="0.75, 7, 2, 1.9178898111979166">
+      <DataClassMoniker Name="/InfantryDataContext/history" />
+      <nestedChildShapes>
+        <elementListCompartment Id="9279c55e-5512-49be-8c2d-cdb10047b0b5" absoluteBounds="0.765, 7.46, 1.9700000000000002, 1.3578898111979165" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

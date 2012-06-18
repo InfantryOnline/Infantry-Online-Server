@@ -163,6 +163,25 @@ namespace InfServer.Logic
                         zl.zoneList = zoneList;
                         zone._client.sendReliable(zl, 1);
                         break;
+
+                    case CS_Query<Zone>.QueryType.history:
+                        int page = Convert.ToInt32(pkt.payload);
+                        int resultsperpage = 10;
+
+                        zone._server.sendMessage(zone, pkt.sender, "!Command History (" + page + ")");
+
+                        //Find all commands!
+                        List<Data.DB.history> cmds = db.histories.Where(c =>
+                            c.id >= (db.histories.Count() - (resultsperpage * (page + 1))) &&
+                            c.id < (db.histories.Count() - (resultsperpage * page))).ToList();
+
+                        //List them
+                        foreach (Data.DB.history h in cmds)
+                            zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                                Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.command));
+
+                        zone._server.sendMessage(zone, pkt.sender, "End of page, use ?history 1, ?history 2, etc to navigate previous pages");
+                        break;
                 }
             }
         }

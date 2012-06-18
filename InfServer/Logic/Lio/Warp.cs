@@ -123,6 +123,18 @@ namespace InfServer.Logic
                 (short)(x - width), (short)(y - height),
                 (short)(x + width), (short)(y + height),
 				(short)invulnTime);
+
+            //Route his new state to the rest of the arena
+            SC_PlayerUpdate up = new SC_PlayerUpdate();
+            up.tickUpdate = player._state.lastUpdate;
+            up.player = player;
+            up.vehicle = player.ActiveVehicle;
+            up.itemID = 0;
+            up.activeUtilities = player.activeUtilities;
+
+            foreach (Player p in player._arena.Players)
+                if (p != player)
+                    p._client.send(up);
 		}
 	}
 }

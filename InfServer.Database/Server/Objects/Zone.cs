@@ -140,7 +140,7 @@ namespace InfServer
 		/// </summary>
 		public void lostPlayer(int id)
 		{	//Attempt to remove him
-            if (_players[id] == null)
+            if (!_players.Keys.Contains(id))
                 return;
             _server.lostPlayer(_players[id]);
             _players.Remove(id);

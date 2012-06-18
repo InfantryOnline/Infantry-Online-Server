@@ -105,6 +105,24 @@ namespace InfServer.Game.Commands.Mod
 			recipient._client.sendReliable(gif, 1);
 		}
 
+        /// <summary>
+        /// Returns a list of mod commands used in every server
+        /// </summary>
+        static public void history(Player player, Player recipient, string payload, int bong)
+        {
+            int page;
+            if (payload == "")
+                page = 0;
+            else
+                page = Convert.ToInt32(payload);
+
+            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+            pkt.sender = player._alias;
+            pkt.queryType = CS_Query<Data.Database>.QueryType.history;
+            pkt.payload = page.ToString();
+            player._server._db.send(pkt);
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>

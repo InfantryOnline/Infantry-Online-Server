@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using InfServer.Network;
 
@@ -9,29 +6,20 @@ namespace InfServer.Protocol
 {	/// <summary>
     /// 
     /// </summary>
-    public class CS_Query<T> : PacketBase
+    public class CS_ModCommand<T> : PacketBase
         where T : IClient
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public QueryType queryType;         //Query type
-        public string sender;               //Player requesting
-        public string payload;              //Query payload
+
+        public string sender;
+        public string recipient;
+        public string zone;
+        public string arena;
+        public string command;
 
         //Packet routing
-        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Query;
-        static public event Action<CS_Query<T>, T> Handlers;
-
-
-        public enum QueryType
-        {
-            accountinfo,
-            whois,
-            find,
-            online,
-            emailupdate,
-            zonelist,
-            history,
-        }
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.ModCommand;
+        static public event Action<CS_ModCommand<T>, T> Handlers;
 
 
         ///////////////////////////////////////////////////
@@ -41,11 +29,14 @@ namespace InfServer.Protocol
         /// Creates an empty packet of the specified type. This is used
         /// for constructing new packets for sending.
         /// </summary>
-        public CS_Query()
+        public CS_ModCommand()
             : base(TypeID)
         {
             sender = "";
-            payload = "";
+            recipient = "";
+            zone = "";
+            arena = "";
+            command = "";
         }
 
         /// <summary>
@@ -54,7 +45,7 @@ namespace InfServer.Protocol
         /// </summary>
         /// <param name="typeID">The type of the received packet.</param>
         /// <param name="buffer">The received data.</param>
-        public CS_Query(ushort typeID, byte[] buffer, int index, int count)
+        public CS_ModCommand(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
         {
         }
@@ -75,8 +66,10 @@ namespace InfServer.Protocol
         {	//Type ID
             Write((byte)TypeID);
             Write(sender, 0);
-            Write((byte)queryType);
-            Write(payload, 0);
+            Write(recipient, 0);
+            Write(zone, 0);
+            Write(arena, 0);
+            Write(command, 0);
         }
 
         /// <summary>
@@ -85,8 +78,10 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             sender = ReadNullString();
-            queryType = (QueryType)_contentReader.ReadByte();
-            payload = ReadNullString();
+            recipient = ReadNullString();
+            zone = ReadNullString();
+            arena = ReadNullString();
+            command = ReadNullString();
         }
 
         /// <summary>
@@ -96,7 +91,7 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Zone server query request";
+                return "Zone server chat route";
             }
         }
     }
