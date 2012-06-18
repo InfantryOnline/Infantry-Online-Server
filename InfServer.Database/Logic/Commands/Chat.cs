@@ -94,8 +94,8 @@ namespace InfServer.Logic
                         Data.DB.account account = db.accounts.SingleOrDefault(acc => acc.alias.Equals(accalias));
                         
                         //Update his email
-                        account.email = pkt.payload;
-                        db.SubmitChanges();
+                        //account.email = pkt.payload;
+                        //db.SubmitChanges();
                         zone._server.sendMessage(zone, pkt.sender, "*Email updated to: " + pkt.payload);
                         break;
 
