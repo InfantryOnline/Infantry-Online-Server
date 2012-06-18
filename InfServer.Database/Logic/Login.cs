@@ -101,6 +101,40 @@ namespace InfServer.Logic
 
 				plog.player = pkt.player;
 
+                //Check for IP and UID bans
+                Logic_Bans.Ban banned = Logic_Bans.checkBan(pkt, db);
+
+                if (banned.type == Logic_Bans.Ban.BanType.GlobalBan)
+                    //We don't respond to globally banned player requests
+                    return;
+
+                if (banned.type == Logic_Bans.Ban.BanType.IPBan)
+                {   //Their IP has been banned, make something up!
+                    plog.bSuccess = false;
+                    plog.loginMessage = "Unknown login failure.";
+
+                    zone._client.send(plog);
+                }
+
+                if (banned.type == Logic.Logic_Bans.Ban.BanType.ZoneBan)
+                {   //They've been blocked from entering the zone, tell them how long they've got left on their ban
+                    plog.bSuccess = false;
+                    plog.loginMessage = "You have been temporarily suspended from this zone until " + Convert.ToString(banned.expiration);
+
+                    zone._client.send(plog);
+                    return;
+                }
+
+                if (banned.type == Logic.Logic_Bans.Ban.BanType.AccountBan)
+                {   //They've been blocked from entering any zone, tell them when to come back
+                    plog.bSuccess = false;
+                    plog.loginMessage = "Your account has been temporarily suspended until " + Convert.ToString(banned.expiration);
+
+                    zone._client.send(plog);
+                    return;
+                }
+                //They made it!
+
 				//Are they using the launcher?
 				if (pkt.ticketid == "")
 				{	//They're trying to trick us, jim!
@@ -131,7 +165,7 @@ namespace InfServer.Logic
 				}
 
 				//Is there already a player online under this account?
-				if (DBServer.bAllowMulticlienting && zone._server._zones.Any(z => z.hasAccountPlayer(account.id)))
+				if (!DBServer.bAllowMulticlienting && zone._server._zones.Any(z => z.hasAccountPlayer(account.id)))
 				{	
 					plog.bSuccess = false;
 					plog.loginMessage = "Account is currently in use.";

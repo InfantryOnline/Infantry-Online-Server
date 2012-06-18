@@ -14,14 +14,19 @@ namespace InfServer.Logic
 		static public void Handle_CS_Login(CS_Login pkt, Client<Player> client)
 		{	//Let's escalate our client's status to player!
 			ZoneServer server = (client._handler as ZoneServer);
-			Player newPlayer = server.newPlayer(client, pkt.Username);
 
-            if (server._config["server/permitMode"].boolValue)
+            //Check their client version and UIDs
+            //TODO: find out what the UIDs are and what an invalid UID might be
+            if (pkt.Version != Helpers._serverVersion ||
+                pkt.UID1 <= 1000 ||
+                pkt.UID2 <= 1000 ||
+                pkt.UID3 <= 1000)
             {
-                if (!Logic_Permit.checkPermit(newPlayer._alias))
-                    Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Your client is out of date, please update using the website");
+                return;
             }
 
+			Player newPlayer = server.newPlayer(client, pkt.Username);
             String alias = newPlayer._alias;
 
             //Check alias for illegal characters
@@ -33,6 +38,7 @@ namespace InfServer.Logic
                 alias != Logic_Text.RemoveIllegalCharacters(alias))
             {   //Boot him..
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, must start with a letter or number and cannot end with a space.");
+                return;
             }
 
 			//If it failed for some reason, present a failure message
@@ -42,14 +48,22 @@ namespace InfServer.Logic
 				return;
 			}
 
+            //Are we in permission mode?
+            if (server._config["server/permitMode"].boolValue)
+                if (!Logic_Permit.checkPermit(alias))
+                {
+                    Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
+                    return;
+                }
+
 			//Are we in standalone mode?
 			if (server.IsStandalone)
 			{	//Always first time setup in standalone mode
 				newPlayer.assignFirstTimeStats(false);
-
+                
 				//Success! Let him in.
-				Helpers.Login_Response(client, SC_Login.Login_Result.Success, "This server is currently in stand-alone mode. Your character's scores and stats will not be saved.");
-			}
+                Helpers.Login_Response(client, SC_Login.Login_Result.Success, "This server is currently in stand-alone mode. Your character's scores and stats will not be saved.");
+            }
 			else
 			{	//Defer the request to the database server
 				CS_PlayerLogin<Data.Database> plogin = new CS_PlayerLogin<Data.Database>();
@@ -62,7 +76,7 @@ namespace InfServer.Logic
 				plogin.UID1 = pkt.UID1;
 				plogin.UID2 = pkt.UID2;
                 plogin.UID3 = pkt.UID3;
-				plogin.UID4 = pkt.NICInfo;
+				plogin.NICInfo = pkt.NICInfo;
                 plogin.ipaddress = pkt._client._ipe.Address.ToString().Trim();
 
 				server._db.send(plogin);

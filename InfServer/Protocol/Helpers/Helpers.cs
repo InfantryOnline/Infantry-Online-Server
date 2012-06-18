@@ -12,7 +12,8 @@ namespace InfServer.Protocol
 	/// </summary>
 	public partial class Helpers
 	{	// Member Variables
-		///////////////////////////////////////////////////
-		static public ZoneServer _server;		//The main zone server
+		//////////////////////////////////////////////////
+		static public ZoneServer _server;		        //The main zone server
+        public const ushort _serverVersion = 155;       //The client/server version
 	}
 }

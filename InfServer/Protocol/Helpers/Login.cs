@@ -23,7 +23,7 @@ namespace InfServer.Protocol
 			SC_Login reply = new SC_Login();
 
 			reply.result = result;
-			reply.serverVersion = 154;
+            reply.serverVersion = Helpers._serverVersion;
 			reply.zoneConfig = _server._config["server/zoneConfig"].Value;
 			reply.popupMessage = "";
 
@@ -38,7 +38,7 @@ namespace InfServer.Protocol
 			SC_Login reply = new SC_Login();
 
 			reply.result = result;
-			reply.serverVersion = 154;
+            reply.serverVersion = Helpers._serverVersion;
 			reply.zoneConfig = _server._config["server/zoneConfig"].Value;
 			reply.popupMessage = popupMessage;
 

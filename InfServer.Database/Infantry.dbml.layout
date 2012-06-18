@@ -45,7 +45,7 @@
         <classShapeMoniker Id="66457bc7-6d17-4f80-874f-d842d4e0212b" />
       </nodes>
     </associationConnector>
-    <associationConnector edgePoints="[(5.5 : 7.99829223632813); (6.68554421875 : 7.99829223632813); (6.68554421875 : 3.41093180338542)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(5.5 : 7.99829223632813); (6.68554421875 : 7.99829223632813); (6.68554421875 : 3.41093180338542)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/InfantryDataContext/zone/zone_player" />
       <nodes>
         <classShapeMoniker Id="4d31dfc6-effe-4a83-b4b6-6f1b4c0c6745" />
@@ -73,12 +73,18 @@
         <classShapeMoniker Id="240970ff-cb78-44cc-971c-6dda63d29afb" />
       </nodes>
     </associationConnector>
-    <associationConnector edgePoints="[(4.5 : 9.12158447265625); (4.5 : 9.625)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+    <associationConnector edgePoints="[(4.5 : 9.12158447265625); (4.5 : 9.625)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/InfantryDataContext/zone/zone_stats" />
       <nodes>
         <classShapeMoniker Id="4d31dfc6-effe-4a83-b4b6-6f1b4c0c6745" />
         <classShapeMoniker Id="b2dab1b3-45d2-43c0-90f5-7cbde8e7b8db" />
       </nodes>
     </associationConnector>
+    <classShape Id="ed123d28-e286-41aa-b610-82c0a2762c3f" absoluteBounds="0.75, 4.125, 2, 2.2465844726562496">
+      <DataClassMoniker Name="/InfantryDataContext/ban" />
+      <nestedChildShapes>
+        <elementListCompartment Id="6e33e67c-8afb-40b4-89ce-07aab8638fa6" absoluteBounds="0.765, 4.585, 1.9700000000000002, 1.68658447265625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
   </nestedChildShapes>
 </ordesignerObjectsDiagram>

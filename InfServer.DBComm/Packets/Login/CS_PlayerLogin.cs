@@ -22,9 +22,9 @@ namespace InfServer.Protocol
         public string ipaddress;
 
 		public uint UID1;					//The player's unique identifiers
-		public uint UID2;					//TODO: save these to the database
+		public uint UID2;					//
 		public uint UID3;					//
-		public uint UID4;					//
+		public uint NICInfo;				//
 
 		//Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.PlayerLogin;
@@ -84,7 +84,7 @@ namespace InfServer.Protocol
 			Write(UID1);
 			Write(UID2);
 			Write(UID3);
-			Write(UID4);
+			Write(NICInfo);
 		}
 
 		/// <summary>
@@ -104,7 +104,7 @@ namespace InfServer.Protocol
 			UID1 = _contentReader.ReadUInt32();
 			UID2 = _contentReader.ReadUInt32();
 			UID3 = _contentReader.ReadUInt32();
-			UID4 = _contentReader.ReadUInt32();
+			NICInfo = _contentReader.ReadUInt32();
 		}
 
 		/// <summary>
