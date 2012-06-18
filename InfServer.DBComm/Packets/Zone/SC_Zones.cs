@@ -10,7 +10,7 @@ namespace InfServer.Protocol
 {	/// <summary>
     /// SC_PlayerStatsResponse relays a player statistics request to the player
     /// </summary>
-    public class SC_ZoneList<T> : PacketBase
+    public class SC_Zones<T> : PacketBase
         where T : IClient
     {	// Member Variables
         ///////////////////////////////////////////////////
@@ -20,7 +20,7 @@ namespace InfServer.Protocol
 
         //Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.ZoneList;
-        static public event Action<SC_ZoneList<T>, T> Handlers;
+        static public event Action<SC_Zones<T>, T> Handlers;
 
 
         ///////////////////////////////////////////////////
@@ -30,7 +30,7 @@ namespace InfServer.Protocol
         /// Creates an empty packet of the specified type. This is used
         /// for constructing new packets for sending.
         /// </summary>
-        public SC_ZoneList()
+        public SC_Zones()
             : base(TypeID)
         { }
 
@@ -40,7 +40,7 @@ namespace InfServer.Protocol
         /// </summary>
         /// <param name="typeID">The type of the received packet.</param>
         /// <param name="buffer">The received data.</param>
-        public SC_ZoneList(ushort typeID, byte[] buffer, int index, int count)
+        public SC_Zones(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
         {
             zoneList = new List<ZoneInstance>();

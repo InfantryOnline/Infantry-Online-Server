@@ -76,7 +76,7 @@ namespace InfServer.Logic
         /// <summary>
         /// Handles re-routing of a zonelist message to the appropriate player
         /// </summary>
-        static public void Handle_SC_ZoneList(SC_ZoneList<Database> pkt, Database db)
+        static public void Handle_SC_ZoneList(SC_Zones<Database> pkt, Database db)
         {
             Player recipient = db._server.getPlayer(pkt.requestee);
             if (recipient == null)
@@ -96,7 +96,7 @@ namespace InfServer.Logic
 			SC_PlayerLogin<Database>.Handlers += Handle_SC_PlayerLogin;
             SC_Whisper<Database>.Handlers += Handle_SC_Whisper;
             SC_Chat<Database>.Handlers += Handle_DB_Chat;
-            SC_ZoneList<Database>.Handlers += Handle_SC_ZoneList;
+            SC_Zones<Database>.Handlers += Handle_SC_ZoneList;
 		}
 	}
 }

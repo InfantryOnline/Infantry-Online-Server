@@ -224,7 +224,7 @@ namespace InfServer.Game
                         callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-                    player.sendMessage(-3, "[notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email password,email");
+                    player.sendMessage(-3, "[notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email newemail");
 				}
 			);
 		}

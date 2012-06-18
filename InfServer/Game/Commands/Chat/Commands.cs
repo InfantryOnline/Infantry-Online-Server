@@ -400,9 +400,9 @@ namespace InfServer.Game.Commands.Chat
             if (player._server.IsStandalone)
                 return;
 
-            if (!payload.Contains(','))
+            if (payload=="")
             {
-                player.sendMessage(-1, "Invalid syntax. Use ?email currentpassword,newemail");
+                player.sendMessage(-1, "Invalid syntax. Use ?email newemail");
                 return;
             }
 

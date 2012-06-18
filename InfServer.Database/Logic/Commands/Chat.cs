@@ -90,30 +90,13 @@ namespace InfServer.Logic
                     case CS_Query<Zone>.QueryType.emailupdate:
                         zone._server.sendMessage(zone, pkt.sender, "&Email Update");
 
-                        string[] payload = pkt.payload.Split(',');
-                        string password = payload[0];
-                        string newemail = payload[1];
-
                         Data.DB.alias accalias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.sender));
                         Data.DB.account account = db.accounts.SingleOrDefault(acc => acc.alias.Equals(accalias));
-                        //Check his password
-                        System.Security.Cryptography.MD5CryptoServiceProvider x = new System.Security.Cryptography.MD5CryptoServiceProvider();
-                        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(password);
-                        bytes = x.ComputeHash(bytes); 
-                        string hashed = "";
-                        for (int i = 0; i < bytes.Length; i++)
-                            hashed += bytes[i].ToString("x2").ToLower();
-
-                        if (!account.password.Equals(hashed))
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "*Invalid account password");
-                            return;
-                        }
                         
                         //Update his email
-                        account.email = newemail;
+                        account.email = pkt.payload;
                         db.SubmitChanges();
-                        zone._server.sendMessage(zone, pkt.sender, "*Email updated to: " + newemail);
+                        zone._server.sendMessage(zone, pkt.sender, "*Email updated to: " + pkt.payload);
                         break;
 
                     case CS_Query<Zone>.QueryType.find:
@@ -177,7 +160,7 @@ namespace InfServer.Logic
                                 Convert.ToInt16(zone._zone.port),
                                 playercount));
                         }
-                        SC_ZoneList<Zone> zl = new SC_ZoneList<Zone>();
+                        SC_Zones<Zone> zl = new SC_Zones<Zone>();
                         zl.requestee = pkt.sender;
                         zl.zoneList = zoneList;
                         zone._client.sendReliable(zl, 1);
