@@ -37,7 +37,7 @@ namespace InfServer.Logic
         /// <summary>
         /// Queries the database and finds bans associated with accounts, IPs and UIDs
         /// </summary>
-        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, InfantryDataContext db, long zoneid)
+        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, InfantryDataContext db, Data.DB.account account, long zoneid)
         {
             //Sanity checks
             if (pkt.ipaddress == "" ||
@@ -46,10 +46,6 @@ namespace InfServer.Logic
                 pkt.UID3 <= 1000)
                 //They're trying to trick us!
                 return new Ban(Ban.BanType.GlobalBan, DateTime.MaxValue);
-
-            //Query the database
-            //Find the associated account
-            Data.DB.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
 
             Ban.BanType type = Ban.BanType.None;
             DateTime expires = DateTime.Now;
@@ -63,7 +59,7 @@ namespace InfServer.Logic
                 b.uid3 == pkt.UID3))
             {
                 //Is it the correct zone?
-                if (b.type == (int)Ban.BanType.ZoneBan && b.zone != zoneid)
+                if (b.zone != null && (b.type == (int)Ban.BanType.ZoneBan && b.zone != zoneid))
                     continue;
 
                 //Find the highest level ban that hasn't expired yet
