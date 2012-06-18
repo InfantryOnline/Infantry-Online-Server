@@ -1,290 +1,378 @@
-~B~1Infantry News~2~B
----------------------------------------------------------------------------------------------
-Welcome to Infantry 2.0.  Our servers are in continuous development, We're constantly fixing bugs and adding new features to our servers and zones.
+~B~1Infantry Online~2~B
+------------------------------------------------------------------------------------
+Welcome to ~BInfantry Online~B!
+Our servers are in continuous development, we're constantly fixing bugs and adding new features to our servers and zones.
 
-Infantry is actually many different games using the same engine.  Make sure and try out all the different zones that we offer as each one provides a different gaming experience.
+Infantry is actually many different games using the same engine.  Make sure and try out all the different zones that we offer as each one provides a different gaming experience!
 
-If you need help with a specific bug or would like to report/suggest/give ideas. Feel free to drop in on our forums at www.freeinfantry.org or check out our IRC channel
-at irc.rabid-duck.net, channel: #Infantry.
+If you need help with a specific bug or would like to report bugs or suggest ideas, feel free to drop by our forums at www.freeinfantry.org or check out our IRC channel by using the web irc client provided on the website or connecting to ircd.suroot.info #infantry
 
 ~B~1Patch/Update Notes~2~B
----------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------
 
-~B~4Revision: 260		Saturday, May 12th, 2012	5:00 AM~2~B
-
-~BNotes: ~B
+~B~4Revision:~B 314
+										Sunday, June 17th, 2012
+										11:41 PM~2
+~BNotes:~B 
 ~BModifications~B
-	A /trunk/InfServer/Protocol/Packets/Game/State/SC_BallState.cs
-~BCommited by:~B hellspawninf
-
-~B~4Revision: 259		Wednesday, May 9th, 2012	5:04 AM~2~B
-
-~BNotes: ~BImplemented Inactivity Timeout and Periodic Flag Rewards
-~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaState.cs
-	M /trunk/Assets/Cfg/CfgInfo.cs
-	M /trunk/InfServer/Game/Arena/ArenaLio.cs
-	M /trunk/InfServer/Game/Arena/ScriptArena.cs
-	M /trunk/InfServer/Game/Commands/Mod/Basic.cs
-	M /trunk/InfServer/Game/Commands/Sysop/Server.cs
-	M /trunk/InfServer/Game/Objects/Player.cs
-	M /trunk/bin/scripts/GameTypes/Dodgeball/Dodgeball.cs
-	M /trunk/InfServer/Game/Arena/Arena.cs
-	M /trunk/InfServer/Logic/Packets/Update/Player.cs
-~BCommited by:~B hellspawninf
-
-~B~4Revision: 258		Friday, May 4th, 2012	7:10 AM~2~B
-
-~BNotes: ~BMod login during stand-alone mode
----fowl
-~BModifications~B
-	M /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 257		Tuesday, May 1st, 2012	4:42 AM~2~B
 
-~BNotes: ~BAdded setBounty, addBounty, terrainEvent
----fowl
+~B~4Revision:~B 313
+										Sunday, June 17th, 2012
+										11:27 PM~2
+~BNotes:~B 
 ~BModifications~B
-	M /trunk/InfServer/Logic/General/Assets.Events.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Zone/SC_Zones.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 256		Tuesday, May 1st, 2012	1:01 AM~2~B
 
-~BNotes: ~Bkoth gametype beta
----fowl
+~B~4Revision:~B 312
+										Sunday, June 17th, 2012
+										11:20 PM~2
+~BNotes:~B 
 ~BModifications~B
-	A /trunk/bin/scripts/GameTypes/KOTH
-	M /trunk/InfServer/Protocol/Helpers/Player.cs
-	A /trunk/bin/scripts/GameTypes/KOTH/KOTH.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Zone/SC_Zones.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 255		Monday, April 30th, 2012	3:16 AM~2~B
 
-~BNotes: ~BIgnored checksum checks on global assets and disabled optional updates.
+~B~4Revision:~B 311
+										Sunday, June 17th, 2012
+										11:10 PM~2
+~BNotes:~B 
 ~BModifications~B
-	M /trunk/InfServer/Game/Assets/AssetManager.Cache.cs
-	M /trunk/InfServer/Logic/Packets/Login/Login.cs
-~BCommited by:~B hellspawninf
-
-~B~4Revision: 254		Monday, April 30th, 2012	1:21 AM~2~B
-
-~BNotes: ~Bfixed a derp
----fowl
-~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/InfServer.DBComm/InfServer.DBComm.csproj
 ~BCommited by:~B nebezb
 
-~B~4Revision: 253		Sunday, April 29th, 2012	10:36 PM~2~B
 
-~BNotes: ~BParse ExpandRadius for Multi-Items
-Set TDM minimum players based on zone cfg
-Implement multi-item expand radius
---- fowl
+~B~4Revision:~B 310
+										Sunday, June 17th, 2012
+										11:08 PM~2
+~BNotes:~B 
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaState.cs
-	M /trunk/InfServer/Game/Arena/ScriptArena.cs
-	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
-	M /trunk/bin/scripts/GameTypes/TDM/TDM.cs
-	M /trunk/Assets/Itm/ItmInfo.MultiItem.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6A~2 /trunk/InfServer.DBComm/Packets/Zone/SC_Zones.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer/Database/Logic/Player.cs
+	~6M~2 /trunk/InfServer.DBComm/S2CFactory.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6D~2 /trunk/InfServer.DBComm/Packets/Zone/SC_ZoneList.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 252		Friday, April 27th, 2012	2:18 PM~2~B
 
-~BNotes: ~BAdded an option in server.xml for disabling pathfinder.
+~B~4Revision:~B 309
+										Sunday, June 17th, 2012
+										10:59 PM~2
+~BNotes:~B Packet definition for DCBomm SC_ZoneList
 ~BModifications~B
-	M /trunk/bin/server.xml
-	M /trunk/InfServer/Game/ZoneServer.cs
-	M /trunk/InfServer/Game/Objects/Player.cs
-	M /trunk/InfServer.DBComm/Structures/Player.cs
-~BCommited by:~B hellspawninf
-
-~B~4Revision: 251		Thursday, April 26th, 2012	9:21 PM~2~B
-
-~BNotes: ~BAdded the original Website PS layout file. Needs to be converted to a dark theme.
-~BModifications~B
-	A /branches/Design Files/Website.psd
-~BCommited by:~B jovan92647
-
-~B~4Revision: 250		Thursday, April 26th, 2012	11:54 AM~2~B
-
-~BNotes: ~Bimplemented ?wipecharacter 
----fowl
-~BModifications~B
-	M /trunk/InfServer/Game/Commands/Stats/Stats.cs
+	~6A~2 /trunk/InfServer.DBComm/Packets/Zone/SC_ZoneList.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 249		Wednesday, April 25th, 2012	3:05 PM~2~B
 
-~BNotes: ~BFix minor bug in CTF GameType
-Remove debug messages from turret switching
---- fowl
+~B~4Revision:~B 308
+										Sunday, June 17th, 2012
+										10:53 PM~2
+~BNotes:~B A lot of updates, can't list them all right now.
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaLio.cs
-	M /trunk/bin/scripts/GameTypes/CTF/CTF.cs
+	~6D~2 /trunk/InfServer/Protocol/Packets/Game/State/SC_Players.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer.DBComm
+	~6M~2 /trunk/InfServer/Database/Logic/Player.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Sysop/Server.cs
+	~6M~2 /trunk/InfServer/InfServer.csproj
+	~6M~2 /trunk/InfServer.DBComm/InfServer.DBComm.csproj
+	~6M~2 /trunk/InfServer.DBComm/Structures/Zone.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Query.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Stats/Stats.cs
+	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Mod
+	~6M~2 /trunk/InfServer/Protocol/Packets/State/SC_ZoneList.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Login/Login.cs
+	~6M~2 /trunk/InfServer.DBComm/Helpers/PacketIDs.cs
+	~6D~2 /trunk/InfServer.DBComm/InfServer.DBComm.csproj.user
+	~6M~2 /trunk/InfServer.DBComm/Packets/Login/CS_PlayerLogin.cs
+	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/SC_Find.cs
+	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Find.cs
+	~6M~2 /trunk/InfServer.DBComm/C2SFactory.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/SC_Online.cs
+	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Online.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Account.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 248		Tuesday, April 24th, 2012	12:16 AM~2~B
 
-~BNotes: ~BTrim whitespace from team names
---- fowl
+~B~4Revision:~B 307
+										Sunday, June 17th, 2012
+										6:33 PM~2
+~BNotes:~B Players with PermissionMode = Normal no longer get notified of others using generic commands (such as *help)
+Some updates to *environment, hopefully this will stop that annoying client crash bug and it will also be easier to read through
 ~BModifications~B
-	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Sysop/Server.cs
+	~6M~2 /trunk/InfServer/Logic/Helpers/Permit.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaSocial.cs
+	~6A~2 /trunk/InfServer/Logic/Helpers/Text.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Security/Security.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 247		Monday, April 23rd, 2012	9:34 PM~2~B
 
-~BNotes: ~BImplemented turret groups, switches controlling turrets
-Static Flags will no longer get picked up
---- FOWL
+~B~4Revision:~B 306
+										Sunday, June 17th, 2012
+										4:26 PM~2
+~BNotes:~B Added Player.EnterArena event (called when a player enters the arena)
+Added ?email command (to update email associated with your account), usage: ?email password,newemail
+Added new message for those still using the old launcher for them to update
+Added a temporary message to everybody who joins an arena to update their email account. This will be removed soon
+
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaLio.cs
-	M /trunk/InfServer/Game/Objects/Vehicle.Computer.cs
-	M /trunk/InfServer/Game/Arena/Arena.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
+	~6M~2 /trunk/InfServer.DBComm/Helpers/PacketIDs.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Query.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/Dodgeball/Dodgeball.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 246		Monday, April 23rd, 2012	2:33 AM~2~B
 
-~BNotes: ~BFixed an error if a zone has no doors
-Added probability checking for Hides 
-Make ?drop call drop item event 
---- fowl
+~B~4Revision:~B 305
+										Sunday, June 17th, 2012
+										1:32 PM~2
+~BNotes:~B CS_AllowSpectator packet definition
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaLio.cs
-	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6A~2 /trunk/InfServer/Protocol/Packets/Game/Action/CS_AllowSpectator.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 245		Sunday, April 22nd, 2012	12:52 PM~2~B
 
-~BNotes: ~Bmoar fixes
----fowl
+~B~4Revision:~B 304
+										Sunday, June 17th, 2012
+										1:29 PM~2
+~BNotes:~B Added ability to enable/disable spectators (Esc. Menu -> Options -> Misc Options -> Allow spectators)
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ScriptArena.cs
-	M /trunk/InfServer/Game/Arena/Arena.cs
+	~6D~2 /trunk/InfServer/Protocol/Packets/Game/Update/SC_PlayerStopSpectate.cs
+	~6D~2 /branches/InfCompress/InfCompress/InfCompress.suo
+	~6M~2 /trunk/InfServer/Protocol/Factory.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
+	~6M~2 /trunk/InfServer/Protocol/Helpers/PacketIDs.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/InfServer/InfServer.csproj
+	~6M~2 /trunk/InfServer/Protocol/Helpers/Player.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Update/Game.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 244		Saturday, April 21st, 2012	3:24 PM~2~B
 
-~BNotes: ~BAntiWarp fix from mastar
----fowl
+~B~4Revision:~B 303
+										Sunday, June 17th, 2012
+										11:48 AM~2
+~BNotes:~B Asset loader was skipping Icon graphic.
 ~BModifications~B
-	M /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/Assets/Itm/ItmInfo.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 243		Saturday, April 21st, 2012	2:49 PM~2~B
 
-~BNotes: ~BRespect [vehicle] computerProduceRadius
----fowl
+~B~4Revision:~B 302
+										Sunday, June 17th, 2012
+										11:31 AM~2
+~BNotes:~B Small addition just to make debugging on the server easier. Asset manager is still freaking out once in a while :s
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ScriptArena.cs
-	M /trunk/InfServer/Game/Arena/ArenaComputer.cs
+	~6M~2 /trunk/Assets/Veh/VehInfo.cs
+	~6M~2 /trunk/InfServer/Game/Assets/AssetManager.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 242		Saturday, April 21st, 2012	12:36 PM~2~B
 
-~BNotes: ~BAnother fix for master
-Multi Items can set energy (needs some testing)
----fowl
+~B~4Revision:~B 301
+										Saturday, June 16th, 2012
+										12:09 PM~2
+~BNotes:~B Added *ticker [message],[index],[optional=color],[optional=timer]
+Fixed *kill all
+Added exception handling to team command. I don't know why it's breaking, but it is and it's getting annoying... so yeah. Until I find out what's wrong with it... that'll be there.
+Fixed some more SKCTF gametype stuff.
 ~BModifications~B
-	M /trunk/InfServer/Game/Objects/Player.cs
-	M /trunk/InfServer/Game/Arena/ArenaComputer.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 241		Saturday, April 21st, 2012	2:47 AM~2~B
 
-~BNotes: ~B
+~B~4Revision:~B 300
+										Saturday, June 16th, 2012
+										11:12 AM~2
+~BNotes:~B SKCTF GameType (CTF/Ticketing system) completed. Should work on any zone. Employs flags so your zone must have flags.
 ~BModifications~B
-	M /trunk/bin/scripts/Helpers/Functions.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 240		Friday, April 20th, 2012	9:03 PM~2~B
 
-~BNotes: ~BFixed ?find
+~B~4Revision:~B 299
+										Saturday, June 16th, 2012
+										10:17 AM~2
+~BNotes:~B Really dumb mistake for player renaming...
 ~BModifications~B
-	M /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 239		Friday, April 20th, 2012	8:34 PM~2~B
 
-~BNotes: ~B
+~B~4Revision:~B 298
+										Saturday, June 16th, 2012
+										9:27 AM~2
+~BNotes:~B Some fixes to Ticketing system.
+Added DesiredTeams to return list of teams that are "desired"
 ~BModifications~B
-	M /trunk/bin/scripts/Bots/DuelBot/DuelBot.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects/Tickets.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 238		Friday, April 20th, 2012	7:09 PM~2~B
 
-~BNotes: ~BUpdates to DuelBot
+~B~4Revision:~B 297
+										Saturday, June 16th, 2012
+										9:18 AM~2
+~BNotes:~B Oops
 ~BModifications~B
-	M /trunk/bin/scripts/Bots/DuelBot/DuelBot.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects/Tickets.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 237		Friday, April 20th, 2012	5:46 PM~2~B
 
-~BNotes: ~BMastar fixed up a bit of the production process
-Don't try to run on contact events if there is none
-setenergy event somewhat implemented
---- fowl
+~B~4Revision:~B 296
+										Saturday, June 16th, 2012
+										9:07 AM~2
+~BNotes:~B Added some exception handling to relative ID tracker for zones with invalid relative ID's to give slightly more detailed error messages
+Created a ticketing system gametype called SKCTF (much like Battlefields ticket system for CTF). Not finished, but mostly done.
+Fixed some weird bug with SC_PlayerLogin packet?
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ScriptArena.cs
-	M /trunk/InfServer/Game/Objects/Player.cs
-	M /trunk/InfServer/Logic/General/Assets.Events.cs
-	M /trunk/InfServer/Game/Arena/ArenaComputer.cs
+	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaLio.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Login/SC_PlayerLogin.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
+	~6M~2 /trunk/bin/scripts/Scripts.csproj
+	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects/Tickets.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 236		Friday, April 20th, 2012	4:59 AM~2~B
 
-~BNotes: ~B
+~B~4Revision:~B 295
+										Saturday, June 16th, 2012
+										12:42 AM~2
+~BNotes:~B 
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaState.cs
-	M /trunk/bin/scripts/Helpers/Functions.cs
-	M /trunk/bin/scripts/Bots/DuelBot/DuelBot.cs
-	M /trunk/InfServer/Game/Arena/Arena.cs
+	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
+	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF
 ~BCommited by:~B nebezb
 
-~B~4Revision: 235		Thursday, April 19th, 2012	11:55 PM~2~B
 
-~BNotes: ~Bno comment :(
+~B~4Revision:~B 294
+										Friday, June 15th, 2012
+										8:49 PM~2
+~BNotes:~B Database server being a jerk and not reflecting submitted zone info changes for some reason... ugly way of fixing it, don't even know why it works but it does. :/
 ~BModifications~B
-	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 234		Thursday, April 19th, 2012	11:51 PM~2~B
 
-~BNotes: ~BRun the ManualJoinTeam event when manually switching team
---- fowl
+~B~4Revision:~B 293
+										Friday, June 15th, 2012
+										8:19 PM~2
+~BNotes:~B 
 ~BModifications~B
-	M /trunk/InfServer/Game/Objects/Team.cs
-	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Login/Login.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Login/SC_PlayerLogin.cs
+	~6M~2 /trunk/InfServer/Database/Logic/Player.cs
+	~6M~2 /trunk/InfServer.Database/Server/Objects/Zone.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 233		Thursday, April 19th, 2012	11:38 PM~2~B
 
-~BNotes: ~BAdded terrain checking for ?team command. *sigh*
+~B~4Revision:~B 292
+										Friday, June 15th, 2012
+										5:45 PM~2
+~BNotes:~B Changing alias casing removed
+Added moderator spec locking (::*lock)
+Made some database structure adjustments
+Added a spec overload to avoid confusion
+Mods/SMods/SysOps have access to permission only zones without requirement of being permitted first
 ~BModifications~B
-	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/InfServer.Database/Infantry.dbml
+	~6M~2 /trunk/bin/scripts/GameTypes/HQ/Events.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Login/Login.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/InfServer.Database/Infantry1.designer.cs
+	~6M~2 /trunk/InfServer.Database/Server/Objects/Zone.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/InfServer/Logic/Helpers/Permit.cs
+	~6M~2 /trunk/InfServer.Database/Infantry.dbml.layout
+	~6M~2 /trunk/bin/scripts/GameTypes/CTF/CTF_OvD/OvD.cs
+	~6M~2 /trunk/InfServer/Game/Arena/Arena.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 232		Thursday, April 19th, 2012	11:29 PM~2~B
 
-~BNotes: ~BFixed stupid mistake in the scrambler.
+~B~4Revision:~B 291
+										Tuesday, June 12th, 2012
+										8:07 PM~2
+~BNotes:~B *vehicle [id],[amount]. Give it a try :D it's fun.
 ~BModifications~B
-	M /trunk/InfServer/Game/Arena/ArenaState.cs
-	M /trunk/bin/scripts/Helpers/Functions.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Vehicles.cs
+	~6M~2 /trunk/InfServer/Database/Logic/Social/Chats.cs
 ~BCommited by:~B nebezb
 
-~B~4Revision: 231		Thursday, April 19th, 2012	10:44 PM~2~B
 
-~BNotes: ~BUpdated ScrambleTeams function to account for only players of public teams.
-Updated CTF script to scramble teams upon game restarts.
-Implemented *teamname command (*teamname 1,2,3,...)
-Implemented ?team command
-Implemented private teams
+~B~4Revision:~B 290
+										Tuesday, June 12th, 2012
+										3:25 PM~2
+~BNotes:~B 
 ~BModifications~B
-	M /trunk/bin/scripts/Helpers/Functions.cs
-	M /trunk/InfServer/Game/Commands/Chat/Commands.cs
-	M /trunk/InfServer/Game/Commands/Mod/Basic.cs
-	M /trunk/bin
-	M /trunk/bin/scripts/GameTypes/CTF/CTF.cs
-	M /trunk/InfServer/Game/Arena/Arena.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
 ~BCommited by:~B nebezb
 
+
+~B~4Revision:~B 289
+										Thursday, June 7th, 2012
+										7:30 PM~2
+~BNotes:~B I love not testing updates before committing them. :/
+~BModifications~B
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+~BCommited by:~B nebezb
+
+
+~B~4Revision:~B 288
+										Thursday, June 7th, 2012
+										7:28 PM~2
+~BNotes:~B 
+~BModifications~B
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+~BCommited by:~B nebezb
+
+
+~B~4Revision:~B 287
+										Thursday, June 7th, 2012
+										7:13 PM~2
+~BNotes:~B Implemented *shutup.
+Fixed ?summon/summon ignoring to work properly.
+~BModifications~B
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Social/Chat.cs
+~BCommited by:~B nebezb
+
+
+~B~4Revision:~B 286
+										Tuesday, June 5th, 2012
+										6:32 AM~2
+~BNotes:~B Changed all active/dynamic list enumerations to enumerate a duplicated list (.ToList()). Hopefully this will stop all the errors with enumerating a modified list, but it will drastically slow down the script. If it doesn't work, it'll be reverted.
+~BModifications~B
+	~6M~2 /trunk/bin/scripts/GameTypes/ZombieZone/ZombieZone.cs
+~BCommited by:~B nebezb
+
+
+~B~4Revision:~B 285
+										Monday, June 4th, 2012
+										4:00 AM~2
+~BNotes:~B 
+~BModifications~B
+	~6M~2 /trunk/bin/scripts/GameTypes/HQ/Headquarters.cs
+~BCommited by:~B nebezb

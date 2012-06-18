@@ -143,8 +143,7 @@ namespace InfServer.Logic
                     case CS_Query<Zone>.QueryType.zonelist:
                         //Collect the list of zones and send it over
                         List<ZoneInstance> zoneList = new List<ZoneInstance>();
-
-                        foreach (Zone z in zone._server._zones.Where(z => z._zone.active == 1))
+                        foreach (Zone z in zone._server._zones.Where(zn => zn._zone.active == 1))
                         {
                             int playercount;
                             //Invert player count of our current zone
