@@ -14,7 +14,7 @@ namespace InfServer.Protocol
 	public class SC_ZoneList : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-		public IEnumerable<ZoneServer> zones;
+		public IEnumerable<Data.ZoneInstance> zones;
 		public Player requestee;
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.ZoneList;
@@ -27,7 +27,7 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-		public SC_ZoneList(IEnumerable<ZoneServer> zoneList, Player forPlayer)
+        public SC_ZoneList(IEnumerable<Data.ZoneInstance> zoneList, Player forPlayer)
 			: base(TypeID)
 		{
 			zones = zoneList;
@@ -39,17 +39,14 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Serialize()
 		{	//Write out each asset
-			foreach (ZoneServer zone in zones)
+            foreach (Data.ZoneInstance zone in zones)
 			{
-                int countModifier = (requestee._server.Equals(zone)) ? -1 : 1;
-                int playercount = countModifier * zone._clients.Count();
-
 				//Not sure why it does this for each entry
 				Write((byte)TypeID);
 
-				Write(zone.Name, 32);
-                Write((Int16)playercount);
-                Write(zone.IP + "," + zone.Port, 32);
+				Write(zone._name, 32);
+                Write((Int16)zone._playercount);
+                Write(zone._ip + "," + zone._port, 32);
 			}
 		}
 

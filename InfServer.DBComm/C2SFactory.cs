@@ -161,14 +161,6 @@ namespace InfServer.Data
 					packet = new CS_PlayerStatsRequest<T>(typeID, buffer, offset, size);
 					break;
 
-                case CS_FindPlayer<T>.TypeID:
-                    packet = new CS_FindPlayer<T>(typeID, buffer, offset, size);
-                    break;
-
-                case CS_Online<T>.TypeID:
-                    packet = new CS_Online<T>(typeID, buffer, offset, size);
-                    break;
-
                 case CS_Whisper<T>.TypeID:
                     packet = new CS_Whisper<T>(typeID, buffer, offset, size);
                     break;

@@ -20,9 +20,12 @@ namespace InfServer.Game.Commands.Chat
         /// Queries the database and returns a list of aliases associated with the player
         /// </summary>
         public static void accountinfo(Player player, Player recipient, string payload, int bong)
-        {
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+
             CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-            query.alias = player._alias;
+            query.sender = player._alias;
             query.queryType = CS_Query<Data.Database>.QueryType.accountinfo;
             player._server._db.send(query);
         }
@@ -278,7 +281,10 @@ namespace InfServer.Game.Commands.Chat
         }
 
         public static void chat(Player player, Player recipient, string payload, int bong)
-        {
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+
             if (payload.Contains(':'))
                 return;
 
@@ -390,13 +396,9 @@ namespace InfServer.Game.Commands.Chat
         /// Updates email address associated with players account
         /// </summary>
         public static void email(Player player, Player recipient, string payload, int bong)
-        {
-            //Sanity checks
+        {   //Sanity checks
             if (player._server.IsStandalone)
-            {
-                player.sendMessage(-1, "There is no connection to the database");
                 return;
-            }
 
             if (!payload.Contains(','))
             {
@@ -407,7 +409,7 @@ namespace InfServer.Game.Commands.Chat
             //Pass the payload off to the database
             CS_Query<Data.Database> query = new CS_Query<Data.Database>();
             query.queryType = CS_Query<Data.Database>.QueryType.emailupdate;
-            query.alias = player._alias;
+            query.sender = player._alias;
             query.payload = payload;
             player._server._db.send(query);
         }
@@ -416,10 +418,14 @@ namespace InfServer.Game.Commands.Chat
         /// Searches for a player and returns location
         /// </summary>        
         public static void find(Player player, Player recipient, string payload, int bong)
-        {
-            CS_FindPlayer<Data.Database> findPlayer = new CS_FindPlayer<Data.Database>();
-            findPlayer.findAlias = payload;
-            findPlayer.alias = player._alias;
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+
+            CS_Query<Data.Database> findPlayer = new CS_Query<Data.Database>();
+            findPlayer.queryType = CS_Query<Data.Database>.QueryType.find;
+            findPlayer.payload = payload;
+            findPlayer.sender = player._alias;
 
             player._server._db.send(findPlayer);
         }        
@@ -491,9 +497,13 @@ namespace InfServer.Game.Commands.Chat
         /// Displays the number of players in each zone
         /// </summary>      
         public static void online(Player player, Player recipient, string payload, int bong)
-        {
-            CS_Online<Data.Database> online = new CS_Online<Data.Database>();
-            online.alias = player._alias;
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+
+            CS_Query<Data.Database> online = new CS_Query<Data.Database>();
+            online.queryType = CS_Query<Data.Database>.QueryType.online;
+            online.sender = player._alias;
 
             player._server._db.send(online);
         }
@@ -687,14 +697,28 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void zonelist(Player player, Player recipient, string payload, int bong)
         {
-            //TODO: If database connection is valid, query the dbserver to send a zonelist packet
             //If database isn't connected, send a zonelist containing only this zone
-            List<ZoneServer> zones = new List<ZoneServer>();
-            zones.Add(player._server);
+            if (player._server.IsStandalone)
+            {
+                List<Data.ZoneInstance> zoneList = new List<Data.ZoneInstance>();
+                zoneList.Add(new Data.ZoneInstance(0,
+                    player._server.Name,
+                    player._server.IP,
+                    (short)player._server.Port,
+                    player._server._clients.Count));
+                SC_ZoneList zl = new SC_ZoneList(zoneList, player);
 
-            SC_ZoneList zoneList = new SC_ZoneList(zones, player);
-
-            player._client.sendReliable(zoneList);
+                player._client.sendReliable(zl);
+            }
+            else
+            {
+                //Defer query to the database
+                CS_Query<Data.Database> zonelist = new CS_Query<Data.Database>();
+                zonelist.queryType = CS_Query<Data.Database>.QueryType.zonelist;
+                zonelist.sender = player._alias;
+                zonelist.payload = player._server.Port.ToString();
+                player._server._db.send(zonelist);
+            }
         }
 
         /// <summary>

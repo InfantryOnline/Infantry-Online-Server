@@ -13,10 +13,8 @@ namespace InfServer.Protocol
         where T : IClient
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public string alias;                //Whos looking..
-        public string recipient;            //Recipient, appended if there is one.
         public QueryType queryType;         //Query type
-        public string ipaddress;            //IPAddress, appended if there is one.
+        public string sender;               //Player requesting
         public string payload;              //Query payload
 
         //Packet routing
@@ -26,12 +24,12 @@ namespace InfServer.Protocol
 
         public enum QueryType
         {
-            accountinfo = 01,
-            whois = 02,
-            aliastransfer = 03,
-            find = 04,
-            online = 05,
-            emailupdate = 06,
+            accountinfo,
+            whois,
+            find,
+            online,
+            emailupdate,
+            zonelist,
         }
 
 
@@ -45,9 +43,7 @@ namespace InfServer.Protocol
         public CS_Query()
             : base(TypeID)
         {
-            alias = "";
-            recipient = "";
-            ipaddress = "";
+            sender = "";
             payload = "";
         }
 
@@ -77,26 +73,9 @@ namespace InfServer.Protocol
         public override void Serialize()
         {	//Type ID
             Write((byte)TypeID);
-            Write(alias, 0);
+            Write(sender, 0);
             Write((byte)queryType);
-
-            switch (queryType)
-            {
-                case QueryType.whois:
-                        Write(ipaddress, 0);
-                        Write(recipient, 0);
-                    break;
-
-                case QueryType.accountinfo:
-                    break;
-
-                case QueryType.aliastransfer:
-                    break;
-
-                case QueryType.emailupdate:
-                    Write(payload, 0);
-                    break;
-            }
+            Write(payload, 0);
         }
 
         /// <summary>
@@ -104,26 +83,9 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            alias = ReadNullString();
-            queryType = (QueryType)_contentReader.ReadByte(); 
-
-            switch (queryType)
-            {
-                case QueryType.whois:
-                        ipaddress = ReadNullString();
-                        recipient = ReadNullString();
-                    break;
-
-                case QueryType.accountinfo:
-                    break;
-
-                case QueryType.aliastransfer:
-                    break;
-
-                case QueryType.emailupdate:
-                    payload = ReadNullString();
-                    break;
-            }
+            sender = ReadNullString();
+            queryType = (QueryType)_contentReader.ReadByte();
+            payload = ReadNullString();
         }
 
         /// <summary>

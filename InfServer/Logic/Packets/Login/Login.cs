@@ -25,14 +25,14 @@ namespace InfServer.Logic
             String alias = newPlayer._alias;
 
             //Check alias for illegal characters
-            //TOD: may need overhauling to limit to specific characters
             if (alias.Length == 0)
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias cannot be blank.");
             if (!char.IsLetterOrDigit(alias, 0) ||
                 char.IsWhiteSpace(alias, 0) ||
-                char.IsWhiteSpace(alias, alias.Length - 1))
+                char.IsWhiteSpace(alias, alias.Length - 1) ||
+                alias != Logic_Text.RemoveIllegalCharacters(alias))
             {   //Boot him..
-                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, Cannot start or end with a space.");
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, must start with a letter or number and cannot end with a space.");
             }
 
 			//If it failed for some reason, present a failure message

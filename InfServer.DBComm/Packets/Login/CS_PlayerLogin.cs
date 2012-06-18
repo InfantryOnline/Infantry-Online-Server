@@ -22,7 +22,7 @@ namespace InfServer.Protocol
         public string ipaddress;
 
 		public uint UID1;					//The player's unique identifiers
-		public uint UID2;					//
+		public uint UID2;					//TODO: save these to the database
 		public uint UID3;					//
 		public uint UID4;					//
 

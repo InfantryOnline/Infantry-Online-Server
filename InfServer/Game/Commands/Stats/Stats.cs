@@ -63,10 +63,18 @@ namespace InfServer.Game.Commands.Chat
 			player._client.sendReliable(chart, 1);
 		}
 
+        /// <summary>
+        /// TODO: Wipes your characters stats and sets them back to initial state
+        /// </summary>
         public static void wipecharacter(Player player, Player recipient, string payload, int bong)
-        {
+        {   //Sanity checks
+            if (!player.IsSpectator)
+            {
+                player.sendMessage(-1, "Must be in spectator mode to wipe character");
+                return;
+            }
             Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.selfWipe);
-            player.sendMessage(0, "Your character has been reset (probably)");
+            player.sendMessage(0, "Your character has been wiped");
         }
 
 		/// <summary>
@@ -84,7 +92,7 @@ namespace InfServer.Game.Commands.Chat
 				"?playerchart");
 
             yield return new HandlerDescriptor(wipecharacter, "wipecharacter",
-                "Reset your stats",
+                "Wipes your characters stats and sets them back to initial state",
                 "?wipecharacter");
 		}
 	}

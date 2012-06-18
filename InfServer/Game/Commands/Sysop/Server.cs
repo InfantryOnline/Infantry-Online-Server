@@ -1,16 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Net;
-using System.Web;
 using System.IO;
-using System.Timers;
-
-using Assets;
-
-using InfServer.Bots;
+using System.Linq;
+using System.Net;
 using InfServer.Protocol;
 
 namespace InfServer.Game.Commands.Mod
@@ -44,8 +36,6 @@ namespace InfServer.Game.Commands.Mod
                 arena.Value.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
                 arena.Value.setTicker(0, 0, delay * 100, "Server closing in:");
             }
-
-            
         }
 
         /// <summary>
@@ -71,10 +61,6 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(0, String.Format("!{0}", log));
             }
         }
-
-
-        
-
 
 		/// <summary>
 		/// Queries environment information from a player

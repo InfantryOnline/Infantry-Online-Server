@@ -79,8 +79,6 @@
     <Compile Include="Helpers\Database.cs" />
     <Compile Include="Helpers\PacketIDs.cs" />
     <Compile Include="Packets\Commands\Chat\CS_Query.cs" />
-    <Compile Include="Packets\Commands\Chat\CS_Online.cs" />
-    <Compile Include="Packets\Commands\Chat\CS_Find.cs" />
     <Compile Include="Packets\Login\CS_Auth.cs" />
     <Compile Include="Packets\Login\CS_PlayerLogin.cs" />
     <Compile Include="Packets\Login\SC_Auth.cs" />
@@ -100,6 +98,7 @@
     <Compile Include="Packets\Stats\CS_PlayerStatsRequest.cs" />
     <Compile Include="Packets\Stats\SC_PlayerStatsResponse.cs" />
     <Compile Include="Packets\Zone\Disconnect.cs" />
+    <Compile Include="Packets\Zone\SC_ZoneList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="S2CFactory.cs" />
     <Compile Include="Structures\Zone.cs" />
@@ -111,9 +110,7 @@
       <Name>InfServer.Network</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Packets\Commands\Mod\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

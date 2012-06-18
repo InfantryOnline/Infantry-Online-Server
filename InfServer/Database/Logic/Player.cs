@@ -64,13 +64,27 @@ namespace InfServer.Logic
         /// <summary>
         /// Handles re-routing of db related messages.
         /// </summary>
-        static public void Handle_DB_Chat(SC_Chat<Data.Database> pkt, Data.Database db)
+        static public void Handle_DB_Chat(SC_Chat<Database> pkt, Database db)
         {
             Player p = db._server.getPlayer(pkt.recipient);
             if (p == null)
                 return;
             //Route it.
             Helpers.Social_ArenaChat(p, pkt.message, 0);
+        }
+
+        /// <summary>
+        /// Handles re-routing of a zonelist message to the appropriate player
+        /// </summary>
+        static public void Handle_SC_ZoneList(SC_ZoneList<Database> pkt, Database db)
+        {
+            Player recipient = db._server.getPlayer(pkt.requestee);
+            if (recipient == null)
+                return;
+
+            //Give him his list of zones!
+            SC_ZoneList zl = new SC_ZoneList(pkt.zoneList, recipient);
+            recipient._client.sendReliable(zl, 1);
         }
 
 		/// <summary>
@@ -82,6 +96,7 @@ namespace InfServer.Logic
 			SC_PlayerLogin<Database>.Handlers += Handle_SC_PlayerLogin;
             SC_Whisper<Database>.Handlers += Handle_SC_Whisper;
             SC_Chat<Database>.Handlers += Handle_DB_Chat;
+            SC_ZoneList<Database>.Handlers += Handle_SC_ZoneList;
 		}
 	}
 }
