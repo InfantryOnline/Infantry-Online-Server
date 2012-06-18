@@ -98,7 +98,7 @@
     <Compile Include="Packets\Stats\CS_PlayerStatsRequest.cs" />
     <Compile Include="Packets\Stats\SC_PlayerStatsResponse.cs" />
     <Compile Include="Packets\Zone\Disconnect.cs" />
-    <Compile Include="Packets\Zone\SC_ZoneList.cs" />
+    <Compile Include="Packets\Zone\SC_Zones.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="S2CFactory.cs" />
     <Compile Include="Structures\Zone.cs" />
