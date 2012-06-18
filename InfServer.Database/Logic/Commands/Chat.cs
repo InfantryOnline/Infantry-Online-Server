@@ -48,7 +48,7 @@ namespace InfServer.Logic
 
                             //Send it
                             zone._server.sendMessage(zone, pkt.sender, String.Format("~{0} ({1}d {2}h {3}m)", alias.name, days, hrs, mins));
-                            
+
                         }
                         //Calculate total time played across all aliases.
                         if (total != 0)
@@ -67,7 +67,7 @@ namespace InfServer.Logic
 
                         //Query for an IP?
                         System.Net.IPAddress ip;
-                        
+
                         if (System.Net.IPAddress.TryParse(pkt.payload, out ip))
                         {
                             aliases = db.alias.Where(a => a.IPAddress.Equals(ip.ToString()));
@@ -90,18 +90,17 @@ namespace InfServer.Logic
                     case CS_Query<Zone>.QueryType.emailupdate:
                         zone._server.sendMessage(zone, pkt.sender, "&Email Update");
 
-                        Data.DB.alias accalias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.sender));
-                        Data.DB.account account = db.accounts.SingleOrDefault(acc => acc.alias.Equals(accalias));
-                        
+                        Data.DB.account account = db.alias.SingleOrDefault(a => a.name.Equals(pkt.sender)).account1;
+
                         //Update his email
-                        //account.email = pkt.payload;
-                        //db.SubmitChanges();
+                        account.email = pkt.payload;
+                        db.SubmitChanges();
                         zone._server.sendMessage(zone, pkt.sender, "*Email updated to: " + pkt.payload);
                         break;
 
                     case CS_Query<Zone>.QueryType.find:
                         int minlength = 3;
-                        var results = new List<KeyValuePair<string,Zone.Player>>();
+                        var results = new List<KeyValuePair<string, Zone.Player>>();
 
                         foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                         {
@@ -115,7 +114,7 @@ namespace InfServer.Logic
                                 results.Add(player);
                         }
 
-                        if(results.Count > 0)
+                        if (results.Count > 0)
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Search Results");
                             foreach (KeyValuePair<string, Zone.Player> result in results)
@@ -144,20 +143,20 @@ namespace InfServer.Logic
                     case CS_Query<Zone>.QueryType.zonelist:
                         //Collect the list of zones and send it over
                         List<ZoneInstance> zoneList = new List<ZoneInstance>();
-                        
-                        foreach (Data.DB.zone zoneServer in db.zones.Where(z => z.active == 1))
+
+                        foreach (Zone z in zone._server._zones.Where(z => z._zone.active == 1))
                         {
                             int playercount;
-                            if (zoneServer.port == Convert.ToInt32(pkt.payload))
-                                //Invert player count of our current zone
-                                playercount = -zoneServer.players.Count;
+                            //Invert player count of our current zone
+                            if (z._zone.port == Convert.ToInt32(pkt.payload))
+                                playercount = -z._players.Count;
                             else
-                                playercount = zoneServer.players.Count;
+                                playercount = z._players.Count;
                             //Add it to our list
                             zoneList.Add(new ZoneInstance(0,
-                                zone._zone.name,
-                                zone._zone.ip,
-                                Convert.ToInt16(zone._zone.port),
+                                z._zone.name,
+                                z._zone.ip,
+                                Convert.ToInt16(z._zone.port),
                                 playercount));
                         }
                         SC_Zones<Zone> zl = new SC_Zones<Zone>();
