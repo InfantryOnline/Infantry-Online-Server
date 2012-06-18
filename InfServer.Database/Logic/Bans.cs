@@ -37,7 +37,7 @@ namespace InfServer.Logic
         /// <summary>
         /// Queries the database and finds bans associated with accounts, IPs and UIDs
         /// </summary>
-        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, InfantryDataContext db)
+        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, InfantryDataContext db, long zoneid)
         {
             //Sanity checks
             if (pkt.ipaddress == "" ||
@@ -62,6 +62,10 @@ namespace InfServer.Logic
                 b.uid2 == pkt.UID2 ||
                 b.uid3 == pkt.UID3))
             {
+                //Is it the correct zone?
+                if (b.type == (int)Ban.BanType.ZoneBan && b.zone != zoneid)
+                    continue;
+
                 //Find the highest level ban that hasn't expired yet
                 if (b.type > (int)type && b.expires > expires)
                 {   //Set it as our current ban type

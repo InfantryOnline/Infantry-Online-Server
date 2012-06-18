@@ -98,6 +98,7 @@
       <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="password" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="owner" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Association Name="squad_player" Member="players" ThisKey="id" OtherKey="squad" Type="player" />
     </Type>
   </Table>
@@ -112,6 +113,7 @@
       <Column Name="uid3" Type="System.Int64" DbType="BigInt NULL" CanBeNull="true" />
       <Column Name="created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="expires" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="zone" Type="System.Int64" DbType="BigInt NULL" CanBeNull="false" />
     </Type>
   </Table>
 </Database>

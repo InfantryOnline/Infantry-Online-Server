@@ -102,18 +102,25 @@ namespace InfServer.Logic
 				plog.player = pkt.player;
 
                 //Check for IP and UID bans
-                Logic_Bans.Ban banned = Logic_Bans.checkBan(pkt, db);
+                Logic_Bans.Ban banned = Logic_Bans.checkBan(pkt, db, zone._zone.id);
 
                 if (banned.type == Logic_Bans.Ban.BanType.GlobalBan)
-                    //We don't respond to globally banned player requests
+                {   //We don't respond to globally banned player requests
+                    Log.write(TLog.Warning, "Failed login: " + pkt.player + " Reason: Ban (" + banned.type.ToString() + ")");
+
+                    zone.lostPlayer(pkt.player.id);
                     return;
+                }
 
                 if (banned.type == Logic_Bans.Ban.BanType.IPBan)
                 {   //Their IP has been banned, make something up!
                     plog.bSuccess = false;
                     plog.loginMessage = "Unknown login failure.";
 
+                    Log.write(TLog.Warning, "Failed login: " + pkt.player + " Reason: Ban (" + banned.type.ToString() + ")");
+                    zone.lostPlayer(pkt.player.id);
                     zone._client.send(plog);
+                    return;
                 }
 
                 if (banned.type == Logic.Logic_Bans.Ban.BanType.ZoneBan)
@@ -121,6 +128,8 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "You have been temporarily suspended from this zone until " + Convert.ToString(banned.expiration);
 
+                    Log.write(TLog.Warning, "Failed login: " + pkt.player + " Reason: Ban (" + banned.type.ToString() + ")");
+                    zone.lostPlayer(pkt.player.id);
                     zone._client.send(plog);
                     return;
                 }
@@ -130,6 +139,8 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "Your account has been temporarily suspended until " + Convert.ToString(banned.expiration);
 
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.player + " Reason: Ban (" + banned.type.ToString() + ")");
+                    zone.lostPlayer(pkt.player.id);
                     zone._client.send(plog);
                     return;
                 }

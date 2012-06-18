@@ -32,10 +32,10 @@
         <elementListCompartment Id="b2034f46-0184-4a3c-83c6-d0798451bc76" absoluteBounds="3.515, 1.835, 1.9700000000000002, 1.3578898111979165" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="eb8ae9f5-d5ad-4221-a00e-b106fb54ef99" absoluteBounds="3.5, 4.5, 2, 1.4248478190104166">
+    <classShape Id="eb8ae9f5-d5ad-4221-a00e-b106fb54ef99" absoluteBounds="3.5, 4.5, 2, 1.5891951497395827">
       <DataClassMoniker Name="/InfantryDataContext/squad" />
       <nestedChildShapes>
-        <elementListCompartment Id="761a6f64-aacc-40f0-98df-4cd0f269db27" absoluteBounds="3.515, 4.96, 1.9700000000000002, 0.86484781901041663" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="761a6f64-aacc-40f0-98df-4cd0f269db27" absoluteBounds="3.515, 4.96, 1.9700000000000002, 1.0291951497395833" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
     <associationConnector edgePoints="[(5.5 : 12.5296134440104); (7.1835934375 : 12.5296134440104); (7.1835934375 : 3.73240397135417)]" fixedFrom="NotFixed" fixedTo="NotFixed">
@@ -59,7 +59,7 @@
         <classShapeMoniker Id="66457bc7-6d17-4f80-874f-d842d4e0212b" />
       </nodes>
     </associationConnector>
-    <associationConnector edgePoints="[(5.5 : 5.28929768880208); (6.60221088541667 : 5.28929768880208 : JumpStart); (6.76887755208333 : 5.28929768880208 : JumpEnd); (7.10026010416667 : 5.28929768880208 : JumpStart); (7.26692677083333 : 5.28929768880208 : JumpEnd); (7.7812525 : 5.28929768880208); (7.7812525 : 3.73240397135417)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+    <associationConnector edgePoints="[(5.5 : 5.29459757486979); (7.74804921875 : 5.29459757486979); (7.74804921875 : 3.41093180338542)]" fixedFrom="NotFixed" fixedTo="NotFixed">
       <AssociationMoniker Name="/InfantryDataContext/squad/squad_player" />
       <nodes>
         <classShapeMoniker Id="eb8ae9f5-d5ad-4221-a00e-b106fb54ef99" />
@@ -80,10 +80,10 @@
         <classShapeMoniker Id="b2dab1b3-45d2-43c0-90f5-7cbde8e7b8db" />
       </nodes>
     </associationConnector>
-    <classShape Id="ed123d28-e286-41aa-b610-82c0a2762c3f" absoluteBounds="0.75, 4.125, 2, 2.2465844726562496">
+    <classShape Id="ed123d28-e286-41aa-b610-82c0a2762c3f" absoluteBounds="0.75, 4.125, 2, 2.4109318033854166">
       <DataClassMoniker Name="/InfantryDataContext/ban" />
       <nestedChildShapes>
-        <elementListCompartment Id="6e33e67c-8afb-40b4-89ce-07aab8638fa6" absoluteBounds="0.765, 4.585, 1.9700000000000002, 1.68658447265625" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <elementListCompartment Id="6e33e67c-8afb-40b4-89ce-07aab8638fa6" absoluteBounds="0.765, 4.585, 1.9700000000000002, 1.8509318033854165" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
   </nestedChildShapes>

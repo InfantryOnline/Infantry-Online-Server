@@ -2200,6 +2200,8 @@ namespace InfServer.Data.DB
 		
 		private System.DateTime _dateCreated;
 		
+		private long _owner;
+		
 		private EntitySet<player> _players;
 		
     #region Extensibility Method Definitions
@@ -2214,6 +2216,8 @@ namespace InfServer.Data.DB
     partial void OnpasswordChanged();
     partial void OndateCreatedChanging(System.DateTime value);
     partial void OndateCreatedChanged();
+    partial void OnownerChanging(long value);
+    partial void OnownerChanged();
     #endregion
 		
 		public squad()
@@ -2302,6 +2306,26 @@ namespace InfServer.Data.DB
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_owner", DbType="BigInt NOT NULL")]
+		public long owner
+		{
+			get
+			{
+				return this._owner;
+			}
+			set
+			{
+				if ((this._owner != value))
+				{
+					this.OnownerChanging(value);
+					this.SendPropertyChanging();
+					this._owner = value;
+					this.SendPropertyChanged("owner");
+					this.OnownerChanged();
+				}
+			}
+		}
+		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_player", Storage="_players", ThisKey="id", OtherKey="squad")]
 		public EntitySet<player> players
 		{
@@ -2372,6 +2396,8 @@ namespace InfServer.Data.DB
 		
 		private System.DateTime _expires;
 		
+		private long _zone;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -2394,6 +2420,8 @@ namespace InfServer.Data.DB
     partial void OncreatedChanged();
     partial void OnexpiresChanging(System.DateTime value);
     partial void OnexpiresChanged();
+    partial void OnzoneChanging(long value);
+    partial void OnzoneChanged();
     #endregion
 		
 		public ban()
@@ -2577,6 +2605,26 @@ namespace InfServer.Data.DB
 					this._expires = value;
 					this.SendPropertyChanged("expires");
 					this.OnexpiresChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zone", DbType="BigInt NULL")]
+		public long zone
+		{
+			get
+			{
+				return this._zone;
+			}
+			set
+			{
+				if ((this._zone != value))
+				{
+					this.OnzoneChanging(value);
+					this.SendPropertyChanging();
+					this._zone = value;
+					this.SendPropertyChanged("zone");
+					this.OnzoneChanged();
 				}
 			}
 		}
