@@ -697,6 +697,9 @@ namespace InfServer.Game
                     .Sum(it => 1);
                 //Veh editor says a held category is "maximum number of unique types of items of this category type"
                 //Vehicle hold categories take precedence over the cfg values
+                if (ActiveVehicle == null)
+                    //Maybe they haven't instanced an active vehicle yet?
+                    return false;
                 if (ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
                 {
                     if (1 + alreadyHolding > ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1])

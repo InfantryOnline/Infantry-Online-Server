@@ -234,11 +234,17 @@ namespace InfServer.Data
 			for (; i > 0; --i)
 			{
 				PlayerStats.SkillStat sst = new PlayerStats.SkillStat();
+                try
+                {
+                    sst.skillid = reader.ReadInt32();
+                    sst.quantity = reader.ReadInt32();
 
-				sst.skillid = reader.ReadInt32();
-				sst.quantity = reader.ReadInt32();
-
-				stats.skills.Add(sst);
+                    stats.skills.Add(sst);
+                }
+                catch (EndOfStreamException)
+                {
+                    Log.write(TLog.Warning, "Unexpected end of stream while deserializing player instance");
+                }
 			}
 
 			//All done!
