@@ -243,7 +243,7 @@ namespace InfServer.Data
                 }
                 catch (EndOfStreamException)
                 {
-                    Log.write(TLog.Warning, "Unexpected end of stream while deserializing player instance");
+                    Log.write(TLog.Warning, "Unexpected end of data stream while deserializing player instance");
                 }
 			}
 

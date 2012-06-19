@@ -226,9 +226,9 @@ namespace InfServer.Game
                 dlclient.DownloadFile(fileUrl,fileLocation);
                 dlclient.Dispose();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Log.write(TLog.Error, String.Format("Error grabGlobalNews: {0}", e.ToString()));
+                Log.write(TLog.Warning, "Error updating global.nws, skipping");
             };
         }
 

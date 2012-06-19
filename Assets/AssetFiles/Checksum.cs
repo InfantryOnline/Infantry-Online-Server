@@ -12,8 +12,21 @@ namespace Assets
 
 		public bool bActive;
 
+        public static bool fileIsFree(string path)
+        {
+            try
+            {
+                if (!File.Exists(path)) return false;
+                using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.None)) { };
+                return true;
+            }
+            catch (System.IO.IOException) { return false; }
+        }
+
 		public static uint fileChecksum(string filename)
 		{
+            //Wait until the file has been freed
+            while (!fileIsFree(filename)) { }
 			byte[] rawData = File.ReadAllBytes(filename);
 			CRC32 checkSumCalc = new CRC32();
 			return checkSumCalc.ComputeChecksum(rawData, 0, rawData.Length);
