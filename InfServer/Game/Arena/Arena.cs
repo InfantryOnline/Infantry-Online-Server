@@ -36,6 +36,7 @@ namespace InfServer.Game
 		public Random _rand;							//Our random seed
 
 		public int _tickLastMinorPoll;					//The time at which we performed a last minor poll update
+        public int _tickLastDatabaseSync;               //The time at which we last synced all our players with the database
 
 		public Dictionary<int, TickerInfo> _tickers;	//The tickers!
 		public bool _bGameRunning;						//Is the game running?
@@ -435,6 +436,10 @@ namespace InfServer.Game
 				if (bMinor)
 					_tickLastMinorPoll = now;
 
+                bool bDBSync = (now - _tickLastDatabaseSync) > 60000; //Every 60 seconds
+                if (bDBSync)
+                    _tickLastDatabaseSync = now;
+
                 //Keep our itemdrops in line
                 foreach (var itm in _items.Values)
                 {
@@ -577,6 +582,13 @@ namespace InfServer.Game
 							delayed.tickExecute = now + delayed.tickDelay;
 					}
 				}
+
+                //Is it time to sync to database?
+                if (bDBSync && !_server.IsStandalone)
+                    foreach (Player p in Players)
+                        if (p._bDBLoaded)
+                            //Update him!
+                            p._server._db.updatePlayer(p);
 
 				//Look after our lio objects
 				pollLio();

@@ -676,6 +676,11 @@ namespace InfServer.Game
 		/// </summary>
 		public void restoreStats()
 		{	//Restore it all!
+            //Sanity checks
+            if (_suspStats == null)
+                return;
+
+            //Retrieve his stats
 			_stats = _suspStats;
 			_statsSession = new Data.PlayerStats();
 			_statsGame = null;
@@ -683,6 +688,11 @@ namespace InfServer.Game
 
 			_inventory = _suspInventory;
 			_skills = _suspSkills;
+
+            //Destroy suspended stats
+            _suspStats = null;
+            _suspInventory = null;
+            _suspSkills = null;
 		}
 
 		/// <summary>

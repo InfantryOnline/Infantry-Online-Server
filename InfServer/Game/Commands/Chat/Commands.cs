@@ -520,7 +520,11 @@ namespace InfServer.Game.Commands.Chat
 			if (target.IsSpectator)
 				return;
 
-			if (target._spectators.Count == 0)
+            //Remove mods from list of spectators
+            List<Player> speclist = target._spectators;
+            speclist.RemoveAll(s => s.PermissionLevel >= Data.PlayerPermission.Mod);
+
+			if (speclist.Count == 0)
 			{
 				player.sendMessage(0, "No spectators.");
 				return;
@@ -528,7 +532,7 @@ namespace InfServer.Game.Commands.Chat
 
 			string result = "Spectating: ";
 
-			foreach (Player spectator in target._spectators)
+            foreach (Player spectator in speclist)
 				result += spectator._alias + ", ";
 
 			player.sendMessage(0, result.TrimEnd(',', ' '));

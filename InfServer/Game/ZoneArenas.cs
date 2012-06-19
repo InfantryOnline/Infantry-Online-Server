@@ -163,7 +163,7 @@ namespace InfServer.Game
 		/// Finds the most suitable arena for a player to join
 		/// </summary>
 		public Arena allocatePlayer(Player player)
-		{	//Let's just stick him in public1 for now
+		{	//TODO: Let's just stick him in public1 for now
 			Arena arena = null;
 			if (!_arenas.TryGetValue("Public1", out arena))
 				return newArena("");
@@ -188,7 +188,6 @@ namespace InfServer.Game
 			}
 
 			//TODO: Test for join arena privileges
-
 			return arena;
 		}
 	}

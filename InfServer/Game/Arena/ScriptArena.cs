@@ -1654,7 +1654,7 @@ namespace InfServer.Game
 				return;
 
 			//Check spectator permission
-            if (!target._bAllowSpectator)
+            if (!target._bAllowSpectator && player.PermissionLevel < Data.PlayerPermission.Mod)
             {
                 player.sendMessage(-1, "Specified player isn't allowing spectators");
                 return;

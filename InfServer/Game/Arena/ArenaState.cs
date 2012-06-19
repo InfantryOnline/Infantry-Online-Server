@@ -152,10 +152,6 @@ namespace InfServer.Game
 			player._bSpectator = true;
 			player._team = _teams["spec"];
 
-			//TEMP: This is not necessary any more, set up managerPassword in server.xml
-			/*if (player._alias == "aaerox" || player._alias == "HellSpawn")
-				player._permissionTemp = InfServer.Data.PlayerPermission.Sysop;*/
-
 			//Find his natural vehicle id and prepare the class
 			Player.SkillItem baseSkill = player._skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);
 			int baseVehicleID = (baseSkill == null) ? _server._zoneConfig.publicProfile.defaultVItemId : baseSkill.skill.DefaultVehicleId;
@@ -198,6 +194,15 @@ namespace InfServer.Game
 			//Load the vehicles in the arena
 			if (_vehicles.Count > 0)
 				Helpers.Object_Vehicles(player, _vehicles);
+
+            //Suspend his stats if it's a private arena
+            if(!_server.IsStandalone)
+            {
+                if (_bIsPublic)
+                    player.restoreStats();
+                else
+                    player.suspendStats();
+            }
 
 			//Initialize the player's state
 			Helpers.Player_StateInit(player,
