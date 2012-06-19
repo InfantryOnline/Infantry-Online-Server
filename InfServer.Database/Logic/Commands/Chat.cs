@@ -184,7 +184,8 @@ namespace InfServer.Logic
                         break;
 
                     case CS_Query<Zone>.QueryType.global:
-                        zone._server.sendMessage(zone, "*", pkt.payload);
+                        foreach(Zone z in zone._server._zones)
+                            z._server.sendMessage(z, "*", pkt.payload);
                         break;
                 }
             }
