@@ -130,7 +130,6 @@ namespace InfServer.Logic
             up.player = player;
             up.vehicle = player.ActiveVehicle;
             up.itemID = 0;
-            up.activeUtilities = player.activeUtilities;
 
             foreach (Player p in player._arena.Players)
                 if (p != player)

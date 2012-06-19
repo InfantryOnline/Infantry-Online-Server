@@ -166,7 +166,7 @@ namespace InfServer.Logic
 
                     case CS_Query<Zone>.QueryType.history:
                         int page = Convert.ToInt32(pkt.payload);
-                        int resultsperpage = 10;
+                        int resultsperpage = 30;
 
                         zone._server.sendMessage(zone, pkt.sender, "!Command History (" + page + ")");
 
