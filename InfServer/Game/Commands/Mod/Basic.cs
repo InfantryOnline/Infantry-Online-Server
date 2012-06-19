@@ -561,14 +561,14 @@ namespace InfServer.Game.Commands.Mod
             }
             string tMessage;
             int tIndex;
-            byte tColor;
+            int tColor;
             int tTimer;
 
             string[] parameters = payload.Split(',');
             tMessage = parameters[0];
             tIndex = Convert.ToInt32(parameters[1]);
             if (parameters.Count() >= 3)
-                tColor = Convert.ToByte(parameters[2]);
+                tColor = Convert.ToInt16(parameters[2]);
             else
                 tColor = 0;
             if (parameters.Count() >= 4)
@@ -576,7 +576,7 @@ namespace InfServer.Game.Commands.Mod
             else
                 tTimer = 0;
 
-            player._arena.setTicker(tColor, tIndex, tTimer * 100, tMessage);
+            player._arena.setTicker((byte)tColor, tIndex, tTimer * 100, tMessage);
         }
 
         /// <summary>
