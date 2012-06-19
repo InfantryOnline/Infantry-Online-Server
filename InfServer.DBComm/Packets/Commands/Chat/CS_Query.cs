@@ -31,6 +31,7 @@ namespace InfServer.Protocol
             emailupdate,
             zonelist,
             history,
+            global,
         }
 
 

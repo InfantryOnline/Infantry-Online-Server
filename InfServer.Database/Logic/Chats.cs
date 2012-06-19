@@ -106,6 +106,7 @@ namespace InfServer.Logic
                 hist.command = pkt.command;
                 hist.date = DateTime.Now;
                 db.histories.InsertOnSubmit(hist);
+                db.SubmitChanges();
             }
         }
 

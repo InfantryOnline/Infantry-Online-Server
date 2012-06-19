@@ -66,6 +66,18 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_DB_Chat(SC_Chat<Database> pkt, Database db)
         {
+            if (pkt.recipient == "*")
+            {   //Route it to everybody
+                List<Arena> targetarenas = db._server._arenas.Values.ToList();
+                List<Player> targets = new List<Player>();
+                foreach (Arena a in targetarenas)
+                    foreach (Player pl in a.Players)
+                        targets.Add(pl);
+                Helpers.Social_ArenaChat(targets, pkt.message, 0);
+                return;
+            }
+
+            //Route it to a single player
             Player p = db._server.getPlayer(pkt.recipient);
             if (p == null)
                 return;

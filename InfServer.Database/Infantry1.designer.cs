@@ -2726,7 +2726,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_sender", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_sender", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
 		public string sender
 		{
 			get
@@ -2746,7 +2746,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_recipient", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_recipient", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
 		public string recipient
 		{
 			get
@@ -2766,7 +2766,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zone", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zone", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
 		public string zone
 		{
 			get
@@ -2786,7 +2786,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_arena", DbType="VarChar(32) NOT NULL", CanBeNull=false)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_arena", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
 		public string arena
 		{
 			get

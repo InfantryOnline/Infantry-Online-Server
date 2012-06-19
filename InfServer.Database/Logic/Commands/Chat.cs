@@ -182,6 +182,10 @@ namespace InfServer.Logic
 
                         zone._server.sendMessage(zone, pkt.sender, "End of page, use ?history 1, ?history 2, etc to navigate previous pages");
                         break;
+
+                    case CS_Query<Zone>.QueryType.global:
+                        zone._server.sendMessage(zone, "*", pkt.payload);
+                        break;
                 }
             }
         }

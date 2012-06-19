@@ -153,6 +153,11 @@ namespace InfServer.Game.Commands.Mod
 				"Sends a gif to the target player",
 				"::*showgif [gif url]",
 				InfServer.Data.PlayerPermission.Sysop);
+
+            yield return new HandlerDescriptor(history, "history",
+                "Returns a list of mod commands used in every server",
+                "*history [page]",
+                InfServer.Data.PlayerPermission.Sysop);
 		}
 	}
 }

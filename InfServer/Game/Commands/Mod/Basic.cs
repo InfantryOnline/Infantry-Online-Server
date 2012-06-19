@@ -627,6 +627,22 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Sends a global message to every zone connected to current database
+        /// </summary>
+        static public void global(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (payload == "" || player._server.IsStandalone)
+                return;
+
+            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+            pkt.queryType = CS_Query<Data.Database>.QueryType.global;
+            pkt.sender = player._alias;
+            pkt.payload = payload;
+
+            player._server._db.send(pkt);
+        }
+
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ModCommand)]
@@ -693,7 +709,7 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(spectate, "spectate",
 				"Forces a player or the whole arena to spectate the specified player.",
 				"Syntax: ::*spectate [player] or *spectate [player]",
-				InfServer.Data.PlayerPermission.ArenaMod);
+				InfServer.Data.PlayerPermission.Mod);
 
             yield return new HandlerDescriptor(spec, "spec",
                 "Puts a player into spectator mode, optionally on a specified team.",
@@ -734,6 +750,11 @@ namespace InfServer.Game.Commands.Mod
                "Sets a ticker at the specified index with color/timer/message",
                "*ticker [message],[index],[color=optional],[timer=optional]",
                InfServer.Data.PlayerPermission.ArenaMod);
+
+            yield return new HandlerDescriptor(global, "global",
+               "Sends a global message to every zone connected to current database",
+               "*global [message]",
+               InfServer.Data.PlayerPermission.SMod);
         }
     }
 }
