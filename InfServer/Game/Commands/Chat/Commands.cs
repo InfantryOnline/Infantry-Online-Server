@@ -588,7 +588,7 @@ namespace InfServer.Game.Commands.Chat
             }
 
             //Enough energy?
-            int minEnergy = player._server._zoneConfig.arena.teamSwitchMinEnergy / 100;
+            int minEnergy = player._server._zoneConfig.arena.teamSwitchMinEnergy / 1000;
             if (player._state.energy < minEnergy)
             {
                 player.sendMessage(-1, "Cannot switch teams unless you have at least " + minEnergy + " energy (you have " + player._state.energy + ")");

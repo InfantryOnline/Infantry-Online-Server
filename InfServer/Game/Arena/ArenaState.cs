@@ -73,7 +73,7 @@ namespace InfServer.Game
 		{
 			get
 			{
-				return _teams.Values.Where(t => t.ActivePlayerCount > 0);
+				return _teams.Values.Where(t => t.ActivePlayerCount > 0 && !t.IsSpec);
 			}
 		}
 

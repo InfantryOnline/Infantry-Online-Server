@@ -21,20 +21,23 @@ namespace InfServer.Script.GameType_SKCTF
 	{	///////////////////////////////////////////////////
 		// Member Variables
 		///////////////////////////////////////////////////
-		private Arena _arena;					//Pointer to our arena class
-		private CfgInfo _config;				//The zone config
-        private Tickets _tickets;               //Our tickets
+		private Arena _arena;					        //Pointer to our arena class
+		private CfgInfo _config;				        //The zone config
+        private Points _points;                         //Our points
 
         //Timers
-        private int _lastGameCheck;             //The last time we polled the arena
+        private int _lastGameCheck;                     //The last time we polled the arena
         private int _tickGameStart;
         private int _tickGameStarting;
         private int _lastFlagCheck;
 
 		//Settings
-		private int _minPlayers;				//The minimum amount of players
-        private int _ticketSmallChange;         //The small change to # of tickets (ex: kills, periodic flag rewards)
+		private int _minPlayers;				        //The minimum amount of players to start a flag game
+        private int _pointSmallChange;                  //The small change to # of points (ex: kills, turret kills, etc)
+        private int _pointPeriodicChange;               //The change to # of points based on periodic flag rewards
 
+        //Scores
+        private Dictionary<Player, int> _healingDone;   //Keep track of healing done by players
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -60,7 +63,7 @@ namespace InfServer.Script.GameType_SKCTF
 
             if (_minPlayers == Int32.MaxValue)
                 //No flags? Run blank games
-                _minPlayers = 1;
+                _minPlayers = 2;
 
 			return true;
 		}
@@ -98,28 +101,24 @@ namespace InfServer.Script.GameType_SKCTF
             //Maybe the game is in progress...
             else
             {   //It is!
-
-                //The change to small ticket changes needs to be updated based on players in game constantly
-                _ticketSmallChange = (int)Math.Ceiling((double)25 / _arena.PlayersIngame.Count());
+                //The change to small points changes needs to be updated based on players in game constantly
+                _pointSmallChange = (int)Math.Ceiling((double)25 / _arena.PlayersIngame.Count());
 
                 //Let's update some points!
-                int flagdelay = 5000; //1000 = 1 second
+                int flagdelay = 1000; //1000 = 1 second
                 if (now - _lastFlagCheck >= flagdelay)
-                {   //It's time for a flag ticket update
+                {   //It's time for a flag update
 
                     //Loop through every flag
                     foreach (Arena.FlagState fs in _arena._flags.Values)
-                        //Subtract tickets from every team that doesn't own the flag
-                        foreach (Team t in _arena.DesiredTeams)
-                            if (_arena.DesiredTeams.Contains(fs.team) && t != fs.team && _tickets != null)
-                                _tickets[t] -= _ticketSmallChange;
+                        //Add points for every flag they own
+                        foreach (Team t in _arena.Teams)
+                            if (t == fs.team && _points != null)
+                                _points[t] += 1;
 
                     //Update our tick
                     _lastFlagCheck = now;
                 }
-
-                //Update the tickers while the game is running
-                updateTickers();
             }
 			return true;
 		}
@@ -140,66 +139,94 @@ namespace InfServer.Script.GameType_SKCTF
 
             if (allFlags && _arena.DesiredTeams.Contains(flag.team))
                 _arena.sendArenaMessage(flag.team._name + " controls all the flags!", 20);
+            else
+                _arena.sendArenaMessage(flag.team._name + " has captured " + flag.flag.GeneralData.Name + "!", 21);
 		}
 
 		/// <summary>
 		/// Called when the specified team have won
 		/// </summary>
-		public void gameVictory(IEnumerable<Team> victors)
+		public void gameVictory(Team victors)
 		{	//Game is over.
-            //TODO: Calculate victory team rewards and rewards for all other players
+            _arena.sendArenaMessage(victors._name + " has reached " + _points.MaxPoints + " points!", 13);
+
 
             //Clear out all tickers we use in updateTickers (1,2,3)
             for (int i = 1; i <= 3; i++)
                 _arena.setTicker(0, i, 0, "");
 
+            //Lets reward the teams and the MVP!
+            int rpoints = _arena._server._zoneConfig.flag.pointReward * _arena.PlayersIngame.Count();
+            int rcash = _arena._server._zoneConfig.flag.cashReward * _arena.PlayersIngame.Count();
+            int rexperience = _arena._server._zoneConfig.flag.experienceReward * _arena.PlayersIngame.Count();
+
+            //Give higher reward the more points they have
+            foreach (Team t in _arena.ActiveTeams)
+            {
+                foreach (Player p in t.ActivePlayers)
+                {   //Reward each player based on his teams performance
+                    int points = _points[t];
+                    double modifier = ((points / _points.MaxPoints) * 2) + 1;
+                    rpoints = Convert.ToInt32(rpoints * modifier);
+                    rcash = Convert.ToInt32(rcash * modifier);
+                    rexperience = Convert.ToInt32(rexperience * modifier);
+                    p.StatsLastGame.bonusPoints += rpoints;
+                    p.Cash += rcash;
+                    p.Experience += rexperience;
+                    p.sendMessage(0, String.Format("Personal Reward: Points={0} Cash={1} Experience={2}",
+                        rpoints, rcash, rexperience));
+                }
+            }
+
+            //TODO: Reward the MVP. Also reward the best healers.
             //Stop the game
             _arena.gameEnd();
 		}
 
         /// <summary>
-        /// Called when a teams tickets have been modified
+        /// Called when a teams points have been modified
         /// </summary>
-        public void onTicketModify(Team team, int tickets)
+        public void onPointModify(Team team, int points)
         {
             //Update the tickers
             updateTickers();
 
             //Check for game victory here
-            if (tickets <= 0)
-                //They were the first team to lose all their tickets, they lose!
-                gameVictory(_arena.DesiredTeams.Where(t => t != team));
+            if (points >= _points.MaxPoints)
+                //They were the first team to reach max points!
+                gameVictory(team);
         }
 
         public void updateTickers()
         {
-            if (_tickets != null)
+            if (_points != null)
             {
-                //Their teams tickets
+                //Their teams points
                 _arena.setTicker(0, 1, 0,
                     delegate(Player p)
                     {
-                        //Update their ticker with current team ticket count
-                        if (!_arena.DesiredTeams.Contains(p._team) && _tickets != null)
+                        //Update their ticker with current team points
+                        if (!_arena.DesiredTeams.Contains(p._team) && _points != null)
                             return "";
-                        return "Your Team: " + _tickets[p._team];
+                        return "Your Team: " + _points[p._team];
                     }
                 );
-                //Other teams tickets
+                //Other teams points
                 _arena.setTicker(0, 2, 0,
                     delegate(Player p)
                     {
-                        //Update their ticker with every other teams ticket count
+                        //Update their ticker with every other teams points
                         List<string> otherTeams = new List<string>();
                         foreach (Team t in _arena.DesiredTeams)
                             if (t != p._team)
-                                otherTeams.Add(t._name + ": " + _tickets[t]);
-
-                        return String.Join(",", otherTeams.ToArray());
+                                otherTeams.Add(t._name + ": " + _points[t]);
+                        if (otherTeams.Count == 0)
+                            return "";
+                        return String.Join(", ", otherTeams.ToArray());
                     }
                 );
-                //Ticket costs
-                _arena.setTicker(0, 3, 0, "Ticket costs: " + _ticketSmallChange);
+                //Point rewards
+                _arena.setTicker(0, 3, 0, "Kill rewards: " + _pointSmallChange + " points");
             }
         }
 
@@ -243,13 +270,17 @@ namespace InfServer.Script.GameType_SKCTF
 			//Spawn our flags!
 			_arena.flagSpawn();
 
-            //Create some tickets and subscribe to our ticket modification event
-            _tickets = null;
-            _tickets = new Tickets(_arena.DesiredTeams, 1000);
-            _tickets.TicketModify += onTicketModify;
+            //Create some points and subscribe to our point modification event
+            _points.StartingPoints = 0;
+            _points.MaxPoints = 1000;
+            _points = new Points(_arena.ActiveTeams);
+            _points.PointModify += onPointModify;
+
+            //Start keeping track of healing
+            _healingDone = new Dictionary<Player, int>();
 
 			//Let everyone know
-			_arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
+			_arena.sendArenaMessage("Game has started! First team to " + _points.MaxPoints + " points wins!", _config.flag.resetBong);
 
 			return true;
 		}
@@ -260,9 +291,9 @@ namespace InfServer.Script.GameType_SKCTF
 		[Scripts.Event("Game.End")]
 		public bool gameEnd()
 		{	//Game finished, perhaps start a new one
-            _tickets = null;
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
+            _healingDone = null;
 
 			return true;
 		}
@@ -270,13 +301,62 @@ namespace InfServer.Script.GameType_SKCTF
         /// <summary>
         /// Called when the statistical breakdown is displayed
         /// </summary>
-        [Scripts.Event("Game.Breakdown")]
-        public bool breakdown()
+        [Scripts.Event("Player.Breakdown")]
+        public bool playerBreakdown(Player from, bool bCurrent)
         {	//Allows additional "custom" breakdown information
+            //List the best healers by sorting them according to healingdone
+            from.sendMessage(0, "#Healer Breakdown");
+            if (_healingDone != null && _healingDone.Count > 0)
+            {
+                List<KeyValuePair<Player, int>> healers = _healingDone.ToList();
+                healers.Sort((a, b) => { return a.Value.CompareTo(b.Value); });
+                healers.Reverse();
 
+                int i = 1;
+                foreach (KeyValuePair<Player, int> healer in healers)
+                {   //Display top 3 healers in arena
+                    from.sendMessage(0, String.Format("!{0} (Healed={1}): {2}",
+                        ScriptHelpers.toOrdinal(i),healer.Value, healer.Key._alias));
+                    if (i++ > 3)
+                        break;
+                }
+            }
 
-            //Always return true;
-            return true;
+            //List teams by most points
+            from.sendMessage(0, "#Team Breakdown");
+            if (_points != null)
+            {
+                List<Team> teams = _arena.Teams.Where(t => _points[t] != 0).ToList();
+                teams.OrderByDescending(t => _points[t]);
+
+                int j = 1;
+                foreach (Team t in teams)
+                {
+                    from.sendMessage(0, String.Format("!{0} (Points={1} Kills={2} Deaths={3}): {4}",
+                        ScriptHelpers.toOrdinal(j), _points[t], t._calculatedKills, t._calculatedDeaths, t._name));
+                    j++;
+                }
+            }
+
+            from.sendMessage(0, "#Player Breakdown");
+            int k = 1;
+            foreach (Player p in _arena.PlayersIngame.OrderByDescending(player => (bCurrent ? player.StatsCurrentGame.kills : player.StatsLastGame.kills)))
+            {   //Display top 3 players
+                from.sendMessage(0, String.Format("!{0} (K={1} D={2}): {3}",
+                    ScriptHelpers.toOrdinal(k),
+                    (bCurrent ? p.StatsCurrentGame.kills : p.StatsLastGame.kills),
+                    (bCurrent ? p.StatsCurrentGame.deaths : p.StatsLastGame.deaths),
+                    p._alias));
+                if (k++ > 3)
+                    break;
+            }
+            //Display his score
+            from.sendMessage(0, String.Format("@Personal Score: (K={0} D={1})",
+                (bCurrent ? from.StatsCurrentGame.kills : from.StatsLastGame.kills),
+                (bCurrent ? from.StatsCurrentGame.deaths : from.StatsLastGame.deaths)));
+
+            //return false to avoid another breakdown from showing
+            return false;
         }
 
 		/// <summary>
@@ -285,7 +365,6 @@ namespace InfServer.Script.GameType_SKCTF
 		[Scripts.Event("Game.Reset")]
 		public bool gameReset()
 		{	//Game reset, perhaps start a new one
-            _tickets = null;
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
 
@@ -407,9 +486,14 @@ namespace InfServer.Script.GameType_SKCTF
 		[Scripts.Event("Player.Death")]
 		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
 		{
-            //Subtract a ticket from the victims team!
-            if(_tickets != null)
-                _tickets[victim._team] -= _ticketSmallChange;
+            //Was it a player kill?
+            if (killType == Helpers.KillType.Player)
+            {   //No team killing!
+                if (victim._team != killer._team)
+                    //Reward the killers team!
+                    if (_points != null)
+                        _points[killer._team] += _pointSmallChange;
+            }
 
             //Was it a computer kill?
             if (killType == Helpers.KillType.Computer)
@@ -430,10 +514,12 @@ namespace InfServer.Script.GameType_SKCTF
                     else
                         Logic_Assets.RunEvent(vehKiller, _arena._server._zoneConfig.EventInfo.killedEnemy);
 
-                    //Increase stats and notify arena of the kill!
+                    //Increase stats/points and notify arena of the kill!
+                    if (_points != null)
+                        _points[vehKiller._team] += _pointSmallChange;
                     vehKiller.Kills++;
                     victim.Deaths++;
-                    Logic_Rewards.calculatePlayerKillRewards(victim, cvehicle._creator, update);
+                    Logic_Rewards.calculatePlayerKillRewards(victim, vehKiller, update);
                     return false;
 				}
             }
@@ -493,6 +579,35 @@ namespace InfServer.Script.GameType_SKCTF
 		{
 			return true;
 		}
+
+        /// <summary>
+        /// Triggered when a player uses a repair item
+        /// </summary>
+        [Scripts.Event("Player.Repair")]
+        public bool playerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
+        {
+            int healamount = 0;
+            //Let's try to credit him for the heal
+            if (item.repairType == 0 || item.repairType == 2)
+            {   //It's a player heal!
+                if (item.repairDistance > 0)
+                    //Credit him for a single heal
+                    healamount = (item.repairAmount == 0) ? item.repairPercentage : item.repairAmount;
+                else if (item.repairDistance < 0)
+                    //Credit him for everybody he healed
+                    healamount = (item.repairAmount == 0)
+                        ? item.repairPercentage * _arena.getPlayersInRange(player._state.positionX, player._state.positionY, -item.repairDistance).Count
+                        : item.repairAmount *_arena.getPlayersInRange(player._state.positionX, player._state.positionY, -item.repairDistance).Count;
+            }
+
+            //Keep track of it, mang
+            if(_healingDone != null)
+                if (_healingDone.ContainsKey(player))
+                    _healingDone[player] += healamount;
+                else
+                    _healingDone.Add(player, healamount);
+            return true;
+        }
 
 		/// <summary>
 		/// Triggered when a player is buying an item from the shop
