@@ -586,6 +586,14 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "Can't change team from this terrain");
                 return;
             }
+
+            //Enough energy?
+            int minEnergy = player._server._zoneConfig.arena.teamSwitchMinEnergy / 100;
+            if (player._state.energy < minEnergy)
+            {
+                player.sendMessage(-1, "Cannot switch teams unless you have at least " + minEnergy + " energy (you have " + player._state.energy + ")");
+                return;
+            }
             try
             {
                 //First check to make sure they're allowed to switch teams

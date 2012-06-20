@@ -204,15 +204,26 @@ namespace InfServer.Logic
 				}
 
 				if (alias == null && !pkt.bCreateAlias)
-				{	//Prompt him to create a new alias
-					plog.bSuccess = false;
-					plog.bNewAlias = true;
+				{	//Prompt him to create a new alias if he has room
+                    if (account.alias.Count < 30)
+                    {   //He has space! Prompt him to make a new alias
+                        plog.bSuccess = false;
+                        plog.bNewAlias = true;
 
-					zone._client.send(plog);
-					return;
+                        zone._client.send(plog);
+                        return;
+                    }
+                    else
+                    {
+                        plog.bSuccess = false;
+                        plog.loginMessage = "Your account has reached the maximum number of aliases allowed";
+
+                        zone._client.send(plog);
+                        return;
+                    }
 				}
 				else if (alias == null && pkt.bCreateAlias)
-				{	//We want to create a new alias! Do it!
+				{	//We want to create a new alias!
 					alias = new InfServer.Data.DB.alias();
 
 					alias.name = pkt.alias;

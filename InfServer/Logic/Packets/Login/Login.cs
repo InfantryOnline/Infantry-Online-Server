@@ -15,19 +15,23 @@ namespace InfServer.Logic
 		{	//Let's escalate our client's status to player!
 			ZoneServer server = (client._handler as ZoneServer);
 
-            //Check their client version and UIDs
-            //TODO: find out what the UIDs are and what an invalid UID might be
-            if (pkt.Version != Helpers._serverVersion ||
-                pkt.UID1 <= 1000 ||
-                pkt.UID2 <= 1000 ||
-                pkt.UID3 <= 1000)
-            {
-                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Your client is out of date, please update using the website");
-                return;
-            }
-
 			Player newPlayer = server.newPlayer(client, pkt.Username);
             String alias = newPlayer._alias;
+
+            //Check their client version and UIDs
+            //TODO: find out what the UIDs are and what an invalid UID might look like, and reject spoofed ones
+            if (pkt.Version != Helpers._serverVersion ||
+                pkt.UID1 <= 10000 ||
+                pkt.UID2 <= 10000 ||
+                pkt.UID3 <= 10000)
+            {
+                Log.write(TLog.Warning, String.Format("Suspicious login packet from {0} : Version ({1}) UID1({2}) UID2({3}) UID3({4})",
+                    alias,
+                    pkt.Version,
+                    pkt.UID1,
+                    pkt.UID2,
+                    pkt.UID3));
+            }
 
             //Check alias for illegal characters
             if (alias.Length == 0)

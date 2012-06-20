@@ -531,6 +531,10 @@ namespace InfServer.Game.Commands.Mod
             player.sendMessage(0, "Skills");
             foreach (KeyValuePair<int,Player.SkillItem> skill in target._skills)
                 player.sendMessage(0, String.Format("~{0}={1}", skill.Value.skill.Name, skill.Value.quantity));
+            player.sendMessage(0, "Profile");
+            player.sendMessage(0, String.Format("~Cash={0} Experience={1} Points={2}", player.Cash, player.Experience, player.Points));
+            player.sendMessage(0, "Base Vehicle");
+            player.sendMessage(0, String.Format("~VehicleID={0} Health={1} Energy={2}", target._baseVehicle._id, target._baseVehicle._state.health, target._baseVehicle._state.energy));
         }
 
 		/// <summary>
