@@ -39,14 +39,6 @@ namespace InfServer.Logic
         /// </summary>
         public static Ban checkBan(CS_PlayerLogin<Zone> pkt, InfantryDataContext db, Data.DB.account account, long zoneid)
         {
-            //Sanity checks
-            if (pkt.ipaddress == "" ||
-                pkt.UID1 <= 1000 ||
-                pkt.UID2 <= 1000 ||
-                pkt.UID3 <= 1000)
-                //They're trying to trick us!
-                return new Ban(Ban.BanType.GlobalBan, DateTime.MaxValue);
-
             Ban.BanType type = Ban.BanType.None;
             DateTime expires = DateTime.Now;
 
