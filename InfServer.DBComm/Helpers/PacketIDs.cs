@@ -27,6 +27,7 @@ namespace InfServer.Protocol
                 PlayerBanner = 05,
                 PlayerStatsRequest = 06,
                 ModCommand = 07,
+                SquadQuery = 08,
                 Whisper = 09,
                 PrivateChat = 10,
                 JoinChat = 12,

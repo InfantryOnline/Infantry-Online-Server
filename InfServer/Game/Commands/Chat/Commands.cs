@@ -40,8 +40,6 @@ namespace InfServer.Game.Commands.Chat
 			player._client.sendReliable(arenaList);
 		}
 
-
-
         /// <summary>
         /// displays current game statistics
         /// </summary>
@@ -539,6 +537,135 @@ namespace InfServer.Game.Commands.Chat
 		}
 
         /// <summary>
+        /// Lists online players of current squad or a specific squad
+        /// </summary>
+        public static void squad(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.online;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Lists all players of current squad or a specific squad
+        /// </summary>
+        public static void squadlist(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.list;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Lists current player invites or outstanding squad invites
+        /// </summary>
+        public static void squadlistinvites(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            if (payload.Trim().ToLower() == "squad")
+                sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invitessquad;
+            else
+                sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invitesplayer;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Creates a squad in the current zone
+        /// </summary>
+        public static void squadcreate(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.create;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Extends or revokes a squad invitation from a specific player
+        /// </summary>
+        public static void squadinvite(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invite;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Kicks a player from the current squad
+        /// </summary>
+        public static void squadkick(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.kick;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Transfers squad ownership to a specified player
+        /// </summary>
+        public static void squadtransfer(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.transfer;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Leaves (or dissolves) current squad
+        /// </summary>
+        public static void squadleave(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.leave;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
+        /// Accepts or rejects a squad invitation
+        /// </summary>
+        public static void squadiresponse(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invitesreponse;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+
+        /// <summary>
         /// Ignore Summon Request
         /// </summary>
         public static void summon(Player player, Player recipient, string payload, int bong)
@@ -794,6 +921,42 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(spec, "spec",
                 "Displays all players which are spectating you or another player",
                 "?spec or ::?spec");
+
+            yield return new HandlerDescriptor(squad, "squad",
+                "Lists online players of current squad or a specific squad",
+                "?squad or ?squad [squadname]");
+
+            yield return new HandlerDescriptor(squadlist, "squadlist",
+                "Lists all players of current squad or a specific squad",
+                "?squadlist or ?squadlist [squadname]");
+
+            yield return new HandlerDescriptor(squadlistinvites, "squadlistinvites",
+                "Lists current player invites or outstanding squad invites",
+                "?squadlistinvites [player/squad]");
+
+            yield return new HandlerDescriptor(squadcreate, "squadcreate",
+                "Creates a squad in the current zone",
+                "?squadcreate [squadname]:[squadpassword]");
+
+            yield return new HandlerDescriptor(squadinvite, "squadinvite",
+                "Extends or revokes a squad invitation from a specific player",
+                "?squadinvite [add/remove]:[player]:[squadname]");
+
+            yield return new HandlerDescriptor(squadkick, "squadkick",
+                "Kicks a player from the current squad",
+                "?squadkick [player]");
+
+            yield return new HandlerDescriptor(squadtransfer, "squadtransfer",
+                "Transfers squad ownership to a specified player",
+                "?squadtransfer [player]");
+
+            yield return new HandlerDescriptor(squadleave, "squadleave",
+                "Leaves (or dissolves) current squad",
+                "?squadleave");
+
+            yield return new HandlerDescriptor(squadiresponse, "squadiresponse",
+                "Accepts or rejects a squad invitation",
+                "?squadIresponse [accept/reject]:[squadname]");
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Ignores summons from the specified player(s)",

@@ -30,9 +30,11 @@ namespace InfServer.Script.GameType_SKCTF
         /// </summary>
         /// <param name="teams">List of teams</param>
         /// <param name="numPoints">Starting number of points</param>
-        public Points(IEnumerable<Team> teams)
+        public Points(IEnumerable<Team> teams, int start, int max)
         {
             _points = new Dictionary<int, int>();
+            _startCount = start;
+            _maxCount = max;
             foreach (Team t in teams)
                 _points.Add(t._id, _startCount);
         }

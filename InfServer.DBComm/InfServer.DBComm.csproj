@@ -79,6 +79,7 @@
     <Compile Include="Helpers\Database.cs" />
     <Compile Include="Helpers\PacketIDs.cs" />
     <Compile Include="Packets\Commands\Chat\CS_Query.cs" />
+    <Compile Include="Packets\Commands\Chat\CS_Squads.cs" />
     <Compile Include="Packets\Login\CS_Auth.cs" />
     <Compile Include="Packets\Login\CS_PlayerLogin.cs" />
     <Compile Include="Packets\Login\SC_Auth.cs" />

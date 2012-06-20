@@ -461,7 +461,7 @@ namespace InfServer.Game
                 if (tickTerrainBty)
                     _bountyTick = now;
 
-				foreach (Player player in PlayersIngame)
+				foreach (Player player in PlayersIngame.ToList())
 				{	//Is he awaiting a respawn?
 					if (player._deathTime != 0 && now - player._deathTime > _server._zoneConfig.timing.enterDelay * 10)
 					{	//So spawn him!

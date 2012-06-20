@@ -181,6 +181,10 @@ namespace InfServer.Data
                     packet = new CS_ModCommand<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_Squads<T>.TypeID:
+                    packet = new CS_Query<T>(typeID, buffer, offset, size);
+                    break;
+
                 case CS_Query<T>.TypeID:
                     packet = new CS_Query<T>(typeID, buffer, offset, size);
                     break;

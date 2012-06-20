@@ -63,7 +63,7 @@ namespace InfServer.Script.GameType_SKCTF
 
             if (_minPlayers == Int32.MaxValue)
                 //No flags? Run blank games
-                _minPlayers = 2;
+                _minPlayers = 1;
 
 			return true;
 		}
@@ -103,6 +103,7 @@ namespace InfServer.Script.GameType_SKCTF
             {   //It is!
                 //The change to small points changes needs to be updated based on players in game constantly
                 _pointSmallChange = (int)Math.Ceiling((double)25 / _arena.PlayersIngame.Count());
+                _pointPeriodicChange = 50;
 
                 //Let's update some points!
                 int flagdelay = 1000; //1000 = 1 second
@@ -114,7 +115,7 @@ namespace InfServer.Script.GameType_SKCTF
                         //Add points for every flag they own
                         foreach (Team t in _arena.Teams)
                             if (t == fs.team && _points != null)
-                                _points[t] += 1;
+                                _points[t] += _pointPeriodicChange;
 
                     //Update our tick
                     _lastFlagCheck = now;
@@ -131,11 +132,12 @@ namespace InfServer.Script.GameType_SKCTF
 		{	//Does this team now have all the flags?
             bool allFlags = true;
 
-            if(_arena._flags.Values.Count != 0)
-			    foreach (Arena.FlagState fs in _arena._flags.Values)
-                    if(fs.flag != null)
-				        if (fs.team != flag.team)
-					        allFlags = false;
+            if (flag.team == null || _arena._flags == null || _arena._flags.Count == 0)
+                return;
+			foreach (Arena.FlagState fs in _arena._flags.Values)
+                if(fs.flag != null)
+				    if (fs.team != flag.team)
+					    allFlags = false;
 
             if (allFlags && _arena.DesiredTeams.Contains(flag.team))
                 _arena.sendArenaMessage(flag.team._name + " controls all the flags!", 20);
@@ -148,7 +150,7 @@ namespace InfServer.Script.GameType_SKCTF
 		/// </summary>
 		public void gameVictory(Team victors)
 		{	//Game is over.
-            _arena.sendArenaMessage(victors._name + " has reached " + _points.MaxPoints + " points!", 13);
+            _arena.sendArenaMessage(victors._name + " has reached " + _points[victors] + " points!", 13);
 
 
             //Clear out all tickers we use in updateTickers (1,2,3)
@@ -170,11 +172,12 @@ namespace InfServer.Script.GameType_SKCTF
                     rpoints = Convert.ToInt32(rpoints * modifier);
                     rcash = Convert.ToInt32(rcash * modifier);
                     rexperience = Convert.ToInt32(rexperience * modifier);
-                    p.StatsLastGame.bonusPoints += rpoints;
+                    p.BonusPoints += rpoints;
                     p.Cash += rcash;
                     p.Experience += rexperience;
                     p.sendMessage(0, String.Format("Personal Reward: Points={0} Cash={1} Experience={2}",
                         rpoints, rcash, rexperience));
+                    p.syncState();
                 }
             }
 
@@ -208,7 +211,7 @@ namespace InfServer.Script.GameType_SKCTF
                         //Update their ticker with current team points
                         if (!_arena.DesiredTeams.Contains(p._team) && _points != null)
                             return "";
-                        return "Your Team: " + _points[p._team];
+                        return "Your Team: " + _points[p._team] + " points";
                     }
                 );
                 //Other teams points
@@ -219,7 +222,7 @@ namespace InfServer.Script.GameType_SKCTF
                         List<string> otherTeams = new List<string>();
                         foreach (Team t in _arena.DesiredTeams)
                             if (t != p._team)
-                                otherTeams.Add(t._name + ": " + _points[t]);
+                                otherTeams.Add(t._name + ": " + _points[t] + " points");
                         if (otherTeams.Count == 0)
                             return "";
                         return String.Join(", ", otherTeams.ToArray());
@@ -271,9 +274,7 @@ namespace InfServer.Script.GameType_SKCTF
 			_arena.flagSpawn();
 
             //Create some points and subscribe to our point modification event
-            _points.StartingPoints = 0;
-            _points.MaxPoints = 1000;
-            _points = new Points(_arena.ActiveTeams);
+            _points = new Points(_arena.ActiveTeams, 0, 1000);
             _points.PointModify += onPointModify;
 
             //Start keeping track of healing
@@ -281,6 +282,7 @@ namespace InfServer.Script.GameType_SKCTF
 
 			//Let everyone know
 			_arena.sendArenaMessage("Game has started! First team to " + _points.MaxPoints + " points wins!", _config.flag.resetBong);
+            updateTickers();
 
 			return true;
 		}

@@ -18,17 +18,19 @@ namespace InfServer
 	public partial class DBServer : Server
 	{	// Member variables
 		///////////////////////////////////////////////////
-		public ConfigSetting _config;			//Our server config
-		public new LogClient _logger;			//Our zone server log
+		public ConfigSetting _config;			                        //Our server config
+		public new LogClient _logger;			                        //Our zone server log
         public Dictionary<string, Chat> _chats;
-        public Dictionary<string, Zone.Player> _players;      //A list of every connected player
+        public Dictionary<string, Zone.Player> _players;                //A list of every connected player
         public int playerPeak;
 
-		public List<Zone> _zones;				//The zones currently connected
+		public List<Zone> _zones;				                        //The zones currently connected
 
-		private string _connectionString;		//The connectionstring to our database
+        public List<KeyValuePair<int, Data.DB.player>> _squadInvites;   //Our history of squad invites (squadid, database player entity)
 
-		static public bool bAllowMulticlienting;//Should we allow players to join multiple times under the same account?
+		private string _connectionString;		                        //The connectionstring to our database
+
+		static public bool bAllowMulticlienting;                        //Should we allow players to join multiple times under the same account?
 
 
 		///////////////////////////////////////////////////
@@ -44,6 +46,7 @@ namespace InfServer
 			_zones = new List<Zone>();
             _chats = new Dictionary<string, Chat>();
             _players = new Dictionary<string, Zone.Player>();
+            _squadInvites = new List<KeyValuePair<int, Data.DB.player>>();
 		}
 
         public void newPlayer(Zone.Player player)

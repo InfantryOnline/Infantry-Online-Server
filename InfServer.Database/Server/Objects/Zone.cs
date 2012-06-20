@@ -126,7 +126,7 @@ namespace InfServer
             player.alias = alias;
             player.permission = dbplayer.permission;
             player.zone = this;
-            player.arena = ""; //TODO: ?
+            player.arena = "TODO"; //TODO: ?
            
 
 			_players[id] = player;

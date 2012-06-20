@@ -46,10 +46,11 @@ namespace InfServer.Logic
 				//First time loading!
 				player.assignFirstTimeStats(true);
 
-			//Let him in!
+			//Let him in! Set his alias, squad and permissions
 			Helpers.Login_Response(player._client, SC_Login.Login_Result.Success, pkt.loginMessage);
             player._permissionStatic = pkt.permission;
             player._alias = pkt.alias;
+            player._squad = pkt.squad;
 		}
 
         static public void Handle_SC_Whisper(SC_Whisper<Database> pkt, Database db)
