@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,448 +13,554 @@ using Assets;
 
 namespace InfServer.Script.GameType_ZombieZone
 {	/// <summary>
-	/// Represents a type of zombie, including the amount it should spawn
-	/// </summary>
-	public class ZombieType
-	{
-		public VehInfo vehicleType;
-		public Type classType;
-		public int spawnWeight;
+    /// Represents a type of zombie, including the amount it should spawn
+    /// </summary>
+    public class ZombieType
+    {
+        public VehInfo vehicleType;
+        public Type classType;
+        public int spawnWeight;
 
-		public Action<ZombieBot> zombieSetup;
+        public Action<ZombieBot> zombieSetup;
 
-		public ZombieType(Type _classType, VehInfo _vehicleType)
-		{
-			vehicleType = _vehicleType;
-			classType = _classType;
-		}
+        public ZombieType(Type _classType, VehInfo _vehicleType)
+        {
+            vehicleType = _vehicleType;
+            classType = _classType;
+        }
 
-		public ZombieType(Type _classType, VehInfo _vehicleType, Action<ZombieBot> _zombieSetup)
-		{
-			vehicleType = _vehicleType;
-			classType = _classType;
-			zombieSetup = _zombieSetup;
-		}
-	}
+        public ZombieType(Type _classType, VehInfo _vehicleType, Action<ZombieBot> _zombieSetup)
+        {
+            vehicleType = _vehicleType;
+            classType = _classType;
+            zombieSetup = _zombieSetup;
+        }
+    }
 
-	/// <summary>
-	/// Allows the zone to make smooth transitions between zombie types
-	/// </summary>
-	public class ZombieTransitions 
-	{	///////////////////////////////////////////////////
-		// Member Variables
-		///////////////////////////////////////////////////
-		private List<ZombieTransition> transitions;
+    public static class ZombieExtensions
+    {
+        public static List<ZombieType> addType(this List<ZombieType> zombieTypes, ZombieType type, int spawnWeight)
+        {
+            if (spawnWeight <= 0)
+                return zombieTypes;
 
-		private int transIdx;
-		private int tickStartPause;
-		private int tickNextTransition;
+            ZombieType newType = new ZombieType(type.classType, type.vehicleType);
 
-		#region Zombie Types
-		static public ZombieType AlienZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(211));
-		static public ZombieType SuicideZombie = new ZombieType(typeof(SuicideZombieBot), AssetManager.Manager.getVehicleByID(109));
-		static public ZombieType RangedZombie = new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(108),
-			delegate(ZombieBot zombie)
-			{
-				RangedZombieBot z = zombie as RangedZombieBot;
-				z.farDist = 3.4f; z.shortDist = 2.6f; z.runDist = 2.0f;
-			}
-		);
-		static public ZombieType HiveZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(105));
-		static public ZombieType PredatorZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(103));
-		static public ZombieType DerangedZombie = new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(104),
-			delegate(ZombieBot zombie)
-			{
-				RangedZombieBot z = zombie as RangedZombieBot;
-				z.farDist = 3.4f; z.shortDist = 2.6f; z.runDist = 2.0f;
-			}
-		);
-		static public ZombieType RepulsorZombie = new ZombieType(typeof(DualZombieBot), AssetManager.Manager.getVehicleByID(106),
-			delegate(ZombieBot zombie)
-			{
-				DualZombieBot z = zombie as DualZombieBot;
-				z.wepSwitchDist = 2.0f;
-				z.bNoAimFar = true;
-			}
-		);
-		static public ZombieType KamikazeZombie = new ZombieType(typeof(SuicideZombieBot), AssetManager.Manager.getVehicleByID(111));
-		static public ZombieType AcidZombie = new ZombieType(typeof(DualZombieBot), AssetManager.Manager.getVehicleByID(100),
-			delegate(ZombieBot zombie)
-			{
-				DualZombieBot z = zombie as DualZombieBot;
-				z.wepSwitchDist = 1.5f;
-			}
-		);
-		static public ZombieType DisruptorZombie = new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(101),
-			delegate(ZombieBot zombie)
-			{
-				RangedZombieBot z = zombie as RangedZombieBot;
-				z.farDist = 3.4f; z.shortDist = 2.6f; z.runDist = 2.0f;
-			}
-		);
-		#endregion Zombie Types
+            newType.zombieSetup = type.zombieSetup;
+            newType.spawnWeight = spawnWeight;
 
-		///////////////////////////////////////////////////
-		// Member Classes
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Represents the zombie composition of a snapshot in game time
-		/// </summary>
-		public class ZombieTransition
-		{
-			public int resetZombieCountTo;						//Resets the zombie count to a specified number
-			public Action<Script_ZombieZone.TeamState> started;	//Called when the transition is started
+            zombieTypes.Add(newType);
 
-			public bool bWave;									//Is this transition just a wave of zombies? If so, we just spawn the given zombies
+            return zombieTypes;
+        }
+    }
 
-			public bool bStarted;								//Has this transition started, or are we waiating on the threshold?
-			public int zombiePopThreshold;						//The zombie population to wait for before we start the wave
-			public Action<ZombieTransition> thresholdReached;	//Triggered when the population threshold has been reached
+    public class ZombieParameters
+    {
+        public int playing;
+        public int camp;
+        public int separation;
+        public int pauses;
+        public int kingKills;
+        public float kingLevel;
 
-			public List<ZombieType> types;						//The types of zombies present in the transition with their corresponding spawn weights
-			public int gameTime;								//The amount of time this transition lasts for
-			public int pauseTime;								//The time between transitions where no zombies are spawned at all
+        public int vehicleClass;  //how much we increase multiplier due to vehicle
 
-			public float zombieCountMod;						//The maximum zombie count modifier while this transition is in effect
-			public bool bPauseZombieAdd;						//Should we not increase the zombie count while this transition is in place?
+        public ZombieParameters() { }
+    }
+    
+    public class TickerInfo
+    {
+        public Player player;
+        public Script_ZombieZone.TeamState state;
+        
+        //mnemonic for when this is about zombies; absolutely no check for this
+        public Script_ZombieZone.TeamState targetState
+        {
+            get
+            {
+                return state;
+            }
+        }
+        
+        public int time; //amount of time remaining
+        
+        public string timeString
+        {
+            get
+            {
+                return String.Format("{0}:{1}",time/60, (time < 10 ? "0" : "") + (time % 60) );
+            }
+        }
+        
+        public TickerInfo(Player p, Script_ZombieZone.TeamState s, int t) 
+        {
+            player = p;
+            state = s;
+            time = t;
+        }
+    }
 
-			public ZombieTransition(Action<ZombieTransition> thresholdCallback)
-			{
-				thresholdReached = thresholdCallback;
-				types = new List<ZombieType>();
+    /// <summary>
+    /// Allows the zone to make smooth transitions between zombie types
+    /// </summary>
+    public class ZombieTransitions
+    {	///////////////////////////////////////////////////
+        // Member Variables
+        ///////////////////////////////////////////////////
+        private List<ZombieTransition> transitions;
 
-				zombieCountMod = 1.0f;
-				pauseTime = 15000;
-			}
+        private int transIdx;
+        private int tickStartPause;
+        private int tickNextTransition;
 
-			public void addType(ZombieType type, int spawnWeight)
-			{
-				ZombieType newType = new ZombieType(type.classType, type.vehicleType);
+        public int currentLevel;
 
-				newType.zombieSetup = type.zombieSetup;
-				newType.spawnWeight = spawnWeight;
+        public const int defaultSpawnRate = 800;
+        public const int defaultMinSpawn = 1000;
+        public const int defaultMaxSpawn = 1500;
+        public const int numFinalWaves = 2;     //the number of final waves we're inserting here; affects where subsequent transitions are inserted into list.  (Note: includes grace period.)
 
-				types.Add(newType);
-			}
+        public delegate List<ZombieType> ZombieComposition(ZombieParameters parameters);
+        public delegate int ZombieInt(ZombieParameters parameters);
+        public delegate void Spawner(ZombieType ztype, Helpers.ObjectState state = null, int minDist = 0, int maxDist = 0);
+        public delegate string TickerMessage(TickerInfo info);
 
-			public ZombieType getRandomType(Random rand)
-			{
-				int maxWeight = 0;
+        public Spawner defaultSpawner;
 
-				foreach (ZombieType zt in types)
-					maxWeight += zt.spawnWeight;
+        #region Zombie Types
+        static public ZombieType AlienZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(211));
+        static public ZombieType HumanZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(250));
+        static public ZombieType SuicideZombie = new ZombieType(typeof(SuicideZombieBot), AssetManager.Manager.getVehicleByID(109));
+        static public ZombieType RangedZombie = new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(108),
+            delegate(ZombieBot zombie)
+            {
+                RangedZombieBot z = zombie as RangedZombieBot;
+                z.farDist = 3.4f; z.shortDist = 2.6f; z.runDist = 2.0f;
+            }
+        );
+        static public ZombieType HiveZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(105));
+        static public ZombieType LairZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(123));
+        //static public ZombieType HiveZombie = new ZombieType(typeof(DuelBot), AssetManager.Manager.getVehicleByID(105));
+        //static public ZombieType LairZombie = new ZombieType(typeof(DuelBot), AssetManager.Manager.getVehicleByID(123));
 
-				int chosen = rand.Next(maxWeight + 1);
+        static public ZombieType InfectedZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(256));
+        static public ZombieType InfestedZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(257));
+        static public ZombieType InfatuatedZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(258));
+        static public ZombieType PredatorZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(103));
+        static public ZombieType DerangedZombie = new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(104),
+            delegate(ZombieBot zombie)
+            {
+                RangedZombieBot z = zombie as RangedZombieBot;
+                z.farDist = 3.4f; z.shortDist = 2.6f; z.runDist = 2.0f;
+            }
+        );
 
-				foreach (ZombieType zt in types)
-				{
-					chosen -= zt.spawnWeight;
-					if (chosen <= 0)
-						return zt;
-				}
+        static public ZombieType RageZombie = new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(125),
+            delegate(ZombieBot zombie)
+            {
+                RangedZombieBot z = zombie as RangedZombieBot;
+                z.farDist = 3.4f; z.shortDist = 2.6f; z.runDist = 2.0f;
+            }
+        );
+        static public ZombieType RepulsorZombie = new ZombieType(typeof(DualZombieBot), AssetManager.Manager.getVehicleByID(106),
+            delegate(ZombieBot zombie)
+            {
+                DualZombieBot z = zombie as DualZombieBot;
+                z.wepSwitchDist = 2.0f;
+                z.bNoAimFar = true;
+            }
+        );
+        static public ZombieType KamikazeZombie = new ZombieType(typeof(SuicideZombieBot), AssetManager.Manager.getVehicleByID(111));
+        static public ZombieType DestroyerZombie = new ZombieType(typeof(SuicideZombieBot), AssetManager.Manager.getVehicleByID(131));
+        static public ZombieType DeathZombie = new ZombieType(typeof(SuicideZombieBot), AssetManager.Manager.getVehicleByID(122));
+        static public ZombieType AcidZombie = new ZombieType(typeof(DualZombieBot), AssetManager.Manager.getVehicleByID(100),
+            delegate(ZombieBot zombie)
+            {
+                DualZombieBot z = zombie as DualZombieBot;
+                z.wepSwitchDist = 1.5f;
+            }
+        );
+        static public ZombieType AsgardianZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(251));
+        static public ZombieType KryptonianZombie = new ZombieType(typeof(ZombieBot), AssetManager.Manager.getVehicleByID(252));
+        static public ZombieType DisruptorZombie = new ZombieType(typeof(RangedZombieBot), AssetManager.Manager.getVehicleByID(101),
+            delegate(ZombieBot zombie)
+            {
+                RangedZombieBot z = zombie as RangedZombieBot;
+                z.farDist = 3.4f; z.shortDist = 2.6f; z.runDist = 2.0f;
+            }
+        );
 
-				Log.write(TLog.Error, "ZombieTransition getType fell through.");
-				return types[0];
-			}
+        static public ZombieType DoomZombie = new ZombieType(typeof(DualZombieBot), AssetManager.Manager.getVehicleByID(124),
+            delegate(ZombieBot zombie)
+            {
+                DualZombieBot z = zombie as DualZombieBot;
+                z.wepSwitchDist = 1.5f;
+            }
+        );
+        #endregion Zombie Types
 
-			/*public ZombieType getRandomPlayerType(Random rand)
-			{	//Dont allow the player to spawn as a suicide zombie
-				int maxWeight = 0;
+        ///////////////////////////////////////////////////
+        // Member Classes
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Represents the zombie composition of a snapshot in game time
+        /// </summary>
+        public class ZombieTransition
+        {
+            public Action<Script_ZombieZone.TeamState> started;	//optionally set, called when the transition is started
+            public Action<Script_ZombieZone.TeamState> final;	//optionally set, called when the transition is in final stage (should use tryFinalAction)
+            public Action<Script_ZombieZone.TeamState> ended;	//optionally set, called when the transition is ending
 
-				foreach (ZombieType zt in types)
-				{
-					if (ZombieZoneStats.isPlayableZombie(zt.vehicleType.Id))
-						maxWeight += zt.spawnWeight;
-				}
+            public ZombieComposition initialWave = emptyComposition(), spawnComposition = emptyComposition();
 
-				int chosen = rand.Next(maxWeight + 1);
+            public ZombieInt initialZombieCount
+            {
+                get
+                {
+                    return InitialZombieCount;
+                }
 
-				foreach (ZombieType zt in types)
-				{
-					if (!ZombieZoneStats.isPlayableZombie(zt.vehicleType.Id))
-						continue;
+                set
+                {
+                    InitialZombieCount = parameters => Math.Max(0, value(parameters));
+                }
+            }
 
-					chosen -= zt.spawnWeight;
-					if (chosen <= 0)
-						return zt;
-				}
+            public ZombieInt finalZombieCount
+            {
+                get
+                {
+                    return FinalZombieCount;
+                }
 
-				//If no zombies are suitable, use the alien zombie
-				if (!ZombieZoneStats.isPlayableZombie(types[0].vehicleType.Id))
-					return AlienZombie;
+                set
+                {
+                    FinalZombieCount = parameters => Math.Max(0, value(parameters));
+                }
+            }
 
-				return types[0];
-			}*/
-		}
+            public ZombieInt spawnRate = constInt(defaultSpawnRate), minSpawnDistance = constInt(defaultMinSpawn), maxSpawnDistance = constInt(defaultMaxSpawn), InitialZombieCount = constInt(0), FinalZombieCount = constInt(0);
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		public ZombieTransitions()
-		{	//Start with no transition!
-			transIdx = -1;
-			transitions = new List<ZombieTransition>();
+            private int time_initialToFinal;                      //The amount of time between initial and final spawn
+            private int time_spawnAfterFinal;                         //The amount of time we continue to spawn after final
 
-			addPhase1(transitions);
-			addPhase2(transitions);
-			addPhase3(transitions);
-		}
+            private int time_initialStarted = -1;  //when did we actually start the transition (or pretend to, if we paused)
+            private int time_resume = -1;          //if -1, n/a.  otherwise we resume at this time.
 
-		#region Transition setup
-		/// <summary>
-		/// Returns a new transition to make, if any
-		/// </summary>
-		public void addPhase1(List<ZombieTransition> transitions)
-		{	//Start! just pure melee zombie cannon fodder
-			ZombieTransition trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 70;
-			trans.addType(AlienZombie, 1);
-			transitions.Add(trans);
+            private bool performed_finalAction = false;
 
-			//.. adding a little suicidal fun
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 70;
-			trans.addType(AlienZombie, 4);
-			trans.addType(SuicideZombie, 1);
-			transitions.Add(trans);
+            public Spawner spawner;
 
-			//INSTANT MELEE ATTACK
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 15;
-			trans.bWave = true;
-			trans.bPauseZombieAdd = true;
-			trans.zombiePopThreshold = 1;
-			trans.addType(AlienZombie, 2);
-			transitions.Add(trans);
+            public int level;     //how hard is this transition (currently used for cloak/pheremone)
 
-			//.. a little ranged in there
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 80;
-			trans.addType(AlienZombie, 4);
-			trans.addType(SuicideZombie, 1);
-			trans.addType(RangedZombie, 2);
-			transitions.Add(trans);
+            public TickerMessage[] humanTickers, zombieTickers;
 
-			//INSTANT SUICIDE ATTACK
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 15;
-			trans.bWave = true;
-			trans.bPauseZombieAdd = true;
-			trans.zombiePopThreshold = 2;
-			trans.addType(SuicideZombie, 2);
-			transitions.Add(trans);
+            public int initialTime
+            {
+                get
+                {
+                    return time_initialToFinal;
+                }
 
-			//.. predators and suicides!
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 80;
-			trans.addType(PredatorZombie, 1);
-			trans.addType(AlienZombie, 3);
-			trans.addType(SuicideZombie, 1);
-			transitions.Add(trans);
+                set
+                {
+                    time_initialToFinal = value * 1000;
+                }
+            }
 
-			//INSTANT MELEE INVASION
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 15;
-			trans.bWave = true;
-			trans.bPauseZombieAdd = true;
-			trans.zombiePopThreshold = 5;
-			trans.addType(AlienZombie, 3);
-			transitions.Add(trans);
+            public int finalTime
+            {
+                get
+                {
+                    return time_spawnAfterFinal;
+                }
 
-			//.. hive swarm
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 50;
-			trans.zombieCountMod = 1.25f;
-			trans.addType(HiveZombie, 1);
-			transitions.Add(trans);
+                set
+                {
+                    time_spawnAfterFinal = value * 1000;
+                }
+            }
 
-			//.. slow ranged and suicide combo!
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 50;
-			trans.addType(RepulsorZombie, 1);
-			trans.addType(PredatorZombie, 1);
-			trans.addType(DerangedZombie, 1);
-			trans.addType(SuicideZombie, 2);
-			transitions.Add(trans);
-		}
+            public ZombieTransition(Spawner s, int lev = 0)
+            {
+                spawner = s;
+                level = lev;
+                initialWave = emptyComposition();
+                humanTickers = new TickerMessage[Script_ZombieZone.numTickers];
+                zombieTickers = new TickerMessage[Script_ZombieZone.numTickers];
+            }
 
-		/// <summary>
-		/// Returns a new transition to make, if any
-		/// </summary>
-		public void addPhase2(List<ZombieTransition> transitions)
-		{	//Start with a few nasty kamekazi zombies
-			ZombieTransition trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 50;
-			trans.zombiePopThreshold = 3;
-			trans.resetZombieCountTo = 3;
-			trans.started = delegate(Script_ZombieZone.TeamState state)
-			{
-				state.team.sendArenaMessage("The zombies are regrouping, prepare yourself!");
-			};
-			trans.addType(KamikazeZombie, 1);
-			trans.addType(DerangedZombie, 1);
-			transitions.Add(trans);
 
-			//.. adding a little melee to the kamekazi action
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 90;
-			trans.addType(KamikazeZombie, 1);
-			trans.addType(AlienZombie, 1);
-			trans.addType(AcidZombie, 1);
-			transitions.Add(trans);
+            public void tryFinalAction(Script_ZombieZone.TeamState state)
+            {
+                if (!performed_finalAction)
+                {
+                    if (final != null)
+                        final(state);
 
-			//.. switch the suicide with some range!
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 80;
-			trans.addType(DerangedZombie, 1);
-			trans.addType(AlienZombie, 2);
-			trans.addType(AcidZombie, 2);
-			transitions.Add(trans);
+                    performed_finalAction = true;
+                }
+            }
 
-			//.. a wave!
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 30;
-			trans.bWave = true;
-			trans.bPauseZombieAdd = true;
-			trans.zombiePopThreshold = 3;
-			trans.addType(KamikazeZombie, 1);
-			trans.addType(AcidZombie, 1);
-			trans.addType(AlienZombie, 1);
-			trans.addType(DisruptorZombie, 1);
-			transitions.Add(trans);
+            public int zombieCount(int now, ZombieParameters parameters)
+            {
+                if (time_initialStarted < 0 || time_resume >= 0 && now < time_resume)  //if we haven't started yet or are waiitng to resume
+                    return 0;
+                else if (isDone(now))
+                    return 0;
+                else if (now > time_initialStarted + time_initialToFinal) //we've past the final time
+                    return finalZombieCount(parameters);
+                else if (time_initialToFinal == 0)  //avoid division by 0
+                    return Math.Max(initialZombieCount(parameters), finalZombieCount(parameters));
+                else  //returns the linear interpolation between initial and final
+                {
+                    return initialZombieCount(parameters) * (time_initialStarted + time_initialToFinal - now) / time_initialToFinal + finalZombieCount(parameters) * (now - time_initialStarted) / time_initialToFinal;
+                }
+            }
 
-			//.. throw a nasty hive/acid zombie swarm in
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 60;
-			trans.zombieCountMod = 1.3f;
-			trans.addType(HiveZombie, 3);
-			trans.addType(AcidZombie, 1);
-			transitions.Add(trans);
+            public void start(int now, ZombieParameters parameters)
+            {
+                if (time_initialStarted >= 0)
+                {
+                    Log.write(TLog.Error, "Tried to start transition that has already started.");
+                    return;
+                }
 
-			//.. add a little ranged to it
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 60;
-			trans.zombieCountMod = 1.3f;
-			trans.addType(HiveZombie, 4);
-			trans.addType(AcidZombie, 1);
-			trans.addType(DerangedZombie, 1);
-			trans.addType(DisruptorZombie, 1);
-			transitions.Add(trans);
+                //spawns initial wave
+                List<ZombieType> wave = initialWave(parameters);
+                int minD = minSpawnDistance(parameters);
+                int maxD = maxSpawnDistance(parameters);
 
-			//.. nasty repulsor wave!
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 20;
-			trans.bWave = true;
-			trans.bPauseZombieAdd = true;
-			trans.zombiePopThreshold = 4;
-			trans.addType(RepulsorZombie, 1);
-			trans.addType(AcidZombie, 1);
-			trans.addType(DerangedZombie, 1);
-			transitions.Add(trans);
+                foreach (ZombieType zt in wave)
+                    for (int i = 0; i < zt.spawnWeight; ++i)
+                        spawner(zt, minDist: minD, maxDist: maxD);
 
-			//.. a large, balanced army
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 70;
-			trans.addType(AcidZombie, 2);
-			trans.addType(RepulsorZombie, 1);
-			trans.addType(DisruptorZombie, 1);
-			trans.addType(RepulsorZombie, 1);
-			trans.addType(DerangedZombie, 1);
-			trans.addType(KamikazeZombie, 1);
-			transitions.Add(trans);
+                time_initialStarted = now;
 
-			//.. we've made it.. for now!
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 30;
-			trans.resetZombieCountTo = 3;
-			trans.zombiePopThreshold = 4;
-			trans.started = delegate(Script_ZombieZone.TeamState state)
-			{
-				state.team.sendArenaMessage("The zombies are regrouping, prepare yourself!");
-			};
+            }
 
-			trans.addType(AcidZombie, 1);
-			transitions.Add(trans);
-		}
+            public bool notStartedYet()
+            {
+                return time_initialStarted < 0;
+            }
 
-		/// <summary>
-		/// Returns a new transition to make, if any
-		/// </summary>
-		public void addPhase3(List<ZombieTransition> transitions)
-		{	//Start with a few nasty kamekazi zombies
-			ZombieTransition trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 60;
-			trans.bWave = true;
-			trans.bPauseZombieAdd = true;
-			trans.addType(DerangedZombie, 20);
-			trans.addType(KamikazeZombie, 20);
-			trans.started = delegate(Script_ZombieZone.TeamState state)
-			{
-				state.team.sendArenaMessage("aaerox hasn't coded this far. Die now!");
-			};
-			transitions.Add(trans);
+            public int endTick()
+            {
+                if (notStartedYet())
+                    return -1;
 
-			trans = new ZombieTransition(transitionStarted);
-			trans.gameTime = 120;
-			trans.resetZombieCountTo = 50;
-			trans.addType(DerangedZombie, 1);
-			trans.addType(KamikazeZombie, 1);
-			transitions.Add(trans);
-		}
-		#endregion
+                return time_initialStarted + time_initialToFinal + time_spawnAfterFinal;
+            }
 
-		/// <summary>
-		/// Returns a new transition to make, if any
-		/// </summary>
-		public ZombieTransition getNewTransition(int tickCount, out bool bPause)
-		{	//Start pausing?
-			bPause = (tickCount > tickStartPause);
+            public int secondsUntilEnd(int now)
+            {
+                if (notStartedYet())
+                    return -1;
 
-			//Is it time to goto the next transition?
-			if (tickNextTransition > tickCount)
-				return null;
+                return (endTick() - now) / 1000;
+            }
 
-			//Are we on the last?
-			if (transIdx + 1 >= transitions.Count)
-				return null;
+            public bool isDone(int now)
+            {
+                return time_initialStarted > 0 && now > endTick();
+            }
 
-			ZombieTransition trans = transitions[++transIdx];
+            public bool finaleStarted(int now)
+            {
+                return time_initialStarted > 0 && now > time_initialStarted + time_initialToFinal;
+            }
 
-			//Yes! Do we wait for a wave threshold first?
-			if (trans.zombiePopThreshold > 0)
-			{
-				tickNextTransition = int.MaxValue;
-				tickStartPause = int.MaxValue;
-			}
-			else
-			{
-				tickNextTransition = tickCount + (trans.gameTime * 1000) + trans.pauseTime;
-				tickStartPause = tickNextTransition - trans.pauseTime;
-			}
+            public void pauseFor(int pause, int now)  //pause and now are in ticks
+            {
+                if (time_initialStarted < 0)
+                    Log.write(TLog.Error, "Tried to set resumption for transition that hasn't started yet.");
+                else if (pause > 0)
+                {
+                    time_initialStarted += pause;   //pretend that we started later in order to resume in the right place
+                    time_resume = now + pause;
+                }
+            }
 
-			//Return whatever we found
-			return trans;
-		}
+            //the number of seconds until we resume (or -1 if we're not waiting)
+            public int secondsUntilResume(int now)
+            {
+                if (notStartedYet() || isDone(now) || time_resume < now)
+                    return -1;
 
-		/// <summary>
-		/// Delays the next transition by the specified amount
-		/// </summary>
-		public void delayTransition(int ticks)
-		{
-			tickNextTransition += ticks;
-			tickStartPause += ticks;
-		}
+                return (time_resume - now) / 1000;
+            }
 
-		/// <summary>
-		/// Starts the lastgame timer
-		/// </summary>
-		public void transitionStarted(ZombieTransition t)
-		{
-			tickNextTransition = Environment.TickCount + (t.gameTime * 1000) + t.pauseTime;
-			tickStartPause = tickNextTransition - t.pauseTime;
-		}
-	}
+            public void spawnRandomType(Random rand, ZombieParameters parameters)
+            {
+                spawner(getRandomType(rand, parameters), minDist: minSpawnDistance(parameters), maxDist: maxSpawnDistance(parameters));
+            }
+
+            public ZombieType getRandomType(Random rand, ZombieParameters parameters)
+            {
+                return getRandomType(rand, spawnComposition(parameters));
+            }
+
+            public ZombieType getRandomType(Random rand, List<ZombieType> types)
+            {
+                int maxWeight = 0;
+
+                foreach (ZombieType zt in types)
+                    maxWeight += zt.spawnWeight;
+
+                int chosen = rand.Next(maxWeight + 1);
+
+                foreach (ZombieType zt in types)
+                {
+                    chosen -= zt.spawnWeight;
+                    if (chosen <= 0)
+                        return zt;
+                }
+
+                Log.write(TLog.Error, "ZombieTransition getType fell through; spawnComposition was probably not defined.");
+                return AlienZombie;
+            }
+        }
+
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public ZombieTransitions(Spawner s)
+        {	//Start with no transition!
+            transIdx = -1;
+            transitions = new List<ZombieTransition>();
+
+            defaultSpawner = s;
+
+            addMastarPhase();
+        }
+
+        #region Transition setup
+        public void addMastarPhase()
+        {
+            ZombieTransition trans = new ZombieTransition(defaultSpawner, 3);
+
+            trans.spawnComposition = constComposition((new List<ZombieType>()).addType(DeathZombie, 5).addType(DerangedZombie, 1));
+            trans.initialZombieCount = constInt(5);
+            trans.initialTime = 20;
+            trans.finalZombieCount = constInt(15);
+            trans.finalTime = 30;
+            trans.spawnRate = constInt(100);
+            trans.minSpawnDistance = constInt(0);
+            trans.maxSpawnDistance = constInt(30);
+
+            trans.started = delegate(Script_ZombieZone.TeamState state)
+            {
+                state.wipeOut();
+                state.team.sendArenaMessage("mastar hasn't coded this far.  Have a good next game.");
+                state.zombieMessage("It is Time for those who DIE and DIE AGAIN - DIE ONCE MORE.");
+            };
+
+            trans.final = delegate(Script_ZombieZone.TeamState state)
+            {
+                state.wipeOut();
+                state.team.sendArenaMessage("You've beaten the game somehow.  Time to die/spec.");
+                state.zombieMessage("The infection contained within all of us now emerges.  They were doomed to failure from the start.");
+            };
+
+            trans.ended = delegate(Script_ZombieZone.TeamState state)
+            {
+                foreach (Player player in state.team.ActivePlayers.ToList())
+                    player.inventoryModify(AssetManager.Manager.getItemByName("MinusHealth"), 500);
+            };
+
+            transitions.Add(trans);
+
+            //specs them if the previous kill failed.  20 seconds after to clean up.
+            trans = gracePeriod(2, false);
+            trans.final = delegate(Script_ZombieZone.TeamState state)
+            {
+                foreach (Player player in state.team.ActivePlayers.ToList())
+                    if (!player.IsDead && !player.isZombie())
+                        player.spec("spec");
+            };
+            trans.finalTime = 20;
+            transitions.Add(trans);
+        }
+
+        //adds a grace period to the list
+        public ZombieTransition gracePeriod(int seconds, bool addToList = true)
+        {
+            ZombieTransition grace = new ZombieTransition(emptySpawner(), currentLevel);
+            grace.initialTime = seconds;
+
+            if (addToList)
+                addTransition(grace);
+
+            return grace; //returns it in case we want to add any messages to it
+        }
+
+        public static Spawner emptySpawner()
+        {
+            return delegate(ZombieType ztype, Helpers.ObjectState state, int minDist, int maxDist) { };
+        }
+
+        public static ZombieComposition emptyComposition()
+        {
+            return constComposition(new List<ZombieType>());
+        }
+
+        public static ZombieComposition constComposition(List<ZombieType> types)
+        {
+            return (parameters) => types;
+        }
+
+
+        public static ZombieInt constInt(int i)
+        {
+            return (parameters) => i;
+        }
+
+
+        #endregion
+
+        public void pop()
+        {
+            if (transitions.Count > 0)
+                transitions.RemoveAt(0);
+            else
+                Log.write(TLog.Error, "Tried to pop from empty transition list.");
+        }
+
+        public ZombieTransition currentTransition()
+        {
+            if (transitions.Count > 0)
+                return transitions[0];
+            else
+            {
+                Log.write(TLog.Error, "Tried to get transition from empty list.");
+                return gracePeriod(10, false);
+            }
+        }
+
+        public ZombieTransition newTransition(bool addToList = true)
+        {
+            return newTransition(defaultSpawner, addToList);
+        }
+
+        public ZombieTransition newTransition(Spawner s, bool addToList = true)
+        {
+            ZombieTransition trans = new ZombieTransition(s, currentLevel);
+
+            if (addToList)
+                addTransition(trans);
+
+            return trans;
+        }
+
+        //adds transition to the back, prior to any class-defined final waves.
+        public void addTransition(ZombieTransition newTransition)
+        {
+            transitions.Insert(transitions.Count - numFinalWaves, newTransition);
+        }
+
+    }
 }

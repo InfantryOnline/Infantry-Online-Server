@@ -15,124 +15,145 @@ using Bnoerj.AI.Steering;
 
 namespace InfServer.Script.GameType_ZombieZone
 {
-	// KingZombieBot Class
-	/// The king zombie, forever hunting the enemy team
-	///////////////////////////////////////////////////////
-	public class KingZombieBot : ZombieBot
-	{	// Member variables
-		///////////////////////////////////////////////////
-		private WeaponController _weaponClose;
+    // KingZombieBot Class
+    /// The king zombie, forever hunting the enemy team
+    ///////////////////////////////////////////////////////
+    public class KingZombieBot : ZombieBot
+    {	// Member variables
+        ///////////////////////////////////////////////////
+        private WeaponController _weaponClose;
+        private WeaponController[] weapons;
+        public float[] ranges;
 
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Generic constructor
-		/// </summary>
-		public KingZombieBot(VehInfo.Car type, Helpers.ObjectState state, Arena arena, Script_ZombieZone _zz)
-			: base(type, state, arena, _zz)
-		{
-			bOverriddenPoll = true;
-			_weaponClose = new WeaponController(_state, new WeaponController.WeaponSettings());
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        public KingZombieBot(VehInfo.Car type, Helpers.ObjectState state, Arena arena, Script_ZombieZone _zz)
+            : base(type, state, arena, _zz)
+        {
+            bOverriddenPoll = true;
 
-			//Setup our second weapon
-			if (type.InventoryItems[1] != 0)
-				_weaponClose.equip(AssetManager.Manager.getItemByID(type.InventoryItems[1]));
-		}
+            weapons = new WeaponController[type.InventoryItems.Length];
 
-		/// <summary>
-		/// Looks after the bot's functionality
-		/// </summary>
-		public override bool poll()
-		{	//Dead? Do nothing
-			if (IsDead)
-			{
-				steering.steerDelegate = null;
-				return base.poll();
-			}
+            //Setup our weapons
+            for (int i = 0; i < type.InventoryItems.Length; i++)
+            {
+                if (type.InventoryItems[i] != 0)
+                {
+                    weapons[i] = new WeaponController(_state, new WeaponController.WeaponSettings());
+                    weapons[i].equip(AssetManager.Manager.getItemByID(type.InventoryItems[i]));
+                }
+                else
+                    weapons[i] = null;
+            }
+        }
 
-			int now = Environment.TickCount;
+        /// <summary>
+        /// Looks after the bot's functionality
+        /// </summary>
+        public override bool poll()
+        {	//Dead? Do nothing
+            if (IsDead)
+            {
+                steering.steerDelegate = null;
+                return base.poll();
+            }
 
-			if (checkCircumstances())
-				return base.poll();
+            int now = Environment.TickCount;
 
-			//Get the closest player
-			bool bClearPath = false;
-			victim = getTargetPlayer(ref bClearPath);
+            if (checkCircumstances())
+                return base.poll();
 
-			if (victim != null)
-			{
-				if (bClearPath)
-				{	//Persue directly!
-					steering.steerDelegate = steerForPersuePlayer;
+            //Get the closest player
+            bool bClearPath = false;
+            victim = getTargetPlayer(ref bClearPath);
 
-					//Which weapon should we use?
-					WeaponController weapon = _weapon;
-					double distance = (_state.position() - victim._state.position()).Length;
-					bool bClose = (distance < 1.0);
+            if (victim != null)
+            {
+                if (bClearPath)
+                {	//Persue directly!
+                    steering.steerDelegate = steerForPersuePlayer;
 
-					if (bClose)
-						weapon = _weaponClose;
+                    //Which weapon should we use?
+                    WeaponController weapon = _weapon;
+                    double distance = (_state.position() - victim._state.position()).Length;
 
-					//Can we shoot?
-					if (weapon.ableToFire())
-					{
-						int aimResult = weapon.getAimAngle(victim._state);
+                    //choose weapon to use based on range
+                    for (int i = 0; i < ranges.Length; i++)
+                    {
+                        if (weapons[i] == null)  //the bot doesn't have this weapon'
+                            continue;
+                        else if (distance < ranges[i])  //we're in the required range for this weapon! (and not previous ones)
+                        {
+                            weapon = weapons[i];
+                            break;
+                        }
+                        else
+                            weapon = weapons[i];    //sticks in weapon anyway, to prevent error - but this will be replaced
+                    }
 
-						if (weapon.isAimed(aimResult))
-						{	//Spot on! Fire?
-							_itemUseID = weapon.ItemID;
-							weapon.shotFired();
-						}
+                    //Can we shoot?
+                    if (weapon.ableToFire())
+                    {
+                        int aimResult = weapon.getAimAngle(victim._state);
 
-						steering.bSkipAim = true;
-						steering.angle = aimResult;
-					}
-					else
-						steering.bSkipAim = false;
-				}
-				else
-				{	//Does our path need to be updated?
-					if (now - _tickLastPath > Script_ZombieZone.c_zombiePathUpdateInterval)
-					{	//Update it!
-						_tickLastPath = int.MaxValue;
+                        if (weapon.isAimed(aimResult))
+                        {	//Spot on! Fire?
+                            _itemUseID = weapon.ItemID;
+                            weapon.shotFired();
+                        }
 
-						_arena._pathfinder.queueRequest(
-							(short)(_state.positionX / 16), (short)(_state.positionY / 16),
-							(short)(victim._state.positionX / 16), (short)(victim._state.positionY / 16),
-							delegate(List<Vector3> path, int pathLength)
-							{
-								if (path != null)
-								{	
-									_path = path;
-									_pathTarget = 1;
-								}
+                        steering.bSkipAim = true;
+                        steering.angle = aimResult;
+                    }
+                    else
+                        steering.bSkipAim = false;
+                }
+                else
+                {	//Does our path need to be updated?
+                    if (now - _tickLastPath > Script_ZombieZone.c_zombiePathUpdateInterval)
+                    {	//Update it!
+                        _tickLastPath = int.MaxValue;
 
-								_tickLastPath = now;
-							}
-						);
-					}
+                        _arena._pathfinder.queueRequest(
+                            (short)(_state.positionX / 16), (short)(_state.positionY / 16),
+                            (short)(victim._state.positionX / 16), (short)(victim._state.positionY / 16),
+                            delegate(List<Vector3> path, int pathLength)
+                            {
+                                if (path != null)
+                                {
+                                    _path = path;
+                                    _pathTarget = 1;
+                                }
 
-					//Navigate to him
-					if (_path == null)
-						//If we can't find out way to him, just mindlessly walk in his direction for now
-						steering.steerDelegate = steerForPersuePlayer;
-					else
-						steering.steerDelegate = steerAlongPath;
-				}
-			}
+                                _tickLastPath = now;
+                            }
+                        );
+                    }
 
-			//Handle normal functionality
-			return base.poll();
-		}
+                    //Navigate to him
+                    if (_path == null)
+                        //If we can't find out way to him, just mindlessly walk in his direction for now
+                        steering.steerDelegate = steerForPersuePlayer;
+                    else
+                        steering.steerDelegate = steerAlongPath;
+                }
+            }
 
-		/// <summary>
-		/// Checks for any distractions we should approach
-		/// </summary>
-		protected override bool checkForDistractions(Script_ZombieZone.TeamState state)
-		{	//We don't get distracted!
-			return false;
-		}
-	}
+            //Handle normal functionality
+            return base.poll();
+        }
+
+        /// <summary>
+        /// Checks for any distractions we should approach
+        /// </summary>
+        protected override bool checkForDistractions(Script_ZombieZone.TeamState state)
+        {	//We don't get distracted!
+            return false;
+        }
+    }
 }

@@ -15,10 +15,16 @@ namespace InfServer.Script.GameType_ZombieZone
 	// HealingBotTurret Class
 	/// A healing turret which shoots at teammates
 	///////////////////////////////////////////////////////
-	public class HealingBotTurret : Computer
+	public class EnergizerBotTurret : Computer
 	{	// Member variables
 		///////////////////////////////////////////////////
-
+    int energyPerCharge = 200;
+    
+    public const bool shootAtVehicles = false;      //do we fire at players in vehicles?
+    public const bool chargeInVehicles = false;        //do we charge players in vehicles?
+    
+    public const bool shootOccludedPlayers = false; //do we fire at occluded players?
+    public const bool chargeOccludedPlayers = false;   //do we charge occluded players?
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -26,9 +32,24 @@ namespace InfServer.Script.GameType_ZombieZone
 		/// <summary>
 		/// Generic constructor
 		/// </summary>
-		public HealingBotTurret(VehInfo.Computer type, Arena arena)
+		public EnergizerBotTurret(VehInfo.Computer type, Arena arena)
 			: base(type, arena)
 		{
+		}
+		
+		public override bool poll()
+		{
+			  bool returnPacket = base.poll();  //base returns whether we should return packet, also modifies _shouldFire
+		    
+		    if(_shouldFire)
+		    {
+		        foreach (Player p in _team.ActivePlayers.ToList())
+		            if (InRange(p) && (chargeInVehicles || p._occupiedVehicle == null) && (chargeOccludedPlayers || !IsPlayerOccluded(p)) )
+		                p.inventoryModify(AssetManager.Manager.getItemByName("Energy"), energyPerCharge);    
+
+		    }
+		    
+		    return returnPacket;
 		}
 
 		/// <summary>
@@ -46,10 +67,10 @@ namespace InfServer.Script.GameType_ZombieZone
 			if (p.IsDead) return false;
 
 			// Don't fire at people in a vehicle
-			if (p._occupiedVehicle != null) return false;
+			if (!shootAtVehicles && p._occupiedVehicle != null) return false;
 
 			// Don't fire at people with full health
-			if (p._baseVehicle._type.Hitpoints == p._state.health) return false;
+			if (p._baseVehicle._type.EnergyMax == p._state.energy) return false;
 
 			// Don't fire at people outside of turret's firing range
 			if (!InRange(p)) return false;
@@ -62,8 +83,8 @@ namespace InfServer.Script.GameType_ZombieZone
 
 			// TODO: do not fire at people out of turret angle limits
 
-			// TODO: do not fire at people out of LOS (complicated calculation)
-			if (IsPlayerOccluded(p)) return false;
+			// do not fire at people out of LOS (complicated calculation)
+			if (!shootOccludedPlayers && IsPlayerOccluded(p)) return false;
 
 			return true;
 		}

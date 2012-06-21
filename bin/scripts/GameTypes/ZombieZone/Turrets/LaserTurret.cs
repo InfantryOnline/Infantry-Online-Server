@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -136,18 +136,26 @@ namespace InfServer.Script.GameType_ZombieZone
 		protected Vehicle getTargetZombie(Script_ZombieZone.TeamState state)
 		{	//Find the closest valid zombie
 			Vector3 selfpos = _state.position();
-			IEnumerable<ZombieBot> zombies = state.zombies.OrderBy(zomb => zomb._state.position().DistanceSquared(selfpos));
+			
+			IEnumerable<ZombieBot> zombies = state.zombies.ToList().Where(zomb => zomb != null).OrderBy(zomb => zomb._state.position().DistanceSquared(selfpos));
 
+      //goes after zombies first
 			foreach (ZombieBot zombie in zombies)
-				if (isValidTarget(zombie))
-					return zombie;
+		    if (isValidTarget(zombie))
+		       return zombie;
+					
+		  //then the king
+			if (state.kingZombie != null && isValidTarget(state.kingZombie))
+					return state.kingZombie;
 
-			IEnumerable<Player> zombiePlayers = state.zombiePlayers.OrderBy(zomb => zomb._state.position().DistanceSquared(selfpos));
+      //then finally the players
+		  IEnumerable<Player> zombiePlayers = state.zombiePlayers.ToList().Where(zomb => zomb != null).OrderBy(zomb => zomb._state.position().DistanceSquared(selfpos));
+			
+	 	 foreach (Player zombie in zombiePlayers)
+		    if (!zombie.IsSpectator && isValidTarget(zombie._baseVehicle))
+		      	return zombie._baseVehicle;
 
-			foreach (Player zombie in zombiePlayers)
-				if (!zombie.IsSpectator && isValidTarget(zombie._baseVehicle))
-					return zombie._baseVehicle;
-
+      
 			return null;
 		}
 	}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -131,11 +131,13 @@ namespace InfServer.Script.GameType_ZombieZone
 		protected Vehicle getTargetZombie(Script_ZombieZone.TeamState state)
 		{	//Find the closest valid zombie
 			Vector3 selfpos = _state.position();
-			IEnumerable<ZombieBot> zombies = state.zombies.OrderBy(zomb => zomb._state.position().DistanceSquared(selfpos));
 
-			foreach (ZombieBot zombie in zombies)
-				if (isValidTarget(zombie))
-					return zombie;
+			IEnumerable<ZombieBot> zombies = state.zombies.ToList().Where(zomb => zomb != null).OrderBy(zomb => zomb._state.position().DistanceSquared(selfpos));
+
+		  foreach (ZombieBot zombie in zombies)
+	       if (isValidTarget(zombie))
+				     return zombie;
+
 
 			return null;
 		}
