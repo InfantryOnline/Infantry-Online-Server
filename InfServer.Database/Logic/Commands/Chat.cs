@@ -194,6 +194,8 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_SquadQuery(CS_Squads<Zone> pkt, Zone zone)
         {
+            //Clean up the payload
+            pkt.payload = pkt.payload.Trim();
             using (InfantryDataContext db = zone._server.getContext())
             {
                 //Get the associated player making the command
@@ -206,13 +208,18 @@ namespace InfServer.Logic
                     case CS_Squads<Zone>.QueryType.create:
                         //Sanity checks
                         if (dbplayer.squad != null)
-                        {
+                        {   //traitor is already in a squad
                             zone._server.sendMessage(zone, dbplayer.alias1.name, "You cannot create a squad if you are already in one (" + dbplayer.squad1.name + ")");
                             return;
                         }
                         if (!pkt.payload.Contains(':'))
-                        {
+                        {   //invalid payload
                             zone._server.sendMessage(zone, dbplayer.alias1.name, "Invalid syntax. Use: ?squadcreate [squadname]:[squadpassword]");
+                            return;
+                        }
+                        if (!char.IsLetterOrDigit(pkt.payload[0]) || pkt.payload.Split(':').ElementAt(0).Length == 0)
+                        {   //invalid name
+                            zone._server.sendMessage(zone, dbplayer.alias1.name, "Invalid squad name");
                             return;
                         }
                         if (db.squads.Count(s => s.name.ToLower().Equals(pkt.payload.Split(':').ElementAt(0).ToLower())) != 0)
