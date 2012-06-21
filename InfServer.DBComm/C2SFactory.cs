@@ -182,7 +182,7 @@ namespace InfServer.Data
                     break;
 
                 case CS_Squads<T>.TypeID:
-                    packet = new CS_Query<T>(typeID, buffer, offset, size);
+                    packet = new CS_Squads<T>(typeID, buffer, offset, size);
                     break;
 
                 case CS_Query<T>.TypeID:
