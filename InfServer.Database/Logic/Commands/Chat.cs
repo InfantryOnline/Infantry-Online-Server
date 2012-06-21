@@ -273,28 +273,30 @@ namespace InfServer.Logic
                             return;
                         }
 
+                        KeyValuePair<int, int> squadInvite = new KeyValuePair<int, int>((int)dbplayer.squad, (int)invitePlayer.id);
                         if (bAdd)
                         {   //Send a squad invite
-                            if (zone._server._squadInvites.Contains(new KeyValuePair<int, Data.DB.player>((int)dbplayer.squad, invitePlayer)))
-                            {
+                            if (zone._server._squadInvites.Contains(squadInvite))
+                            {   //Exists
                                 zone._server.sendMessage(zone, pkt.alias, "You have already sent a squad invite to " + invitePlayer.alias1.name);
                             }
                             else
-                            {
-                                zone._server._squadInvites.Add(new KeyValuePair<int, Data.DB.player>((int)dbplayer.squad, invitePlayer));
-                                zone._server.sendMessage(zone, pkt.alias, "Squad invite sent to  " + invitePlayer.alias1.name);
+                            {   //Doesn't exist
+                                zone._server._squadInvites.Add(squadInvite);
+                                zone._server.sendMessage(zone, pkt.alias, "Squad invite sent to " + invitePlayer.alias1.name);
+                                zone._server.sendMessage(zone, invitePlayer.alias1.name, "You have been invited to join a squad: " + dbplayer.squad1.name);
                             }
                         }
                         else
                         {   //Remove a squad invite
-                            if (zone._server._squadInvites.Contains(new KeyValuePair<int, Data.DB.player>((int)dbplayer.squad, invitePlayer)))
-                            {
-                                zone._server._squadInvites.Remove(new KeyValuePair<int, Data.DB.player>((int)dbplayer.squad, invitePlayer));
+                            if (zone._server._squadInvites.Contains(squadInvite))
+                            {   //Exists
+                                zone._server._squadInvites.Remove(squadInvite);
                                 zone._server.sendMessage(zone, pkt.alias, "Revoked squad invitation from " + invitePlayer.alias1.name);
                             }
                             else
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Found no squad invititations sent to  " + invitePlayer.alias1.name);
+                            {   //Doesn't exist
+                                zone._server.sendMessage(zone, pkt.alias, "Found no squad invititations sent to " + invitePlayer.alias1.name);
                             }
                         }
                         break;
@@ -441,15 +443,15 @@ namespace InfServer.Logic
                             return;
                         }
                         zone._server.sendMessage(zone, pkt.alias, "&Outstanding Player Invitations");
-                        foreach (KeyValuePair<int, Data.DB.player> invite in zone._server._squadInvites)
+                        foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
                             if (invite.Key == dbplayer.squad)
-                                zone._server.sendMessage(zone, pkt.alias, "*" + invite.Value.alias1.name);
+                                zone._server.sendMessage(zone, pkt.alias, "*" + db.players.First(p => p.id == invite.Value).alias1.name);
                         break;
 
                     case CS_Squads<Zone>.QueryType.invitesplayer:
                         zone._server.sendMessage(zone, pkt.alias, "&Current Squad Invitations");
-                        foreach (KeyValuePair<int, Data.DB.player> invite in zone._server._squadInvites)
-                            if (invite.Value == dbplayer)
+                        foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
+                            if (invite.Value == dbplayer.id)
                                 zone._server.sendMessage(zone, pkt.alias, "*" + db.squads.First(s => s.id == invite.Key).name);
                         break;
 
@@ -465,7 +467,9 @@ namespace InfServer.Logic
 
                         bool bAccept = (sResponse[0].ToLower() == "accept") ? true : false;
                         Data.DB.squad responseSquad = db.squads.FirstOrDefault(s => s.name == sResponse[1]);
-                        if (responseSquad == null || !zone._server._squadInvites.Contains(new KeyValuePair<int, Data.DB.player>((int)responseSquad.id, dbplayer)))
+                        KeyValuePair<int, int> responsePair = new KeyValuePair<int, int>((int)responseSquad.id, (int)dbplayer.id);
+
+                        if (responseSquad == null || !zone._server._squadInvites.Contains(responsePair))
                         {   //Either squad doesn't exist... or he's a filthy liar
                             zone._server.sendMessage(zone, pkt.alias, "Invalid squad invitation response");
                             return;
@@ -481,12 +485,12 @@ namespace InfServer.Logic
                             //Add him to the squad!
                             dbplayer.squad = responseSquad.id;
                             zone._server.sendMessage(zone, pkt.alias, "You've joined " + dbplayer.squad1.name + "! Quit and rejoin to be able to use # to squad chat");
-                            zone._server._squadInvites.Remove(new KeyValuePair<int, Data.DB.player>((int)responseSquad.id, dbplayer));
+                            zone._server._squadInvites.Remove(responsePair);
                         }
                         else
                         {   //He's getting rid of a squad invite...
-                            zone._server._squadInvites.Remove(new KeyValuePair<int, Data.DB.player>((int)responseSquad.id, dbplayer));
-                            zone._server.sendMessage(zone, pkt.alias, "Revoked squad invite from " + responseSquad.name);
+                            zone._server._squadInvites.Remove(responsePair);
+                            zone._server.sendMessage(zone, pkt.alias, "Revoked squad invitation from " + responseSquad.name);
                         }
                         break;
                 }

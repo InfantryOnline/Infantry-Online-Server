@@ -26,7 +26,7 @@ namespace InfServer
 
 		public List<Zone> _zones;				                        //The zones currently connected
 
-        public List<KeyValuePair<int, Data.DB.player>> _squadInvites;   //Our history of squad invites (squadid, database player entity)
+        public List<KeyValuePair<int, int>> _squadInvites;              //Our history of squad invites pair<squadid, playerid>
 
 		private string _connectionString;		                        //The connectionstring to our database
 
@@ -46,7 +46,7 @@ namespace InfServer
 			_zones = new List<Zone>();
             _chats = new Dictionary<string, Chat>();
             _players = new Dictionary<string, Zone.Player>();
-            _squadInvites = new List<KeyValuePair<int, Data.DB.player>>();
+            _squadInvites = new List<KeyValuePair<int, int>>();
 		}
 
         public void newPlayer(Zone.Player player)
