@@ -103,7 +103,7 @@ namespace InfServer.Script.GameType_SKCTF
             {   //It is!
                 //The change to small points changes needs to be updated based on players in game constantly
                 _pointSmallChange = (int)Math.Ceiling((double)25 / _arena.PlayersIngame.Count());
-                _pointPeriodicChange = 50;
+                _pointPeriodicChange = 1;
 
                 //Let's update some points!
                 int flagdelay = 1000; //1000 = 1 second

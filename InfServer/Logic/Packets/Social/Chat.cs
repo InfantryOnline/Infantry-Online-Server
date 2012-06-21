@@ -146,8 +146,16 @@ namespace InfServer.Logic
                     break;
 
 				case Helpers.Chat_Type.Squad:
-					string squad = player._squad;
-					//Look up the squad that the player is currently in
+                    //Since squads are only zone-wide, we don't need to route it to the database,
+                    //instead we route it to every player in every arena in the zone
+                    foreach(Arena a in player._server._arenas.Values)
+                        foreach (Player p in a.Players)
+                        {
+                            if (p == player || p._squad != pkt.recipient || pkt.recipient == "")
+                                //We don't message ourselves or anybody outside of specified squad
+                                continue;
+                            p.sendPlayerChat(player, pkt);
+                        }
 					break;
 			}
 		}
