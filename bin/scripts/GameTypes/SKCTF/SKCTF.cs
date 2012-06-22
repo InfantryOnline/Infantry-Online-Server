@@ -255,7 +255,11 @@ namespace InfServer.Script.GameType_SKCTF
 		/// </summary>
 		[Scripts.Event("Player.Leave")]
 		public void playerLeave(Player player)
-		{
+		{   //Destroy all vehicles belonging to him
+            foreach (Vehicle v in _arena.Vehicles)
+                if (v._type.Type == VehInfo.Types.Computer && v._creator == player)
+                    //Destroy it!
+                    v.destroy(true);
 		}
 
 		/// <summary>
@@ -628,6 +632,30 @@ namespace InfServer.Script.GameType_SKCTF
 		{
 			return true;
 		}
+
+        /// <summary>
+        /// Triggered when a player requests a skill from skill screen (F11)
+        /// </summary>
+        [Scripts.Event("Shop.SkillRequest")]
+        public bool shopSkillRequest(Player player, SkillInfo skill)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when a player successfully purchases a skill item from skill screen (F11)
+        /// </summary>
+        [Scripts.Event("Shop.SkillPurchase")]
+        public void shopSkillPurchase(Player player, SkillInfo skill)
+        {   //Is it a class or an attribute?
+            if (skill.SkillId >= 0)
+            {   //It's a class change, let's look for any computer vehicles he might have owned...
+                foreach (Vehicle v in _arena.Vehicles)
+                    if (v._type.Type == VehInfo.Types.Computer && v._creator == player)
+                        //Destroy it!
+                        v.destroy(true);
+            }
+        }
 
 		/// <summary>
 		/// Triggered when a vehicle is created

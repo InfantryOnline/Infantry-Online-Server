@@ -1093,8 +1093,12 @@ namespace InfServer.Game
             if (!Logic_Assets.SkillCheck(from, skill.Logic))
                 return;
 
-			//Perform the skill modify!
-			from.skillModify(skill, 1);
+            //Make sure it's okay with our script...
+            if(!exists("Shop.SkillRequest") || (bool)callsync("Shop.SkillRequest", false, from, skill))
+			    //Perform the skill modify
+                if (from.skillModify(skill, 1))
+                    //Success! Forward to our script
+                    callsync("Shop.SkillPurchase", false, from, skill);
 		}
         #endregion
 
