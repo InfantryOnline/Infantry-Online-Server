@@ -152,7 +152,6 @@ namespace InfServer.Script.GameType_SKCTF
 		{	//Game is over.
             _arena.sendArenaMessage(victors._name + " has reached " + _points[victors] + " points!", 13);
 
-
             //Clear out all tickers we use in updateTickers (1,2,3)
             for (int i = 1; i <= 3; i++)
                 _arena.setTicker(0, i, 0, "");
@@ -184,6 +183,10 @@ namespace InfServer.Script.GameType_SKCTF
             //TODO: Reward the MVP. Also reward the best healers.
             //Stop the game
             _arena.gameEnd();
+
+            //Set off some fireworks using the .lio file to specify locations based on name (starts with 'firework' in name)
+            foreach (LioInfo.Hide firework in _arena._server._assets.Lios.Hides.Where(h => h.GeneralData.Name.Substring(0, 8).ToLower().Equals("firework")))
+                Helpers.Player_RouteExplosion(_arena.Players, (short)firework.HideData.HideId, firework.GeneralData.OffsetX, firework.GeneralData.OffsetY, 0, 0);
 		}
 
         /// <summary>

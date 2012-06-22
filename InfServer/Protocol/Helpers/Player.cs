@@ -344,6 +344,25 @@ namespace InfServer.Protocol
 		}
 
         /// <summary>
+        /// Provides an easy means of routing an explosion to multiple players
+        /// </summary>
+        static public void Player_RouteExplosion(IEnumerable<Player> players, Int16 itemID, Int16 posX, Int16 posY, Int16 posZ, byte yaw, Int16 creator=Int16.MinValue)
+        {
+            SC_Projectile explosion = new SC_Projectile();
+
+            explosion.projectileID = itemID;
+            explosion.playerID = creator;
+            explosion.posX = posX;
+            explosion.posY = posY;
+            explosion.posZ = posZ;
+            explosion.yaw = yaw;
+
+            //Route the explosion
+            foreach (Player p in players)
+                p._client.sendReliable(explosion);
+        }
+
+        /// <summary>
         /// Give or take crowns from a list of people
         /// </summary>
         static public void Player_Crowns(Arena arena, bool bCrown, List<Player> players, Player target)
