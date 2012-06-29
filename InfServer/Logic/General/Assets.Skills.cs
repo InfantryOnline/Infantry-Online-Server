@@ -45,7 +45,7 @@ namespace InfServer.Logic
 			
 			// First, we kill all spaces (if any), then replace all the junk with proper boolean values.				
 			// Then Calculate boolean values for all the shit in the expression.
-			String booleanString = paramRegex.Replace(skillString.Replace(" ", ""), delegate(Match m)
+			String booleanString = paramRegex.Replace(skillString.Replace(" ", "").TrimStart('&'), delegate(Match m)
 			{
 				bool val;
 
@@ -90,9 +90,9 @@ namespace InfServer.Logic
 			{
 				bQualified = expr(booleanString, ref pos);
 			}				
-			catch (ParseException e)
+			catch (ParseException)
 			{
-				Log.write(TLog.Error, "Error parsing skill string: {0} Error: {1}", skillString, e);					
+				Log.write(TLog.Error, "Error parsing skill string: {0}", skillString);					
 			}
 			
 			return bQualified;

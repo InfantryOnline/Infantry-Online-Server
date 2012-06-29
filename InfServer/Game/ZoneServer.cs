@@ -417,17 +417,26 @@ namespace InfServer.Game
 			{
 				if (!result.IsCompleted)
 				{
-					// Log this
-					return;
+					// Continue anyways? Let's do it!
+                    //return;
 				}
 
 				EndPoint remoteEp = new IPEndPoint(IPAddress.Any, 0);
-				int read = _socket.EndReceiveFrom(result, ref remoteEp);
+                int read = 4;
+                try
+                {
+                    read = _socket.EndReceiveFrom(result, ref remoteEp);
+                }
+                catch (SocketException)
+                {
+                    //Packet is too big. Make note of it and the clients IP
+                    Log.write("Malformed packet from client: " + remoteEp.ToString() + " (possible attempt to crash the zone)");
+                }
 
 				if (read != 4)
 				{
-					// Log and disregard
-					return;
+					// Malformed packet, lets continue anyways and log the scums IP
+                    Log.write("Malformed packet from client: " + remoteEp.ToString() + " (possible attempt to crash the zone)");
 				}
 
 				_lock.AcquireWriterLock(Timeout.Infinite);

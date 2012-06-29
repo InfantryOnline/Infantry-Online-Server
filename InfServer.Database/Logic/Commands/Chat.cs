@@ -31,18 +31,12 @@ namespace InfServer.Logic
                         //Loop through each alias to calculate time played
                         foreach (var alias in aliases)
                         {
+                            TimeSpan timeplayed = TimeSpan.FromMinutes(alias.timeplayed);
+                            days = (int)timeplayed.Days;
+                            hrs = (int)timeplayed.Hours;
+                            mins = (int)timeplayed.Minutes;
 
-
-                            //Does this alias even have any time played?
-                            if (alias.timeplayed.HasValue)
-                            {
-                                TimeSpan timeplayed = TimeSpan.FromMinutes(alias.timeplayed.Value);
-                                days = (int)timeplayed.Days;
-                                hrs = (int)timeplayed.Hours;
-                                mins = (int)timeplayed.Minutes;
-
-                                total += alias.timeplayed.Value;
-                            }
+                            total += alias.timeplayed;
 
                             //Send it
                             zone._server.sendMessage(zone, pkt.sender, String.Format("~{0} ({1}d {2}h {3}m)", alias.name, days, hrs, mins));

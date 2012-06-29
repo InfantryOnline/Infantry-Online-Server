@@ -230,6 +230,8 @@ namespace InfServer.Logic
 					alias.creation = DateTime.Now;
 					alias.account1 = account;
                     alias.IPAddress = pkt.ipaddress;
+                    alias.lastAccess = DateTime.Now;
+                    alias.timeplayed = 0;
 
 					db.alias.InsertOnSubmit(alias);
 
@@ -349,7 +351,7 @@ namespace InfServer.Logic
             using (InfantryDataContext db = zone._server.getContext())
             {
                 Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
-                TimeSpan ts = DateTime.Now - alias.lastAccess.Value;
+                TimeSpan ts = DateTime.Now - alias.lastAccess;
                 Int64 minutes = ts.Minutes;
                 alias.timeplayed += minutes;
 

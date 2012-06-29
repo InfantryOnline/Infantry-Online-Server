@@ -85,9 +85,9 @@
       <Column Name="account" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="creation" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Column Name="IPAddress" Type="System.String" DbType="VarChar(15)" CanBeNull="true" UpdateCheck="Never" />
-      <Column Name="timeplayed" Type="System.Int64" DbType="bigint" CanBeNull="true" />
-      <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
+      <Column Name="IPAddress NOT NULL" Member="IPAddress" Type="System.String" DbType="VarChar(15)" CanBeNull="false" UpdateCheck="Never" />
+      <Column Name="timeplayed NOT NULL" Member="timeplayed" Type="System.Int64" DbType="bigint" CanBeNull="false" />
+      <Column Name="lastAccess NOT NULL" Member="lastAccess" Type="System.DateTime" DbType="DateTime" CanBeNull="false" />
       <Association Name="alias_player" Member="players" ThisKey="id" OtherKey="alias" Type="player" />
       <Association Name="account_alias" Member="account1" ThisKey="account" OtherKey="id" Type="account" IsForeignKey="true" />
     </Type>

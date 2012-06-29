@@ -75,7 +75,7 @@ namespace InfServer.Logic
 				plogin.bCreateAlias = pkt.bCreateAlias;
 
 				plogin.player = newPlayer.toInstance();
-				plogin.alias = pkt.Username;
+                plogin.alias = alias;
 				plogin.ticketid = pkt.TicketID;
 				plogin.UID1 = pkt.UID1;
 				plogin.UID2 = pkt.UID2;

@@ -58,10 +58,11 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
                 udpClient.Send(new byte[] {00, 00, 00, 01}, 4);
                 udpClient.BeginReceive(ReadReceivedData, data);
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 //Log.write(e.ToString());
                 udpClient.Close();
+                udpClient.Client.Dispose();
             }
         }
 
@@ -81,6 +82,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
                 PlayerCount = BitConverter.ToInt32(receiveBytes, 0);
 
                 data.Client.Close();
+                data.Client.Client.Dispose();
             }
             catch (Exception e)
             {

@@ -1938,9 +1938,9 @@ namespace InfServer.Data.DB
 		
 		private string _IPAddress;
 		
-		private System.Nullable<long> _timeplayed;
+		private long _timeplayed;
 		
-		private System.Nullable<System.DateTime> _lastAccess;
+		private System.DateTime _lastAccess;
 		
 		private EntitySet<player> _players;
 		
@@ -1960,9 +1960,9 @@ namespace InfServer.Data.DB
     partial void OncreationChanged();
     partial void OnIPAddressChanging(string value);
     partial void OnIPAddressChanged();
-    partial void OntimeplayedChanging(System.Nullable<long> value);
+    partial void OntimeplayedChanging(long value);
     partial void OntimeplayedChanged();
-    partial void OnlastAccessChanging(System.Nullable<System.DateTime> value);
+    partial void OnlastAccessChanging(System.DateTime value);
     partial void OnlastAccessChanged();
     #endregion
 		
@@ -2057,7 +2057,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IPAddress", DbType="VarChar(15)", UpdateCheck=UpdateCheck.Never)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="IPAddress NOT NULL", Storage="_IPAddress", DbType="VarChar(15)", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
 		public string IPAddress
 		{
 			get
@@ -2077,8 +2077,8 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_timeplayed", DbType="bigint")]
-		public System.Nullable<long> timeplayed
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="timeplayed NOT NULL", Storage="_timeplayed", DbType="bigint")]
+		public long timeplayed
 		{
 			get
 			{
@@ -2097,8 +2097,8 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_lastAccess", DbType="DateTime")]
-		public System.Nullable<System.DateTime> lastAccess
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="lastAccess NOT NULL", Storage="_lastAccess", DbType="DateTime")]
+		public System.DateTime lastAccess
 		{
 			get
 			{
