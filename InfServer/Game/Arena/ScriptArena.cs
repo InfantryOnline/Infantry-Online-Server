@@ -1322,7 +1322,15 @@ namespace InfServer.Game
                 int densityAmount = 0;
                 int totalAmount = 0;
                 int totalType = 0;
-                
+                int playerTotal = 0;
+
+
+                //Holy fuck this is so much shorter!
+                playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID && 
+                    v._creator._alias == player._alias).Count();
+
+                //Continue long boring non-linq stuff... zzzzz
+
                 if (newComp != null)
                 {   //Get a list of the vehicles in the arena
                     IEnumerable<Vehicle> vehs = player._arena.Vehicles;
@@ -1368,7 +1376,12 @@ namespace InfServer.Game
                         }
                     }
                 }
-               
+
+                if (playerTotal >= newComp.MaxTypeByPlayerRegardlessOfTeam && newComp.MaxTypeByPlayerRegardlessOfTeam != -1)
+                {   //Exceeds the amount per player regardless of team.
+                    player.sendMessage(-1, "You have the maximum allowed computer vehicles of this type");
+                    return;
+                }    
                 if (totalAmount >= newComp.FrequencyMaxActive && newComp.FrequencyMaxActive != -1)
                 {   //Exceeds the total amount of computer vehicles for the team
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles");
