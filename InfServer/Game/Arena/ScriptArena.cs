@@ -1293,6 +1293,21 @@ namespace InfServer.Game
 					break;
 			}
 
+            //Trollololol
+            int ammoID;
+            int ammoCount;
+
+            if (player.Cash < item.cashCost)
+                return;
+
+            if (item.getAmmoType(out ammoID, out ammoCount))
+                if (ammoID != 0 && !player.inventoryModify(false, ammoID, -ammoCount))
+                    return;
+
+            player.Cash -= item.cashCost;
+            player.syncInventory();
+
+
 			//Indicate that it was successful
 			SC_ItemReload rld = new SC_ItemReload();
 			rld.itemID = (short)item.id;
