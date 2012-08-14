@@ -1291,7 +1291,13 @@ namespace InfServer.Game
                         
 					}
 					break;
-			}
+            }
+
+            //Indicate that it was successful
+            SC_ItemReload rld = new SC_ItemReload();
+            rld.itemID = (short)item.id;
+
+            player._client.sendReliable(rld);
 
             //Trollololol
             int ammoID;
@@ -1306,13 +1312,6 @@ namespace InfServer.Game
 
             player.Cash -= item.cashCost;
             player.syncInventory();
-
-
-			//Indicate that it was successful
-			SC_ItemReload rld = new SC_ItemReload();
-			rld.itemID = (short)item.id;
-
-			player._client.sendReliable(rld);
 		}
         #endregion
 
@@ -1417,7 +1416,13 @@ namespace InfServer.Game
                     player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area");
                     return;
                 }        
-            }            
+            }
+
+            //Indicate that it was successful
+            SC_ItemReload rld = new SC_ItemReload();
+            rld.itemID = (short)item.id;
+
+            player._client.sendReliable(rld);
 
 			//Expensive stuff, vehicle creation
 			int ammoID;
@@ -1437,12 +1442,6 @@ namespace InfServer.Game
 			if (!exists("Player.MakeVehicle") || (bool)callsync("Player.MakeVehicle", false, player, item, posX, posY))
 			{	//Attempt to create it 
 				Vehicle vehicle = newVehicle(vehinfo, player._team, player, player._state);
-                
-				//Indicate that it was successful
-				SC_ItemReload rld = new SC_ItemReload();
-				rld.itemID = (short)item.id;
-
-				player._client.sendReliable(rld);
 			}
 		}
         #endregion
