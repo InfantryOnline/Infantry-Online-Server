@@ -506,6 +506,40 @@ namespace InfServer.Game.Commands.Chat
             player._server._db.send(online);
         }
 
+        /// <summary>
+		/// Displays all structures and resources belonging to a team.
+		/// </summary>
+        public static void structures(Player player, Player recipient, string payload, int bong)
+        {
+            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
+                v._type.Type == VehInfo.Types.Computer);
+            IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
+                v._type.Type == VehInfo.Types.Car);
+
+            //Display computers
+            player.sendMessage(0, "&~Team Structures:");
+            foreach (Vehicle veh in comps)
+            {
+                player.sendMessage(0, 
+                    String.Format("~{0} Location={1} Health={2}", 
+                    veh._type.Name, 
+                    Helpers.posToLetterCoord(veh._state.positionX, veh._state.positionY), 
+                    veh._state.health));
+            }
+
+            //Display Car Vehicles
+            player.sendMessage(0, "&~Team Vehicles:");
+            foreach (Vehicle veh in vehicles)
+            {
+                player.sendMessage(0,
+                    String.Format("~{0} Location={1} Health={2}",
+                    veh._type.Name,
+                    Helpers.posToLetterCoord(veh._state.positionX, veh._state.positionY),
+                    veh._state.health));
+            }
+            
+        }
+
 		/// <summary>
 		/// Displays all players which are spectating
 		/// </summary>
@@ -869,6 +903,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(arena, "arena",
                 "Displays all arenas availble to join",
                 "?arena");
+
+            yield return new HandlerDescriptor(structures, "structures",
+            "Displays all structures and vehicles that belong to a team",
+            "?structures");
 
             yield return new HandlerDescriptor(accountinfo, "accountinfo",
                 "Displays all aliases registered to a single account.",

@@ -91,7 +91,7 @@ namespace InfServer.Game.Commands.Mod
                     newState.yaw = player._state.yaw;
                     player._arena.newVehicle(
                         vehicle,
-                        player._team, player,
+                        player._team, null,
                         newState);
                 }
             }
