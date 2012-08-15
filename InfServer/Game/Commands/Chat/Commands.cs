@@ -30,6 +30,59 @@ namespace InfServer.Game.Commands.Chat
             player._server._db.send(query);
         }
 
+        /// <summary>
+        /// Allows one player to send aid (cash) to another.
+        /// </summary>
+        public static void aid(Player player, Player recipient, string payload, int bong)
+        {
+            //Check syntax...
+            if (!payload.Contains(':'))
+            {
+                player.sendMessage(-1, "Invalid Syntax, Correct syntax: ?aid targetalias:1");
+                return;
+            }
+            //Setup our payload for reading..
+            string[] elements = payload.Split(':');
+
+            //Check payload again.
+            if (elements.Count() <= 1)
+            {
+                player.sendMessage(-1, "Invalid Syntax, Correct syntax: ?aid targetalias:1");
+                return;
+            }
+
+            //Find our target
+            Player target = player._arena.getPlayerByName(elements[0]);
+            int amount = Int32.Parse(elements[1]);
+
+            //Oops
+            if (target == null)
+            {
+                player.sendMessage(-1, "Target player does not exist");
+                return;
+            }
+
+            //Does he meet the requirements? gotta stop statpadding...
+            if (player.StatsTotal.cash < 100000)
+            {
+                player.sendMessage(-1, "Sorry, but you cannot aid another player unless you have over 100,000 cash.");
+                return;
+            }
+
+            //Does he have enough?
+            if (player.StatsTotal.cash < amount)
+            {
+                player.sendMessage(-1, "Sorry, you do not have that much cash to give");
+                return;
+            }
+
+            //Success!
+            player.StatsTotal.cash -= amount;
+            target.StatsTotal.cash += amount;
+            player.sendMessage(0, String.Format("{0} sent to {1} ({2} remaining)", amount, target._alias, player.StatsTotal.cash));
+            target.sendMessage(0, String.Format("You have received {0} cash from {1}", amount, player._alias)); 
+        }
+
       	/// <summary>
         /// Presents the player with a list of arenas available to join
         /// </summary>
@@ -903,6 +956,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(arena, "arena",
                 "Displays all arenas availble to join",
                 "?arena");
+
+            yield return new HandlerDescriptor(aid, "aid",
+            "Allows a player to aid another player in the form of money",
+            "?aid targetalias:#");
 
             yield return new HandlerDescriptor(structures, "structures",
             "Displays all structures and vehicles that belong to a team",
