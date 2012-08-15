@@ -219,8 +219,7 @@ namespace InfServer.Game
                 //Owner is leaving, transfer to someone else randomly..
                 if (player._alias == _owner._alias)
                 {
-                    int random = new Random().Next(_players.Count());
-                    _owner = _players[random];
+                    _owner = _players.FirstOrDefault();
                     _owner.sendMessage(0, String.Format("Ownership of {0} has randomly been transfered to you", _name));
                 }
             }

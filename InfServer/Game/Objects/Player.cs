@@ -394,7 +394,12 @@ namespace InfServer.Game
 		/// Attempts to have the player enter the specified vehicle
 		/// </summary>
 		public bool enterVehicle(Vehicle toEnter)
-		{	//Are we able to enter the vehicle?
+		{
+            //wtfack
+            if (toEnter == null)
+                return false;
+
+            //Are we able to enter the vehicle?
 			if (!toEnter.playerEnter(this))
 				return false;
 
