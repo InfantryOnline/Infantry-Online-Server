@@ -951,6 +951,9 @@ namespace InfServer.Game.Commands.Chat
                             privteam._isPrivate = true;
                             privteam._password = teampassword;
                             privteam._id = (short)player._arena.Teams.Count();
+                            privteam._owner = player;
+
+                            player.sendMessage(0, "You are now the owner of this team, You may kick unwanted players using ?teamkick targetalias, You can also change the password using ?teampassword newpassword");
 
                             //Create the team and add the player
                             player._arena.createTeam(privteam);
@@ -970,6 +973,83 @@ namespace InfServer.Game.Commands.Chat
             {
                 Log.write(TLog.Warning, "Error thrown while switching teams. Sender: '" + player._alias + "' payload: '" + payload);
             }
+        }
+        #endregion
+
+        #region teamkick
+        /// <summary>
+        /// Allows the user to kick a player from a privately owned team.
+        /// </summary>
+        public static void teamkick(Player player, Player recipient, string payload, int bong)
+        {   //Check syntax
+            if (payload == "")
+            {
+                player.sendMessage(-1, "Invalid syntax, Corrrect: ?teamkick targetalias");
+                return;
+            }
+
+            //Is it a public team?
+            if (player._team.IsPublic)
+            {
+                player.sendMessage(-1, "You don't own this team");
+                return;
+            }
+
+            //Does he own it?
+            if (player._alias != player._team._owner._alias)
+            {
+                player.sendMessage(-1, "You don't own this team");
+                return;
+            }
+
+            //Find the target player and see if he exists..
+            Player target = player._arena.getPlayerByName(payload);
+            if (target == null)
+            {
+                player.sendMessage(-1, "Target player doesn't exist");
+                return;
+            }
+
+            //Pick a team to put him on
+            Team pick = player._arena.pickAppropriateTeam(target);
+            if (pick != null)
+                //Great, use it
+                pick.addPlayer(target);
+            else
+                target.sendMessage(-1, "Unable to pick a team.");
+        }
+        #endregion
+
+        #region teampassword
+        /// <summary>
+        /// Allows the user to change the password of a private team
+        /// </summary>
+        public static void teampassword(Player player, Player recipient, string payload, int bong)
+        {   //Check syntax
+            if (payload == "")
+            {
+                player.sendMessage(-1, "Invalid syntax, Corrrect: ?teampassword newpassword");
+                return;
+            }
+
+            //Is it a public team?
+            if (player._team.IsPublic)
+            {
+                player.sendMessage(-1, "You don't own this team");
+                return;
+            }
+
+            //Does he own it?
+            if (player._alias != player._team._owner._alias)
+            {
+                player.sendMessage(-1, "You don't own this team");
+                return;
+            }
+            
+            //Success, change it.
+            player._team._password = payload;
+            player.sendMessage(0, "Password sucessfully changed");
+
         }
         #endregion
 
@@ -1018,6 +1098,14 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(aid, "aid",
             "Allows a player to aid another player in the form of money",
             "?aid targetalias:#");
+
+            yield return new HandlerDescriptor(teamkick, "teamkick",
+            "Allows a player to kick another from a private team",
+            "?teamkick targetalias");
+
+            yield return new HandlerDescriptor(teampassword, "teampassword",
+            "Allows a player to change the password of a private team",
+            "?teampasword newpassword");
 
             yield return new HandlerDescriptor(structures, "structures",
             "Displays all structures and vehicles that belong to a team",

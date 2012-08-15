@@ -29,6 +29,8 @@ namespace InfServer.Game
 		public string _password;				//The password necessary to join the team
 		public short _id;						//The ID of the team
 
+        public Player _owner;                   //The owner of this team  (if private)
+
 		public bool _isPrivate;					//Is this a private team?
 
 		public int _calculatedKills;			//The amount of kills for the team, since the last calculation
@@ -210,6 +212,14 @@ namespace InfServer.Game
 			if (_players.Count == 0)
 				//Nope. It's closing time.
 				empty();
+
+            //Owner is leaving, transfer to someone else randomly..
+            if (player._alias == _owner._alias)
+            {
+             int random = new Random().Next(_players.Count());
+             _owner = _players[random];
+             _owner.sendMessage(0, String.Format("Ownership of {0} has randomly been transfered to you", _name));
+            }
 
 			//Reset any team-related state the player might have had
 			_arena.flagResetPlayer(player);
