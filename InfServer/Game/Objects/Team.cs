@@ -213,12 +213,16 @@ namespace InfServer.Game
 				//Nope. It's closing time.
 				empty();
 
-            //Owner is leaving, transfer to someone else randomly..
-            if (player._alias == _owner._alias)
+            //Only check for private teams...
+            if (_isPrivate)
             {
-             int random = new Random().Next(_players.Count());
-             _owner = _players[random];
-             _owner.sendMessage(0, String.Format("Ownership of {0} has randomly been transfered to you", _name));
+                //Owner is leaving, transfer to someone else randomly..
+                if (player._alias == _owner._alias)
+                {
+                    int random = new Random().Next(_players.Count());
+                    _owner = _players[random];
+                    _owner.sendMessage(0, String.Format("Ownership of {0} has randomly been transfered to you", _name));
+                }
             }
 
 			//Reset any team-related state the player might have had
