@@ -16,6 +16,8 @@ namespace InfServer.Game.Commands.Chat
     /// </summary>
     public class Normal
     {
+        
+        #region accountinfo
         /// <summary>
         /// Queries the database and returns a list of aliases associated with the player
         /// </summary>
@@ -29,7 +31,9 @@ namespace InfServer.Game.Commands.Chat
             query.queryType = CS_Query<Data.Database>.QueryType.accountinfo;
             player._server._db.send(query);
         }
+        #endregion
 
+        #region aid
         /// <summary>
         /// Allows one player to send aid (cash) to another.
         /// </summary>
@@ -82,8 +86,10 @@ namespace InfServer.Game.Commands.Chat
             player.sendMessage(0, String.Format("{0} sent to {1} ({2} remaining)", amount, target._alias, player.StatsTotal.cash));
             target.sendMessage(0, String.Format("You have received {0} cash from {1}", amount, player._alias)); 
         }
+        #endregion
 
-      	/// <summary>
+        #region arena
+        /// <summary>
         /// Presents the player with a list of arenas available to join
         /// </summary>
         public static void arena(Player player, Player recipient, string payload, int bong)
@@ -92,7 +98,9 @@ namespace InfServer.Game.Commands.Chat
 
 			player._client.sendReliable(arenaList);
 		}
+        #endregion
 
+        #region breakdown
         /// <summary>
         /// displays current game statistics
         /// </summary>
@@ -100,7 +108,9 @@ namespace InfServer.Game.Commands.Chat
         {
             player._arena.individualBreakdown(player, true);
         }
+        #endregion
 
+        #region buy
         /// <summary>
         /// Purchases items in the form item1:x1, item2:x2 and so on
         /// </summary>
@@ -244,7 +254,9 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "You cannot buy from this location");
             }
         }
+        #endregion
 
+        #region sell
         /// <summary>
         /// Purchases items in the form item1:x1, item2:x2 and so on
         /// </summary>
@@ -330,7 +342,9 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "You cannot buy from this location");
             }
         }
+        #endregion
 
+        #region chat
         public static void chat(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
@@ -344,7 +358,9 @@ namespace InfServer.Game.Commands.Chat
             join.from = player._alias;
             player._server._db.send(join);
         }
+        #endregion
 
+        #region drop
         /// <summary>
         /// Drops items at the player's location in the form item1:x1, item2:x2 and so on
         /// </summary>
@@ -442,7 +458,9 @@ namespace InfServer.Game.Commands.Chat
                 }
             }
         }
+        #endregion
 
+        #region email
         /// <summary>
         /// Updates email address associated with players account
         /// </summary>
@@ -464,7 +482,9 @@ namespace InfServer.Game.Commands.Chat
             query.payload = payload;
             player._server._db.send(query);
         }
+        #endregion
 
+        #region find
         /// <summary>
         /// Searches for a player and returns location
         /// </summary>        
@@ -479,8 +499,10 @@ namespace InfServer.Game.Commands.Chat
             findPlayer.sender = player._alias;
 
             player._server._db.send(findPlayer);
-        }        
+        }
+        #endregion
 
+        #region help
         /// <summary>
         /// Sends help request to moderators..
         /// </summary>
@@ -513,7 +535,9 @@ namespace InfServer.Game.Commands.Chat
             //Notify the player all went well..
             player.sendMessage(0, "Help request sent, when a moderator replies, use :: syntax to reply back");
         }
+        #endregion
 
+        #region info
         /// <summary>
         /// Displays lag statistics for a particular player
         /// </summary>
@@ -531,7 +555,9 @@ namespace InfServer.Game.Commands.Chat
             player.sendMessage(0, String.Format("~-    PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
                 target._client._stats.C2SPacketLoss.ToString("F"), target._client._stats.S2CPacketLoss.ToString("F")));
         }
+        #endregion
 
+        #region lag
         /// <summary>
         /// Displays lag statistics for self
         /// </summary>
@@ -543,7 +569,9 @@ namespace InfServer.Game.Commands.Chat
             player.sendMessage(0, String.Format("PACKET LOSS ClientToServer={0}%  ServerToClient={1}%",
                 player._client._stats.C2SPacketLoss.ToString("F"), player._client._stats.S2CPacketLoss.ToString("F")));
         }
+        #endregion
 
+        #region online
         /// <summary>
         /// Displays the number of players in each zone
         /// </summary>      
@@ -558,7 +586,9 @@ namespace InfServer.Game.Commands.Chat
 
             player._server._db.send(online);
         }
+        #endregion
 
+        #region structures
         /// <summary>
 		/// Displays all structures and resources belonging to a team.
 		/// </summary>
@@ -592,8 +622,10 @@ namespace InfServer.Game.Commands.Chat
             }
             
         }
+        #endregion
 
-		/// <summary>
+        #region spec
+        /// <summary>
 		/// Displays all players which are spectating
 		/// </summary>
         public static void spec(Player player, Player recipient, string payload, int bong)
@@ -622,7 +654,9 @@ namespace InfServer.Game.Commands.Chat
 
 			player.sendMessage(0, result.TrimEnd(',', ' '));
 		}
+        #endregion
 
+        #region squad
         /// <summary>
         /// Lists online players of current squad or a specific squad
         /// </summary>
@@ -636,7 +670,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadlist
         /// <summary>
         /// Lists all players of current squad or a specific squad
         /// </summary>
@@ -650,7 +686,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadlistinvites
         /// <summary>
         /// Lists current player invites or outstanding squad invites
         /// </summary>
@@ -667,7 +705,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadcreate
         /// <summary>
         /// Creates a squad in the current zone
         /// </summary>
@@ -681,7 +721,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadinvite
         /// <summary>
         /// Extends or revokes a squad invitation from a specific player
         /// </summary>
@@ -695,7 +737,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadkick
         /// <summary>
         /// Kicks a player from the current squad
         /// </summary>
@@ -709,7 +753,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadtransfer
         /// <summary>
         /// Transfers squad ownership to a specified player
         /// </summary>
@@ -723,7 +769,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadleave
         /// <summary>
         /// Leaves (or dissolves) current squad
         /// </summary>
@@ -737,7 +785,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region squadiresponse
         /// <summary>
         /// Accepts or rejects a squad invitation
         /// </summary>
@@ -751,7 +801,9 @@ namespace InfServer.Game.Commands.Chat
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
         }
+        #endregion
 
+        #region summon
         /// <summary>
         /// Ignore Summon Request
         /// </summary>
@@ -784,7 +836,9 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(0, "Added '" + payload + "' to summon-ignore list");
             }
         }
-        
+        #endregion
+
+        #region team
         /// <summary>
         /// Allows the user to change teams or create private teams
         /// </summary>
@@ -917,7 +971,9 @@ namespace InfServer.Game.Commands.Chat
                 Log.write(TLog.Warning, "Error thrown while switching teams. Sender: '" + player._alias + "' payload: '" + payload);
             }
         }
+        #endregion
 
+        #region zonelist
         /// <summary>
         /// Provides the user with a list of zones
         /// </summary>
@@ -946,7 +1002,9 @@ namespace InfServer.Game.Commands.Chat
                 player._server._db.send(zonelist);
             }
         }
+        #endregion
 
+        #region Registrar
         /// <summary>
         /// Registers all handlers
         /// </summary>
@@ -1065,5 +1123,6 @@ namespace InfServer.Game.Commands.Chat
                 "Displays a list of zones",
                 "?zonelist");
         }
+        #endregion
     }
 }
