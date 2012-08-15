@@ -84,7 +84,11 @@ namespace InfServer.Game.Commands.Chat
             player.StatsTotal.cash -= amount;
             target.StatsTotal.cash += amount;
             player.sendMessage(0, String.Format("{0} sent to {1} ({2} remaining)", amount, target._alias, player.StatsTotal.cash));
-            target.sendMessage(0, String.Format("You have received {0} cash from {1}", amount, player._alias)); 
+            target.sendMessage(0, String.Format("You have received {0} cash from {1}", amount, player._alias));
+
+            //Sync up!
+            player.syncState();
+            target.syncState();
         }
         #endregion
 
