@@ -213,8 +213,8 @@ namespace InfServer.Game
 				//Nope. It's closing time.
 				empty();
 
-            //Only check for private teams...
-            if (_isPrivate)
+            //H8 my life!
+            if (_isPrivate && _owner != null)
             {
                 //Owner is leaving, transfer to someone else randomly..
                 if (player._alias == _owner._alias)
