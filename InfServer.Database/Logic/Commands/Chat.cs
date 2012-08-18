@@ -179,6 +179,21 @@ namespace InfServer.Logic
                         foreach(Zone z in zone._server._zones)
                             z._server.sendMessage(z, "*", pkt.payload);
                         break;
+
+                    case CS_Query<Zone>.QueryType.gkill:
+                        {
+                            int minutes;
+                            string reason;
+                            string target;
+
+                            string[] parameters = pkt.payload.Split(':');
+
+                            target = parameters[0];
+                            minutes = Convert.ToInt32(parameters[1]);
+                            reason = parameters[2];
+                            
+                        }
+                        break;
                 }
             }
         }

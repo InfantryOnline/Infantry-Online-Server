@@ -32,6 +32,7 @@ namespace InfServer.Protocol
             zonelist,
             history,
             global,
+            gkill,
         }
 
 

@@ -699,7 +699,7 @@ namespace InfServer.Game
         {	//Should we ignore this?
             if (update.bIgnored)
                 return;
-
+            int now = Environment.TickCount;
             //Is it firing an item?
             if (update.itemID != 0)
             {	//Let's inspect this action a little closer
@@ -769,6 +769,9 @@ namespace InfServer.Game
                 if (info.getAmmoType(out ammoType, out ammoCount))
                     if (ammoType != 0 && !from.inventoryModify(false, ammoType, -ammoCount))
                         update.itemID = 0;
+
+                //Update last movement with firing, don't want to spec people in stationary turrets;
+                from._lastMovement = now;
             }
 
 
@@ -776,7 +779,7 @@ namespace InfServer.Game
             from.updateActiveEquip(update.activeEquip);
 
             //Update the player's state
-            int now = Environment.TickCount;
+            now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (update.tickCount & 0xFFFF);
             int oldPosX = from._state.positionX, oldPosY = from._state.positionY;
 

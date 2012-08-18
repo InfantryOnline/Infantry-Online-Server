@@ -560,8 +560,49 @@ namespace InfServer.Game.Commands.Mod
 				    //Destroy him!
 				    recipient.destroy();
                 else
-                    player.sendMessage(-1, "Syntax: ::*kill or *kill all");
+                    player.sendMessage(-1, "Syntax: ::*kill time:reason (optional) or *kill all (Time is in minutes)");
 		}
+
+        /// <summary>
+        /// Removes a player from the entire server
+        /// </summary>
+        static public void gkill(Player player, Player recipient, string payload, int bong)
+        {
+            if (recipient != null)
+                //Destroy him!
+                recipient.destroy();
+            else
+                player.sendMessage(-1, "Syntax: ::*gkill time:reason (optional) (Time is in minutes)");
+
+
+            //Must be a timed ban?
+            if (payload.Contains(':'))
+            {
+                int minutes;
+                string reason;
+
+                string[] parameters = payload.Split(':');
+
+                //Check if there is a reason
+                if (parameters.Count() == 2)
+                {
+                    minutes = Convert.ToInt32(parameters[0]);
+                    reason = parameters[1];
+                }
+                else
+                {//No
+                    minutes = Convert.ToInt32(parameters[0]);
+                    reason = "None given";
+                }
+
+                //Relay it to the database
+                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+                query.queryType = CS_Query<Data.Database>.QueryType.gkill;
+                query.sender = player._alias;
+                query.payload = recipient._alias + ":" + minutes + ":" + reason;
+
+            }
+        }
 
         /// <summary>
         /// Sets a ticker at the specified index with color/timer/messageSyntax: *ticker [message],[index],[color=optional],[timer=optional]
