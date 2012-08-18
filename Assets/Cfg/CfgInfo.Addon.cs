@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using System;
 namespace Assets
 {
     public partial class CfgInfo
@@ -12,11 +12,12 @@ namespace Assets
 
             public Addon(ref Dictionary<string, Dictionary<string, string>> stringTree)
             {
-                Parser.values = stringTree["Addon"];
+                    Parser.values = stringTree["Addon"];
 
-                aidLogic = Parser.GetInt("AidLogic");
-                aidEnabled = Parser.GetBool("AidEnabled");
-                teamOwnership = Parser.GetBool("AllowTeamOwnership");
+                    aidLogic = Parser.GetInt("AidLogic");
+                    aidEnabled = Parser.GetBool("AidEnabled");
+                    teamOwnership = Parser.GetBool("AllowTeamOwnership");
+                }
             }
         }
     }
