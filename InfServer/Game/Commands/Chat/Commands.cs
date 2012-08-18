@@ -39,6 +39,13 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void aid(Player player, Player recipient, string payload, int bong)
         {
+            //Is aid enabled for this zone?
+            if (!player._arena._server._zoneConfig.addon.aidEnabled)
+            {
+                player.sendMessage(-1, "Sorry, aid is disabled in this zone");
+                return;
+            }
+
             //Check syntax...
             if (!payload.Contains(':'))
             {
@@ -67,9 +74,9 @@ namespace InfServer.Game.Commands.Chat
             }
 
             //Does he meet the requirements? gotta stop statpadding...
-            if (player.StatsTotal.cash < 100000)
+            if (player.StatsTotal.playSeconds > player._server._zoneConfig.addon.aidLogic)
             {
-                player.sendMessage(-1, "Sorry, but you cannot aid another player unless you have over 100,000 cash.");
+                player.sendMessage(-1, "Sorry, You do not meet the requirements to aid another player");
                 return;
             }
 

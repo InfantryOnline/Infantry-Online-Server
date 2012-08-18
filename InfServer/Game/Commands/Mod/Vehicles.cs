@@ -106,12 +106,12 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(defaultVehicle, "defaultvehicle",
 				"Changes the player's default vehicle.",
 				"*defaultvehicle [vehicleid] or ::*defaultvehicle [vehicleid]", 
-				InfServer.Data.PlayerPermission.ArenaMod);
+				InfServer.Data.PlayerPermission.ArenaMod, true);
 
 			yield return new HandlerDescriptor(spawnVehicle, "vehicle",
 				"Spawns a new vehicle in your current location",
 				"*vehicle [vehicleid]", 
-				InfServer.Data.PlayerPermission.ArenaMod);
+				InfServer.Data.PlayerPermission.ArenaMod, true);
 		}
 	}
 }

@@ -132,32 +132,32 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(recycle, "recycle",
 				"Restarts the current zone",
 				"*recycle",
-				InfServer.Data.PlayerPermission.Sysop);
+                InfServer.Data.PlayerPermission.Manager, true);
 
             yield return new HandlerDescriptor(log, "log",
                 "Grabs exception logs for the current zone",
                 "*log",
-                InfServer.Data.PlayerPermission.Sysop);
+                InfServer.Data.PlayerPermission.Manager, true);
 
 			yield return new HandlerDescriptor(environment, "environment",
 				"Queries environment information from a player",
 				"::*environment",
-				InfServer.Data.PlayerPermission.Sysop);
+				InfServer.Data.PlayerPermission.Sysop, false);
 
 			yield return new HandlerDescriptor(testPacket, "testpacket",
 				"Sends a test packet to the target player",
 				"::*testpacket",
-				InfServer.Data.PlayerPermission.Sysop);
+				InfServer.Data.PlayerPermission.Sysop, false);
 
 			yield return new HandlerDescriptor(showGif, "showgif",
 				"Sends a gif to the target player",
 				"::*showgif [gif url]",
-				InfServer.Data.PlayerPermission.Sysop);
+				InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(history, "history",
                 "Returns a list of mod commands used in every server",
                 "*history [page]",
-                InfServer.Data.PlayerPermission.Sysop);
+                InfServer.Data.PlayerPermission.Manager, false);
 		}
 	}
 }

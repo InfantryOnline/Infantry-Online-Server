@@ -25,7 +25,10 @@ namespace InfServer.Data
 		ArenaMod = 1,
 		Mod = 2,
 		SMod = 3,
-        Sysop = 4,
+        Manager = 4,
+        Sysop = 5,
+        //Want to figure out a better way to do this, will rewrite everything eventually...
+        Developer = 6,
 	}
 
 	/// <summary>

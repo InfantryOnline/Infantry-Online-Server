@@ -9,6 +9,7 @@ namespace Assets
         public Message message;
         public Level level;
         public Arena arena;
+        public Addon addon;
         public PublicProfile publicProfile;
         public Timing timing;
         public Soul soul;
@@ -100,6 +101,7 @@ namespace Assets
             stringTree.Add(currentHeader, values);
 
             cfgInfo.message = new Message(ref stringTree);
+            cfgInfo.addon = new Addon(ref stringTree);
             cfgInfo.level = new Level(ref stringTree);
             cfgInfo.arena = new Arena(ref stringTree);
             cfgInfo.publicProfile = new PublicProfile(ref stringTree);

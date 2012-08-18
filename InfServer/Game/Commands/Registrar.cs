@@ -150,6 +150,8 @@ namespace InfServer.Game.Commands
 		public string usage;
 
 		public Data.PlayerPermission permissionLevel;
+        public bool isDevCommand;
+      
 
 		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage)
 		{
@@ -159,15 +161,18 @@ namespace InfServer.Game.Commands
 			usage = _usage;
 
 			permissionLevel = InfServer.Data.PlayerPermission.Normal;
+            isDevCommand = false;
 		}
 
-		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage, Data.PlayerPermission _permissionLevel)
+		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage, Data.PlayerPermission _permissionLevel, bool _isDevCommand)
 		{
 			handler = _handler;
 			handlerCommand = _handlerCommand;
 			commandDescription = _commandDescription;
 			usage = _usage;
 			permissionLevel = _permissionLevel;
+
+            isDevCommand = _isDevCommand;
 		}
 	}
 

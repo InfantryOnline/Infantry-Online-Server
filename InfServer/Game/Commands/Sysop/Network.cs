@@ -137,12 +137,12 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(playernetstat, "playernetstat",
 				"Provides server networking stats per-player",
 				"*playernetstat",
-				InfServer.Data.PlayerPermission.Sysop);
+				InfServer.Data.PlayerPermission.Sysop, false);
 
 			yield return new HandlerDescriptor(netstat, "netstat",
 				"Provides server networking stats",
 				"*netstat",
-				InfServer.Data.PlayerPermission.Sysop);
+				InfServer.Data.PlayerPermission.Sysop, false);
 		}
 	}
 }

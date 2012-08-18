@@ -122,25 +122,32 @@ namespace InfServer.Game
 		/// <summary>
 		/// Handles a moderator command received from a player
 		/// </summary>
-		public void playerModCommand(Player from, Player recipient, string command, string payload, int bong)
-		{	//Attempt to find the appropriate handler
-			HandlerDescriptor handler;
+        public void playerModCommand(Player from, Player recipient, string command, string payload, int bong)
+        {	//Attempt to find the appropriate handler
+            HandlerDescriptor handler;
 
-			if (!_commandRegistrar._modCommands.TryGetValue(command.ToLower(), out handler))
-				return;
+            if (!_commandRegistrar._modCommands.TryGetValue(command.ToLower(), out handler))
+                return;
 
-			//Check the permission levels
-			if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
-			{	//Not going to happen.
-				return;
-			}
-
+            if (from.PermissionLevelLocal != Data.PlayerPermission.Developer)
+            {
+                //Check the permission levels
+                if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
+                {	//Not going to happen.
+                    return;
+                }
+            }
+            else
+            {
+                if (!handler.isDevCommand)
+                    return;
+            }
             //Command logging (ignore normal player permission commands like *help, etc)
             if (from.PermissionLevelLocal != Data.PlayerPermission.Normal)
             {   //Notify his superiors in the arena
                 string sRecipient;
                 foreach (Player p in Players)
-                    if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
+                    if (p != from && ((int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal | from.PermissionLevelLocal == Data.PlayerPermission.Developer))
                         p.sendMessage(0, String.Format("@[Arena: {0}] {1}>{2} *{3} {4}",
                             from._arena._name,
                             from._alias,
@@ -165,20 +172,20 @@ namespace InfServer.Game
                 }
             }
 
-			try
-			{	//Handle it!
-				handler.handler(from, recipient, payload, bong);
-			}
-			catch (Exception ex)
-			{
-				if (recipient != null)
-					Log.write(TLog.Exception, "Exception while executing mod command '{0}' from '{1}' to '{2}'.\r\nPayload: {3}\r\n{4}",
-						command, from, recipient, payload, ex);
-				else
-					Log.write(TLog.Exception, "Exception while executing mod command '{0}' from '{1}'.\r\nPayload: {2}\r\n{3}",
-						command, from, payload, ex);
-			}
-		}
+            try
+            {	//Handle it!
+                handler.handler(from, recipient, payload, bong);
+            }
+            catch (Exception ex)
+            {
+                if (recipient != null)
+                    Log.write(TLog.Exception, "Exception while executing mod command '{0}' from '{1}' to '{2}'.\r\nPayload: {3}\r\n{4}",
+                        command, from, recipient, payload, ex);
+                else
+                    Log.write(TLog.Exception, "Exception while executing mod command '{0}' from '{1}'.\r\nPayload: {2}\r\n{3}",
+                        command, from, payload, ex);
+            }
+        }
 
 		/// <summary>
 		/// Handles a typical chat command received from a player

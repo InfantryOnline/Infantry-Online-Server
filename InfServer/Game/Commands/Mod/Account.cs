@@ -61,7 +61,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",
                 "*whois [ipaddress/alias] or ::*whois",
-                InfServer.Data.PlayerPermission.Mod);
+                InfServer.Data.PlayerPermission.Mod, false);
         }
     }
 }
