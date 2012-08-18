@@ -123,7 +123,7 @@ namespace InfServer.Game
 				removeClient(player._client);
 
 				//Make sure his stats get updated
-				if (player._bDBLoaded)
+				if (player._bDBLoaded && player._arena._bIsPublic)
 					_db.updatePlayer(player);
 
 				//We've lost him!

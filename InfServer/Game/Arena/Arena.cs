@@ -584,7 +584,7 @@ namespace InfServer.Game
 				}
 
                 //Is it time to sync to database?
-                if (bDBSync && !_server.IsStandalone)
+                if (bDBSync && !_server.IsStandalone && _bIsPublic)
                     foreach (Player p in Players)
                         if (p._bDBLoaded)
                             //Update him!
