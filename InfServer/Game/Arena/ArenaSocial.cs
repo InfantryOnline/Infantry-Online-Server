@@ -147,7 +147,8 @@ namespace InfServer.Game
             {   //Notify his superiors in the arena
                 string sRecipient;
                 foreach (Player p in Players)
-                    if (p != from && ((int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal | from.PermissionLevelLocal == Data.PlayerPermission.Developer))
+                    if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
+                    {
                         p.sendMessage(0, String.Format("@[Arena: {0}] {1}>{2} *{3} {4}",
                             from._arena._name,
                             from._alias,
@@ -156,6 +157,21 @@ namespace InfServer.Game
                                 : String.Empty,
                             command,
                             payload));
+                    }
+                        //Developer?
+                    else if (from.PermissionLevelLocal == Data.PlayerPermission.Developer)
+                    {
+                        if (p.PermissionLevelLocal >= Data.PlayerPermission.Mod && p != from)
+                            p.sendMessage(0, String.Format("@[Arena: {0}] {1}>{2} *{3} {4}",
+                            from._arena._name,
+                            from._alias,
+                            sRecipient = (recipient != null)
+                                ? " :" + recipient._alias + ":"
+                                : String.Empty,
+                            command,
+                            payload));
+                    }
+            
 
                 //Log it in the history database
                 if (!_server.IsStandalone)
