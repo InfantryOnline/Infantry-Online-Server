@@ -143,6 +143,11 @@ namespace InfServer.Game
 				_arenas.Add(name, arena);
 
 			Log.write(TLog.Normal, "Opened arena: " + name);
+
+            //Grant temporary powers for the first player in the arena..
+            if (arena.IsPrivate)
+            arena.Players.First()._permissionTemp = Data.PlayerPermission.ArenaMod;
+
 			return arena;
 		}
 
