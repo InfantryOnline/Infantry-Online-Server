@@ -1743,6 +1743,10 @@ namespace InfServer.Game
 			if (!exists("Bot.Death") || (bool)callsync("Bot.Death", false, dead, killer, weaponID))
 			{	//Route the death to the arena
 				Helpers.Vehicle_RouteDeath(Players, killer, dead, null);
+
+                //Don't allow rewards for teamkills
+                if (dead._team != killer._team)
+                Logic_Rewards.calculateBotKillRewards(dead, killer);
 			}
         }
         #endregion

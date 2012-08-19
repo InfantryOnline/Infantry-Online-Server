@@ -37,6 +37,91 @@ namespace InfServer.Logic
 			owner.KillPoints += (int)(killerPoints * (((float)cfg.arena.turretPointsSharePercent) / 1000));
 			owner.Experience += (int)(killerExp * (((float)cfg.arena.turretExperienceSharePercent) / 1000));
 		}
+
+        /// <summary>
+        /// Calculates and rewards a players for a bot kill
+        /// </summary>
+        static public void calculateBotKillRewards(Bots.Bot victim, Player killer)
+        {
+            CfgInfo cfg = killer._server._zoneConfig;
+            int killerCash = 0;
+            int killerExp = 0;
+            int killerPoints = 0;
+            int killerBounty = 0;
+
+            killerCash = (int)cfg.bot.cashKillReward;
+            killerExp = (int)cfg.bot.expKillReward;
+            killerPoints = (int)cfg.bot.pointsKillReward;
+            killerBounty = (int)cfg.bot.fixedBountyToKiller;
+
+            killer.Cash += killerCash;
+            killer.Experience += killerExp;
+            killer.KillPoints += killerPoints;
+            killer.Bounty += killerBounty;
+
+
+            //Inform the killer..
+            killer.triggerMessage(1, 500,
+                String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
+                victim._type.Name, killer._alias,
+                killerCash, killerExp, killerPoints));
+
+            //Sync his state
+            killer.syncState();
+
+            //Check for players in the share radius
+            List<Player> sharedRewards = victim._arena.getPlayersInRange(victim._state.positionX, victim._state.positionY, cfg.bot.shareRadius);
+            Dictionary<int, int> cashRewards = new Dictionary<int, int>();
+            Dictionary<int, int> expRewards = new Dictionary<int, int>();
+            Dictionary<int, int> pointRewards = new Dictionary<int, int>();
+
+            foreach (Player p in sharedRewards)
+            {
+                if (p == killer || p._team != killer._team)
+                    continue;
+
+                cashRewards[p._id] = (int)((((float)killerCash) / 1000) * cfg.bot.sharePercent);
+                expRewards[p._id] = (int)((((float)killerExp) / 1000) * cfg.bot.sharePercent);
+                pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.bot.sharePercent);
+            }
+
+            
+
+            //Sent reward notices to our lucky witnesses
+            List<int> sentTo = new List<int>();
+            foreach (Player p in sharedRewards)
+            {
+                if (p == killer || p._team != killer._team)
+                    continue;
+
+                //Let em know
+                p.triggerMessage(5, 500, 
+                    String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})", 
+                    victim._type.Name, killer._alias, cashRewards[p._id], 
+                    expRewards[p._id], pointRewards[p._id]));
+
+                p.Cash += cashRewards[p._id];
+                p.Experience += expRewards[p._id];
+                p.AssistPoints += pointRewards[p._id];
+
+                //Sync their state
+                p.syncState();
+
+                sentTo.Add(p._id);
+            }
+
+            //Route the kill to the rest of the arena
+            foreach (Player p in victim._arena.Players)
+            {	//As long as we haven't already declared it, send
+                if (p == killer)
+                    continue;
+
+                if (sentTo.Contains(p._id))
+                    continue;
+
+                p.triggerMessage(5, 500, String.Format("{0} killed by {1}", victim._type.Name, killer._alias));
+            }
+        }
 		
 		/// <summary>
 		/// Calculates and distributes rewards for a player kill

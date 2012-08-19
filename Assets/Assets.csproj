@@ -164,6 +164,7 @@
     <Compile Include="Cfg\CfgInfo.ZoneStat.cs" />
     <Compile Include="Cfg\ConfigFile.cs" />
     <Compile Include="Cfg\CfgInfo.Addon.cs" />
+    <Compile Include="Cfg\CfgInfo.Bot.cs" />
     <Compile Include="Itm\ItemFile.cs" />
     <Compile Include="Itm\ItmInfo.Ammo.cs" />
     <Compile Include="Itm\ItmInfo.ControlItem.cs" />
