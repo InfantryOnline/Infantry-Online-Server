@@ -479,7 +479,7 @@ namespace InfServer.Game
                     }
 
 					//Update play seconds
-					if (bMinor && _bGameRunning)
+					if (bMinor)
 						player.PlaySeconds++;
 
 					if (tickTerrainBty)
