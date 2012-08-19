@@ -74,8 +74,6 @@ namespace Assets
             string currentHeader = "";
             string removeFromParsing = "[]";
 
-            try
-            {
                 while ((line = reader.ReadLine()) != null)
                 {
                     if (line.Length > 0 && line[0] == '[')
@@ -176,10 +174,6 @@ namespace Assets
                 cfgInfo.heldCategory = new HeldCategory(ref stringTree);
                 cfgInfo.flagMvp = new FlagMvp(ref stringTree);
                 cfgInfo.rtsStateDefault = new RtsStateDefault(ref stringTree);
-            }
-            catch (Exception e)
-            {
-            }
 
             return cfgInfo;
         }
