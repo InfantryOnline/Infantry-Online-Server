@@ -213,7 +213,7 @@ namespace InfServer.Game
 				//Nope. It's closing time.
 				empty();
 
-            //H8 my life!
+            /*Disabling for now..
             if (_isPrivate && _owner != null)
             {
                 //Owner is leaving, transfer to someone else randomly..
@@ -222,7 +222,7 @@ namespace InfServer.Game
                     _owner = _players.FirstOrDefault();
                     _owner.sendMessage(0, String.Format("Ownership of {0} has been transfered to you", _name));
                 }
-            }
+            }*/
 
 			//Reset any team-related state the player might have had
 			_arena.flagResetPlayer(player);
