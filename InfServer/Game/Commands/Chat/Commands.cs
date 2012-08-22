@@ -1013,11 +1013,19 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
+
             //Find the target player and see if he exists..
             Player target = player._arena.getPlayerByName(payload);
             if (target == null)
             {
                 player.sendMessage(-1, "Target player doesn't exist");
+                return;
+            }
+
+            //Is he even on the same team?
+            if (target._team != player._team)
+            {
+                player.sendMessage(-1, "Target player isn't on your team!");
                 return;
             }
 

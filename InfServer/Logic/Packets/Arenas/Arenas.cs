@@ -24,6 +24,31 @@ namespace InfServer.Logic
 				return;
 			}
 
+			//If he's in an arena, get him out of it
+			if (player._arena != null)
+				player.leftArena();
+
+			//Does he have a specific arena to join?
+			Arena match = null;
+
+			if (pkt.ArenaName != "" && pkt.ArenaName != "-2")
+				match = player._server.playerJoinArena(player, pkt.ArenaName);
+
+			if (match == null)
+				//We need to find our player an arena to inhabit..
+				match = player._server.allocatePlayer(player);
+
+			//If we're unable to find an arena, abort
+			if (match == null)
+			{
+				Log.write(TLog.Warning, "Unable to allocate player '{0}' an arena.", player._alias);
+				player.disconnect();
+				return;
+			}
+
+			//Add him to the arena
+			match.newPlayer(player);
+
             //TODO: Compare to the server's checksum instead.
             if (player._assetCS == 0)
             {
@@ -49,31 +74,6 @@ namespace InfServer.Logic
                     player.disconnect();
                 }
             }
-
-			//If he's in an arena, get him out of it
-			if (player._arena != null)
-				player.leftArena();
-
-			//Does he have a specific arena to join?
-			Arena match = null;
-
-			if (pkt.ArenaName != "" && pkt.ArenaName != "-2")
-				match = player._server.playerJoinArena(player, pkt.ArenaName);
-
-			if (match == null)
-				//We need to find our player an arena to inhabit..
-				match = player._server.allocatePlayer(player);
-
-			//If we're unable to find an arena, abort
-			if (match == null)
-			{
-				Log.write(TLog.Warning, "Unable to allocate player '{0}' an arena.", player._alias);
-				player.disconnect();
-				return;
-			}
-
-			//Add him to the arena
-			match.newPlayer(player);
 		}
 
 		/// <summary>
