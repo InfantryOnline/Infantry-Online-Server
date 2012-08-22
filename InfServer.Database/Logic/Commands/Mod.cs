@@ -7,7 +7,7 @@ using InfServer.Data;
 
 namespace InfServer.Logic
 {
-    class Logic_ChatCommands
+    class Logic_ModCommands
     {
         /// <summary>
         /// Handles a query packet
