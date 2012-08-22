@@ -148,9 +148,6 @@ namespace InfServer.Game
 			player.migrateStats();
 			player.resetVars();
 
-            //Temp
-            player._permissionTemp = Data.PlayerPermission.Sysop;
-
 			//TODO: Check rules for whether player enters in spec
 			player._bSpectator = true;
 			player._team = _teams["spec"];
