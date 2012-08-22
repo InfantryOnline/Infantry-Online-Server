@@ -15,6 +15,7 @@ namespace InfServer.Protocol
         ///////////////////////////////////////////////////
         public BanType banType;         //Query type
         public string sender;           //Player requesting
+        public string alias;            //Target alias (for retrieving account info)
         public int time;                //Timed ban?
         public string reason;           //Reason for ban
 
@@ -76,6 +77,7 @@ namespace InfServer.Protocol
         {	//Type ID
             Write((byte)TypeID);
             Write(sender, 0);
+            Write(alias, 0);
             Write((byte)banType);
             Write(time);
             Write(reason, 0);
@@ -91,6 +93,7 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             sender = ReadNullString();
+            alias = ReadNullString();
             banType = (BanType)_contentReader.ReadByte();
             time = _contentReader.ReadInt32();
             reason = ReadNullString();

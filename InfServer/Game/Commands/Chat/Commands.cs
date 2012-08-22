@@ -74,7 +74,7 @@ namespace InfServer.Game.Commands.Chat
             }
 
             //Does he meet the requirements? gotta stop statpadding...
-            if (player.StatsTotal.Points > player._server._zoneConfig.addon.aidLogic)
+            if (player.StatsTotal.Points < player._server._zoneConfig.addon.aidLogic)
             {
                 player.sendMessage(-1, "Sorry, You do not meet the requirements to aid another player");
                 return;

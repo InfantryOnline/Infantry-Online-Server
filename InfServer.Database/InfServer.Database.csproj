@@ -80,6 +80,7 @@
     <Compile Include="Logic\Bans.cs" />
     <Compile Include="Logic\Chats.cs" />
     <Compile Include="Logic\Commands\Chat.cs" />
+    <Compile Include="Logic\Commands\Mod.cs" />
     <Compile Include="Logic\Login.cs" />
     <Compile Include="Logic\Player.cs" />
     <Compile Include="Logic\Stats.cs" />

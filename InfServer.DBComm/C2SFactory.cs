@@ -193,6 +193,10 @@ namespace InfServer.Data
                     packet = new Disconnect<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_Ban<T>.TypeID:
+                    packet = new CS_Ban<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

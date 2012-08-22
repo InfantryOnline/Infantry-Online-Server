@@ -596,10 +596,16 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 //Relay it to the database
-                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-                query.queryType = CS_Query<Data.Database>.QueryType.gkill;
-                query.sender = player._alias;
-                query.payload = recipient._alias + ":" + minutes + ":" + reason;
+                CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
+                newBan.alias = recipient._alias;
+                newBan.UID1 = recipient._UID1;
+                newBan.UID2 = recipient._UID2;
+                newBan.UID3 = recipient._UID3;
+                newBan.time = minutes;
+                newBan.sender = player._alias;
+                newBan.reason = reason;
+
+                player._server._db.send(newBan);
 
             }
         }
@@ -709,6 +715,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(authenticate, "auth",
                 "Log in during Stand-Alone Mode",
                 "*auth password");
+
+            yield return new HandlerDescriptor(gkill, "gkill",
+                "Globally bans a player from the entire server",
+                "::*gkill minutes:reason", 
+                InfServer.Data.PlayerPermission.SMod, false);
 
             yield return new HandlerDescriptor(permit, "permit",
                 "Permits target player to enter a permission-only zone.",
