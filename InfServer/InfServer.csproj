@@ -288,6 +288,8 @@
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdate.cs" />
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdateInfo.cs" />
     <Compile Include="Protocol\Packets\Misc\CS_FileSend.cs" />
+    <Compile Include="Protocol\Packets\Security\CS_SecurityCheck.cs" />
+    <Compile Include="Protocol\Packets\Security\SC_SecurityCheck.cs" />
     <Compile Include="Protocol\Packets\Security\SC_RegQuery.cs" />
     <Compile Include="Protocol\Packets\State\SC_ZoneList.cs" />
     <Compile Include="Protocol\Packets\Stats\CS_ChartRequest.cs" />

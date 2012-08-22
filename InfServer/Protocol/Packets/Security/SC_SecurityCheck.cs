@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
 
 using InfServer.Network;
 
 namespace InfServer.Protocol
 {	/// <summary>
-	/// SC_Test used for testing client functionality
+	/// SC_Environment requests a snapshot of the player's environment
 	/// </summary>
-	public class SC_Test : PacketBase
+	public class SC_SecurityCheck : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-        public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.SecurityCheck;
+		public bool bLimitLength;
+
+		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.SecurityCheck;
 
 
 		///////////////////////////////////////////////////
@@ -23,7 +24,7 @@ namespace InfServer.Protocol
 		/// Creates an empty packet of the specified type. This is used
 		/// for constructing new packets for sending.
 		/// </summary>
-		public SC_Test()
+        public SC_SecurityCheck()
 			: base(TypeID)
 		{ }
 
@@ -35,14 +36,14 @@ namespace InfServer.Protocol
 			Write((byte)TypeID);
 		}
 
-        /// <summary>
-        /// Returns a meaningful of the packet's data
-        /// </summary>
-        public override string Dump
+		/// <summary>
+		/// Returns a meaningful of the packet's data
+		/// </summary>
+		public override string Dump
 		{
 			get
 			{
-				return "Test.";
+				return "security request";
 			}
 		}
 	}

@@ -123,10 +123,11 @@ namespace InfServer.Game
 				removeClient(player._client);
 
 				//Make sure his stats get updated
-				if (player._bDBLoaded)
+				if (player._bDBLoaded && !player._server.IsStandalone)
 					_db.updatePlayer(player);
 
 				//We've lost him!
+                if (!player._server.IsStandalone)
 				_db.lostPlayer(player);
 			}
 		}

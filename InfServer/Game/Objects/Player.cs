@@ -40,6 +40,11 @@ namespace InfServer.Game
 
 		public Data.PlayerPermission _permissionStatic;	//The player's global permission in this zone
 		public Data.PlayerPermission _permissionTemp;	//The player's permission in his current arena
+
+        public IPAddress _ipAddress;
+        public uint _UID1;
+        public uint _UID2;
+        public uint _UID3;
 		#endregion
 
 		#region Game state
@@ -63,6 +68,7 @@ namespace InfServer.Game
         public int _lastVehicleEntry;           //The tick at which the player last entered or exited a vehicle
 
         public int _lastMovement;               //The tickcount at which the player last made a movement
+        public uint _assetCS;
 		#endregion
 
 		#region Player state

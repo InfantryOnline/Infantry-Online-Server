@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using System.Net.Sockets;
 using InfServer.Game;
 using InfServer.Protocol;
 
@@ -17,6 +19,7 @@ namespace InfServer.Logic
 
 			Player newPlayer = server.newPlayer(client, pkt.Username);
             String alias = newPlayer._alias;
+
 
             //Check their client version and UIDs
             //TODO: find out what the UIDs are and what an invalid UID might look like, and reject spoofed ones
@@ -59,6 +62,11 @@ namespace InfServer.Logic
                     Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
                     return;
                 }
+
+
+            newPlayer._UID1 = pkt.UID1;
+            newPlayer._UID2 = pkt.UID2;
+            newPlayer._UID3 = pkt.UID3;
 
 			//Are we in standalone mode?
 			if (server.IsStandalone)

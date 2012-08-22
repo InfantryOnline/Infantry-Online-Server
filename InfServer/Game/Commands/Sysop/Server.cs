@@ -85,7 +85,8 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
-			//What the fuck was that?
+            SC_SecurityCheck cs = new SC_SecurityCheck();
+            recipient._client.send(cs);
 		}
 
 		/// <summary>

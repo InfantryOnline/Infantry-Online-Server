@@ -243,6 +243,10 @@ namespace InfServer.Protocol
 					packet = new CS_ChartRequest(typeID, buffer, offset, size);
 					break;
 
+                case CS_SecurityCheck.TypeID:
+                    packet = new CS_SecurityCheck(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

@@ -19,6 +19,8 @@ namespace InfServer.Game
 
 		private List<AssetInfo> _assetList;
 		private List<string> _bloList;
+
+        public uint _totalChecksum;
 		
 
 		private SortedDictionary<string, ItemInfo> _nameToItem;
@@ -245,6 +247,17 @@ namespace InfServer.Game
                 if (assetf != null)
                     addAssetData(assetf);
             }
+        }
+
+        public uint checkSum()
+        {
+            uint totalChecksum = 0;
+
+            foreach (AssetInfo a in _assetList)
+            {
+                totalChecksum += a.checksum;
+            }
+            return totalChecksum;
         }
 
 		/// <summary>

@@ -53,6 +53,7 @@ namespace InfServer.Protocol
 				Security = 0x25,
                 AllowSpectator = 0x2A,
 				RequestSpectator = 0x2B,
+                SecurityResponse = 36,
 			}
 
 			/// <summary>

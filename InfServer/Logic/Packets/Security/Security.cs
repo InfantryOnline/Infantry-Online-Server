@@ -34,6 +34,14 @@ namespace InfServer.Logic
                 target.sendMessage(0, "*" + Logic_Text.RemoveIllegalCharacters(element));
 		}
 
+        /// <summary>
+		/// Triggered when the client has responsed to a security request
+		/// </summary>
+        static public void Handle_CS_Security(CS_SecurityCheck pkt, Player player)
+        {
+            Log.write("Security dump: " + pkt.DataDump);
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -41,6 +49,7 @@ namespace InfServer.Logic
 		static public void Register()
 		{
 			CS_Environment.Handlers += Handle_CS_Environment;
+            CS_SecurityCheck.Handlers += Handle_CS_Security;
 		}
 	}
 }

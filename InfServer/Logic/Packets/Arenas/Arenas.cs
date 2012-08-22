@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.IO;
 using InfServer.Protocol;
 using InfServer.Game;
 
@@ -24,7 +24,31 @@ namespace InfServer.Logic
 				return;
 			}
 
-			//TODO: Check the security update
+            //TODO: Compare to the server's checksum instead.
+            if (player._assetCS == 0)
+            {
+                player._assetCS = pkt.AssetChecksum;
+            }
+            else
+            {
+                //What the tomfoolery is goin' here?
+                if (player._assetCS != pkt.AssetChecksum)
+                {//Kick the fucker
+
+                    //Alert any moderators first.
+                    foreach (Player p in player._arena.Players)
+                    {
+                        if (p.PermissionLevelLocal > Data.PlayerPermission.Normal)
+                            p.sendMessage(0, String.Format("![Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum));
+                    }
+
+                    //Log it
+                    Log.write(TLog.Warning, "[Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum);
+
+                    //Bye!
+                    player.disconnect();
+                }
+            }
 
 			//If he's in an arena, get him out of it
 			if (player._arena != null)

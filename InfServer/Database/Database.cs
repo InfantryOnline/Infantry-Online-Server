@@ -179,6 +179,9 @@ namespace InfServer.Data
 			if (stats == null)
 				return;
 
+            if (_server.IsStandalone)
+                return;
+
 			//Create an update packet
 			CS_PlayerUpdate<Database> upd = new CS_PlayerUpdate<Database>();
 

@@ -271,6 +271,8 @@ namespace InfServer.Game
             //////////////////////////////////////////////
 		    _pingResponder = new ClientPingResponder(_players);
 
+            Log.write("Asset Checksum: " + _assets.checkSum());
+
 			return true;
 		}
 
