@@ -68,7 +68,7 @@ namespace InfServer.Logic
                     }
 
                     //Log it
-                    Log.write(TLog.Warning, "[Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum);
+                    Log.write(TLog.Security, "[Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum);
 
                     //Bye!
                     player.disconnect();

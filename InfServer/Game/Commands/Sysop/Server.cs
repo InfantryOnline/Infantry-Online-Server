@@ -51,7 +51,7 @@ namespace InfServer.Game.Commands.Mod
             //Do we even have any?
             if (logs.Count() == 0)
             {
-                player.sendMessage(0, "No exception logs.");
+                player.sendMessage(0, "No security logs.");
                 return;
             }
 

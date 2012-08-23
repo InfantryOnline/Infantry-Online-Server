@@ -30,6 +30,7 @@ namespace InfServer.Game
 		public volatile bool bDestroyed;		//Have we already been destroyed?
 		public bool _bIngame;					//Are we in the game, or in an arena transition?
 		public bool _bLoggedIn;					//Have we made it past the login process, and are able to enter arenas?
+        public List<DateTime> _msgTimeStamps;
 
 		#region Credentials
 		public ushort _id;						//Unique zone id for a player
@@ -50,7 +51,12 @@ namespace InfServer.Game
 		#region Game state
 		public bool _bIgnoreUpdates;			//Are we temporarily ignoring player updates? (Usually due to vehicle change)
 		public bool _bSpectator;				//Is the player in spectator mode?
+
+        //Player shutup stuff..
         public bool _bSilenced;                 //Is the player currently silenced?
+        public DateTime _timeOfSilence;         //When he was silenced
+        public int _lengthOfSilence;            //For how long...
+
         public bool _bLocked;                   //Is the player locked in spec?
         public bool _bAllowSpectator;           //Is the player allowing spectators?
 
@@ -232,6 +238,8 @@ namespace InfServer.Game
             _summonIgnore = new List<string>();
 
             activeUtilities = new List<ItemInfo.UtilityItem>();
+
+            _msgTimeStamps = new List<DateTime>();
 		}
 
 		#region State

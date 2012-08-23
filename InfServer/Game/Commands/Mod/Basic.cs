@@ -676,14 +676,37 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
+            if (payload == "")
+            {
+                player.sendMessage(-1, "Syntax: ::*shutup timeinminutes");
+                return;
+            }
+
+            //Convert our payload into a numerical value
+            int minutes = 0;
+            try
+            {
+                minutes = Convert.ToInt32(payload);
+            }
+            catch (FormatException e)
+            {
+               
+            }
+
             //Toggle his ability to speak
             recipient._bSilenced = !recipient._bSilenced;
 
             //Notify some people
             if (recipient._bSilenced)
+            {
+                recipient._timeOfSilence = DateTime.Now;
+                recipient._lengthOfSilence = minutes;
                 player.sendMessage(0, recipient._alias + " has been silenced");
+            }
             else
+            {
                 player.sendMessage(0, recipient._alias + " has been unsilenced");
+            }
         }
 
         /// <summary>

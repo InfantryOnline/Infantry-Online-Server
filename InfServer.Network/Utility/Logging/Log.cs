@@ -16,7 +16,8 @@ namespace InfServer
 		Normal,
 		Warning,
 		Error,
-		Exception
+		Exception,
+        Security
 	}
 
 	// LogAssume
@@ -103,6 +104,7 @@ namespace InfServer
 		public event LogMessage eWarning;
 		public event LogMessage eNormal;
 		public event LogMessage eInane;
+        public event LogMessage eSecurity;
 
 
 		// Member Functions
@@ -177,6 +179,11 @@ namespace InfServer
 					if (eInane != null)
 						eInane(message);
 					break;
+
+                case TLog.Security:
+                    if (eSecurity != null)
+                        eSecurity(message);
+                    break;
 			}
 		}
 	}
@@ -216,6 +223,7 @@ namespace InfServer
 		static StreamWriter m_warning;
 		static StreamWriter m_error;
 		static StreamWriter m_exception;
+        static StreamWriter m_security;
 
 		//Logging Event Delegate
 		public delegate void LogMessage(TLog type, LogClient client, string message);
@@ -226,6 +234,7 @@ namespace InfServer
 		public static event LogMessage eWarning;
 		public static event LogMessage eNormal;
 		public static event LogMessage eInane;
+        public static event LogMessage eSecurity;
 
 
 		///////////////////////////////////////////////////
@@ -280,6 +289,7 @@ namespace InfServer
 			m_warning = new StreamWriter("logs\\warnings.txt");
 			m_error = new StreamWriter("logs\\errors.txt");
 			m_exception = new StreamWriter("logs\\exceptions.txt");
+            m_security = new StreamWriter("logs\\security.txt");
 
 			//Load settings
 			string threshold = "Normal";
@@ -303,6 +313,9 @@ namespace InfServer
 				case "Exception":
 					m_consoleThreshold = TLog.Exception;
 					break;
+                case "Security":
+                    m_consoleThreshold = TLog.Security;
+                    break;
 				default:
 					Log.write(TLog.Warning, "Unknown threshold type: " + threshold);
 					break;
@@ -723,17 +736,15 @@ namespace InfServer
         static public List<string> readLog()
         {
             List<string> logs = new List<string>();
-            FileStream exceptions = new FileStream("logs/exceptions.txt", FileMode.Open, FileAccess.Read, System.IO.FileShare.ReadWrite);
-            FileStream errors = new FileStream("logs/exceptions.txt", FileMode.Open, FileAccess.Read, System.IO.FileShare.ReadWrite);
+            FileStream security = new FileStream("logs//security.txt", FileMode.Open, FileAccess.Read, System.IO.FileShare.ReadWrite);
             
             string line;
-            //Read exceptions by default for now..
-            StreamReader reader = new StreamReader(exceptions);
+            StreamReader reader = new StreamReader(security);
             while ((line = reader.ReadLine()) != null)
             {
                 logs.Add(line);
             }
-            exceptions.Close();
+            security.Close();
 
 
             return logs;
@@ -817,6 +828,17 @@ namespace InfServer
 							Console.ForegroundColor = ConsoleColor.DarkRed;
 						typechar = "* ";
 						break;
+                    case TLog.Security:
+                        lock (m_security)
+                        {
+                            m_exception.WriteLine("[" + DateTime.Now.ToLongTimeString() + "][" + client.m_clientname + client.m_clientnum + "] " + Message);
+                            m_security.Flush();
+                        }
+                        
+						if (type >= m_consoleThreshold)
+							Console.ForegroundColor = ConsoleColor.White;
+						typechar = "! ";
+                        break;
 				}
 
 				//Write the message to the logfile
@@ -869,6 +891,11 @@ namespace InfServer
 				case TLog.Inane:
 					if (eInane != null)
 						eInane(type, client, message);
+                    break;
+
+                case TLog.Security:
+                    if (eSecurity != null)
+                        eSecurity(type, client, message);
 					break;
 			}
 		}

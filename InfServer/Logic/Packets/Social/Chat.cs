@@ -23,6 +23,38 @@ namespace InfServer.Logic
             if (player._bSilenced)
                 return;
 
+            //Not working correctly for whatever reason, will come back to this later...
+            /*Lets do some spam checking..
+            player._msgTimeStamps.Add(DateTime.Now);
+
+            List<DateTime> old = new List<DateTime>();
+            foreach (DateTime msg in player._msgTimeStamps)
+            {
+                TimeSpan diff = msg.Date - DateTime.Now;
+                if (diff.Seconds > 5)
+                    old.Add(msg); 
+            }
+
+            //Remove messages that are older than 5 seconds.
+            foreach (DateTime msg in old)
+                player._msgTimeStamps.Remove(msg);
+
+
+            //More than 4 messages in 5 seconds?
+            if (player._msgTimeStamps.Count >= 5)
+            {//Warn him
+                player.sendMessage(-1, "WARNING! You will be auto-silenced for spamming.");
+            }
+
+            //More than 10 messages in 5 seconds?
+            if (player._msgTimeStamps.Count >= 10)
+            {//Autosilence
+                player.sendMessage(-1, "You are being auto-silenced for spamming");
+                player._bSilenced = true;
+                player._lengthOfSilence = 1;
+                player._timeOfSilence = DateTime.Now;
+            }*/
+
 			//Is it a server command?
 			if (pkt.message[0] == '?' && pkt.message.Length > 1)
 			{	//Obtain the command and payload
