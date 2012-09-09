@@ -42,7 +42,7 @@ namespace InfServer.Data
 		/// <summary>
 		/// Generic constructor
 		/// </summary>
-		public Database(ZoneServer server, ConfigSetting config)
+		public Database(ZoneServer server, ConfigSetting config, LogClient logger)
 		{
 			_server = server;
 			_config = config;
@@ -50,8 +50,8 @@ namespace InfServer.Data
 			_conn = new ClientConn<Database>(new S2CPacketFactory<Database>(), this);
 			_syncStart = new ManualResetEvent(false);
 
-			_logger = Log.createClient("Database");
-			_conn._logger = _logger;
+            _logger = logger;
+			_conn._logger = logger;
 		}
 
 		#region Connection
@@ -62,57 +62,40 @@ namespace InfServer.Data
 		{	//Assume the worst
 			_syncStart.Reset();
 			_bLoginSuccess = false;
+            _server._lastDBAttempt = Environment.TickCount;
 
-			using (LogAssume.Assume(_logger))
-			{	//How many times are we going to try this?
-				int attemptsLeft = _config["connectionAttempts"].intValue;
+            using (LogAssume.Assume(_logger))
+            {
+                //Are we connecting at all?
+                if (_server._attemptDelay == 0)
+                {
+                    Log.write(TLog.Warning, "Skipping database server connection..");
+                    return false;
+                }
 
-				//Are we connecting at all?
-				if (attemptsLeft <= 0)
-				{
-					Log.write(TLog.Warning, "Skipping database server connection..");
-					return false;
-				}
+                Log.write("Connecting to database server..");
 
-				do
-				{	//Let's go
-					Log.write("Connecting to database server..");
+                //Start our connection
+                _conn.begin(dbPoint);
 
-					//Keep trying to connect until we get a reaction.
-					do
-					{   //Have we tried enough?
-                        if (attemptsLeft-- <= 0)
-                        {
-                            Log.write(TLog.Warning, "Attempt to connect to the database server timed out.");
-                            return false;
-                        }
+                //Send our initial packet
+                CS_Initial init = new CS_Initial();
 
-                        //Start our connection
-						_conn.begin(dbPoint);
+                _conn._client._connectionID = init.connectionID = new Random().Next();
+                init.CRCLength = Client.crcLength;
+                init.udpMaxPacket = Client.udpMaxSize;
 
-						//Send our initial packet
-						CS_Initial init = new CS_Initial();
+                _conn._client.send(init);
 
-						_conn._client._connectionID = init.connectionID = new Random().Next();
-						init.CRCLength = Client.crcLength;
-						init.udpMaxPacket = Client.udpMaxSize;
+                _syncStart.WaitOne(10000);
 
-						_conn._client.send(init);
-					} 
-					while (!_syncStart.WaitOne(3000));
-					
-					//Reset our event
-					_syncStart.Reset();
+                //Reset our event
+                _syncStart.Reset();
 
-					//Wait for our login result
-				} while (!_syncStart.WaitOne(10000));
 
-				//Reset our event
-				_syncStart.Reset();
-
-				//Were we successful?
-				return _bLoginSuccess;
-			}
+                //Were we successful?
+                return _bLoginSuccess;
+            }
 		}
 
 		/// <summary>

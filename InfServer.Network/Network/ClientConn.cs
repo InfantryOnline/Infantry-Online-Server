@@ -266,7 +266,14 @@ namespace InfServer.Network
 				}
 				catch (SocketException se)
 				{	//Store the exception and exit
-					Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}", se.ErrorCode, se.ToString());
+                    if (se.ErrorCode == 10054)
+                    {
+                        Log.write(TLog.Warning, "Connection to database refused");
+                    }
+                    else
+                    {
+                        Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}", se.ErrorCode, se.ToString());
+                    }
 					_bOperating = false;
 					return;
 				}

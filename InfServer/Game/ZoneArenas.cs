@@ -20,7 +20,6 @@ namespace InfServer.Game
 		///////////////////////////////////////////////////
 		public Dictionary<string, Arena> _arenas;			//The arenas present in the zone, sorted by name
 
-
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////
@@ -82,6 +81,16 @@ namespace InfServer.Game
 						Log.write(TLog.Exception, "Exception whilst polling arena {0}:\r\n{1}", arena._name, ex);
 					}
 				}
+
+                //Poll our base zoneserver
+                try
+                {
+                    this.poll();
+                }
+                catch (Exception ex)
+                {
+                    Log.write(TLog.Exception, "Exception whilst polling baseserver: \r\n{0}", ex);
+                }
 
                 // Sleep for a bit
 				Thread.Sleep(5);

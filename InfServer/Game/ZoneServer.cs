@@ -29,7 +29,9 @@ namespace InfServer.Game
 		public Bots.Pathfinder _pathfinder;		//Global pathfinder
 
 		public Database _db;					//Our connection to the database
- 
+
+        public IPEndPoint _dbEP;
+
 		public new LogClient _logger;			//Our zone server log
 
 		private bool _bStandalone;				//Are we in standalone mode?
@@ -39,6 +41,10 @@ namespace InfServer.Game
         private bool _isAdvanced;                //Is the zone normal/advanced?
         private string _bindIP;                  //The IP the zone is binded to
         private int _bindPort;                   //The port the zone is binded to
+
+        private LogClient _dbLogger;
+        public int _lastDBAttempt;
+        public int _attemptDelay;
 
 	    private ClientPingResponder _pingResponder;
 
@@ -256,10 +262,13 @@ namespace InfServer.Game
 			// Connect to the database
 			///////////////////////////////////////////////
 			//Attempt to connect to our database
-			IPEndPoint dbLoc = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
-			_db = new Database(this, _config["database"]);
 
-			_bStandalone = !_db.connect(dbLoc, true);
+            _dbLogger = Log.createClient("Database");
+			_db = new Database(this, _config["database"], _dbLogger);
+            _attemptDelay = _config["database/connectionDelay"].intValue;
+            _dbEP = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
+
+            _db.connect(_dbEP, true);
 
 			//Initialize other parts of the zoneserver class
 			if (!initPlayers())
@@ -294,6 +303,52 @@ namespace InfServer.Game
 			using (LogAssume.Assume(_logger))
 				handleArenas();
 		}
+
+        //Handles baseserver operation..
+        public void poll()
+        {
+            int now = Environment.TickCount;
+
+
+
+            //Is it time to make another attempt at connecting to the database?
+            if ((now - _lastDBAttempt) > _attemptDelay && _lastDBAttempt != 0)
+            {
+
+                //Are we connected to the database currently? If so break out of this operation
+                if (_db._bLoginSuccess || _attemptDelay == 0)
+                    return;
+
+
+                _db = new Database(this, _config["Database"], _dbLogger);
+                _lastDBAttempt = now;
+                //Take a stab at connecting
+                if (!_db.connect(_dbEP, true))
+                {//it has failed!
+                    Log.write("Fail");
+                    //Send out some message to all of the server's players
+                    foreach (var arena in _arenas)
+                    {
+                        if (arena.Value._bActive)
+                            arena.Value.sendArenaMessage("!An attempt to establish a connection with the database has failed, The server remains in Stand Alone Mode");
+                    }
+                }
+                else
+                {//Success!
+                    //Send out some message to all of the server's players
+                    foreach (var arena in _arenas)
+                    {
+                        //Let them know to reconnect
+                        if (arena.Value._bActive)
+                            arena.Value.sendArenaMessage("!Connection to the database has been re-established, Please relog to continue playing..");
+
+                        //Disconnect everyone.
+                        foreach (Player p in arena.Value.Players)
+                            p.disconnect();
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Recycles our zoneserver

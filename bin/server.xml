@@ -3,7 +3,7 @@
 	<server>
 		<version value="155" />
 		
-		<zoneConfig value="dodgeball.cfg" />
+		<zoneConfig value="zzv2old.cfg" />
 		<gameType value="GameType_Dodgeball" />
 		
 		<zoneName value="Dodgeball" />
@@ -28,12 +28,12 @@
 	
 	<database>
 		<ip value="127.0.0.1" />
-		<port value="7777" />
+		<port value="10010" />
 		
-		<zoneid value="" />
-		<password value="" />
+		<zoneid value="0" />
+		<password value="123" />
 		
-		<connectionAttempts value="0" />
+		<connectionDelay value="2000" />
 	</database>
 	
 	<protocol>
