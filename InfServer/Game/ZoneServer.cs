@@ -299,7 +299,7 @@ namespace InfServer.Game
 
             _pingResponder.Begin(new IPEndPoint(IPAddress.Parse(_bindIP), _bindPort + 1));
 
-			//Start handling our arenas);
+			//Start handling our arenas;
 			using (LogAssume.Assume(_logger))
 				handleArenas();
 		}

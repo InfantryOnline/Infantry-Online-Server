@@ -163,6 +163,8 @@
     <Compile Include="Bots\DuelBot\DuelBot.cs" />
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
     <Compile Include="GameTypes\CTF\OGCTF.cs" />
+    <Compile Include="GameTypes\CTFHQ\CTFHQ.cs" />
+    <Compile Include="GameTypes\CTFHQ\Objects\Headquarters.cs" />
     <Compile Include="GameTypes\HQ\Headquarters.cs" />
     <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />
     <Compile Include="GameTypes\Frontlines\TDM.cs" />

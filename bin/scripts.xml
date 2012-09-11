@@ -21,6 +21,10 @@
 			<inheritDefaultScripts value="true" />
 			<scriptDir value="GameTypes\CTF_OvD" />
 		</type>
+		<type value="GameType_CTFHQ">
+			<inheritDefaultScripts value="true" />
+			<scriptDir value="GameTypes\CTFHQ" />
+		</type>
 		<type value="GameType_ZombieZone">
 			<inheritDefaultScripts value="true" />
 			<scriptDir value="GameTypes\ZombieZone" />
