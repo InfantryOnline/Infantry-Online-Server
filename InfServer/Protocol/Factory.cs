@@ -247,6 +247,14 @@ namespace InfServer.Protocol
                     packet = new CS_SecurityCheck(typeID, buffer, offset, size);
                     break;
 
+                case CS_BallPickup.TypeID:
+                    packet = new CS_BallPickup(typeID, buffer, offset, size);
+                    break;
+
+                case CS_BallDrop.TypeID:
+                    packet = new CS_BallDrop(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

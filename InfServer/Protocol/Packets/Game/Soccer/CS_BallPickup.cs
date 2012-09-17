@@ -4,37 +4,26 @@ using System.Linq;
 using System.Text;
 
 using InfServer.Network;
+using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-    /// 
+    /// CS_PlayerUpdate contains player statistical information for updating
     /// </summary>
-    public class CS_Query<T> : PacketBase
-        where T : IClient
+    public class CS_BallPickup : PacketBase
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public QueryType queryType;         //Query type
-        public string sender;               //Player requesting
-        public string payload;              //Query payload
+        public Int16 bPickup;		//Pick up or put down?
+        public Int16 ballID;
+        public Int16 playerID;
 
+        public Int16 positionX;
+        public Int16 positionY;
+        public Int16 positionZ;
+        public bool bSuccess;		//Was it a successful drop?
         //Packet routing
-        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Query;
-        static public event Action<CS_Query<T>, T> Handlers;
-
-
-        public enum QueryType
-        {
-            accountinfo,
-            whois,
-            find,
-            online,
-            emailupdate,
-            zonelist,
-            history,
-            global,
-            gkill,
-            squadstats,
-        }
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallPickup;
+        static public event Action<CS_BallPickup, Player> Handlers;
 
 
         ///////////////////////////////////////////////////
@@ -44,11 +33,9 @@ namespace InfServer.Protocol
         /// Creates an empty packet of the specified type. This is used
         /// for constructing new packets for sending.
         /// </summary>
-        public CS_Query()
+        public CS_BallPickup()
             : base(TypeID)
         {
-            sender = "";
-            payload = "";
         }
 
         /// <summary>
@@ -57,7 +44,7 @@ namespace InfServer.Protocol
         /// </summary>
         /// <param name="typeID">The type of the received packet.</param>
         /// <param name="buffer">The received data.</param>
-        public CS_Query(ushort typeID, byte[] buffer, int index, int count)
+        public CS_BallPickup(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
         {
         }
@@ -68,7 +55,7 @@ namespace InfServer.Protocol
         public override void Route()
         {	//Call all handlers!
             if (Handlers != null)
-                Handlers(this, (_client as Client<T>)._obj);
+                Handlers(this, (_client as Client<Player>)._obj);
         }
 
         /// <summary>
@@ -76,10 +63,9 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Serialize()
         {	//Type ID
-            Write((byte)TypeID);
-            Write(sender, 0);
-            Write((byte)queryType);
-            Write(payload, 0);
+
+
+            Log.write(BitConverter.ToString(Data));
         }
 
         /// <summary>
@@ -87,9 +73,18 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            sender = ReadNullString();
-            queryType = (QueryType)_contentReader.ReadByte();
-            payload = ReadNullString();
+            //bPickup = _contentReader.ReadBoolean();
+            ballID = _contentReader.ReadByte();
+
+            playerID = _contentReader.ReadByte();
+
+
+            positionX = _contentReader.ReadInt16();
+            positionY = _contentReader.ReadInt16();
+            //positionZ = _contentReader.ReadByte();
+            //bPickup = _contentReader.ReadInt16();
+
+            //bSuccess = _contentReader.ReadBoolean();
         }
 
         /// <summary>
@@ -99,7 +94,8 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Zone server query request";
+
+                return String.Format("balllll pickup {0}-{1}-{2}", ballID, positionX, positionY);
             }
         }
     }

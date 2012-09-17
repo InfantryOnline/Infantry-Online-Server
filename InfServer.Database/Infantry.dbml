@@ -77,6 +77,7 @@
       <Column Name="advanced" AutoSync="Always" Type="System.Int16" DbType="SmallInt NULL" CanBeNull="false" />
       <Association Name="zone_player" Member="players" ThisKey="id" OtherKey="zone" Type="player" />
       <Association Name="zone_stats" Member="stats" ThisKey="id" OtherKey="zone" Type="stats" />
+      <Association Name="zone_squad" Member="squads" ThisKey="id" OtherKey="zone" Type="squad" />
     </Type>
   </Table>
   <Table Name="dbo.alias" Member="alias">
@@ -85,9 +86,9 @@
       <Column Name="account" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="creation" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Column Name="IPAddress NOT NULL" Member="IPAddress" Type="System.String" DbType="VarChar(15)" CanBeNull="false" UpdateCheck="Never" />
-      <Column Name="timeplayed NOT NULL" Member="timeplayed" Type="System.Int64" DbType="bigint" CanBeNull="false" />
-      <Column Name="lastAccess NOT NULL" Member="lastAccess" Type="System.DateTime" DbType="DateTime" CanBeNull="false" />
+      <Column Name="IPAddress" Type="System.String" DbType="VarChar(15)" CanBeNull="false" UpdateCheck="Never" />
+      <Column Name="timeplayed" Type="System.Int64" DbType="bigint" CanBeNull="false" />
+      <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime" CanBeNull="false" />
       <Association Name="alias_player" Member="players" ThisKey="id" OtherKey="alias" Type="player" />
       <Association Name="account_alias" Member="account1" ThisKey="account" OtherKey="id" Type="account" IsForeignKey="true" />
     </Type>
@@ -99,7 +100,13 @@
       <Column Name="password" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
       <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="owner" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="zone" Type="System.Int64" DbType="BigInt Not NULL" CanBeNull="false" />
+      <Column Name="stats" Type="System.Int64" DbType="BigInt Not NULL" CanBeNull="false" />
       <Association Name="squad_player" Member="players" ThisKey="id" OtherKey="squad" Type="player" />
+      <Association Name="squad_squadstats" Member="squadstats" ThisKey="stats" OtherKey="id" Type="squadstats" />
+      <Association Name="squad_squadmatch" Member="squadmatches" ThisKey="id" OtherKey="squad1" Type="squadmatch" />
+      <Association Name="squad_squadmatch1" Member="squadmatches1" ThisKey="id" OtherKey="squad2" Type="squadmatch" />
+      <Association Name="zone_squad" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.ban" Member="bans">
@@ -125,6 +132,32 @@
       <Column Name="arena" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
       <Column Name="command" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
       <Column Name="date" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+    </Type>
+  </Table>
+  <Table Name="dbo.squadstats" Member="squadstats">
+    <Type Name="squadstats">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="kills" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="deaths" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="points" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="wins" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="losses" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="rating" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="season" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="squad_squadstats" Member="squad" ThisKey="id" OtherKey="stats" Type="squad" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.squadmatch" Member="squadmatches">
+    <Type Name="squadmatch">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="dateBegin" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="dateEnd" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="squad1" Type="System.Int64" DbType="BigInt Not NULL" CanBeNull="false" />
+      <Column Name="squad2" Type="System.Int64" DbType="BigInt Not NULL" CanBeNull="false" />
+      <Column Name="winner" Type="System.Int64" DbType="BigInt Not NULL" CanBeNull="false" />
+      <Column Name="loser" Type="System.Int64" DbType="BigInt Not Null" CanBeNull="false" />
+      <Association Name="squad_squadmatch" Member="squad" ThisKey="squad1" OtherKey="id" Type="squad" IsForeignKey="true" />
+      <Association Name="squad_squadmatch1" Member="squad3" ThisKey="squad2" OtherKey="id" Type="squad" IsForeignKey="true" />
     </Type>
   </Table>
 </Database>

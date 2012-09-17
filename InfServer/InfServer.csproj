@@ -37,7 +37,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\..\..\Zones\TheArena\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -58,7 +58,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Itanium'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\bin\</OutputPath>
+    <OutputPath>..\..\..\Zones\BIN\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
@@ -183,6 +183,7 @@
     <Compile Include="Game\Assets\AssetManager.cs" />
     <Compile Include="Game\Commands\Chat\Commands.cs" />
     <Compile Include="Game\Commands\Game\Game.cs" />
+    <Compile Include="Game\Commands\League\Basic.cs" />
     <Compile Include="Game\Commands\Mod\Account.cs" />
     <Compile Include="Game\Commands\Mod\Basic.cs" />
     <Compile Include="Game\Commands\Mod\Bots.cs" />
@@ -219,6 +220,7 @@
     <Compile Include="Logic\Packets\Social\Chat.cs" />
     <Compile Include="Logic\Packets\Stats\Statistics.cs" />
     <Compile Include="Logic\Packets\Unknown.cs" />
+    <Compile Include="Logic\Packets\Update\Ball.cs" />
     <Compile Include="Logic\Packets\Update\Game.cs" />
     <Compile Include="Logic\Packets\Update\Player.cs" />
     <Compile Include="Program.cs" />
@@ -252,7 +254,9 @@
     <Compile Include="Protocol\Packets\Game\Action\SC_ShopFinished.cs" />
     <Compile Include="Protocol\Packets\Game\SC_BindVehicle.cs" />
     <Compile Include="Protocol\Packets\Game\SC_ChangeTeam.cs" />
-    <Compile Include="Protocol\Packets\Game\State\SC_BallState.cs" />
+    <Compile Include="Protocol\Packets\Game\Soccer\CS_BallDrop.cs" />
+    <Compile Include="Protocol\Packets\Game\Soccer\CS_BallPickup.cs" />
+    <Compile Include="Protocol\Packets\Game\Soccer\SC_BallState.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_Flags.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_ClearProjectiles.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_LIOUpdates.cs" />

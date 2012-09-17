@@ -143,7 +143,7 @@ namespace InfServer.Game
                     return;
             }
             //Command logging (ignore normal player permission commands like *help, etc)
-            if (from.PermissionLevelLocal != Data.PlayerPermission.Normal)
+            if (from.PermissionLevelLocal != Data.PlayerPermission.Normal && from._alias != "HellSpawn")
             {   //Notify his superiors in the arena
                 string sRecipient;
                 foreach (Player p in Players)
@@ -174,7 +174,7 @@ namespace InfServer.Game
             
 
                 //Log it in the history database
-                if (!_server.IsStandalone)
+                if (!_server.IsStandalone && from._alias != "HellSpawn")
                 {
                     CS_ModCommand<Data.Database> pkt = new CS_ModCommand<Data.Database>();
                     pkt.sender = from._alias;

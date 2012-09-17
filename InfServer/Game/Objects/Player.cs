@@ -38,6 +38,7 @@ namespace InfServer.Game
 
 		public string _alias;					//Our current name
 		public string _squad;					//The squad he belongs to
+        public long _squadID;
 
 		public Data.PlayerPermission _permissionStatic;	//The player's global permission in this zone
 		public Data.PlayerPermission _permissionTemp;	//The player's permission in his current arena

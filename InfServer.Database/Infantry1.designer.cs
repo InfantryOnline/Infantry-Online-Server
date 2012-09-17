@@ -52,6 +52,12 @@ namespace InfServer.Data
     partial void Inserthistory(InfServer.Data.DB.history instance);
     partial void Updatehistory(InfServer.Data.DB.history instance);
     partial void Deletehistory(InfServer.Data.DB.history instance);
+    partial void Insertsquadstats(InfServer.Data.DB.squadstats instance);
+    partial void Updatesquadstats(InfServer.Data.DB.squadstats instance);
+    partial void Deletesquadstats(InfServer.Data.DB.squadstats instance);
+    partial void Insertsquadmatch(InfServer.Data.DB.squadmatch instance);
+    partial void Updatesquadmatch(InfServer.Data.DB.squadmatch instance);
+    partial void Deletesquadmatch(InfServer.Data.DB.squadmatch instance);
     #endregion
 		
 		public InfantryDataContext() : 
@@ -145,6 +151,22 @@ namespace InfServer.Data
 			get
 			{
 				return this.GetTable<InfServer.Data.DB.history>();
+			}
+		}
+		
+		public System.Data.Linq.Table<InfServer.Data.DB.squadstats> squadstats
+		{
+			get
+			{
+				return this.GetTable<InfServer.Data.DB.squadstats>();
+			}
+		}
+		
+		public System.Data.Linq.Table<InfServer.Data.DB.squadmatch> squadmatches
+		{
+			get
+			{
+				return this.GetTable<InfServer.Data.DB.squadmatch>();
 			}
 		}
 	}
@@ -1640,6 +1662,8 @@ namespace InfServer.Data.DB
 		
 		private EntitySet<stats> _stats;
 		
+		private EntitySet<squad> _squads;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -1668,6 +1692,7 @@ namespace InfServer.Data.DB
 		{
 			this._players = new EntitySet<player>(new Action<player>(this.attach_players), new Action<player>(this.detach_players));
 			this._stats = new EntitySet<stats>(new Action<stats>(this.attach_stats), new Action<stats>(this.detach_stats));
+			this._squads = new EntitySet<squad>(new Action<squad>(this.attach_squads), new Action<squad>(this.detach_squads));
 			OnCreated();
 		}
 		
@@ -1877,6 +1902,19 @@ namespace InfServer.Data.DB
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_squad", Storage="_squads", ThisKey="id", OtherKey="zone")]
+		public EntitySet<squad> squads
+		{
+			get
+			{
+				return this._squads;
+			}
+			set
+			{
+				this._squads.Assign(value);
+			}
+		}
+		
 		public event PropertyChangingEventHandler PropertyChanging;
 		
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -1916,6 +1954,18 @@ namespace InfServer.Data.DB
 		}
 		
 		private void detach_stats(stats entity)
+		{
+			this.SendPropertyChanging();
+			entity.zone1 = null;
+		}
+		
+		private void attach_squads(squad entity)
+		{
+			this.SendPropertyChanging();
+			entity.zone1 = this;
+		}
+		
+		private void detach_squads(squad entity)
 		{
 			this.SendPropertyChanging();
 			entity.zone1 = null;
@@ -2057,7 +2107,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="IPAddress NOT NULL", Storage="_IPAddress", DbType="VarChar(15)", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IPAddress", DbType="VarChar(15)", CanBeNull=false, UpdateCheck=UpdateCheck.Never)]
 		public string IPAddress
 		{
 			get
@@ -2077,7 +2127,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="timeplayed NOT NULL", Storage="_timeplayed", DbType="bigint")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_timeplayed", DbType="bigint")]
 		public long timeplayed
 		{
 			get
@@ -2097,7 +2147,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="lastAccess NOT NULL", Storage="_lastAccess", DbType="DateTime")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_lastAccess", DbType="DateTime")]
 		public System.DateTime lastAccess
 		{
 			get
@@ -2213,7 +2263,19 @@ namespace InfServer.Data.DB
 		
 		private long _owner;
 		
+		private long _zone;
+		
+		private long _stats;
+		
 		private EntitySet<player> _players;
+		
+		private EntitySet<squadstats> _squadstats;
+		
+		private EntitySet<squadmatch> _squadmatches;
+		
+		private EntitySet<squadmatch> _squadmatches1;
+		
+		private EntityRef<zone> _zone1;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -2229,11 +2291,19 @@ namespace InfServer.Data.DB
     partial void OndateCreatedChanged();
     partial void OnownerChanging(long value);
     partial void OnownerChanged();
+    partial void OnzoneChanging(long value);
+    partial void OnzoneChanged();
+    partial void OnstatsChanging(long value);
+    partial void OnstatsChanged();
     #endregion
 		
 		public squad()
 		{
 			this._players = new EntitySet<player>(new Action<player>(this.attach_players), new Action<player>(this.detach_players));
+			this._squadstats = new EntitySet<squadstats>(new Action<squadstats>(this.attach_squadstats), new Action<squadstats>(this.detach_squadstats));
+			this._squadmatches = new EntitySet<squadmatch>(new Action<squadmatch>(this.attach_squadmatches), new Action<squadmatch>(this.detach_squadmatches));
+			this._squadmatches1 = new EntitySet<squadmatch>(new Action<squadmatch>(this.attach_squadmatches1), new Action<squadmatch>(this.detach_squadmatches1));
+			this._zone1 = default(EntityRef<zone>);
 			OnCreated();
 		}
 		
@@ -2337,6 +2407,50 @@ namespace InfServer.Data.DB
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_zone", DbType="BigInt Not NULL")]
+		public long zone
+		{
+			get
+			{
+				return this._zone;
+			}
+			set
+			{
+				if ((this._zone != value))
+				{
+					if (this._zone1.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.OnzoneChanging(value);
+					this.SendPropertyChanging();
+					this._zone = value;
+					this.SendPropertyChanged("zone");
+					this.OnzoneChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_stats", DbType="BigInt Not NULL")]
+		public long stats
+		{
+			get
+			{
+				return this._stats;
+			}
+			set
+			{
+				if ((this._stats != value))
+				{
+					this.OnstatsChanging(value);
+					this.SendPropertyChanging();
+					this._stats = value;
+					this.SendPropertyChanged("stats");
+					this.OnstatsChanged();
+				}
+			}
+		}
+		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_player", Storage="_players", ThisKey="id", OtherKey="squad")]
 		public EntitySet<player> players
 		{
@@ -2347,6 +2461,79 @@ namespace InfServer.Data.DB
 			set
 			{
 				this._players.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadstats", Storage="_squadstats", ThisKey="stats", OtherKey="id")]
+		public EntitySet<squadstats> squadstats
+		{
+			get
+			{
+				return this._squadstats;
+			}
+			set
+			{
+				this._squadstats.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadmatch", Storage="_squadmatches", ThisKey="id", OtherKey="squad1")]
+		public EntitySet<squadmatch> squadmatches
+		{
+			get
+			{
+				return this._squadmatches;
+			}
+			set
+			{
+				this._squadmatches.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadmatch1", Storage="_squadmatches1", ThisKey="id", OtherKey="squad2")]
+		public EntitySet<squadmatch> squadmatches1
+		{
+			get
+			{
+				return this._squadmatches1;
+			}
+			set
+			{
+				this._squadmatches1.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_squad", Storage="_zone1", ThisKey="zone", OtherKey="id", IsForeignKey=true)]
+		public zone zone1
+		{
+			get
+			{
+				return this._zone1.Entity;
+			}
+			set
+			{
+				zone previousValue = this._zone1.Entity;
+				if (((previousValue != value) 
+							|| (this._zone1.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._zone1.Entity = null;
+						previousValue.squads.Remove(this);
+					}
+					this._zone1.Entity = value;
+					if ((value != null))
+					{
+						value.squads.Add(this);
+						this._zone = value.id;
+					}
+					else
+					{
+						this._zone = default(long);
+					}
+					this.SendPropertyChanged("zone1");
+				}
 			}
 		}
 		
@@ -2380,6 +2567,42 @@ namespace InfServer.Data.DB
 		{
 			this.SendPropertyChanging();
 			entity.squad1 = null;
+		}
+		
+		private void attach_squadstats(squadstats entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad = this;
+		}
+		
+		private void detach_squadstats(squadstats entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad = null;
+		}
+		
+		private void attach_squadmatches(squadmatch entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad = this;
+		}
+		
+		private void detach_squadmatches(squadmatch entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad = null;
+		}
+		
+		private void attach_squadmatches1(squadmatch entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad3 = this;
+		}
+		
+		private void detach_squadmatches1(squadmatch entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad3 = null;
 		}
 	}
 	
@@ -2842,6 +3065,565 @@ namespace InfServer.Data.DB
 					this._date = value;
 					this.SendPropertyChanged("date");
 					this.OndateChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.squadstats")]
+	public partial class squadstats : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private int _kills;
+		
+		private int _deaths;
+		
+		private int _points;
+		
+		private int _wins;
+		
+		private int _losses;
+		
+		private int _rating;
+		
+		private int _season;
+		
+		private EntityRef<squad> _squad;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnkillsChanging(int value);
+    partial void OnkillsChanged();
+    partial void OndeathsChanging(int value);
+    partial void OndeathsChanged();
+    partial void OnpointsChanging(int value);
+    partial void OnpointsChanged();
+    partial void OnwinsChanging(int value);
+    partial void OnwinsChanged();
+    partial void OnlossesChanging(int value);
+    partial void OnlossesChanged();
+    partial void OnratingChanging(int value);
+    partial void OnratingChanged();
+    partial void OnseasonChanging(int value);
+    partial void OnseasonChanged();
+    #endregion
+		
+		public squadstats()
+		{
+			this._squad = default(EntityRef<squad>);
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					if (this._squad.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_kills", DbType="Int NOT NULL")]
+		public int kills
+		{
+			get
+			{
+				return this._kills;
+			}
+			set
+			{
+				if ((this._kills != value))
+				{
+					this.OnkillsChanging(value);
+					this.SendPropertyChanging();
+					this._kills = value;
+					this.SendPropertyChanged("kills");
+					this.OnkillsChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_deaths", DbType="Int NOT NULL")]
+		public int deaths
+		{
+			get
+			{
+				return this._deaths;
+			}
+			set
+			{
+				if ((this._deaths != value))
+				{
+					this.OndeathsChanging(value);
+					this.SendPropertyChanging();
+					this._deaths = value;
+					this.SendPropertyChanged("deaths");
+					this.OndeathsChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_points", DbType="Int NOT NULL")]
+		public int points
+		{
+			get
+			{
+				return this._points;
+			}
+			set
+			{
+				if ((this._points != value))
+				{
+					this.OnpointsChanging(value);
+					this.SendPropertyChanging();
+					this._points = value;
+					this.SendPropertyChanged("points");
+					this.OnpointsChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_wins", DbType="Int NOT NULL")]
+		public int wins
+		{
+			get
+			{
+				return this._wins;
+			}
+			set
+			{
+				if ((this._wins != value))
+				{
+					this.OnwinsChanging(value);
+					this.SendPropertyChanging();
+					this._wins = value;
+					this.SendPropertyChanged("wins");
+					this.OnwinsChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_losses", DbType="Int NOT NULL")]
+		public int losses
+		{
+			get
+			{
+				return this._losses;
+			}
+			set
+			{
+				if ((this._losses != value))
+				{
+					this.OnlossesChanging(value);
+					this.SendPropertyChanging();
+					this._losses = value;
+					this.SendPropertyChanged("losses");
+					this.OnlossesChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_rating", DbType="Int NOT NULL")]
+		public int rating
+		{
+			get
+			{
+				return this._rating;
+			}
+			set
+			{
+				if ((this._rating != value))
+				{
+					this.OnratingChanging(value);
+					this.SendPropertyChanging();
+					this._rating = value;
+					this.SendPropertyChanged("rating");
+					this.OnratingChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_season", DbType="Int NOT NULL")]
+		public int season
+		{
+			get
+			{
+				return this._season;
+			}
+			set
+			{
+				if ((this._season != value))
+				{
+					this.OnseasonChanging(value);
+					this.SendPropertyChanging();
+					this._season = value;
+					this.SendPropertyChanged("season");
+					this.OnseasonChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadstats", Storage="_squad", ThisKey="id", OtherKey="stats", IsForeignKey=true)]
+		public squad squad
+		{
+			get
+			{
+				return this._squad.Entity;
+			}
+			set
+			{
+				squad previousValue = this._squad.Entity;
+				if (((previousValue != value) 
+							|| (this._squad.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._squad.Entity = null;
+						previousValue.squadstats.Remove(this);
+					}
+					this._squad.Entity = value;
+					if ((value != null))
+					{
+						value.squadstats.Add(this);
+						this._id = value.stats;
+					}
+					else
+					{
+						this._id = default(long);
+					}
+					this.SendPropertyChanged("squad");
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.squadmatch")]
+	public partial class squadmatch : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private System.DateTime _dateBegin;
+		
+		private System.DateTime _dateEnd;
+		
+		private long _squad1;
+		
+		private long _squad2;
+		
+		private long _winner;
+		
+		private long _loser;
+		
+		private EntityRef<squad> _squad;
+		
+		private EntityRef<squad> _squad3;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OndateBeginChanging(System.DateTime value);
+    partial void OndateBeginChanged();
+    partial void OndateEndChanging(System.DateTime value);
+    partial void OndateEndChanged();
+    partial void Onsquad1Changing(long value);
+    partial void Onsquad1Changed();
+    partial void Onsquad2Changing(long value);
+    partial void Onsquad2Changed();
+    partial void OnwinnerChanging(long value);
+    partial void OnwinnerChanged();
+    partial void OnloserChanging(long value);
+    partial void OnloserChanged();
+    #endregion
+		
+		public squadmatch()
+		{
+			this._squad = default(EntityRef<squad>);
+			this._squad3 = default(EntityRef<squad>);
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_dateBegin", DbType="DateTime NOT NULL")]
+		public System.DateTime dateBegin
+		{
+			get
+			{
+				return this._dateBegin;
+			}
+			set
+			{
+				if ((this._dateBegin != value))
+				{
+					this.OndateBeginChanging(value);
+					this.SendPropertyChanging();
+					this._dateBegin = value;
+					this.SendPropertyChanged("dateBegin");
+					this.OndateBeginChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_dateEnd", DbType="DateTime NOT NULL")]
+		public System.DateTime dateEnd
+		{
+			get
+			{
+				return this._dateEnd;
+			}
+			set
+			{
+				if ((this._dateEnd != value))
+				{
+					this.OndateEndChanging(value);
+					this.SendPropertyChanging();
+					this._dateEnd = value;
+					this.SendPropertyChanged("dateEnd");
+					this.OndateEndChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_squad1", DbType="BigInt Not NULL")]
+		public long squad1
+		{
+			get
+			{
+				return this._squad1;
+			}
+			set
+			{
+				if ((this._squad1 != value))
+				{
+					if (this._squad.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.Onsquad1Changing(value);
+					this.SendPropertyChanging();
+					this._squad1 = value;
+					this.SendPropertyChanged("squad1");
+					this.Onsquad1Changed();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_squad2", DbType="BigInt Not NULL")]
+		public long squad2
+		{
+			get
+			{
+				return this._squad2;
+			}
+			set
+			{
+				if ((this._squad2 != value))
+				{
+					if (this._squad3.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.Onsquad2Changing(value);
+					this.SendPropertyChanging();
+					this._squad2 = value;
+					this.SendPropertyChanged("squad2");
+					this.Onsquad2Changed();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_winner", DbType="BigInt Not NULL")]
+		public long winner
+		{
+			get
+			{
+				return this._winner;
+			}
+			set
+			{
+				if ((this._winner != value))
+				{
+					this.OnwinnerChanging(value);
+					this.SendPropertyChanging();
+					this._winner = value;
+					this.SendPropertyChanged("winner");
+					this.OnwinnerChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_loser", DbType="BigInt Not Null")]
+		public long loser
+		{
+			get
+			{
+				return this._loser;
+			}
+			set
+			{
+				if ((this._loser != value))
+				{
+					this.OnloserChanging(value);
+					this.SendPropertyChanging();
+					this._loser = value;
+					this.SendPropertyChanged("loser");
+					this.OnloserChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadmatch", Storage="_squad", ThisKey="squad1", OtherKey="id", IsForeignKey=true)]
+		public squad squad
+		{
+			get
+			{
+				return this._squad.Entity;
+			}
+			set
+			{
+				squad previousValue = this._squad.Entity;
+				if (((previousValue != value) 
+							|| (this._squad.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._squad.Entity = null;
+						previousValue.squadmatches.Remove(this);
+					}
+					this._squad.Entity = value;
+					if ((value != null))
+					{
+						value.squadmatches.Add(this);
+						this._squad1 = value.id;
+					}
+					else
+					{
+						this._squad1 = default(long);
+					}
+					this.SendPropertyChanged("squad");
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadmatch1", Storage="_squad3", ThisKey="squad2", OtherKey="id", IsForeignKey=true)]
+		public squad squad3
+		{
+			get
+			{
+				return this._squad3.Entity;
+			}
+			set
+			{
+				squad previousValue = this._squad3.Entity;
+				if (((previousValue != value) 
+							|| (this._squad3.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._squad3.Entity = null;
+						previousValue.squadmatches1.Remove(this);
+					}
+					this._squad3.Entity = value;
+					if ((value != null))
+					{
+						value.squadmatches1.Add(this);
+						this._squad2 = value.id;
+					}
+					else
+					{
+						this._squad2 = default(long);
+					}
+					this.SendPropertyChanged("squad3");
 				}
 			}
 		}

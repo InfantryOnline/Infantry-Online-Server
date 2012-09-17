@@ -41,6 +41,8 @@ namespace InfServer.Game
 		//Events
 		public event Action<Team> Empty;	//Called when an team runs out of players and is empty
 
+        public int _relativeVehicle;
+
 
 		///////////////////////////////////////////////////
 		// Accessors
@@ -185,6 +187,10 @@ namespace InfServer.Game
 				Helpers.Player_SetTeam(_arena.Players, player, this);
 
 			player.sendMessage(0, "Team joined: " + _name);
+
+            //Set relative vehicle if required, no need for any if statement here :]
+            VehInfo vehicle = _server._assets.getVehicleByID(player.getDefaultVehicle().Id + _relativeVehicle);
+            player.setDefaultVehicle(vehicle);
 
 			//If he isn't a spectator, trigger the event too
             if (!player.IsSpectator)

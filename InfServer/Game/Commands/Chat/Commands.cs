@@ -33,6 +33,22 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
+        #region squadstats
+        /// <summary>
+        /// Allows a player to view the stats of a squad for his/her zone
+        /// </summary>
+        public static void squadstats(Player player, Player recipient, string payload, int bong)
+        {
+            CS_Squads<Data.Database> query = new CS_Squads<Data.Database>();
+
+            query.queryType = CS_Squads<Data.Database>.QueryType.stats;
+            query.payload = payload;
+            query.alias = player._alias;
+
+            player._server._db.send(query);
+        }
+                #endregion
+
         #region aid
         /// <summary>
         /// Allows one player to send aid (cash) to another.
@@ -1113,6 +1129,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(arena, "arena",
                 "Displays all arenas availble to join",
                 "?arena");
+
+            yield return new HandlerDescriptor(squadstats, "squadstats",
+    "Displays squad stats for a particular squad in the requestee's current zone",
+    "?squadstats squad or ?squadstats");
 
             yield return new HandlerDescriptor(aid, "aid",
             "Allows a player to aid another player in the form of money",

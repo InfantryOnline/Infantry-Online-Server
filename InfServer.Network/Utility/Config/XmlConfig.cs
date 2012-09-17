@@ -126,8 +126,9 @@ namespace InfServer
             {
                 xmldoc.Load(filename);
             }
-            catch
+            catch (Exception e)
             {
+                Log.write(e.Message);
                 if (!create)
                     throw new Exception(String.Format("xmldoc.Load() failed! Probably file does NOT exist!\nMissing: {0}", filename));
                 else

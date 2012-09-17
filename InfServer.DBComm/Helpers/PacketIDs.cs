@@ -35,7 +35,8 @@ namespace InfServer.Protocol
                 ZoneList = 15,
                 Query = 16,
                 Disconnect = 17,
-                Ban = 18
+                Ban = 18,
+                SquadStats,
             }
             ///<summary>
             ///Contains S2C packet ids

@@ -51,6 +51,7 @@ namespace InfServer.Logic
             player._permissionStatic = pkt.permission;
             player._alias = pkt.alias;
             player._squad = pkt.squad;
+            player._squadID = pkt.squadID;
 		}
 
         static public void Handle_SC_Whisper(SC_Whisper<Database> pkt, Database db)

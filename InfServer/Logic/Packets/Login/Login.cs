@@ -115,7 +115,7 @@ namespace InfServer.Logic
 				SC_AssetInfo assets = new SC_AssetInfo(Helpers._server._assets.getAssetList());
 
                 //Optional updates?
-                if (player.PermissionLevel == Data.PlayerPermission.Sysop)
+                if ((int)player.PermissionLevel >= 3)
                     assets.bOptionalUpdate = true;
                 else
                     assets.bOptionalUpdate = false;

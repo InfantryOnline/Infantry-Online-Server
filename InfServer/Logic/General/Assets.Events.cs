@@ -203,37 +203,43 @@ namespace InfServer.Logic
 				//Sets the player's experience to the amount defined
 				case "setexp":
 					player.Experience = Convert.ToInt32(param);
-					bChangedState = true;
+                    bChangedState = true;
+                    player.syncState();
 					break;
 
 				//Sets the player's cash to the amount defined
 				case "setcash":
 					player.Cash = Convert.ToInt32(param);
-					bChangedState = true;
+                    bChangedState = true;
+                    player.syncState();
 					break;
 
                 //Sets the player's bounty to the amount given
                 case "setbounty":
                     player.Bounty = Convert.ToInt32(param);
                     bChangedState = true;
+                    player.syncState();
                     break;
 
 				//Adds the amount given to the player's experience
 				case "addexp":
 					player.Experience += Convert.ToInt32(param);
-					bChangedState = true;
+                    bChangedState = true;
+                    player.syncState();
 					break;
 
 				//Adds the amount given to the player's cash
 				case "addcash":
 					player.Cash += Convert.ToInt32(param);
-					bChangedState = true;
+                    bChangedState = true;
+                    player.syncState();
 					break;
 
                 //Add the amount of bounty to the player
                 case "addbounty":
                     player.Bounty += Convert.ToInt32(param);
                     bChangedState = true;
+                    player.syncState();
                     break;
 
 				//Sets the player's energy to the amount defined
@@ -244,7 +250,8 @@ namespace InfServer.Logic
                     {
                         //Log.write(TLog.Warning, "  Setting {0} to {1} nrg", player._alias, energy);
                         player.setEnergy((short)energy);
-                        bChangedState = false;
+                        bChangedState = true;
+                        player.syncState();
                     }
 					break;
 
@@ -256,6 +263,7 @@ namespace InfServer.Logic
                         foreach (Player.SkillItem skl in removes)
                             player._skills.Remove(skl.skill.SkillId);
                         bChangedState = true;
+                        player.syncState();
                     }
                     else
                         Log.write(TLog.Warning, "Use wipeskill=attribute to wipe specific attributes");
@@ -272,6 +280,7 @@ namespace InfServer.Logic
                         {
                             player._skills.Remove(skill.Key);
                             bChangedState = true;
+                            player.syncState();
                         }
                     }
                     else
@@ -280,6 +289,7 @@ namespace InfServer.Logic
                         foreach (Player.SkillItem sk in removes)
                             player._skills.Remove(sk.skill.SkillId);
                         bChangedState = true;
+                        player.syncState();
                     }
 
                     break;
@@ -301,7 +311,8 @@ namespace InfServer.Logic
 					else
 					{   //Erase whole inventory
 						player._inventory.Clear();
-						bChangedState = true;
+                        player.syncInventory();
+                        bChangedState = true;
 					}
 					break;
 
@@ -328,7 +339,8 @@ namespace InfServer.Logic
 						if (skill != null)
 							player.skillModify(false, skill, 1);
 
-						bChangedState = true;
+                        bChangedState = true;
+                        player.syncState();
 					}
 					break;
 
@@ -349,7 +361,8 @@ namespace InfServer.Logic
 								player.inventoryModify(false, item, Convert.ToInt32(param.Substring(colIdx + 1)));
 						}
 
-						bChangedState = true;
+                        bChangedState = true;
+                        player.syncState();
 					}
 					break;
 

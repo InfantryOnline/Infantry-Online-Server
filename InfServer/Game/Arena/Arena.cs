@@ -42,6 +42,9 @@ namespace InfServer.Game
 		public bool _bGameRunning;						//Is the game running?
         public int _tickGameStarted;					//The tick at which our game started
 		public int _tickGameEnded;						//The tick at which our game ended
+        public bool _bLocked;
+        public bool _isMatch;
+        public bool _saveStats = true;
         public BreakdownSettings _breakdownSettings;
         private int _bountyTick;                        //Last time AutoBounty ticked
         public List<ItemDrop> _condemnedItems;
@@ -601,7 +604,7 @@ namespace InfServer.Game
 				}
 
                 //Is it time to sync to database?
-                if (bDBSync && !_server.IsStandalone && _bIsPublic)
+                if (bDBSync && !_server.IsStandalone && _bIsPublic && _saveStats)
                     foreach (Player p in Players)
                         if (p._bDBLoaded)
                             //Update him!

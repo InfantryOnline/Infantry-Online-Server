@@ -98,6 +98,7 @@
     <Compile Include="Packets\Player\CS_PlayerLeave.cs" />
     <Compile Include="Packets\Player\CS_PlayerUpdate.cs" />
     <Compile Include="Packets\Social\Whisper\SC_Whisper.cs" />
+    <Compile Include="Packets\Stats\CS_SquadStats.cs" />
     <Compile Include="Packets\Stats\CS_PlayerStatsRequest.cs" />
     <Compile Include="Packets\Stats\SC_PlayerStatsResponse.cs" />
     <Compile Include="Packets\Zone\Disconnect.cs" />

@@ -97,6 +97,52 @@ namespace InfServer.Logic
 			}
 		}
 
+        		/// <summary>
+		/// Handles a player update request
+		/// </summary>
+        static public void Handle_CS_SquadMatch(CS_SquadMatch<Zone> pkt, Zone zone)
+        {
+            using (InfantryDataContext db = zone._server.getContext())
+            {
+                Data.DB.squad winner = db.squads.FirstOrDefault(s => s.id == pkt.winner);
+                Data.DB.squad loser = db.squads.FirstOrDefault(s => s.id == pkt.loser);
+
+                //Try to trick me, I dare you, do it.
+                if (winner == null || loser == null)
+                    return;
+
+                Data.DB.squadstats wStats = db.squadstats.FirstOrDefault(s => s.id == winner.stats);
+                Data.DB.squadstats lStats = db.squadstats.FirstOrDefault(s => s.id == loser.stats);
+
+                //Again, try it!
+                if (wStats == null || lStats == null)
+                    return;
+
+                //Update our winners!
+                wStats.kills += pkt.wStats.kills;
+                wStats.deaths += pkt.wStats.deaths;
+                wStats.points += pkt.wStats.points;
+                wStats.wins++;
+
+                //Update our losers!
+                lStats.kills += pkt.wStats.kills;
+                lStats.deaths += pkt.wStats.deaths;
+                lStats.points += pkt.wStats.points;
+                lStats.losses++; //Sad trombone.....
+
+                //Grab our associated match.
+                Data.DB.squadmatch match = db.squadmatches.FirstOrDefault(m => m.squad1 == winner.id | m.squad2 == winner.id | m.squad1 == loser.id | m.squad2 == loser.id && m.winner == null);
+
+                //Update it
+                match.winner = pkt.winner;
+                match.loser = pkt.loser;
+                match.dateEnd = DateTime.Now;
+
+                //Submit
+                db.SubmitChanges();
+            }
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -104,6 +150,7 @@ namespace InfServer.Logic
 		static public void Register()
 		{
 			CS_PlayerStatsRequest<Zone>.Handlers += Handle_CS_PlayerStatsRequest;
+            CS_SquadMatch<Zone>.Handlers += Handle_CS_SquadMatch;
 		}
 	}
 }

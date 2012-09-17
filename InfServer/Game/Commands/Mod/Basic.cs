@@ -24,7 +24,9 @@ namespace InfServer.Game.Commands.Mod
             state.positionX = player._state.positionX;
             state.positionY = player._state.positionY;
             state.positionZ = player._state.positionZ;
-            state.ballID = 1;
+            state.ballID = 0;
+            state.bPickup = 1;
+            state.ballPickupID = (short)player._id;
             state.playerID = (short)player._id;
             state.TimeStamp = Environment.TickCount;
 
@@ -326,6 +328,15 @@ namespace InfServer.Game.Commands.Mod
         static public void spec(Player player, Player recipient, string payload, int bong)
         {	//Shove him in spec!
             Player target = (recipient == null) ? player : recipient;
+
+            if (payload.ToLower() == "all")
+            {
+                foreach (Player p in player._arena.PlayersIngame)
+                {
+                    p.spec("spec");
+                }
+            }
+
 
             //Do we have a target team?
             if (payload != "")
@@ -644,12 +655,31 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void speclock(Player player, Player recipient, string payload, int bong)
         {
+            //Lock Entire Arena
+            if (payload == "")
+            {
+                player._arena._bLocked = !player._arena._bLocked;
+                player._arena.sendArenaMessage("Arena lock has been toggled");
+
+                //Spec them all.
+                if (player._arena._bLocked)
+                {
+                    foreach (Player p in player._arena.Players)
+                        p.spec();
+                }
+
+                return;
+            }
+
+
             //Sanity checks
             if (recipient == null)
             {
                 player.sendMessage(-1, "Syntax: ::*lock");
                 return;
             }
+
+
 
             //Toggle his locked status
             recipient._bLocked = !recipient._bLocked;

@@ -130,7 +130,31 @@ namespace InfServer
            
 
 			_players[id] = player;
+            using (Data.InfantryDataContext db = _server.getContext())
+            {
+                Data.DB.squad pSquad = db.squads.FirstOrDefault(s => s.id == dbplayer.squad);
 
+                //Is he in a squad?
+                if (pSquad != null)
+                {
+                    //Check for any scheduled matches this squad may have
+                    IQueryable<Data.DB.squadmatch> matches = db.squadmatches.Where
+                        (m => m.squad1 == pSquad.id || m.squad2 == pSquad.id);
+
+
+
+                    if (matches.Count() > 0)
+                    {
+                        foreach (Data.DB.squadmatch match in matches)
+                        {
+                            Data.DB.squad squad1 = db.squads.FirstOrDefault(s => s.id == match.squad1);
+                            Data.DB.squad squad2 = db.squads.FirstOrDefault(s => s.id == match.squad2);
+                            _server.sendMessage(this, alias, string.Format("Your squad has a scheduled match at {0} ({1} vs {2})",
+                                match.dateBegin.ToString(), squad1.name, squad2.name));
+                        }
+                    }
+                }
+            }
             //Alert our boss!
             _server.newPlayer(player);
 		}

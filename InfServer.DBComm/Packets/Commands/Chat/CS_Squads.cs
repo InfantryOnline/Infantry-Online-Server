@@ -34,6 +34,7 @@ namespace InfServer.Protocol
             invitessquad,
             invitesplayer,
             invitesreponse,
+            stats,
         }
 
 

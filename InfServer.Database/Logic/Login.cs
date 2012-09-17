@@ -283,6 +283,8 @@ namespace InfServer.Logic
 					plog.banner = player.banner;
 					plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
 					plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
+                    if (player.squad1 != null)
+                        plog.squadID = player.squad1.id;
 					plog.bSuccess = true;
 
 					stats = player.stats1;

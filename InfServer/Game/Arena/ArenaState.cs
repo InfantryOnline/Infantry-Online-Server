@@ -129,6 +129,7 @@ namespace InfServer.Game
 				newTeam._id = (short)id;
 
 				newTeam._info = ti;
+                newTeam._relativeVehicle = ti.relativeVehicle;
 
 				_teams.Add(ti.name.ToLower(), newTeam);
 
@@ -230,6 +231,10 @@ namespace InfServer.Game
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
                     player.sendMessage(-3, "[notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email newemail");
+
+                    //x2
+                    if (_server._config["zone/DoubleReward"].boolValue)
+                        player.sendMessage(-3, "&[Notice] Double rewards game-wide are enabled!");
 				}
 			);
 		}

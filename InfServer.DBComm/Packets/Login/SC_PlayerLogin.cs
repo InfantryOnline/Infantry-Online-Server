@@ -23,6 +23,7 @@ namespace InfServer.Protocol
 		public string loginMessage;					//Message to show on login, if any
 
 		public string squad;						//The squad the player is a part of
+        public long squadID;
 
 		public Data.PlayerPermission permission;	//The player's permission in this zone
 
@@ -95,6 +96,7 @@ namespace InfServer.Protocol
 				return;
 
 			Write(squad, 0);
+            Write(squadID);
 			Write((byte)permission);
 
 			Write(bFirstTimeSetup);
@@ -132,6 +134,7 @@ namespace InfServer.Protocol
 				return;
 
 			squad = ReadNullString();
+            squadID = _contentReader.ReadInt64();
 			permission = (InfServer.Data.PlayerPermission)_contentReader.ReadByte();
 
 			bFirstTimeSetup = _contentReader.ReadBoolean();

@@ -3,7 +3,7 @@
 	<server>
 		<version value="155" />
 		
-		<zoneConfig value="zzv2old.cfg" />
+		<zoneConfig value="dodgeball.cfg" />
 		<gameType value="GameType_Dodgeball" />
 		
 		<zoneName value="Dodgeball" />
@@ -25,6 +25,10 @@
 		
 		<managerPassword value="p" />
 	</server>
+	
+	<zone>
+		<DoubleReward value="true" />
+	</zone>
 	
 	<database>
 		<ip value="127.0.0.1" />

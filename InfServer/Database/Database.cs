@@ -174,6 +174,23 @@ namespace InfServer.Data
 			//All good!
 			send(upd);
 		}
+
+        public void reportMatch(long winner, long loser, CS_SquadMatch<Database>.SquadStats wStats, CS_SquadMatch<Database>.SquadStats lStats)
+        {
+            if (_server.IsStandalone)
+                return;
+
+            //Create an update packet
+            CS_SquadMatch<Database> upd = new CS_SquadMatch<Database>();
+            upd.wStats = wStats;
+            upd.lStats = wStats;
+            upd.loser = loser;
+            upd.winner = winner;
+
+
+            //All good!
+            send(upd);
+        }
 		#endregion
 	}
 }

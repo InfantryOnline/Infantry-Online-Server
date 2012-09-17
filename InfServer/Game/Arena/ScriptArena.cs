@@ -168,7 +168,10 @@ namespace InfServer.Game
 			string endGame = _server._zoneConfig.EventInfo.endGame;
 			foreach (Player player in Players)
 			{	//Keep the player's game stats updated
+
+                if (player._arena._saveStats)
 				player.migrateStats();
+
 				player.syncState();
 
 				//Run the event if necessary
@@ -520,13 +523,14 @@ namespace InfServer.Game
 			{	//Forward to our script
 				if (!exists("Player.LeaveGame") || (bool)callsync("Player.LeaveGame", false, from))
 				{	//The player has effectively left the game
-					from.spec();
+					
 				}
+                from.spec();
 			}
 			else
 			{
                 //Has be been locked in spec?
-                if (from._bLocked)
+                if (from._bLocked || from._arena._bLocked)
                 {
                     from.sendMessage(-1, "You are locked in spectator mode.");
                     return;

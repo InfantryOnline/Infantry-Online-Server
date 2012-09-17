@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3581E182-401E-4E42-BEEC-A5952C9987D5}</ProjectGuid>
+    <ProjectGuid>{894C1C82-04E0-46CB-8892-66A02F7769C2}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>InfServer.Database</RootNamespace>
-    <AssemblyName>InfServer.Database</AssemblyName>
+    <RootNamespace>InfServer.Statserver</RootNamespace>
+    <AssemblyName>InfServer.StatServer</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\Database\</OutputPath>
+    <OutputPath>..\bin\Directory\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,7 +28,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\bin\Database\</OutputPath>
+    <OutputPath>..\..\..\Servers\DirectoryServer\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,7 +39,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>Itanium</PlatformTarget>
-    <CodeAnalysisLogFile>..\bin\Database\InfServer.Database.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisLogFile>..\bin\Directory\InfServer.DirectoryServer.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
     <ErrorReport>prompt</ErrorReport>
@@ -53,7 +53,7 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>Itanium</PlatformTarget>
-    <CodeAnalysisLogFile>..\bin\Database\InfServer.Database.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisLogFile>..\bin\Directory\InfServer.DirectoryServer.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
     <ErrorReport>prompt</ErrorReport>
@@ -62,9 +62,11 @@
     <CodeAnalysisRuleDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\branches\InfLauncher\Libraries\JSON.Net\Bin\Net\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -72,57 +74,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Infantry.cs">
-      <DependentUpon>Infantry.dbml</DependentUpon>
-    </Compile>
-    <Compile Include="Infantry1.designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Infantry.dbml</DependentUpon>
-    </Compile>
-    <Compile Include="Logic\Bans.cs" />
-    <Compile Include="Logic\Chats.cs" />
-    <Compile Include="Logic\Commands\Chat.cs" />
-    <Compile Include="Logic\Commands\Mod.cs" />
-    <Compile Include="Logic\Login.cs" />
-    <Compile Include="Logic\Player.cs" />
-    <Compile Include="Logic\Stats.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-    <Compile Include="Server\DBServer.cs" />
-    <Compile Include="Server\Objects\Chat.cs" />
-    <Compile Include="Server\Objects\Zone.cs" />
+    <Compile Include="StatServer\Objects\Player.cs" />
+    <Compile Include="StatServer\Objects\Squad.cs" />
+    <Compile Include="StatServer\Protocol\HttpJsonResponder.cs" />
+    <Compile Include="StatServer\StatServer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
-    <None Include="Infantry.dbml">
-      <Generator>MSLinqToSQLGenerator</Generator>
-      <LastGenOutput>Infantry1.designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
+    <Folder Include="StatServer\Protocol\Helpers\" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Infantry.dbml.layout">
-      <DependentUpon>Infantry.dbml</DependentUpon>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\InfServer.DBComm\InfServer.DBComm.csproj">
-      <Project>{8817E7B9-441E-45EF-B2BF-9E637DCCB868}</Project>
-      <Name>InfServer.DBComm</Name>
-    </ProjectReference>
     <ProjectReference Include="..\InfServer.Network\InfServer.Network.csproj">
       <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
       <Name>InfServer.Network</Name>

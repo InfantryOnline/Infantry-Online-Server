@@ -231,11 +231,26 @@ namespace InfServer.Logic
                             zone._server.sendMessage(zone, pkt.alias, "Invalid squad name, must start with a letter or number and be less than 32 characters long");
                             return;
                         }
-                        if (db.squads.Count(s => s.name.ToLower().Equals(squadname.ToLower())) != 0)
+                        if (db.squads.Where(s => s.name == squadname && s.zone == zone._zone.id).Count() > 0)
                         {   //This squad already exists!
                             zone._server.sendMessage(zone, pkt.alias, "A squad with specified name already exists");
                             return;
                         }
+
+                        //Create Some Stats first
+                        Data.DB.squadstats stats = new Data.DB.squadstats();
+                        stats.kills = 0;
+                        stats.deaths = 0;
+                        stats.wins = 0;
+                        stats.losses = 0;
+                        stats.rating = 0;
+                        stats.points = 0;
+
+                        db.squadstats.InsertOnSubmit(stats);
+
+
+                        db.SubmitChanges();
+
                         //Create the new squad
                         Data.DB.squad newsquad = new Data.DB.squad();
 
@@ -243,12 +258,15 @@ namespace InfServer.Logic
                         newsquad.password = squadpassword;
                         newsquad.owner = dbplayer.id;
                         newsquad.dateCreated = DateTime.Now;
+                        newsquad.zone = zone._zone.id;
+                        newsquad.stats = stats.id;
 
                         db.squads.InsertOnSubmit(newsquad);
 
                         //We need to submit changes now to obtain squad ID and assign it to our creator
                         db.SubmitChanges();
                         dbplayer.squad = newsquad.id;
+
 
                         zone._server.sendMessage(zone, pkt.alias, "Successfully created squad: " + newsquad.name + ". Quit and rejoin to be able to use # to squad chat");
                         Log.write(TLog.Normal, "Player {0} created squad {1} in zone {2}", pkt.alias, newsquad.name, zone._zone.name);
@@ -368,7 +386,7 @@ namespace InfServer.Logic
                         //Transfer ownership to him
                         transferPlayer.squad1.owner = transferPlayer.id;
                         zone._server.sendMessage(zone, pkt.alias, "You have promoted " + transferPlayer.alias1.name + " to squad captain");
-                        zone._server.sendMessage(zone, transferPlayer.alias1.name, "You have promoted to squad captain of " + transferPlayer.squad1.name);
+                        zone._server.sendMessage(zone, transferPlayer.alias1.name, "You have been promoted to squad captain of " + transferPlayer.squad1.name);
                         break;
 
                     case CS_Squads<Zone>.QueryType.leave:
@@ -402,6 +420,7 @@ namespace InfServer.Logic
                         {
                             //Leave the squad...
                             dbplayer.squad = null;
+                            db.SubmitChanges();
                             zone._server.sendMessage(zone, pkt.alias, "You have left your squad");
                             //Notify his squadmates
                             foreach (Data.DB.player sm in squadmates)
@@ -411,7 +430,12 @@ namespace InfServer.Logic
 
                     case CS_Squads<Zone>.QueryType.online:
                         //Do we list his own squad or another?
-                        Data.DB.squad targetSquadOnline = (cleanPayload == "") ? dbplayer.squad1 : db.squads.FirstOrDefault(s => s.name == cleanPayload);
+                        Data.DB.squad targetSquadOnline;
+                        if (cleanPayload == "")
+                         targetSquadOnline =  db.squads.FirstOrDefault(s => s.id == dbplayer.squad && s.zone == zone._zone.id);
+                        else
+                         targetSquadOnline = db.squads.FirstOrDefault(s => s.name == cleanPayload && s.zone == zone._zone.id);
+
                         if (targetSquadOnline == null)
                         {   //No squad found!
                             zone._server.sendMessage(zone, pkt.alias, "No squad found");
@@ -429,13 +453,18 @@ namespace InfServer.Logic
                         break;
 
                     case CS_Squads<Zone>.QueryType.list:
-                        //Do we list his own squad or another?
-                        Data.DB.squad targetSquadList = (cleanPayload == "") ? dbplayer.squad1 : db.squads.FirstOrDefault(s => s.name == cleanPayload);
+                        Data.DB.squad targetSquadList;
+                        if (cleanPayload == "")
+                            targetSquadList = db.squads.FirstOrDefault(s => s.id == dbplayer.squad && s.zone == zone._zone.id);
+                        else
+                            targetSquadList = db.squads.FirstOrDefault(s => s.name == cleanPayload && s.zone == zone._zone.id);
+
                         if (targetSquadList == null)
                         {   //No squad found!
                             zone._server.sendMessage(zone, pkt.alias, "No squad found");
                             return;
                         }
+
                         //List the squad name, captain, and members!
                         zone._server.sendMessage(zone, pkt.alias, "&Squad List: " + targetSquadList.name + " Captain: " + db.players.First(p => p.id == targetSquadList.owner).alias1.name);
                         List<string> splayers = new List<string>();
@@ -461,7 +490,7 @@ namespace InfServer.Logic
                         zone._server.sendMessage(zone, pkt.alias, "&Current Squad Invitations");
                         foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
                             if (invite.Value == dbplayer.id)
-                                zone._server.sendMessage(zone, pkt.alias, "*" + db.squads.First(s => s.id == invite.Key).name);
+                                zone._server.sendMessage(zone, pkt.alias, "*" + db.squads.First(s => s.id == invite.Key && s.zone == zone._zone.id).name);
                         break;
 
                     case CS_Squads<Zone>.QueryType.invitesreponse:
@@ -475,7 +504,7 @@ namespace InfServer.Logic
                         }
 
                         bool bAccept = (sResponse[0].ToLower() == "accept") ? true : false;
-                        Data.DB.squad responseSquad = db.squads.FirstOrDefault(s => s.name == sResponse[1]);
+                        Data.DB.squad responseSquad = db.squads.FirstOrDefault(s => s.name == sResponse[1] && s.zone == zone._zone.id);
                         KeyValuePair<int, int> responsePair = new KeyValuePair<int, int>((int)responseSquad.id, (int)dbplayer.id);
 
                         if (responseSquad == null || !zone._server._squadInvites.Contains(responsePair))
@@ -500,6 +529,45 @@ namespace InfServer.Logic
                         {   //He's getting rid of a squad invite...
                             zone._server._squadInvites.Remove(responsePair);
                             zone._server.sendMessage(zone, pkt.alias, "Revoked squad invitation from " + responseSquad.name);
+                        }
+                        break;
+
+                    case CS_Squads<Zone>.QueryType.stats:
+                        {
+
+                            
+                            Data.DB.squad targetSquad;
+                            if (pkt.payload.Length > 0)
+                            {
+                                targetSquad = db.squads.FirstOrDefault(s => s.name == pkt.payload && s.zone == zone._zone.id);
+                            }
+                            else
+                            {
+                                targetSquad = db.squads.FirstOrDefault(s => s.id == dbplayer.squad && s.zone == zone._zone.id);
+                            }
+
+                            if (targetSquad == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.alias, "Squad not found or you are not in a squad");
+                            }
+                            else
+                            {
+                                Data.DB.squadstats squadstats = db.squadstats.FirstOrDefault(s => s.id == targetSquad.stats);
+                                if (squadstats != null)
+                                {
+                                    zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", targetSquad.name));
+                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Kills={0}", squadstats.kills));
+                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Deaths={0}", squadstats.deaths));
+                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Points={0}", squadstats.points));
+                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Wins={0}", squadstats.wins));
+                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Losses={0}", squadstats.losses));
+                                    zone._server.sendMessage(zone, pkt.alias, String.Format("&--Rating={0}", squadstats.rating));
+                                }
+                                else
+                                    zone._server.sendMessage(zone, pkt.alias, "This squad has no stats for this zone");
+
+                            }
+
                         }
                         break;
                 }
