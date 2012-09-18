@@ -297,7 +297,7 @@ namespace InfServer.Game
 				IPAddress.Parse("0.0.0.0"), _bindPort);
 			base.begin(listenPoint);
 
-            _pingResponder.Begin(new IPEndPoint(IPAddress.Parse(_bindIP), _bindPort + 1));
+            _pingResponder.Begin(new IPEndPoint(IPAddress.Parse("0.0.0.0"), _bindPort + 1));
 
 			//Start handling our arenas;
 			using (LogAssume.Assume(_logger))
