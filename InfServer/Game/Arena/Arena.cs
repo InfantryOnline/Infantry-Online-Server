@@ -31,6 +31,8 @@ namespace InfServer.Game
 		protected ObjTracker<Player> _players;			//The list of players in this arena
 		protected ObjTracker<Player> _playersIngame;	//The list of players currently ingame
 
+        public List<Ball> _balls;
+
 		public string _name;							//The name of this arena
 
 		public Random _rand;							//Our random seed
@@ -386,6 +388,8 @@ namespace InfServer.Game
 			_delayedActionList = new List<DelayedAction>();
 
 			_events = new BlockingCollection<Action<Arena>>();
+
+            _balls = new List<Ball>();
 
 			//Instance our tiles array
 			LvlInfo lvl = server._assets.Level;

@@ -26,6 +26,25 @@ namespace InfServer.Game
 		// Member Functions
 		///////////////////////////////////////////////////
 		#region Update
+        /// <summary>
+        /// Triggered when a player requests to pick up a ball
+        /// </summary>
+        public virtual void handleBallPickup(Player from, CS_BallPickup update)
+        { }
+
+        /// <summary>
+        /// Triggered when a player requests to drop a ball
+        /// </summary>
+        public virtual void handleBallDrop(Player from, CS_BallDrop update)
+        { }
+
+        /// <summary>
+        /// Triggered when a player has scored a goal
+        /// </summary>
+        public virtual void handlePlayerGoal(Player from, CS_GoalScored update)
+        { }
+
+
 		/// <summary>
 		/// Triggered when a player requests to pick up an item
 		/// </summary>

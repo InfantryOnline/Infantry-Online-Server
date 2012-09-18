@@ -20,22 +20,38 @@ namespace InfServer.Game.Commands.Mod
 
         static public void addball(Player player, Player recipient, string payload, int bong)
         {
-            SC_BallState state = new SC_BallState();
-            state.positionX = player._state.positionX;
-            state.positionY = player._state.positionY;
-            state.positionZ = player._state.positionZ;
-            state.ballID = 0;
-            state.bPickup = 1;
-            state.ballPickupID = (short)player._id;
-            state.playerID = (short)player._id;
-            state.TimeStamp = Environment.TickCount;
+            //Get the ball's default spawn
+            int wID = player._server._zoneConfig.warpGroup.ballEntry;
+            LioInfo.WarpField spawnLoc = player._server._assets.Lios.getWarpGroupByID(wID).FirstOrDefault();
 
-            foreach (Player p in player._arena.Players)
+            //Does it exist?
+            if (spawnLoc == null)
             {
-                p._client.send(state);
-                p.sendMessage(0, "Ball Added");
+                Log.write(TLog.Warning, "Attempt to spawn a ball with no associated warpgroup");
+                return;
             }
 
+            //Grab a new ballID
+            int ballID = player._arena._balls.Count + 1;
+
+            //Lets create a new ball!
+            Ball newBall = new Ball((short)ballID, player._arena);
+
+            //Initialize its ballstate
+            newBall._state = new Ball.BallState();
+
+            //Assign default state
+            newBall._state.positionX = spawnLoc.GeneralData.OffsetX;
+            newBall._state.positionY = spawnLoc.GeneralData.OffsetY;
+            newBall._state.positionZ = 0;
+
+            //Store it.
+            player._arena._balls.Add(newBall);
+
+
+            //Make each player aware of the ball
+            newBall.Route_Ball(player._arena.Players);
+            player._arena.sendArenaMessage("Ball Added");
         }
 
         /// <summary>

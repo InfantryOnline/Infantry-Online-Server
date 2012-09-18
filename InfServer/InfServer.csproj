@@ -37,7 +37,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\Zones\TheArena\</OutputPath>
+    <OutputPath>..\..\..\Zones\BIN\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -194,6 +194,7 @@
     <Compile Include="Game\Commands\Sysop\Server.cs" />
     <Compile Include="Game\Interfaces\IChatTarget.cs" />
     <Compile Include="Game\Interfaces\ILocatable.cs" />
+    <Compile Include="Game\Objects\Ball.cs" />
     <Compile Include="Game\Objects\CustomObject.cs" />
     <Compile Include="Game\Objects\ObjTracker.cs" />
     <Compile Include="Game\Objects\Player.cs" />
@@ -254,6 +255,7 @@
     <Compile Include="Protocol\Packets\Game\Action\SC_ShopFinished.cs" />
     <Compile Include="Protocol\Packets\Game\SC_BindVehicle.cs" />
     <Compile Include="Protocol\Packets\Game\SC_ChangeTeam.cs" />
+    <Compile Include="Protocol\Packets\Game\Soccer\CS_GoalScored.cs" />
     <Compile Include="Protocol\Packets\Game\Soccer\CS_BallDrop.cs" />
     <Compile Include="Protocol\Packets\Game\Soccer\CS_BallPickup.cs" />
     <Compile Include="Protocol\Packets\Game\Soccer\SC_BallState.cs" />

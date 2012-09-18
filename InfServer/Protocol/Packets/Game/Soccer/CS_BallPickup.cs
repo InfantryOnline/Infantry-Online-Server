@@ -17,9 +17,10 @@ namespace InfServer.Protocol
         public Int16 ballID;
         public Int16 playerID;
 
-        public Int16 positionX;
-        public Int16 positionY;
-        public Int16 positionZ;
+        public Int16 unk1;
+        public Int16 unk2;
+        public Int16 unk3;
+        public Int16 unk4;
         public bool bSuccess;		//Was it a successful drop?
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallPickup;
@@ -74,16 +75,20 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             //bPickup = _contentReader.ReadBoolean();
-            ballID = _contentReader.ReadByte();
+            ballID = _contentReader.ReadByte(); // this is 100% the ballID
+            Skip(1);
+            unk1 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            unk2 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            unk3 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            unk4 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            //playerID = _contentReader.ReadByte();
 
-            playerID = _contentReader.ReadByte();
 
-
-            positionX = _contentReader.ReadInt16();
-            positionY = _contentReader.ReadInt16();
+            //positionX = _contentReader.ReadInt16();
+            //positionY = _contentReader.ReadInt16();
             //positionZ = _contentReader.ReadByte();
             //bPickup = _contentReader.ReadInt16();
-
+            Log.write(DataDump);
             //bSuccess = _contentReader.ReadBoolean();
         }
 
@@ -95,7 +100,7 @@ namespace InfServer.Protocol
             get
             {
 
-                return String.Format("balllll pickup {0}-{1}-{2}", ballID, positionX, positionY);
+                return String.Format("balllll pickup {0}", ballID);
             }
         }
     }

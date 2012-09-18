@@ -33,7 +33,7 @@ namespace InfServer.DirectoryServer.Directory
         {
             //Connect to our database
             Log.write("Connecting to database...");
-            db = new SqlConnection("Server=FREEINFANTRY\\INFANTRY;Database=Data;Trusted_Connection=True;");
+            db = new SqlConnection("Server=INFANTRY\\INFANTRY;Database=Data;Trusted_Connection=True;");
             db.Open();
             grabZones();
             return true;

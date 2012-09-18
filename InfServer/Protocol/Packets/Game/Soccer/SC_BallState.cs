@@ -55,17 +55,75 @@ namespace InfServer.Protocol
         {
             Write((byte)TypeID);
             Write((byte)ballID);
+            /* Write((byte)0);
+             Write((byte)0);
+             Write((byte)bPickup);
+             Write((byte)0);
+             Write((byte)0);
+             Write((byte)0);*/
+            if (velocityX == 0)
+            {
+                Skip(2);
+            }
+            else
+            {
+                Write(velocityX);
+            }
+            if (velocityY == 0)
+            {
+                //Write((byte)playerID);
+                Skip(2);
+            }
+            else
+            {
+                Write(velocityY);
+            }
+            if (velocityZ == 0)
+            {
+                //Write((byte)playerID);
+                Skip(2);
+            }
+            else
+            {
+                Write(velocityZ);
+            }
 
-            Write(velocityX);
-            Write(velocityY);
-            Write(velocityZ);
+
+            //
+            //Skip(6);
+
+            //Write((byte)1);
 
 
-
-            Write(positionX);
-            Write(positionY);
-            Write(positionZ);
-
+            //Write((byte)48);
+            //Write((byte)3);
+            //Write((byte)15);
+            //Write((byte)6);
+            if (positionX == 0)
+            {
+                Skip(2);
+            }
+            else
+            {
+                Write(positionX);
+            }
+            if (positionY == 0)
+            {
+                Skip(2);
+            }
+            else
+            {
+                Write(positionY);
+            }
+            if (positionZ == 0)
+            {
+                //Write((byte)playerID);
+                Skip(2);
+            }
+            else
+            {
+                Write(positionZ);
+            }
 
 
             Write((byte)playerID); // This is the byte appears to act as if it has to be the ID of the person dropping/pickingup the ball!
@@ -88,8 +146,31 @@ namespace InfServer.Protocol
             // Skip(1);
             //Write((byte)1);
 
+            Log.write(DataDump);
+            //Log.write(BitConverter.ToString(Data));
         }
 
+        /// <summary>
+        /// Serializes the data stored in the packet class into a byte array ready for sending.
+        /// </summary>
+        // public SC_BallState(CS_BallPickup pkt)
+        //    : base(TypeID)
+        // {
+        // Write((byte)TypeID);
+        //Write((byte)pkt.ballID);
+        //Write((byte)pkt.playerID);
+        //Write((byte)0);
+        //Write((byte)6);
+        //Write((byte)0);
+        //Write((byte)0);
+        //Write((byte)7);
+        //Write((byte)0);
+        // Write((byte)0);
+
+
+
+        // Log.write(BitConverter.ToString(Data));
+        //}
         /// <summary>
         /// Returns a meaningful of the packet's data
         /// </summary>

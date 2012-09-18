@@ -255,6 +255,10 @@ namespace InfServer.Protocol
                     packet = new CS_BallDrop(typeID, buffer, offset, size);
                     break;
 
+                case CS_GoalScored.TypeID:
+                    packet = new CS_GoalScored(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

@@ -297,6 +297,44 @@ namespace InfServer.Game
 
         #region Handlers
 
+        #region handleBallPickup
+        /// <summary>
+        /// Triggered when a player requests to pick up a ball
+        /// </summary>
+        public override void handleBallPickup(Player from, CS_BallPickup update)
+        {
+            //Forward to our script
+            if (!exists("Player.BallPickup") || (bool)callsync("Player.BallPickup", false, from))
+            {
+            }
+        }
+        #endregion
+        #region handleBallDrop
+        /// <summary>
+        /// Triggered when a player requests to drop a ball
+        /// </summary>
+        public override void handleBallDrop(Player from, CS_BallDrop update)
+        {
+            //Forward to our script
+            if (!exists("Player.BallDrop") || (bool)callsync("Player.BallDrop", false, from))
+            {
+            }
+        }
+        #endregion
+
+        #region handlePlayerGoal
+        /// <summary>
+        /// Triggered when a player has scored a goal
+        /// </summary>
+        public override void handlePlayerGoal(Player from, CS_GoalScored update)
+        {   
+            //Forward to our script
+            if (!exists("Player.Goal") || (bool)callsync("Player.Goal", false, from))
+            {
+            }
+        }
+        #endregion
+
         #region handlePlayerPickup
         /// <summary>
 		/// Triggered when a player requests to pick up an item
