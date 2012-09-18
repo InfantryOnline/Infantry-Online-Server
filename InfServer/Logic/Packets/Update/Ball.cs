@@ -19,7 +19,17 @@ namespace InfServer.Logic
         /// Handles a ball DROP request from a client
         /// </summary>
         static public void Handle_CS_BallDrop(CS_BallDrop pkt, Player player)
-        {	//Allow the player's arena to handle it
+        {
+            //Get the ball in question..
+            Ball ball = player._arena._balls.FirstOrDefault(b => b._id == pkt.ballID);
+
+            if (ball == null)
+            {
+                Log.write(TLog.Warning, "Balldrop packet sent for ball that does not exist");
+                return;
+            }
+
+            //Allow the player's arena to handle it
             if (player._arena == null)
             {
                 Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
@@ -33,41 +43,49 @@ namespace InfServer.Logic
             }
 
 
-            foreach (Player p in player._arena.Players)
-            {
-                SC_BallState state = new SC_BallState();
-                state.ballID = (ushort)pkt.ballID;
-                //state.playerID = (short)pkt.bPickup;                
-                state.positionX = pkt.positionX;
-                state.positionY = pkt.positionY;
-                state.positionZ = pkt.positionZ;
-                state.velocityX = pkt.velocityX;
-                state.velocityY = pkt.velocityY;
-                state.velocityZ = pkt.velocityZ;
-                state.playerID = pkt.playerID;
-                state.unk1 = pkt.unk1;
-                state.unk2 = pkt.unk2;
-                state.unk3 = pkt.unk3;
-                state.unk4 = pkt.unk4;
-                state.unk5 = pkt.unk5;
-                state.unk6 = pkt.unk6;
-                state.unk7 = pkt.unk7;
-                //state.something1 = pkt.something1;
-                //state.something2 = pkt.something2;
+            //Drop the ball
+            ball._state.carrier = null;
+            ball._state.positionX = pkt.positionX;
+            ball._state.positionY = pkt.positionY;
+            ball._state.positionZ = pkt.positionZ;
+            ball._state.velocityX = pkt.velocityX;
+            ball._state.velocityY = pkt.velocityY;
+            ball._state.velocityZ = pkt.velocityZ;
 
-                //state.bPickup = (short)0;
-                //state.ballPickupID = (short)pkt.playerID;
+            //Route it
+            ball.Route_Ball(player._arena.Players);
 
-                p._client.send(state);
-            }
+
+
+            //Old Stuff
+            /*SC_BallState state = new SC_BallState();
+            state.ballID = (ushort)pkt.ballID;
+            //state.playerID = (short)pkt.bPickup;                
+            state.positionX = pkt.positionX;
+            state.positionY = pkt.positionY;
+            state.positionZ = pkt.positionZ;
+            state.velocityX = pkt.velocityX;
+            state.velocityY = pkt.velocityY;
+            state.velocityZ = pkt.velocityZ;
+            state.playerID = pkt.playerID;
+            state.unk1 = pkt.unk1;
+            state.unk2 = pkt.unk2;
+            state.unk3 = pkt.unk3;
+            state.unk4 = pkt.unk4;
+            state.unk5 = pkt.unk5;
+            state.unk6 = pkt.unk6;
+            state.unk7 = pkt.unk7;
+            //state.something1 = pkt.something1;
+            //state.something2 = pkt.something2;
+
+            //state.bPickup = (short)0;
+            //state.ballPickupID = (short)pkt.playerID;*/
 
 
             player._arena.handleEvent(delegate(Arena arena)
             {
                 player._arena.handleBallDrop(player, pkt);
             });
-
-
         }
 
         /// <summary>

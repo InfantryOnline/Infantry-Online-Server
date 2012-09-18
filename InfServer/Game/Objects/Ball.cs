@@ -32,6 +32,9 @@ namespace InfServer.Game
             public short positionX { get; set; }
             public short positionY { get; set; }
             public short positionZ { get; set; }
+            public short velocityX { get; set; }
+            public short velocityY { get; set; }
+            public short velocityZ { get; set; }
             public Player carrier { get; set; }
         }
 		#endregion
