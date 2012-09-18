@@ -16,7 +16,7 @@ namespace InfServer.Game
 	// Ball Class
 	/// Represents a single ball in an arena
 	///////////////////////////////////////////////////////
-	public class Ball : CustomObject, ILocatable
+	public class Ball : CustomObject
 	{	// Member variables
 		///////////////////////////////////////////////////
 		public Arena _arena;	    //The arena we belong to
@@ -67,7 +67,7 @@ namespace InfServer.Game
 		/// </summary>
 		public Ball(short ballID, Arena arena)
 		{	//Populate variables
-			_id = ballID;
+			_id = (ushort)ballID;
 			_arena = arena;
 		}
 	}
