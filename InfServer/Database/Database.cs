@@ -66,14 +66,6 @@ namespace InfServer.Data
 
             using (LogAssume.Assume(_logger))
             {
-                //Are we connecting at all?
-                if (_server._attemptDelay == 0)
-                {
-                    Log.write(TLog.Warning, "Skipping database server connection..");
-                    _server.IsStandalone = true;
-                    return false;
-                }
-
                 Log.write("Connecting to database server..");
 
                 //Start our connection
