@@ -70,6 +70,7 @@ namespace InfServer.Data
                 if (_server._attemptDelay == 0)
                 {
                     Log.write(TLog.Warning, "Skipping database server connection..");
+                    _server.IsStandalone = true;
                     return false;
                 }
 
