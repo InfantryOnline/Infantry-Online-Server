@@ -42,9 +42,9 @@ namespace InfClient.Protocol
 
             //Lets put some bogus stuff together...
             login.bCreateAlias = false;
-            login.UID1 = 1;
-            login.UID2 = 2;
-            login.UID3 = 3;
+            login.UID1 =999999;
+            login.UID2 = 999999;
+            login.UID3 = 999999;
             login.NICInfo = 4;
             login.SysopPass = "";
             login.Username = "nwapslleh";

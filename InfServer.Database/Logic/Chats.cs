@@ -22,7 +22,6 @@ namespace InfServer.Logic
             //He wants to see the player list of each chat..
             if (pkt.chat.Length == 0)
             {
-
                 foreach (var chat in server._chats.Values)
                 {
                     if (chat.hasPlayer(pkt.from))

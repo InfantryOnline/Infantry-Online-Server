@@ -198,6 +198,8 @@ namespace InfServer.Game
 			}
 
 			//TODO: Test for join arena privileges
+//            if (arenaName.StartsWith("#", StringComparison.OrdinalIgnoreCase))
+//            { }
 			return arena;
 		}
 	}

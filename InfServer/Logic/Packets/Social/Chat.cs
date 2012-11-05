@@ -119,10 +119,23 @@ namespace InfServer.Logic
 				return;
 			}
 
+            //For league matches
+            bool Allowed = false;
+            if (player._arena._isMatch && player.PermissionLevel < Data.PlayerPermission.ArenaMod
+                && player.IsSpectator)
+                Allowed = player._arena._isMatch;
+
 			//What sort of chat has occured?
 			switch (pkt.chatType)
 			{
 				case Helpers.Chat_Type.Normal:
+                    //For leagues, dont allow them to talk to the teams
+                    if (Allowed)
+                    {
+                        pkt.chatType = Helpers.Chat_Type.Team;
+                        Handle_CS_Chat(pkt, player);
+                        break;
+                    }
 					//Send it to our arena!
 					player._arena.handleEvent(delegate(Arena arena)
 						{
@@ -133,6 +146,13 @@ namespace InfServer.Logic
 					break;
 
                 case Helpers.Chat_Type.Macro:
+                    if (Allowed)
+                    {
+                        //Arent allowed
+                        pkt.chatType = Helpers.Chat_Type.Team;
+                        Handle_CS_Chat(pkt, player);
+                        break;
+                    }
                     pkt.chatType = Helpers.Chat_Type.Normal;
                     Handle_CS_Chat(pkt, player);
                     break;
@@ -157,6 +177,8 @@ namespace InfServer.Logic
                     {	//Find our recipient
                         Player recipient = player._server.getPlayer(pkt.recipient);
 
+                        if (Allowed && ((recipient != null) && !recipient.IsSpectator))
+                            break;
                         //Are we connected to a database?
                         if (!player._server.IsStandalone)
                         {   //Yeah, lets route it through the DB so we can pm globally!

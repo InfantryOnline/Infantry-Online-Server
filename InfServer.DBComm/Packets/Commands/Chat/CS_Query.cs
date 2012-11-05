@@ -34,6 +34,8 @@ namespace InfServer.Protocol
             global,
             gkill,
             squadstats,
+            getAccount,
+            transferAlias,
         }
 
 

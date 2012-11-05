@@ -8,6 +8,8 @@ using System.Threading;
 
 using InfServer.Network;
 using InfServer.Protocol;
+using InfServer.Data;
+using InfServer.Logic;
 
 using Assets;
 
@@ -164,21 +166,27 @@ namespace InfServer.Game
 
 			player._baseVehicle = baseVehicle;
 
-            //Run the initial events 
+            //Run the initial events
             if (_server.IsStandalone)
                 player.firstTimeEvents();
 
-			///////////////////////////////////////////////
+            if (player.firstTimePlayer)
+            {
+                Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
+                Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeInvSetup);
+            }
+
+            ///////////////////////////////////////////////
 			// Send the player state
 			///////////////////////////////////////////////
 			//Make sure he's receiving ingame packets
 			player._client.sendReliable(new SC_SetIngame());
 
-			//Add him to our list of players. We want to do this now so he doesn't lose 
+            //Add him to our list of players. We want to do this now so he doesn't lose 
 			//info about anything happening until then.
 			_players.Add(player);
 
-			//Define the player's self object
+            //Define the player's self object
 			Helpers.Object_Players(player, player);
 
 			//Make sure the player is aware of every player in the arena
@@ -209,7 +217,7 @@ namespace InfServer.Game
 			Helpers.Player_StateInit(player,
 				delegate()
 				{
-                    //TODO: Add stealthing/cloaking here
+                    //TODO: Add stealthing/cloaking here for mods
                     //And make sure everyone is aware of him
 					Helpers.Object_Players(audience, player);
 
@@ -230,7 +238,7 @@ namespace InfServer.Game
                         callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-                    player.sendMessage(-3, "[notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email newemail");
+                    player.sendMessage(-3, "[Notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email newemail");
 
                     //x2
                     if (_server._config["zone/DoubleReward"].boolValue)

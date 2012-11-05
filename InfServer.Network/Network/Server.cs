@@ -245,7 +245,7 @@ namespace InfServer.Network
 						{	//Transplant the data into a packet class
 							packet = _factory.createPacket(client, typeID, _buffer, offset, read);
 							packet._client = client;
-							packet._handler = this;
+    						packet._handler = this;
 
 							packet.Deserialize();
 
@@ -337,7 +337,7 @@ namespace InfServer.Network
             {
                 _sock.SendTo(data, ep);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //Log.write(TLog.Exception, e.Message);
                 Log.write(TLog.Exception, packet.DataDump);

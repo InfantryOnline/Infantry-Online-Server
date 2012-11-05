@@ -16,6 +16,7 @@ using Assets;
 
 namespace InfServer.Game
 {
+
 	// ZoneServer Class
 	/// Represents the entire server state
 	///////////////////////////////////////////////////////
@@ -47,6 +48,7 @@ namespace InfServer.Game
         public int _attemptDelay;
 
 	    private ClientPingResponder _pingResponder;
+        public Dictionary<IPAddress, DateTime> _connections;
 
         ///////////////////////////////////////////////////
         // Accessors
@@ -141,6 +143,7 @@ namespace InfServer.Game
 		{	// Load configuration
 			///////////////////////////////////////////////
 			//Load our server config
+            _connections = new Dictionary<IPAddress, DateTime>();
             Log.write(TLog.Normal, "Loading Server Configuration");
 			_config = new Xmlconfig("server.xml", false).Settings;
 
@@ -263,22 +266,12 @@ namespace InfServer.Game
 			///////////////////////////////////////////////
 			//Attempt to connect to our database
 
-            //Are we connecting at all?
-            if (_attemptDelay == 0)
-            {
-                _bStandalone = true;
-                Log.write(TLog.Warning, "Skipping database server connection, server is in stand-alone mode..");
-            }
-            else
-            {
-                _bStandalone = false;
-                _dbLogger = Log.createClient("Database");
-                _db = new Database(this, _config["database"], _dbLogger);
-                _attemptDelay = _config["database/connectionDelay"].intValue;
-                _dbEP = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
+            _dbLogger = Log.createClient("Database");
+			_db = new Database(this, _config["database"], _dbLogger);
+            _attemptDelay = _config["database/connectionDelay"].intValue;
+            _dbEP = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
 
-                _db.connect(_dbEP, true);
-            }
+            _db.connect(_dbEP, true);
 
 			//Initialize other parts of the zoneserver class
 			if (!initPlayers())
@@ -304,7 +297,7 @@ namespace InfServer.Game
 			base._logger = Log.createClient("Network");
 
 			IPEndPoint listenPoint = new IPEndPoint(
-				IPAddress.Parse("0.0.0.0"), _bindPort);
+                IPAddress.Parse("0.0.0.0"), _bindPort);
 			base.begin(listenPoint);
 
             _pingResponder.Begin(new IPEndPoint(IPAddress.Parse("0.0.0.0"), _bindPort + 1));
@@ -313,14 +306,31 @@ namespace InfServer.Game
 			using (LogAssume.Assume(_logger))
 				handleArenas();
 		}
-
+        
         //Handles baseserver operation..
         public void poll()
         {
             int now = Environment.TickCount;
+            
 
+            try
+            {
+                if (_connections != null)
+                {
+                    foreach (KeyValuePair<IPAddress, DateTime> pair in _connections.ToList())
+                    {
+                        if (DateTime.Now > pair.Value)
+                        { // Delete this entry
+                            _connections.Remove(pair.Key);
+                        }
 
-
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Warning, e.ToString());
+            }
             //Is it time to make another attempt at connecting to the database?
             if ((now - _lastDBAttempt) > _attemptDelay && _lastDBAttempt != 0)
             {
@@ -335,8 +345,7 @@ namespace InfServer.Game
                 //Take a stab at connecting
                 if (!_db.connect(_dbEP, true))
                 {//it has failed!
-                    Log.write(TLog.Warning, "Failed database connection");
-                    _bStandalone = true;
+                    Log.write("Fail");
                     //Send out some message to all of the server's players
                     foreach (var arena in _arenas)
                     {
@@ -347,7 +356,6 @@ namespace InfServer.Game
                 else
                 {//Success!
                     //Send out some message to all of the server's players
-                    _bStandalone = false;
                     foreach (var arena in _arenas)
                     {
                         //Let them know to reconnect
@@ -470,8 +478,8 @@ namespace InfServer.Game
 
 							byte[] buffer = new[]
                                                 {
-                                                    playerCount[0], playerCount[1], playerCount[2], playerCount[3],
-                                                    token[0], token[1], token[2], token[3]
+                                                    playerCount[0], playerCount[1], playerCount[2], playerCount[3], 
+                                                    token[0], token[1], token[2], token[3], 
                                                 };
 
 							_socket.SendTo(buffer, client);
@@ -519,7 +527,7 @@ namespace InfServer.Game
 				{
 					_lock.ReleaseWriterLock();
 				}
-
+                
 				remoteEp = new IPEndPoint(IPAddress.Any, 0);
 				_socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEp, OnRequestReceived, null);
 			}

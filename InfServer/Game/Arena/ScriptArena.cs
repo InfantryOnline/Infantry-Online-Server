@@ -80,6 +80,11 @@ namespace InfServer.Game
 		public override void playerEnter(Player player)
 		{	//Pass it to the script environment
 			base.playerEnter(player);
+
+            //Testing: for people that dc/rejoin an arena
+            if (_bIsPublic && player._arena._saveStats)
+                player.restoreStats();
+            
 			callsync("Player.Enter", false, player);
 		}
         #endregion
@@ -91,8 +96,33 @@ namespace InfServer.Game
 		public override void playerLeave(Player player)
 		{	//Pass it to the script environment
 			base.playerLeave(player);
+
+            //Testing: Saving stats for people that leave the arena
+            if (_bIsPublic && player._arena._saveStats)
+                player.suspendStats();
+            
 			callsync("Player.Leave", false, player);
 		}
+        #endregion
+
+        #region scrambleTeams
+        /// <summary>
+        /// Scrambles teams based on cfg file
+        /// </summary>
+        /// <param name="arena"></param>
+        /// <param name="numTeams"></param>
+        /// <param name="alertArena"></param>
+        public static void scrambleTeams(Arena arena, int numTeams, bool alertArena)
+        {
+            List<Player> shuffledPlayers = arena.PublicPlayersInGame.OrderBy(plyr => arena._rand.Next(0, 500)).ToList();
+
+            for (int i = 0; i < shuffledPlayers.Count; i++)
+                arena.PublicTeams.ElementAt(i % numTeams).addPlayer(shuffledPlayers[i]);
+
+            //Notify players of the scramble
+            if (alertArena)
+                arena.sendArenaMessage("Teams have been scrambled!");
+        }
         #endregion
 
         #region gameStart
@@ -117,10 +147,17 @@ namespace InfServer.Game
 
 			if (_startCfg.initialHides)
 				initialHideSpawns();
-
-			//Handle the start for all players
+           
+            //Respawn the flags
+            flagSpawn();
+			
+            //Handle the start for all players
 			string startGame = _server._zoneConfig.EventInfo.startGame;
 
+            //Scramble teams if the cfg calls for it
+            if (_server._zoneConfig.arena.scrambleTeams > 0 && PlayerCount > 2)
+                scrambleTeams(this, 2, true);
+                
 			foreach (Player player in Players)
 			{	//We don't want previous stats to count
 				player.clearCurrentStats();
@@ -170,7 +207,7 @@ namespace InfServer.Game
 			{	//Keep the player's game stats updated
 
                 if (player._arena._saveStats)
-				player.migrateStats();
+				    player.migrateStats();
 
 				player.syncState();
 
@@ -546,6 +583,8 @@ namespace InfServer.Game
 
 					//Reset his bounty
 					from.Bounty = _server._zoneConfig.bounty.start;
+                    //Update his client to reflect bty change
+                    from.syncState();
 				}
 			}
 		}
@@ -588,6 +627,21 @@ namespace InfServer.Game
 					return;
 				}
 
+                //Does he have a high p-loss or ping?
+                Client.ConnectionStats pStats = from._client._stats;
+                if (pStats.C2SPacketLoss > 3.00f)
+                {
+                    from.sendMessage(-1, "Your packet loss is too high to enter.");
+                    return;
+                }
+
+                if (pStats.clientAverageUpdate > 600)
+                {
+                    from.sendMessage(-1, "Your ping is too high to enter.");
+                    return;
+                }
+
+
 				//Forward to our script
 				if (exists("Player.JoinGame") && !(bool)callsync("Player.JoinGame", false, from))
 					return;
@@ -595,11 +649,14 @@ namespace InfServer.Game
 				//Pick a team
                 Team pick = pickAppropriateTeam(from);
 
-				if (pick != null)
-					//Great, use it
-					from.unspec(pick);
-				else
-					from.sendMessage(-1, "Unable to pick a team.");
+                if (pick != null)
+                {
+                    //Great, use it
+                    from._lastMovement = 0;
+                    from.unspec(pick);
+                }
+                else
+                    from.sendMessage(-1, "Unable to pick a team.");
 			}
 		}
         #endregion
@@ -1078,7 +1135,8 @@ namespace InfServer.Game
 			{
                 //Do we have the skills required (if we're buying)
                 if (!Logic_Assets.SkillCheck(from, item.skillLogic))
-                
+                    return;
+
                 //Buying. Are we able to?
 				if (item.buyPrice == 0)
 					return;
@@ -1138,9 +1196,17 @@ namespace InfServer.Game
             if (!Logic_Assets.SkillCheck(from, skill.Logic))
                 return;
 
+            //Is he able to pick these classes?
+/*            
+            if (!from.IsSpectator && !Logic_Assets.SkillCheckTester(from, skill.SkillId, _server._zoneConfig.arena.exitSpectatorLogic))
+            {
+                from.sendMessage(-1, "That is not an eligible class to play.");
+                return;
+            }
+*/            
             //Make sure it's okay with our script...
-            if(!exists("Shop.SkillRequest") || (bool)callsync("Shop.SkillRequest", false, from, skill))
-			    //Perform the skill modify
+            if (!exists("Shop.SkillRequest") || (bool)callsync("Shop.SkillRequest", false, from, skill))
+                //Perform the skill modify
                 if (from.skillModify(skill, 1))
                     //Success! Forward to our script
                     callsync("Shop.SkillPurchase", false, from, skill);
@@ -1228,8 +1294,12 @@ namespace InfServer.Game
 
 						if (item.areaEffectRadius > 0)
 						{
-							foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
-								p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
+                            foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
+                            {
+                                //Is he dead, on the correct team or warpable?
+                                if (!p.IsDead && target._team == p._team && p.ActiveVehicle._type.IsWarpable)
+                                    p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
+                            }
 						}
 						else
 							player.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
@@ -1256,8 +1326,12 @@ namespace InfServer.Game
 
 						if (item.areaEffectRadius > 0)
 						{
-							foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
-								p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
+                            foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
+                            {
+                                //Is the player in range dead?
+                                if (!p.IsDead)
+                                    p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
+                            }
 						}
 						else
 							player.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
@@ -1291,11 +1365,15 @@ namespace InfServer.Game
 
 						if (item.areaEffectRadius > 0)
 						{
-							foreach (Player p in
-								getPlayersInRange(target._state.positionX, target._state.positionY, item.areaEffectRadius))
-							{
-								p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
-							}
+                            foreach (Player p in getPlayersInRange(target._state.positionX, target._state.positionY, item.areaEffectRadius))
+                            {
+                                //Is he dead, on the correct team, warpable or ignoring summons?
+                                if (!p.IsDead
+                                    && target._team == p._team
+                                    && p.ActiveVehicle._type.IsWarpable
+                                    && (!p._summonIgnore.Contains(player._alias) || !p._summonIgnore.Contains("*")))
+                                    p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
+                            }
 						}
 						else
 							target.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
@@ -1318,11 +1396,12 @@ namespace InfServer.Game
 
 						if (item.areaEffectRadius > 0)
 						{
-							foreach (Player p in
-								getPlayersInRange(target._state.positionX, target._state.positionY, item.areaEffectRadius))
-							{
-								p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
-							}
+                            foreach (Player p in getPlayersInRange(target._state.positionX, target._state.positionY, item.areaEffectRadius))
+                            {
+                                //Is the player dead, or warpable?
+                                if (!p.IsDead && p.ActiveVehicle._type.IsWarpable)
+                                    p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
+                            }
 						}
 						else
 							target.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
@@ -1330,12 +1409,22 @@ namespace InfServer.Game
 					break;
 
 				case ItemInfo.WarpItem.WarpMode.Portal:
-					{	//Just forward it to the script for now
-                        if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))                                                  
-                            return;
-                        
-					}
-					break;
+				    {
+					//Forward it to the script for now
+		                if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))                                                  
+                		    return;
+
+					    if (item.areaEffectRadius > 0)
+					    {
+					        foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
+					        {
+						        //Is the player dead?
+						        if (!p.IsDead)
+						        p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
+					        }
+					    }					    
+				    }
+				    break;
             }
 
             //Indicate that it was successful
@@ -1385,8 +1474,10 @@ namespace InfServer.Game
 
 
                 //Holy fuck this is so much shorter!
-                playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID && 
-                    v._creator._alias == player._alias).Count();
+//                playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID && 
+//                    v._creator._alias == player._alias).Count();
+                playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID &&
+                    v._creator._alias.Equals(player._alias)).Count();
 
                 //Continue long boring non-linq stuff... zzzzz
 
@@ -1782,14 +1873,14 @@ namespace InfServer.Game
 		/// </summary>
 		public override void handleBotDeath(Bot dead, Player killer, int weaponID)
 		{	//Forward it to our script
-			if (!exists("Bot.Death") || (bool)callsync("Bot.Death", false, dead, killer, weaponID))
-			{	//Route the death to the arena
-				Helpers.Vehicle_RouteDeath(Players, killer, dead, null);
-
-                //Don't allow rewards for teamkills
-                if (dead._team != killer._team)
-                Logic_Rewards.calculateBotKillRewards(dead, killer);
-			}
+            if (!exists("Bot.Death") || (bool)callsync("Bot.Death", false, dead, killer, weaponID))
+            {	//Route the death to the arena
+               Helpers.Vehicle_RouteDeath(Players, killer, dead, null);
+               if (killer != null && dead._team != killer._team)
+               {//Don't allow rewards for teamkills 
+                  Logic_Rewards.calculateBotKillRewards(dead, killer);
+               }
+            } 
         }
         #endregion
         #endregion

@@ -20,8 +20,9 @@ namespace InfServer.Game.Commands.Mod
 		/// Restarts the current game
 		/// </summary>
         static public void restart(Player player, Player recipient, string payload, int bong)
-		{	//End the current game
+		{	//End the current game and restart a new one
 			player._arena.gameEnd();
+            player._arena.gameStart();
 		}
 
 		/// <summary>
@@ -32,7 +33,7 @@ namespace InfServer.Game.Commands.Mod
 		{
 			yield return new HandlerDescriptor(restart, "restart",
 				"Restarts the current game.",
-				"*restart", InfServer.Data.PlayerPermission.Mod, true);
+				"*restart", InfServer.Data.PlayerPermission.ArenaMod, true);
 		}
 	}
 }

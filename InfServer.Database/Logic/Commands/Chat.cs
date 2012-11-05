@@ -112,8 +112,8 @@ namespace InfServer.Logic
                             foreach (KeyValuePair<string, Zone.Player> result in results)
                             {
                                 zone._server.sendMessage(zone, pkt.sender,
-                                    String.Format("*Found: {0} (Zone: {1})", //TODO: Arena??
-                                    result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
+                                    String.Format("*Found: {0} (Zone: {1}) (Arena:{2})", //TODO: Arena??
+                                    result.Value.alias, result.Value.zone._zone.name, result.Value.arena) );
                             }
                         }
                         else if (pkt.payload.Length < minlength)
@@ -172,9 +172,28 @@ namespace InfServer.Logic
                             zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
                                 Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.command));
 
-                        zone._server.sendMessage(zone, pkt.sender, "End of page, use ?history 1, ?history 2, etc to navigate previous pages");
+                        zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 1, *history 2, etc to navigate previous pages");
                         break;
+/*
+                    case CS_Query<Zone>.QueryType.help_history:
+                        int pageNum = Convert.ToInt32(pkt.payload);
+                        int resultsforpage = 30;
 
+                        zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + page + ")");
+
+                        //Find all commands!
+                        List<Data.DB.help_history> commands = db.histories.Where(c =>
+                            c.id >= (db.histories.Count() - (resultsperpage * (pageNum + 1))) &&
+                            c.id < (db.histories.Count() - (resultsperpage * pageNum))).ToList();
+
+                        //List them
+                        foreach (Data.DB.help_history h in commands)
+                            zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                                Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.reason));
+
+                        zone._server.sendMessage(zone, pkt.sender, "End of page, use *history help:1, *history help:2, etc to navigate previous pages");
+                        break;
+*/
                     case CS_Query<Zone>.QueryType.global:
                         foreach(Zone z in zone._server._zones)
                             z._server.sendMessage(z, "*", pkt.payload);
@@ -194,9 +213,100 @@ namespace InfServer.Logic
                             
                         }
                         break;
+
+                    case CS_Query<Zone>.QueryType.getAccount:
+                        //Find what they are trying to query
+                        if (pkt.payload != "")
+                        { //Querying the person's account to find and delete the alias
+                            Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.payload));
+                            aliases = db.alias.Where(a => a.account.Equals(who.account));
+
+                            //Getting the required info to delete the alias
+                            Data.DB.player player = db.players.SingleOrDefault(plyr => plyr.alias1.Equals( who ) 
+                                && plyr.zone1 == zone._zone);
+                            Data.DB.stats stats = player.stats1;
+                            foreach (var alias in aliases)
+                            {
+                                if (alias.name.Equals(pkt.payload))
+                                {
+                                    if (stats != null)
+                                        db.stats.DeleteOnSubmit(stats);
+                                    if (player != null)
+                                        db.players.DeleteOnSubmit(player);
+                                    db.alias.DeleteOnSubmit(alias);
+                                    break;
+                                }
+                            }
+                            db.SubmitChanges();
+                            zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
+                        }
+                        break;
+
+                    case CS_Query<Zone>.QueryType.transferAlias:
+                        //Sanity checks
+                        if (pkt.payload == "")
+                            return;
+
+                        if (!pkt.payload.Contains(':'))
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                            return;
+                        }
+
+                        string fromPlayerAlias = pkt.payload.Split(':').ElementAt(0);
+                        string toPlayerAlias = pkt.payload.Split(':').ElementAt(1);
+
+                        //The pm'd player
+                        Data.DB.alias fromAlias = db.alias.FirstOrDefault(a => a.name.Equals(fromPlayerAlias));
+                        Data.DB.player fromPlayer = db.players.FirstOrDefault(p => p.alias1.Equals(fromAlias)
+                            && p.zone1 == zone._zone);
+                        if (fromPlayer == null)
+                        {
+                            //No such player
+                            zone._server.sendMessage(zone, pkt.sender, "No player found by that alias.");
+                            return;
+                        }
+
+                        //The targer player
+                        Data.DB.alias toAlias = db.alias.FirstOrDefault(a => a.name.Equals(toPlayerAlias));
+                        Data.DB.player toPlayer = db.players.FirstOrDefault(p => p.alias1.Equals(fromPlayer)
+                            && p.zone == fromPlayer.zone);
+                        if (toPlayer == null)
+                        {
+                            //No such player
+                            zone._server.sendMessage(zone, pkt.sender, "No player found by that alias.");
+                            return;
+                        }
+
+                        //Set up structures
+                        Data.DB.alias tempAliasFrom = new Data.DB.alias();
+                        Data.DB.alias tempAliasTo = new Data.DB.alias();
+
+                        tempAliasTo.name = fromPlayer.alias1.name;
+                        tempAliasTo.creation = fromPlayer.alias1.creation;
+                        tempAliasTo.account = toPlayer.alias1.account;
+                        tempAliasTo.IPAddress = toPlayer.alias1.IPAddress;
+                        tempAliasTo.lastAccess = DateTime.Now;
+                        tempAliasTo.timeplayed = fromPlayer.alias1.timeplayed;
+
+                        tempAliasFrom.name = toPlayer.alias1.name;
+                        tempAliasFrom.creation = toPlayer.alias1.creation;
+                        tempAliasFrom.account1 = fromPlayer.alias1.account1;
+                        tempAliasFrom.IPAddress = fromPlayer.alias1.IPAddress;
+                        tempAliasFrom.lastAccess = DateTime.Now;
+                        tempAliasFrom.timeplayed = toPlayer.alias1.timeplayed;
+
+                        //Now transfer
+                        toPlayer.alias1 = tempAliasFrom;
+                        fromPlayer.alias1 = tempAliasTo;
+
+                        db.SubmitChanges();
+                        zone._server.sendMessage(zone, pkt.sender, "Alias transfer is complete.");
+                        break;
                 }
             }
         }
+
 
         /// <summary>
         /// Handles a ?squad command query
@@ -375,7 +485,7 @@ namespace InfServer.Logic
                         }
 
                         //The target player
-                        Data.DB.alias transferAlias = db.alias.FirstOrDefault(a => a.name == pkt.payload);
+                        Data.DB.alias transferAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.payload));
                         Data.DB.player transferPlayer = db.players.FirstOrDefault(p => p.alias1 == transferAlias && p.zone == dbplayer.zone);
                         if (transferPlayer == null || transferPlayer.squad != dbplayer.squad)
                         {   //No such player!
@@ -534,8 +644,6 @@ namespace InfServer.Logic
 
                     case CS_Squads<Zone>.QueryType.stats:
                         {
-
-                            
                             Data.DB.squad targetSquad;
                             if (pkt.payload.Length > 0)
                             {

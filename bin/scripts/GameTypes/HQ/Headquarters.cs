@@ -215,7 +215,7 @@ namespace InfServer.Script.GameType_HQ
 		{	
 			return true;
 		}
-
+       /* 
 		/// <summary>
 		/// Triggered when a player requests to drop an item
 		/// </summary>
@@ -224,7 +224,7 @@ namespace InfServer.Script.GameType_HQ
 		{
 			return true;
 		}
-
+        */
 		/// <summary>
 		/// Handles a player's portal request
 		/// </summary>

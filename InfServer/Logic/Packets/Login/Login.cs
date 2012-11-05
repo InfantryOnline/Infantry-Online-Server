@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using InfServer.Game;
 using InfServer.Protocol;
+using System.Collections.Generic;
 
 namespace InfServer.Logic
 {	// Logic_Login Class
@@ -16,11 +17,32 @@ namespace InfServer.Logic
 		static public void Handle_CS_Login(CS_Login pkt, Client<Player> client)
 		{	//Let's escalate our client's status to player!
 			ZoneServer server = (client._handler as ZoneServer);
+            
+            // check for excessive joins to zone from same IP
+            try
+            {
+                if (server._connections != null)
+                {
+                    //TODO: Check for banned ip's first
+
+                    if ((pkt.bCreateAlias != true) && server._connections.ContainsKey(client._ipe.Address))
+                    {
+                        Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Please wait 10 seconds before logging in again.");
+                        Log.write(TLog.Warning, String.Format("Possible throttler removed: " + client._ipe.ToString()));
+                        return;
+                    }
+                    else if (!server._connections.ContainsKey(client._ipe.Address))
+                        server._connections.Add(client._ipe.Address, DateTime.Now.AddSeconds(10));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Warning, e.ToString());
+            }
 
 			Player newPlayer = server.newPlayer(client, pkt.Username);
             String alias = newPlayer._alias;
-
-
+            
             //Check their client version and UIDs
             //TODO: find out what the UIDs are and what an invalid UID might look like, and reject spoofed ones
             if (pkt.Version != Helpers._serverVersion ||
@@ -29,12 +51,14 @@ namespace InfServer.Logic
                 pkt.UID3 <= 10000)
             {
                 Log.write(TLog.Warning, String.Format("Suspicious login packet from {0} : Version ({1}) UID1({2}) UID2({3}) UID3({4})",
-                    alias,
+                    pkt.Username,
                     pkt.Version,
                     pkt.UID1,
                     pkt.UID2,
-                    pkt.UID3));
+                    pkt.UID3));             
+               
             }
+           
 
             //Check alias for illegal characters
             if (alias.Length == 0)
@@ -52,6 +76,7 @@ namespace InfServer.Logic
 			if (newPlayer == null)
 			{
 				Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Unknown login failure.");
+                Log.write(TLog.Error, "New player is null");
 				return;
 			}
 
@@ -66,13 +91,14 @@ namespace InfServer.Logic
 
             newPlayer._UID1 = pkt.UID1;
             newPlayer._UID2 = pkt.UID2;
-            newPlayer._UID3 = pkt.UID3;
+            newPlayer._UID3 = pkt.UID3;    
+
 
 			//Are we in standalone mode?
 			if (server.IsStandalone)
 			{	//Always first time setup in standalone mode
-				newPlayer.assignFirstTimeStats(false);
-                
+                newPlayer.assignFirstTimeStats(false);
+               
 				//Success! Let him in.
                 Helpers.Login_Response(client, SC_Login.Login_Result.Success, "This server is currently in stand-alone mode. Your character's scores and stats will not be saved.");
             }
@@ -92,6 +118,7 @@ namespace InfServer.Logic
                 plogin.ipaddress = pkt._client._ipe.Address.ToString().Trim();
 
 				server._db.send(plogin);
+                Log.write(TLog.Warning, "CS_PlayerLogin called in Logic_login");
 			}
 		}
 

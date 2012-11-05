@@ -37,7 +37,7 @@
 		<zoneid value="0" />
 		<password value="123" />
 		
-		<connectionDelay value="0" />
+		<connectionDelay value="2000" />
 	</database>
 	
 	<protocol>

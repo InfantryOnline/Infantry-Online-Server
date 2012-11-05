@@ -466,13 +466,15 @@ namespace InfServer.Game
                 CfgInfo.Terrain t;
                 bool tickTerrainBty = now - _bountyTick > 30000; //run every 30 seconds
                 if (tickTerrainBty)
-                    _bountyTick = now;
+                    _bountyTick = now;              
 
 				foreach (Player player in PlayersIngame.ToList())
 				{	//Is he awaiting a respawn?
 					if (player._deathTime != 0 && now - player._deathTime > _server._zoneConfig.timing.enterDelay * 10)
 					{	//So spawn him!
 						player._deathTime = 0;
+                        //Reset lastMovement to prevent being specced too early for inactivity
+                        player._lastMovement = 0;
 						handlePlayerSpawn(player, true);
 					}
 
@@ -482,36 +484,63 @@ namespace InfServer.Game
                         player._lastMovement != 0)
                     {
                         player.spec();
-                        player.sendMessage(-1, "You have been sent to spectator mode for being inactive");
+                        player.sendMessage(-1, "You have been sent to spectator mode for being inactive.");
                     }
+                     
+                    //Check maxTimeAllowed inactivity
+                    if (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed > 0)
+                    {
+                        int maxTime = (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed * 1000);
+                        
+                        //Send message at half of max time
+                        if ((now - player._lastMovement) >= ((maxTime / 2) - 10) && (now - player._lastMovement) <= ((maxTime / 2) + 10) && player._lastMovement != 0)
+                        {
+                            string format = "WARNING! Staying in this location for another {0} seconds will send you to spectator mode.";
+                            player.sendMessage(-1, String.Format(format, ((maxTime / 2) / 1000)));
+                        }
+                        //Send to spectator due to inactivity
+                        if ((now - player._lastMovement) > maxTime && player._lastMovement != 0)
+                        {
+                            player.spec();                            
+                            player.sendMessage(-1, "You have been sent to spectator mode due to inactivity.");
+                        }
+                       
+                    }
+                    
 
-					//Update play seconds
+                    //Update play seconds
 					if (bMinor)
 						player.PlaySeconds++;
 
 					if (tickTerrainBty)
 					{
 						t = getTerrain(player._state.positionX, player._state.positionY);
-						if (t.bountyAutoRate < 1 || player._bounty >= t.bountyAutoMax)
+                        
+                        if (t.bountyAutoRate < 1 || player._bounty >= t.bountyAutoMax)
 							continue;
 						// bountyAutoRate: 33 = 33% chance to give a bty.. 400 = give 4 bty
 						player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
 					}
 
-                    //TODO: This is wrong... rewrite this part for proper lag checking.
-                    /*
-                    //Check tick diff every 10 seconds or so
+                    //Check tick diff every 10 secs
                     if ((now - player._state.lastUpdate) > 10000)
                     {
-                        //Check diff
-                        if (player._client._stats.clientCurrentUpdate >= _server._config["arena/maxPing"].floatValue)
-                        {
-                            //Spec the guy!
-                            player.spec("spec");
-                            player.sendMessage(-1, "You have been sent to spectator mode for high latency");
-                        }
-                    }*/
+                        Client.ConnectionStats pStats = player._client._stats;
 
+                        //Check their lag
+                        //Will spec a player for client to server lag/force lagging/or high ping
+                        if (pStats.C2SPacketLoss > 3.00f)
+                        {
+                            player.spec();
+                            player.sendMessage(-1, "You have been sent to spectator mode for high packet loss.");
+                        }
+
+                        else if (pStats.clientAverageUpdate > 600)
+                        {
+                            player.spec();
+                            player.sendMessage(-1, "You have been sent to spectator mode for high ping.");
+                        }
+                    }
 				}
 
                 //Do we have any players that need to be unsilenced?
@@ -1151,6 +1180,7 @@ namespace InfServer.Game
 		/// </summary>
 		public virtual void gameReset()
 		{	}
-		#endregion
+
+        #endregion
 	}
 }

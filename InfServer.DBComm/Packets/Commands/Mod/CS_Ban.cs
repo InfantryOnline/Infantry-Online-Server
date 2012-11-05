@@ -58,7 +58,7 @@ namespace InfServer.Protocol
         /// <param name="buffer">The received data.</param>
         public CS_Ban(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
-        {
+        {            
         }
 
         /// <summary>

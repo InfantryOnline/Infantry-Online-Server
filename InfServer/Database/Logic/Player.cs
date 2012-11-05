@@ -37,14 +37,17 @@ namespace InfServer.Logic
 			}
 
 			//Do we want to load stats?
-			if (!pkt.bFirstTimeSetup)
-			{	//Assign the player stats
-				player.assignStats(pkt.stats);
-				player._bannerData = pkt.banner;
-			}
-			else
-				//First time loading!
-				player.assignFirstTimeStats(true);
+            if (!pkt.bFirstTimeSetup)
+            {	//Assign the player stats
+                player.assignStats(pkt.stats);
+                player._bannerData = pkt.banner;
+            }
+            else
+            {
+                //First time loading!
+                player.assignFirstTimeStats(true);
+                Log.write(TLog.Warning, "SC_Playerlogin called, assiging first time stats.");
+            }
 
 			//Let him in! Set his alias, squad and permissions
 			Helpers.Login_Response(player._client, SC_Login.Login_Result.Success, pkt.loginMessage);
@@ -52,7 +55,7 @@ namespace InfServer.Logic
             player._alias = pkt.alias;
             player._squad = pkt.squad;
             player._squadID = pkt.squadID;
-		}
+        }
 
         static public void Handle_SC_Whisper(SC_Whisper<Database> pkt, Database db)
         {

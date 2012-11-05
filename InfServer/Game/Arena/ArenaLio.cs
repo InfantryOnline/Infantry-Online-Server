@@ -1006,7 +1006,8 @@ namespace InfServer.Game
 		/// Spawns all the qualified flags in the arena
 		/// </summary>
 		public void flagSpawn()
-		{	//For each flag type..
+		{
+            //For each flag type..
 			foreach (FlagState fs in _flags.Values)
 			{	//Should we spawn it?
 				bool bActive = true;
@@ -1027,27 +1028,55 @@ namespace InfServer.Game
 
 				//Give it some valid coordinates
 				int attempts = 0;
+                do
+                {   //Make sure we're not doing this infinitely
+                    if (attempts++ > 200)
+                    {
+                        Log.write(TLog.Error, "Unable to satisfy flag spawn for '{0}'.", fs.flag);
+                        bActive = false;
+                        break;
+                    }
 
-				do
-				{	//Make sure we're not doing this infinitely
-					if (attempts++ > 200)
-					{
-						Log.write(TLog.Error, "Unable to satisfy flag spawn for '{0}'.", fs.flag);
-						bActive = false;
-						break;
-					}
+                    fs.posX = (short)(fs.flag.GeneralData.OffsetX);
+                    fs.posY = (short)(fs.flag.GeneralData.OffsetY);
 
-					fs.posX = (short)(fs.flag.GeneralData.OffsetX);
-					fs.posY = (short)(fs.flag.GeneralData.OffsetY);
+                    //Taken from Math.cs
+                    //For random flag spawn if applicable
+                    int lowerX = fs.posX - ((short)fs.flag.GeneralData.Width / 2);
+                    int higherX = fs.posX + ((short)fs.flag.GeneralData.Width / 2);
+                    int lowerY = fs.posY - ((short)fs.flag.GeneralData.Height / 2);
+                    int higherY = fs.posY + ((short)fs.flag.GeneralData.Height / 2);
 
-					Helpers.randomPositionInArea(this, ref fs.posX, ref fs.posY,
-						(short)fs.flag.GeneralData.Width, (short)fs.flag.GeneralData.Height);
+                    //Clamp within the map coordinates
+                    int mapWidth = (this._server._assets.Level.Width - 1) * 16;
+                    int mapHeight = (this._server._assets.Level.Height - 1) * 16;
 
-					//Check the terrain settings
-					if (getTerrain(fs.posX, fs.posY).flagTimerSpeed == 0)
-						continue;
-				}
-				while (getTile(fs.posX, fs.posY).Blocked);
+                    lowerX = Math.Min(Math.Max(0, lowerX), mapWidth);
+                    higherX = Math.Min(Math.Max(0, higherX), mapWidth);
+                    lowerY = Math.Min(Math.Max(0, lowerY), mapHeight);
+                    higherY = Math.Min(Math.Max(0, higherY), mapHeight);
+
+                    //Randomly generate some coordinates!
+                    int tmpPosX = ((short)this._rand.Next(lowerX, higherX));
+                    int tmpPosY = ((short)this._rand.Next(lowerY, higherY));
+
+                    //Check for allowable terrain drops
+                    for (int terrain = 0; terrain < 15; terrain++)
+                    {
+                        if (getTerrainID(tmpPosX, tmpPosY) == terrain && fs.flag.FlagData.FlagDroppableTerrains[terrain] == 1)
+                        {
+                            fs.posX = (short)tmpPosX;
+                            fs.posY = (short)tmpPosY;
+                            break;
+                        }
+                    }
+                        
+                    //Check the terrain settings
+                    if (getTerrain(fs.posX, fs.posY).flagTimerSpeed == 0)
+                        continue;
+
+                }
+                while (getTile(fs.posX, fs.posY).Blocked);
 
 				fs.team = null;
 				fs.carrier = null;

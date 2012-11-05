@@ -115,13 +115,58 @@ namespace InfServer.Game.Commands.Mod
             if (payload == "")
                 page = 0;
             else
-                page = Convert.ToInt32(payload);
+            {
+                //Test to see if we are trying to look at the help history
+                if (payload.Contains(':'))
+                {
+                    string help = payload.Split(':').ElementAt(0);
+                    string getPage = payload.Split(':').ElementAt(1);
+//                    int pageNum;
+                    if (help.ToLower() != "help")
+                    {
+                        player.sendMessage(-1, "Syntax: *history help (Optional: help:page number)");
+                        return;
+                    }
 
-            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
-            pkt.sender = player._alias;
-            pkt.queryType = CS_Query<Data.Database>.QueryType.history;
-            pkt.payload = page.ToString();
-            player._server._db.send(pkt);
+                    if (help.ToLower() == "help")
+                    {
+                        player.sendMessage(-1, "Currently not supported yet.");
+                        return;
+                    }
+/*
+                    try
+                    {
+                        pageNum = Convert.ToInt32(getPage);
+                    }
+                    catch
+                    {
+                        pageNum = 0;
+                    }
+                    //Wanting to look up the help history
+                    CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+                    pkt.sender = player._alias;
+                    pkt.queryType = CS_Query<Data.Database>.QueryType.help_history;
+                    pkt.payload = pageNum.ToString();
+                    player._server._db.send(pkt);
+*/
+                 }
+                else
+                {
+                    try
+                    {
+                        page = Convert.ToInt32(payload);
+                    }
+                    catch
+                    {
+                        page = 0;
+                    }
+                    CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+                    pkt.sender = player._alias;
+                    pkt.queryType = CS_Query<Data.Database>.QueryType.history;
+                    pkt.payload = page.ToString();
+                    player._server._db.send(pkt);
+                }
+            }
         }
 
 		/// <summary>
@@ -133,12 +178,12 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(recycle, "recycle",
 				"Restarts the current zone",
 				"*recycle",
-                InfServer.Data.PlayerPermission.Manager, true);
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(log, "log",
                 "Grabs exception logs for the current zone",
                 "*log",
-                InfServer.Data.PlayerPermission.Manager, true);
+                InfServer.Data.PlayerPermission.Sysop, true);
 
 			yield return new HandlerDescriptor(environment, "environment",
 				"Queries environment information from a player",
@@ -157,8 +202,8 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(history, "history",
                 "Returns a list of mod commands used in every server",
-                "*history [page]",
-                InfServer.Data.PlayerPermission.Manager, false);
+                "*history [page] or *history help (Optional: *history help:page number for specific pages)",
+                InfServer.Data.PlayerPermission.Sysop, false);
 		}
 	}
 }

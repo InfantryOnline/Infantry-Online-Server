@@ -162,6 +162,7 @@
   <ItemGroup>
     <Compile Include="Bots\DuelBot\DuelBot.cs" />
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
+    <Compile Include="GameTypes\BugHunt\BugHunt.cs" />
     <Compile Include="GameTypes\CTF\OGCTF.cs" />
     <Compile Include="GameTypes\CTFHQ\CTFHQ.cs" />
     <Compile Include="GameTypes\CTFHQ\Objects\Headquarters.cs" />

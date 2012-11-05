@@ -949,9 +949,8 @@ namespace InfServer.Script.GameType_ZombieZone
                         }
 
                         if (_arena.PlayerCount >= c_minPlayers)
-                        {
                             _arena.gameStart();
-                        }
+
                         else //Stop the game!
                         {
                             _arena.gameReset();
@@ -1674,6 +1673,7 @@ namespace InfServer.Script.GameType_ZombieZone
                 state.totalZombieKills++;
 
             //Calculate the reward
+           
             int expReward = _stats.getZombieExp(zombieVID);
 
             foreach (Player p in killer._team.ActivePlayers)

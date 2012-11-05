@@ -58,13 +58,34 @@ namespace InfServer.Logic
 			{	//Special case pick - randomly chooses a given event string
 				if (actionString.StartsWith("pick"))
 				{	//Find the start of the event string list
-					int listStart = actionString.IndexOf('\"');
-					int listEnd = actionString.IndexOf('\"', listStart + 1);
+                    int listStart = -1, listEnd;
+                    listStart = actionString.IndexOf('\"');
+                    listEnd = actionString.IndexOf('\"', listStart + 1);
+                    if (listStart == -1)
+                    {   //For old soe files
+                        listStart = actionString.IndexOf('[');
+                        listEnd = actionString.IndexOf(']', listStart + 1);
+                    }
 
 					string[] events = actionString.Substring(listStart + 1, listEnd - listStart).Split(';');
-					string chosenstring = events[player._arena._rand.Next(0, events.Length - 1)];
-					int _eqIdx = chosenstring.IndexOf('=');
-					if (_eqIdx == -1)
+                    string chosenstring = "";
+                    if (player != null)
+                    {
+                        try
+                        {   //Kon, this is the fix below but I want to fix aliases first
+//                            Random random = new Random();
+//                            chosenstring = events[random.Next(1, events.Length - 1)];
+                            chosenstring = events[player._arena._rand.Next(1, events.Length - 1)];
+                            Log.write(TLog.Warning, "First time events called in arena {0} {1}", player._arena._name, events);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.write(TLog.Error,"Player does not exist - Name: {0}, Alias: {1} " +e,player,player._alias );
+                        }
+                    }
+                    int _eqIdx = chosenstring.IndexOf('=');
+
+                    if (_eqIdx == -1)
 						executeAction(player, chosenstring, "", state);
 					else
 						executeAction(player, chosenstring.Substring(0, _eqIdx),

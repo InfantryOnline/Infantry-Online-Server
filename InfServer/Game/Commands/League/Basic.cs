@@ -20,8 +20,9 @@ namespace InfServer.Game.Commands.Mod
 
         static public void startmatch(Player player, Player recipient, string payload, int bong)
         {
+            //TODO: check to see if we are in a league zone
             //Lock the arena
-            Basic.speclock(player, null, "", bong);
+            Basic.speclock(player, null, "all", bong);
 
             //Toggle Stat Saving for any attached script
             player._arena._isMatch = !player._arena._isMatch;

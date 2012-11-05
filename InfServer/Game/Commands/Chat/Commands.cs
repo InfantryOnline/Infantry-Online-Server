@@ -33,22 +33,6 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
-        #region squadstats
-        /// <summary>
-        /// Allows a player to view the stats of a squad for his/her zone
-        /// </summary>
-        public static void squadstats(Player player, Player recipient, string payload, int bong)
-        {
-            CS_Squads<Data.Database> query = new CS_Squads<Data.Database>();
-
-            query.queryType = CS_Squads<Data.Database>.QueryType.stats;
-            query.payload = payload;
-            query.alias = player._alias;
-
-            player._server._db.send(query);
-        }
-                #endregion
-
         #region aid
         /// <summary>
         /// Allows one player to send aid (cash) to another.
@@ -88,7 +72,11 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "Target player does not exist");
                 return;
             }
-
+            if (amount < 5000)
+            {
+                player.sendMessage(-1, "Must send at least 5000 cash");
+                return;
+            }
             //Does he meet the requirements? gotta stop statpadding...
             if (player.StatsTotal.Points < player._server._zoneConfig.addon.aidLogic)
             {
@@ -443,9 +431,9 @@ namespace InfServer.Game.Commands.Chat
                 Player.InventoryItem ii = player.getInventory(item);
 
                 //Make sure item is can be dropped
-                if (!item.droppable)
-                {
-                    continue;
+                if (!item.droppable) { 
+                    player.sendMessage(-1, "You cannot drop that item."); 
+                    continue; 
                 }
 
                 //Item does not exist in their inventory
@@ -553,7 +541,9 @@ namespace InfServer.Game.Commands.Chat
                     mods += 1;
                 }
             }
-
+            
+            //Alert any mods online
+            
             //TODO: Log help requests to the database when there are no moderators online.
             if (mods == 0)
             {
@@ -782,22 +772,6 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
-        #region squadtransfer
-        /// <summary>
-        /// Transfers squad ownership to a specified player
-        /// </summary>
-        public static void squadtransfer(Player player, Player recipient, string payload, int bong)
-        {   //Sanity checks
-            if (player._server.IsStandalone)
-                return;
-            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
-            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.transfer;
-            sqdquery.alias = player._alias;
-            sqdquery.payload = payload;
-            player._server._db.send(sqdquery);
-        }
-        #endregion
-
         #region squadleave
         /// <summary>
         /// Leaves (or dissolves) current squad
@@ -824,6 +798,38 @@ namespace InfServer.Game.Commands.Chat
                 return;
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invitesreponse;
+            sqdquery.alias = player._alias;
+            sqdquery.payload = payload;
+            player._server._db.send(sqdquery);
+        }
+        #endregion
+
+        #region squadstats
+        /// <summary>
+        /// Allows a player to view the stats of a squad for his/her zone
+        /// </summary>
+        public static void squadstats(Player player, Player recipient, string payload, int bong)
+        {
+            CS_Squads<Data.Database> query = new CS_Squads<Data.Database>();
+
+            query.queryType = CS_Squads<Data.Database>.QueryType.stats;
+            query.payload = payload;
+            query.alias = player._alias;
+
+            player._server._db.send(query);
+        }
+        #endregion
+
+        #region squadtransfer
+        /// <summary>
+        /// Transfers squad ownership to a specified player
+        /// </summary>
+        public static void squadtransfer(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (player._server.IsStandalone)
+                return;
+            CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+            sqdquery.queryType = CS_Squads<Data.Database>.QueryType.transfer;
             sqdquery.alias = player._alias;
             sqdquery.payload = payload;
             player._server._db.send(sqdquery);
@@ -998,7 +1004,7 @@ namespace InfServer.Game.Commands.Chat
             }
             catch (NullReferenceException)
             {
-                Log.write(TLog.Warning, "Error thrown while switching teams. Sender: '" + player._alias + "' payload: '" + payload);
+                Log.write(TLog.Warning, "Error thrown while switching teams. Sender: '" + player._alias + "' payload: '" + payload + "'");
             }
         }
         #endregion
@@ -1088,6 +1094,37 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
+        #region wipecharacter
+        /// <summary>
+        /// Wipes your characters stats and sets them back to initial state
+        /// </summary>
+        public static void wipecharacter(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (!player.IsSpectator)
+            {
+                player.sendMessage(-1, "Must be in spectator mode to wipe character.");
+                return;
+            }
+
+            if (payload == "")
+            {
+                player.sendMessage(-1, "Are you sure you want to wipe your character? Type ?wipecharacter yes to confirm");
+                return;
+            }
+
+            if (payload.ToLower() == "yes")
+            {
+                //Wiping all stats/inv etc
+                player.assignFirstTimeStats(true);
+                player.syncInventory();
+                player.syncState();
+                Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeSkillSetup);
+                Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeInvSetup);
+                player.sendMessage(0, "Your character has been wiped.");
+            }
+        }
+        #endregion
+
         #region zonelist
         /// <summary>
         /// Provides the user with a list of zones
@@ -1131,24 +1168,24 @@ namespace InfServer.Game.Commands.Chat
                 "?arena");
 
             yield return new HandlerDescriptor(squadstats, "squadstats",
-    "Displays squad stats for a particular squad in the requestee's current zone",
-    "?squadstats squad or ?squadstats");
+                "Displays squad stats for a particular squad in the requestee's current zone",
+                "?squadstats squad or ?squadstats");
 
             yield return new HandlerDescriptor(aid, "aid",
-            "Allows a player to aid another player in the form of money",
-            "?aid targetalias:#");
+                "Allows a player to aid another player in the form of money",
+                "?aid targetalias:#");
 
             yield return new HandlerDescriptor(teamkick, "teamkick",
-            "Allows a player to kick another from a private team",
-            "?teamkick targetalias");
+                "Allows a player to kick another from a private team",
+                "?teamkick targetalias");
 
             yield return new HandlerDescriptor(teampassword, "teampassword",
-            "Allows a player to change the password of a private team",
-            "?teampasword newpassword");
+                "Allows a player to change the password of a private team",
+                "?teampasword newpassword");
 
             yield return new HandlerDescriptor(structures, "structures",
-            "Displays all structures and vehicles that belong to a team",
-            "?structures");
+                "Displays all structures and vehicles that belong to a team",
+                "?structures");
 
             yield return new HandlerDescriptor(accountinfo, "accountinfo",
                 "Displays all aliases registered to a single account.",
@@ -1159,8 +1196,8 @@ namespace InfServer.Game.Commands.Chat
                 "?chat chat1,chat2,chat3. ?chat off leaves all");
 
             yield return new HandlerDescriptor(breakdown, "breakdown",
-               "Displays current game statistics",
-               "?breakdown");
+                "Displays current game statistics",
+                "?breakdown");
 
             yield return new HandlerDescriptor(buy, "buy",
                 "Buys items",
@@ -1245,6 +1282,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(team, "team",
                 "Displays a list of teams or joins a specified team",
                 "?team or ?team name:password");
+
+            yield return new HandlerDescriptor(wipecharacter, "wipecharacter",
+                "Wipes your characters stats and sets them back to initial state",
+                "?wipecharacter");
 
             yield return new HandlerDescriptor(zonelist, "zonelist",
                 "Displays a list of zones",

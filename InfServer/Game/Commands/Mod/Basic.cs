@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Net;
+using System.Data.SqlClient;
 
 using Assets;
 using InfServer.Game;
 using InfServer.Bots;
 using InfServer.Protocol;
+using InfServer.Logic;
 
 namespace InfServer.Game.Commands.Mod
 {
@@ -15,8 +18,7 @@ namespace InfServer.Game.Commands.Mod
     /// Provides a series of functions for handling mod commands
     /// </summary>
     public class Basic
-    {
-
+    {      
 
         static public void addball(Player player, Player recipient, string payload, int bong)
         {
@@ -110,8 +112,45 @@ namespace InfServer.Game.Commands.Mod
             {
                 if (payload.Trim() == player._server._config["server/managerPassword"].Value)
                 {
-                    player._permissionTemp = Data.PlayerPermission.Sysop;
+                    player._permissionTemp = Data.PlayerPermission.ArenaMod;
                     player.sendMessage(1, "You have been granted");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Scrambles all players across all teams in an arena
+        /// </summary>
+        /// <param name="on/off">Sets the script for the arena</param>
+        public static void scramble(Player player, Player recipient, string payload, int bong)
+        {
+            Random _rand = new Random();
+
+            List<Player> shuffledPlayers = player._arena.PublicPlayersInGame.OrderBy(plyr => _rand.Next(0, 500)).ToList();
+            int numTeams = 0;
+
+            if (player._arena.ActiveTeams.Count() > 1)
+            {
+                //Set script based on user input
+                if (payload.ToLower() == "on")
+                {
+                    player._arena._server._zoneConfig.arena.scrambleTeams = 1;
+                    player.sendMessage(0, "Scramble toggled ON.");
+                }
+                else if (payload.ToLower() == "off")
+                {
+                    player._arena._server._zoneConfig.arena.scrambleTeams = 0;
+                    player.sendMessage(0, "Scramble toggled OFF.");
+                }
+                else
+                {
+                    //Now scramble teams
+                    numTeams = player._arena.ActiveTeams.Count();
+                    for (int i = 0; i < shuffledPlayers.Count; i++)
+                        player._arena.PublicTeams.ElementAt(i % numTeams).addPlayer(shuffledPlayers[i]);
+
+                    //Notify players of the scramble
+                    player._arena.sendArenaMessage("Teams have been scrambled!");
                 }
             }
         }
@@ -246,9 +285,16 @@ namespace InfServer.Game.Commands.Mod
             foreach (Player unspecced in player._arena.PlayersIngame.ToArray())
                 unspecced.spec();
 
-            for(int i = 0; i < teamNames.Count; i++)
-                //Add 1 to avoid renaming spec team
+            for (int i = 0; i < teamNames.Count; i++)
+            {        
+                if (teams[i + 1]._name == null)
+                {
+                    Team newTeam = new Team(player._arena, player._server);
+                    teams.Add(newTeam);                    
+                }
+                //Add 1 to avoid renaming spec team   
                 teams[i + 1]._name = teamNames[i];
+            }
         }
 
         /// <summary>
@@ -548,8 +594,16 @@ namespace InfServer.Game.Commands.Mod
             
             else
             {   //Adding
-                player.sendMessage(-3, "Player added to permission list");
+                player.sendMessage(-3, "Player added to permission list");                
                 Logic.Logic_Permit.addPermit(payload);
+
+                //Let the person know
+                SC_Whisper<Data.Database> whisper = new SC_Whisper<Data.Database>();
+                whisper.bong = 1;
+                whisper.recipient = payload;
+                whisper.message = (String.Format("You have been given permission to enter {0}." + player._server.Name));
+                whisper.from = player._alias;
+                player._server._db.send(whisper);
             }
         }
 
@@ -576,6 +630,7 @@ namespace InfServer.Game.Commands.Mod
 		/// <summary>
 		/// Removes a player from the server
 		/// </summary>
+
         static public void kill(Player player, Player recipient, string payload, int bong)
 		{
 			//Kill all?
@@ -587,42 +642,77 @@ namespace InfServer.Game.Commands.Mod
 				    //Destroy him!
 				    recipient.destroy();
                 else
-                    player.sendMessage(-1, "Syntax: ::*kill time:reason (optional) or *kill all (Time is in minutes)");
+                    player.sendMessage(-1, "Syntax: ::*kill reason (optional) or *kill all");
 		}
 
         /// <summary>
         /// Removes a player from the entire server
         /// </summary>
+        /*
         static public void gkill(Player player, Player recipient, string payload, int bong)
         {
-            if (recipient != null)
-                //Destroy him!
-                recipient.destroy();
-            else
-                player.sendMessage(-1, "Syntax: ::*gkill time:reason (optional) (Time is in minutes)");
+            string alias = "";
 
-
-            //Must be a timed ban?
-            if (payload.Contains(':'))
+            //Check to see if we are pm'ing someone with gkill
+            if (recipient != null && recipient._alias != "kon")
             {
-                int minutes;
-                string reason;
-
-                string[] parameters = payload.Split(':');
-
-                //Check if there is a reason
-                if (parameters.Count() == 2)
+                if (payload == "")
                 {
-                    minutes = Convert.ToInt32(parameters[0]);
-                    reason = parameters[1];
-                }
-                else
-                {//No
-                    minutes = Convert.ToInt32(parameters[0]);
-                    reason = "None given";
+                    player.sendMessage(-1, "Syntax: ::*gkill time:reason (Optional)  Note: Time is in minutes and must be less than 1,000,000.");
+                    return;
                 }
 
-                //Relay it to the database
+
+                string reason = "None given";
+                int minutes = 0;
+
+                //Must be a timed ban?
+                if (payload.Contains(':'))
+                {
+                    string[] parameters = payload.Split(':');
+
+                    try
+                    {
+                        minutes = Convert.ToInt32(parameters[0]);
+                    }
+                    catch
+                    {
+                        if (minutes > Int32.MaxValue)
+                            minutes = Int32.MaxValue - 1;
+                    }
+
+                    //Check if there is a reason
+                    if (parameters.Count() >= 1)
+                        reason = parameters[1];
+                }
+
+                //For no reason given and no seperator
+                if (!payload.Contains(':'))
+                {
+                    try
+                    {
+                        minutes = Convert.ToInt32(payload);
+                    }
+                    catch
+                    {
+                        if (minutes > Int32.MaxValue)
+                        {
+                            Log.write("OverflowException reached using gkill, setting to max value.");
+                            minutes = Int32.MaxValue - 1;
+                        }
+                        else
+                            minutes = 10800;
+                    }
+                }
+
+                //Let the person know
+                if (minutes > 0)
+                    recipient.sendMessage(0, String.Format("You are being banned for {0} minutes.", + minutes));
+
+                //KILL HIM!!
+                recipient.destroy();
+
+                //Relay it to the database             
                 CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
                 newBan.alias = recipient._alias;
                 newBan.UID1 = recipient._UID1;
@@ -633,8 +723,136 @@ namespace InfServer.Game.Commands.Mod
                 newBan.reason = reason;
 
                 player._server._db.send(newBan);
-
             }
+        }
+        */
+        /// <summary>
+        /// Removes a player from the entire server
+        /// </summary>
+        static public void gkill(Player player, Player recipient, string payload, int bong)
+        {
+            SqlConnection db;
+            string pAccount = "";
+            string alias = "";
+	        string reason = "None given";
+	        int minutes = 0;
+
+	        if (payload == "" && recipient == null)
+	        {
+		        player.sendMessage(-1, "Syntax: Either PM the person with *gkill time:reason(Optional) or *gkill alias time:reason(Optional)");
+		        return;
+	        }
+
+            string[] parameters;
+            string[] param;
+            //Check to see if we are pm'ing someone with gkill
+            if (recipient != null && recipient._alias != "kon")
+            {
+                if (payload == "")
+                {
+                    player.sendMessage(-1, "Syntax: ::*gkill time:reason(Optional)  Note: Time is in minutes and must be less than 1,000,000.");
+                    return;
+                }
+
+                alias = recipient._alias.ToString();
+
+                //Let the person know
+                if (minutes > 0)
+                    recipient.sendMessage(0, String.Format("You are being banned for {0} minutes.", minutes));
+
+                //KILL HIM!!
+                recipient.destroy();
+            }
+            else //Using an alias instead
+            {
+                param = payload.Split(' ');
+                alias = param[0].ToString();
+            }
+
+            //Must be a timed ban?
+            if (payload.Contains(':'))
+            {
+                parameters = payload.Split(':');
+                try
+                {
+                    minutes = Convert.ToInt32(parameters[0]);
+                }
+                catch
+                {
+                    if (minutes > Int32.MaxValue)
+                        minutes = Int32.MaxValue - 1;
+                }
+
+                //Check if there is a reason
+                if (parameters.Count() >= 1)
+                    reason = parameters[1];
+            }
+
+            //For no reason given and no seperator
+            if (!payload.Contains(':'))
+            {
+                parameters = payload.Split(' ');
+                try
+                {
+                    if (recipient != null)
+                        minutes = Convert.ToInt32(parameters[0]);
+                    else
+                        minutes = Convert.ToInt32(parameters[1]);
+                }
+                catch
+                {
+                    if (minutes > Int32.MaxValue)
+                    {
+                        Log.write("OverflowException reached using gkill, setting to max value.");
+                        minutes = Int32.MaxValue - 1;
+                    }
+		            else
+			            minutes = 30; //30 mins
+                }
+            }
+
+            player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
+
+            //Check if they are already banned
+            db = new SqlConnection("Server=INFANTRY\\SQLEXPRESS;Database=Data;Trusted_Connection=True;");
+            db.Open();
+            //Get their Account ID
+            var playerID = new SqlCommand("SELECT * FROM alias WHERE name='" + alias + "'", db);
+            try
+            {
+                using (var reader = playerID.ExecuteReader())
+                {
+                    while (reader.Read())
+                        pAccount = reader["account"].ToString();
+                }
+            }
+            catch
+            {
+            }
+
+            if (pAccount != "")
+            {
+                //They already exist, delete current entry and move on to adding them
+                using (SqlCommand Command = new SqlCommand("DELETE FROM bans WHERE account=" + pAccount, db))
+                    Command.ExecuteNonQuery(); 
+            }
+
+            db.Close();
+
+            //Relay it to the database             
+            CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
+            newBan.alias = alias;
+            if (recipient != null)
+            {
+                newBan.UID1 = recipient._UID1;
+                newBan.UID2 = recipient._UID2;
+                newBan.UID3 = recipient._UID3;
+            }
+            newBan.time = minutes;
+            newBan.sender = player._alias;
+            newBan.reason = reason;
+
+            player._server._db.send(newBan);
         }
 
         /// <summary>
@@ -672,7 +890,7 @@ namespace InfServer.Game.Commands.Mod
         static public void speclock(Player player, Player recipient, string payload, int bong)
         {
             //Lock Entire Arena
-            if (payload == "")
+            if (payload == "all")
             {
                 player._arena._bLocked = !player._arena._bLocked;
                 player._arena.sendArenaMessage("Arena lock has been toggled");
@@ -694,8 +912,6 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Syntax: ::*lock");
                 return;
             }
-
-
 
             //Toggle his locked status
             recipient._bLocked = !recipient._bLocked;
@@ -734,9 +950,9 @@ namespace InfServer.Game.Commands.Mod
             {
                 minutes = Convert.ToInt32(payload);
             }
-            catch (FormatException e)
+            catch (OverflowException e)
             {
-               
+               Log.write(TLog.Warning, e.ToString());
             }
 
             //Toggle his ability to speak
@@ -751,8 +967,36 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
+                recipient._lengthOfSilence = 0;
                 player.sendMessage(0, recipient._alias + " has been unsilenced");
             }
+        }
+
+        /// <summary>
+        /// Wipes a character
+        /// </summary>
+        public static void wipe(Player player, Player recipient, string payload, int bong)
+        {   //Sanity checks
+            if (recipient == null)
+            {
+                player.sendMessage(-1, "Syntax: ::*wipe");
+                return;
+            }
+
+            if (!recipient.IsSpectator)
+            {
+                player.sendMessage(-1, "That character must be in spec.");
+                return;
+            }
+
+            //Wiping all stats/inv etc
+            recipient.assignFirstTimeStats(true);
+            player.syncInventory();
+            player.syncState();
+            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeSkillSetup);
+            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeInvSetup);
+
+            player.sendMessage(0, "His/her character has been wiped.");
         }
 
         /// <summary>
@@ -784,6 +1028,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(authenticate, "auth",
                 "Log in during Stand-Alone Mode",
                 "*auth password");
+
+            yield return new HandlerDescriptor(scramble, "scramble",
+				"Scrambles an arena, use on/off to set the arena to scramble automatically.",
+				"::*scramble [on/off(optional)]",
+				InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(gkill, "gkill",
                 "Globally bans a player from the entire server",
@@ -843,7 +1092,7 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(spectate, "spectate",
 				"Forces a player or the whole arena to spectate the specified player.",
 				"Syntax: ::*spectate [player] or *spectate [player]",
-				InfServer.Data.PlayerPermission.Mod, false);
+				InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(spec, "spec",
                 "Puts a player into spectator mode, optionally on a specified team.",
@@ -867,8 +1116,8 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(kill, "kill",
                "Removes the target player from the server",
-               "::*kill or *kill all",
-               InfServer.Data.PlayerPermission.Mod, false);
+               "::*kill reason or *kill all",
+               InfServer.Data.PlayerPermission.SMod, false);
 
             yield return new HandlerDescriptor(speclock, "lock",
                 "Locks the target player into spec",
@@ -889,6 +1138,12 @@ namespace InfServer.Game.Commands.Mod
                "Sends a global message to every zone connected to current database",
                "*global [message]",
                InfServer.Data.PlayerPermission.SMod, false);
+            
+            yield return new HandlerDescriptor(wipe, "wipe",
+                "Wipes a character within the current zone",
+                "::*wipe",
+                InfServer.Data.PlayerPermission.Sysop, false);
+
         }
     }
 }

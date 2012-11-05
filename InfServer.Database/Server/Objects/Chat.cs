@@ -73,16 +73,31 @@ namespace InfServer
             _server.getPlayer(player).zone._client.send(reply);
         }
 
-
         public string List()
         {
             StringBuilder builder = new StringBuilder();
             foreach (var player in _players)
-                builder.Append(player.Key).Append(",");
-
-            return builder.ToString().TrimEnd(',');
+            {
+                builder.Append(player.Key).Append(" ");
+                // return builder.ToString();           
+            }
+            return builder.ToString();
         }
-
     }
 
 }
+/*
+        public string List()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (var player in _players)
+            {
+ 	            builder.Append(player.Key).Append(",");
+ 	            builder.Append(player.Key).Append(" ");
+            }
+            builder.ToString().TrimEnd(' ');
+            return builder.ToString().TrimEnd(',');
+ }
+
+
+*/

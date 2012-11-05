@@ -33,7 +33,7 @@ namespace InfServer.DirectoryServer.Directory
         {
             //Connect to our database
             Log.write("Connecting to database...");
-            db = new SqlConnection("Server=INFANTRY\\INFANTRY;Database=Data;Trusted_Connection=True;");
+            db = new SqlConnection("Server=INFANTRY\\SQLEXPRESS;Database=Data;Trusted_Connection=True;");
             db.Open();
             grabZones();
             return true;
@@ -75,7 +75,7 @@ namespace InfServer.DirectoryServer.Directory
                 begin(listenPoint);
 
             }
-            catch (System.NullReferenceException e)
+            catch (System.NullReferenceException)
             {
             }
 

@@ -16,22 +16,24 @@ using Assets;
 //KING OF THE CORN!
 namespace InfServer.Script.GameType_KOTH
 {	// Script Class
-	/// Provides the interface between the script and arena
-	///////////////////////////////////////////////////////
-	class Script_KOTH : Scripts.IScript
-	{	///////////////////////////////////////////////////
-		// Member Variables
-		///////////////////////////////////////////////////
-		private Arena _arena;					//Pointer to our arena class
-		private CfgInfo _config;				//The zone config
+    /// Provides the interface between the script and arena
+    ///////////////////////////////////////////////////////
+    class Script_KOTH : Scripts.IScript
+    {	///////////////////////////////////////////////////
+        // Member Variables
+        ///////////////////////////////////////////////////
+        private Arena _arena;					//Pointer to our arena class
+        private CfgInfo _config;				//The zone config
 
-		private Team _victoryTeam;				//The team currently winning!
-        private int _tickGameLastTickerUpdate;	
-		private int _lastGameCheck;				//The tick at which we last checked for game viability
-		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
-		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
-		//Settings
-		private int _minPlayers;				//The minimum amount of players
+        private int _jackpot;					//The game's jackpot so far
+
+        private Team _victoryTeam;				//The team currently winning!
+        private int _tickGameLastTickerUpdate;
+        private int _lastGameCheck;				//The tick at which we last checked for game viability
+        private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
+        private int _tickGameStart;				//The tick at which the game started (0 == stopped)
+        //Settings
+        private int _minPlayers;				//The minimum amount of players
 
         private class PlayerCrownStatus
         {
@@ -49,35 +51,40 @@ namespace InfServer.Script.GameType_KOTH
             }
         }
         private Dictionary<Player, PlayerCrownStatus> _playerCrownStatus;
-        private List<Player> _activeCrowns
+        private List<Player> _activeCrowns //List of people with a crown
         {
             get { return _playerCrownStatus.Where(p => p.Value.crown).Select(p => p.Key).ToList(); }
         }
+        private List<Player> _noCrowns //List of people with no crowns
+         {
+            get { return _playerCrownStatus.Where(p => !p.Value.crown).Select(p => p.Key).ToList(); }
+        }
 
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Performs script initialization
-		/// </summary>
-		public bool init(IEventObject invoker)
-		{	//Populate our variables
-			_arena = invoker as Arena;
-			_config = _arena._server._zoneConfig;
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Performs script initialization
+        /// </summary>
+        public bool init(IEventObject invoker)
+        {	//Populate our variables
+            _arena = invoker as Arena;
+            _config = _arena._server._zoneConfig;
 
             _minPlayers = _config.king.minimumPlayers;
             _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
 
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// Allows the script to maintain itself
-		/// </summary>
+        /// <summary>
+        /// Allows the script to maintain itself
+        /// </summary>
         public bool poll()
         {	//Should we check game state yet?
             int now = Environment.TickCount;
+            List<Player> crowns = _activeCrowns;
 
             if (now - _lastGameCheck <= Arena.gameCheckInterval)
                 return true;
@@ -85,6 +92,16 @@ namespace InfServer.Script.GameType_KOTH
 
             //Do we have enough players ingame?
             int playing = _arena.PlayerCount;
+
+            if (_tickGameStart > 0 && crowns.Count <= 1)
+            {
+                _victoryTeam = crowns.First()._team;
+                _arena.sendArenaMessage(_victoryTeam._name + " is the winner");
+                //End the game
+
+                gameVictory(_victoryTeam);
+                return true;               
+            }
 
             if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
             {	//Stop the game!
@@ -101,13 +118,25 @@ namespace InfServer.Script.GameType_KOTH
                     _tickGameLastTickerUpdate = now;
                 }
             }
-
+            
             if (_tickGameStart > 0)
             {
+                Log.write(TLog.Warning, "{0}", _playerCrownStatus.Count());
+               
                 foreach (var p in _playerCrownStatus)
+                {
+                 //   Log.write(TLog.Warning, "'{0}', '{1}'", p.Value.expireTime, now); // making sure expire time is synced
+                    
+
                     if (now > p.Value.expireTime)
+                    {
                         p.Value.crown = false;
-                //send update pkt
+                        List<Player> noCrowns = _noCrowns;
+                        Log.write(TLog.Warning, "{0}, {1}", crowns.Count(), crowns.Count);
+                        Helpers.Player_Crowns(_arena, true, crowns);
+                        Helpers.Player_Crowns(_arena, false, _noCrowns);
+                    }
+                }                
             }
 
             //Do we have enough players to start a game?
@@ -124,13 +153,44 @@ namespace InfServer.Script.GameType_KOTH
             return true;
         }
 
+        /// <summary>
+        /// Called when the specified team have won
+        /// </summary>
+        public void gameVictory(Team victors)
+        {	//Let everyone know          
+           
+            //TODO: Move this calculation to breakdown() in ScriptArena?
+            //Calculate the jackpot for each player
+            foreach (Player p in _arena.Players)
+            {	//Spectating? 
+                if (p.IsSpectator)
+                    continue;
+
+                //Obtain the respective rewards
+                int cashReward = _config.king.cashReward;
+                int experienceReward = _config.king.experienceReward;
+                int pointReward = _config.king.pointReward;
+
+                p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
+
+                p.Cash += cashReward;
+                p.Experience += experienceReward;
+                p.BonusPoints += pointReward;
+            }
+
+            //Stop the game
+            _arena.gameEnd();
+        }
         public void updateCrowns()
         {
             List<Player> crowns = _activeCrowns;
+            List<Player> noCrowns = _noCrowns;
+            Log.write(TLog.Warning, "{0}, {1}", crowns.Count(), crowns.Count);
             if (crowns.Count > 0)
+            {
                 Helpers.Player_Crowns(_arena, true, crowns);
-            else //End the game!
-                _arena.gameEnd();
+                Helpers.Player_Crowns(_arena, false, _noCrowns);
+            }
         }
         public void giveCrown(Player p)
         {
@@ -142,53 +202,46 @@ namespace InfServer.Script.GameType_KOTH
         }
         public void updateCrownTime(Player p)
         {   //Update the counter for player??
-            _playerCrownStatus[p].expireTime = Environment.TickCount + (_config.king.expireTime * 100);
+            _playerCrownStatus[p].expireTime = Environment.TickCount + (_config.king.expireTime * 1000);            
         }
 
-		#region Events
-	
+        #region Events
 
-		/// <summary>
-		/// Called when a player enters the game
-		/// </summary>
-		[Scripts.Event("Player.Enter")]
-		public void playerEnter(Player player)
-		{
+
+        /// <summary>
+        /// Called when a player enters the game
+        /// </summary>
+        [Scripts.Event("Player.Enter")]
+        public void playerEnter(Player player)
+        {
             if (_tickGameStart != 0)
             {   //Send them the crowns..
                 _playerCrownStatus[player] = new PlayerCrownStatus(false);
                 Helpers.Player_Crowns(_arena, true, _activeCrowns, player);
             }
-		}
+        }
 
-		/// <summary>
-		/// Called when a player leaves the game
-		/// </summary>
-		[Scripts.Event("Player.Leave")]
-		public void playerLeave(Player player)
-		{
+        /// <summary>
+        /// Called when a player leaves the game
+        /// </summary>
+        [Scripts.Event("Player.Leave")]
+        public void playerLeave(Player player)
+        {
             if (_playerCrownStatus.ContainsKey(player))
                 _playerCrownStatus.Remove(player);
-		}
+        }
 
-		/// <summary>
-		/// Called when the game begins
-		/// </summary>
+        /// <summary>
+        /// Called when the game begins
+        /// </summary>
         [Scripts.Event("Game.Start")]
         public bool gameStart()
         {	//We've started!
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
 
-
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", 1);
-            _arena.setTicker(1, 1, _config.deathMatch.timer * 100, "Time Left: ",
-            delegate()
-            {	//Trigger game end.
-                _arena.gameEnd();
-            }
-            );
 
             foreach (Team t in _arena.Teams)
             {
@@ -201,10 +254,11 @@ namespace InfServer.Script.GameType_KOTH
             foreach (var p in crownPlayers)
             {
                 _playerCrownStatus[p] = new PlayerCrownStatus();
+                giveCrown(p);
             }
             //Everybody is king!
             Helpers.Player_Crowns(_arena, true, crownPlayers);
-           
+
             return true;
         }
 
@@ -213,42 +267,40 @@ namespace InfServer.Script.GameType_KOTH
         /// </summary>
         public void updateTickers()
         {
-                string format;
-                if (_arena.ActiveTeams.Count() > 1)
-                {
-                    format = String.Format("{0}={1} - {2}={3}",
-                        _arena.ActiveTeams.ElementAt(0)._name,
-                        _arena.ActiveTeams.ElementAt(0)._calculatedKills,
-                        _arena.ActiveTeams.ElementAt(1)._name,
-                        _arena.ActiveTeams.ElementAt(1)._calculatedKills);
-                    _arena.setTicker(1, 0, 0, format);
-                }
+            string format;
+            if (_arena.ActiveTeams.Count() > 1)
+            {
+                format = String.Format("{0}={1} - {2}={3}",
+                    _arena.ActiveTeams.ElementAt(0)._name,
+                    _arena.ActiveTeams.ElementAt(0)._calculatedKills,
+                    _arena.ActiveTeams.ElementAt(1)._name,
+                    _arena.ActiveTeams.ElementAt(1)._calculatedKills);
+                _arena.setTicker(1, 0, 0, format);
+            }
 
 
         }
 
-		/// <summary>
-		/// Called when the game ends
-		/// </summary>
-		[Scripts.Event("Game.End")]
-		public bool gameEnd()
-		{	//Game finished, perhaps start a new one
+        /// <summary>
+        /// Called when the game ends
+        /// </summary>
+        [Scripts.Event("Game.End")]
+        public bool gameEnd()
+        {	//Game finished, perhaps start a new one
 
             _arena.sendArenaMessage("Game Over");
 
-            _arena.breakdown(false);
-
-			_tickGameStart = 0;
-			_tickGameStarting = 0;
-			_victoryTeam = null;
+            _tickGameStart = 0;
+            _tickGameStarting = 0;
+            _victoryTeam = null;
 
             //It would be preferable to send false, {emtpy list} here
             //Needs testing
             Helpers.Player_Crowns(_arena, false, _arena.Players.ToList());
             _playerCrownStatus.Clear();
 
-			return true;
-		}
+            return true;
+        }
 
         /// <summary>
         /// Called when the statistical breakdown is displayed
@@ -262,78 +314,81 @@ namespace InfServer.Script.GameType_KOTH
             return true;
         }
 
-		/// <summary>
-		/// Called to reset the game state
-		/// </summary>
-		[Scripts.Event("Game.Reset")]
-		public bool gameReset()
-		{	//Game reset, perhaps start a new one
-			_tickGameStart = 0;
-			_tickGameStarting = 0;
+        /// <summary>
+        /// Called to reset the game state
+        /// </summary>
+        [Scripts.Event("Game.Reset")]
+        public bool gameReset()
+        {	//Game reset, perhaps start a new one
+            _tickGameStart = 0;
+            _tickGameStarting = 0;
 
-			_victoryTeam = null;
+            _victoryTeam = null;
 
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// Handles the spawn of a player
-		/// </summary>
-		[Scripts.Event("Player.Spawn")]
-		public bool playerSpawn(Player player, bool bDeath)
-		{
-			return true;
-		}
+        /// <summary>
+        /// Handles the spawn of a player
+        /// </summary>
+        [Scripts.Event("Player.Spawn")]
+        public bool playerSpawn(Player player, bool bDeath)
+        {
+            return true;
+        }
 
-		/// <summary>
-		/// Triggered when a player wants to unspec and join the game
-		/// </summary>
-		[Scripts.Event("Player.JoinGame")]
-		public bool playerJoinGame(Player player)
-		{
-			return true;
-		}
+        /// <summary>
+        /// Triggered when a player wants to unspec and join the game
+        /// </summary>
+        [Scripts.Event("Player.JoinGame")]
+        public bool playerJoinGame(Player player)
+        {
+            return true;
+        }
 
-		/// <summary>
-		/// Triggered when a player wants to spec and leave the game
-		/// </summary>
-		[Scripts.Event("Player.LeaveGame")]
-		public bool playerLeaveGame(Player player)
-		{
+        /// <summary>
+        /// Triggered when a player wants to spec and leave the game
+        /// </summary>
+        [Scripts.Event("Player.LeaveGame")]
+        public bool playerLeaveGame(Player player)
+        {
             _playerCrownStatus[player].crown = false;
             updateCrowns();
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// Triggered when a player has died, by any means
-		/// </summary>
-		/// <remarks>killer may be null if it wasn't a player kill</remarks>
-		[Scripts.Event("Player.Death")]
-		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
-		{
-			return true;
-		}
+        /// <summary>
+        /// Triggered when a player has died, by any means
+        /// </summary>
+        /// <remarks>killer may be null if it wasn't a player kill</remarks>
+        [Scripts.Event("Player.Death")]
+        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
+        {
+            return true;
+        }
 
-		/// <summary>
-		/// Triggered when one player has killed another
-		/// </summary>
-		[Scripts.Event("Player.PlayerKill")]
-		public bool playerPlayerKill(Player victim, Player killer)
-		{
+        /// <summary>
+        /// Triggered when one player has killed another
+        /// </summary>
+        [Scripts.Event("Player.PlayerKill")]
+        public bool playerPlayerKill(Player victim, Player killer)
+        {
+            //Check if a game is running
+            if (_activeCrowns.Count == 0)
+                return true;
+            
             if (_playerCrownStatus[victim].crown)
             {   //Incr crownDeaths
                 _playerCrownStatus[victim].crownDeaths++;
 
-                if (_playerCrownStatus[victim].crownDeaths > _config.king.deathCount)
-                {   //Take it away now
+                if (_playerCrownStatus[victim].crownDeaths >= _config.king.deathCount)
+                   //Take it away now
                     _playerCrownStatus[victim].crown = false;
-                }
-
-                if (!_playerCrownStatus[killer].crown)
+                
+                if (!_playerCrownStatus[killer].crown)                
                     _playerCrownStatus[killer].crownKills++;
             }
-            
+
             //Reset their timer
             if (_playerCrownStatus[killer].crown)
                 updateCrownTime(killer);
@@ -344,8 +399,8 @@ namespace InfServer.Script.GameType_KOTH
             }
 
             updateCrowns();
-			return true;
-		}
-		#endregion
-	}
+            return true;
+        }
+        #endregion
+    }
 }

@@ -13,11 +13,11 @@ using InfServer.Protocol;
 
 using Assets;
 
-namespace InfServer.Script.GameType_CTF
+namespace InfServer.Script.GameType_BugHunt
 {	// Script Class
 	/// Provides the interface between the script and arena
 	///////////////////////////////////////////////////////
-	class Script_CTF : Scripts.IScript
+	class Script_BugHunt : Scripts.IScript
 	{	///////////////////////////////////////////////////
 		// Member Variables
 		///////////////////////////////////////////////////
@@ -29,17 +29,15 @@ namespace InfServer.Script.GameType_CTF
 		private Team _victoryTeam;				//The team currently winning!
 		private int _tickVictoryStart;			//The tick at which the victory countdown began
 		private int _tickNextVictoryNotice;		//The tick at which we will next indicate imminent victory
-		private int _victoryNotice;				//The number of victory notices we've done
 
 		private int _lastGameCheck;				//The tick at which we last checked for game viability
 		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
 		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
-
 		//Settings
 		private int _minPlayers;				//The minimum amount of players
 
-        private bool _gameWon = false;
-
+        public Dictionary<int, Arena.FlagState> _flags; 
+        
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////
@@ -98,45 +96,16 @@ namespace InfServer.Script.GameType_CTF
 						_arena.gameStart();
 					}
 				);
-
-				//There will be a game soon, trigger the event
-				/*string soonGame = _server._zoneConfig.EventInfo.soonGame;
-				foreach (Player player in _players)
-					if (!player.IsSpectator)
-						Logic_Assets.RunEvent(player, soonGame);*/
 			}
-
+            
 			//Is anybody experiencing a victory?
 			if (_tickVictoryStart != 0)
 			{	//Have they won yet?
-                if (now - _tickVictoryStart > (_config.flag.victoryHoldTime * 10))
+                if (now - _tickVictoryStart > (_config.flag.victoryHoldTime * 10) && _victoryTeam != null)
                 {
                     //Yes! Trigger game victory
-                    _gameWon = true; // game won
+                    _arena.sendArenaMessage("Marines have captured all the data cores and are headed back to Titan, far far away from this hell.", 21);
                     gameVictory(_victoryTeam);
-                    
-                }
-                else
-                {	//Do we have a victory notice to give?
-                    if (_tickNextVictoryNotice != 0 && now > _tickNextVictoryNotice)
-                    {	//Yes! Let's give it
-                        int countdown = (_config.flag.victoryHoldTime / 100) - ((now - _tickVictoryStart) / 1000);
-                        _arena.sendArenaMessage(String.Format("Victory for {0} in {1} seconds!",
-                            _victoryTeam._name, countdown), _config.flag.victoryWarningBong);
-
-                        //Plan the next notice
-                        _tickNextVictoryNotice = _tickVictoryStart;
-                        _victoryNotice++;
-
-                        if (_victoryNotice == 1 && countdown >= 30)
-                            //Default 2/3 time
-                            _tickNextVictoryNotice += (_config.flag.victoryHoldTime / 3) * 10;
-                        else if (_victoryNotice == 2 || (_victoryNotice == 1 && countdown >= 20))
-                            //10 second marker
-                            _tickNextVictoryNotice += (_config.flag.victoryHoldTime * 10) - 10000;
-                        else
-                            _tickNextVictoryNotice = 0;
-                    }
                 }
 			}
 
@@ -149,31 +118,27 @@ namespace InfServer.Script.GameType_CTF
 		/// </summary>
 		public void onFlagChange(Arena.FlagState flag)
 		{	//Does this team now have all the flags?
-			Team victoryTeam = flag.team;
-            
+            Team victoryTeam = flag.team;
 
-			foreach (Arena.FlagState fs in _arena._flags.Values)
-				if (fs.bActive && fs.team != victoryTeam)
-					victoryTeam = null;
+            foreach (Arena.FlagState fs in _arena._flags.Values)
+                if (fs.bActive && fs.team != victoryTeam)
+                    victoryTeam = null;
 
-			if (victoryTeam != null)
-			{	//Yes! Victory for them!
-				_arena.setTicker(1, 1, _config.flag.victoryHoldTime, "Victory in ");
-				_tickNextVictoryNotice = _tickVictoryStart = Environment.TickCount;
-				_victoryTeam = victoryTeam;
-			}
-			else
-			{	//Aborted?
-				if (_victoryTeam != null && !_gameWon)
-				{
-					_tickVictoryStart = 0;
-                    _tickNextVictoryNotice = 0;
-					_victoryTeam = null;
-
-					_arena.sendArenaMessage("Victory has been aborted.", _config.flag.victoryAbortedBong);
-					_arena.setTicker(1, 1, 0, "");
-				}
-			}
+            //Annouce the flag captured to arena
+            try
+            {
+                _arena.sendArenaMessage(flag.team._name + " have captured " + flag.flag.GeneralData.Name + "!", 21);
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Exception, "exception in capture flag:: '{0}'",e);
+            }
+            if (victoryTeam != null)
+            {	//Yes! Victory for them!
+                _arena.setTicker(1, 1, _config.flag.victoryHoldTime, "Victory in ");
+                _tickNextVictoryNotice = _tickVictoryStart = Environment.TickCount;
+                _victoryTeam = victoryTeam;
+            }
 		}
 
 		/// <summary>
@@ -182,7 +147,8 @@ namespace InfServer.Script.GameType_CTF
 		public void gameVictory(Team victors)
 		{	//Let everyone know
 			if (_config.flag.useJackpot)
-				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);
+				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);            
+
 			_arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);            
 
             //TODO: Move this calculation to breakdown() in ScriptArena?
@@ -212,7 +178,14 @@ namespace InfServer.Script.GameType_CTF
             }
 
             //Stop the game
-            _arena.gameEnd();
+            try
+            {
+                _arena.gameEnd();
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Warning, "Ending game with Marines winning" + e);
+            }
 		}
 
         /// <summary>
@@ -221,10 +194,6 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Player.ChatCommand")]
         public bool playerChatCommand(Player player, Player recipient, string command, string payload)
         {
-            if (command.ToLower() == "test")
-            {
-                player.sendMessage(0, "Test");
-            }
             return true;
         }
 
@@ -233,7 +202,11 @@ namespace InfServer.Script.GameType_CTF
 		/// </summary>
 		[Scripts.Event("Player.Enter")]
 		public void playerEnter(Player player)
-		{
+		{        //Destroy all vehicles belonging to him
+            foreach (Vehicle v in _arena.Vehicles)
+                if (v._type.Type == VehInfo.Types.Computer && v._creator == player)
+                    //Destroy it!
+                    v.destroy(true);
 		}
 
 		/// <summary>
@@ -255,13 +228,27 @@ namespace InfServer.Script.GameType_CTF
 
             //Scramble the teams!
             ScriptHelpers.scrambleTeams(_arena, 2, true);
-            
+            _arena._saveStats = true;
 			//Spawn our flags!
 			_arena.flagSpawn();
 
 			//Let everyone know
 			_arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
-            _gameWon = false;
+            _arena.setTicker(1, 1, _config.deathMatch.timer * 100, "Time Left: ", delegate()
+            {	//Trigger game end.
+                //Skrall have won
+                _arena.sendArenaMessage("Skrall have resumed supreme control of the station, the marines have become nothing more than bones and bits.", 21);
+
+                try
+                {
+                    _arena.gameEnd();
+                }
+                catch (Exception e)
+                {
+                    Log.write(TLog.Warning, "_arena.gameEnd() " + e);
+                }
+            }
+            );
 			return true;
 		}
 
@@ -276,7 +263,6 @@ namespace InfServer.Script.GameType_CTF
 			_tickVictoryStart = 0;
 			_tickNextVictoryNotice = 0;
 			_victoryTeam = null;
-            _gameWon = false;
 
 			return true;
 		}
@@ -304,8 +290,6 @@ namespace InfServer.Script.GameType_CTF
 			_tickVictoryStart = 0;
 			_tickNextVictoryNotice = 0;
 
-            _gameWon = false;
-
 			_victoryTeam = null;
 
 			return true;
@@ -319,7 +303,7 @@ namespace InfServer.Script.GameType_CTF
 		{	
 			return true;
 		}
-/* Do not use: breaks ?drop
+
 		/// <summary>
 		/// Triggered when a player requests to drop an item
 		/// </summary>
@@ -328,7 +312,7 @@ namespace InfServer.Script.GameType_CTF
 		{
 			return true;
 		}
-*/
+
 		/// <summary>
 		/// Handles a player's portal request
 		/// </summary>
@@ -440,7 +424,42 @@ namespace InfServer.Script.GameType_CTF
 		[Scripts.Event("Player.Death")]
 		public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
 		{
-			return true;
+            //Respawn flag where it was initially spawn if a marine died carrying one
+            try
+            {
+                _arena.flagResetPlayer(victim);
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Exception, "exception in flagResetPlayer(victim):: '{0}'", e);
+            }
+            //Was it a computer kill?
+            if (killType == Helpers.KillType.Computer)
+            {
+                //Let's find the vehicle!
+                Computer cvehicle = victim._arena.Vehicles.FirstOrDefault(v => v._id == update.killerPlayerID) as Computer;
+                Player vehKiller = cvehicle._creator;
+                //Does it exist?
+                if (cvehicle != null && vehKiller != null)
+                {
+                    //We'll take it from here...
+                    update.type = Helpers.KillType.Player;
+                    update.killerPlayerID = vehKiller._id;
+
+                    //Don't reward for teamkills
+                    if (vehKiller._team == victim._team)
+                        Logic_Assets.RunEvent(vehKiller, _arena._server._zoneConfig.EventInfo.killedTeam);
+                    else
+                        Logic_Assets.RunEvent(vehKiller, _arena._server._zoneConfig.EventInfo.killedEnemy);
+
+                    //Increase stats and notify arena of the kill!
+                    vehKiller.Kills++;
+                    victim.Deaths++;
+                    Logic_Rewards.calculatePlayerKillRewards(victim, vehKiller, update);
+                    return false;
+                }
+            }        
+            return true;
 		}
 
 		/// <summary>

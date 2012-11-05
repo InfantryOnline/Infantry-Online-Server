@@ -50,7 +50,8 @@ namespace InfServer.Game
 		public Player newPlayer(Client<Player> c, string alias)
 		{
 			using (LogAssume.Assume(_logger))
-			{	//Is there any space?
+			{
+                //Is there any space?
 				if (_players.Count == maxPlayers)
 				{
 					Log.write(TLog.Warning, "Server full.");
@@ -105,6 +106,23 @@ namespace InfServer.Game
 		/// </summary>
 		public void lostPlayer(Player player)
 		{
+            // find users throttling logins
+            // problem: users cannot leave zone and join the same one for 10 seconds
+            // add: message informing user to wait so their client won't hang
+            try
+            {
+                if (_connections != null && player._ipAddress != null)
+                {
+                    if (_connections.ContainsKey((IPAddress)player._ipAddress))
+                    {
+                        _connections.Remove(player._ipAddress);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Error, e.ToString());
+            }
 			using (LogAssume.Assume(_logger))
 			{	//Is it present in our list?
 				if (!_players.ContainsKey(player._id))

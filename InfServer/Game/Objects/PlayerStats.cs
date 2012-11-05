@@ -683,7 +683,7 @@ namespace InfServer.Game
             //Retrieve his stats
 			_stats = _suspStats;
 			_statsSession = new Data.PlayerStats();
-			_statsGame = null;
+            _statsGame = _statsLastGame;
 			_statsLastGame = null;
 
 			_inventory = _suspInventory;

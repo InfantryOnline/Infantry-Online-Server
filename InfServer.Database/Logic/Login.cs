@@ -125,7 +125,7 @@ namespace InfServer.Logic
 				if (account == null)
 				{	//They're trying to trick us, jim!
 					plog.bSuccess = false;
-					plog.loginMessage = "Your session id has expired. Please relogin.";
+					plog.loginMessage = "Your session id has expired. Please re-login.";
 
 					zone._client.send(plog);
 					return;
@@ -137,7 +137,7 @@ namespace InfServer.Logic
                 if (banned.type == Logic_Bans.Ban.BanType.GlobalBan)
                 {   //We don't respond to globally banned player requests
                     plog.bSuccess = false;
-                    plog.loginMessage = "Unknown login failure.";
+                    plog.loginMessage = "Banned.";
 
                     Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
@@ -189,7 +189,8 @@ namespace InfServer.Logic
 				plog.permission = (PlayerPermission)account.permission;
 
 				//Attempt to find the related alias
-				Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
+                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
+                //Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
 				Data.DB.player player = null;
 				Data.DB.stats stats = null;
 
@@ -256,7 +257,8 @@ namespace InfServer.Logic
 
 				if (player == null)
 				{	//We need to create another!
-					player = new InfServer.Data.DB.player();
+                    Log.write(TLog.Warning, "Player doesn't exist, creating another structure");
+                    player = new InfServer.Data.DB.player();
 
 					player.squad1 = null;
 					player.zone = zone._zone.id;
@@ -352,7 +354,8 @@ namespace InfServer.Logic
 
             using (InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
+                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
+//                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
                 TimeSpan ts = DateTime.Now - alias.lastAccess;
                 Int64 minutes = ts.Minutes;
                 alias.timeplayed += minutes;

@@ -83,14 +83,16 @@ namespace InfServer.Game
 		public List<Player> _spectators;		//The players that are currently spectating us
         public List<string> _summonIgnore;      //The players that are currently summon-ignored.
 
+        public int _gotBallID = 999;				    //The Id of the ball
+
 		public byte[] _bannerData;				//The data for our current banner
 		public int _bounty;						//Our current bounty
 
 		public Dictionary<int, InventoryItem> _inventory;	//Our current inventory
 		public Dictionary<int, SkillItem> _skills;	//Our current skill inventory
         public List<ItemInfo.UtilityItem> activeUtilities;	//Active Utilities
-        
 
+        public bool firstTimePlayer;
 		public bool _bDBLoaded;						//Has the player's statistics been loaded from the database?
 
 		//Suspended player state
@@ -1416,9 +1418,14 @@ namespace InfServer.Game
 			_statsGame = null;
 			_statsLastGame = null;
 
+            //Sets checker for a first time setup
+            //event. Changed to be called after the arena
+            //is set up first.
             if (runEvents)
+                firstTimePlayer = true;
+
                 //Execute the first time setup events
-                firstTimeEvents();
+//                firstTimeEvents();
 
 			//Consider him loaded
 			_bDBLoaded = true;

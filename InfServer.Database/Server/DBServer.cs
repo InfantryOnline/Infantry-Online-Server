@@ -51,6 +51,7 @@ namespace InfServer
 
         public void newPlayer(Zone.Player player)
         {
+         
             if (_players.ContainsValue(player))
             {
                 Log.write(TLog.Warning, "A player who is already logged in made an attempt at a secondary login.");
