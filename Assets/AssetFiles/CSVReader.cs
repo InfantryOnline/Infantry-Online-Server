@@ -50,7 +50,15 @@ namespace Assets
         /// <returns>The 32-bit integer within the string</returns>
         static public int GetInt(string value)
         {
-            return Int32.Parse(value.Trim());
+            try
+            {
+                return Int32.Parse(value.Trim());
+            }
+            catch
+            {
+                Console.WriteLine("Error in Int {0}", value);
+                return Int32.Parse(value.Trim());
+            }
         }
 
         /// <summary>
@@ -60,7 +68,7 @@ namespace Assets
         /// <returns>The single-precision float within the string</returns>
         static public float GetFloat(string value)
         {
-            return float.Parse(value.Trim());
+                return float.Parse(value.Trim());
         }
 
         /// <summary>

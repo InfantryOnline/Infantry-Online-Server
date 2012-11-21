@@ -22,7 +22,7 @@ namespace InfServer.Scripting
 		public string m_namespace;			//The namespace to replace with Bot
 
 		public string m_preparedFile;		//The full path to the prepared (modified) source code file
-		public bool m_bTemped;			//Was the source transferred to a temporary file?
+		public bool m_bTemped;			    //Was the source transferred to a temporary file?
 
 		string m_code;						//The imported source code
 

@@ -23,7 +23,7 @@ namespace InfServer.Logic
 				return;
 
 			//Write a dump of it to disk
-			Log.write("Packet #{0}", pkt._type);
+			Log.write("Unknown Packet #{0}", pkt._type);
 			Log.write(pkt.DataDump);
 		}
 

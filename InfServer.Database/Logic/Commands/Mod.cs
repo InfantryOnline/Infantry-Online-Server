@@ -19,7 +19,6 @@ namespace InfServer.Logic
             {
                 Data.DB.alias dbplayer = db.alias.First(p => p.name.Equals(pkt.alias));
                 //Data.DB.alias dbplayer = db.alias.First(p => p.name == pkt.alias);
-                //Add here to check for an existing ban on the person
            
                 //Create the new ban
                 Data.DB.ban newBan = new Data.DB.ban();

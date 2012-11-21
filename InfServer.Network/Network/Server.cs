@@ -244,7 +244,7 @@ namespace InfServer.Network
 						else
 						{	//Transplant the data into a packet class
 							packet = _factory.createPacket(client, typeID, _buffer, offset, read);
-							packet._client = client;
+							packet._client = client; //Error's here
     						packet._handler = this;
 
 							packet.Deserialize();

@@ -307,17 +307,24 @@ namespace InfServer.Game
 
 			//Add up the stats for each player
 			foreach (Player player in ActivePlayers)
-			{	
-				if (bCurrent)
-				{
-					kills = kills + player.StatsCurrentGame.kills;
-					deaths = deaths + player.StatsCurrentGame.deaths;
-				}
-				else
-				{
-					kills = kills + player.StatsLastGame.kills;
-					deaths = deaths + player.StatsLastGame.deaths;
-				}
+			{
+                try
+                {
+                    if (bCurrent)
+                    {
+                        kills = kills + player.StatsCurrentGame.kills;
+                        deaths = deaths + player.StatsCurrentGame.deaths;
+                    }
+                    else
+                    {
+                        kills = kills + player.StatsLastGame.kills;
+                        deaths = deaths + player.StatsLastGame.deaths;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.write(TLog.Warning, "precalculatestats" + e);
+                }
 			}
 
 			_calculatedKills = kills;

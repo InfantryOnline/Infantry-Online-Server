@@ -23,9 +23,7 @@ namespace InfServer.Script.GameType_KOTH
         // Member Variables
         ///////////////////////////////////////////////////
         private Arena _arena;					//Pointer to our arena class
-        private CfgInfo _config;				//The zone config
-
-        private int _jackpot;					//The game's jackpot so far
+        private CfgInfo _config;				//The zone config       
 
         private Team _victoryTeam;				//The team currently winning!
         private int _tickGameLastTickerUpdate;
@@ -121,19 +119,20 @@ namespace InfServer.Script.GameType_KOTH
             
             if (_tickGameStart > 0)
             {
-                Log.write(TLog.Warning, "{0}", _playerCrownStatus.Count());
+                //Log.write(TLog.Warning, "{0}", _playerCrownStatus.Count());
                
                 foreach (var p in _playerCrownStatus)
                 {
                  //   Log.write(TLog.Warning, "'{0}', '{1}'", p.Value.expireTime, now); // making sure expire time is synced
                     
 
-                    if (now > p.Value.expireTime)
+                    if (now > p.Value.expireTime && p.Value.crown)
                     {
                         p.Value.crown = false;
-                        List<Player> noCrowns = _noCrowns;
-                        Log.write(TLog.Warning, "{0}, {1}", crowns.Count(), crowns.Count);
-                        Helpers.Player_Crowns(_arena, true, crowns);
+                        //List<Player> noCrowns = _noCrowns;
+                        Log.write("removed crown");
+                        //_activeCrowns.Remove(p.Key); 
+                        Helpers.Player_Crowns(_arena, true, _activeCrowns);
                         Helpers.Player_Crowns(_arena, false, _noCrowns);
                     }
                 }                
@@ -152,7 +151,7 @@ namespace InfServer.Script.GameType_KOTH
             }
             return true;
         }
-
+        
         /// <summary>
         /// Called when the specified team have won
         /// </summary>
@@ -185,7 +184,7 @@ namespace InfServer.Script.GameType_KOTH
         {
             List<Player> crowns = _activeCrowns;
             List<Player> noCrowns = _noCrowns;
-            Log.write(TLog.Warning, "{0}, {1}", crowns.Count(), crowns.Count);
+            Log.write("updating crowns");
             if (crowns.Count > 0)
             {
                 Helpers.Player_Crowns(_arena, true, crowns);
@@ -198,10 +197,14 @@ namespace InfServer.Script.GameType_KOTH
             v.crown = true;
             v.crownDeaths = 0;
             v.crownKills = 0;
+            Log.write("giving crown");
+            _activeCrowns.Add(p);
+            Helpers.Player_Crowns(_arena, true, _activeCrowns);
             updateCrownTime(p);
         }
         public void updateCrownTime(Player p)
         {   //Update the counter for player??
+            Log.write("updating crown time");
             _playerCrownStatus[p].expireTime = Environment.TickCount + (_config.king.expireTime * 1000);            
         }
 
@@ -214,13 +217,14 @@ namespace InfServer.Script.GameType_KOTH
         [Scripts.Event("Player.Enter")]
         public void playerEnter(Player player)
         {
+            Log.write("player entered");
             if (_tickGameStart != 0)
             {   //Send them the crowns..
                 _playerCrownStatus[player] = new PlayerCrownStatus(false);
                 Helpers.Player_Crowns(_arena, true, _activeCrowns, player);
             }
         }
-
+        
         /// <summary>
         /// Called when a player leaves the game
         /// </summary>
@@ -276,9 +280,8 @@ namespace InfServer.Script.GameType_KOTH
                     _arena.ActiveTeams.ElementAt(1)._name,
                     _arena.ActiveTeams.ElementAt(1)._calculatedKills);
                 _arena.setTicker(1, 0, 0, format);
+                List<Player> crowns = _activeCrowns;
             }
-
-
         }
 
         /// <summary>
@@ -352,8 +355,16 @@ namespace InfServer.Script.GameType_KOTH
         [Scripts.Event("Player.LeaveGame")]
         public bool playerLeaveGame(Player player)
         {
-            _playerCrownStatus[player].crown = false;
-            updateCrowns();
+            try
+            {
+                if (_playerCrownStatus.ContainsKey(player))
+                    _playerCrownStatus[player].crown = false;
+
+                updateCrowns();
+            }
+            catch
+            {
+            }
             return true;
         }
 
@@ -382,9 +393,12 @@ namespace InfServer.Script.GameType_KOTH
                 _playerCrownStatus[victim].crownDeaths++;
 
                 if (_playerCrownStatus[victim].crownDeaths >= _config.king.deathCount)
-                   //Take it away now
+                {
+                    //Take it away now
                     _playerCrownStatus[victim].crown = false;
-                
+                    _noCrowns.Remove(victim);
+                    Helpers.Player_Crowns(_arena, false, _noCrowns);
+                }
                 if (!_playerCrownStatus[killer].crown)                
                     _playerCrownStatus[killer].crownKills++;
             }
@@ -395,10 +409,13 @@ namespace InfServer.Script.GameType_KOTH
             else if (_config.king.crownRecoverKills != 0)
             {   //Should they get a crown?
                 if (_playerCrownStatus[killer].crownKills >= _config.king.crownRecoverKills)
-                    giveCrown(killer);
+                {
+                    Log.write("gave crown to killer");
+                    giveCrown(killer);                    
+                }   
             }
-
-            updateCrowns();
+            //
+            //updateCrowns();
             return true;
         }
         #endregion

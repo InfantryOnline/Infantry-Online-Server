@@ -66,14 +66,17 @@ namespace InfServer.Protocol
 			Write(experience);	
 			Write(experienceRemaining);	
 			Write((short)0);			//Unknown
-			Write((short)skillCount);
+			Write((short)skillCount*2);
 
             foreach (Player.SkillItem skill in skills)
+            {
                 if (skill.skill.SkillId >= 0)
                     Write((short)skill.skill.SkillId);
                 else
+                {
                     Write((short)skill.skill.SkillId * 1000 - skill.quantity);
-
+                }                
+            }
 			Skip((Player.SkillItem.MaxSkills - skillCount) * 8);
 
 			//Skip the rest

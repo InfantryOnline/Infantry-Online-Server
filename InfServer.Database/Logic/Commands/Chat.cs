@@ -244,62 +244,64 @@ namespace InfServer.Logic
 
                     case CS_Query<Zone>.QueryType.transferAlias:
                         //Sanity checks
-                        if (pkt.payload == "")
-                            return;
-
-                        if (!pkt.payload.Contains(':'))
+                        if (pkt.payload == "" || !pkt.payload.Contains(':'))
                         {
                             zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                             return;
                         }
 
-                        string fromPlayerAlias = pkt.payload.Split(':').ElementAt(0);
-                        string toPlayerAlias = pkt.payload.Split(':').ElementAt(1);
+                        string toPlayerAlias = pkt.payload.Split(':').ElementAt(0);
+                        string PlayerAlias = pkt.payload.Split(':').ElementAt(1);
 
-                        //The pm'd player
-                        Data.DB.alias fromAlias = db.alias.FirstOrDefault(a => a.name.Equals(fromPlayerAlias));
-                        Data.DB.player fromPlayer = db.players.FirstOrDefault(p => p.alias1.Equals(fromAlias)
-                            && p.zone1 == zone._zone);
-                        if (fromPlayer == null)
-                        {
-                            //No such player
-                            zone._server.sendMessage(zone, pkt.sender, "No player found by that alias.");
-                            return;
-                        }
-
-                        //The targer player
+                        //The pm'd player or aliasTo
                         Data.DB.alias toAlias = db.alias.FirstOrDefault(a => a.name.Equals(toPlayerAlias));
-                        Data.DB.player toPlayer = db.players.FirstOrDefault(p => p.alias1.Equals(fromPlayer)
-                            && p.zone == fromPlayer.zone);
-                        if (toPlayer == null)
+                        Data.DB.account toAccount = db.alias.SingleOrDefault(a => a.name.Equals(toPlayerAlias)).account1;
+
+                        //The targer player or the alias in question
+                        Data.DB.alias aliasTo = db.alias.FirstOrDefault(a => a.name.Equals(PlayerAlias));
+                        //Data.DB.account aliasTo = db.alias.SingleOrDefault(a => a.name.Equals(PlayerAlias)).account1;
+
+                        if (toAlias == null)
                         {
-                            //No such player
-                            zone._server.sendMessage(zone, pkt.sender, "No player found by that alias.");
+                            zone._server.sendMessage(zone, pkt.sender, "There was a problem trying to find the player's alias.");
                             return;
                         }
 
-                        //Set up structures
-                        Data.DB.alias tempAliasFrom = new Data.DB.alias();
+                        if (toAccount == null)
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, "There was a problem trying to find the player's account.");
+                            return;
+                        }
+
+                        //No such alias
+                        if (aliasTo == null)
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, "That alias is available to create.");
+                            return;
+                        }
+
+                        //Make structures before removing the alias
                         Data.DB.alias tempAliasTo = new Data.DB.alias();
 
-                        tempAliasTo.name = fromPlayer.alias1.name;
-                        tempAliasTo.creation = fromPlayer.alias1.creation;
-                        tempAliasTo.account = toPlayer.alias1.account;
-                        tempAliasTo.IPAddress = toPlayer.alias1.IPAddress;
+                     /*   tempAliasTo.account1 = toAlias.account1;
+                        tempAliasTo.name = aliasTo.name;
+                        tempAliasTo.creation = aliasTo.creation;
+                        tempAliasTo.IPAddress = toAlias.IPAddress;
                         tempAliasTo.lastAccess = DateTime.Now;
-                        tempAliasTo.timeplayed = fromPlayer.alias1.timeplayed;
+                        tempAliasTo.timeplayed = aliasTo.timeplayed;    */
 
-                        tempAliasFrom.name = toPlayer.alias1.name;
-                        tempAliasFrom.creation = toPlayer.alias1.creation;
-                        tempAliasFrom.account1 = fromPlayer.alias1.account1;
-                        tempAliasFrom.IPAddress = fromPlayer.alias1.IPAddress;
-                        tempAliasFrom.lastAccess = DateTime.Now;
-                        tempAliasFrom.timeplayed = toPlayer.alias1.timeplayed;
+                        //Change each entry with new ID
+                        foreach (Data.DB.player p in db.players.Where(p => p.alias == aliasTo.id))                        
+                            p.alias = toAlias.id;                        
+                        //Map new account ID to alias
+                        aliasTo.account = toAlias.account;
 
-                        //Now transfer
-                        toPlayer.alias1 = tempAliasFrom;
-                        fromPlayer.alias1 = tempAliasTo;
+                        Log.write(TLog.Warning, String.Format("{0},{1},{2}", tempAliasTo.account1, tempAliasTo.name, tempAliasTo.IPAddress));
+                        //Delete the person's alias
+                       // db.alias.DeleteOnSubmit(aliasTo);   
 
+                        //Save the new info
+                     //   db.alias.InsertOnSubmit(tempAliasTo);
                         db.SubmitChanges();
                         zone._server.sendMessage(zone, pkt.sender, "Alias transfer is complete.");
                         break;

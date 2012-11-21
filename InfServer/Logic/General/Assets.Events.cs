@@ -44,7 +44,7 @@ namespace InfServer.Logic
 		/// </summary>		
 		static public void RunEvent(Player player, string eventString, EventState _state)
 		{	//If it's nothing, don't bother parsing
-			if (eventString == "")
+			if (eventString == "" || eventString == null)
 				return;
 
 			//Use everything in lower case
@@ -72,15 +72,12 @@ namespace InfServer.Logic
                     if (player != null)
                     {
                         try
-                        {   //Kon, this is the fix below but I want to fix aliases first
-//                            Random random = new Random();
-//                            chosenstring = events[random.Next(1, events.Length - 1)];
-                            chosenstring = events[player._arena._rand.Next(1, events.Length - 1)];
-                            Log.write(TLog.Warning, "First time events called in arena {0} {1}", player._arena._name, events);
+                        {   //Note: if there is a missing ; symbol, this will error
+                            chosenstring = events[player._arena._rand.Next(0, events.Length - 1)];
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
-                            Log.write(TLog.Error,"Player does not exist - Name: {0}, Alias: {1} " +e,player,player._alias );
+                            Log.write(TLog.Error,"String error in cfg [Event], possibly a missing ;");
                         }
                     }
                     int _eqIdx = chosenstring.IndexOf('=');
@@ -417,7 +414,8 @@ namespace InfServer.Logic
 				//Triggers the team event string
 				case "teamevent":
 					//Execute!
-					RunEvent(player, player._team._info.eventString, state);
+                    if (param != "")
+					    RunEvent(player, player._team._info.eventString, state);
 					break;
 
                 //Run the event for the terrain

@@ -97,10 +97,13 @@ namespace InfServer.Logic
 				}
 			}
 
-			if (valid.Count == 1)
-				Warp(flags, player, valid[0], invulnTime);
-			else
-				Warp(flags, player, valid[player._arena._rand.Next(0, valid.Count - 1)], invulnTime);
+            if (valid.Count == 1)
+                Warp(flags, player, valid[0], invulnTime);
+            else
+            {
+                Warp(flags, player, valid[player._arena._rand.Next(0, valid.Count - 1)], invulnTime);
+                Log.write(TLog.Warning, String.Format("Warping to: {0}", valid.ToList()));
+            }
 		}
 
 		/// <summary>

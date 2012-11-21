@@ -86,6 +86,7 @@ namespace InfServer.Game.Commands.Mod
         static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
             SC_SecurityCheck cs = new SC_SecurityCheck();
+            //SC_Skills cs = new SC_Skills();
             recipient._client.send(cs);
 		}
 
@@ -94,7 +95,8 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void showGif(Player player, Player recipient, string payload, int bong)
 		{	//Download the gif!
-			WebClient client = new WebClient();
+			
+            WebClient client = new WebClient();
 			Stream file = client.OpenRead(payload);
 			BinaryReader br = new BinaryReader(file);
 			SC_ShowGif gif = new SC_ShowGif();
@@ -104,6 +106,7 @@ namespace InfServer.Game.Commands.Mod
 			gif.website = payload;
 
 			recipient._client.sendReliable(gif, 1);
+             
 		}
 
         /// <summary>

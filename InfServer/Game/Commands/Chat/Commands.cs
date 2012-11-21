@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 using InfServer.Protocol;
 using InfServer.Game.Commands;
@@ -490,12 +491,18 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            //Pass the payload off to the database
-            CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-            query.queryType = CS_Query<Data.Database>.QueryType.emailupdate;
-            query.sender = player._alias;
-            query.payload = payload;
-            player._server._db.send(query);
+            Regex ematch = new Regex(@"^[\w!#$%&'*+\-/=?\^_`{|}~]+(\.[\w!#$%&'*+\-/=?\^_`{|}~]+)*" + "@" + @"((([\-\w]+\.)+[a-zA-Z]{2,4})|(([0-9]{1,3}\.){3}[0-9]{1,3}))$");
+            if (ematch.IsMatch(payload) && !payload.EndsWith("."))
+            {
+                //Pass the payload off to the database
+                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+                query.queryType = CS_Query<Data.Database>.QueryType.emailupdate;
+                query.sender = player._alias;
+                query.payload = payload;
+                player._server._db.send(query);
+            }
+            else
+                player.sendMessage(-1, "Invalid email, try again.");
         }
         #endregion
 
@@ -602,6 +609,50 @@ namespace InfServer.Game.Commands.Chat
             online.sender = player._alias;
 
             player._server._db.send(online);
+        }
+        #endregion
+
+        #region poll
+        ///<summary>
+        /// Starts an arena poll for any question asked
+        ///</summary>
+        public static void poll(Player player, Player recipient, string payload, int bong)
+        {
+            //Check for a running poll
+            if (player._arena._poll != null && player._arena._poll.start)
+            {
+                if (player._arena._poll._alias != null && player._arena._poll._alias.ContainsKey(player._alias.ToString()))
+                {
+                    player.sendMessage(-1, "You have already voted.");
+                    return;
+                }
+
+                player._arena._poll._alias = new Dictionary<String, Arena.PollSettings.PlayerAlias>();
+                Arena.PollSettings.PlayerAlias temp = new Arena.PollSettings.PlayerAlias();
+                if (payload.ToLower() == "yes" || payload.ToLower() == "y")
+                {
+                    player._arena._poll.yes++;
+                    player._arena._poll._alias.Add(player._alias.ToString(), temp);
+                    player.sendMessage(0, "Your vote has been counted.");
+                    return;
+                }
+
+                else if (payload.ToLower() == "no" || payload.ToLower() == "n")
+                {
+                    player._arena._poll.no++;
+                    player._arena._poll._alias.Add(player._alias.ToString(), temp);
+                    player.sendMessage(0, "Your vote has been counted.");
+                    return;
+                }
+
+                else
+                {
+                    player.sendMessage(-1, "To answer type: ?poll y/n");
+                    return;
+                }
+            }
+
+            player.sendMessage(-1, "Currently there is no poll topic started.");
         }
         #endregion
 
@@ -941,7 +992,6 @@ namespace InfServer.Game.Commands.Chat
                             //Public team or password for private teams match!
                             if (!newteam.IsFull)
                             {
-                                //Sadly the team is full :(
                                 newteam.addPlayer(player, true);
                                 return;
                             }
@@ -1002,9 +1052,9 @@ namespace InfServer.Game.Commands.Chat
                     return;
                 }
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException e)
             {
-                Log.write(TLog.Warning, "Error thrown while switching teams. Sender: '" + player._alias + "' payload: '" + payload + "'");
+                Log.write(TLog.Warning, "Error thrown while switching teams. Sender: '" + player._alias + "' payload: '" + payload + "'" + e);
             }
         }
         #endregion
@@ -1029,10 +1079,16 @@ namespace InfServer.Game.Commands.Chat
             }
 
             //Does he own it?
-            if (player._alias != player._team._owner._alias)
+            try
             {
-                player.sendMessage(-1, "You don't own this team");
-                return;
+                if (player._alias != player._team._owner._alias)
+                {
+                    player.sendMessage(-1, "You don't own this team");
+                    return;
+                }
+            }
+            catch (Exception)
+            {
             }
 
 
@@ -1052,12 +1108,15 @@ namespace InfServer.Game.Commands.Chat
             }
 
             //Pick a team to put him on
-            Team pick = player._arena.pickAppropriateTeam(target);
-            if (pick != null)
+            //Team pick = player._arena.pickAppropriateTeam(target);
+           // if (pick != null)
+           // {
                 //Great, use it
-                pick.addPlayer(target);
-            else
-                target.sendMessage(-1, "Unable to pick a team.");
+           //     pick.addPlayer(target);
+                target.spec();
+          //  }
+          //  else
+          //      target.sendMessage(-1, "Unable to pick a team.");
         }
         #endregion
 
@@ -1234,6 +1293,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(online, "online",
                 "Lists zones and their playercount",
                  "?online");
+
+            yield return new HandlerDescriptor(poll, "poll",
+                "Answers a poll topic",
+                "?poll yes/no");
 
             yield return new HandlerDescriptor(spec, "spec",
                 "Displays all players which are spectating you or another player",

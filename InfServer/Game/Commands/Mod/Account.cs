@@ -22,7 +22,7 @@ namespace InfServer.Game.Commands.Mod
         {   //Sanity checks
             if (player._server.IsStandalone)
                 return;
-
+            
             if (payload == "" && recipient == null)
             {
                 player.sendMessage(-1, "Recipient/payload can not be empty. (*whois alias or *whois ipaddress or ::*whois)");
@@ -38,6 +38,11 @@ namespace InfServer.Game.Commands.Mod
                 query.payload = recipient._alias;
             else if (payload.Length > 0)
                 query.payload = payload;
+            else
+            {
+                player.sendMessage(-1, "Syntax: *whois alias or *whois ipaddress or ::*whois");
+                return;
+            }
 
             //Send it!
             player._server._db.send(query);
@@ -47,56 +52,73 @@ namespace InfServer.Game.Commands.Mod
         /// Alias transfers between accounts
         /// </summary>
         public static void transferalias(Player player, Player recipient, string payload, int bong)
-        {   //Sanity checks
+        {   //Sanity checks  
             if (player._server.IsStandalone)
-                return;
-
-            Player target = player._arena.getPlayerByName(payload);
-            if (recipient == null || target == null)
             {
-                player.sendMessage(-1, "That character isn't here.");
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
             }
 
-            if (!recipient.IsSpectator || !target.IsSpectator)
+            if (payload == "")
             {
-                player.sendMessage(-1, "That character must be in spec.");
+                player.sendMessage(-1, "Syntax: either *transferalias aliasTo:alias OR :player:*transferalias aliastotransfer");
                 return;
             }
 
-            if (!payload.Contains(':'))
+            string alias = "";
+            //Are we pm'ing someone?
+            if (recipient == null)
             {
-                player.sendMessage(-1, "Syntax: *transferalias first alias:second alias");
-                return;
+                if (!payload.Contains(':'))
+                {
+                    player.sendMessage(-1, "Syntax: *transferalias aliasTo:alias");
+                    return;
+                }
+                alias = payload;
+            }
+            else
+            {
+                if (payload == "")
+                {
+                    player.sendMessage(-1, "Syntax: :player:*transferalias aliasToTransfer");
+                    return;
+                }
+                
+                //He's playing, force a dc
+                if (recipient._alias.Equals(payload))
+                {
+                    recipient.sendMessage(0, "You are being forced a dc to transfer the alias.");
+                    recipient.destroy();
+                }
+
+                alias = String.Format("{0}", recipient._alias + ":" + payload);
             }
 
-            recipient.sendMessage(0, "Transferring alias in progress, you will be forced to the zonelist to complete.");
-            target.sendMessage(0, "Transferring alias in progress, you will be forced to the zonelist to complete.");
-
-            recipient.destroy();
-            target.destroy();
-
-            //Transfer both aliases
+            //Let our query handle the rest
             CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-            query.queryType = CS_Query<Data.Database>.QueryType.getAccount;
+            query.queryType = CS_Query<Data.Database>.QueryType.transferAlias;
             query.sender = player._alias;
-            query.payload = payload.ToLower();
+            query.payload = alias;
+            //Send it!
+            player._server._db.send(query);
         }
+
 
         /// <summary>
         /// Deletes a characters alias
         /// </summary>
         static public void removealias(Player player, Player recipient, string payload, int bong)
-        { //Sanity checks
-            string alias = "33noone33";
-            string pID = "1"; //Junk Account
-            SqlConnection db;
+        {   //Sanity checks     
 
             if (player._server.IsStandalone)
             {
                 player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
             }
+
+            string alias = "33noone33";
+            string pID = "1"; //Junk Account
+            SqlConnection db;
 
             if (payload == "")
             {
@@ -106,7 +128,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
                 alias = recipient._alias.ToString();
-                recipient.sendMessage(0, "Forcing you to the zonelist to delete this alias.");
+                recipient.sendMessage(0, "Your alias is being deleted, please relog.");
                 recipient.destroy();
             }
             else
@@ -145,50 +167,6 @@ namespace InfServer.Game.Commands.Mod
 
             //Close connection with database
             db.Close();
-
-
-            /* delete this when you want to Mizzo
-            if (player._server.IsStandalone)
-            {
-                player.sendMessage(-1, "Server is in stand-alone mode.");
-                return;
-            }
-
-            if (payload == "")
-            {
-                if (recipient == null)
-                {
-                    player.sendMessage(-1, "That character isn't playing.");
-                    return;
-                }
-
-                //Assume we want to delete the current alias in use
-                if (!recipient.IsSpectator)
-                {
-                    player.sendMessage(-1, "That character must be in spectator mode.");
-                    return;
-                }
-                recipient.sendMessage(0, "You are being forced to the zonelist to delete this alias.");
-                recipient.destroy();
-
-                //Creates a new query packet.
-                //Deleting alias being currently used
-                //Alias deletion is done in the query and response is returned
-                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-                query.queryType = CS_Query<Data.Database>.QueryType.getAccount;
-                query.sender = player._alias;
-                query.payload = recipient._alias;
-            }
-            else
-            {
-                //Deleting a given alias from a person's account
-                //Create a new query packet with given alias
-                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-                query.queryType = CS_Query<Data.Database>.QueryType.getAccount;
-                query.sender = player._alias;
-                query.payload = payload;
-            }
-             * */
         }
 
         /// <summary>

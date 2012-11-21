@@ -81,10 +81,10 @@ namespace InfServer.Game
 		{	//Pass it to the script environment
 			base.playerEnter(player);
 
-            //Testing: for people that dc/rejoin an arena
+    /*        //Testing: for people that dc/rejoin an arena
             if (_bIsPublic && player._arena._saveStats)
                 player.restoreStats();
-            
+          */  
 			callsync("Player.Enter", false, player);
 		}
         #endregion
@@ -97,12 +97,30 @@ namespace InfServer.Game
 		{	//Pass it to the script environment
 			base.playerLeave(player);
 
-            //Testing: Saving stats for people that leave the arena
+         /*   //Testing: Saving stats for people that leave the arena
             if (_bIsPublic && player._arena._saveStats)
                 player.suspendStats();
-            
+        */    
 			callsync("Player.Leave", false, player);
 		}
+        #endregion
+
+        #region pollQuestion
+        ///<summary>
+        ///Called when a poll has ended
+        ///</summary>
+        public override void pollQuestion(Arena arena, bool gameEnd)
+        {
+            //Are we cancelling this poll?
+            if (gameEnd)
+                //This is not a poll cancel
+                arena.sendArenaMessage(String.Format("Poll Results Are In: Yes={0} No={1} - Thanks for playing!", arena._poll.yes, arena._poll.no));
+            //Reset the poll
+            arena._poll.start = false;
+            arena._poll.no = 0;
+            arena._poll.yes = 0;
+            arena._poll._alias = new Dictionary<String, Arena.PollSettings.PlayerAlias>();
+        }
         #endregion
 
         #region scrambleTeams
@@ -215,6 +233,10 @@ namespace InfServer.Game
 				if (!player.IsSpectator)
 					Logic_Assets.RunEvent(player, endGame);
 			}
+
+            //Reset any poll questions and display results
+            if (this._poll != null && this._poll.start)
+                pollQuestion(this, true);
 
 			//Pass it to the script environment
 			callsync("Game.End", false);
@@ -377,11 +399,41 @@ namespace InfServer.Game
 		/// Triggered when a player requests to pick up an item
 		/// </summary>
 		public override void handlePlayerPickup(Player from, CS_PlayerPickup update)
-		{	//Find the itemdrop in question
-  		lock(_items)
-  		{
-  			ItemDrop drop;
+		{
+          //Find the itemdrop in question
+  		  lock(_items)
+  		  {
+            //Is this a dropped vehicle?
+/*
+            VehInfo vehicle = _server._assets.getVehicleByID(from._baseVehicle._type.Id);
+            if (vehicle.DropItemId != 0)
+            {
+                ItemInfo item = _server._assets.getItemByID(vehicle.DropItemId);
+                if (item != null)
+                    itemSpawn(item, (ushort)vehicle.DropItemQuantity, from._state.positionX, from._state.positionY);
+            }
 
+            VehInfo vehID = _server._assets.getVehicleByID(from._baseVehicle._type.Id);
+            Vehicle dropped;
+            if ((dropped = _vehicles.getObjByID(vehID.Id)) == null)
+            {
+                Log.write(TLog.Warning, "Player {0} attempted to pick up an invalid vehicle.", from._alias);
+                return;
+            }
+
+            if (dropped._type.PickupItemId != 0)
+            {
+                //This vehicle becomes an item when it is picked up
+                ItemInfo item = _server._assets.getItemByID(dropped._type.PickupItemId);
+                if (item != null)
+                {
+                    from.inventoryModify(item, 1);
+                    dropped.destroy(true, true);
+                    return;
+                }
+            }
+*/
+            ItemDrop drop;
   			if (!_items.TryGetValue(update.itemID, out drop))
   				//Doesn't exist
   				return;
@@ -629,7 +681,7 @@ namespace InfServer.Game
 
                 //Does he have a high p-loss or ping?
                 Client.ConnectionStats pStats = from._client._stats;
-                if (pStats.C2SPacketLoss > 3.00f)
+                if (pStats.C2SPacketLoss > 3.50f)
                 {
                     from.sendMessage(-1, "Your packet loss is too high to enter.");
                     return;
@@ -652,8 +704,8 @@ namespace InfServer.Game
                 if (pick != null)
                 {
                     //Great, use it
-                    from._lastMovement = 0;
                     from.unspec(pick);
+                    from._lastMovement = 0;
                 }
                 else
                     from.sendMessage(-1, "Unable to pick a team.");
@@ -977,26 +1029,52 @@ namespace InfServer.Game
                 if (update.killerPlayerID < 5001 && killer == null)
                     Log.write(TLog.Warning, "Player {0} gave invalid player killer ID.", from);
             }
-
+/* Moved this into occupied vehicle
             //Was it us that died?
             if (update.killedID != from._id)
             {	//Was it the vehicle we were in?
-                if (update.killedID == from._occupiedVehicle._id)
-                {	//Yes! Fall out of the vehicle
-                    from._occupiedVehicle.kill(killer);
-                    from._occupiedVehicle.playerLeave(true);
-                    return;
+                
+                 [3:45:13 PM]* Exception whilst polling arena Public1:
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at InfServer.Game.ScriptArena.handlePlayerDeath(Player from, CS_VehicleDeath update) in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 984
+   at InfServer.Logic.Logic_PlayerUpdate.<>c__DisplayClass4.<Handle_CS_PlayerDeath>b__3(Arena arena) in C:\Infantry\infserver\trunk\InfServer\Logic\Packets\Update\Player.cs:line 44
+   at InfServer.Game.Arena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\Arena.cs:line 438
+   at InfServer.Game.ScriptArena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 67
+   at InfServer.Game.ZoneServer.handleArenas() in C:\Infantry\infserver\trunk\InfServer\Game\ZoneArenas.cs:line 77 
+                  
+                try
+                {
+                    if (update.killedID == from._occupiedVehicle._id)
+                    {	//Yes! Fall out of the vehicle
+                        from._occupiedVehicle.kill(killer);
+                        from._occupiedVehicle.playerLeave(true);
+                        return;
+                    }
                 }
-
+                catch (Exception e)
+                {
+                    Log.write(TLog.Warning, "handle player death" + e);
+                }
                 //We shouldn't be able to 'kill' anything else
                 Log.write(TLog.Warning, "Player {0} died with invalid killedID #{1}", from._alias, update.killedID);
                 return;
             }
-
+*/
             //Fall out of our vehicle and die!
             if (from._occupiedVehicle != null)
             {
-                from._occupiedVehicle._tickDead = Environment.TickCount;
+                //Was it us that died?
+                if (update.killedID != from._id)
+                {
+                    //Was it a vehicle we were in?
+                    if (update.killedID == from._occupiedVehicle._id)
+                    {
+                        //Yes, fall out of the vehicle
+                        from._occupiedVehicle.kill(killer);
+                    }
+                }
+                else
+                    from._occupiedVehicle._tickDead = Environment.TickCount;
                 from._occupiedVehicle.playerLeave(true);
             }
 
@@ -1250,6 +1328,10 @@ namespace InfServer.Game
 					if (!player.ActiveVehicle._type.IsWarpable)
 						return;
 
+                    //Are we dead?
+                    if (player.IsDead)
+                        return;
+
 					//Forward to our script
 					if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
 						return;
@@ -1347,7 +1429,7 @@ namespace InfServer.Game
                         //Is the target player ignoring this player's summons?
                         if (target._summonIgnore.Contains(player._alias) || target._summonIgnore.Contains("*"))
                         {
-                            player.sendMessage(-1, "The specified player is ignoring summons");
+                            player.sendMessage(-1, "The specified player is ignoring summons.");
                             return;
                         }
 
@@ -1420,7 +1502,7 @@ namespace InfServer.Game
 					        {
 						        //Is the player dead?
 						        if (!p.IsDead)
-						        p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
+						            p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
 					        }
 					    }					    
 				    }
@@ -1474,10 +1556,36 @@ namespace InfServer.Game
 
 
                 //Holy fuck this is so much shorter!
-//                playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID && 
-//                    v._creator._alias == player._alias).Count();
-                playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID &&
-                    v._creator._alias.Equals(player._alias)).Count();
+                /* get this using commented lines below, checking if same for previously used line
+                 * they both do the same thing?
+                 * 
+                 * [3:49:10 PM]* Exception whilst polling arena Public1:
+System.ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection.
+Parameter name: index
+   at System.ThrowHelper.ThrowArgumentOutOfRangeException()
+   at System.Collections.Generic.List`1.get_Item(Int32 index)
+   at InfServer.Game.Player.skillModify(Boolean bSyncState, SkillInfo skill, Int32 adjust) in C:\Infantry\infserver\trunk\InfServer\Game\Objects\Player.cs:line 548
+   at InfServer.Game.Player.skillModify(SkillInfo skill, Int32 adjust) in C:\Infantry\infserver\trunk\InfServer\Game\Objects\Player.cs:line 468
+   at InfServer.Game.ScriptArena.handlePlayerShopSkill(Player from, SkillInfo skill) in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 1210
+   at InfServer.Logic.Logic_Game.<>c__DisplayClass1f.<Handle_CS_ShopSkill>b__1e(Arena arena) in C:\Infantry\infserver\trunk\InfServer\Logic\Packets\Update\Game.cs:line 338
+   at InfServer.Game.Arena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\Arena.cs:line 438
+   at InfServer.Game.ScriptArena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 67
+   at InfServer.Game.ZoneServer.handleArenas() in C:\Infantry\infserver\trunk\InfServer\Game\ZoneArenas.cs:line 77
+[3:49:12 PM]* Exception whilst polling arena Public1:
+                 */
+                try
+                {
+                    //It is not items, has to be the vehicle list or type
+                    //Note: In ca High Wall is causing this error
+                    playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID &&
+                        v._creator._alias == player._alias).Count();
+                }
+                catch (Exception e)
+                {
+                    Log.write(TLog.Warning, "--some error? By player " + player._alias + " " + e);
+                }
+// trying something   playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID &&
+//                    v._creator._alias.Equals(player._alias)).Count();
 
                 //Continue long boring non-linq stuff... zzzzz
 

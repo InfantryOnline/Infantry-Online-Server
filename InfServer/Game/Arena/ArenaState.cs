@@ -191,7 +191,20 @@ namespace InfServer.Game
 
 			//Make sure the player is aware of every player in the arena
 			List<Player> audience = Players.ToList();
-			Helpers.Object_Players(player, audience);
+
+            //Check first for stealthed mods
+            //Note: this is for any other players joining while there is a stealthed mod
+            foreach (Player p in audience)
+            {
+                //Check their levels with the players level
+                if (p != player)
+                {
+                    if (!p.IsStealth)
+                        Helpers.Object_Players(player, p);
+                    if (p != player && p.IsStealth && player.PermissionLevel >= p.PermissionLevel)
+                        Helpers.Object_Players(player, p);
+                }
+            }
 
 			//Load the arena's item state  
 			Helpers.Object_Items(player, _items.Values);         
@@ -217,9 +230,18 @@ namespace InfServer.Game
 			Helpers.Player_StateInit(player,
 				delegate()
 				{
-                    //TODO: Add stealthing/cloaking here for mods
-                    //And make sure everyone is aware of him
-					Helpers.Object_Players(audience, player);
+                    //Check for stealthing/cloaking mods first
+                    //Note: this is for the stealthed person entering
+                    if (!player.IsStealth)
+                        //Make sure everyone is aware of him
+                        Helpers.Object_Players(audience, player);
+                    else
+                    { //Check their level vs people in the room
+                        foreach (Player person in audience)
+                            //Their level is the same or greater, allow them to see him/her
+                            if (person != player && person.PermissionLevel >= player.PermissionLevel)
+                                Helpers.Object_Players(person, player);
+                    }
 
 					//Consider him loaded!
 					player.spec();
@@ -288,7 +310,14 @@ namespace InfServer.Game
 				close();
 			else
 				//Notify everyone else of his departure
-				Helpers.Object_PlayerLeave(Players, player);
+                if (!player.IsStealth)
+                    Helpers.Object_PlayerLeave(Players, player);
+                else
+                {
+                    foreach (Player person in Players)
+                        if (person.PermissionLevel >= player.PermissionLevel)
+                            Helpers.Object_PlayerLeave(person, player);
+                }
 		}
 
 		/// <summary>

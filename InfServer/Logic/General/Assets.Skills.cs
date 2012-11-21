@@ -51,7 +51,6 @@ namespace InfServer.Logic
 
 				String prefix = m.Groups[1].Value;
 				int numVal = int.Parse(m.Groups[2].Value);
-
 				if (prefix == "%")
 				{ // ClassId
 					val = (classId == numVal) ? true : false;
@@ -68,11 +67,12 @@ namespace InfServer.Logic
                 { // Attributes
                     //Convert our values..
                     int attrVal = numVal % 1000;
-                    int attrID = numVal / 1000;
+                    int attrID = -numVal / 1000;
                     //Check em
                     if (player._skills.ContainsKey(attrID))
                     {
                         val = (player._skills[attrID].quantity >= attrVal) ? true : false;
+                        player.syncState();
                     }
                     else { val = false; }
                 }

@@ -135,13 +135,14 @@ namespace InfServer.Game
                 if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
                 {	//Not going to happen.
                     return;
-                }
+                }               
             }
             else
             {
                 if (!handler.isDevCommand)
                     return;
             }
+
             //Command logging (ignore normal player permission commands like *help, etc)
             if (from.PermissionLevelLocal != Data.PlayerPermission.Normal)
             {   //Notify his superiors in the arena

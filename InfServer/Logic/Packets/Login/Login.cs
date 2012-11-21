@@ -58,7 +58,6 @@ namespace InfServer.Logic
                     pkt.UID3));             
                
             }
-           
 
             //Check alias for illegal characters
             if (alias.Length == 0)
@@ -118,7 +117,6 @@ namespace InfServer.Logic
                 plogin.ipaddress = pkt._client._ipe.Address.ToString().Trim();
 
 				server._db.send(plogin);
-                Log.write(TLog.Warning, "CS_PlayerLogin called in Logic_login");
 			}
 		}
 

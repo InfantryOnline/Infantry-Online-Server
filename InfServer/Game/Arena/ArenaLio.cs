@@ -327,8 +327,12 @@ namespace InfServer.Game
 					ss.bOpen = false;
 					Helpers.Object_LIOs(Players, ss);
                     if (ss.Switch.SwitchData.Switch == 0)
+                    {
                         //Update map tiles
                         updateDoors();
+                        //Lets update clients
+                        Helpers.Object_LIOs(Players, ss);
+                    }
                     else
                         _turretGroups.Switch(ss.Switch.SwitchData.SwitchLioId, null, false);
 				}
@@ -353,6 +357,7 @@ namespace InfServer.Game
         /// </summary>
         private void updateDoors()
         {
+//            List<LioInfo.Door> doors = new List<LioInfo.Door>();
             foreach (SwitchState ss in _switches.Values)
             {
                 if (ss.Switch.SwitchData.Switch == 1)
@@ -416,8 +421,8 @@ namespace InfServer.Game
             List<RelativeObj> possibilities = new List<RelativeObj> { };
             try
             {
-                possibilities.AddRange(from v in Vehicles
-                                       where (v.relativeID == relID &&
+                possibilities.AddRange(from v in Vehicles //_vehicles
+                                       where ((v.relativeID) == relID &&
                                                (v._type.Type == VehInfo.Types.Computer)
                                            || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
                                            || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using System;
 namespace Assets
 {
     public partial class ItemInfo
@@ -15,6 +15,8 @@ namespace Assets
                 blobName = CSVReader.GetString(values[start]);
                 blobID = CSVReader.GetString(values[start + 1]);
                 maxSimultaneous = CSVReader.GetInt(values[start + 2]);
+                if (blobID == "2")
+                    Console.Write("Found blob id '{0}', {1},{2},{3} ",blobName, blobName, blobID, maxSimultaneous);
             }
 
         }

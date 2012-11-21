@@ -157,7 +157,8 @@ namespace InfServer.Protocol
 			si.skillCount = p._skills.Count;
 			si.skills = p._skills.Values;
 
-			p._client.sendReliable(si, completionCallback);
+            p._client.sendReliable(si, completionCallback);
+            
 		}
 
 		/// <summary>

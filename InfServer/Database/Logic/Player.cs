@@ -46,7 +46,6 @@ namespace InfServer.Logic
             {
                 //First time loading!
                 player.assignFirstTimeStats(true);
-                Log.write(TLog.Warning, "SC_Playerlogin called, assiging first time stats.");
             }
 
 			//Let him in! Set his alias, squad and permissions

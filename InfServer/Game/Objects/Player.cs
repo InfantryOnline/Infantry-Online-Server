@@ -52,6 +52,7 @@ namespace InfServer.Game
 		#region Game state
 		public bool _bIgnoreUpdates;			//Are we temporarily ignoring player updates? (Usually due to vehicle change)
 		public bool _bSpectator;				//Is the player in spectator mode?
+        public bool _bIsStealth;                //Is the mod hidden to player lists?
 
         //Player shutup stuff..
         public bool _bSilenced;                 //Is the player currently silenced?
@@ -91,6 +92,7 @@ namespace InfServer.Game
 		public Dictionary<int, InventoryItem> _inventory;	//Our current inventory
 		public Dictionary<int, SkillItem> _skills;	//Our current skill inventory
         public List<ItemInfo.UtilityItem> activeUtilities;	//Active Utilities
+        public Dictionary<SkillItem, int> _skillCounts;
 
         public bool firstTimePlayer;
 		public bool _bDBLoaded;						//Has the player's statistics been loaded from the database?
@@ -100,7 +102,7 @@ namespace InfServer.Game
 		private Dictionary<int, InventoryItem> _suspInventory;
 		private Dictionary<int, SkillItem> _suspSkills;
 		#endregion
-
+        
 		#region Events
 		public event Action<Player> LeaveArena;	//Called when the player leaves the arena
 		#endregion
@@ -139,6 +141,17 @@ namespace InfServer.Game
 				return _bSpectator;
 			}
 		}
+
+        /// <summary>
+        /// Is the player/mod invisible to arena lists?
+        /// </summary>
+        public bool IsStealth
+        {
+            get
+            {
+                return _bIsStealth;
+            }
+        }
 
 		/// <summary>
 		/// Is this player currently dead?
@@ -460,7 +473,9 @@ namespace InfServer.Game
 		/// Modifies and updates the player's skill inventory
 		/// </summary>
 		public bool skillModify(bool bSyncState, SkillInfo skill, int adjust)
-		{	//Do we already have such a skill?
+		{	
+            
+            //Do we already have such a skill?
 			SkillItem sk;
 			_skills.TryGetValue(skill.SkillId, out sk);
 
@@ -492,7 +507,7 @@ namespace InfServer.Game
 					return false;
 
 				Experience -= skill.Price;
-
+                
 				//Success, let's also change the cash..
 				Cash = Math.Max(Cash + skill.CashAdjustment, 0);
 
@@ -533,34 +548,58 @@ namespace InfServer.Game
                         //Set relative vehicle
                         if (!IsSpectator)
                         {
-                            VehInfo vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
-                            //Make sure we're not switching twice..
-                            if (getDefaultVehicle() != vehicle)
-                                setDefaultVehicle(vehicle);
+                            try
+                            {
+                                VehInfo vehicle; //= _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
+//                                if (_team.IsPublic)
+                                    vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
+//                                else
+//                                    vehicle = _server._assets.getVehicleByID(this.getDefaultVehicle().Id + _team._relativeVehicle);
+                                //Make sure we're not switching twice..
+                                Log.write(TLog.Warning, "Team ID {0} skill ID {1}", _team._id, ((skill.DefaultVehicleId > -1) ? skill.DefaultVehicleId : 0));
+                                if (getDefaultVehicle() != vehicle)
+                                    setDefaultVehicle(vehicle);
+                            }
+                            catch (Exception e)
+                            {
+                                //this happens when player is on private team
+                                Log.write(TLog.Warning, "default vech change " + e);
+                            }
                         }
                     }
 				}
 			}
 			else
 			{   //Attributes
+                int cost = skill.Price; 
+                double number;
+                Double.TryParse(_server._zoneConfig.rpg.attributeCountPower, out number);
+                if (_skills.Keys.Contains(skill.SkillId))
+                    cost = (int)(Math.Pow(_skills[skill.SkillId].quantity + 1, number) * skill.Price);
+                
 				//Do we have enough experience for this skill?
-                if (skill.Price <= Experience)
-                    Experience -= skill.Price;
-                else
+                if (cost > Experience)
                     return false;
-			}
 
+                Experience -= cost;
+			}
 			//Add the skill to our skill list
 			if (sk != null)
 			{	//Will there be any attributes left?
                 if (adjust < 0 && (sk.quantity + adjust == 0))
                 {
                     _skills.Remove(skill.SkillId);
+                    Log.write(TLog.Warning, "Removing skill {0} {1} {2} {3}", skill.Name, skill.SkillId,adjust,sk.quantity);   
                 }
                 else
                 {
                     sk.quantity = (short)(sk.quantity + adjust);
+                    _skills.Remove(sk.skill.SkillId);
+                    sk.skill = skill;
+                    _skills.Add(sk.skill.SkillId, sk);
+                    syncState();
                 }
+
 			}
 			else
 			{	//We need to add a new skill item, should we reset other skills?
@@ -586,14 +625,13 @@ namespace InfServer.Game
 						}
 						break;
 				}
-
+                
 				//Add our new skill
 				sk = new SkillItem();
-
 				sk.skill = skill;
 				sk.quantity = (short)adjust;
-
 				_skills.Add(sk.skill.SkillId, sk);
+                syncState();             
 			}
 
 			//Update the player's state

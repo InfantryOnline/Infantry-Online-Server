@@ -82,10 +82,10 @@ namespace InfServer.Script.GameType_Dodgeball
             }
 
             if (_tickGameStart != 0)
-            {
+            {                
                 if (team1Count == 0 || team2Count == 0)
                 {   //Victory
-                    _arena.gameEnd();
+                    gameEnd();
                 }
             }
 
@@ -308,7 +308,7 @@ namespace InfServer.Script.GameType_Dodgeball
             //Notify players of the scramble
             _arena.sendArenaMessage("Teams have been scrambled!");
 
-			return true;
+			return false;
 		}
 
         /// <summary>

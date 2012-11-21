@@ -156,16 +156,18 @@ namespace InfServer.Script.GameType_HQ
 		/// Called when a player enters the game
 		/// </summary>
 		[Scripts.Event("Player.Enter")]
-		public void playerEnter(Player player)
+		public bool playerEnter(Player player)
 		{
+            return true;
 		}
 
 		/// <summary>
 		/// Called when a player leaves the game
 		/// </summary>
 		[Scripts.Event("Player.Leave")]
-		public void playerLeave(Player player)
+		public bool playerLeave(Player player)
 		{
+            return true;
 		}
 
 		/// <summary>
@@ -514,31 +516,45 @@ namespace InfServer.Script.GameType_HQ
             //Car?
             if (dead._type.Type == VehInfo.Types.Car)
             {
-
-                if (_hqs.Keys.Contains(killer._team))
+                /*[3:05:51 PM]* Exception whilst polling arena Public1:
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at InfServer.Script.GameType_HQ.Script_HQ.vehicleDeath(Vehicle dead, Player killer) in c:\Infantry\Zones\Combined Arms\scripts\GameTypes\HQ\Headquarters.cs:line 518
+                added if(killer != null)
+                 */
+                try
                 {
-                    HQ headq = _hqs[killer._team];
-
-                    List<Vehicle> inRange = _arena.getVehiclesInRange(
-                        killer._state.positionX, killer._state.positionY,
-                        killRadius);
-                    //Blasphemy!
-                    if (killer._team == dead._team)
-                        return false;
-
-                    //Is it in range?
-                    if (inRange.Contains(headq.vehicle))
+                    if (killer != null && _hqs != null)
                     {
-                        Events.onVehicleKill(headq, killer, dead);
-                        return true;
-                    }
-                    //Pylon?
-                    if (headq.pylon != null && inRange.Contains(headq.pylon))
-                    {
-                        Events.onVehicleKill(headq, killer, dead);
-                        return true;
-                    }
+                        if (_hqs.Keys.Contains(killer._team))
+                        {
+                            HQ headq = _hqs[killer._team];
 
+                            List<Vehicle> inRange = _arena.getVehiclesInRange(
+                                killer._state.positionX, killer._state.positionY,
+                                killRadius);
+                            //Blasphemy!
+                            if (killer._team == dead._team)
+                                return false;
+
+                            //Is it in range?
+                            if (inRange.Contains(headq.vehicle))
+                            {
+                                Events.onVehicleKill(headq, killer, dead);
+                                return true;
+                            }
+                            //Pylon?
+                            if (headq.pylon != null && inRange.Contains(headq.pylon))
+                            {
+                                Events.onVehicleKill(headq, killer, dead);
+                                return true;
+                            }
+
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.write(TLog.Warning, "hq or killer do not exist" + e);
                 }
             }
 			return true;

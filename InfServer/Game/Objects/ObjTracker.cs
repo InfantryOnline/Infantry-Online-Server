@@ -190,16 +190,40 @@ namespace InfServer.Game
 			int bYMax = yMax / BUCKET_TICKS;
 
 			// Get anyone in the buckets that satisfies the exact coords
-			for (int i = bXMin; i <= bXMax; i++)
-			{
-				for (int j = bYMin; j <= bYMax; j++)
-				{
-					foreach (T p in _matrix[i, j])
-					{
-						if ( filter(p) ) found.Add(p);
-					}
-				}
-			}
+            /*
+             [2:39:19 PM]* Exception whilst polling arena Public1:
+System.InvalidOperationException: Collection was modified; enumeration operation may not execute.
+   at System.ThrowHelper.ThrowInvalidOperationException(ExceptionResource resource)
+   at System.Collections.Generic.List`1.Enumerator.MoveNextRare()
+   at System.Collections.Generic.List`1.Enumerator.MoveNext()
+   at InfServer.Game.ObjTracker`1.getObjsByClosure(Int32 xMin, Int32 yMin, Int32 xMax, Int32 yMax, Func`2 filter) in C:\Infantry\infserver\trunk\InfServer\Game\Objects\ObjTracker.cs:line 197
+   at InfServer.Game.ObjTracker`1.getObjsInRange(Int32 xPos, Int32 yPos, Int32 range) in C:\Infantry\infserver\trunk\InfServer\Game\Objects\ObjTracker.cs:line 111
+   at InfServer.Game.Arena.getPlayersAndSpecInRange(Int32 posX, Int32 posY, Int32 range) in C:\Infantry\infserver\trunk\InfServer\Game\Arena\Arena.cs:line 670
+   at InfServer.Protocol.Helpers.getRouteList(Arena arena, ObjectState state, Boolean bWeapon, Int32 weaponRouteRange, IEnumerable`1 additionals, Int32 oldPosX, Int32 oldPosY) in C:\Infantry\infserver\trunk\InfServer\Protocol\Helpers\Updates.cs:line 41
+   at InfServer.Protocol.Helpers.Update_RoutePlayer(Player update, CS_PlayerUpdate pkt, Int32 updateTick, Int32 oldPosX, Int32 oldPosY) in C:\Infantry\infserver\trunk\InfServer\Protocol\Helpers\Updates.cs:line 128
+   at InfServer.Game.ScriptArena.handlePlayerUpdate(Player from, CS_PlayerUpdate update) in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 959
+   at InfServer.Logic.Logic_PlayerUpdate.<>c__DisplayClass1.<Handle_CS_PlayerUpdate>b__0(Arena arena) in C:\Infantry\infserver\trunk\InfServer\Logic\Packets\Update\Player.cs:line 26
+   at InfServer.Game.Arena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\Arena.cs:line 438
+   at InfServer.Game.ScriptArena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 67
+   at InfServer.Game.ZoneServer.handleArenas() in C:\Infantry\infserver\trunk\InfServer\Game\ZoneArenas.cs:line 77
+            */
+            try
+            {
+                for (int i = bXMin; i <= bXMax; i++)
+                {
+                    for (int j = bYMin; j <= bYMax; j++)
+                    {
+                        foreach (T p in _matrix[i, j].ToArray()) //Fix is .ToArray
+                        {
+                            if (filter(p)) found.Add(p); //Error line
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Warning, "getObjsByClosure " + e);
+            }
 
 			return found;
 		}
@@ -300,7 +324,7 @@ namespace InfServer.Game
 			if (index + _idToObj.Count > array.Length) 
 				throw new ArgumentException("Destination array is too small.");
 
-			foreach (T p in _idToObj.Values)
+			foreach (T p in _idToObj.Values.ToArray()) //Fix for execution To.Array()
 			{
 				array[index++] = p;
 			}

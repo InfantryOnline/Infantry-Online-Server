@@ -18,42 +18,50 @@ namespace InfServer.Logic
 		/// </summary>
 		static private void writeElementToBuffer(Data.DB.stats stat, MemoryStream stream)
 		{
-			BinaryWriter bw = new BinaryWriter(stream);
+            try
+            {
+                BinaryWriter bw = new BinaryWriter(stream);
 
-			bw.Write(stat.players[0].alias1.name.ToCharArray());
-			bw.Write((byte)0);
+                bw.Write(stat.players[0].alias1.name.ToCharArray());
+                bw.Write((byte)0);
 
-			Data.DB.squad squad = stat.players[0].squad1;
-			string squadname = "";
-			if (squad != null)
-				squadname = squad.name;
+                Data.DB.squad squad = stat.players[0].squad1;
+                string squadname = "";
+                if (squad != null)
+                    squadname = squad.name;
 
-			bw.Write(squadname.ToCharArray());
-			bw.Write((byte)0);
+                bw.Write(squadname.ToCharArray());
+                bw.Write((byte)0);
 
-			bw.Write((short)2);
-			bw.Write(stat.vehicleDeaths);
-			bw.Write(stat.vehicleKills);
-			bw.Write(stat.killPoints);
-			bw.Write(stat.deathPoints);
-			bw.Write(stat.assistPoints);
-			bw.Write(stat.bonusPoints);
-			bw.Write(stat.kills);
-			bw.Write(stat.deaths);
-			bw.Write((int)0);
-			bw.Write(stat.playSeconds);
-			bw.Write(stat.zonestat1);
-			bw.Write(stat.zonestat2);
-			bw.Write(stat.zonestat3);
-			bw.Write(stat.zonestat4);
-			bw.Write(stat.zonestat5);
-			bw.Write(stat.zonestat6);
-			bw.Write(stat.zonestat7);
-			bw.Write(stat.zonestat8);
-			bw.Write(stat.zonestat9);
-			bw.Write(stat.zonestat10);
-			bw.Write(stat.zonestat11);
-			bw.Write(stat.zonestat12);
+                bw.Write((short)2);
+                bw.Write(stat.vehicleDeaths);
+                bw.Write(stat.vehicleKills);
+                bw.Write(stat.killPoints);
+                bw.Write(stat.deathPoints);
+                bw.Write(stat.assistPoints);
+                bw.Write(stat.bonusPoints);
+                bw.Write(stat.kills);
+                bw.Write(stat.deaths);
+                bw.Write((int)0);
+                bw.Write(stat.playSeconds);
+                bw.Write(stat.zonestat1);
+                bw.Write(stat.zonestat2);
+                bw.Write(stat.zonestat3);
+                bw.Write(stat.zonestat4);
+                bw.Write(stat.zonestat5);
+                bw.Write(stat.zonestat6);
+                bw.Write(stat.zonestat7);
+                bw.Write(stat.zonestat8);
+                bw.Write(stat.zonestat9);
+                bw.Write(stat.zonestat10);
+                bw.Write(stat.zonestat11);
+                bw.Write(stat.zonestat12);
+            }
+            
+           catch (Exception e)
+           {
+                Log.write(TLog.Warning, "this " + e);
+           }
 		}
 
 		/// <summary>
@@ -78,11 +86,12 @@ namespace InfServer.Logic
 										 where st.zone1 == zone._zone
 										 orderby st.assistPoints + st.bonusPoints + st.killPoints descending
 										 select st).Take(100);
-							MemoryStream stream = new MemoryStream();
-
-							foreach (Data.DB.stats stat in stats)
-								writeElementToBuffer(stat, stream);
-
+							MemoryStream stream = new MemoryStream();                            
+                           
+                            foreach (Data.DB.stats stat in stats)
+                                writeElementToBuffer(stat, stream);
+                                
+                            
 							SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
 
 							response.player = pkt.player;

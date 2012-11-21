@@ -90,6 +90,13 @@ namespace Assets
                     else if (line.Length > 0)
                     {
                         int eqIdx = line.IndexOf('=');
+                        //Check for missing =
+                        if (eqIdx == -1) //return value when = isnt present
+                        {
+                            Console.WriteLine("Found missing '=' in header {0} in filename {1}",
+                                (currentHeader != "") ? currentHeader : "Unknown", filename);
+                        }
+
                         if (!values.ContainsKey(line.Substring(0, eqIdx)))
                         {
                             if (eqIdx == -1)

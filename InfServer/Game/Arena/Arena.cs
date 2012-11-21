@@ -51,6 +51,8 @@ namespace InfServer.Game
         private int _bountyTick;                        //Last time AutoBounty ticked
         public List<ItemDrop> _condemnedItems;
 
+        public PollSettings _poll;						//For our poll command
+
 		public int _levelWidth;
 		public int _levelHeight;
 		public LvlInfo.Tile[] _tiles;					//The terrain tiles in the arena, can be updated to reflect switches, etc
@@ -348,6 +350,29 @@ namespace InfServer.Game
 					expireCallback();
 			}
 		}
+
+        /// <summary>
+        /// Our configurable PollQuestion Class.
+        /// </summary>
+        public class PollSettings
+        {
+            //Generics
+            public bool start = false;
+            public int yes = 0;
+            public int no = 0;
+
+            public Dictionary<String, PlayerAlias> _alias;
+            public class PlayerAlias
+            {
+                public string name;
+            }
+
+            public PollResults _results;
+            public class PollResults
+            {
+                public int amount = 0;
+            }
+        }
 		#endregion
 
 		///////////////////////////////////////////////////
@@ -1048,6 +1073,13 @@ namespace InfServer.Game
 		{	//He's left, remove him
 			_playersIngame.Remove(player);
 		}
+
+        /// <summary>
+        /// Called when a person starts a poll question
+        /// </summary>
+        public virtual void pollQuestion(Arena arena, bool start)
+        {
+        }
 
 		/// <summary>
 		/// Called when the game begins

@@ -30,7 +30,7 @@ namespace InfServer.Logic
 			{	//Re-send the echo
 				ReliableEcho resent = new ReliableEcho(pkt.streamID);
 				resent.rNumber = (ushort)(stream.C2S_Reliable - 1);
-				client.send(resent);
+				client.send(resent);                
 				return;
 			}
 
@@ -40,16 +40,19 @@ namespace InfServer.Logic
 			//Is there a pre-existing stream?
 			if (stream.dataStreamBuffer == null)
 			{	//Let's be sensible
-				if (pkt.dataSize <= client._C2S_UDPSize - client._CRCLength)
+                //This commented part causes issues for some players on certain aliases, removing for now
+			/*
+               if (pkt.dataSize < client._C2S_UDPSize - client._CRCLength)
 				{
 					Log.write(TLog.Error, "Received data stream packet with invalid size {0}", pkt.dataSize);
 					return;
 				}
-				else if (pkt.dataSize > 20 * 1024 * 1024)
+             */
+				if (pkt.dataSize > 20 * 1024 * 1024)
 				{
 					Log.write(TLog.Error, "Received data stream packet with invalid size {0}", pkt.dataSize);
 					return;
-				}
+				}             
 
 				//Create one of the appropriate size
 				stream.dataStreamBuffer = new byte[pkt.dataSize];
