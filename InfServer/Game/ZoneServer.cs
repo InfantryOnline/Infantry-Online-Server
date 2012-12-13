@@ -50,6 +50,8 @@ namespace InfServer.Game
 	    private ClientPingResponder _pingResponder;
         public Dictionary<IPAddress, DateTime> _connections;
 
+        public Dictionary<string, Dictionary<string, DateTime>> _arenaBans; //Our arena banning list
+
         ///////////////////////////////////////////////////
         // Accessors
         ///////////////////////////////////////////////////
@@ -285,6 +287,9 @@ namespace InfServer.Game
 
             Log.write("Asset Checksum: " + _assets.checkSum());
 
+            //Create a new banning list
+            _arenaBans = new Dictionary<string, Dictionary<string, DateTime>>();
+
 			return true;
 		}
 
@@ -311,7 +316,6 @@ namespace InfServer.Game
         public void poll()
         {
             int now = Environment.TickCount;
-            
 
             try
             {
@@ -479,7 +483,7 @@ namespace InfServer.Game
 							byte[] buffer = new[]
                                                 {
                                                     playerCount[0], playerCount[1], playerCount[2], playerCount[3], 
-                                                    token[0], token[1], token[2], token[3], 
+                                                    token[0], token[1], token[2], token[3]
                                                 };
 
 							_socket.SendTo(buffer, client);

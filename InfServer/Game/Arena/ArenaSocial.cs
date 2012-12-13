@@ -127,8 +127,19 @@ namespace InfServer.Game
             HandlerDescriptor handler;
 
             if (!_commandRegistrar._modCommands.TryGetValue(command.ToLower(), out handler))
+            {
+                if (command == "" && payload.Length > 1)
+                {
+                    //Mod chat
+                    foreach (Player p in Players)
+                        if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                        {
+                            p.sendMessage(0, String.Format("#[ModChat] [{0}]> {1}",
+                                from._alias, payload));
+                        }
+                }
                 return;
-
+            }
             if (from.PermissionLevelLocal != Data.PlayerPermission.Developer)
             {
                 //Check the permission levels
@@ -150,7 +161,7 @@ namespace InfServer.Game
                 foreach (Player p in Players)
                     if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
                     {
-                        p.sendMessage(0, String.Format("@[Arena: {0}] {1}>{2} *{3} {4}",
+                        p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",
                             from._arena._name,
                             from._alias,
                             sRecipient = (recipient != null)
@@ -163,7 +174,7 @@ namespace InfServer.Game
                     else if (from.PermissionLevelLocal == Data.PlayerPermission.Developer)
                     {
                         if (p.PermissionLevelLocal >= Data.PlayerPermission.Mod && p != from)
-                            p.sendMessage(0, String.Format("@[Arena: {0}] {1}>{2} *{3} {4}",
+                            p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",
                             from._arena._name,
                             from._alias,
                             sRecipient = (recipient != null)
@@ -190,7 +201,19 @@ namespace InfServer.Game
             }
 
             try
-            {	//Handle it!
+            {
+                //Security hole fix
+                //Lets check their level and their arena
+                if (from.PermissionLevel < Data.PlayerPermission.Mod)
+                {
+                    if (recipient != null && !recipient._arena._name.Equals(from._arena._name))
+                    {
+                        from.sendMessage(-1, "You cannot use commands from one arena to another.");
+                        return;
+                    }
+                }
+
+                //Handle it!
                 handler.handler(from, recipient, payload, bong);
             }
             catch (Exception ex)

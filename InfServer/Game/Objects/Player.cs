@@ -30,7 +30,7 @@ namespace InfServer.Game
 		public volatile bool bDestroyed;		//Have we already been destroyed?
 		public bool _bIngame;					//Are we in the game, or in an arena transition?
 		public bool _bLoggedIn;					//Have we made it past the login process, and are able to enter arenas?
-        public List<DateTime> _msgTimeStamps;
+        public List<DateTime> _msgTimeStamps;   //For spam checking
 
 		#region Credentials
 		public ushort _id;						//Unique zone id for a player
@@ -77,6 +77,10 @@ namespace InfServer.Game
 
         public int _lastMovement;               //The tickcount at which the player last made a movement
         public uint _assetCS;
+
+        //Player arena ban stuff
+        public DateTime _timeOfBlock;           //When he/she was banned from arena
+        public int _lengthOfBlock;              //How long the block is
 		#endregion
 
 		#region Player state
@@ -84,7 +88,7 @@ namespace InfServer.Game
 		public List<Player> _spectators;		//The players that are currently spectating us
         public List<string> _summonIgnore;      //The players that are currently summon-ignored.
 
-        public int _gotBallID = 999;				    //The Id of the ball
+        public int _gotBallID = 999;			//The Id of the ball
 
 		public byte[] _bannerData;				//The data for our current banner
 		public int _bounty;						//Our current bounty
@@ -338,6 +342,10 @@ namespace InfServer.Game
 				_spectating = null;
 			}
 
+  /*        //Testing: for people that dc/rejoin an arena
+            if (_bIsPublic && player._arena._saveStats)
+                player.suspendStats();
+      */ 
 			//If we're currently in a vehicle, we want to desert it
 			if (_occupiedVehicle != null)
 				_occupiedVehicle.playerLeave(true);
@@ -349,8 +357,22 @@ namespace InfServer.Game
 			_team = null;
 
 			//Notify our current arena
-			if (_arena != null)
-				_arena.lostPlayer(this);
+            if (_arena != null)
+            {
+                //Lets take them away from the owner list
+                if (_arena.IsPrivate && _arena._owner != null && _arena._owner.Count > 0)
+                {
+                    foreach (var p in _arena._owner)
+                        if (this._alias.Equals(p))
+                        {
+                            _arena._owner.Remove(p);
+                            if (this.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                                this._permissionTemp = Data.PlayerPermission.Normal;
+                            break;
+                        }
+                }
+                _arena.lostPlayer(this);
+            }
 			_arena = null;
 
 			//We are no longer ingame
@@ -473,8 +495,7 @@ namespace InfServer.Game
 		/// Modifies and updates the player's skill inventory
 		/// </summary>
 		public bool skillModify(bool bSyncState, SkillInfo skill, int adjust)
-		{	
-            
+		{	            
             //Do we already have such a skill?
 			SkillItem sk;
 			_skills.TryGetValue(skill.SkillId, out sk);
@@ -507,14 +528,12 @@ namespace InfServer.Game
 					return false;
 
 				Experience -= skill.Price;
-                
 				//Success, let's also change the cash..
 				Cash = Math.Max(Cash + skill.CashAdjustment, 0);
 
 				//Clear inventory?
 				if (skill.ResetInventory)
 					_inventory.Clear();
-
 				//Process inventory adjustments
 				foreach (SkillInfo.InventoryMutator ia in skill.InventoryMutators)
 				{	//If it's valid..
@@ -531,8 +550,6 @@ namespace InfServer.Game
 
 					inventoryModify(false, item.id, ia.Quantity);
 				}
-
-
 
 				//Finally, do we use a new defaultvehicle?
 				if (skill.DefaultVehicleId != -1)
@@ -551,12 +568,11 @@ namespace InfServer.Game
                             try
                             {
                                 VehInfo vehicle; //= _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
-//                                if (_team.IsPublic)
+                                if (_team.IsPublic)
                                     vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _server._zoneConfig.teams[_team._id].relativeVehicle);
-//                                else
-//                                    vehicle = _server._assets.getVehicleByID(this.getDefaultVehicle().Id + _team._relativeVehicle);
+                                else
+                                    vehicle = _server._assets.getVehicleByID(skill.DefaultVehicleId + _team._relativeVehicle);
                                 //Make sure we're not switching twice..
-                                Log.write(TLog.Warning, "Team ID {0} skill ID {1}", _team._id, ((skill.DefaultVehicleId > -1) ? skill.DefaultVehicleId : 0));
                                 if (getDefaultVehicle() != vehicle)
                                     setDefaultVehicle(vehicle);
                             }
@@ -571,11 +587,11 @@ namespace InfServer.Game
 			}
 			else
 			{   //Attributes
-                int cost = skill.Price; 
-                double number;
-                Double.TryParse(_server._zoneConfig.rpg.attributeCountPower, out number);
+                int cost = skill.Price;
+                double attributeCountPower;
+                Double.TryParse(_server._zoneConfig.rpg.attributeCountPower, out attributeCountPower);
                 if (_skills.Keys.Contains(skill.SkillId))
-                    cost = (int)(Math.Pow(_skills[skill.SkillId].quantity + 1, number) * skill.Price);
+                    cost = (int)(Math.Pow(_skills[skill.SkillId].quantity + 1, attributeCountPower) * skill.Price);
                 
 				//Do we have enough experience for this skill?
                 if (cost > Experience)
@@ -594,9 +610,6 @@ namespace InfServer.Game
                 else
                 {
                     sk.quantity = (short)(sk.quantity + adjust);
-                    _skills.Remove(sk.skill.SkillId);
-                    sk.skill = skill;
-                    _skills.Add(sk.skill.SkillId, sk);
                     syncState();
                 }
 
@@ -1120,6 +1133,11 @@ namespace InfServer.Game
 		{	//Let's create a new spectator vehicle
 			Vehicle specVeh = _arena.newVehicle(_server._zoneConfig.arena.spectatorVehicleId);
 
+            //If we're currently in a vehicle, we want to desert it
+            if (_occupiedVehicle != null)
+                _occupiedVehicle.playerLeave(true);
+            _occupiedVehicle = null;
+
 			//Have the player enter it
 			if (!enterVehicle(specVeh))
 			{	//This shouldn't happen!
@@ -1173,7 +1191,7 @@ namespace InfServer.Game
 			}
 
 			//Throw ourselves onto our new team!
-			team.addPlayer(this);
+            team.addPlayer(this);
 
 			//Destroy our spectator vehicle
 			_occupiedVehicle.destroy(true);

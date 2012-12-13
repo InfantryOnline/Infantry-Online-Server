@@ -9,7 +9,6 @@ using System.Threading;
 
 using InfServer.Network;
 using InfServer.Protocol;
-using InfServer.Logic;
 
 using Assets;
 
@@ -30,6 +29,9 @@ namespace InfServer.Game
 
 		protected ObjTracker<Player> _players;			//The list of players in this arena
 		protected ObjTracker<Player> _playersIngame;	//The list of players currently ingame
+
+        public List<string> _owner;                     //The owner's name of this arena - we use a list because we can grant players
+        public Dictionary<Arena, Player> _notAllowed;   //Banned list for owned arenas
 
         public List<Ball> _balls;
 
@@ -373,6 +375,16 @@ namespace InfServer.Game
                 public int amount = 0;
             }
         }
+
+        /// <summary>
+        /// Our configurable banned arena class.
+        /// </summary>
+        public class notAllowed
+        {
+            //Generics
+            public string arena_name;
+            public string reason;
+        }
 		#endregion
 
 		///////////////////////////////////////////////////
@@ -415,6 +427,8 @@ namespace InfServer.Game
 			_events = new BlockingCollection<Action<Arena>>();
 
             _balls = new List<Ball>();
+           
+            _owner = new List<string>();
 
 			//Instance our tiles array
 			LvlInfo lvl = server._assets.Level;
@@ -575,13 +589,14 @@ namespace InfServer.Game
                         continue;
 
                     //Check the timediff.
-                    TimeSpan diff = p._timeOfSilence - DateTime.Now;
+                    TimeSpan diff = DateTime.Now - p._timeOfSilence;
 
                     //Okay, unsilence him.
-                    if (diff.Minutes > p._lengthOfSilence)
+                    if (diff.Minutes >= p._lengthOfSilence)
                     {
                         p._bSilenced = false;
-                        p.sendMessage(-1, "You may speak now");
+                        p._lengthOfSilence = 0;
+                        p.sendMessage(-1, "You may speak now.");
                     }
                 }
 
@@ -792,6 +807,31 @@ namespace InfServer.Game
 
 			return true;
 		}
+
+        /// <summary>
+        /// Determines whether the player is the owner of this arena
+        /// </summary>
+        public bool IsOwner(Player player)
+        {
+            if (_owner != null && _owner.Count > 0)
+            {
+                foreach (var p in _owner)
+                    if (player._alias.Equals(p))
+                        return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether the player is granted in this arena
+        /// </summary>
+        public bool IsGranted(Player player)
+        {
+            if (IsPrivate)
+                if (IsOwner(player) || player.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                    return true;
+            return false;
+        }
 
 		/// <summary>
 		/// Gets the tile at the specified location

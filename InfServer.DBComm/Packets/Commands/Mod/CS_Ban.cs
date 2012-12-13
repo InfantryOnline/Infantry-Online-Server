@@ -30,9 +30,11 @@ namespace InfServer.Protocol
 
         public enum BanType
         {
-            global,
-            zone,
-            arena,
+            none = 0,
+            zone = 1,
+            account = 2,
+            ip = 3,
+            global = 4,
         }
 
 

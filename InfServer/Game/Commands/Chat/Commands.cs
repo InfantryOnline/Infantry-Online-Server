@@ -73,13 +73,14 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "Target player does not exist");
                 return;
             }
+            //Prevent them from spamming someone with low amounts
             if (amount < 5000)
             {
                 player.sendMessage(-1, "Must send at least 5000 cash");
                 return;
             }
             //Does he meet the requirements? gotta stop statpadding...
-            if (player.StatsTotal.Points < player._server._zoneConfig.addon.aidLogic)
+            if (player.Experience < player._server._zoneConfig.addon.aidLogic)
             {
                 player.sendMessage(-1, "Sorry, You do not meet the requirements to aid another player");
                 return;
@@ -530,10 +531,6 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void help(Player player, Player recipient, string payload, int bong)
         {
-            //Ignore help requests in stand alone mode
-            if (player._server.IsStandalone)
-                return;
-            
             //payload empty?
             if (payload == "")
                 payload = "None specified";
@@ -545,15 +542,32 @@ namespace InfServer.Game.Commands.Chat
                 if (mod._permissionStatic > 0)
                 {
                     mod.sendMessage(0, String.Format("&HELP:(Zone={0} Arena={1} Player={2}) Reason={3}", player._server.Name, player._arena._name, player._alias, payload));
-                    mods += 1;
+                    mods++;
                 }
             }
             
             //Alert any mods online
-            
-            //TODO: Log help requests to the database when there are no moderators online.
             if (mods == 0)
             {
+                //Send it to any mods online first then log it
+                if (!player._server.IsStandalone)
+                {
+                    CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
+                    pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                    pktquery.sender = player._alias;
+                    pktquery.payload = payload;
+                    //Send it!
+                    player._server._db.send(pktquery);
+
+                    //Log it in the helpcall database
+                    CS_ChatCommand<Data.Database> pkt = new CS_ChatCommand<Data.Database>();
+                    pkt.sender = player._alias.ToString();
+                    pkt.zone = player._server.Name;
+                    pkt.arena = player._arena._name;
+                    pkt.reason = payload;
+                    //Send it!
+                    player._server._db.send(pkt);
+                }
             }
 
             //Notify the player all went well..
@@ -662,9 +676,9 @@ namespace InfServer.Game.Commands.Chat
 		/// </summary>
         public static void structures(Player player, Player recipient, string payload, int bong)
         {
-            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
+            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v != null && v._team._id == player._team._id &&
                 v._type.Type == VehInfo.Types.Computer);
-            IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
+            IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v != null && v._team._id == player._team._id &&
                 v._type.Type == VehInfo.Types.Car);
 
             //Display computers
@@ -1087,10 +1101,10 @@ namespace InfServer.Game.Commands.Chat
                     return;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Log.write(TLog.Warning, " " + e);
             }
-
 
             //Find the target player and see if he exists..
             Player target = player._arena.getPlayerByName(payload);
@@ -1106,17 +1120,8 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "Target player isn't on your team!");
                 return;
             }
-
-            //Pick a team to put him on
-            //Team pick = player._arena.pickAppropriateTeam(target);
-           // if (pick != null)
-           // {
-                //Great, use it
-           //     pick.addPlayer(target);
-                target.spec();
-          //  }
-          //  else
-          //      target.sendMessage(-1, "Unable to pick a team.");
+            //Spec them
+            target.spec();
         }
         #endregion
 

@@ -99,11 +99,10 @@ namespace InfServer.Logic
 
             if (valid.Count == 1)
                 Warp(flags, player, valid[0], invulnTime);
+            else if (valid.Count > 1)
+                Warp(flags, player, valid[player._arena._rand.Next(0, valid.Count)], invulnTime);
             else
-            {
-                Warp(flags, player, valid[player._arena._rand.Next(0, valid.Count - 1)], invulnTime);
-                Log.write(TLog.Warning, String.Format("Warping to: {0}", valid.ToList()));
-            }
+                return;
 		}
 
 		/// <summary>
@@ -119,6 +118,19 @@ namespace InfServer.Logic
             //Resolve our box
 			short height = (short)(warp.warp.GeneralData.Height / 2);
 			short width = (short)(warp.warp.GeneralData.Width / 2);
+            
+            //Check for an available spot
+            //This fixes warping onto physics
+            int attempts = 0;
+            for (; attempts < 10; attempts++)
+            {
+                short px = (short)x;
+                short py = (short)y;
+                if (!player._arena.getTile(px, py).Blocked)
+                    break;
+
+                Helpers.randomPositionInArea(player._arena, ref px, ref py, width, height);
+            }
 
 			//Use our first warp!
 			player.warp(flags,

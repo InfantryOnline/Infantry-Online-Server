@@ -23,7 +23,6 @@ namespace InfServer.Logic
                         var aliases = db.alias.Where(a => a.account == from.account);
                         zone._server.sendMessage(zone, pkt.sender, "Account Info");
 
-
                         Int64 total = 0;
                         int days = 0;
                         int hrs = 0;
@@ -163,9 +162,15 @@ namespace InfServer.Logic
                         zone._server.sendMessage(zone, pkt.sender, "!Command History (" + page + ")");
 
                         //Find all commands!
+                        /*
                         List<Data.DB.history> cmds = db.histories.Where(c =>
                             c.id >= (db.histories.Count() - (resultsperpage * (page + 1))) &&
                             c.id < (db.histories.Count() - (resultsperpage * page))).ToList();
+                        */
+                        Data.DB.history last = db.histories.Last();
+                        List<Data.DB.history> cmds = db.histories.Where(c =>
+                            c.id >= (last.id - (resultsperpage * (page + 1))) &&
+                            c.id < (last.id - (resultsperpage * page))).ToList();
 
                         //List them
                         foreach (Data.DB.history h in cmds)
@@ -174,136 +179,90 @@ namespace InfServer.Logic
 
                         zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 1, *history 2, etc to navigate previous pages");
                         break;
-/*
-                    case CS_Query<Zone>.QueryType.help_history:
-                        int pageNum = Convert.ToInt32(pkt.payload);
-                        int resultsforpage = 30;
 
-                        zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + page + ")");
-
-                        //Find all commands!
-                        List<Data.DB.help_history> commands = db.histories.Where(c =>
-                            c.id >= (db.histories.Count() - (resultsperpage * (pageNum + 1))) &&
-                            c.id < (db.histories.Count() - (resultsperpage * pageNum))).ToList();
-
-                        //List them
-                        foreach (Data.DB.help_history h in commands)
-                            zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
-                                Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.reason));
-
-                        zone._server.sendMessage(zone, pkt.sender, "End of page, use *history help:1, *history help:2, etc to navigate previous pages");
-                        break;
-*/
                     case CS_Query<Zone>.QueryType.global:
                         foreach(Zone z in zone._server._zones)
                             z._server.sendMessage(z, "*", pkt.payload);
                         break;
 
-                    case CS_Query<Zone>.QueryType.gkill:
+                    case CS_Query<Zone>.QueryType.ban:
                         {
-                            int minutes;
-                            string reason;
-                            string target;
+                            if (pkt.payload == "")
+                                return;
 
-                            string[] parameters = pkt.payload.Split(':');
+                            Logic_Bans.Ban.BanType type = Logic_Bans.Ban.BanType.None;
+                            DateTime expires = DateTime.Now;
+                            DateTime created = DateTime.Now;
+                            bool found = false;
 
-                            target = parameters[0];
-                            minutes = Convert.ToInt32(parameters[1]);
-                            reason = parameters[2];
-                            
-                        }
-                        break;
-
-                    case CS_Query<Zone>.QueryType.getAccount:
-                        //Find what they are trying to query
-                        if (pkt.payload != "")
-                        { //Querying the person's account to find and delete the alias
-                            Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.payload));
-                            aliases = db.alias.Where(a => a.account.Equals(who.account));
-
-                            //Getting the required info to delete the alias
-                            Data.DB.player player = db.players.SingleOrDefault(plyr => plyr.alias1.Equals( who ) 
-                                && plyr.zone1 == zone._zone);
-                            Data.DB.stats stats = player.stats1;
-                            foreach (var alias in aliases)
+                            System.Net.IPAddress ipaddress;
+                            Data.DB.account ipaddy;
+                            Data.DB.account what = db.alias.FirstOrDefault(e => e.name.Equals(pkt.payload)).account1;
+                            //Check for an ip lookup first
+                            if (System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
                             {
-                                if (alias.name.Equals(pkt.payload))
+                                ipaddy = db.alias.FirstOrDefault(a => a.IPAddress.Equals(ipaddress.ToString())).account1;
+                                what = ipaddy;
+                            }
+
+                            if (what != null)
+                            {
+                                foreach (Data.DB.ban b in db.bans.Where(b =>
+                                    b.account == what.id ||
+                                    b.IPAddress == what.IPAddress))
                                 {
-                                    if (stats != null)
-                                        db.stats.DeleteOnSubmit(stats);
-                                    if (player != null)
-                                        db.players.DeleteOnSubmit(player);
-                                    db.alias.DeleteOnSubmit(alias);
-                                    break;
+                                    //Is it the correct zone?
+                                    if (b.zone != null && (b.type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != zone._zone.id))
+                                        continue;
+
+                                    //Find the highest level ban that hasn't expired yet
+                                    if (b.type > (int)type && b.expires > expires)
+                                    {   //Set it as our current ban type
+                                        expires = b.expires;
+                                        type = (Logic_Bans.Ban.BanType)b.type;
+                                        created = b.created;
+                                        found = true;
+                                    }
                                 }
                             }
-                            db.SubmitChanges();
-                            zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
+                            zone._server.sendMessage(zone, pkt.sender, "Current Ban for player");
+                            if (!found)
+                                zone._server.sendMessage(zone, pkt.sender, "None");
+                            else
+                                zone._server.sendMessage(zone, pkt.sender, String.Format("Type: {0} - Created: {1} - Expires: {2}", type, created, expires));
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.transferAlias:
-                        //Sanity checks
-                        if (pkt.payload == "" || !pkt.payload.Contains(':'))
+                    case CS_Query<Zone>.QueryType.helpcall:
+                        int pageNum = Convert.ToInt32(pkt.payload);
+                        int resultseachpage = 30;
+
+                        zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + pageNum + ")");
+
+                        //Find all commands!
+                        Data.DB.helpcall end = db.helpcalls.Last();
+                        List<Data.DB.helpcall> helps = db.helpcalls.Where(e =>
+                            e.id >= (end.id - (resultseachpage * (pageNum + 1))) &&
+                            e.id < (end.id - (resultseachpage * pageNum))).ToList();
+
+                        //List them
+                        foreach (Data.DB.helpcall h in helps)
+                            zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                                Convert.ToString(h.date), h.zone, h.arena, h.sender, h.reason));
+
+                        zone._server.sendMessage(zone, pkt.sender, "End of page, use *helpcall 1, *helpcall 2, etc to navigate previous pages");
+                        break;
+
+                    case CS_Query<Zone>.QueryType.alert:
+                        foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                         {
-                            zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
-                            return;
+                            if (player.Value.permission > (int)Data.PlayerPermission.Normal)
+                                player.Value.zone._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
                         }
-
-                        string toPlayerAlias = pkt.payload.Split(':').ElementAt(0);
-                        string PlayerAlias = pkt.payload.Split(':').ElementAt(1);
-
-                        //The pm'd player or aliasTo
-                        Data.DB.alias toAlias = db.alias.FirstOrDefault(a => a.name.Equals(toPlayerAlias));
-                        Data.DB.account toAccount = db.alias.SingleOrDefault(a => a.name.Equals(toPlayerAlias)).account1;
-
-                        //The targer player or the alias in question
-                        Data.DB.alias aliasTo = db.alias.FirstOrDefault(a => a.name.Equals(PlayerAlias));
-                        //Data.DB.account aliasTo = db.alias.SingleOrDefault(a => a.name.Equals(PlayerAlias)).account1;
-
-                        if (toAlias == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "There was a problem trying to find the player's alias.");
-                            return;
-                        }
-
-                        if (toAccount == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "There was a problem trying to find the player's account.");
-                            return;
-                        }
-
-                        //No such alias
-                        if (aliasTo == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "That alias is available to create.");
-                            return;
-                        }
-
-                        //Make structures before removing the alias
-                        Data.DB.alias tempAliasTo = new Data.DB.alias();
-
-                     /*   tempAliasTo.account1 = toAlias.account1;
-                        tempAliasTo.name = aliasTo.name;
-                        tempAliasTo.creation = aliasTo.creation;
-                        tempAliasTo.IPAddress = toAlias.IPAddress;
-                        tempAliasTo.lastAccess = DateTime.Now;
-                        tempAliasTo.timeplayed = aliasTo.timeplayed;    */
-
-                        //Change each entry with new ID
-                        foreach (Data.DB.player p in db.players.Where(p => p.alias == aliasTo.id))                        
-                            p.alias = toAlias.id;                        
-                        //Map new account ID to alias
-                        aliasTo.account = toAlias.account;
-
-                        Log.write(TLog.Warning, String.Format("{0},{1},{2}", tempAliasTo.account1, tempAliasTo.name, tempAliasTo.IPAddress));
-                        //Delete the person's alias
-                       // db.alias.DeleteOnSubmit(aliasTo);   
-
-                        //Save the new info
-                     //   db.alias.InsertOnSubmit(tempAliasTo);
-                        db.SubmitChanges();
-                        zone._server.sendMessage(zone, pkt.sender, "Alias transfer is complete.");
+                        /*    
+                        foreach (Zone z in zone._server._zones)
+                            z._server.sendMessage(z, "*", pkt.payload);
+                        */
                         break;
                 }
             }

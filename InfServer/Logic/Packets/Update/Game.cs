@@ -333,6 +333,14 @@ namespace InfServer.Logic
 				return;
 			}
 
+            //Is he able to pick these classes?
+            /*
+            if (!player.IsSpectator && !Logic_Assets.SkillCheckTester(player, skill.SkillId, player._server._zoneConfig.arena.exitSpectatorLogic))
+            {
+                player.sendMessage(-1, "That is not an eligible class to play.");
+                return;
+            }
+            */
 			player._arena.handleEvent(delegate(Arena arena)
 				{
 					player._arena.handlePlayerShopSkill(player, skill);

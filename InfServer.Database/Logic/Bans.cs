@@ -16,13 +16,14 @@ namespace InfServer.Logic
     {
         public class Ban
         {
+            //Had to define the numbers, weird error was going on where the numbers wouldnt match the bans
             public enum BanType
             {
-                None,
-                ZoneBan,                //Blocks an account from entering a specific zone (*block [minutes])
-                AccountBan,             //Blocks an account from entering any zone (*ban [minutes])
-                IPBan,                  //Blocks an account and associated IP from entering any zone (*ipban [minutes])
-                GlobalBan,              //Blocks an account and associated IP and hardware ID's from entering any zone (*globalban [minutes])
+                None = 0,
+                ZoneBan = 1,                //Blocks an account from entering a specific zone (*block [minutes])
+                AccountBan = 2,             //Blocks an account from entering any zone (*ban [minutes])
+                IPBan = 3,                  //Blocks an account and associated IP from entering any zone (*ipban [minutes])
+                GlobalBan = 4,              //Blocks an account and associated IP and hardware ID's from entering any zone (*gkill [minutes])
             }
             public BanType type;
             public DateTime expiration;

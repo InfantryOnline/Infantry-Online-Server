@@ -81,10 +81,6 @@ namespace InfServer.Game
 		{	//Pass it to the script environment
 			base.playerEnter(player);
 
-    /*        //Testing: for people that dc/rejoin an arena
-            if (_bIsPublic && player._arena._saveStats)
-                player.restoreStats();
-          */  
 			callsync("Player.Enter", false, player);
 		}
         #endregion
@@ -97,11 +93,7 @@ namespace InfServer.Game
 		{	//Pass it to the script environment
 			base.playerLeave(player);
 
-         /*   //Testing: Saving stats for people that leave the arena
-            if (_bIsPublic && player._arena._saveStats)
-                player.suspendStats();
-        */    
-			callsync("Player.Leave", false, player);
+         	callsync("Player.Leave", false, player);
 		}
         #endregion
 
@@ -154,8 +146,10 @@ namespace InfServer.Game
 			_tickGameEnded = 0;
 
 			//Reset the flags
-			flagReset();
-
+            if (_scriptType != "GameType_KOTH")
+            {
+                flagReset();
+            }
 			//What else do we need to reset?
 			if (_startCfg.prizeReset)
 				resetItems();
@@ -167,7 +161,8 @@ namespace InfServer.Game
 				initialHideSpawns();
            
             //Respawn the flags
-            flagSpawn();
+            if (_scriptType != "GameType_KOTH")
+                flagSpawn();
 			
             //Handle the start for all players
 			string startGame = _server._zoneConfig.EventInfo.startGame;
@@ -215,10 +210,11 @@ namespace InfServer.Game
             //We've stopped
 			_bGameRunning = false;
 			_tickGameEnded = Environment.TickCount;
-
-			//Reset the game state
-			flagReset();
-			
+            
+            //Reset the game state
+            if (_scriptType != "GameType_KOTH")
+                flagReset();                      
+            
 			//Execute the end game event
 			string endGame = _server._zoneConfig.EventInfo.endGame;
 			foreach (Player player in Players)
@@ -248,7 +244,8 @@ namespace InfServer.Game
 		/// Called to reset the game state
 		/// </summary>
 		public override void gameReset()
-		{	//Reset the game state
+		{
+            //Reset the game state
 			flagReset();
 			if (_startCfg.prizeReset)
 				resetItems();
@@ -368,6 +365,7 @@ namespace InfServer.Game
             }
         }
         #endregion
+
         #region handleBallDrop
         /// <summary>
         /// Triggered when a player requests to drop a ball
@@ -1029,37 +1027,7 @@ namespace InfServer.Game
                 if (update.killerPlayerID < 5001 && killer == null)
                     Log.write(TLog.Warning, "Player {0} gave invalid player killer ID.", from);
             }
-/* Moved this into occupied vehicle
-            //Was it us that died?
-            if (update.killedID != from._id)
-            {	//Was it the vehicle we were in?
-                
-                 [3:45:13 PM]* Exception whilst polling arena Public1:
-System.NullReferenceException: Object reference not set to an instance of an object.
-   at InfServer.Game.ScriptArena.handlePlayerDeath(Player from, CS_VehicleDeath update) in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 984
-   at InfServer.Logic.Logic_PlayerUpdate.<>c__DisplayClass4.<Handle_CS_PlayerDeath>b__3(Arena arena) in C:\Infantry\infserver\trunk\InfServer\Logic\Packets\Update\Player.cs:line 44
-   at InfServer.Game.Arena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\Arena.cs:line 438
-   at InfServer.Game.ScriptArena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 67
-   at InfServer.Game.ZoneServer.handleArenas() in C:\Infantry\infserver\trunk\InfServer\Game\ZoneArenas.cs:line 77 
-                  
-                try
-                {
-                    if (update.killedID == from._occupiedVehicle._id)
-                    {	//Yes! Fall out of the vehicle
-                        from._occupiedVehicle.kill(killer);
-                        from._occupiedVehicle.playerLeave(true);
-                        return;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.write(TLog.Warning, "handle player death" + e);
-                }
-                //We shouldn't be able to 'kill' anything else
-                Log.write(TLog.Warning, "Player {0} died with invalid killedID #{1}", from._alias, update.killedID);
-                return;
-            }
-*/
+
             //Fall out of our vehicle and die!
             if (from._occupiedVehicle != null)
             {
@@ -1272,22 +1240,17 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 		public override void handlePlayerShopSkill(Player from, SkillInfo skill)
 		{   //Do we have the skills required for this?
             if (!Logic_Assets.SkillCheck(from, skill.Logic))
-                return;
-
-            //Is he able to pick these classes?
-/*            
-            if (!from.IsSpectator && !Logic_Assets.SkillCheckTester(from, skill.SkillId, _server._zoneConfig.arena.exitSpectatorLogic))
             {
-                from.sendMessage(-1, "That is not an eligible class to play.");
+                Log.write("do not " + skill.Logic);
                 return;
             }
-*/            
+
             //Make sure it's okay with our script...
             if (!exists("Shop.SkillRequest") || (bool)callsync("Shop.SkillRequest", false, from, skill))
                 //Perform the skill modify
-                if (from.skillModify(skill, 1))
-                    //Success! Forward to our script
-                    callsync("Shop.SkillPurchase", false, from, skill);
+            if (from.skillModify(skill, 1))            
+                //Success! Forward to our script
+                callsync("Shop.SkillPurchase", false, from, skill);            
 		}
         #endregion
 
@@ -1319,6 +1282,11 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 player.sendMessage(-1, String.Format("You are being antiwarped by {0}", antiWarp._alias));
                 return;
             }
+
+            //Are we currently using another item while warping?
+            //ItemInfo info = _server._assets.getItemByID(item.id);
+            //if (info != null && player._lastItemUse != 0 && info.id != player._lastItemUseID)
+                //return;
 
 			//What sort of warp item are we dealing with?
 			switch (item.warpMode)
@@ -1556,39 +1524,19 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
 
                 //Holy fuck this is so much shorter!
-                /* get this using commented lines below, checking if same for previously used line
-                 * they both do the same thing?
-                 * 
-                 * [3:49:10 PM]* Exception whilst polling arena Public1:
-System.ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection.
-Parameter name: index
-   at System.ThrowHelper.ThrowArgumentOutOfRangeException()
-   at System.Collections.Generic.List`1.get_Item(Int32 index)
-   at InfServer.Game.Player.skillModify(Boolean bSyncState, SkillInfo skill, Int32 adjust) in C:\Infantry\infserver\trunk\InfServer\Game\Objects\Player.cs:line 548
-   at InfServer.Game.Player.skillModify(SkillInfo skill, Int32 adjust) in C:\Infantry\infserver\trunk\InfServer\Game\Objects\Player.cs:line 468
-   at InfServer.Game.ScriptArena.handlePlayerShopSkill(Player from, SkillInfo skill) in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 1210
-   at InfServer.Logic.Logic_Game.<>c__DisplayClass1f.<Handle_CS_ShopSkill>b__1e(Arena arena) in C:\Infantry\infserver\trunk\InfServer\Logic\Packets\Update\Game.cs:line 338
-   at InfServer.Game.Arena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\Arena.cs:line 438
-   at InfServer.Game.ScriptArena.poll() in C:\Infantry\infserver\trunk\InfServer\Game\Arena\ScriptArena.cs:line 67
-   at InfServer.Game.ZoneServer.handleArenas() in C:\Infantry\infserver\trunk\InfServer\Game\ZoneArenas.cs:line 77
-[3:49:12 PM]* Exception whilst polling arena Public1:
-                 */
                 try
                 {
                     //It is not items, has to be the vehicle list or type
                     //Note: In ca High Wall is causing this error
-                    playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID &&
-                        v._creator._alias == player._alias).Count();
+                    playerTotal = player._arena.Vehicles.Where(v => v != null && v._type.Id == item.vehicleID &&
+                        v._creator != null && v._creator._alias == player._alias).Count();
                 }
                 catch (Exception e)
                 {
                     Log.write(TLog.Warning, "--some error? By player " + player._alias + " " + e);
                 }
-// trying something   playerTotal = player._arena.Vehicles.Where(v => v._type.Id == item.vehicleID &&
-//                    v._creator._alias.Equals(player._alias)).Count();
 
                 //Continue long boring non-linq stuff... zzzzz
-
                 if (newComp != null)
                 {   //Get a list of the vehicles in the arena
                     IEnumerable<Vehicle> vehs = player._arena.Vehicles;
@@ -1939,7 +1887,101 @@ Parameter name: index
 			player.spectate(target);
 		}
         #endregion
+/*
+        #region handleVehiclePickup
+        /// <summary>
+        /// Triggered when a player requests to pick up a vehicle item
+        /// </summary>
+        public override void handleVehiclePickup(Player from, CS_VehiclePickup update)
+        {
+            //Find the vehicle item in question
+            lock (_vehicles)
+            {
+            /* Move to a function to handle the vehicle pickup packet #16
+            if (entry._type.PickupItemId != 0)
+            { //This vehicle becomes an item when it is picked up
+                ItemInfo item = _server._assets.getItemByID(entry._type.PickupItemId);
+                if (item != null)
+                {
+                    from.inventoryModify(item, 1);
+                    entry.destroy(true, true);
+                    return;
+                }
+            } */
+        /*
+                //Is this a dropped vehicle?
+                VehInfo vehicle = _server._assets.getVehicleByID(from._baseVehicle._type.Id);
+                if (vehicle.DropItemId != 0)
+                {
+                    ItemInfo item = _server._assets.getItemByID(vehicle.DropItemId);
+                    if (item != null)
+                        itemSpawn(item, (ushort)vehicle.DropItemQuantity, from._state.positionX, from._state.positionY);
+                }
 
+                VehInfo vehID = _server._assets.getVehicleByID(from._baseVehicle._type.Id);
+                Vehicle dropped;
+                if ((dropped = _vehicles.getObjByID(vehID.Id)) == null)
+                {
+                    Log.write(TLog.Warning, "Player {0} attempted to pick up an invalid vehicle.", from._alias);
+                    return;
+                }
+
+                if (dropped._type.PickupItemId != 0)
+                {
+                    //This vehicle becomes an item when it is picked up
+                    ItemInfo item = _server._assets.getItemByID(dropped._type.PickupItemId);
+                    if (item != null)
+                    {
+                        from.inventoryModify(item, 1);
+                        dropped.destroy(true, true);
+                        return;
+                    }
+                }
+
+                ItemDrop drop;
+                if (!_items.TryGetValue(update.itemID, out drop))
+                    //Doesn't exist
+                    return;
+
+                //In range? 
+                if (!Helpers.isInRange(_server._zoneConfig.arena.itemPickupDistance,
+                                        drop.positionX, drop.positionY,
+                                        from._state.positionX, from._state.positionY))
+                    return;
+
+                //Do we allow pickup?
+                if (!_server._zoneConfig.level.allowUnqualifiedPickup &&
+                    !Logic_Assets.SkillCheck(from, drop.item.skillLogic))
+                    return;
+
+                //Sanity checks
+                if (update.quantity > drop.quantity)
+                    return;
+
+                //Forward to our script
+                if (!exists("Player.VehiclePickup") || (bool)callsync("Player.VehiclePickup", false, from, drop, update.quantity))
+                {
+                    if (update.quantity == drop.quantity)
+                    {	//Delete the drop
+                        _items.Remove(drop.id);
+                        drop.quantity = 0;
+                    }
+                    else
+                        drop.quantity = (short)(drop.quantity - update.quantity);
+
+                    //Add the pickup to inventory!
+                    from.inventoryModify(drop.item, update.quantity);
+
+                    //Update his bounty.
+                    from.Bounty += drop.item.prizeBountyPoints;
+
+                    //Remove the item from player's clients
+                    Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
+                }
+            }
+        }
+        #endregion
+*/
         #region handleVehicleCreation
         /// <summary>
 		/// Triggered when a vehicle is created

@@ -91,7 +91,6 @@ namespace InfServer.Logic
             {
                 z._client.send(reply);
             }
-
         }
 
         static public void Handle_CS_ModCommand(CS_ModCommand<Zone> pkt, Zone zone)
@@ -106,6 +105,21 @@ namespace InfServer.Logic
                 hist.command = pkt.command;
                 hist.date = DateTime.Now;
                 db.histories.InsertOnSubmit(hist);
+                db.SubmitChanges();
+            }
+        }
+
+        static public void Handle_CS_ChatCommand(CS_ChatCommand<Zone> pkt, Zone zone)
+        {
+            using (Data.InfantryDataContext db = zone._server.getContext())
+            {
+                Data.DB.helpcall help = new Data.DB.helpcall();
+                help.sender = pkt.sender;
+                help.zone = pkt.zone;
+                help.arena = pkt.arena;
+                help.reason = pkt.reason;
+                help.date = DateTime.Now;
+                db.helpcalls.InsertOnSubmit(help);
                 db.SubmitChanges();
             }
         }
@@ -134,6 +148,7 @@ namespace InfServer.Logic
             CS_JoinChat<Zone>.Handlers += Handle_CS_JoinChat;
             CS_PrivateChat<Zone>.Handlers += Handle_CS_Chat;
             CS_ModCommand<Zone>.Handlers += Handle_CS_ModCommand;
+            CS_ChatCommand<Zone>.Handlers += Handle_CS_ChatCommand;
         }
     }
 

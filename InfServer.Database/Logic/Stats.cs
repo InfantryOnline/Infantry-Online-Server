@@ -106,7 +106,7 @@ namespace InfServer.Logic
 			}
 		}
 
-        		/// <summary>
+        /// <summary>
 		/// Handles a player update request
 		/// </summary>
         static public void Handle_CS_SquadMatch(CS_SquadMatch<Zone> pkt, Zone zone)

@@ -357,12 +357,14 @@ namespace InfServer.Game
         /// </summary>
         private void updateDoors()
         {
-//            List<LioInfo.Door> doors = new List<LioInfo.Door>();
             foreach (SwitchState ss in _switches.Values)
             {
                 if (ss.Switch.SwitchData.Switch == 1)
                     //This is a turret switch, not a door.
                     continue;
+
+                //Lets make a new list for each switch
+                List<LioInfo.Door> _linked = new List<LioInfo.Door>();
 
                 foreach (int doorid in ss.Switch.SwitchData.SwitchLioId)
                 {   //Update map level info with whether or not door is open or closed
@@ -376,6 +378,8 @@ namespace InfServer.Game
                     if (door == null)
                         continue;
 
+                    //Add to our list
+                    
                     bool isBlocked = !ss.bOpen; //Is the door closed?
 
                     if (door.DoorData.InverseState == 1)//Is the state inversed?
@@ -422,11 +426,19 @@ namespace InfServer.Game
             try
             {
                 possibilities.AddRange(from v in Vehicles //_vehicles
-                                       where ((v.relativeID) == relID &&
-                                               (v._type.Type == VehInfo.Types.Computer)
-                                           || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
-                                           || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
+                                       where ( (v._type.Type == VehInfo.Types.Computer
+                                           || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v))
+                                           //|| (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
+                                           && v.relativeID == relID)
                                        select new RelativeObj(v._state.positionX, v._state.positionY, v._team._id));
+                /*
+                possibilities.AddRange(from v in Vehicles
+                                        where (v.relativeID == relID &&
+                 	                    (v._type.Type == VehInfo.Types.Computer)
+                 	                    || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
+                 	                    || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
+                 	                    select new RelativeObj(v._state.positionX, v._state.positionY, v._team._id));
+                */
                 possibilities.AddRange(from f in _flags.Values
                                        where f.bActive && f.flag.FlagData.FlagRelativeId == relID
                                        select new RelativeObj(f.posX, f.posY, f.team._id));

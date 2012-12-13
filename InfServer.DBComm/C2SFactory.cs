@@ -201,6 +201,14 @@ namespace InfServer.Data
                     packet = new CS_SquadMatch<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_Alias<T>.TypeID:
+                    packet = new CS_Alias<T>(typeID, buffer, offset, size);
+                    break;
+
+                case CS_ChatCommand<T>.TypeID:
+                    packet = new CS_ChatCommand<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

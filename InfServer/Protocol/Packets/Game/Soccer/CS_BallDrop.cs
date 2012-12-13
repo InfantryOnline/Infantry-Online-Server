@@ -29,8 +29,6 @@ namespace InfServer.Protocol
         public Int16 unk5;
         public Int16 unk6;
         public Int16 unk7;
-        public Int32 something1;
-        public Int16 something2;
         public bool bSuccess;		//Was it a successful drop?
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallDrop;
@@ -86,15 +84,8 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            //bPickup = _contentReader.ReadBoolean();
-            // ballID = _contentReader.ReadByte();
-
-            //playerID = _contentReader.ReadByte();         
             //NOTE - 15th byte is the playerID who drops it
             //NOTE - 2nd byte is ballID
-            // positionX = _contentReader.ReadInt16();
-            //positionY = _contentReader.ReadInt16();
-
             bPickup = _contentReader.ReadByte(); // wtf is this?
             ballID = _contentReader.ReadByte();
             velocityX = _contentReader.ReadInt16();
@@ -107,16 +98,12 @@ namespace InfServer.Protocol
             unk1 = _contentReader.ReadByte();
             unk2 = _contentReader.ReadByte();
             unk3 = _contentReader.ReadByte();
-            //something1 = _contentReader.ReadInt32();
-            //something2 = _contentReader.ReadInt16();
             unk4 = _contentReader.ReadByte();
             unk5 = _contentReader.ReadByte();
             unk6 = _contentReader.ReadByte();
             unk7 = _contentReader.ReadByte();
-            //positionZ = _contentReader.ReadByte();
-            //bPickup = _contentReader.ReadInt16();
+            Log.write(String.Format("balllll DROP123 {0}-{1}-{2}", playerID, positionY, positionZ));
             Log.write(DataDump);
-            //bSuccess = _contentReader.ReadBoolean();
         }
 
         /// <summary>
@@ -127,7 +114,7 @@ namespace InfServer.Protocol
             get
             {
 
-                return String.Format("balllll DROP {0}-{1}-{2}", ballID, positionX, positionY);
+                return String.Format("balllll DROP {0}-{1}-{2}", positionX, positionY, positionZ);
             }
         }
     }

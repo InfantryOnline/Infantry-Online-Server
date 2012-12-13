@@ -147,8 +147,11 @@ namespace InfServer.Game
 				bool bUnoccupied = true;
 
 				foreach (Vehicle child in _childs)
-					if (child._inhabitant != null)
-						bUnoccupied = false;
+                    if (child._inhabitant != null)
+                    {
+                        bUnoccupied = false;
+                        _tickUnoccupied = 0;
+                    }
 
 				if (bUnoccupied)
 					_tickUnoccupied = Environment.TickCount;
@@ -274,6 +277,9 @@ namespace InfServer.Game
 				}
 			);
 
+            //Reset his movement timer
+            player._lastMovement = 0;
+
 			return true;
 		}
 
@@ -299,14 +305,15 @@ namespace InfServer.Game
 					});
 			}
 
-			//We're no longer inhabited
+            //We're no longer inhabited
 			_inhabitant._occupiedVehicle = null;
 			_inhabitant = null;
             _tickUnoccupied = Environment.TickCount;
 
-			testForUnoccupied();
+            testForUnoccupied();
 
 			Helpers.Object_VehicleBind(_arena.Players, this, null);
+
 		}
 
 

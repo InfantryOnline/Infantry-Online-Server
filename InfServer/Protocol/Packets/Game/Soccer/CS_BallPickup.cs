@@ -16,7 +16,6 @@ namespace InfServer.Protocol
         public Int16 bPickup;		//Pick up or put down?
         public Int16 ballID;
         public Int16 playerID;
-
         public Int16 unk1;
         public Int16 unk2;
         public Int16 unk3;
@@ -80,16 +79,9 @@ namespace InfServer.Protocol
             unk1 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
             unk2 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
             unk3 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
-            unk4 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
-            //playerID = _contentReader.ReadByte();
-
-
-            //positionX = _contentReader.ReadInt16();
-            //positionY = _contentReader.ReadInt16();
-            //positionZ = _contentReader.ReadByte();
-            //bPickup = _contentReader.ReadInt16();
+            unk4 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate            
+            Log.write(String.Format("balllll PICKUP {0}-{1}-{2}", ballID, unk1, unk2));
             Log.write(DataDump);
-            //bSuccess = _contentReader.ReadBoolean();
         }
 
         /// <summary>
@@ -100,7 +92,7 @@ namespace InfServer.Protocol
             get
             {
 
-                return String.Format("balllll pickup {0}", ballID);
+                return String.Format("Ball Pickup, Ball ID: {0}", ballID);
             }
         }
     }

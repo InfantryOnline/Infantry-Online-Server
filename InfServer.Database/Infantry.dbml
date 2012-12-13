@@ -121,6 +121,7 @@
       <Column Name="created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="expires" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="zone" Type="System.Int64" DbType="BigInt NULL" CanBeNull="true" />
+      <Column Name="reason" Type="System.String" DbType="Text" CanBeNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.history" Member="histories">
@@ -158,6 +159,16 @@
       <Column Name="loser" Type="System.Int64" DbType="BigInt Not Null" CanBeNull="false" />
       <Association Name="squad_squadmatch" Member="squad" ThisKey="squad1" OtherKey="id" Type="squad" IsForeignKey="true" />
       <Association Name="squad_squadmatch1" Member="squad3" ThisKey="squad2" OtherKey="id" Type="squad" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="" Member="helpcalls">
+    <Type Name="helpcall">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="sender" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="arena" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="zone" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="date" AutoSync="Never" Type="System.DateTime" DbType="DateTime NOT NULL" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="reason" Type="System.String" DbType="Text" CanBeNull="true" />
     </Type>
   </Table>
 </Database>

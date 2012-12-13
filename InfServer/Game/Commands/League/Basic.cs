@@ -17,10 +17,20 @@ namespace InfServer.Game.Commands.Mod
     public class League
     {
 
-
         static public void startmatch(Player player, Player recipient, string payload, int bong)
         {
-            //TODO: check to see if we are in a league zone
+            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            {
+                player.sendMessage(-1, "This command can only be used in non-public arenas.");
+                return;
+            }
+
+            if (!player._server.Name.Contains("League"))
+            {
+                player.sendMessage(-1, "This command can only be used in league zones.");
+                return;
+            }
+
             //Lock the arena
             Basic.speclock(player, null, "all", bong);
 

@@ -40,10 +40,11 @@ namespace InfServer.Protocol
 				PlayerUseItem = 0x0F,
 				ChartRequest = 0x11,
 				Frames = 0x15,
+                VehiclePickup = 0x16, /*To finish*/
+                PlayerDrop = 0x17,
+                Chat = 0x18,
                 BallPickup = 0x1A,
                 BallDrop = 0x1B,
-				PlayerDrop = 0x17,
-				Chat = 0x18,
 				PlayerUpdate = 0x1C,
 				RequestUpdate = 0x1E,
 				Environment = 0x1F,
@@ -52,10 +53,10 @@ namespace InfServer.Protocol
 				PlayerPortal = 0x22,
 				FileSend = 0x23,
 				Security = 0x25,
+                GoalScored = 0x27,
                 AllowSpectator = 0x2A,
 				RequestSpectator = 0x2B,
                 SecurityResponse = 36,
-                GoalScored = 0x27,
 			}
 
 			/// <summary>
@@ -109,7 +110,7 @@ namespace InfServer.Protocol
 				SetBounty = 0x2E,
 				ConfirmFileSend = 0x2F,
 				DisplayChart = 0x30,
-				BannerTransfer = 0x31, //TODO: ?
+				BannerTransfer = 0x31, /*TODO: ?*/
 				BannerInfo = 0x32,
 				ItemReload = 0x33,
 				PlayerSpectate = 0x35,

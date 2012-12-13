@@ -14,9 +14,9 @@ namespace InfServer
     ///////////////////////////////////////////////////////
     public class Chat
     {
-        DBServer _server;                       //Who we work for..
+        DBServer _server;                               //Who we work for..
         public Dictionary<string, string[]> _players;    //The players in our chat..
-        public string _name;                    //The name of our chat             
+        public string _name;                            //The name of our chat          
 
         public Chat(DBServer server, string chat)
         {

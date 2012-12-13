@@ -37,6 +37,8 @@ namespace InfServer.Protocol
                 Disconnect = 17,
                 Ban = 18,
                 SquadStats,
+                Alias = 20,
+                ChatCommand = 21,
             }
             ///<summary>
             ///Contains S2C packet ids

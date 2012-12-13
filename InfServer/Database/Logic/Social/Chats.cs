@@ -22,7 +22,8 @@ namespace InfServer.Logic
             if (player == null)
                 return;
 
-            char[] splitArr = { ',' };
+            //char[] splitArr = { ',' };
+            char[] splitArr = { ' ' };
             string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             SC_Chat notify = new SC_Chat();
@@ -45,7 +46,8 @@ namespace InfServer.Logic
 
         static public void Handle_SC_LeaveChat(SC_LeaveChat<Database> pkt, Database db)
         {
-            char[] splitArr = { ',' };
+            //char[] splitArr = { ',' };
+            char[] splitArr = { ' ' };
             string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             SC_Chat notify = new SC_Chat();
@@ -68,15 +70,14 @@ namespace InfServer.Logic
 
         static public void Handle_SC_Chat(SC_PrivateChat<Database> pkt, Database db)
         {
-
-
             SC_Chat msg = new SC_Chat();
             msg.chatType = Helpers.Chat_Type.PrivateChat;
             msg.message = pkt.chat + ":" + pkt.message;
             msg.from = pkt.from;
 
 
-            char[] splitArr = { ',' };
+            //char[] splitArr = { ',' };
+            char[] splitArr = { ' ' };
             string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
             foreach (string user in users)
             {

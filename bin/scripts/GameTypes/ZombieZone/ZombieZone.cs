@@ -1416,7 +1416,7 @@ namespace InfServer.Script.GameType_ZombieZone
                 {
                     player.setDefaultVehicle(AssetManager.Manager.getVehicleByID(150)); //nightmare zombie, temporary
                 }
-                catch (System.NullReferenceException e)
+                catch (System.NullReferenceException)
                 {
                     Log.write(TLog.Error, "Null error happening when trying to spawn nightmare zombie");
                     Log.write(TLog.Error, "Player in question was " + player._alias + ".  His vehicle is " + player._baseVehicle._type.Id);
@@ -1890,7 +1890,7 @@ namespace InfServer.Script.GameType_ZombieZone
                 //Is the killer in a turret or vehicle?
                 if (player._occupiedVehicle != null)
                 {	//We need to reward the creator a little!
-                    if (player != player._occupiedVehicle._creator && player._occupiedVehicle._creator != null)
+                    if (player._occupiedVehicle._creator != null && player != player._occupiedVehicle._creator)
                     {
                         Player creator = player._occupiedVehicle._creator;
                         skillRating = _stats.getKillSkillRating(zombie._type.Id);
@@ -2114,7 +2114,7 @@ namespace InfServer.Script.GameType_ZombieZone
         [Scripts.Event("Player.ChatCommand")]
         public bool playerChatCommand(Player player, Player recipient, string command, string payload)
         {
-            if (command.ToLower() == "spawn")
+            if (command.ToLower() == "spawn" && player.PermissionLevel >= InfServer.Data.PlayerPermission.ArenaMod)
             {	//Spawn a zombie on him!
                 if (player.isZombie() || player.IsDead || player.IsSpectator)
                     player.sendMessage(0, "Sorry, there might be a conflict of interest here.");

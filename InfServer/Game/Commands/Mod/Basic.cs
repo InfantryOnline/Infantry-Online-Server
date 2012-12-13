@@ -21,20 +21,15 @@ namespace InfServer.Game.Commands.Mod
     {
         static public void addball(Player player, Player recipient, string payload, int bong)
         {
-            //Get the ball's default spawn
-            int wID = player._server._zoneConfig.warpGroup.ballEntry;
-            LioInfo.WarpField spawnLoc = player._server._assets.Lios.getWarpGroupByID(wID).FirstOrDefault();
+            //Grab a new ballID
+            int ballID = player._arena._balls.Count; // We don't add 1, as the first ballID is 0, so the count is always the correct next ID (1 ball = ballID of 0, = next ballID of 1)            
 
-            //Does it exist?
-            if (spawnLoc == null)
+            if (ballID > 4)
             {
-                Log.write(TLog.Warning, "Attempt to spawn a ball with no associated warpgroup");
+                Log.write(TLog.Warning, "Attempt to add a 7th ball, too many!!!!");
+                player.sendMessage(-1, "All the balls are currently in the game.");
                 return;
             }
-
-            //Grab a new ballID
-            int ballID = player._arena._balls.Count + 1;
-
             //Lets create a new ball!
             Ball newBall = new Ball((short)ballID, player._arena);
 
@@ -42,17 +37,71 @@ namespace InfServer.Game.Commands.Mod
             newBall._state = new Ball.BallState();
 
             //Assign default state
-            newBall._state.positionX = spawnLoc.GeneralData.OffsetX;
-            newBall._state.positionY = spawnLoc.GeneralData.OffsetY;
-            newBall._state.positionZ = 0;
+            newBall._state.positionX = 2817;
+            newBall._state.positionY = 1600;
+            newBall._state.positionZ = 5;
+            newBall._state.unk2 = -1;
+            //newBall._state.carrier = 1;
+
 
             //Store it.
-            player._arena._balls.Add(newBall);
+            //player._arena._balls.Add(newBall);
 
 
             //Make each player aware of the ball
-            newBall.Route_Ball(player._arena.Players);
-            player._arena.sendArenaMessage("Ball Added");
+            //newBall.Route_Ball(player._arena.Players);
+            //player._arena.sendArenaMessage("Ball Added");
+        }
+        static public void getball(Player player, Player recipient, string payload, int bong)
+        {
+            ushort askedBallId; // Id of the requested getball
+            if (payload == "")
+            {
+                askedBallId = 0;
+            }
+            else
+            {
+                ushort requestBallID = Convert.ToUInt16(payload);
+                if (requestBallID > 4 || requestBallID < 0)
+                {
+                    Log.write(TLog.Warning, "Invalid getball Ball ID");
+                    player.sendMessage(-1, "Invalid getball Ball ID");
+                    return;
+                }
+                askedBallId = requestBallID;
+            }
+            //Get the ball in question..
+            Ball ball = recipient._arena._balls.FirstOrDefault(b => b._id == askedBallId);
+            foreach (Player p in player._arena.Players)
+            {
+                p._gotBallID = 999;
+            }
+            if (ball == null)
+            {
+                Log.write(TLog.Warning, "Ball does not exist.");
+                player.sendMessage(-1, "Ball does not exist.");
+                return;
+            }
+            recipient._gotBallID = ball._id;
+            //Assign the ball to the player
+            ball._state.carrier = recipient;
+            //Assign default state
+            ball._state.positionX = recipient._state.positionX;
+            ball._state.positionY = recipient._state.positionY;
+            ball._state.positionZ = recipient._state.positionZ;
+            ball._state.velocityX = 0;
+            ball._state.velocityY = 0;
+            ball._state.velocityZ = 0;
+            ball._state.unk2 = -1;
+            //newBall._state.carrier = 1;
+
+
+            //Store it.
+            //player._arena._balls.Add(newBall);
+
+            //Make each player aware of the ball
+            ball.Route_Ball(recipient._arena.Players);
+
         }
 
         /// <summary>
@@ -71,6 +120,12 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void authenticate(Player player, Player recipient, string payload, int bong)
         {
+            if (!player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Command is only available in stand-alone mode.");
+                return;
+            }
+
             if (player._server.IsStandalone && player._server._config["server/managerPassword"].Value.Length > 0)
             {
                 if (payload.Trim() == player._server._config["server/managerPassword"].Value)
@@ -87,6 +142,26 @@ namespace InfServer.Game.Commands.Mod
         static public void cash(Player player, Player recipient, string payload, int bong)
         {	//Find our target
             Player target = (recipient == null) ? player : recipient;
+
+            //Get players mod level first
+            int level;
+            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+                level = (int)player.PermissionLevelLocal;
+            else
+                level = (int)player.PermissionLevel;
+
+            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            {
+                player.sendMessage(-1, "You can only use it in non-public arena's.");
+                return;
+            }
+
+            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
+                if (level < (int)Data.PlayerPermission.Mod)
+                {
+                    player.sendMessage(-1, "You can only use it in private arena's.");
+                    return;
+                }
 
             //Convert our string to an int and check for illegal characters.
             int cashVal;
@@ -113,6 +188,26 @@ namespace InfServer.Game.Commands.Mod
         {	//Find our target
             Player target = (recipient == null) ? player : recipient;
 
+            //Get players mod level first
+            int level;
+            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+                level = (int)player.PermissionLevelLocal;
+            else
+                level = (int)player.PermissionLevel;
+
+            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            {
+                player.sendMessage(-1, "You can only use it in non-public arena's.");
+                return;
+            }
+
+            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
+                if (level < (int)Data.PlayerPermission.Mod)
+                {
+                    player.sendMessage(-1, "You can only use it in private arena's.");
+                    return;
+                }
+
             //Convert our string to an int and check for illegal characters.
             int expVal;
             if (!Int32.TryParse(payload, out expVal))
@@ -136,8 +231,17 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void global(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
-            if (payload == "" || player._server.IsStandalone)
+            if (payload == "")
+            {
+                player.sendMessage(-1, "And say what?");
                 return;
+            }
+            
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
 
             CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
             pkt.queryType = CS_Query<Data.Database>.QueryType.global;
@@ -145,6 +249,74 @@ namespace InfServer.Game.Commands.Mod
             pkt.payload = payload;
 
             player._server._db.send(pkt);
+        }
+
+        /// <summary>
+        /// Grants a player private arena privileges
+        /// </summary>
+        static public void grant(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity checks
+            if (recipient == null || payload == "")
+            {
+                player.sendMessage(-1, (recipient == null) ? "That player isn't here." : "Syntax: ::*grant or *grant alias");
+                return;
+            }
+
+            if (!player._arena.IsPrivate)
+            {
+                player.sendMessage(-1, "This is not a private arena.");
+                return;
+            }
+
+            if (!player._arena.IsGranted(player))
+            {
+                player.sendMessage(-1, "You are not granted in this arena.");
+                return;
+            }
+
+            if (recipient != null)
+            {
+                if (recipient.PermissionLevel > Data.PlayerPermission.ArenaMod)
+                {
+                    player.sendMessage(-1, "That person doesn't need grant.");
+                    return;
+                }
+
+                if (player._arena.IsGranted(recipient))
+                {
+                    player.sendMessage(-1, "He/she is already granted.");
+                    return;
+                }
+                player._arena._owner.Add(recipient._alias);
+                recipient._permissionTemp = Data.PlayerPermission.ArenaMod;
+                recipient.sendMessage(0, "You are now granted arena privileges.");
+            }
+            else
+            {
+                if ((recipient = player._arena.getPlayerByName(payload)) == null)
+                {
+                    player.sendMessage(-1, "That player doesn't exist.");
+                    return;
+                }
+
+                if (recipient.PermissionLevel > Data.PlayerPermission.ArenaMod)
+                {
+                    player.sendMessage(-1, "That person doesn't need grant.");
+                    return;
+                }
+
+                if (player._arena.IsGranted(recipient))
+                {
+                    player.sendMessage(-1, "He/she is already granted.");
+                    return;
+                }
+                player._arena._owner.Add(recipient._alias);
+                recipient._permissionTemp = Data.PlayerPermission.ArenaMod;
+                recipient.sendMessage(0, "You are now granted arena privileges.");
+            }
+
+            player.sendMessage(0, "You have given " + recipient._alias.ToString() + " arena privileges.");
         }
 
         /// <summary>
@@ -164,7 +336,7 @@ namespace InfServer.Game.Commands.Mod
                 //New help list, sorted by level
                 if (player.PermissionLevelLocal != Data.PlayerPermission.Developer)
                 {
-                    for (level = 0; level < 7; level++)
+                    for (level = 0; level <= (int)player.PermissionLevelLocal; level++)
                     {
                         player.sendMessage(0, String.Format("!{0}", powers[level]));
                         foreach (HandlerDescriptor cmd in player._arena._commandRegistrar._modCommands.Values)
@@ -204,6 +376,145 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Returns a list of help calls used in every server
+        /// </summary>
+        static public void helpcall(Player player, Player recipient, string payload, int bong)
+        {
+            int page;
+            if (payload == "")
+                page = 0;
+            else
+            {
+                try
+                {
+                    page = Convert.ToInt32(payload);
+                }
+                catch
+                {
+                    page = 0;
+                }
+            }
+            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+            pkt.queryType = CS_Query<Data.Database>.QueryType.helpcall;
+            pkt.sender = player._alias;
+            pkt.payload = page.ToString();
+            //Send it!
+            player._server._db.send(pkt);
+        }
+
+        /// <summary>
+        /// Bans the player from a specific arena - if granted players, privately owned only
+        /// </summary>
+        static public void kick(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity check
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(0, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            //Get players mod level first
+            int level;
+            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+                level = (int)player.PermissionLevelLocal;
+            else
+                level = (int)player.PermissionLevel;
+
+            //Check if they are granted and in a private arena
+            if (level == (int)Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+            {
+                player.sendMessage(-1, "Nice try.");
+                return;
+            }
+
+            if (level == (int)Data.PlayerPermission.Developer && player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            {
+                player.sendMessage(-1, "You can only use it in non-public arena's.");
+                return;
+            }
+
+            if (recipient != null && payload == "")
+            {
+                //Assume they just want to kick them out of the arena temporarily
+                recipient.sendMessage(-1, "You have been kicked out of the arena.");
+                recipient.disconnect();
+                player.sendMessage(0, String.Format("You have kicked player {0} from the arena.", recipient._alias.ToString()));
+                return;
+            }
+
+            if (recipient == null && payload == "")
+            {
+                player.sendMessage(-1, "Syntax: ::*kick time(Optional) OR *kick alias time(Optional)");
+                return;
+            }
+
+            string alias;
+            int minutes = 0;
+            string[] param = payload.Split(' ');
+
+            //Lets grab the players name
+            if (recipient != null)
+            {
+                alias = recipient._alias.ToString();
+                //Lets get the time too
+                try
+                {
+                    minutes = Convert.ToInt32(payload);
+                }
+                catch (OverflowException) //We are only catching overflow, null can be 0, we can kick without a time limit 
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
+                }
+            }
+            else
+            {
+                int number;
+                alias = param.ElementAt(0);
+                //Lets check to see if they just used a timer without a name
+                if (Int32.TryParse(alias, out number))
+                {
+                    player.sendMessage(-1, "You must type a person's name or pm the person to use this command.");
+                    return;
+                }
+
+                if ((recipient = player._arena.getPlayerByName(alias)) == null)
+                {
+                    player.sendMessage(-1, "That player isn't here.");
+                    return;
+                }
+                alias = recipient._alias.ToString();
+
+                //Lets check for time now
+                try
+                {
+                    minutes = Convert.ToInt32(param.ElementAt(1));
+                }
+                catch (OverflowException) //We are only catching overflow, null = 0 which we can kick without a time limit 
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
+                }
+            }
+            //Remove his privileges
+            if (player._arena._owner != null && player._arena._owner.Count > 0)
+            {
+                foreach (var p in player._arena._owner)
+                    if (recipient._alias.Equals(p))
+                    {
+                        player._arena._owner.Remove(p);
+                        break;
+                    }
+            }
+            recipient.sendMessage(-1, String.Format("You have been kicked from the arena{0}", (minutes > 0) ? String.Format(" for {1} minutes.", minutes) : "."));
+            recipient._server._arenaBans[recipient._arena._name].Add(recipient._alias, DateTime.Now.AddMinutes(minutes));
+            recipient.disconnect();
+
+            player.sendMessage(0, String.Format("You have kicked player {0}{1}", recipient._alias, (minutes > 0) ? (String.Format (" for {2} minutes.", minutes)) : ".") );
+        }
+
+        /// <summary>
         /// Permits a player in a permission-only zone
         /// </summary>
         static public void permit(Player player, Player recipient, string payload, int bong)
@@ -233,12 +544,12 @@ namespace InfServer.Game.Commands.Mod
                 Logic.Logic_Permit.addPermit(payload);
 
                 //Let the person know
-                SC_Whisper<Data.Database> whisper = new SC_Whisper<Data.Database>();
+                CS_Whisper<Data.Database> whisper = new CS_Whisper<Data.Database>();
                 whisper.bong = 1;
                 whisper.recipient = payload.ToString();
                 whisper.message = (String.Format("You have been given permission to enter {0}.", player._server.Name));
                 whisper.from = player._alias;
-
+                
                 player._server._db.send(whisper);
             }
         }
@@ -254,6 +565,7 @@ namespace InfServer.Game.Commands.Mod
                 if (payload == "cancel")
                 {
                     player._arena.pollQuestion(player._arena, false);
+                    player._arena.sendArenaMessage(String.Format("{0}'s Poll has been cancelled.", player._alias));
                     return;
                 }
 				player.sendMessage(-1, "There is a poll in progress, you must wait till its finished to start a new one.");
@@ -275,6 +587,7 @@ namespace InfServer.Game.Commands.Mod
                 timer = Convert.ToInt32(result.ElementAt(1));
                 player._arena.setTicker(1, 4, timer * 100, result.ElementAt(0), delegate() { player._arena.pollQuestion(player._arena, true); });
                 player._arena.sendArenaMessage(String.Format("!A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), result.ElementAt(0)));
+                player._arena.sendArenaMessage("!Type ?poll yes or ?poll no to participate");
             }
             else
             {
@@ -295,6 +608,26 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Syntax: *prize item:amount or ::*prize item:amount");
                 return;
             }
+
+            //Get players mod level first
+            int level;
+            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+                level = (int)player.PermissionLevelLocal;
+            else
+                level = (int)player.PermissionLevel;
+
+            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            {
+                player.sendMessage(-1, "You can only use it in non-public arena's.");
+                return;
+            }
+
+            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
+                if (level < (int)Data.PlayerPermission.Mod)
+                {
+                    player.sendMessage(-1, "You can only use it in private arena's.");
+                    return;
+                }
 
             //Determine the item and quantitiy
             string[] args = payload.Split(':');
@@ -338,6 +671,11 @@ namespace InfServer.Game.Commands.Mod
             Player target = (recipient == null) ? player : recipient;
             player.sendMessage(-3, "&Player Profile Information");
             player.sendMessage(0, "*" + target._alias);
+            if (target == player)
+                //Spit out his own level
+                player.sendMessage(0, "&Permission Level: " + (int)player.PermissionLevel);
+            if (recipient != null && player.PermissionLevel > recipient.PermissionLevel)
+                player.sendMessage(0, "&Permission Level: " + (int)recipient.PermissionLevel);
             player.sendMessage(0, "Items");
             foreach (KeyValuePair<int, Player.InventoryItem> itm in target._inventory)
                 player.sendMessage(0, String.Format("~{0}={1}", itm.Value.item.name, itm.Value.quantity));
@@ -447,9 +785,8 @@ namespace InfServer.Game.Commands.Mod
             if (payload.ToLower() == "all")
             {
                 foreach (Player p in player._arena.PlayersIngame.ToList())
-                {
                     p.spec();
-                }
+                return;
             }
 
             //Do we have a target team?
@@ -573,7 +910,7 @@ namespace InfServer.Game.Commands.Mod
                 player._bIsStealth = true;
                 foreach (Player person in audience)
                     //Their level is the same or greater, allow them to see him/her
-                    if (person != player && person.PermissionLevel >= player.PermissionLevel)
+                    if (person != player && player.PermissionLevel >= person.PermissionLevel)
                         Helpers.Object_PlayerLeave(person, player);
                 return;
             }
@@ -581,7 +918,7 @@ namespace InfServer.Game.Commands.Mod
             player.sendMessage(0, "Stealth mode is now 'OFF'.");
             player._bIsStealth = false;
             foreach (Player person in audience)
-                if (person != player && person.PermissionLevel >= player.PermissionLevel)
+                if (person != player && person.PermissionLevel < player.PermissionLevel)
                     Helpers.Object_Players(person, player);
         }
 
@@ -616,6 +953,12 @@ namespace InfServer.Game.Commands.Mod
             if (newTeam == null)
             {
                 player.sendMessage(-1, "The specified team doesn't exist.");
+                return;
+            }
+
+            if (payload.ToLower().Equals("spec") || payload.ToLower().Equals("spectator"))
+            {
+                player.sendMessage(-1, "You can't use this team name.");
                 return;
             }
 
@@ -873,12 +1216,370 @@ namespace InfServer.Game.Commands.Mod
 
             //Wiping all stats/inv etc
             recipient.assignFirstTimeStats(true);
-            player.syncInventory();
-            player.syncState();
-            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeSkillSetup);
-            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeInvSetup);
+            recipient.syncInventory();
+            recipient.syncState();
+            Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeSkillSetup);
+            Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeInvSetup);
 
             player.sendMessage(0, "His/her character has been wiped.");
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////Below are Banning Commands/////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Bans a player from a specific zone
+        /// </summary>
+        static public void ban(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity check
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            if (recipient == null && payload == "")
+            {
+                player.sendMessage(-1, "Syntax: either ::*ban time:reason(optional) or *ban alias time:reason(optional)");
+                return;
+            }
+
+            string[] param;
+            string reason = "None given";
+            string alias;
+            int minutes = 0;
+            int number;
+
+            //Check to see if we are pm'ing someone
+            if (recipient != null)
+            {
+                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                {
+                    player.sendMessage(-1, "You can't ban someone equal or higher than you.");
+                    return;
+                }
+
+                if (payload == "")
+                {
+                    player.sendMessage(-1, "Syntax: ::*ban time:reason(Optional)");
+                    return;
+                }
+
+                alias = recipient._alias.ToString();
+
+                //Let the person know
+                if (minutes > 0)
+                    recipient.sendMessage(0, String.Format("You are being banned for {0} minutes.", minutes));
+            }
+            else //Using an alias instead
+            {
+                param = payload.Split(' ');
+                if (!Int32.TryParse(param.ElementAt(0), out number))
+                    alias = param[0].ToString();
+                else
+                {
+                    player.sendMessage(-1, "Syntax: *ban alias time:reason(Optional)");
+                    return;
+                }
+            }
+
+            //Must be a timed ban?
+            if (payload.Contains(':'))
+            {
+                param = payload.Split(':');
+                string[] pick = param.ElementAt(0).Split(' ');
+                try
+                {
+                    minutes = Convert.ToInt32(pick.ElementAt(1));
+                }
+                catch
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
+                }
+
+                //Check if there is a reason
+                if (param[1] != null && param[1] != "")
+                    reason = param[1];
+            }
+            else
+            {
+                param = payload.Split(' ');
+                if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                {
+                    player.sendMessage(-1, "Syntax: either ::*ban time:reason(optional) or *ban alias time:reason(optional)");
+                    return;
+                }
+                try
+                {
+                    minutes = Convert.ToInt32(param[1]);
+                }
+                catch (OverflowException)
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                }
+            }
+
+            //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
+            if (recipient != null)
+                recipient.disconnect();
+
+            player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
+
+            //Relay it to the database
+            CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
+            newBan.banType = CS_Ban<Data.Database>.BanType.account;
+            newBan.alias = alias;
+            if (recipient != null)
+            {
+                newBan.UID1 = recipient._UID1;
+                newBan.UID2 = recipient._UID2;
+                newBan.UID3 = recipient._UID3;
+            }
+            newBan.time = minutes;
+            newBan.sender = player._alias;
+            newBan.reason = reason.ToString();
+
+            player._server._db.send(newBan);
+        }
+
+        /// <summary>
+        /// Bans a player from a specific zone
+        /// </summary>
+        static public void block(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity check
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            if (recipient == null && payload == "")
+            {
+                player.sendMessage(-1, "Syntax: either ::*block time:reason(optional) or *block alias time:reason(optional)");
+                player.sendMessage(-1, "Note: make sure you are in the zone you want to ban from");
+                return;
+            }
+
+            string[] param;
+            string reason = "None given";
+            string alias;
+            int minutes = 0;
+            int number;
+
+            //Check to see if we are pm'ing someone
+            if (recipient != null)
+            {
+                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                {
+                    player.sendMessage(-1, "You can't ban someone equal or higher than you.");
+                    return;
+                }
+
+                if (payload == "")
+                {
+                    player.sendMessage(-1, "Syntax: ::*block time:reason(Optional)");
+                    return;
+                }
+
+                alias = recipient._alias.ToString();
+
+                //Let the person know
+                if (minutes > 0)
+                    recipient.sendMessage(0, String.Format("You are being banned for {0} minutes.", minutes));
+            }
+            else //Using an alias instead
+            {
+                param = payload.Split(' ');
+                //Lets see if they did type the alias first
+                if (!Int32.TryParse(param.ElementAt(0), out number))
+                    alias = param[0].ToString();
+                else
+                {
+                    player.sendMessage(-1, "Syntax: *block alias time:reason(Optional)");
+                    return;
+                }
+            }
+
+            //Must be a timed ban?
+            if (payload.Contains(':'))
+            {
+                param = payload.Split(':');
+                string[] pick = param.ElementAt(0).Split(' ');
+                try
+                {
+                    minutes = Convert.ToInt32(pick.ElementAt(1));
+                }
+                catch
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
+                }
+
+                //Check if there is a reason
+                if (param[1] != null && param[1] != "")
+                    reason = param[1];
+            }
+            else
+            {
+                param = payload.Split(' ');
+                if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                {
+                    player.sendMessage(-1, "Syntax: either ::*block time:reason(optional) or *block alias time:reason(optional)");
+                    return;
+                }
+
+                try
+                {
+                    minutes = Convert.ToInt32(param[1]);
+                }
+                catch (OverflowException)
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                }
+            }
+
+            if (recipient != null)
+                //KILL HIM!!
+                recipient.disconnect();
+
+            player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
+
+            //Relay it to the database
+            CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
+            newBan.banType = CS_Ban<Data.Database>.BanType.zone;
+            newBan.alias = alias;
+            if (recipient != null)
+            {
+                newBan.UID1 = recipient._UID1;
+                newBan.UID2 = recipient._UID2;
+                newBan.UID3 = recipient._UID3;
+            }
+            newBan.time = minutes;
+            newBan.sender = player._alias;
+            newBan.reason = reason.ToString();
+
+            player._server._db.send(newBan);
+        }
+
+        /// <summary>
+        /// Bans a player from a specific zone
+        /// </summary>
+        static public void ipban(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity check
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            if (recipient == null && payload == "")
+            {
+                player.sendMessage(-1, "Syntax: either ::*ipban time:reason(optional) or *ipban alias time:reason(optional)");
+                return;
+            }
+
+            string[] param;
+            string reason = "None given";
+            string alias;
+            int minutes = 0;
+            int number;
+
+            //Check to see if we are pm'ing someone
+            if (recipient != null)
+            {
+                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                {
+                    player.sendMessage(-1, "You can't ban someone equal or higher than you.");
+                    return;
+                }
+
+                if (payload == "")
+                {
+                    player.sendMessage(-1, "Syntax: ::*ipban time:reason(Optional)");
+                    return;
+                }
+
+                alias = recipient._alias.ToString();
+
+                //Let the person know
+                if (minutes > 0)
+                    recipient.sendMessage(0, String.Format("You are being banned for {0} minutes.", minutes));
+            }
+            else //Using an alias instead
+            {
+                param = payload.Split(' ');
+                if (!Int32.TryParse(param.ElementAt(0), out number))
+					alias = param[0].ToString();
+				else
+				{
+					player.sendMessage(-1, "Syntax: *ipban alias time:reason(Optional)");
+					return;
+				}
+            }
+
+            //Must be a timed ban?
+            if (payload.Contains(':'))
+            {
+                param = payload.Split(':');
+                string[] pick = param.ElementAt(0).Split(' ');
+                try
+                {
+                    minutes = Convert.ToInt32(pick.ElementAt(1));
+                }
+                catch
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
+                }
+
+                //Check if there is a reason
+                if (param[1] != null && param[1] != "")
+                    reason = param[1];
+            }
+            else
+            {
+                param = payload.Split(' ');
+				if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                {
+                    player.sendMessage(-1, "Syntax: either ::*ipban time:reason(optional) or *ipban alias time:reason(optional)");
+                    return;
+                }
+                try
+                {
+                    minutes = Convert.ToInt32(param[1]);
+                }
+                catch (OverflowException)
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                }
+            }
+
+            if (recipient != null)
+                //KILL HIM!!
+                recipient.disconnect();
+
+            player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
+
+            //Relay it to the database
+            CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
+            newBan.banType = CS_Ban<Data.Database>.BanType.ip;
+            newBan.alias = alias;
+            if (recipient != null)
+            {
+                newBan.UID1 = recipient._UID1;
+                newBan.UID2 = recipient._UID2;
+                newBan.UID3 = recipient._UID3;
+            }
+            newBan.time = minutes;
+            newBan.sender = player._alias;
+            newBan.reason = reason.ToString();
+
+            player._server._db.send(newBan);
         }
 
         /// <summary>
@@ -889,12 +1590,12 @@ namespace InfServer.Game.Commands.Mod
             //Kill all?
             if (payload != null && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
                 foreach (Player p in player._arena.Players)
-                    p.destroy();
+                    if (p != player)
+                        p.disconnect();
             else
                 if (recipient != null && (int)player.PermissionLevel >= (int)recipient.PermissionLevel)
                     //Destroy him!
-                    recipient.destroy();
-
+                    recipient.disconnect();
                 else
                     player.sendMessage(-1, "Syntax: ::*kill reason (optional) or *kill all");
         }
@@ -904,11 +1605,13 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void gkill(Player player, Player recipient, string payload, int bong)
         {
-            SqlConnection db;
-            string pAccount = "";
-            string alias = "";
-            string reason = "None given";
-            int minutes = 0;
+            //SqlConnection db;
+            //string pAccount = "";
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
 
             if (payload == "" && recipient == null)
             {
@@ -916,17 +1619,24 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            string[] parameters;
             string[] param;
+            string reason = "None given";
+            string alias;
+            int minutes = 0;
+            int number;
+
             //Check to see if we are pm'ing someone with gkill
             if (recipient != null)
             {
                 if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                {
+                    player.sendMessage(-1, "You can't ban someone equal or higher than you.");
                     return;
+                }
 
                 if (payload == "")
                 {
-                    player.sendMessage(-1, "Syntax: ::*gkill time:reason(Optional)  Note: Time is in minutes and must be less than 1,000,000.");
+                    player.sendMessage(-1, "Syntax: ::*gkill time:reason(Optional)");
                     return;
                 }
 
@@ -935,61 +1645,65 @@ namespace InfServer.Game.Commands.Mod
                 //Let the person know
                 if (minutes > 0)
                     recipient.sendMessage(0, String.Format("You are being banned for {0} minutes.", minutes));
-
-                //KILL HIM!!
-                recipient.destroy();
             }
             else //Using an alias instead
             {
                 param = payload.Split(' ');
-                alias = param[0].ToString();
+                //Lets see if they did type the alias first
+                if (!Int32.TryParse(param.ElementAt(0), out number))
+                    alias = param[0].ToString();
+                else
+                {
+                    player.sendMessage(-1, "Syntax: *gkill alias time:reason(Optional)");
+                    return;
+                }
             }
 
             //Must be a timed ban?
             if (payload.Contains(':'))
             {
-                parameters = payload.Split(':');
+                param = payload.Split(':');
+                string[] pick = param.ElementAt(0).Split(' ');
                 try
                 {
-                    minutes = Convert.ToInt32(parameters[0]);
+                    minutes = Convert.ToInt32(pick.ElementAt(1));
                 }
                 catch
                 {
-                    if (minutes > Int32.MaxValue)
-                        minutes = Int32.MaxValue - 1;
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
                 }
 
                 //Check if there is a reason
-                if (parameters.Count() >= 1)
-                    reason = parameters[1];
+                if (param[1] != null && param[1] != "")
+                    reason = param[1].ToString();
             }
-
-            //For no reason given and no seperator
-            if (!payload.Contains(':'))
+            else
             {
-                parameters = payload.Split(' ');
+                param = payload.Split(' ');
+                if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                {
+                    player.sendMessage(-1, "Syntax: either ::*gkill time:reason(optional) or *gkill alias time:reason(optional)");
+                    return;
+                }
                 try
                 {
-                    if (recipient != null)
-                        minutes = Convert.ToInt32(parameters[0]);
-                    else
-                        minutes = Convert.ToInt32(parameters[1]);
+                    minutes = Convert.ToInt32(param[1]);
                 }
-                catch
+                catch(OverflowException)
                 {
-                    if (minutes > Int32.MaxValue)
-                    {
-                        Log.write("OverflowException reached using gkill, setting to max value.");
-                        minutes = Int32.MaxValue - 1;
-                    }
-                    else
-                        minutes = 30; //30 mins
+                    player.sendMessage(-1, "That is not a valid time.");
                 }
             }
+
+            if (recipient != null)
+                //KILL HIM!!
+                recipient.disconnect();
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
 
             //Check if they are already banned
+            /*
             db = new SqlConnection("Server=INFANTRY\\SQLEXPRESS;Database=Data;Trusted_Connection=True;");
             db.Open();
             //Get their Account ID
@@ -999,7 +1713,7 @@ namespace InfServer.Game.Commands.Mod
                 using (var reader = playerID.ExecuteReader())
                 {
                     while (reader.Read())
-                        pAccount = reader["account"].ToString();
+                    pAccount = reader["account"].ToString();
                 }
             }
             catch
@@ -1014,9 +1728,10 @@ namespace InfServer.Game.Commands.Mod
             }
 
             db.Close();
-
+            */
             //Relay it to the database             
             CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
+            newBan.banType = CS_Ban<Data.Database>.BanType.global;
             newBan.alias = alias;
             if (recipient != null)
             {
@@ -1026,7 +1741,7 @@ namespace InfServer.Game.Commands.Mod
             }
             newBan.time = minutes;
             newBan.sender = player._alias;
-            newBan.reason = reason;
+            newBan.reason = reason.ToString();
 
             player._server._db.send(newBan);
         }
@@ -1039,7 +1754,8 @@ namespace InfServer.Game.Commands.Mod
         {
             yield return new HandlerDescriptor(help, "help",
                 "Gives the user help information on a given command.",
-                "*help [commandName]");
+                "*help [commandName]",
+                InfServer.Data.PlayerPermission.ArenaMod,true);
 
             yield return new HandlerDescriptor(addball, "addball",
                 "Adds a ball to the arena.",
@@ -1055,6 +1771,16 @@ namespace InfServer.Game.Commands.Mod
                 "Log in during Stand-Alone Mode",
                 "*auth password");
 
+            yield return new HandlerDescriptor(ban, "ban",
+                "Bans a player from all zones",
+                "*ban alias minutes:reason(optional) or ::*ban minutes:reason(optional)",
+                InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(block, "block",
+                "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
+                "*block alias minutes:reason(optional) or ::*block minutes:reason(optional)",
+                InfServer.Data.PlayerPermission.SMod, true);
+
             yield return new HandlerDescriptor(cash, "cash",
                 "Prizes specified amount of cash to target player",
                 "*cash [amount] or ::*cash [amount]",
@@ -1065,20 +1791,44 @@ namespace InfServer.Game.Commands.Mod
                 "*experience [amount] or ::*experience [amount]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
+            yield return new HandlerDescriptor(getball, "getball",
+                "Gets a ball.","*getball",
+                InfServer.Data.PlayerPermission.ArenaMod, true);           
+
             yield return new HandlerDescriptor(gkill, "gkill",
                 "Globally bans a player from the entire server",
-                "::*gkill minutes:reason",
-                InfServer.Data.PlayerPermission.SMod, false);
+                "::*gkill minutes:reason(Optional) or *gkill alias minutes:reason(Optional)",
+                InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(global, "global",
                "Sends a global message to every zone connected to current database",
                "*global [message]",
                InfServer.Data.PlayerPermission.SMod, false);
 
+            yield return new HandlerDescriptor(grant, "grant",
+                "Gives arena privileges to a player",
+                "::*grant or *grant alias",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(ipban, "ipban",
+                "IPBans a player from all zones",
+                "*ipban alias minutes:reason(optional) or ::*ipban minutes:reason(optional)",
+                InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(helpcall, "helpcall",
+                "helpcall shows all helpcalls from all zones",
+                "*helpcall  OR *helpcall page - to show a specific page",
+                InfServer.Data.PlayerPermission.Mod, false);
+
+            yield return new HandlerDescriptor(kick, "kick",
+                "Kicks and can also ban a player from an arena",
+                "::*kick minutes(Optional) or *kick alias minutes(optional)",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
             yield return new HandlerDescriptor(kill, "kill",
                "Removes the target player from the server",
                "::*kill reason or *kill all",
-               InfServer.Data.PlayerPermission.SMod, false);
+               InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(speclock, "lock",
                 "Locks the target player into spec",
@@ -1168,7 +1918,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(wipe, "wipe",
                 "Wipes a character within the current zone",
                 "::*wipe",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.Mod, false);
         }
     }
 }

@@ -9,7 +9,6 @@ using System.Threading;
 using InfServer.Network;
 using InfServer.Protocol;
 
-
 namespace InfServer.Game
 {
 	// ZoneServer Class
@@ -151,6 +150,10 @@ namespace InfServer.Game
 			using (DdMonitor.Lock(_arenas))
 				_arenas.Add(name, arena);
 
+            //Create a new ban list within the main zone banlist
+            if (!arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+                _arenaBans.Add(arena._name, new Dictionary<string,DateTime>());
+
 			Log.write(TLog.Normal, "Opened arena: " + name);
 
 			return arena;
@@ -165,6 +168,10 @@ namespace InfServer.Game
 
 			using (DdMonitor.Lock(_arenas))
 				_arenas.Remove(arena._name);
+
+            //Lets remove the created ban list since arena is dead
+            if (_arenaBans.ContainsKey(arena._name))
+                _arenaBans.Remove(arena._name);
 
 			Log.write(TLog.Normal, "Closed arena: " + arena._name);
 		}
@@ -197,9 +204,21 @@ namespace InfServer.Game
 				return newArena(arenaName);
 			}
 
-			//TODO: Test for join arena privileges
-//            if (arenaName.StartsWith("#", StringComparison.OrdinalIgnoreCase))
-//            { }
+			//Test for join arena privileges
+            if (arenaName.StartsWith("#", StringComparison.OrdinalIgnoreCase))
+            {
+                if (_arenaBans[arenaName] != null && _arenaBans[arenaName].ContainsKey(player._alias))
+                {
+                    TimeSpan check = DateTime.Now - (_arenaBans[arenaName].First(v => v.Key.Equals(player._alias)).Value);
+                    if (check.Minutes < DateTime.Now.Minute)
+                    {
+                        player.sendMessage(-1, "You are banned from this arena for " + check.Minutes + " minutes.");
+                        return null;
+                    }
+                    //Lets delete him from the list
+                    _arenaBans[arenaName].Remove(player._alias);
+                }
+            }
 			return arena;
 		}
 	}

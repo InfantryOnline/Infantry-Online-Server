@@ -41,7 +41,7 @@ namespace InfServer.Protocol
 		{	//Write out each asset
 			foreach (Arena arena in arenas)
 			{	//Is he able to see this arena?
-				if (!arena.isVisibleToPlayer(requestee))
+				if (!arena.isVisibleToPlayer(requestee) && requestee._arena != arena)
 					continue;
 
 				//Not sure why it does this for each entry

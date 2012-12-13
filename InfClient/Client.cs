@@ -60,7 +60,7 @@ namespace InfClient
 
             //Generate a connection ID.
             _conn._client._connectionID = init.connectionID = new Random().Next();
-            init.CRCLength = 2;
+            init.CRCLength = 0;
             init.udpMaxPacket = 496;
 
             //Send our init!

@@ -174,6 +174,7 @@
     <Compile Include="GameTypes\KOTH\KOTH.cs" />
     <Compile Include="GameTypes\SKCTF\Objects\Points.cs" />
     <Compile Include="GameTypes\SKCTF\SKCTF.cs" />
+    <Compile Include="GameTypes\SoccerBrawl\SoccerBrawl.cs" />
     <Compile Include="GameTypes\TDM\TDM.cs" />
     <Compile Include="GameTypes\CTF\CTF_OvD\OvD.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />

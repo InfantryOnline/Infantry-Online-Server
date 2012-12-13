@@ -16,7 +16,7 @@ namespace InfServer.Protocol
         public Int16 bPickup;		//Pick up or put down?
         public Int16 ballID;
         public Int16 playerID;
-
+        public Int16 teamScoredID;
         public Int16 positionX;
         public Int16 positionY;
         public Int16 positionZ;
@@ -80,13 +80,11 @@ namespace InfServer.Protocol
             playerID = _contentReader.ReadByte();// Last 4 of ballstate
             playerID = _contentReader.ReadByte();// Last 4 of ballstate
             playerID = _contentReader.ReadByte();// unknown
-            playerID = _contentReader.ReadByte();// team who scored ID
+            teamScoredID = _contentReader.ReadByte();// team who scored ID
             playerID = _contentReader.ReadByte();// seems to be a reference to where the ball crosses the line? maybe uses next byte as well?
             playerID = _contentReader.ReadByte();// unknown
-            //positionZ = _contentReader.ReadByte();
-            //bPickup = _contentReader.ReadInt16();
+            Log.write(DataDump);
 
-            //bSuccess = _contentReader.ReadBoolean();
         }
 
         /// <summary>

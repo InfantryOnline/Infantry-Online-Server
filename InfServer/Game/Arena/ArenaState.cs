@@ -176,6 +176,9 @@ namespace InfServer.Game
                 Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeInvSetup);
             }
 
+            //Create our new spam filter list
+            player._msgTimeStamps = new List<DateTime>();
+
             ///////////////////////////////////////////////
 			// Send the player state
 			///////////////////////////////////////////////
@@ -201,7 +204,7 @@ namespace InfServer.Game
                 {
                     if (!p.IsStealth)
                         Helpers.Object_Players(player, p);
-                    if (p != player && p.IsStealth && player.PermissionLevel >= p.PermissionLevel)
+                    if (p.IsStealth && player.PermissionLevel >= p.PermissionLevel)
                         Helpers.Object_Players(player, p);
                 }
             }
@@ -224,6 +227,15 @@ namespace InfServer.Game
                     player.restoreStats();
                 else
                     player.suspendStats();
+            }
+
+            //Is this a private arena and are we the first one?
+            if (player._arena._name.StartsWith("#", StringComparison.OrdinalIgnoreCase) && player._arena.TotalPlayerCount == 1)
+            {
+                //Give player required privileges
+                player._arena._owner.Add(player._alias);
+                if (player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                    player._permissionTemp = Data.PlayerPermission.ArenaMod;
             }
 
 			//Initialize the player's state
@@ -303,7 +315,27 @@ namespace InfServer.Game
 				playerLeave(player);
 
 			player.onLeaveArena();
-			
+
+            //Check owner list and appropriate powers
+            if (player._arena._owner != null && player._arena._owner.Count > 0)
+            {
+                foreach (var p in player._arena._owner)
+                {
+                    if (player._alias.Equals(p))
+                    {
+                        player._arena._owner.Remove(p);
+                        if (player._permissionTemp >= Data.PlayerPermission.ArenaMod
+                            && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                            player._permissionTemp = Data.PlayerPermission.Normal;
+                        break;
+                    }
+                }
+            }
+
+            //Discount double check
+//            if (player._permissionStatic < Data.PlayerPermission.ArenaMod && player._permissionTemp > Data.PlayerPermission.ArenaMod)
+//                player._permissionTemp = Data.PlayerPermission.Normal;
+
 			//Do we have any players left?
 			if (TotalPlayerCount == 0)
 				//Nope. It's closing time.

@@ -32,10 +32,10 @@ namespace InfServer.Protocol
             zonelist,
             history,
             global,
-            gkill,
+            ban,
             squadstats,
-            getAccount,
-            transferAlias,
+            helpcall,
+            alert,
         }
 
 

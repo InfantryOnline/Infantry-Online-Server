@@ -80,6 +80,7 @@
     <Compile Include="Helpers\PacketIDs.cs" />
     <Compile Include="Packets\Commands\Chat\CS_Query.cs" />
     <Compile Include="Packets\Commands\Chat\CS_Squads.cs" />
+    <Compile Include="Packets\Commands\Mod\CS_Alias.cs" />
     <Compile Include="Packets\Commands\Mod\CS_Ban.cs" />
     <Compile Include="Packets\Login\CS_Auth.cs" />
     <Compile Include="Packets\Login\CS_PlayerLogin.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Packets\Login\SC_PlayerLogin.cs" />
     <Compile Include="Packets\Social\Chats\SC_LeaveChat.cs" />
     <Compile Include="Packets\Social\Chats\CS_LeaveChat.cs" />
+    <Compile Include="Packets\Social\CS_ChatCommand.cs" />
     <Compile Include="Packets\Social\SC_ModCommand.cs" />
     <Compile Include="Packets\Social\Chats\SC_PrivateChat.cs" />
     <Compile Include="Packets\Social\Chats\CS_JoinChat.cs" />

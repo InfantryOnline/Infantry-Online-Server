@@ -33,6 +33,7 @@ namespace InfServer.Protocol
         public Int16 unk5;
         public Int16 unk6;
         public Int16 unk7;
+        public Int16 delete; // if set to 1, delete it
         public Int16 bPickup;
         public Int16 ballPickupID; // Id of the person with posession of the ball!
 
@@ -53,14 +54,8 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Serialize()
         {
-            Write((byte)TypeID);
-            Write((byte)ballID);
-            /* Write((byte)0);
-             Write((byte)0);
-             Write((byte)bPickup);
-             Write((byte)0);
-             Write((byte)0);
-             Write((byte)0);*/
+            Write((byte)TypeID); // The type of the packet
+            Write((byte)ballID); // The ID of the ball we're updateing
             if (velocityX == 0)
             {
                 Skip(2);
@@ -71,7 +66,6 @@ namespace InfServer.Protocol
             }
             if (velocityY == 0)
             {
-                //Write((byte)playerID);
                 Skip(2);
             }
             else
@@ -80,25 +74,12 @@ namespace InfServer.Protocol
             }
             if (velocityZ == 0)
             {
-                //Write((byte)playerID);
                 Skip(2);
             }
             else
             {
                 Write(velocityZ);
             }
-
-
-            //
-            //Skip(6);
-
-            //Write((byte)1);
-
-
-            //Write((byte)48);
-            //Write((byte)3);
-            //Write((byte)15);
-            //Write((byte)6);
             if (positionX == 0)
             {
                 Skip(2);
@@ -117,63 +98,37 @@ namespace InfServer.Protocol
             }
             if (positionZ == 0)
             {
-                //Write((byte)playerID);
                 Skip(2);
             }
             else
             {
                 Write(positionZ);
             }
-
-
-            Write((byte)playerID); // This is the byte appears to act as if it has to be the ID of the person dropping/pickingup the ball!
+            Write((byte)playerID); // This is the byte appears to act as if it has to be the ID of the person dropping/pickingup the ball. Maybe used for the re-pickup delay
             Write((byte)unk1);
-            Write((byte)unk2);
-            Write((byte)unk3);
-            Write((byte)unk4);
-            Write((byte)unk5);
-            Write((byte)unk6);
-            Write((byte)unk7);
-            //Write(something1);
-            //Write(something2);
-            // Skip(2);
-            //Write(positionY);
-            //Write(positionZ);
-            //Skip(2);
-            // Write(velocityX);
-            // Write(velocityY);
-            // Write(velocityZ);
-            // Skip(1);
-            //Write((byte)1);
+            if (unk2 == -1) // We use this, somehow, to make the ball packet work for pickups and drops etc. For some reason having 0's works in some cases.
+            {
+                //Write((byte)playerID);
+                //Skip(2);
+            }
+            else if (unk2 == 0)
+            {
+                //Write((byte)playerID);
+                Skip(6);
+            }
+            else
+            {
+                Write((byte)unk2);
+                Write((byte)unk3);
+                Write((byte)unk4);
+                Write((byte)unk5);
+                Write((byte)unk6);
+                Write((byte)unk7);
+            }
 
-            Log.write(DataDump);
-            //Log.write(BitConverter.ToString(Data));
+            //Log.write(DataDump);
         }
 
-        /// <summary>
-        /// Serializes the data stored in the packet class into a byte array ready for sending.
-        /// </summary>
-        // public SC_BallState(CS_BallPickup pkt)
-        //    : base(TypeID)
-        // {
-        // Write((byte)TypeID);
-        //Write((byte)pkt.ballID);
-        //Write((byte)pkt.playerID);
-        //Write((byte)0);
-        //Write((byte)6);
-        //Write((byte)0);
-        //Write((byte)0);
-        //Write((byte)7);
-        //Write((byte)0);
-        // Write((byte)0);
-
-
-
-        // Log.write(BitConverter.ToString(Data));
-        //}
-        /// <summary>
-        /// Returns a meaningful of the packet's data
-        /// </summary>
         public override string Dump
         {
             get

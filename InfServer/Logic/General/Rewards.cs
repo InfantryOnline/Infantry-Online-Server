@@ -170,6 +170,7 @@ namespace InfServer.Logic
         static public void calculatePlayerKillRewards(Player victim, Player killer, CS_VehicleDeath update)
         {
             CfgInfo cfg = victim._server._zoneConfig;
+            
             int killerCash = 0;
             int killerExp = 0;
             int killerPoints = 0;
@@ -184,6 +185,9 @@ namespace InfServer.Logic
             {
 
                 //Calculate kill reward for killer
+               // List<Player> carriers = new List<Player>();
+               // carriers = killer._arena._flags.Values.Where(flag => flag.carrier == killer).Select(flag => flag.carrier).ToList();
+              
                 killerCash = (int)(cfg.cash.killReward +
                     (victim.Bounty * (((float)cfg.cash.percentOfTarget) / 1000)) +
                     (killer.Bounty * (((float)cfg.cash.percentOfKiller) / 1000))) * multi;
@@ -193,6 +197,14 @@ namespace InfServer.Logic
                 killerPoints = (int)(cfg.point.killReward +
                    (victim.Bounty * (((float)cfg.point.percentOfTarget) / 1000)) +
                    (killer.Bounty * (((float)cfg.point.percentOfKiller) / 1000))) * multi;
+
+         /*       if (carriers.Contains(killer))
+                {
+                    killerCash *= cfg.flag.cashMultiplier / 1000;
+                    killerExp *= cfg.flag.experienceMultiplier / 1000;
+                    killerPoints *= cfg.flag.pointMultiplier / 1000;
+
+                }       */
             }
             else
             {

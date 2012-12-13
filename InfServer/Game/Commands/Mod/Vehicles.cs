@@ -50,18 +50,26 @@ namespace InfServer.Game.Commands.Mod
 
             int vehicleid;
             int vehicleamount;
-            if (payload.Contains(','))
+            try
             {
-                vehicleid = Convert.ToInt32(payload.Split(',').ElementAt(0));
-                vehicleamount = Convert.ToInt32(payload.Split(',').ElementAt(1));
+                if (payload.Contains(','))
+                {
+                    vehicleid = Convert.ToInt32(payload.Split(',').ElementAt(0));
+                    vehicleamount = Convert.ToInt32(payload.Split(',').ElementAt(1));
+                }
+                else
+                {
+                    vehicleid = Convert.ToInt32(payload);
+                    vehicleamount = 1;
+                }
             }
-            else
+            catch
             {
-                vehicleid = Convert.ToInt32(payload);
-                vehicleamount = 1;
+                player.sendMessage(-1, "You must use a valid ID number.");
+                return;
             }
 
-			//Obtain the vehicle indicated
+            //Obtain the vehicle indicated
 			Assets.VehInfo vehicle = player._server._assets.getVehicleByID(Convert.ToInt32(vehicleid));
 
 			if (vehicle == null)
