@@ -111,9 +111,117 @@ namespace InfServer.Logic
 						req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreLifetime;
 						req.options = pkt.options;
 
-						player._arena._server._db.send(req);
+                        player._arena._server._db.send(req);
 					}
 					break;
+
+                case Helpers.ChartType.ScoreDaily:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreDaily;
+                        req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
+
+                case Helpers.ChartType.ScoreWeekly:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreWeekly;
+                        req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
+
+                case Helpers.ChartType.ScoreMonthly:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreMonthly;
+                        req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
+
+                case Helpers.ChartType.ScoreYearly:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreYearly;
+                        req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
+
+                case Helpers.ChartType.ScoreHistoryDaily:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryDaily;
+                        if (pkt.options == "")
+                            req.options = player._alias.ToString();
+                        else
+                            req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
+
+                case Helpers.ChartType.ScoreHistoryWeekly:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryWeekly;
+                        if (pkt.options == "")
+                            req.options = player._alias.ToString();
+                        else
+                            req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
+
+                case Helpers.ChartType.ScoreHistoryMonthly:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryMonthly;
+                        if (pkt.options == "")
+                            req.options = player._alias.ToString();
+                        else
+                            req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
+
+                case Helpers.ChartType.ScoreHistoryYearly:
+                    {	//Send the request to the database!
+                        CS_PlayerStatsRequest<Data.Database> req = new CS_PlayerStatsRequest<Data.Database>();
+
+                        req.player = player.toInstance();
+                        req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryYearly;
+                        if (pkt.options == "")
+                            req.options = player._alias.ToString();
+                        else
+                            req.options = pkt.options;
+
+                        player._arena._server._db.send(req);
+                    }
+                    break;
 
 				default:
 					{

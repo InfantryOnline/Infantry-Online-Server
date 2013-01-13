@@ -101,6 +101,10 @@ namespace InfServer.Game
 			set
 			{
 				//TODO: Kick all players from the server, etc
+                //Disconnect everyone.
+                foreach (var arena in _arenas)
+                    foreach (Player p in arena.Value.Players)
+                        p.disconnect();
 			}
 		}
 
@@ -338,7 +342,6 @@ namespace InfServer.Game
             //Is it time to make another attempt at connecting to the database?
             if ((now - _lastDBAttempt) > _attemptDelay && _lastDBAttempt != 0)
             {
-
                 //Are we connected to the database currently? If so break out of this operation
                 if (_db._bLoginSuccess || _attemptDelay == 0)
                     return;

@@ -12,6 +12,7 @@ namespace Assets
             public string skillCountPower;
             public int attributeBaseCost;
             public string attributeCountPower;
+            public int attributeSellPercent;
 
             public Rpg(ref Dictionary<string, Dictionary<string, string>> stringTree)
             {
@@ -23,6 +24,7 @@ namespace Assets
                 skillCountPower = Parser.GetString("SkillCountPower");
                 attributeBaseCost = Parser.GetInt("AttributeBaseCost");
                 attributeCountPower = Parser.GetString("AttributeCountPower");
+                attributeSellPercent = Parser.GetInt("AttributeSellPercent");
             }
         }
     }

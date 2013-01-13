@@ -72,10 +72,15 @@ namespace InfServer.Logic
                             zone._server.sendMessage(zone, pkt.sender, "*" + pkt.payload);
                         }
 
-                        zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
-                        //Loop through them and display
-                        foreach (var alias in aliases)
-                            zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
+                        if (aliases != null)
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
+                            //Loop through them and display
+                            foreach (var alias in aliases)
+                                zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
+                        }
+                        else
+                            zone._server.sendMessage(zone, pkt.sender, "That alias doesn't exist.");
                         break;
 
                     case CS_Query<Zone>.QueryType.emailupdate:
@@ -162,15 +167,15 @@ namespace InfServer.Logic
                         zone._server.sendMessage(zone, pkt.sender, "!Command History (" + page + ")");
 
                         //Find all commands!
-                        /*
-                        List<Data.DB.history> cmds = db.histories.Where(c =>
-                            c.id >= (db.histories.Count() - (resultsperpage * (page + 1))) &&
-                            c.id < (db.histories.Count() - (resultsperpage * page))).ToList();
-                        */
-                        Data.DB.history last = db.histories.Last();
-                        List<Data.DB.history> cmds = db.histories.Where(c =>
-                            c.id >= (last.id - (resultsperpage * (page + 1))) &&
-                            c.id < (last.id - (resultsperpage * page))).ToList();
+                        Data.DB.history last = (db.histories.OrderByDescending(a => a.id).ToList()).First();
+                        List<Data.DB.history> cmds;
+                        //If less then 30 results, just show what we have
+                        if (last.id <= resultsperpage)
+                            cmds = db.histories.Where(c => c.id <= last.id).ToList();
+                        else
+                            cmds = db.histories.Where(c =>
+                                c.id >= (last.id - (resultsperpage * (page + 1))) &&
+                                c.id < (last.id - (resultsperpage * page))).ToList();
 
                         //List them
                         foreach (Data.DB.history h in cmds)
@@ -191,45 +196,52 @@ namespace InfServer.Logic
                                 return;
 
                             Logic_Bans.Ban.BanType type = Logic_Bans.Ban.BanType.None;
-                            DateTime expires = DateTime.Now;
-                            DateTime created = DateTime.Now;
+                            DateTime expires;
+                            DateTime created;
+                            string reason;
                             bool found = false;
 
                             System.Net.IPAddress ipaddress;
-                            Data.DB.account ipaddy;
-                            Data.DB.account what = db.alias.FirstOrDefault(e => e.name.Equals(pkt.payload)).account1;
+
                             //Check for an ip lookup first
                             if (System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
+                                aliases = db.alias.Where(a => a.IPAddress.Equals(ipaddress.ToString()));
+                            //Alias!
+                            else
                             {
-                                ipaddy = db.alias.FirstOrDefault(a => a.IPAddress.Equals(ipaddress.ToString())).account1;
-                                what = ipaddy;
+                                Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.payload));
+                                aliases = db.alias.Where(a => a.account.Equals(who.account));
                             }
 
-                            if (what != null)
+                            zone._server.sendMessage(zone, pkt.sender, "Current Bans for player");
+                            if (aliases != null)
                             {
-                                foreach (Data.DB.ban b in db.bans.Where(b =>
-                                    b.account == what.id ||
-                                    b.IPAddress == what.IPAddress))
+                                foreach (Data.DB.alias what in aliases)
                                 {
-                                    //Is it the correct zone?
-                                    if (b.zone != null && (b.type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != zone._zone.id))
-                                        continue;
+                                    foreach (Data.DB.ban b in db.bans.Where(b =>
+                                        b.account == what.account1.id ||
+                                        b.IPAddress == what.account1.IPAddress))
+                                    {
+                                        //Is it the correct zone?
+                                        if (b.zone != null && (b.type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != zone._zone.id))
+                                            continue;
 
-                                    //Find the highest level ban that hasn't expired yet
-                                    if (b.type > (int)type && b.expires > expires)
-                                    {   //Set it as our current ban type
-                                        expires = b.expires;
-                                        type = (Logic_Bans.Ban.BanType)b.type;
-                                        created = b.created;
-                                        found = true;
+                                        //Find all bans for each alias
+                                        if (b.type > (int)Logic_Bans.Ban.BanType.None)
+                                        {   
+                                            expires = b.expires;
+                                            type = (Logic_Bans.Ban.BanType)b.type;
+                                            created = b.created;
+                                            reason = b.reason;
+                                            found = true;
+                                            zone._server.sendMessage(zone, pkt.sender, String.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.name.ToString(), type, created, expires, reason));
+                                        }
                                     }
                                 }
                             }
-                            zone._server.sendMessage(zone, pkt.sender, "Current Ban for player");
+
                             if (!found)
                                 zone._server.sendMessage(zone, pkt.sender, "None");
-                            else
-                                zone._server.sendMessage(zone, pkt.sender, String.Format("Type: {0} - Created: {1} - Expires: {2}", type, created, expires));
                         }
                         break;
 
@@ -240,10 +252,16 @@ namespace InfServer.Logic
                         zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + pageNum + ")");
 
                         //Find all commands!
-                        Data.DB.helpcall end = db.helpcalls.Last();
-                        List<Data.DB.helpcall> helps = db.helpcalls.Where(e =>
-                            e.id >= (end.id - (resultseachpage * (pageNum + 1))) &&
-                            e.id < (end.id - (resultseachpage * pageNum))).ToList();
+                        Data.DB.helpcall end = (db.helpcalls.OrderByDescending(a => a.id).ToList()).First();
+                        List<Data.DB.helpcall> helps;
+
+                        //Check the results first
+                        if (end.id <= resultseachpage)
+                            helps = db.helpcalls.Where(e => e.id > 0).ToList();
+                        else
+                            helps = db.helpcalls.Where(e =>
+                                e.id >= (end.id - (resultseachpage * (pageNum + 1))) &&
+                                e.id < (end.id - (resultseachpage * pageNum))).ToList();
 
                         //List them
                         foreach (Data.DB.helpcall h in helps)
@@ -254,15 +272,17 @@ namespace InfServer.Logic
                         break;
 
                     case CS_Query<Zone>.QueryType.alert:
-                        foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
-                        {
-                            if (player.Value.permission > (int)Data.PlayerPermission.Normal)
-                                player.Value.zone._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
-                        }
-                        /*    
+                        string pAlias;
                         foreach (Zone z in zone._server._zones)
-                            z._server.sendMessage(z, "*", pkt.payload);
-                        */
+                            foreach (KeyValuePair<int, Zone.Player> player in z._players)
+                            {
+                                pAlias = player.Value.alias.ToString();
+                                Data.DB.alias check = db.alias.SingleOrDefault(a => a.name.Equals(pAlias));
+                                if ( (check != null) && check.account1.permission > 0 && player.Value.alias.Equals(check.name))
+                                    z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
+                                if (player.Value.permission > (int)Data.PlayerPermission.Normal)
+                                    z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
+                            }
                         break;
                 }
             }

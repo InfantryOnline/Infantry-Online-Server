@@ -312,6 +312,54 @@ namespace InfServer.Game
 			}
 		}
 
+        /// <summary>
+        /// The amount of vehicle kills the player has made
+        /// </summary>
+        public int vehicleKills
+        {
+            get
+            {
+                return _stats.vehicleKills;
+            }
+
+            set
+            {	//Establish the difference
+                int diff = value - _stats.vehicleKills;
+
+                _stats.vehicleKills = Math.Max(value, 0);
+
+                if (_statsSession != null)
+                    _statsSession.vehicleKills += diff;
+
+                if (_statsGame != null)
+                    _statsGame.vehicleKills += diff;
+            }
+        }
+
+        /// <summary>
+        /// The amount of vehicle deaths the player has suffered
+        /// </summary>
+        public int vehicleDeaths
+        {
+            get
+            {
+                return _stats.vehicleDeaths;
+            }
+
+            set
+            {	//Establish the difference
+                int diff = value - _stats.vehicleDeaths;
+
+                _stats.vehicleDeaths = Math.Max(value, 0);
+
+                if (_statsSession != null)
+                    _statsSession.vehicleDeaths += diff;
+
+                if (_statsGame != null)
+                    _statsGame.vehicleDeaths += diff;
+            }
+        }
+
 		/// <summary>
 		/// The player's point amount
 		/// </summary>

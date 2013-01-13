@@ -533,7 +533,8 @@ namespace InfServer.Script.GameType_ZombieZone
             public int tickLastZombieCountIncrease;		//The last time at which we added a zombie
 
             public Dictionary<Player, List<LaserTurret>> lasers;
-            public List<ZombieBot> zombies;				//The team's pursuing normal zombies
+            public List<ZombieBot> zombies;		
+		//The team's pursuing normal zombies
             public List<Player> zombiePlayers;			//The zombies attacking this team, who are players
             public ZombieBot kingZombie;				//The team's pursuing king zombie
 

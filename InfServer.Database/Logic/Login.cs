@@ -139,7 +139,7 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "Banned.";
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + " Alias: " + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
@@ -149,7 +149,7 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "You have been temporarily suspended until " + banned.expiration.ToString("f", CultureInfo.CreateSpecificCulture("en-US"));
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + " Alias: " + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
@@ -159,7 +159,7 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "You have been temporarily suspended from this zone until " + banned.expiration.ToString("f", CultureInfo.CreateSpecificCulture("en-US"));
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + " Alias: " + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
@@ -169,11 +169,10 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "Your account has been temporarily suspended until " + banned.expiration.ToString("f", CultureInfo.CreateSpecificCulture("en-US"));
 
-                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + "-" + pkt.alias + " Reason: " + banned.type.ToString());
+                    Log.write(TLog.Warning, "Failed login: " + zone._zone.name + " Alias: " + pkt.alias + " Reason: " + banned.type.ToString());
                     zone._client.send(plog);
                     return;
                 }
-                //They made it!
 
 				//Is there already a player online under this account?
 				if (!DBServer.bAllowMulticlienting && zone._server._zones.Any(z => z.hasAccountPlayer(account.id)))
@@ -184,6 +183,7 @@ namespace InfServer.Logic
 					zone._client.send(plog);
 					return;
 				}
+                //They made it!
 				
 				//We have the account associated!
 				plog.permission = (PlayerPermission)account.permission;
@@ -236,7 +236,7 @@ namespace InfServer.Logic
 
 					db.alias.InsertOnSubmit(alias);
 
-					Log.write("Creating new alias {0} on account {1}", pkt.alias, account.name);
+					Log.write(TLog.Normal, "Creating new alias {0} on account {1}", pkt.alias, account.name);
 				}
 				else if (alias != null)
 				{	//We can't recreate an existing alias or login to one that isn't ours..
@@ -350,17 +350,20 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_CS_PlayerLeave(CS_PlayerLeave<Zone> pkt, Zone zone)
 		{	//He's gone!
-			Log.write("Player {0} left zone {1}", pkt.alias, zone._zone.name);
-
             using (InfantryDataContext db = zone._server.getContext())
             {
                 Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
 //                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
-                TimeSpan ts = DateTime.Now - alias.lastAccess;
-                Int64 minutes = ts.Minutes;
-                alias.timeplayed += minutes;
+                //If person was loaded correctly, save their info
+                if (alias != null)
+                {
+                    TimeSpan ts = DateTime.Now - alias.lastAccess;
+                    Int64 minutes = ts.Minutes;
+                    alias.timeplayed += minutes;
 
-                db.SubmitChanges();
+                    db.SubmitChanges();
+                    Log.write("Player {0} left zone {1}", pkt.alias, zone._zone.name);
+                }
             }
 
 			zone.lostPlayer(pkt.player.id);

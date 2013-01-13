@@ -224,9 +224,15 @@ namespace InfServer.Game
             if(!_server.IsStandalone)
             {
                 if (_bIsPublic)
+                {
                     player.restoreStats();
-                else
+                    player.suspendCalled = false;
+                }
+                else if (!player.suspendCalled)
+                {
                     player.suspendStats();
+                    player.suspendCalled = true;
+                }
             }
 
             //Is this a private arena and are we the first one?
@@ -309,7 +315,12 @@ namespace InfServer.Game
 		/// Handles the loss of a player
 		/// </summary>
 		public void lostPlayer(Player player)
-		{	//Sob, let him go
+		{
+            //Lets record his stats
+            if (player._arena._bIsPublic)
+                player.migrateStats();
+
+            //Sob, let him go
 			_players.Remove(player);
 			if (!player.IsSpectator)
 				playerLeave(player);
@@ -331,10 +342,6 @@ namespace InfServer.Game
                     }
                 }
             }
-
-            //Discount double check
-//            if (player._permissionStatic < Data.PlayerPermission.ArenaMod && player._permissionTemp > Data.PlayerPermission.ArenaMod)
-//                player._permissionTemp = Data.PlayerPermission.Normal;
 
 			//Do we have any players left?
 			if (TotalPlayerCount == 0)

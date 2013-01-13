@@ -543,7 +543,6 @@ namespace InfServer.Game
                             player.spec();                            
                             player.sendMessage(-1, "You have been sent to spectator mode due to inactivity.");
                         }
-                       
                     }
                     
 

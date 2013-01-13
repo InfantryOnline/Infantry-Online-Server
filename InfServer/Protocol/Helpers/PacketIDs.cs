@@ -40,7 +40,7 @@ namespace InfServer.Protocol
 				PlayerUseItem = 0x0F,
 				ChartRequest = 0x11,
 				Frames = 0x15,
-                VehiclePickup = 0x16, /*To finish*/
+                VehiclePickup = 0x16,
                 PlayerDrop = 0x17,
                 Chat = 0x18,
                 BallPickup = 0x1A,

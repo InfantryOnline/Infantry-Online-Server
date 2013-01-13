@@ -257,12 +257,6 @@ namespace InfServer.Game.Commands.Mod
         static public void grant(Player player, Player recipient, string payload, int bong)
         {
             //Sanity checks
-            if (recipient == null || payload == "")
-            {
-                player.sendMessage(-1, (recipient == null) ? "That player isn't here." : "Syntax: ::*grant or *grant alias");
-                return;
-            }
-
             if (!player._arena.IsPrivate)
             {
                 player.sendMessage(-1, "This is not a private arena.");
@@ -294,7 +288,13 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                if ((recipient = player._arena.getPlayerByName(payload)) == null)
+                if (payload == "")
+                {
+                    player.sendMessage(-1, "Syntax: *grant alias");
+                    return;
+                }
+
+                if ((recipient = player._arena.getPlayerByName(payload.ToLower() )) == null)
                 {
                     player.sendMessage(-1, "That player doesn't exist.");
                     return;
@@ -521,7 +521,7 @@ namespace InfServer.Game.Commands.Mod
         {
             if (payload == "")
             {
-                player.sendMessage(-1, "Syntax: permit name");
+                player.sendMessage(-1, "Syntax: *permit name");
                 return;
             }
 
@@ -531,13 +531,21 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(0, Logic.Logic_Permit.listPermit());
                 return;
             }
+
             //Are we adding or removing?
+            bool found = false; //For lowered aliases
             if (Logic.Logic_Permit.checkPermit(payload))
             {   //Remove
                 player.sendMessage(-3, "Player removed from permission list");
                 Logic.Logic_Permit.removePermit(payload);
+                found = true;
             }
-
+            else if (!found && Logic.Logic_Permit.checkPermit(payload.ToLower()))
+            {
+                //Remove
+                player.sendMessage(-3, "Player removed from permission list");
+                Logic.Logic_Permit.removePermit(payload.ToLower());
+            }
             else
             {   //Adding
                 player.sendMessage(-3, "Player added to permission list");
@@ -549,7 +557,7 @@ namespace InfServer.Game.Commands.Mod
                 whisper.recipient = payload.ToString();
                 whisper.message = (String.Format("You have been given permission to enter {0}.", player._server.Name));
                 whisper.from = player._alias;
-                
+
                 player._server._db.send(whisper);
             }
         }
@@ -566,6 +574,11 @@ namespace InfServer.Game.Commands.Mod
                 {
                     player._arena.pollQuestion(player._arena, false);
                     player._arena.sendArenaMessage(String.Format("{0}'s Poll has been cancelled.", player._alias));
+                    return;
+                }
+                else if (payload == "end" || payload == "off")
+                {
+                    player._arena.pollQuestion(player._arena, true);
                     return;
                 }
 				player.sendMessage(-1, "There is a poll in progress, you must wait till its finished to start a new one.");
@@ -1292,7 +1305,10 @@ namespace InfServer.Game.Commands.Mod
                 string[] pick = param.ElementAt(0).Split(' ');
                 try
                 {
-                    minutes = Convert.ToInt32(pick.ElementAt(1));
+                    if (recipient != null)
+                        minutes = Convert.ToInt32(param.ElementAt(0));
+                    else
+                        minutes = Convert.ToInt32(pick.ElementAt(1));
                 }
                 catch
                 {
@@ -1307,23 +1323,42 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 param = payload.Split(' ');
-                if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                if (recipient == null)
                 {
-                    player.sendMessage(-1, "Syntax: either ::*ban time:reason(optional) or *ban alias time:reason(optional)");
-                    return;
+                    if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                    {
+                        player.sendMessage(-1, "Syntax: *ban alias time:reason(optional)");
+                        return;
+                    }
+                    try
+                    {
+                        minutes = Convert.ToInt32(param[1]);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
-                try
+                else
                 {
-                    minutes = Convert.ToInt32(param[1]);
-                }
-                catch (OverflowException)
-                {
-                    player.sendMessage(-1, "That is not a valid time.");
+                    if (!Int32.TryParse(payload, out number))
+                    {
+                        player.sendMessage(-1, "Syntax: ::*ban time:reason(optional)");
+                        return;
+                    }
+                    try
+                    {
+                        minutes = Convert.ToInt32(payload);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
             }
 
             //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
-            if (recipient != null)
+            if ((recipient = player._arena.getPlayerByName(alias)) != null)
                 recipient.disconnect();
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
@@ -1404,14 +1439,17 @@ namespace InfServer.Game.Commands.Mod
                 }
             }
 
-            //Must be a timed ban?
+            //Must be a timed ban with a reason?
             if (payload.Contains(':'))
             {
                 param = payload.Split(':');
                 string[] pick = param.ElementAt(0).Split(' ');
                 try
                 {
-                    minutes = Convert.ToInt32(pick.ElementAt(1));
+                    if (recipient != null)
+                        minutes = Convert.ToInt32(param.ElementAt(0));
+                    else
+                        minutes = Convert.ToInt32(pick.ElementAt(1));
                 }
                 catch
                 {
@@ -1426,24 +1464,45 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 param = payload.Split(' ');
-                if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                if (recipient == null)
                 {
-                    player.sendMessage(-1, "Syntax: either ::*block time:reason(optional) or *block alias time:reason(optional)");
-                    return;
-                }
+                    if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                    {
+                        player.sendMessage(-1, "Syntax: *block alias time:reason(optional)");
+                        return;
+                    }
 
-                try
-                {
-                    minutes = Convert.ToInt32(param[1]);
+                    try
+                    {
+                        minutes = Convert.ToInt32(param[1]);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
-                catch (OverflowException)
+                else
                 {
-                    player.sendMessage(-1, "That is not a valid time.");
+                    if (!Int32.TryParse(payload, out number))
+                    {
+                        player.sendMessage(-1, "Syntax: ::*block time:reason(optional)");
+                        return;
+                    }
+
+                    try
+                    {
+                        minutes = Convert.ToInt32(number);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
             }
 
-            if (recipient != null)
-                //KILL HIM!!
+            //KILL HIM!!
+            //Lets see if they are online
+            if ((recipient = player._arena.getPlayerByName(alias)) != null)
                 recipient.disconnect();
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
@@ -1522,14 +1581,17 @@ namespace InfServer.Game.Commands.Mod
 				}
             }
 
-            //Must be a timed ban?
+            //Must be a timed ban with a reason?
             if (payload.Contains(':'))
             {
                 param = payload.Split(':');
                 string[] pick = param.ElementAt(0).Split(' ');
                 try
                 {
-                    minutes = Convert.ToInt32(pick.ElementAt(1));
+                    if (recipient != null)
+                        minutes = Convert.ToInt32(param.ElementAt(0));
+                    else
+                        minutes = Convert.ToInt32(pick.ElementAt(1));
                 }
                 catch
                 {
@@ -1544,23 +1606,43 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 param = payload.Split(' ');
-				if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                if (recipient == null)
                 {
-                    player.sendMessage(-1, "Syntax: either ::*ipban time:reason(optional) or *ipban alias time:reason(optional)");
-                    return;
+                    if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                    {
+                        player.sendMessage(-1, "Syntax: *ipban alias time:reason(optional)");
+                        return;
+                    }
+                    try
+                    {
+                        minutes = Convert.ToInt32(param[1]);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
-                try
+                else
                 {
-                    minutes = Convert.ToInt32(param[1]);
-                }
-                catch (OverflowException)
-                {
-                    player.sendMessage(-1, "That is not a valid time.");
+                    if (!Int32.TryParse(payload, out number))
+                    {
+                        player.sendMessage(-1, "Syntax: ::*ipban time:reason(optional)");
+                        return;
+                    }
+                    try
+                    {
+                        minutes = Convert.ToInt32(number);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
             }
 
-            if (recipient != null)
-                //KILL HIM!!
+            //Lets see if they are online
+            //KILL HIM!!
+            if ((recipient = player._arena.getPlayerByName(alias)) != null)
                 recipient.disconnect();
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
@@ -1659,14 +1741,17 @@ namespace InfServer.Game.Commands.Mod
                 }
             }
 
-            //Must be a timed ban?
+            //Must be a timed ban with a reason?
             if (payload.Contains(':'))
             {
                 param = payload.Split(':');
                 string[] pick = param.ElementAt(0).Split(' ');
                 try
                 {
-                    minutes = Convert.ToInt32(pick.ElementAt(1));
+                    if (recipient != null)
+                        minutes = Convert.ToInt32(param.ElementAt(0));
+                    else
+                        minutes = Convert.ToInt32(pick.ElementAt(1));
                 }
                 catch
                 {
@@ -1678,26 +1763,46 @@ namespace InfServer.Game.Commands.Mod
                 if (param[1] != null && param[1] != "")
                     reason = param[1].ToString();
             }
-            else
+            else //Just a timed ban with no reason
             {
                 param = payload.Split(' ');
-                if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                if (recipient == null)
                 {
-                    player.sendMessage(-1, "Syntax: either ::*gkill time:reason(optional) or *gkill alias time:reason(optional)");
-                    return;
+                    if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
+                    {
+                        player.sendMessage(-1, "Syntax: *gkill alias time:reason(optional)");
+                        return;
+                    }
+                    try
+                    {
+                        minutes = Convert.ToInt32(param[1]);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
-                try
+                else
                 {
-                    minutes = Convert.ToInt32(param[1]);
-                }
-                catch(OverflowException)
-                {
-                    player.sendMessage(-1, "That is not a valid time.");
+                    if (!Int32.TryParse(payload, out number))
+                    {
+                        player.sendMessage(-1, "Syntax: ::*gkill time:reason(optional)");
+                        return;
+                    }
+                    try
+                    {
+                        minutes = Convert.ToInt32(number);
+                    }
+                    catch (OverflowException)
+                    {
+                        player.sendMessage(-1, "That is not a valid time.");
+                    }
                 }
             }
 
-            if (recipient != null)
-                //KILL HIM!!
+            //KILL HIM!!
+            //Lets see if they are online
+            if ((recipient = player._arena.getPlayerByName(alias)) != null)
                 recipient.disconnect();
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
@@ -1841,7 +1946,7 @@ namespace InfServer.Game.Commands.Mod
                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(poll, "poll",
-                "Starts a poll for a question asked. *poll cancel to stop one",
+                "Starts a poll for a question asked, *poll cancel to stop one, *poll end to end one",
                 "*poll question(Optional: *poll question:timer)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 

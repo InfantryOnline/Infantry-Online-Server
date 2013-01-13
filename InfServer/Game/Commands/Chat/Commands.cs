@@ -67,10 +67,28 @@ namespace InfServer.Game.Commands.Chat
             Player target = player._arena.getPlayerByName(elements[0]);
             int amount = Int32.Parse(elements[1]);
 
+            //Prevent them from aiding in private arenas
+            if (!player._arena._bIsPublic)
+            {
+                player.sendMessage(-1, "Cannot aid in private arenas");
+                return;
+            }
             //Oops
             if (target == null)
             {
                 player.sendMessage(-1, "Target player does not exist");
+                return;
+            }
+            //Prevent them from abusing
+            if (target == player)
+            {
+                player.sendMessage(-1, "You can't aid yourself");
+                return;
+            }
+            //Prevent them from aiding people in other arenas
+            if (target._arena != player._arena)
+            {
+                player.sendMessage(-1, "Cannot aid a person not in this arena.");
                 return;
             }
             //Prevent them from spamming someone with low amounts
@@ -262,7 +280,7 @@ namespace InfServer.Game.Commands.Chat
                     {
                         player.Cash -= buyPrice;
                         player.inventoryModify(item, buyAmount);
-                        player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (cost={2}) (cash-left={3})", buyAmount, item.name, buyPrice, player.Cash));
+                        player.sendMessage(0, String.Format("Purchase Confirmed: {0} {1} (Cost={2}) (Cash-left={3})", buyAmount, item.name, buyPrice, player.Cash));
                     }
                 }
             }
@@ -275,89 +293,163 @@ namespace InfServer.Game.Commands.Chat
 
         #region sell
         /// <summary>
-        /// Purchases items in the form item1:x1, item2:x2 and so on
+        /// Sells items in the form item1:x1, item2:x2 and so on
         /// </summary>
         public static void sell(Player player, Player recipient, string payload, int bong)
         {
-            //Can you buy from this location?
+            //Can you sell from this location?
             if ((player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled == 1) || (player._team.IsSpec && player._server._zoneConfig.arena.spectatorStore))
             {
                 char[] splitArr = { ',' };
                 string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
-                // parse the buy string
+                //Parse the sell string
                 foreach (string itemAmount in items)
                 {
-
                     string[] split = itemAmount.Trim().Split(':');
                     ItemInfo item = player._server._assets.getItemByName(split[0].Trim());
+                    SkillInfo skill = player._server._assets.getSkillByName(split[0].Trim());
 
-                    // Did we find the item?
-                    if (split.Count() == 0 || item == null)
+                    //Did we find the item?
+                    if (split.Count() == 0)
                     {
-                        player.sendMessage(-1, "Can't find item for " + itemAmount);
+                        player.sendMessage(-1, "Can't find item or attribute for " + itemAmount);
                         continue;
                     }
 
-                    //Get the player's related inventory item
-                    Player.InventoryItem ii = player.getInventory(item);
-                    if (ii == null)
+                    if (skill == null && item == null)
                     {
-                        player.sendMessage(-1, String.Format("You have no {0} to sell", item.name));
+                        player.sendMessage(-1, "Can't find item or attribute for " + itemAmount);
                         continue;
                     }
 
-                    // Do we have the amount?
-                    int sellAmount = 1;
-                    if (split.Length > 1)
+                    //Is this an attribute?
+                    if (skill != null)
                     {
-                        string limitAmount = null;
-                        try
-                        {
-                            limitAmount = split[1].Trim();
-                            if (limitAmount.StartsWith("#"))
-                            {
-                                sellAmount = Convert.ToInt32(limitAmount.Substring(1));
-                            }
-                            else
-                            {
-                                // Buying incremental amount
-                                sellAmount = Convert.ToInt32(limitAmount);
-                            }
-                        }
-                        catch (FormatException)
-                        {
-                            player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
+                        Player.SkillItem sk;
+                        player._skills.TryGetValue(skill.SkillId, out sk);
+                        if (sk == null)
+                        {//This does not trigger when they attempt selling an att they do not have
+                            player.sendMessage(-1, String.Format("You have no {0} to sell", skill.Name));
                             continue;
                         }
+
+                        double attributeSellPercent = Convert.ToInt32(player._server._zoneConfig.rpg.attributeSellPercent);
+                        if (attributeSellPercent == 0) //This can either be 0 or null in the cfg
+                        {
+                            player.sendMessage(-1, "Selling attributes are disabled for this zone.");
+                            return;
+                        }
+
+                        int sellingAmount = 1;
+                        if (split.Length > 1)
+                        {
+                            string limit = null;
+                            try
+                            {
+                                limit = split[1].Trim();
+                                if (limit.StartsWith("#"))
+                                    sellingAmount = Convert.ToInt32(limit.Substring(1));
+                                else
+                                    sellingAmount = Convert.ToInt32(limit);
+                            }
+                            catch (FormatException)
+                            {
+                                player.sendMessage(-1, "invalid amount " + limit + " for attribute " + split[0]);
+                                continue;
+                            }
+                        }
+
+                        if (sellingAmount < 0)
+                        {
+                            player.sendMessage(-1, "Cannot sell a negative amount");
+                            continue;
+                        }
+
+                        if (sellingAmount > sk.quantity)
+                            sellingAmount = sk.quantity;
+
+                        int soldPrice = 0;
+                        double getCost;
+                        double attributeCountPower;
+                        Double.TryParse(player._server._zoneConfig.rpg.attributeCountPower, out attributeCountPower);
+                        //Lets get the exact cost, add exp and take one quantity away while looping
+                        //Using backwards loop to give correct cost percentages back
+                        for (int amount = sellingAmount; amount > 0; amount--)
+                        {
+                            if (!player._skills.Keys.Contains(sk.skill.SkillId))
+                                continue;
+                            getCost = (Math.Pow(player._skills[sk.skill.SkillId].quantity, attributeCountPower) * skill.Price) * (attributeSellPercent / 100);                            
+                            soldPrice = (soldPrice + (int)getCost);
+                            player.Experience += (int)getCost;
+                            if (sk.quantity > 0)
+                                sk.quantity -= 1;
+                            else //Player wants to remove the attribute
+                                player._skills.Remove(sk.skill.SkillId);
+                            player.syncState();
+                        }
+                        player.sendMessage(0, String.Format("Attributes sold: {0} {1} (Total Cost={2}) (Experience={3})", sellingAmount, skill.Name, soldPrice, player.Experience));
                     }
-                    if (sellAmount < 0)
+                    else
                     {
-                        player.sendMessage(-1, "Cannot sell a negative amount, use ?buy");
-                        continue;
+                        //Get the player's related inventory item
+                        Player.InventoryItem ii = player.getInventory(item);
+                        if (ii == null)
+                        {
+                            player.sendMessage(-1, String.Format("You have no {0} to sell", item.name));
+                            continue;
+                        }
+
+                        // Do we have the amount?
+                        int sellAmount = 1;
+                        if (split.Length > 1)
+                        {
+                            string limitAmount = null;
+                            try
+                            {
+                                limitAmount = split[1].Trim();
+                                if (limitAmount.StartsWith("#"))
+                                {
+                                    sellAmount = Convert.ToInt32(limitAmount.Substring(1));
+                                }
+                                else
+                                {
+                                    // Selling incremental amount
+                                    sellAmount = Convert.ToInt32(limitAmount);
+                                }
+                            }
+                            catch (FormatException)
+                            {
+                                player.sendMessage(-1, "invalid amount " + limitAmount + " for item " + split[0]);
+                                continue;
+                            }
+                        }
+                        if (sellAmount < 0)
+                        {
+                            player.sendMessage(-1, "Cannot sell a negative amount, use ?sell");
+                            continue;
+                        }
+                        if (sellAmount > ii.quantity)
+                            sellAmount = ii.quantity;
+
+                        //Selling. Are we able to?
+                        if (item.sellPrice == -1)
+                        {
+                            player.sendMessage(-1, String.Format("{0} cannot be sold", item.name));
+                            continue;
+                        }
+
+                        //Check limits (we dont have to)
+
+                        int sellPrice = item.sellPrice * sellAmount;
+                        player.Cash += sellPrice;
+                        player.inventoryModify(item, -sellAmount);
+                        player.sendMessage(0, String.Format("Items Sold: {0} {1} (Sold Price={2}) (Cash={3})", sellAmount, item.name, sellPrice, player.Cash));
                     }
-                    if (sellAmount > ii.quantity)
-                        sellAmount = ii.quantity;
-
-                    //Buying. Are we able to?
-                    if (item.sellPrice == -1)
-                    {
-                        player.sendMessage(-1, String.Format("{0} cannot be sold", item.name));
-                        continue;
-                    }
-
-                    //Check limits (we dont have to)
-
-                    int sellPrice = item.sellPrice * sellAmount;
-                    player.Cash += sellPrice;
-                    player.inventoryModify(item, -sellAmount);
-                    player.sendMessage(0, String.Format("Items Sold: {0} {1} (value={2}) (cash-left={3})", sellAmount, item.name, sellPrice, player.Cash));
                 }
             }
             else
-            {
-                player.sendMessage(-1, "You cannot buy from this location");
-            }
+                player.sendMessage(-1, "You cannot sell from this location");
         }
         #endregion
 
@@ -365,10 +457,16 @@ namespace InfServer.Game.Commands.Chat
         public static void chat(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
 
-            if (payload.Contains(':'))
+            if (payload.Contains(':') || payload.Contains(';'))
+            {
+                player.sendMessage(0, "Wrong format typed.");
                 return;
+            }
 
             CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
             join.chat = payload;
@@ -432,7 +530,7 @@ namespace InfServer.Game.Commands.Chat
                 //Get the player's related inventory item
                 Player.InventoryItem ii = player.getInventory(item);
 
-                //Make sure item is can be dropped
+                //Make sure item can be dropped
                 if (!item.droppable) { 
                     player.sendMessage(-1, "You cannot drop that item."); 
                     continue; 
@@ -514,7 +612,10 @@ namespace InfServer.Game.Commands.Chat
         public static void find(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
 
             CS_Query<Data.Database> findPlayer = new CS_Query<Data.Database>();
             findPlayer.queryType = CS_Query<Data.Database>.QueryType.find;
@@ -534,40 +635,32 @@ namespace InfServer.Game.Commands.Chat
             //payload empty?
             if (payload == "")
                 payload = "None specified";
-
+            /*
             //Check our arena for moderators...
-            int mods = 0;
             foreach (Player mod in player._arena.Players)
             {   //Display to every type of "moderator"
                 if (mod._permissionStatic > 0)
-                {
-                    mod.sendMessage(0, String.Format("&HELP:(Zone={0} Arena={1} Player={2}) Reason={3}", player._server.Name, player._arena._name, player._alias, payload));
-                    mods++;
-                }
+                    mod.sendMessage(0, String.Format("&HELP:(Zone={0,} Arena={1}, Player={2}) Reason={3}", player._server.Name, player._arena._name, player._alias, payload));
             }
-            
+            */
             //Alert any mods online
-            if (mods == 0)
+            if (!player._server.IsStandalone)
             {
-                //Send it to any mods online first then log it
-                if (!player._server.IsStandalone)
-                {
-                    CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
-                    pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
-                    pktquery.sender = player._alias;
-                    pktquery.payload = payload;
-                    //Send it!
-                    player._server._db.send(pktquery);
+                CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
+                pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                pktquery.sender = player._alias;
+                pktquery.payload = String.Format("&HELP:(Zone={0}, Arena={1}, Player={2}) Reason={3}", player._server.Name, player._arena._name, player._alias, payload);
+                //Send it!
+                player._server._db.send(pktquery);
 
-                    //Log it in the helpcall database
-                    CS_ChatCommand<Data.Database> pkt = new CS_ChatCommand<Data.Database>();
-                    pkt.sender = player._alias.ToString();
-                    pkt.zone = player._server.Name;
-                    pkt.arena = player._arena._name;
-                    pkt.reason = payload;
-                    //Send it!
-                    player._server._db.send(pkt);
-                }
+                //Log it in the helpcall database
+                CS_ChatCommand<Data.Database> pkt = new CS_ChatCommand<Data.Database>();
+                pkt.sender = player._alias.ToString();
+                pkt.zone = player._server.Name;
+                pkt.arena = player._arena._name;
+                pkt.reason = payload;
+                //Send it!
+                player._server._db.send(pkt);
             }
 
             //Notify the player all went well..
@@ -616,7 +709,10 @@ namespace InfServer.Game.Commands.Chat
         public static void online(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
 
             CS_Query<Data.Database> online = new CS_Query<Data.Database>();
             online.queryType = CS_Query<Data.Database>.QueryType.online;
@@ -670,39 +766,103 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
+        #region resources
+        /// <summary>
+        /// Displays all resources belonging to a team.
+        /// </summary>
+        public static void resources(Player player, Player recipient, string payload, int bong)
+        {
+            if (player.IsSpectator)
+            {
+                player.sendMessage(-1, "You can only use this command while in game.");
+                return;
+            }
+
+            IEnumerable<Player> Players = player._arena.PlayersIngame.Where(p => p._team == player._team);
+            if (Players.Count() > 0)
+            {
+                //Get all items on players
+                foreach (Player p in Players)
+                {
+                    IEnumerable<Player.InventoryItem> inventory = p._inventory.Values.Where(i => i.item.itemType == ItemInfo.ItemType.Ammo);
+                    player.sendMessage(0, "Player {0} has:");
+                    if (inventory.Count() > 0)
+                    {
+                        foreach (Player.InventoryItem item in inventory)
+                        {
+                            if (item.item.name.Contains("Ore"))
+                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                            else if (item.item.name.Contains("Unilennium"))
+                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                            else if (item.item.name.Contains("Tsolvy"))
+                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                            else if (item.item.name.Contains("Titanium"))
+                            {
+                                if (item.item.name.Equals("Titanium"))
+                                    player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                else
+                                    player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                            }
+                            else if (item.item.name.Contains("Hydrocarbon"))
+                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                            else if (item.item.name.Contains("Pandora"))
+                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                        }
+                    }
+                    else
+                        player.sendMessage(0, " No resources.");
+                }
+            }
+        }
+        #endregion
+
         #region structures
         /// <summary>
-		/// Displays all structures and resources belonging to a team.
+		/// Displays all structures and vehicles belonging to a team.
 		/// </summary>
         public static void structures(Player player, Player recipient, string payload, int bong)
         {
-            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v != null && v._team._id == player._team._id &&
+            if (player.IsSpectator)
+            {
+                player.sendMessage(-1, "You can only use this command while in game.");
+                return;
+            }
+
+            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
                 v._type.Type == VehInfo.Types.Computer);
-            IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v != null && v._team._id == player._team._id &&
+            IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
                 v._type.Type == VehInfo.Types.Car);
 
             //Display computers
             player.sendMessage(0, "&~Team Structures:");
-            foreach (Vehicle veh in comps)
+            if (comps.Count() < 1)
+                player.sendMessage(0, "~None");
+            else
             {
-                player.sendMessage(0, 
-                    String.Format("~{0} Location={1} Health={2}", 
-                    veh._type.Name, 
-                    Helpers.posToLetterCoord(veh._state.positionX, veh._state.positionY), 
-                    veh._state.health));
+                foreach (Vehicle veh in comps)
+                {
+                    player.sendMessage(0,
+                        String.Format("~{0} Location={1} Health={2}",
+                        veh._type.Name,
+                        Helpers.posToLetterCoord(veh._state.positionX, veh._state.positionY),
+                        veh._state.health));
+                }
             }
-
             //Display Car Vehicles
             player.sendMessage(0, "&~Team Vehicles:");
-            foreach (Vehicle veh in vehicles)
+            if (vehicles.Count() < 1)
+                player.sendMessage(0, "~None");
+            else
             {
-                player.sendMessage(0,
-                    String.Format("~{0} Location={1} Health={2}",
-                    veh._type.Name,
-                    Helpers.posToLetterCoord(veh._state.positionX, veh._state.positionY),
-                    veh._state.health));
+                foreach (Vehicle veh in vehicles)
+                {
+                    player.sendMessage(0,
+                        String.Format("~{0} Location={1} Health={2}",
+                        veh._type.Name,
+                        Helpers.posToLetterCoord(veh._state.positionX, veh._state.positionY),
+                        veh._state.health));
+                }
             }
-            
         }
         #endregion
 
@@ -745,7 +905,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squad(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.online;
             sqdquery.alias = player._alias;
@@ -761,7 +925,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadlist(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.list;
             sqdquery.alias = player._alias;
@@ -777,7 +945,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadlistinvites(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             if (payload.Trim().ToLower() == "squad")
                 sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invitessquad;
@@ -796,7 +968,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadcreate(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.create;
             sqdquery.alias = player._alias;
@@ -812,7 +988,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadinvite(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invite;
             sqdquery.alias = player._alias;
@@ -828,7 +1008,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadkick(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.kick;
             sqdquery.alias = player._alias;
@@ -844,7 +1028,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadleave(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.leave;
             sqdquery.alias = player._alias;
@@ -860,7 +1048,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadiresponse(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invitesreponse;
             sqdquery.alias = player._alias;
@@ -875,8 +1067,13 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void squadstats(Player player, Player recipient, string payload, int bong)
         {
-            CS_Squads<Data.Database> query = new CS_Squads<Data.Database>();
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
 
+            CS_Squads<Data.Database> query = new CS_Squads<Data.Database>();
             query.queryType = CS_Squads<Data.Database>.QueryType.stats;
             query.payload = payload;
             query.alias = player._alias;
@@ -892,7 +1089,11 @@ namespace InfServer.Game.Commands.Chat
         public static void squadtransfer(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
+            }
+
             CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
             sqdquery.queryType = CS_Squads<Data.Database>.QueryType.transfer;
             sqdquery.alias = player._alias;
@@ -1040,6 +1241,12 @@ namespace InfServer.Game.Commands.Chat
                         }
                         else
                         {
+                            if (teamname.ToLower().Equals("spec") || teamname.ToLower().Equals("spectator"))
+                            {
+                                player.sendMessage(-1, "You can't use this team name.");
+                                return;
+                            }
+
                             //They want to create a private team
                             Team privteam = new Team(player._arena, player._arena._server);
 
@@ -1227,37 +1434,17 @@ namespace InfServer.Game.Commands.Chat
         [Commands.RegistryFunc(HandlerType.ChatCommand)]
         public static IEnumerable<Commands.HandlerDescriptor> Register()
         {
-            yield return new HandlerDescriptor(arena, "arena",
-                "Displays all arenas availble to join",
-                "?arena");
-
-            yield return new HandlerDescriptor(squadstats, "squadstats",
-                "Displays squad stats for a particular squad in the requestee's current zone",
-                "?squadstats squad or ?squadstats");
+            yield return new HandlerDescriptor(accountinfo, "accountinfo",
+                "Displays all aliases registered to a single account.",
+                "?accountinfo");
 
             yield return new HandlerDescriptor(aid, "aid",
                 "Allows a player to aid another player in the form of money",
                 "?aid targetalias:#");
 
-            yield return new HandlerDescriptor(teamkick, "teamkick",
-                "Allows a player to kick another from a private team",
-                "?teamkick targetalias");
-
-            yield return new HandlerDescriptor(teampassword, "teampassword",
-                "Allows a player to change the password of a private team",
-                "?teampasword newpassword");
-
-            yield return new HandlerDescriptor(structures, "structures",
-                "Displays all structures and vehicles that belong to a team",
-                "?structures");
-
-            yield return new HandlerDescriptor(accountinfo, "accountinfo",
-                "Displays all aliases registered to a single account.",
-                "?accountinfo");
-
-            yield return new HandlerDescriptor(chat, "chat",
-                "Joins or leaves specified chats",
-                "?chat chat1,chat2,chat3. ?chat off leaves all");
+            yield return new HandlerDescriptor(arena, "arena",
+                "Displays all arenas availble to join",
+                "?arena");
 
             yield return new HandlerDescriptor(breakdown, "breakdown",
                 "Displays current game statistics",
@@ -1270,6 +1457,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(sell, "sell",
                 "Sells items",
                 "?sell item1:amount1,item2:amount2");
+
+            yield return new HandlerDescriptor(chat, "chat",
+                "Joins or leaves specified chats",
+                "?chat chat1,chat2,chat3. ?chat off leaves all");
 
             yield return new HandlerDescriptor(drop, "drop",
                "Drops items",
@@ -1303,6 +1494,10 @@ namespace InfServer.Game.Commands.Chat
                 "Answers a poll topic",
                 "?poll yes/no");
 
+            yield return new HandlerDescriptor(resources, "resources",
+                "Displays the teams resources",
+                "?resources");
+
             yield return new HandlerDescriptor(spec, "spec",
                 "Displays all players which are spectating you or another player",
                 "?spec or ::?spec");
@@ -1310,14 +1505,6 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(squad, "squad",
                 "Lists online players of current squad or a specific squad",
                 "?squad or ?squad [squadname]");
-
-            yield return new HandlerDescriptor(squadlist, "squadlist",
-                "Lists all players of current squad or a specific squad",
-                "?squadlist or ?squadlist [squadname]");
-
-            yield return new HandlerDescriptor(squadlistinvites, "squadlistinvites",
-                "Lists current player invites or outstanding squad invites",
-                "?squadlistinvites [player/squad]");
 
             yield return new HandlerDescriptor(squadcreate, "squadcreate",
                 "Creates a squad in the current zone",
@@ -1327,21 +1514,37 @@ namespace InfServer.Game.Commands.Chat
                 "Extends or revokes a squad invitation from a specific player",
                 "?squadinvite [add/remove]:[player]:[squadname]");
 
+            yield return new HandlerDescriptor(squadiresponse, "squadiresponse",
+                "Accepts or rejects a squad invitation",
+                "?squadIresponse [accept/reject]:[squadname]");
+
             yield return new HandlerDescriptor(squadkick, "squadkick",
                 "Kicks a player from the current squad",
                 "?squadkick [player]");
-
-            yield return new HandlerDescriptor(squadtransfer, "squadtransfer",
-                "Transfers squad ownership to a specified player",
-                "?squadtransfer [player]");
 
             yield return new HandlerDescriptor(squadleave, "squadleave",
                 "Leaves (or dissolves) current squad",
                 "?squadleave");
 
-            yield return new HandlerDescriptor(squadiresponse, "squadiresponse",
-                "Accepts or rejects a squad invitation",
-                "?squadIresponse [accept/reject]:[squadname]");
+            yield return new HandlerDescriptor(squadlist, "squadlist",
+                "Lists all players of current squad or a specific squad",
+                "?squadlist or ?squadlist [squadname]");
+
+            yield return new HandlerDescriptor(squadlistinvites, "squadlistinvites",
+                "Lists current player invites or outstanding squad invites",
+                "?squadlistinvites [player/squad]");
+
+            yield return new HandlerDescriptor(squadstats, "squadstats",
+                "Displays squad stats for a particular squad in the requestee's current zone",
+                "?squadstats squad or ?squadstats");
+
+            yield return new HandlerDescriptor(squadtransfer, "squadtransfer",
+                "Transfers squad ownership to a specified player",
+                "?squadtransfer [player]");
+
+            yield return new HandlerDescriptor(structures, "structures",
+                "Displays all structures and vehicles that belong to a team",
+                "?structures");
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Ignores summons from the specified player(s)",
@@ -1350,6 +1553,14 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(team, "team",
                 "Displays a list of teams or joins a specified team",
                 "?team or ?team name:password");
+
+            yield return new HandlerDescriptor(teamkick, "teamkick",
+                "Allows a player to kick another from a private team",
+                "?teamkick targetalias");
+
+            yield return new HandlerDescriptor(teampassword, "teampassword",
+                "Allows a player to change the password of a private team",
+                "?teampasword newpassword");
 
             yield return new HandlerDescriptor(wipecharacter, "wipecharacter",
                 "Wipes your characters stats and sets them back to initial state",

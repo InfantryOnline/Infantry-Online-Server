@@ -23,10 +23,10 @@ namespace InfServer.Script.FollowBot
 		///////////////////////////////////////////////////
 		private Bot _bot;						//Pointer to our bot class
 
-		private Player victim;					//The player we're currently stalking
+		//private Player victim;					//The player we're currently stalking
 
 		private int _stalkRadius = 1000;		//The distance away we'll look for a victim (in pixels?)
-		private int _optimalDistance = 60;		//The distance we want to remain at ideally
+		//private int _optimalDistance = 60;		//The distance we want to remain at ideally
 
 		private int _tickLastShot;
 

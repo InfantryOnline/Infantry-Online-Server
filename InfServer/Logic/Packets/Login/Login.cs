@@ -23,8 +23,6 @@ namespace InfServer.Logic
             {
                 if (server._connections != null)
                 {
-                    //TODO: Check for banned ip's first
-
                     if ((pkt.bCreateAlias != true) && server._connections.ContainsKey(client._ipe.Address))
                     {
                         Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Please wait 10 seconds before logging in again.");
@@ -61,14 +59,24 @@ namespace InfServer.Logic
 
             //Check alias for illegal characters
             if (alias.Length == 0)
+            {
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias cannot be blank.");
-            if (!char.IsLetterOrDigit(alias, 0) ||
-                char.IsWhiteSpace(alias, 0) ||
-                char.IsWhiteSpace(alias, alias.Length - 1) ||
-                alias != Logic_Text.RemoveIllegalCharacters(alias))
-            {   //Boot him..
-                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, must start with a letter or number and cannot end with a space.");
                 return;
+            }
+            try
+            { //Temporary till we find the login bug
+                if (!char.IsLetterOrDigit(alias, 0) ||
+                    char.IsWhiteSpace(alias, 0) ||
+                    char.IsWhiteSpace(alias, alias.Length - 1) ||
+                    alias != Logic_Text.RemoveIllegalCharacters(alias))
+                {   //Boot him..
+                    Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, must start with a letter or number and cannot end with a space.");
+                    return;
+                }
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Log.write(TLog.Warning, "Player login name is {0}", alias);
             }
 
 			//If it failed for some reason, present a failure message

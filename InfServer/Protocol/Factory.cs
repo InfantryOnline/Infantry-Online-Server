@@ -259,7 +259,11 @@ namespace InfServer.Protocol
                     packet = new CS_GoalScored(typeID, buffer, offset, size);
                     break;
 
-				default:
+                case CS_VehiclePickup.TypeID:
+                    packet = new CS_VehiclePickup(typeID, buffer, offset, size);
+                    break;
+
+                default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);
 					break;

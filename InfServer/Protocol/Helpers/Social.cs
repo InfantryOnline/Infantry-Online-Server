@@ -133,7 +133,7 @@ namespace InfServer.Protocol
 			foreach (Player plyr in player._arena.Players)
 			{	//Got a banner?
 				if (plyr._bannerData == null)
-					return;
+					continue;
 
 				SC_Banner banner = new SC_Banner();
 				banner.player = plyr;

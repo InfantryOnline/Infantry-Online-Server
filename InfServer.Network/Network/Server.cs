@@ -183,7 +183,7 @@ namespace InfServer.Network
 						return;
 					}
 
-					//Receive the data
+                    //Receive the data
 					read = _sock.EndReceiveFrom(asyn, ref _remEP);
 
 					//Read in the typeID

@@ -193,7 +193,7 @@ namespace InfServer.Game
 
 			newBot.assignDefaultState();
 
-			// This uses the new ID automatically
+			//This uses the new ID automatically
 			_vehicles.Add(newBot);
 			_bots.Add(newBot);
 

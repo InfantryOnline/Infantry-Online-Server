@@ -78,6 +78,8 @@ namespace InfServer.Game
         public int _lastMovement;               //The tickcount at which the player last made a movement
         public uint _assetCS;
 
+        public bool suspendCalled = false;      //Has suspended stats already been called?
+
         //Player arena ban stuff
         public DateTime _timeOfBlock;           //When he/she was banned from arena
         public int _lengthOfBlock;              //How long the block is
@@ -342,14 +344,10 @@ namespace InfServer.Game
 				_spectating = null;
 			}
 
-  /*        //Testing: for people that dc/rejoin an arena
-            if (_bIsPublic && player._arena._saveStats)
-                player.suspendStats();
-      */ 
-			//If we're currently in a vehicle, we want to desert it
-			if (_occupiedVehicle != null)
-				_occupiedVehicle.playerLeave(true);
-			_occupiedVehicle = null;
+            //If we're currently in a vehicle, we want to desert it
+            if (_occupiedVehicle != null)
+                _occupiedVehicle.playerLeave(true);
+            _occupiedVehicle = null;
 
 			//Notify our team
 			if (_team != null)
@@ -1133,10 +1131,9 @@ namespace InfServer.Game
 		{	//Let's create a new spectator vehicle
 			Vehicle specVeh = _arena.newVehicle(_server._zoneConfig.arena.spectatorVehicleId);
 
-            //If we're currently in a vehicle, we want to desert it
+            //If we're currently in a vehicle, we want to desert it MIZZ123
             if (_occupiedVehicle != null)
-                _occupiedVehicle.playerLeave(true);
-            _occupiedVehicle = null;
+                _occupiedVehicle.playerLeave(false);
 
 			//Have the player enter it
 			if (!enterVehicle(specVeh))

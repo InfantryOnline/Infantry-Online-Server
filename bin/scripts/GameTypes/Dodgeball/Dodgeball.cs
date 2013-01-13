@@ -25,7 +25,7 @@ namespace InfServer.Script.GameType_Dodgeball
 		private CfgInfo _config;				//The zone config
 
 		private Team _victoryTeam;				//The team currently winning!
-        private Dictionary<Team, int> _teams;   //Our teams, and how many players left.
+        //private Dictionary<Team, int> _teams;   //Our teams, and how many players left.
         private Random _rand;		
         Team team1;
         Team team2;
@@ -38,7 +38,7 @@ namespace InfServer.Script.GameType_Dodgeball
 		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
 		//Settings
 		private int _minPlayers;				//The minimum amount of players
-        private bool bVictory = false;
+        //private bool bVictory = false;
 
 
 

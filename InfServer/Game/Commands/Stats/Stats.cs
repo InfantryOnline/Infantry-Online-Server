@@ -63,7 +63,19 @@ namespace InfServer.Game.Commands.Chat
 			player._client.sendReliable(chart, 1);
 		}
 
-        //TODO: ?Chatchart
+        /// <summary>
+        /// Displays a chart containing information reguarding each players chats
+        /// </summary>
+        public static void chatchart(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
+
+
+        }
 
 		/// <summary>
 		/// Registers all handlers

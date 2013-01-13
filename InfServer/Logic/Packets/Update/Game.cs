@@ -467,7 +467,7 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
-		/// Handles an item expiry notification
+		/// Handles an item expire notification
 		/// </summary>
 		static public void Handle_CS_ItemExpired(CS_ItemExpired pkt, Player player)
 		{	//Allow the player's arena to handle it
@@ -483,6 +483,38 @@ namespace InfServer.Logic
 				}
 			);
 		}
+
+        /// <summary>
+        /// Handles a vehicle pickup request
+        /// </summary>
+        static public void Handle_CS_VehiclePickup(CS_VehiclePickup pkt, Player player)
+        {	//Allow the player's arena to handle it
+			if (player._arena == null)
+			{
+				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				return;
+			}
+
+			if (player.IsSpectator)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to pickup vehicle items from spec.", player);
+				return;
+			}
+
+			if (player.IsDead)
+			{
+				Log.write(TLog.Warning, "Player {0} attempted to pickup vehicle items while dead.", player);
+				return;
+			}
+            Log.write(TLog.Warning, "Vehicle Pickup packet - {0} {1}", pkt.vehicleID, player._alias);
+            /*
+            player._arena.handleEvent(delegate(Arena arena)
+            {
+                player._arena.handleVehiclePickup(player, pkt);
+            }
+            ); */
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -503,6 +535,7 @@ namespace InfServer.Logic
             CS_AllowSpectator.Handlers += Handle_CS_AllowSpectator;
 			CS_RequestSpectator.Handlers += Handle_CS_RequestSpectator;
 			CS_ItemExpired.Handlers += Handle_CS_ItemExpired;
+            CS_VehiclePickup.Handlers += Handle_CS_VehiclePickup;
 		}
 	}
 }

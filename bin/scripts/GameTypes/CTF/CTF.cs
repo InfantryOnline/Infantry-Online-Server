@@ -114,6 +114,7 @@ namespace InfServer.Script.GameType_CTF
                     //Yes! Trigger game victory
                     _gameWon = true; // game won
                     gameVictory(_victoryTeam);
+                    return true;
                     
                 }
                 else

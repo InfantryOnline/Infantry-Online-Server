@@ -85,7 +85,7 @@ namespace InfServer.Logic
                         //Now lets transfer
                         alias.IPAddress = paliasTo.IPAddress;
                         alias.timeplayed = 0;
-                        alias.account1.id = paliasTo.account1.id;
+                        alias.account = paliasTo.account;
                         db.SubmitChanges();
                         zone._server.sendMessage(zone, pkt.sender, "Alias transfer completed.");
                         break;
@@ -158,26 +158,50 @@ namespace InfServer.Logic
             using (InfantryDataContext db = zone._server.getContext())
             {
                 Data.DB.alias dbplayer = db.alias.First(p => p.name.Equals(pkt.alias));
-                //Data.DB.alias dbplayer = db.alias.First(p => p.name == pkt.alias);
+                Data.DB.ban newBan = new Data.DB.ban();
+                bool found = false;
            
                 //Lets check to see if they are banned already
-                bool update = false;
                 foreach (Data.DB.ban b in db.bans.Where(b => b.account == dbplayer.account1.id))
                     if (b.type == (short)pkt.banType)
                     {
                         //It does exist, lets check and update it
                         if ((short)pkt.banType == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != null && b.zone != zone._zone.id)
                             continue;
-                        update = true;
+
+                        //Lets update what we need then submit
+                        if (pkt.time != 0)
+                            b.expires = DateTime.Now.AddMinutes(pkt.time);
+                        else if (pkt.time == 0)
+                            b.expires = DateTime.Now;
+
+                        newBan.account = dbplayer.account;
+                        newBan.created = b.created;
+                        newBan.expires = b.expires;
+                        newBan.IPAddress = dbplayer.IPAddress;
+                        newBan.reason = b.reason;
+                        newBan.type = b.type;
+                        newBan.uid1 = b.uid1;
+                        newBan.uid2 = b.uid2;
+                        newBan.uid3 = b.uid3;
+                        if ((short)pkt.banType == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != null && b.zone == zone._zone.id)
+                            newBan.zone = b.zone;
+                        found = true;
                         break;
                     }
 
-                //Create the new ban
-                Data.DB.ban newBan = new Data.DB.ban();
+                if (found)
+                {
+                    //Lets submit
+                    db.SubmitChanges();
+                    return;
+                }
+
                 switch (pkt.banType)
                 {
                     case CS_Ban<Zone>.BanType.zone:
                         {
+                            //Check for updating the ban
                             newBan.type = (short)Logic_Bans.Ban.BanType.ZoneBan;
                             if (pkt.time == 0)
                                 newBan.expires = DateTime.Now;
@@ -245,9 +269,7 @@ namespace InfServer.Logic
                         }
                         break;
                 }
-                if (!update)
-                    db.bans.InsertOnSubmit(newBan);
-                    
+                db.bans.InsertOnSubmit(newBan);
                 db.SubmitChanges();
             }
         }

@@ -60,12 +60,12 @@ namespace InfServer.Logic
             
            catch (Exception e)
            {
-                Log.write(TLog.Warning, "this " + e);
+                Log.write(TLog.Warning, "WriteElementToBuffer " + e);
            }
 		}
 
 		/// <summary>
-		/// Handles a player update request
+		/// Handles a player stat request
 		/// </summary>
 		static public void Handle_CS_PlayerStatsRequest(CS_PlayerStatsRequest<Zone> pkt, Zone zone)
 		{	//Attempt to find the player in question
@@ -86,11 +86,10 @@ namespace InfServer.Logic
 										 where st.zone1 == zone._zone
 										 orderby st.assistPoints + st.bonusPoints + st.killPoints descending
 										 select st).Take(100);
-							MemoryStream stream = new MemoryStream();                            
-                           
-                            foreach (Data.DB.stats stat in stats)
-                                writeElementToBuffer(stat, stream);
-                                
+							MemoryStream stream = new MemoryStream();
+                            
+                            foreach (Data.DB.stats lifetime in stats)
+                                writeElementToBuffer(lifetime, stream);
                             
 							SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
 
@@ -102,6 +101,639 @@ namespace InfServer.Logic
 							zone._client.sendReliable(response, 1);
 						}
 						break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreDaily:
+                        {
+                            DateTime now = DateTime.Today;
+
+                            //Get the top100 stats sorted by points
+                            //For today's date
+                            var daily = (from dt in db.statsDailies
+                                         where dt.zone1 == zone._zone && dt.date >= now
+                                         orderby dt.assistPoints + dt.bonusPoints + dt.killPoints descending
+                                         select dt).Take(100);
+
+                            //Are they requesting a specific date?
+                            if (pkt.options != "")
+                            {
+                                //Player wants to see yesterday's date
+                                if (pkt.options.Equals("-1"))
+                                {
+                                    DateTime today = now;
+                                    now = now.AddDays(-1);
+                                    daily = (from dt in db.statsDailies
+                                             where dt.zone1 == zone._zone && dt.date >= now && dt.date < today
+                                             orderby dt.assistPoints + dt.bonusPoints + dt.killPoints descending
+                                             select dt).Take(100);
+                                }
+                                else //Specific date
+                                {
+                                    string[] args = pkt.options.Split('-');
+                                    string final = string.Join("/", args);
+                                    try
+                                    {
+                                        now = DateTime.Parse(final, System.Threading.Thread.CurrentThread.CurrentCulture.DateTimeFormat);
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        //Wrong format, use yesterday as default
+                                        now = (now.AddDays(-1));
+                                    }
+                                    DateTime add = now.AddDays(1);
+
+                                    daily = (from dt in db.statsDailies
+                                             where dt.zone1 == zone._zone && dt.date >= now && dt.date < add
+                                             orderby dt.assistPoints + dt.bonusPoints + dt.killPoints descending
+                                             select dt).Take(100);
+                                }
+                            }
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsDaily day in daily)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(day.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = day.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(day.vehicleDeaths);
+                                    bw.Write(day.vehicleKills);
+                                    bw.Write(day.killPoints);
+                                    bw.Write(day.deathPoints);
+                                    bw.Write(day.assistPoints);
+                                    bw.Write(day.bonusPoints);
+                                    bw.Write(day.kills);
+                                    bw.Write(day.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(day.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementDaily " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreDaily;
+                            response.columns = "Top100 Daily Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreWeekly:
+                        {
+                            DateTime now = DateTime.Today;
+                            if ( ((int)now.DayOfWeek) > 0)
+                                now = now.AddDays(-((int)now.DayOfWeek));
+
+                            //Get the top100 stats sorted by points
+                            //For this week
+                            var weekly = (from wt in db.statsWeeklies
+                                         where wt.zone1 == zone._zone && wt.date >= now
+                                         orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
+                                         select wt).Take(100);
+
+                            //Are they requesting a specific date?
+                            if (pkt.options != "")
+                            {
+                                //Player wants to see last week's date
+                                if (pkt.options.Equals("-1"))
+                                {
+                                    DateTime today = now;
+                                    now = now.AddDays(-7);
+                                    weekly = (from wt in db.statsWeeklies
+                                             where wt.zone1 == zone._zone && wt.date >= now && wt.date < today
+                                             orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
+                                             select wt).Take(100);
+                                }
+                                else //Specific date
+                                {
+                                    string[] args = pkt.options.Split('-');
+                                    string final = string.Join("/", args);
+                                    try
+                                    {
+                                        now = DateTime.Parse(final, System.Threading.Thread.CurrentThread.CurrentCulture.DateTimeFormat);
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        //Wrong format, use last week as default
+                                        now = (now.AddDays(-7));
+                                    }
+                                    DateTime add = now.AddDays(7);
+
+                                    weekly = (from wt in db.statsWeeklies
+                                             where wt.zone1 == zone._zone && wt.date >= now && wt.date < add
+                                             orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
+                                             select wt).Take(100);
+                                }
+                            }
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsWeekly week in weekly)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(week.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = week.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(week.vehicleDeaths);
+                                    bw.Write(week.vehicleKills);
+                                    bw.Write(week.killPoints);
+                                    bw.Write(week.deathPoints);
+                                    bw.Write(week.assistPoints);
+                                    bw.Write(week.bonusPoints);
+                                    bw.Write(week.kills);
+                                    bw.Write(week.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(week.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementWeekly " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreWeekly;
+                            response.columns = "Top100 Weekly Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreMonthly:
+                        {
+                            DateTime now = DateTime.Today;
+                            if (((int)now.Day - 1) > 1)
+                                now = now.AddDays(-(((int)now.Day) - 1));
+
+                            //Get the top100 stats sorted by points
+                            //For this month
+                            var monthly = (from mt in db.statsMontlies
+                                         where mt.zone1 == zone._zone && mt.date >= now
+                                         orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
+                                         select mt).Take(100);
+
+                            //Are they requesting a specific date?
+                            if (pkt.options != "")
+                            {
+                                //Player wants to see last month's date
+                                if (pkt.options.Equals("-1"))
+                                {
+                                    DateTime today = now;
+                                    now = now.AddMonths(-1);
+                                    monthly = (from mt in db.statsMontlies
+                                              where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
+                                              orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
+                                              select mt).Take(100);
+                                }
+                                else //Specific date
+                                {
+                                    string[] args = pkt.options.Split('-');
+                                    string final = string.Join("/", args);
+                                    //Since the client only gives month/year, lets start from day 1
+                                    final = String.Format("{0}/01", final);
+                                    try
+                                    {
+                                        now = DateTime.Parse(final, System.Threading.Thread.CurrentThread.CurrentCulture.DateTimeFormat);
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        //Wrong format, use last month as default
+                                        now = (now.AddMonths(-1));
+                                    }
+                                    DateTime add = now.AddMonths(1);
+
+                                    monthly = (from mt in db.statsMontlies
+                                              where mt.zone1 == zone._zone && mt.date >= now && mt.date < add
+                                              orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
+                                              select mt).Take(100);
+                                }
+                            }
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsMontly month in monthly)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(month.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = month.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(month.vehicleDeaths);
+                                    bw.Write(month.vehicleKills);
+                                    bw.Write(month.killPoints);
+                                    bw.Write(month.deathPoints);
+                                    bw.Write(month.assistPoints);
+                                    bw.Write(month.bonusPoints);
+                                    bw.Write(month.kills);
+                                    bw.Write(month.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(month.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementMonthly " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreMonthly;
+                            response.columns = "Top100 Monthly Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreYearly:
+                        {
+                            DateTime now = DateTime.Today;
+                            if (((int)now.Month) > 1)
+                                now = now.AddMonths(-((int)DateTime.Now.Month));
+
+                            //Get the top100 stats sorted by points
+                            var yearly = (from yt in db.statsYearlies
+                                         where yt.zone1 == zone._zone && yt.date >= now
+                                         orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
+                                         select yt).Take(100);
+
+                            //Are they requesting a specific date?
+                            if (pkt.options != "")
+                            {
+                                //Player wants to see last years date
+                                if (pkt.options.Equals("-1"))
+                                {
+                                    now = now.AddYears(-1);
+                                    yearly = (from yt in db.statsYearlies
+                                               where yt.zone1 == zone._zone && yt.date >= now
+                                               orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
+                                               select yt).Take(100);
+                                }
+                                else //Specific date
+                                {
+                                    //Since the client only gives the year, lets start from jan 1st
+                                    string final = String.Format("{0}/01/01", pkt.options);
+                                    try
+                                    {
+                                        now = DateTime.Parse(final, System.Threading.Thread.CurrentThread.CurrentCulture.DateTimeFormat);
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        //Wrong format, use last year as default
+                                        now = (now.AddYears(-1));
+                                    }
+                                    DateTime add = now.AddYears(1);
+
+                                    yearly = (from yt in db.statsYearlies
+                                               where yt.zone1 == zone._zone && yt.date >= now && yt.date <= add
+                                               orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
+                                               select yt).Take(100);
+                                }
+                            }
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsYearly year in yearly)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(year.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = year.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(year.vehicleDeaths);
+                                    bw.Write(year.vehicleKills);
+                                    bw.Write(year.killPoints);
+                                    bw.Write(year.deathPoints);
+                                    bw.Write(year.assistPoints);
+                                    bw.Write(year.bonusPoints);
+                                    bw.Write(year.kills);
+                                    bw.Write(year.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(year.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementYear " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreYearly;
+                            response.columns = "Top100 Yearly Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily:
+                        {
+                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            if (getPlayer == null)
+                                return;
+
+                            //Lets give them a year's worth
+                            DateTime now = DateTime.Today;
+                            if (((int)now.DayOfYear - 1) > 1)
+                                now = now.AddDays(-(((int)now.DayOfYear) - 1));
+
+                            DateTime today = DateTime.Today;
+                            var daily = (from dt in db.statsDailies
+                                     where dt.zone1 == zone._zone && dt.date >= now && dt.date < today
+                                     orderby dt.date descending
+                                     select dt);
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsDaily day in daily)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(day.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = day.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(day.vehicleDeaths);
+                                    bw.Write(day.vehicleKills);
+                                    bw.Write(day.killPoints);
+                                    bw.Write(day.deathPoints);
+                                    bw.Write(day.assistPoints);
+                                    bw.Write(day.bonusPoints);
+                                    bw.Write(day.kills);
+                                    bw.Write(day.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(day.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementHistoryDailly " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily;
+                            response.columns = "ScoreHistory Daily Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly:
+                        {
+                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            if (getPlayer == null)
+                                return;
+
+                            //Lets give them a year's worth
+                            DateTime now = DateTime.Today;
+                            if (((int)now.DayOfWeek) > 0)
+                                now = now.AddDays(-(((int)now.DayOfWeek) - 1));
+                            DateTime today = now;
+                            now = now.AddMonths(-((int)now.Month - 1));
+
+                            var weekly = (from wt in db.statsWeeklies
+                                      where wt.zone1 == zone._zone && wt.date >= now && wt.date < today
+                                      orderby wt.date descending
+                                      select wt);
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsWeekly week in weekly)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(week.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = week.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(week.vehicleDeaths);
+                                    bw.Write(week.vehicleKills);
+                                    bw.Write(week.killPoints);
+                                    bw.Write(week.deathPoints);
+                                    bw.Write(week.assistPoints);
+                                    bw.Write(week.bonusPoints);
+                                    bw.Write(week.kills);
+                                    bw.Write(week.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(week.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementHistoryWeekly " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly;
+                            response.columns = "ScoreHistory Weekly Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly:
+                        {
+                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            if (getPlayer == null)
+                                return;
+
+                            //Lets give them a year's worth
+                            DateTime now = DateTime.Today;
+                            if (((int)now.Day - 1) > 1)
+                                now = now.AddDays(-(((int)now.Day) - 1));
+                            DateTime today = now;
+                            now = now.AddMonths(-((int)now.Month - 1));
+
+                            var monthly = (from mt in db.statsMontlies
+                                       where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
+                                       orderby mt.date descending
+                                       select mt);
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsMontly month in monthly)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(month.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = month.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(month.vehicleDeaths);
+                                    bw.Write(month.vehicleKills);
+                                    bw.Write(month.killPoints);
+                                    bw.Write(month.deathPoints);
+                                    bw.Write(month.assistPoints);
+                                    bw.Write(month.bonusPoints);
+                                    bw.Write(month.kills);
+                                    bw.Write(month.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(month.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementHistoryMonthly " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly;
+                            response.columns = "ScoreHistory Montly Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly:
+                        {
+                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            if (getPlayer == null)
+                                return;
+
+                            //Lets give them a year's worth
+                            DateTime now = DateTime.Today;
+                            if (((int)now.Day - 1) > 1)
+                                now = now.AddDays(-(((int)now.Day) - 1));
+                            DateTime today = now;
+                            now = now.AddMonths(-((int)now.Month - 1));
+
+                            var yearly = (from yt in db.statsYearlies
+                                       where yt.zone1 == zone._zone && yt.date >= now && yt.date < today
+                                       orderby yt.date descending
+                                       select yt);
+
+                            MemoryStream stream = new MemoryStream();
+                            try
+                            {
+                                foreach (Data.DB.statsYearly year in yearly)
+                                {
+                                    BinaryWriter bw = new BinaryWriter(stream);
+                                    bw.Write(year.players[0].alias1.name.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    Data.DB.squad squad = year.players[0].squad1;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.name;
+
+                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write((byte)0);
+
+                                    bw.Write((short)2);
+                                    bw.Write(year.vehicleDeaths);
+                                    bw.Write(year.vehicleKills);
+                                    bw.Write(year.killPoints);
+                                    bw.Write(year.deathPoints);
+                                    bw.Write(year.assistPoints);
+                                    bw.Write(year.bonusPoints);
+                                    bw.Write(year.kills);
+                                    bw.Write(year.deaths);
+                                    bw.Write((int)0);
+                                    bw.Write(year.playSeconds);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.write(TLog.Warning, "WriteElementHistoryYearly " + e);
+                            }
+
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
+
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly;
+                            response.columns = "ScoreHistory Yearly Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
 				}
 			}
 		}

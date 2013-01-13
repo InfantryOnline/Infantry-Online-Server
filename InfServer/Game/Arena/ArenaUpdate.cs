@@ -165,6 +165,12 @@ namespace InfServer.Game
 		public virtual void handlePlayerSpectate(Player player, ushort targetPlayerID)
 		{	}
 
+        /// <summary>
+        /// Triggered when a player requests to pick up a vehicle
+        /// </summary>
+        public virtual void handleVehiclePickup(Player from, CS_VehiclePickup update)
+        {   }
+
 		/// <summary>
 		/// Triggered when a vehicle is created
 		/// </summary>

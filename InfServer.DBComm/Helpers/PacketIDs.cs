@@ -40,6 +40,7 @@ namespace InfServer.Protocol
                 Alias = 20,
                 ChatCommand = 21,
             }
+
             ///<summary>
             ///Contains S2C packet ids
             ///</summary>

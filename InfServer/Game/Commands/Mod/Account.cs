@@ -50,7 +50,7 @@ namespace InfServer.Game.Commands.Mod
 
             //Snap the string before sending it
             //For ban lookup
-            queryBan = query.payload.ToString();
+            queryBan = query.payload;
 
             //Send it!
             player._server._db.send(query);
@@ -79,7 +79,7 @@ namespace InfServer.Game.Commands.Mod
 
             if (payload == "")
             {
-                player.sendMessage(-1, "Syntax: either *transferalias aliasTo:alias OR :player:*transferalias aliastotransfer");
+                player.sendMessage(-1, "Syntax: either *transferalias aliasTo:alias OR :playerGoingTo:*transferalias aliastotransfer");
                 return;
             }
 
@@ -103,7 +103,6 @@ namespace InfServer.Game.Commands.Mod
                     alias = recipient._alias.ToString();
                     //Since they are here, lets dc them to complete the transfer
                     recipient.sendMessage(-1, "You are being forced a dc to complete the alias transfer.");
-                    recipient.disconnect();
                 }
                 else
                     alias = param[1];
@@ -112,12 +111,12 @@ namespace InfServer.Game.Commands.Mod
             {
                 if (payload == "")
                 {
-                    player.sendMessage(-1, "Syntax: :player:*transferalias aliasToTransfer");
+                    player.sendMessage(-1, "Syntax: :playerGoingTo:*transferalias aliasToTransfer");
                     return;
                 }
                 
                 //Our transfer alias is playing, force a dc
-                if (recipient != null)
+                if ((recipient = player._arena.getPlayerByName(payload)) != null)
                 {
                     alias = recipient._alias.ToString();
                     recipient.sendMessage(-1, "You are being forced a dc to transfer the alias.");

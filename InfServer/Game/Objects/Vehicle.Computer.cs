@@ -126,7 +126,7 @@ namespace InfServer.Game
 
 				return false;
 			}
-			
+
 			//If below non-operational HP don't fire
 			if (_state.health < _type.HitpointsRequiredToOperate) 
 				return false;
@@ -137,8 +137,27 @@ namespace InfServer.Game
 
 			//See if there are any valid targets within the tracking radius
 			Player target = getClosestValidTarget();
-			if (target == null) 
-				return false;
+            if (target == null)
+            {
+                //Since there are no active targets, lets check repair rate
+                if (now - _tickLastUpdate >= 1000)
+                {
+                    if (_type.RepairRate > 0)
+                    {
+                        _state.health = (short)Math.Min(_type.Hitpoints, _state.health + (_type.RepairRate / 1000));
+                        _sendUpdate = true;
+                        return true;
+                    }
+                    if (_type.ComputerEnergyRate > 0)
+                    {
+                        _state.energy = (short)Math.Min((_type.EnergyMax == -1 ? _type.ComputerEnergyMax : _type.EnergyMax), _state.energy + (_type.ComputerEnergyRate / 1000));
+                        _sendUpdate = true;
+                        return true;
+                    }
+                    _tickLastUpdate = now;
+                }
+                return false;
+            }
 
 			//Look at our target!
 			_state.fireAngle = Helpers.computeLeadFireAngle(_state, target._state, _primaryProjectile.muzzleVelocity / 1000);
@@ -302,8 +321,13 @@ namespace InfServer.Game
 			
 			//Did we die?
 			if (_state.health <= 0)
-			{	//Computer vehicles don't linger, so destroy it
-				destroy(true);
+			{	//Are we destroyable?
+                if (_type.Destroyable == 0)
+                    //We arent, set health to 0
+                    _state.health = 0;
+                else
+                    //Computer vehicles don't linger, so destroy it
+                    destroy(true);
 			}
 
 			_sendUpdate = true;
