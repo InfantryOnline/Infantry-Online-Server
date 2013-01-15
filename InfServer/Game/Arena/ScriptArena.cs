@@ -679,12 +679,12 @@ namespace InfServer.Game
 
                 //Does he have a high p-loss or ping?
                 Client.ConnectionStats pStats = from._client._stats;
-                if (pStats.C2SPacketLoss > 3.50f)
+               /* if (pStats.C2SPacketLoss > 3.50f)
                 {
                     from.sendMessage(-1, "Your packet loss is too high to enter.");
                     return;
                 }
-
+                */
                 if (pStats.clientAverageUpdate > 600)
                 {
                     from.sendMessage(-1, "Your ping is too high to enter.");
@@ -1129,7 +1129,7 @@ namespace InfServer.Game
                 //Forward to our script
                 if (!exists("Player.BotKill") || (bool)callsync("Player.BotKill", false, from, bot))
                 {	//Update stats
-                    from.Deaths++;
+                    //from.Deaths++;
 
                     //Yes. Spoof it
                     update.type = Helpers.KillType.Computer;
@@ -2012,7 +2012,6 @@ namespace InfServer.Game
 		/// <remarks>Doesn't catch spectator or dependent vehicle creation</remarks>
 		public override void handleVehicleCreation(Vehicle created, Team team, Player creator)
 		{	//Forward it to our script
-            Log.write(TLog.Warning, "Vehicle creation");
 			if (!exists("Vehicle.Creation") || (bool)callsync("Vehicle.Creation", false, created, team, creator))
 			{	
 			}

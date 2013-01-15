@@ -40,6 +40,11 @@ namespace InfServer.Game
 		protected int _ammoCount;						//
 		protected int _ammoCapacity;					//
 
+        protected double _getHealth;                    //For health repair - sends update when reaches a whole number
+        protected double _getEnergy;                    //For energy repair
+        protected double _incHealth;                    //Incrementing health repair
+        protected double _incEnergy;                    //Inc energy repair
+
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -144,15 +149,38 @@ namespace InfServer.Game
                 {
                     if (_type.RepairRate > 0)
                     {
-                        _state.health = (short)Math.Min(_type.Hitpoints, _state.health + (_type.RepairRate / 1000));
-                        _sendUpdate = true;
-                        return true;
+                        short check = _state.health;
+                        double value = (((double)_type.RepairRate) / 100);
+                        value -= (int)value;
+                        _incHealth = (_incHealth + value);
+                        _getHealth = (_getHealth + (double)_incHealth);
+                        if ((_state.health + (int)_getHealth) > check)
+                        {
+                            _state.health = (short)Math.Min(_type.Hitpoints, _state.health + (int)_getHealth);
+                            _getHealth = 0;
+                            _sendUpdate = true;
+                            //Reset incHealth
+                            if (_incHealth >= 1)
+                                _incHealth = 0;
+                        }
                     }
+
                     if (_type.ComputerEnergyRate > 0)
                     {
-                        _state.energy = (short)Math.Min((_type.EnergyMax == -1 ? _type.ComputerEnergyMax : _type.EnergyMax), _state.energy + (_type.ComputerEnergyRate / 1000));
-                        _sendUpdate = true;
-                        return true;
+                        short check = _state.energy;
+                        double value = (((double)_type.ComputerEnergyRate) / 100);
+                        value -= (int)value;
+                        _incEnergy = (_incEnergy + value);
+                        _getEnergy = (_getEnergy + (double)_incEnergy);
+                        if ((_state.energy + (int)_getEnergy) > check)
+                        {
+                            _state.energy = (short)Math.Min((_type.EnergyMax == -1 ? _type.ComputerEnergyMax : _type.EnergyMax), _state.energy + (int)_getEnergy);
+                            _getEnergy = 0;
+                            _sendUpdate = true;
+                            //Reset incEnergy
+                            if (_incEnergy >= 1)
+                                _incEnergy = 0;
+                        }
                     }
                     _tickLastUpdate = now;
                 }
