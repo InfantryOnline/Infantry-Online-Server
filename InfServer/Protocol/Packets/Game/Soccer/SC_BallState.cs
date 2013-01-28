@@ -35,7 +35,7 @@ namespace InfServer.Protocol
         public Int16 unk7;
         public Int16 delete; // if set to 1, delete it
         public Int16 bPickup;
-        public Int16 ballPickupID; // Id of the person with posession of the ball!
+        public Int16 ballPickupID; // Id of the person with posession of the ball! //kon - this is playerid?
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -57,67 +57,53 @@ namespace InfServer.Protocol
             Write((byte)TypeID); // The type of the packet
             Write((byte)ballID); // The ID of the ball we're updateing
             if (velocityX == 0)
-            {
-                Skip(2);
-            }
+                //Skip(2);
+                Write((Int16)0);
             else
-            {
                 Write(velocityX);
-            }
             if (velocityY == 0)
-            {
-                Skip(2);
-            }
+                //Skip(2);
+                Write((Int16)0);
             else
-            {
                 Write(velocityY);
-            }
             if (velocityZ == 0)
-            {
-                Skip(2);
-            }
+                //Skip(2);
+                Write((Int16)0);
             else
-            {
                 Write(velocityZ);
-            }
             if (positionX == 0)
-            {
-                Skip(2);
-            }
+                //Skip(2);
+                Write((Int16)0);
             else
-            {
                 Write(positionX);
-            }
             if (positionY == 0)
-            {
-                Skip(2);
-            }
+                //Skip(2);
+                Write((Int16)0);
             else
-            {
                 Write(positionY);
-            }
             if (positionZ == 0)
-            {
-                Skip(2);
-            }
+                //Skip(2);
+                Write((Int16)0);
             else
-            {
                 Write(positionZ);
-            }
-            Write((byte)playerID); // This is the byte appears to act as if it has to be the ID of the person dropping/pickingup the ball. Maybe used for the re-pickup delay
+            if (unk2 == -1)
+                Write((byte)playerID); // This is the byte appears to act as if it has to be the ID of the person dropping/pickingup the ball. Maybe used for the re-pickup delay
+            else
+                Write((byte)0);
             Write((byte)unk1);
             if (unk2 == -1) // We use this, somehow, to make the ball packet work for pickups and drops etc. For some reason having 0's works in some cases.
             {
                 //Write((byte)playerID);
-                //Skip(2);
             }
             else if (unk2 == 0)
             {
                 //Write((byte)playerID);
+                Log.write("SC 0");
                 Skip(6);
             }
             else
-            {
+            {   //Performed when dropping ball
+                Log.write("SC else");
                 Write((byte)unk2);
                 Write((byte)unk3);
                 Write((byte)unk4);
@@ -125,8 +111,11 @@ namespace InfServer.Protocol
                 Write((byte)unk6);
                 Write((byte)unk7);
             }
+            //write three more bytes
 
-            //Log.write(DataDump);
+            Log.write("SC_BallState {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10}, {11}", ballID, positionX, positionY, positionZ, playerID, unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+            
+            Log.write("Sending SC_BallState {0}", DataDump);
         }
 
         public override string Dump

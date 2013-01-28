@@ -785,7 +785,7 @@ namespace InfServer.Game.Commands.Chat
                 foreach (Player p in Players)
                 {
                     IEnumerable<Player.InventoryItem> inventory = p._inventory.Values.Where(i => i.item.itemType == ItemInfo.ItemType.Ammo);
-                    player.sendMessage(0, "Player {0} has:");
+                    player.sendMessage(0, "Player " + p._alias + " has:");
                     if (inventory.Count() > 0)
                     {
                         foreach (Player.InventoryItem item in inventory)
@@ -1241,7 +1241,7 @@ namespace InfServer.Game.Commands.Chat
                         }
                         else
                         {
-                            if (teamname.ToLower().Equals("spec") || teamname.ToLower().Equals("spectator"))
+                            if (teamname.ToLower().Equals("spec") || teamname.ToLower().Equals("spectator") || teamname.ToLower().Contains("bot team"))
                             {
                                 player.sendMessage(-1, "You can't use this team name.");
                                 return;

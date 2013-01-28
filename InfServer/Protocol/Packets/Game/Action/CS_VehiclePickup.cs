@@ -14,7 +14,6 @@ namespace InfServer.Protocol
     {	// Member Variables
         ///////////////////////////////////////////////////
         public UInt16 vehicleID;	//The id of the vehicle (not type) that we're picking up
-        public UInt16 quantity;		//The amount we're picking up
 
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.VehiclePickup;
@@ -50,7 +49,6 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             vehicleID = _contentReader.ReadUInt16();
-            quantity = _contentReader.ReadUInt16();
         }
 
         /// <summary>

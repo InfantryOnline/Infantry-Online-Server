@@ -176,7 +176,18 @@ namespace InfServer.Game
                 if (_config["server/updateGlobalNws"].Value.Length > 0)
                 {
                     Log.write(TLog.Normal, String.Format("Grabbing latest global news from {0}...", _config["server/updateGlobalNws"].Value));
-                    _assets.grabGlobalNews(_config["server/updateGlobalNws"].Value, "..\\Global\\global.nws");
+                    if (!_assets.grabGlobalNews(_config["server/updateGlobalNws"].Value, "..\\Global\\global.nws"))
+                    {
+                        try
+                        {
+                            string global;
+                            if ((global = Assets.AssetFileFactory.findAssetFile("\\global.nws", _config["server/copyServerFrom"].Value)) != null)
+                                System.IO.File.Copy(global, "..\\Global\\global.nws");
+                        }
+                        catch (System.UnauthorizedAccessException)
+                        {
+                        }
+                    }
                 }
 
 				if (!_assets.load(_zoneConfig, _config["server/zoneConfig"].Value))

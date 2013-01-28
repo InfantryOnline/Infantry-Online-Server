@@ -148,7 +148,7 @@ namespace InfServer.Game
 			///////////////////////////////////////////////
 			//We're entering the arena..
 			player._arena = this;
-			player.migrateStats();
+	        player.migrateStats();
 			player.resetVars();
 
 			//TODO: Check rules for whether player enters in spec
@@ -174,6 +174,7 @@ namespace InfServer.Game
             {
                 Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
                 Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeInvSetup);
+                player.firstTimePlayer = false;
             }
 
             //Create our new spam filter list
@@ -464,6 +465,8 @@ namespace InfServer.Game
 				veh._state.positionY = state.positionY;
 				veh._state.positionZ = state.positionZ;
 				veh._state.yaw = state.yaw;
+                if (veh._type.Type == VehInfo.Types.Computer)
+                    veh._state.fireAngle = state.yaw; //Temporary fix for computer updates rotating north by default, perm fix would be sc_vehices.cs packet fix
 			}
 
 			veh.assignDefaultState();

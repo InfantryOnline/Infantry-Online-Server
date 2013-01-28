@@ -263,7 +263,15 @@ namespace InfServer.Game
             if (!trackPlayer)
                 return false;
 
-			// TODO: do not fire at people out of turret angle limits
+			// Do not fire at people out of turret angle limits
+            double pAngle = Helpers.calcDegreesBetweenPoints(p._state.positionX, p._state.positionY, _state.positionX, _state.positionY);
+            if (_type.AngleStart > 0)
+                if ((short)pAngle < _type.AngleStart)
+                    return false;
+
+            if (_type.AngleLength < 360)
+                if ((short)pAngle > _type.AngleLength)
+                    return false;
 
             //Check if player is within turrets vision
             if (_type.ObeyLos != 0)

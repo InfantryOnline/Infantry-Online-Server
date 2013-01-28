@@ -191,6 +191,28 @@ namespace InfServer.Logic
             param = param.Trim('"');
 			switch (action)
 			{
+                //Gives the player the specified item
+                case "addinv":
+                    {	//Check for a quantity
+                        int colIdx = param.IndexOf(':');
+                        if (colIdx == -1)
+                        {	//Find the given item
+                            ItemInfo item = player._server._assets.getItemByName(param);
+                            if (item != null)
+                                player.inventoryModify(false, item, 1);
+                        }
+                        else
+                        {	//Find the given item
+                            ItemInfo item = player._server._assets.getItemByName(param.Substring(0, colIdx));
+                            if (item != null)
+                                player.inventoryModify(false, item, Convert.ToInt32(param.Substring(colIdx + 1)));
+                        }
+
+                        bChangedState = true;
+                        //player.syncState();
+                    }
+                    break;
+
 				//Sends the player to the specified lio warp group
 				case "warp":
 					{	//Only in an arena
@@ -203,8 +225,7 @@ namespace InfServer.Logic
 							warpGroup = Convert.ToInt32(param);
 
 						//Find our group
-						IEnumerable<LioInfo.WarpField> wGroup
-							= player._server._assets.Lios.getWarpGroupByID(warpGroup);
+						IEnumerable<LioInfo.WarpField> wGroup = player._server._assets.Lios.getWarpGroupByID(warpGroup);
 
 						if (wGroup == null)
 						{
@@ -214,7 +235,8 @@ namespace InfServer.Logic
 
 						//We have our group, set it in the state
 						state.bWarping = true;
-						state.warpGroup = wGroup;
+                        state.warpGroup = wGroup;
+                        Logic_Lio.Warp(state.warpFlags, player, wGroup);
 					}
 					break;
 
@@ -360,29 +382,7 @@ namespace InfServer.Logic
                         bChangedState = true;
                         player.syncState();
 					}
-					break;
-
-				//Gives the player the specified item
-				case "addinv":
-					{	//Check for a quantity
-						int colIdx = param.IndexOf(':');
-						if (colIdx == -1)
-						{	//Find the given item
-							ItemInfo item = player._server._assets.getItemByName(param);
-							if (item != null)
-								player.inventoryModify(false, item, 1);
-						}
-						else
-						{	//Find the given item
-							ItemInfo item = player._server._assets.getItemByName(param.Substring(0, colIdx));
-                            if (item != null)
-								player.inventoryModify(false, item, Convert.ToInt32(param.Substring(colIdx + 1)));
-						}
-
-                        bChangedState = true;
-                        player.syncState();
-					}
-					break;
+					break;				
 
 				//Triggers the first vehicle event string
                 case "vehicleevent":
@@ -449,8 +449,8 @@ namespace InfServer.Logic
 					}
 				}
 
-				//Great! Apply the warp
-				Logic_Lio.Warp(state.warpFlags, player, wGroup);
+				//Great! Apply the warp				
+                Logic_Lio.Warp(state.warpFlags, player, wGroup);
 			}
 		}
 	}

@@ -92,19 +92,30 @@ namespace InfServer.Protocol
 		}
 
 		/// <summary>
-		/// Calculates the angle between the first and second point
+		/// Calculates the angle between the first and second point - max is 240 degrees
 		/// </summary>
 		static public double calculateDegreesBetweenPoints(double x1, double y1, double x2, double y2)
 		{
 			double radians = Math.Atan2(-x2 - (-x1), y2 - y1);
-			double degrees = radians * 180 / Math.PI;
-
+			double degrees = radians * (180.0 / Math.PI);
 			degrees = degrees / 1.5;
 			if (degrees < 0)
 				degrees = 240 + degrees;
-
 			return degrees;
 		}
+
+        /// <summary>
+        /// Calculates the angle between the first and second point - max is 360 degrees
+        /// </summary>
+        static public double calcDegreesBetweenPoints(double x1, double y1, double x2, double y2)
+        {
+            double radians = Math.Atan2(-x2 - (-x1), y2 - y1);
+            double degrees = radians * (180.0 / Math.PI);
+
+            if (degrees < 0)
+                degrees = 360 + degrees;
+            return degrees;
+        }
 
 		#region Distance functions
 		/// <summary>

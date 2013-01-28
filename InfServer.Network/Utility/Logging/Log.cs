@@ -178,7 +178,7 @@ namespace InfServer
 				case TLog.Inane:
 					if (eInane != null)
 						eInane(message);
-					break;
+					goto case TLog.Security;
 
                 case TLog.Security:
                     if (eSecurity != null)
@@ -831,7 +831,7 @@ namespace InfServer
                     case TLog.Security:
                         lock (m_security)
                         {
-                            m_exception.WriteLine("[" + DateTime.Now.ToLongTimeString() + "][" + client.m_clientname + client.m_clientnum + "] " + Message);
+                            m_security.WriteLine("[" + DateTime.Now.ToLongTimeString() + "][" + client.m_clientname + client.m_clientnum + "] " + Message);
                             m_security.Flush();
                         }
                         
@@ -891,7 +891,7 @@ namespace InfServer
 				case TLog.Inane:
 					if (eInane != null)
 						eInane(type, client, message);
-                    break;
+                    goto case TLog.Security;
 
                 case TLog.Security:
                     if (eSecurity != null)

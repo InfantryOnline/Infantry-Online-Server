@@ -399,80 +399,49 @@ namespace InfServer.Game
 		/// </summary>
 		public override void handlePlayerPickup(Player from, CS_PlayerPickup update)
 		{
-          //Find the itemdrop in question
-  		  lock(_items)
-  		  {
-            //Is this a dropped vehicle?
-/*
-            VehInfo vehicle = _server._assets.getVehicleByID(from._baseVehicle._type.Id);
-            if (vehicle.DropItemId != 0)
-            {
-                ItemInfo item = _server._assets.getItemByID(vehicle.DropItemId);
-                if (item != null)
-                    itemSpawn(item, (ushort)vehicle.DropItemQuantity, from._state.positionX, from._state.positionY);
-            }
-
-            VehInfo vehID = _server._assets.getVehicleByID(from._baseVehicle._type.Id);
-            Vehicle dropped;
-            if ((dropped = _vehicles.getObjByID(vehID.Id)) == null)
-            {
-                Log.write(TLog.Warning, "Player {0} attempted to pick up an invalid vehicle.", from._alias);
-                return;
-            }
-
-            if (dropped._type.PickupItemId != 0)
-            {
-                //This vehicle becomes an item when it is picked up
-                ItemInfo item = _server._assets.getItemByID(dropped._type.PickupItemId);
-                if (item != null)
-                {
-                    from.inventoryModify(item, 1);
-                    dropped.destroy(true, true);
-                    return;
-                }
-            }
-*/
-            ItemDrop drop;
-  			if (!_items.TryGetValue(update.itemID, out drop))
-  				//Doesn't exist
-  				return;
-
-  			//In range? 
-  			if (!Helpers.isInRange(_server._zoneConfig.arena.itemPickupDistance,
+            //Find the itemdrop in question
+  		    lock(_items)
+  		    {
+                ItemDrop drop;
+  			    if (!_items.TryGetValue(update.itemID, out drop))
+  				    //Doesn't exist
+  				    return;
+                Log.write("Item {0} drop{1}", update.itemID, drop.id);
+  			    //In range? 
+  			    if (!Helpers.isInRange(_server._zoneConfig.arena.itemPickupDistance,
 	  								drop.positionX, drop.positionY,
 	  								from._state.positionX, from._state.positionY))
-	  			return;
+	  			    return;
 
-	  		//Do we allow pickup?
-  			if (!_server._zoneConfig.level.allowUnqualifiedPickup &&
-  				!Logic_Assets.SkillCheck(from, drop.item.skillLogic))
-  				return;
+	  		    //Do we allow pickup?
+  			    if (!_server._zoneConfig.level.allowUnqualifiedPickup && !Logic_Assets.SkillCheck(from, drop.item.skillLogic))
+      				return;
 
-	  		//Sanity checks
-  			if (update.quantity > drop.quantity)
-	  			return;
+	      		//Sanity checks
+  		    	if (update.quantity > drop.quantity)
+	  		    	return;
 
-	  		//Forward to our script
-  			if (!exists("Player.ItemPickup") || (bool)callsync("Player.ItemPickup", false, from, drop, update.quantity))
-	  		{
-	  			if (update.quantity == drop.quantity)
-	  			{	//Delete the drop
-	  				_items.Remove(drop.id);
-	  				drop.quantity = 0;
-	  			}
-	  			else
-	  				drop.quantity = (short)(drop.quantity - update.quantity);
+	  		    //Forward to our script
+  			    if (!exists("Player.ItemPickup") || (bool)callsync("Player.ItemPickup", false, from, drop, update.quantity))
+	  		    {
+	  			    if (update.quantity == drop.quantity)
+	  			    {	//Delete the drop
+	  				    _items.Remove(drop.id);
+	  				    drop.quantity = 0;
+	  			    }
+	  			    else
+	  				    drop.quantity = (short)(drop.quantity - update.quantity);
                   
-	  			//Add the pickup to inventory!
-	  			from.inventoryModify(drop.item, update.quantity);
+	  			    //Add the pickup to inventory!
+	  			    from.inventoryModify(drop.item, update.quantity);
 
-                //Update his bounty.
-                from.Bounty += drop.item.prizeBountyPoints;
+                    //Update his bounty.
+                    from.Bounty += drop.item.prizeBountyPoints;
 
-	  			//Remove the item from player's clients
-	  			Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
-			}
-		  }
+	  		    	//Remove the item from player's clients
+	  			    Helpers.Object_ItemDropUpdate(Players, update.itemID, (ushort)drop.quantity);
+			    }
+		    }
 		}
         #endregion
 
@@ -754,18 +723,6 @@ namespace InfServer.Game
                                     entry._state.positionX, entry._state.positionY,
                                     from._state.positionX, from._state.positionY))
                 return;
-
-            /* Move to a function to handle the vehicle pickup packet #16
-            if (entry._type.PickupItemId != 0)
-            { //This vehicle becomes an item when it is picked up
-                ItemInfo item = _server._assets.getItemByID(entry._type.PickupItemId);
-                if (item != null)
-                {
-                    from.inventoryModify(item, 1);
-                    entry.destroy(true, true);
-                    return;
-                }
-            } */
 
             //Can't enter dead vehicles
             if (entry.IsDead)
@@ -1225,7 +1182,7 @@ namespace InfServer.Game
 				//Forward to our script
 				if (!exists("Shop.Sell") || (bool)callsync("Shop.Sell", false, from, item, -quantity))
 				{	//Perform the transaction!
-					from.Cash -= price;
+					from.Cash += price;
 					from.inventoryModify(item, quantity);
 				}
 			}
@@ -1247,9 +1204,9 @@ namespace InfServer.Game
             //Make sure it's okay with our script...
             if (!exists("Shop.SkillRequest") || (bool)callsync("Shop.SkillRequest", false, from, skill))
                 //Perform the skill modify
-            if (from.skillModify(skill, 1))            
-                //Success! Forward to our script
-                callsync("Shop.SkillPurchase", false, from, skill);            
+                if (from.skillModify(skill, 1))            
+                    //Success! Forward to our script
+                    callsync("Shop.SkillPurchase", false, from, skill);
 		}
         #endregion
 
@@ -1892,114 +1849,105 @@ namespace InfServer.Game
         /// </summary>
         public override void handleVehiclePickup(Player from, CS_VehiclePickup update)
         {
+            Vehicle ve = _vehicles.getObjByID(update.vehicleID);
+            if (ve == null)
+            {
+                Log.write(TLog.Warning, "Player {0} tried picking up an invalid vehicle id.");
+                return;
+            }
+
             //Find the vehicle item in question
             lock (_vehicles)
             {
-				VehInfo veh = _server._assets.getVehicleByID(update.vehicleID);
-				if (veh == null)
-				{
-					Log.write(TLog.Warning, "Player {0} tried picking up an invalid vehicle id.");
-					return;
-				}
-				
-				if (veh.PickupItemId == -1)
-					return;
+                int quantity = 1;
 
-				ItemInfo info = _server._assets.getItemByID(veh.PickupItemId);
-				if (info == null)
-				{
-					Log.write(TLog.Warning, "Vehicle pickup id {0} doesn't exist.", veh.PickupItemId);
-					return;
-				}
-		        
-                Vehicle vehicle = _vehicles.getObjByID(update.vehicleID);
-                if (vehicle == null)
+                VehInfo veh = _server._assets.getVehicleByID(ve._type.Id);
+                if (veh == null)
                 {
-                    Log.write(TLog.Warning, "Vehicle does not exist.");
+                    Log.write(TLog.Warning, "Player {0} tried picking up an invalid vehicle id.");
                     return;
                 }
 
-				//In range?
-				if (!Helpers.isInRange(_server._zoneConfig.arena.itemPickupDistance, vehicle._state.positionX, vehicle._state.positionY,
-										from._state.positionX, from._state.positionY))
-					return;
-				
-				//Allowed pickup?
-				if (!_server._zoneConfig.level.allowUnqualifiedPickup && !Logic_Assets.SkillCheck(from, info.skillLogic))
-					return;
-				
-				lock(_items)
-				{
-					//Is this a dropped vehicle?
-					ItemDrop dropped;
-					if (_items.TryGetValue((ushort)info.id, out dropped))
-					{
-						//Sanity check
-						if (update.quantity > dropped.quantity)
-							return;
-				
-						//Forward to our script
-						if (!exists("Player.ItemPickup") || (bool)callsync("Player.ItemPickup", false, from, dropped, update.quantity))
-						{
-							if (update.quantity == dropped.quantity)
-							{
-								//Delete the drop
-								_items.Remove(dropped.id);
-								dropped.quantity = 0;
-							}
-							else
-								dropped.quantity = (short)(dropped.quantity - update.quantity);
-							//Add the pickup to inventory!
-							from.inventoryModify(dropped.item, update.quantity);
-						
-							//Update his bounty
-							from.Bounty += dropped.item.prizeBountyPoints;
-						
-							//Remove the item from the player's clients
-							Helpers.Object_ItemDropUpdate(Players, dropped.id, (ushort)dropped.quantity);
-						}
-						//Lets delete the vehicle on the ground
-						vehicle.destroy(true);
-						return;
-					}
-				
-					//Forward to our script
-					if (!exists("Player.VehiclePickup") || (bool)callsync("Player.VehiclePickup", false, from, vehicle, update.quantity))
-					{
-						if (veh.Type == VehInfo.Types.Computer)
-						{
-                            VehInfo.Computer comp = veh as VehInfo.Computer;
-                            if (comp != null)
-                            {
-							    List<Vehicle> vehicles = from._arena.getVehiclesInRange(from._state.positionX, from._state.positionY,
-																						comp.DensityRadius);
-                                if (vehicles != null)
-                                {
-				    			    int found = 0;
-					    			foreach(Vehicle see in vehicles)
-						    		{
-							    	    Computer isee = see as Computer;
-								       	if (isee != null && isee._team != null && isee._team._name == from._team._name)
-							    	   		if (isee._type.Name == comp.Name)
-						    		    		found++;
-					    			}
-								
-				    				//Sanity check for hackers
-			    					if (update.quantity > found)
-		    						    return;
+                if (veh.PickupItemId == -1)
+                {
+                    from.sendMessage(-1, "You can't pick this type up.");
+                    return;
+                }
 
-    	    						//Add the pickup to inventory!
-        							from.inventoryModify(info, update.quantity);
-                                        
-	    							//Update his bounty.
-    								from.Bounty += info.prizeBountyPoints;
-								
-		    						//Destroy vehicle on the ground
-			    					vehicle.destroy(true);
+                ItemInfo info = _server._assets.getItemByID(veh.PickupItemId);
+                if (info == null)
+                {
+                    Log.write(TLog.Warning, "Vehicle pickup id {0} doesn't exist.", veh.PickupItemId);
+                    return;
+                }
+
+                //In range?
+                if (!Helpers.isInRange(_server._zoneConfig.arena.itemPickupDistance, ve._state.positionX, ve._state.positionY,
+                                        from._state.positionX, from._state.positionY))
+                    return;
+
+                //Allowed pickup?
+                if (!_server._zoneConfig.level.allowUnqualifiedPickup && !Logic_Assets.SkillCheck(from, info.skillLogic))
+                    return;
+
+                //Lets see if we have this item already and check limits
+                Player.InventoryItem ii = from.getInventory(info);
+                if (info.maxAllowed != 0)
+                {
+                    int constraint = Math.Abs(info.maxAllowed) - ((ii == null) ? (ushort)0 : ii.quantity);
+                    if (quantity > constraint)
+                    {
+                        from.sendMessage(-1, "You already have max amount of this item type.");
+                        return;
+                    }
+                }
+
+                //Forward to our script
+                if (!exists("Player.VehiclePickup") || (bool)callsync("Player.VehiclePickup", false, from, ve, quantity))
+                {
+                    if (veh.Type == VehInfo.Types.Computer)
+                    {
+                        VehInfo.Computer comp = veh as VehInfo.Computer;
+                        List<Vehicle> vehicles = from._arena.getVehiclesInRange(from._state.positionX, from._state.positionY,
+                                (comp.DensityRadius > 0 ? comp.DensityRadius : comp.DensityRadius + 50));
+                        if (vehicles != null)
+                        {
+                            int found = 0;
+                            //Lets check for same team/taking ownership or stealing ownership
+                            foreach (Vehicle see in vehicles)
+                            {
+                                if (see != null && see._team != null)
+                                {
+                                    if (see._team._name.ToLower().Equals(from._team._name.ToLower()))
+                                        found++;
+                                    else if (see._type.Type == VehInfo.Types.Computer)
+                                    {
+                                        VehInfo.Computer check = see._type as VehInfo.Computer;
+                                        if (Logic_Assets.SkillCheck(from, check.LogicTakeOwnership))
+                                            found++;
+                                        if (Logic_Assets.SkillCheck(from, check.LogicStealOwnership))
+                                            found++;
+                                    }
                                 }
-							}
-						}
-					}
+                            }
+
+                            //Sanity check for hackers
+                            if (quantity > found)
+                            {
+                                Log.write(TLog.Warning, "Player {0} tried picking up more then 1 at a time.", from._alias);
+                                return;
+                            }
+
+                            //Add the pickup to inventory!
+                            from.inventoryModify(info, quantity);
+
+                            //Update his bounty.
+                            from.Bounty += info.prizeBountyPoints;
+
+                            //Destroy vehicle on the ground
+                            ve.destroy(true);
+                        }
+                    }
                 }
             }
         }
@@ -2011,9 +1959,10 @@ namespace InfServer.Game
 		/// </summary>
 		/// <remarks>Doesn't catch spectator or dependent vehicle creation</remarks>
 		public override void handleVehicleCreation(Vehicle created, Team team, Player creator)
-		{	//Forward it to our script
-			if (!exists("Vehicle.Creation") || (bool)callsync("Vehicle.Creation", false, created, team, creator))
-			{	
+		{
+            //Forward it to our script
+            if (!exists("Vehicle.Creation") || (bool)callsync("Vehicle.Creation", false, created, team, creator))
+			{
 			}
 		}
         #endregion
@@ -2037,6 +1986,7 @@ namespace InfServer.Game
                         itemSpawn(item, (ushort)vehicle.DropItemQuantity, dead._state.positionX, dead._state.positionY);
                 }
 
+                //Update vehicle kills and deaths stat
                 if (killer != null && dead._team != killer._team)
                 {
                     if (vehicle != null)

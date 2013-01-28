@@ -220,7 +220,7 @@ namespace InfServer.Game
         /// <summary>
         /// Downloads latest global news from a specified url
         /// </summary>	
-        public void grabGlobalNews(string fileUrl, string fileLocation)
+        public bool grabGlobalNews(string fileUrl, string fileLocation)
         {
             try
             {
@@ -230,8 +230,20 @@ namespace InfServer.Game
             }
             catch (Exception)
             {
-                Log.write(TLog.Warning, "Error updating global.nws, skipping");
-            };
+                //Lets try again with a different url
+                try
+                {
+                    System.Net.WebClient dlclient = new System.Net.WebClient();
+                    dlclient.DownloadFile("http://dk-industry.com/files/svn/?count=30", "..\\Global\\global.nws");
+                    dlclient.Dispose();
+                }
+                catch (Exception)
+                {
+                    Log.write(TLog.Warning, "Error updating global.nws, using most recent version...");
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>

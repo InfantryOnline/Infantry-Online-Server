@@ -393,7 +393,7 @@ namespace InfServer.Game
 		/// </summary>
 		public VehInfo getDefaultVehicle()
 		{	//Find a skill with a default vehicle
-			Player.SkillItem baseSkill = _skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);
+			Player.SkillItem baseSkill = _skills.Values.LastOrDefault(skill => skill.skill.DefaultVehicleId != -1);
 
 			//Use said skill, or the cfg default
 			int baseVehicleID = (baseSkill == null) ? _server._zoneConfig.publicProfile.defaultVItemId : baseSkill.skill.DefaultVehicleId;
@@ -585,11 +585,11 @@ namespace InfServer.Game
 			}
 			else
 			{   //Attributes
-                int cost = skill.Price;
+                int cost = skill.Price + _server._zoneConfig.rpg.attributeBaseCost;
                 double attributeCountPower;
                 Double.TryParse(_server._zoneConfig.rpg.attributeCountPower, out attributeCountPower);
                 if (_skills.Keys.Contains(skill.SkillId))
-                    cost = (int)(Math.Pow(_skills[skill.SkillId].quantity + 1, attributeCountPower) * skill.Price);
+                    cost = (int)(Math.Pow(_skills[skill.SkillId].quantity + 1, attributeCountPower) * skill.Price + _server._zoneConfig.rpg.attributeBaseCost);
                 
 				//Do we have enough experience for this skill?
                 if (cost > Experience)

@@ -48,6 +48,7 @@ namespace InfServer.Logic
                 Log.write(TLog.Warning, "Player {0} attempted to activate a flag from spec.", player);
                 return;
             }
+            
             //if (ball._state.carrier._id > 0)
             // {
             //     Log.write("Tried to pickup a ball already in someone else hands!");
@@ -71,6 +72,7 @@ namespace InfServer.Logic
             ball._state.unk6 = pkt.unk6;
             ball._state.unk7 = pkt.unk7;
             player._gotBallID = 999;
+            ball._owner = null;
             //Route it
             ball.Route_Ball(player._arena.Players);
 
@@ -158,7 +160,7 @@ namespace InfServer.Logic
             // }
 
 
-            //Drop the ball
+            //Pick up the ball
             ball._state.carrier = player;
             ball._state.positionX = player._state.positionX;
             ball._state.positionY = player._state.positionY;
@@ -168,7 +170,9 @@ namespace InfServer.Logic
             ball._state.velocityZ = 0;
             player._gotBallID = pkt.ballID;
             ball._state.unk2 = -1;
+            ball._owner = player;
             //Route it
+            Log.write("Ball picked up");
             ball.Route_Ball(player._arena.Players);
         }
 

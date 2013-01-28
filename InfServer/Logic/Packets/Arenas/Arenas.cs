@@ -58,21 +58,60 @@ namespace InfServer.Logic
             {
                 //What the tomfoolery is goin' here?
                 if (player._assetCS != pkt.AssetChecksum)
-                {//Kick the fucker
-
-                    //Alert any moderators first.
-                    foreach (Player p in player._arena.Players)
+                {
+                    //Kick the fucker and alert mods
+                    if (!player._server.IsStandalone)
                     {
-                        if (p.PermissionLevelLocal > Data.PlayerPermission.Normal)
-                            p.sendMessage(0, String.Format("![Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum));
+                        CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
+                        pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                        pktquery.sender = player._alias;
+                        pktquery.payload = String.Format("![Security] Player {0} kicked. Checksum mismatch - (Original={2} New={3})", player._alias, player._assetCS, pkt.AssetChecksum);
+                        //Send it!
+                        player._server._db.send(pktquery);
                     }
-
+                    else
+                    {
+                        //Alert any moderators
+                        foreach (Player p in player._arena.Players)
+                            if (p.PermissionLevelLocal > Data.PlayerPermission.Normal)
+                                p.sendMessage(0, String.Format("![Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum));
+                    }
                     //Log it
                     Log.write(TLog.Security, "[Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum);
 
                     //Bye!
                     player.disconnect();
                 }
+
+                //Passed the first one, lets try the server difference
+                UInt32 checksum = (AssetManager.Manager.checkSum());
+                /*
+                if (player._assetCS != checksum)
+                {
+                    //Kick the fucker and alert mods
+                    if (!player._server.IsStandalone)
+                    {
+                        CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
+                        pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                        pktquery.sender = player._alias;
+                        pktquery.payload = String.Format("![Security] Player {0} kicked. Checksum mismatch - (Players={1} Servers={2} New={3})", player._alias, player._assetCS, checksum, pkt.AssetChecksum);
+                        //Send it!
+                        player._server._db.send(pktquery);
+                    }
+                    else
+                    {
+                        //Alert any moderators
+                        foreach (Player p in player._arena.Players)
+                            if (p.PermissionLevelLocal > Data.PlayerPermission.Normal)
+                                p.sendMessage(0, String.Format("![Security] Player {0} kicked. Checksum mismatch - (Players={1} Servers={2} New={3})", player._alias, player._assetCS, checksum, pkt.AssetChecksum));
+                    }
+
+                    //Log it
+                    Log.write(TLog.Security, "[Security] Player {0} kicked. Checksum mismatch - (Players={1} Servers={2} New={2})", player._alias, player._assetCS, checksum, pkt.AssetChecksum);
+
+                    //Bye!
+                    player.disconnect();
+                }*/
             }
 		}
 

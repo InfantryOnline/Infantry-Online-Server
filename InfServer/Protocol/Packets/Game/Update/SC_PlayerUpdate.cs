@@ -101,8 +101,8 @@ namespace InfServer.Protocol
 					Write((short)64);
 					Write((short)1);
 					Write((short)0);
-					Write(vehicle._state.fireAngle);	//Base yaw?
-					Write(vehicle._state.fireAngle);	//Turret yaw?
+					Write(vehicle._state.yaw);	//Base yaw?
+					Write(vehicle._state.yaw);	//Turret yaw?
 					Write((ushort)206);
 					break;
 			}

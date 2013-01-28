@@ -506,13 +506,12 @@ namespace InfServer.Logic
 				Log.write(TLog.Warning, "Player {0} attempted to pickup vehicle items while dead.", player);
 				return;
 			}
-            Log.write(TLog.Warning, "Vehicle Pickup packet - {0} {1}", pkt.vehicleID, player._alias);
-            /*
+            
             player._arena.handleEvent(delegate(Arena arena)
-            {
-                player._arena.handleVehiclePickup(player, pkt);
-            }
-            ); */
+                {
+                    player._arena.handleVehiclePickup(player, pkt);
+                }
+            );
         }
 
 		/// <summary>
