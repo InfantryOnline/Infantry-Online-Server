@@ -80,14 +80,38 @@ namespace InfServer.Game.Commands.Mod
 			recipient._client.sendReliable(env);
 		}
 
+        /// <summary>
+        /// Hack check prototype
+        /// </summary>
+        static public void assets(Player player, Player recipient, string payload, int bong)
+        {
+            if (recipient == null)
+            {
+                foreach (Player p in player._arena.Players)
+                {
+                    SC_SecurityCheck cs = new SC_SecurityCheck();
+                    cs.key = 54321; //Key we are using
+                    cs.unknown = 0; // Unknown, send as 0   
+                    p.setVar("secReq", player); //Pass the person we need to PM the info
+                    p._client.send(cs); //Send it
+                }
+            }
+            else
+            {
+                SC_SecurityCheck cs = new SC_SecurityCheck();
+                cs.key = 54321; //Key we are using
+                cs.unknown = 0; // Unknown, send as 0
+                recipient.setVar("secReq", player); //Pass the person we need to PM the info
+                recipient._client.send(cs); //Send it
+            }
+        }
+
 		/// <summary>
 		/// Just handy for testing packet functionality
 		/// </summary>
         static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
-            SC_SecurityCheck cs = new SC_SecurityCheck();
-            //SC_Skills cs = new SC_Skills();
-            recipient._client.send(cs);
+            //bannertime
 		}
 
 		/// <summary>
@@ -119,57 +143,20 @@ namespace InfServer.Game.Commands.Mod
                 page = 0;
             else
             {
-                //Test to see if we are trying to look at the help history
-                if (payload.Contains(':'))
+                try
                 {
-                    string help = payload.Split(':').ElementAt(0);
-                    string getPage = payload.Split(':').ElementAt(1);
-//                    int pageNum;
-                    if (help.ToLower() != "help")
-                    {
-                        player.sendMessage(-1, "Syntax: *history help (Optional: help:page number)");
-                        return;
-                    }
-
-                    if (help.ToLower() == "help")
-                    {
-                        player.sendMessage(-1, "Currently not supported yet.");
-                        return;
-                    }
-/*
-                    try
-                    {
-                        pageNum = Convert.ToInt32(getPage);
-                    }
-                    catch
-                    {
-                        pageNum = 0;
-                    }
-                    //Wanting to look up the help history
-                    CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
-                    pkt.sender = player._alias;
-                    pkt.queryType = CS_Query<Data.Database>.QueryType.help_history;
-                    pkt.payload = pageNum.ToString();
-                    player._server._db.send(pkt);
-*/
-                 }
-                else
+                    page = Convert.ToInt32(payload);
+                }
+                catch
                 {
-                    try
-                    {
-                        page = Convert.ToInt32(payload);
-                    }
-                    catch
-                    {
-                        page = 0;
-                    }
-                    CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
-                    pkt.sender = player._alias;
-                    pkt.queryType = CS_Query<Data.Database>.QueryType.history;
-                    pkt.payload = page.ToString();
-                    player._server._db.send(pkt);
+                    page = 0;
                 }
             }
+            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+            pkt.sender = player._alias;
+            pkt.queryType = CS_Query<Data.Database>.QueryType.history;
+            pkt.payload = page.ToString();
+            player._server._db.send(pkt);
         }
 
 		/// <summary>
@@ -178,35 +165,41 @@ namespace InfServer.Game.Commands.Mod
 		[Commands.RegistryFunc(HandlerType.ModCommand)]
 		static public IEnumerable<Commands.HandlerDescriptor> Register()
 		{
-			yield return new HandlerDescriptor(recycle, "recycle",
-				"Restarts the current zone",
-				"*recycle",
-                InfServer.Data.PlayerPermission.Mod, true);
+            yield return new HandlerDescriptor(assets, "assets",
+               "secret",
+               "?quit",
+               InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(environment, "environment",
+                "Queries environment information from a player",
+                "::*environment",
+                InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(history, "history",
+                "Returns a list of mod commands used in every server",
+                "*history [page]",
+                InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(log, "log",
                 "Grabs exception logs for the current zone",
                 "*log",
                 InfServer.Data.PlayerPermission.Sysop, true);
 
-			yield return new HandlerDescriptor(environment, "environment",
-				"Queries environment information from a player",
-				"::*environment",
-				InfServer.Data.PlayerPermission.Sysop, false);
+            yield return new HandlerDescriptor(recycle, "recycle",
+                "Restarts the current zone",
+                "*recycle",
+                InfServer.Data.PlayerPermission.Mod, true);
 
-			yield return new HandlerDescriptor(testPacket, "testpacket",
+            yield return new HandlerDescriptor(showGif, "showgif",
+                "Sends a gif to the target player",
+                "::*showgif [gif url]",
+                InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(testPacket, "testpacket",
 				"Sends a test packet to the target player",
 				"::*testpacket",
 				InfServer.Data.PlayerPermission.Sysop, false);
 
-			yield return new HandlerDescriptor(showGif, "showgif",
-				"Sends a gif to the target player",
-				"::*showgif [gif url]",
-				InfServer.Data.PlayerPermission.Sysop, false);
-
-            yield return new HandlerDescriptor(history, "history",
-                "Returns a list of mod commands used in every server",
-                "*history [page] or *history help (Optional: *history help:page number for specific pages)",
-                InfServer.Data.PlayerPermission.Sysop, false);
 		}
 	}
 }

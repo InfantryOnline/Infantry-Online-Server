@@ -15,7 +15,8 @@ namespace InfServer.Protocol
 		public bool bLimitLength;
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.SecurityCheck;
-
+        public ushort key = (ushort)1;
+        public ushort unknown = (ushort)0;
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -34,6 +35,10 @@ namespace InfServer.Protocol
 		public override void Serialize()
 		{	//Just need the id
 			Write((byte)TypeID);
+
+            Write((byte)1); //1 = Asset, 0 = Exe
+            Write(key); //Key we are using
+            Write(unknown); //Unknown, send 0
 		}
 
 		/// <summary>

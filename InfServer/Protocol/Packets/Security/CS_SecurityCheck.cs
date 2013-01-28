@@ -13,11 +13,11 @@ namespace InfServer.Protocol
 	public class CS_SecurityCheck : PacketBase
 	{	// Member Variables
 		///////////////////////////////////////////////////
-		public bool Unk1;
+        public UInt16 Unk1;
 		public UInt32 EXEChecksum;		//Checksum of certain critical functions in the code
 		public UInt32 AssetChecksum;	//Checksum of all the assets loaded in the client
-		public UInt16 Unk2;
-		public UInt16 Unk3;
+		public UInt32 Unk2;
+		public UInt32 Unk3;
         public uint tickCount;
 
 		//Packet routing
@@ -57,7 +57,11 @@ namespace InfServer.Protocol
         /// Deserializes the data present in the packet contents into data fields in the class.
         /// </summary>
         public override void Deserialize()
-        {
+        {            
+            EXEChecksum = _contentReader.ReadUInt32(); //??
+            AssetChecksum = _contentReader.ReadUInt32(); //??
+            Unk2 = _contentReader.ReadUInt32(); //?? Doesn't change on asset change
+            Unk3 = _contentReader.ReadUInt32(); //Changes on asset change
 
         }
 
