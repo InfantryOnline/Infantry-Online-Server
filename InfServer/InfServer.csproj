@@ -206,6 +206,7 @@
     <Compile Include="Game\ZoneArenas.cs" />
     <Compile Include="Game\ZonePlayers.cs" />
     <Compile Include="Game\ZoneServer.cs" />
+    <Compile Include="Logic\Events\Actions.cs" />
     <Compile Include="Logic\General\Assets.Events.cs" />
     <Compile Include="Logic\General\Assets.Item.cs" />
     <Compile Include="Logic\General\Assets.Skills.cs" />

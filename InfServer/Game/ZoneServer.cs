@@ -6,7 +6,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-
+using InfServer.Logic.Events;
 using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Data;
@@ -51,6 +51,11 @@ namespace InfServer.Game
         public Dictionary<IPAddress, DateTime> _connections;
 
         public Dictionary<string, Dictionary<string, DateTime>> _arenaBans; //Our arena banning list
+
+        /// <summary>
+        /// Compiled game events that have been pulled out of the zone's cfg file.
+        /// </summary>
+	    public Dictionary<string, GameEvent> GameEvents;
 
         ///////////////////////////////////////////////////
         // Accessors
@@ -305,6 +310,8 @@ namespace InfServer.Game
             //Create a new banning list
             _arenaBans = new Dictionary<string, Dictionary<string, DateTime>>();
 
+            InitializeGameEventsDictionary();
+
 			return true;
 		}
 
@@ -413,6 +420,37 @@ namespace InfServer.Game
 
             //Restart!
             InfServer.Program.Restart();
+        }
+
+        private void InitializeGameEventsDictionary()
+        {
+            var e = _zoneConfig.EventInfo;
+            GameEvents = new Dictionary<string, GameEvent>();
+
+            //
+            // Compile the event strings into game events/actions.
+            //
+
+            GameEvents["jointeam"]              = EventsActionsFactory.CreateGameEventFromString(e.joinTeam);
+            GameEvents["joinspectatormode"]     = EventsActionsFactory.CreateGameEventFromString(e.exitSpectatorMode);
+            GameEvents["endgame"]               = EventsActionsFactory.CreateGameEventFromString(e.endGame);
+            GameEvents["soongame"]              = EventsActionsFactory.CreateGameEventFromString(e.soonGame);
+            GameEvents["manualjointeam"]        = EventsActionsFactory.CreateGameEventFromString(e.manualJoinTeam);
+            GameEvents["startgame"]             = EventsActionsFactory.CreateGameEventFromString(e.startGame);
+            GameEvents["sysopwipe"]             = EventsActionsFactory.CreateGameEventFromString(e.sysopWipe);
+            GameEvents["selfwipe"]              = EventsActionsFactory.CreateGameEventFromString(e.selfWipe);
+            GameEvents["killedteam"]            = EventsActionsFactory.CreateGameEventFromString(e.killedTeam);
+            GameEvents["killedenemy"]           = EventsActionsFactory.CreateGameEventFromString(e.killedEnemy);
+            GameEvents["killedbyteam"]          = EventsActionsFactory.CreateGameEventFromString(e.killedByTeam);
+            GameEvents["killedbyenemy"]         = EventsActionsFactory.CreateGameEventFromString(e.killedByEnemy);
+            GameEvents["firsttimeinvsetup"]     = EventsActionsFactory.CreateGameEventFromString(e.firstTimeInvSetup);
+            GameEvents["firsttimeskillsetup"]   = EventsActionsFactory.CreateGameEventFromString(e.firstTimeSkillSetup);
+            GameEvents["hold1"]                 = EventsActionsFactory.CreateGameEventFromString(e.hold1);  
+			GameEvents["hold2"]                 = EventsActionsFactory.CreateGameEventFromString(e.hold2);  
+            GameEvents["hold3"]                 = EventsActionsFactory.CreateGameEventFromString(e.hold3);  
+            GameEvents["hold4"]                 = EventsActionsFactory.CreateGameEventFromString(e.hold4);
+            GameEvents["enterspawnnoscore"]     = EventsActionsFactory.CreateGameEventFromString(e.enterSpawnNoScore);
+            GameEvents["changedefaultvehicle"]  = EventsActionsFactory.CreateGameEventFromString(e.changeDefaultVehicle);
         }
 
 
