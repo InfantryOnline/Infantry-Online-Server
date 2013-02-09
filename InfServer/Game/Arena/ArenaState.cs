@@ -174,7 +174,8 @@ namespace InfServer.Game
             {
                 Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
                 Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeInvSetup);
-                player.firstTimePlayer = false;
+                if (player._bIngame)
+                    player.firstTimePlayer = false;
             }
 
             //Create our new spam filter list

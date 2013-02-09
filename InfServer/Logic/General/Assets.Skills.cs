@@ -33,6 +33,50 @@ namespace InfServer.Logic
 			return SkillCheckTester(player, classId, skillString);
 		}
 
+        /// <summary>
+        /// The public buildingcheck method
+        /// </summary>
+        static public bool BuildingCheck(Player player, string buildingString)
+        {
+            if (buildingString == "" || buildingString == "\"\"")
+                return true;
+
+            IEnumerable<Vehicle> vehs = player._arena.Vehicles.Where(v => v != null && v._team == player._team);
+
+            //First, kill all spaces then replace with proper boolean values
+            //The calculate boolean values
+            String booleanString = paramRegex.Replace(buildingString.Replace(" ", "").TrimStart('&'), delegate(Match m)
+            {
+                bool val = false;
+                int numVal = int.Parse(m.Groups[1].Value);
+
+                if (vehs != null)
+                {
+                    foreach (Vehicle veh in vehs)
+                    {
+                        if (veh._id == numVal)
+                        {
+                            val = true;
+                            break;
+                        }
+                    }
+                }
+                return (val ^ m.Groups[0].Value.StartsWith("!")) ? "1" : "0";
+            });
+
+            int pos = 0;
+            bool qualified = false;
+            try
+            {
+                qualified = expr(booleanString, ref pos);
+            }
+            catch (ParseException)
+            {
+                Log.write(TLog.Error, "Error in parsing building string: {0}", buildingString);
+            }
+            return qualified;
+        }
+
 		/// <summary>
 		/// Determines whether a player satisifes a skill check
 		/// </summary>

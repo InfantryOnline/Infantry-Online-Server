@@ -13,6 +13,7 @@ namespace InfServer.Logic.Events
         public static GameEvent CreateGameEventFromString(string actions)
         {
             var output = new GameEvent();
+            actions = actions.ToLower();
 
             foreach (var action in actions.Split(','))
             {
@@ -269,7 +270,7 @@ namespace InfServer.Logic.Events
 
             p.skillModify(false, skill, 0);
             p.syncState();
-            
+
             return true;
         }
     }
@@ -472,7 +473,7 @@ namespace InfServer.Logic.Events
     /// </summary>
     public class CallEventAction : IAction
     {
-        public Func<Player, GameEvent> CalledEvent { get; private set; } 
+        public Func<Player, GameEvent> CalledEvent { get; private set; }
 
         public CallEventAction(Func<Player, GameEvent> calledEvent)
         {

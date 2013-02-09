@@ -819,7 +819,6 @@ namespace InfServer.Game
 
 				ii.item = _server._assets.getItemByID(item.id);
 				ii.quantity = (ushort)adjust;
-
 				_inventory.Add(item.id, ii);
 			}
 
@@ -1323,6 +1322,15 @@ namespace InfServer.Game
 		{	//Senddit
 			Helpers.Social_ArenaChat(this, message, bong);
 		}
+
+        /// <summary>
+        /// Sends an arena message to the team
+        /// </summary>
+        public void sendTeamMessage(int bong, string message)
+        {
+            //Send it
+            Helpers.Social_ArenaChat(this._team.ActivePlayers, message, bong);
+        }
 
 		/// <summary>
 		/// Sends a new infoarea message

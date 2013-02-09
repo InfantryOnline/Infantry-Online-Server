@@ -26,10 +26,12 @@ namespace InfServer.Game
         {
             public int tickCompletion;
             public int ammoUsed;
+            public int teamAmmoUsed;
 
             public VehInfo.Computer.ComputerProduct product;
             public Player client;
             public Computer computer;
+            public Team team = null;
         }
 
         ///////////////////////////////////////////////////
@@ -48,7 +50,15 @@ namespace InfServer.Game
                 lock (productionLine)
                 {
                     foreach (ProduceRequest req in productionLine.ToList())
-                    {	//Is it ready?
+                    {	
+                        //Is this a team product?
+                        if (req.team != null)
+                        {
+                            int teamItemAmount = req.client._team.getInventoryAmount(req.product.TeamItemNeededId);
+                            if (req.product.TeamItemNeededQuantity > teamItemAmount)
+                                continue;
+                        }
+                        //Is it ready?
                         if (now < req.tickCompletion)
                             continue;
 
@@ -102,6 +112,13 @@ namespace InfServer.Game
                 return false;
             }
 
+            //Are we able to produce in parallel?
+            if (product.Time > 0 && !_server._zoneConfig.vehicle.computerProduceInParallel && productionLine.Count > 0)
+            {	//We can't do this
+                player.sendMessage(-1, "Unable to produce - object is busy.");
+                return false;
+            }
+
             int ammoUsed = 0;
 
             if (product.PlayerItemNeededId != 0)
@@ -113,21 +130,103 @@ namespace InfServer.Game
                     player.sendMessage(-1, "You do not have the resources to produce this item.");
                     return false;
                 }
-
                 ammoUsed = (product.PlayerItemNeededQuantity == -1) ? playerItemAmount : product.PlayerItemNeededQuantity;
             }
 
-            //Are we able to produce in parallel?
-            if (product.Time > 0 && !_server._zoneConfig.vehicle.computerProduceInParallel && productionLine.Count > 0)
-            {	//We can't do this
-                player.sendMessage(-1, "Unable to produce - object is busy.");
-                return false;
+            //Is this for our team?
+            if (product.TeamItemNeededId != 0)
+            {
+                if (!Logic_Assets.BuildingCheck(player, product.TeamBuildingLogic))
+                {
+                    player.sendMessage(-1, "Your team does not have the required buildings to produce this item.");
+                    Log.write(TLog.Warning, "Player {0} attempted to use vehicle ({1}) produce without the necessary buildings.", player._alias, computer._type.Name);
+                    return false;
+                }
+                int teamItemAmount = player._team.getInventoryAmount(product.TeamItemNeededId);
+
+                //Queue'ing isnt enabled
+                if (product.TeamQueueRequest < 1)
+                {
+                    if (teamItemAmount == 0 || (product.TeamItemNeededId != -1 && product.TeamItemNeededQuantity > teamItemAmount))
+                    {
+                        player.sendMessage(-1, "Your team does not have the resources to produce this item.");
+                        return false;
+                    }
+                }
+                else if (product.TeamQueueRequest > 0)
+                {
+                    if (teamItemAmount == 0)
+                    {
+                        player.sendMessage(-1, "Your team doesn't have the required resources to produce this item.");
+                        return false;
+                    }
+
+                    if (product.TeamItemNeededId != -1 && product.TeamItemNeededQuantity > teamItemAmount)
+                    {
+                        player.sendMessage(-1, "Your team doesn't have enough resources, once your team does, the item will be produced automatically.");
+                        //Lets remove the items
+                        if (product.TeamItemNeededQuantity == -1)
+                            player._team.removeAllItemFromTeamInventory(product.TeamItemNeededId);
+                        else
+                        {
+                            if (!player._team.inventoryModify(product.TeamItemNeededId, -product.TeamItemNeededQuantity))
+                            {
+                                //Shouldn't get here
+                                Log.write(TLog.Error, "Unable to take product item payment from player's team after verifying existence.");
+                                return false;
+                            }
+                        }
+
+                        //Check production line first before creating a new one
+                        bool found = false;
+                        if (productionLine.Count > 0)
+                        {
+                            foreach (ProduceRequest check in productionLine.ToList())
+                            {
+                                if (check.team == player._team)
+                                    found = true;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            //Lets queue it up
+                            lock (productionLine)
+                            {
+                                ProduceRequest que = new ProduceRequest();
+
+                                que.computer = computer;
+                                que.client = player;
+                                que.product = product;
+
+                                que.tickCompletion = Environment.TickCount + (product.Time * 10);
+                                que.teamAmmoUsed = teamItemAmount;
+                                que.ammoUsed = ammoUsed;
+                                que.team = player._team;
+
+                                productionLine.Add(que);
+                            }
+
+                            //Lets take any items needed before returning
+                            if (product.PlayerItemNeededId != 0)
+                            {
+                                if (product.PlayerItemNeededQuantity == -1)
+                                    player.removeAllItemFromInventory(false, product.PlayerItemNeededId);
+                                else
+                                {
+                                    if (!player.inventoryModify(false, product.PlayerItemNeededId, -product.PlayerItemNeededQuantity))
+                                    {	//We shouldn't get here
+                                        Log.write(TLog.Error, "Unable to take produce item payment from player after verifying existence.");
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
+
+                        return true;
+                    }
+                }
             }
-
-            //TODO: Produce team item logic
-
-            //Take our payment!
-            player.Cash -= product.Cost;
 
             if (product.PlayerItemNeededId != 0)
             {
@@ -142,6 +241,24 @@ namespace InfServer.Game
                     }
                 }
             }
+
+            if (product.TeamItemNeededId != 0)
+            {
+                if (product.TeamItemNeededQuantity == -1)
+                    player._team.removeAllItemFromTeamInventory(product.TeamItemNeededId);
+                else
+                {
+                    if (!player._team.inventoryModify(product.TeamItemNeededId, -product.TeamItemNeededQuantity))
+                    {
+                        //Shouldn't get here
+                        Log.write(TLog.Error, "Unable to take product item payment from player's team after verifying existence.");
+                        return false;
+                    }
+                }
+            }
+
+            //Take our payment!
+            player.Cash -= product.Cost;
 
             //Sync up!
             player.syncInventory();
@@ -188,9 +305,39 @@ namespace InfServer.Game
                 //Add the appropriate amount of items to the player's inventory
                 int itemsCreated = (product.Quantity < 0) ? (ammoUsed * Math.Abs(product.Quantity)) : product.Quantity;
 
+                //Lets check for a team item first
+                if (product.Team > 0)
+                {
+                    //It is, lets add it to the team's inventory
+                    if (client._team.inventoryModify(item, itemsCreated))
+                    {
+                        //Lets notify the team
+                        client.sendTeamMessage(0, item.name + " has been added to your team's inventory.");
+
+                        //Lets delete the item on the ground
+                        Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                        if (ve != null)
+                            ve.destroy(true);
+
+                        return true;
+                    }
+                    else
+                    {
+                        client.sendMessage(-1, "Unable to add " + item.name + " to the team's inventory.");
+                        return false;
+                    }
+                }
+
+                //Not for the team, give to the player instead
                 if (client.inventoryModify(item, itemsCreated))
                 {
                     client.sendMessage(0, item.name + " has been added to your inventory.");
+
+                    //Lets delete the item on the ground
+                    Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                    if (ve != null)
+                        ve.destroy(true);
+
                     return true;
                 }
                 else
@@ -212,13 +359,28 @@ namespace InfServer.Game
                 switch (vehInfo.Type)
                 {
                     case VehInfo.Types.Computer:
-                        //TODO: Implement computer vehicle production (The producing vehicle should morph into the new one)
-                        client.sendMessage(-1, "Computer vehicle morphing not yet implemented.");
-                        return false;
+                        {
+                            //Lets destroy the vehicle being morphed
+                            Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                            if (ve != null)
+                                ve.destroy(true);
+                            
+                            //Spawn new vehicle
+                            Vehicle vehicle = newVehicle(vehInfo, client._team, client, client._state);
+                            if (vehicle != null)
+                                return true;
+
+                            return false;
+                        }
 
                     case VehInfo.Types.Car:
                         {	//Create the new vehicle next to the player
                             Vehicle vehicle = newVehicle(vehInfo, client._team, client, client._state);
+
+                            //Lets destroy the morphing vehicle
+                            Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                            if (ve != null)
+                                ve.destroy(true);
 
                             //Place him in the vehicle!
                             return client.enterVehicle(vehicle);

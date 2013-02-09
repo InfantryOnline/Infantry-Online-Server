@@ -86,6 +86,7 @@ namespace InfServer.Game
 			return newBot(botType, _server._assets.getVehicleByID(type), team, owner, state, args);
 		}
 
+
 		/// <summary>
 		/// Creates and adds a new vehicle to the arena
 		/// </summary>
@@ -137,7 +138,7 @@ namespace InfServer.Game
 
 			//Create our vehicle class		
 			Bot newBot;
-			Helpers.ObjectState newState = new Helpers.ObjectState();
+			Helpers.ObjectState newState = new Helpers.ObjectState();            
 
 			if (state != null)
 			{
@@ -191,7 +192,7 @@ namespace InfServer.Game
 			newBot._creator = owner;
 			newBot._tickCreation = Environment.TickCount;
 
-			newBot.assignDefaultState();
+            newBot.assignDefaultState();
 
 			//This uses the new ID automatically
 			_vehicles.Add(newBot);

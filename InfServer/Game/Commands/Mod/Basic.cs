@@ -969,7 +969,8 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (payload.ToLower().Equals("spec") || payload.ToLower().Equals("spectator"))
+            string temp = payload.ToLower();
+            if (temp.Equals("spec") || temp.Equals("spectator"))
             {
                 player.sendMessage(-1, "You can't use this team name.");
                 return;

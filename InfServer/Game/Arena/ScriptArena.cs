@@ -551,6 +551,90 @@ namespace InfServer.Game
 			if (product.Title == "")
 				return;
 
+  			//Lets check limits
+			if (product.ProductToCreate < 0)
+			{
+				VehInfo vehInfo = from._server._assets.getVehicleByID(-product.ProductToCreate);
+				if (vehInfo == null)
+                {
+                    Log.write(TLog.Error, "Produce item {0} referenced invalid vehicle id #{1}", product.Title, -product.ProductToCreate);
+                    return;
+                }
+
+				//This is a vehicle item
+				int densityType = 0;
+				int densityAmount = 0;
+				int totalAmount = 0;
+				int totalType = 0;
+				int playerTotal = 0;
+				
+				playerTotal = from._arena.Vehicles.Where(v => v != null && v._type.Id == vehInfo.Id && v._creator != null
+					&& v._creator._alias == from._alias).Count();
+				
+				//Lets set our produect as a computer
+				VehInfo.Computer vehComp = vehInfo as VehInfo.Computer;
+				
+				IEnumerable<Vehicle> vehs = from._arena.Vehicles;
+				if (vehs != null)
+				{
+					foreach (Vehicle ve in vehs)
+					{
+						Computer comp = ve as Computer;
+						if ((comp != null) && comp._team._name == from._team._name)
+						{
+							totalAmount++;
+							if (comp._type.Name == vehComp.Name)
+								totalType++;
+						}
+					}
+				}
+				
+				List<Vehicle> vehicles = from._arena.getVehiclesInRange(from._state.positionX, from._state.positionY, vehComp.DensityRadius);
+				if (vehicles != null)
+				{
+					foreach (Vehicle veh in vehicles)
+					{
+						Computer comp = veh as Computer;
+						if ( (comp != null) && comp._team._name == from._team._name)
+						{
+							densityAmount++;
+							if (comp._type.Name == vehComp.Name)
+								densityType++;
+						}
+					}
+				}
+				
+				if (playerTotal >= vehComp.MaxTypeByPlayerRegardlessOfTeam && vehComp.MaxTypeByPlayerRegardlessOfTeam != -1)
+				{
+					from.sendMessage(-1, "Your team has the maximum allowed computer vehicles of this type.");
+					return;
+				}
+				
+				if (totalAmount >= vehComp.FrequencyMaxActive && vehComp.FrequencyMaxActive != -1)
+				{
+					from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles.");
+					return;
+				}
+				
+				if (totalType >= vehComp.FrequencyMaxType && vehComp.FrequencyMaxType != -1)
+				{
+					from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type.");
+					return;
+				}
+				
+				if (densityAmount >= vehComp.FrequencyDensityMaxActive && vehComp.FrequencyDensityMaxActive != -1)
+				{
+					from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area.");
+					return;
+				}
+				
+				if (densityType >= vehComp.FrequencyDensityMaxType && vehComp.FrequencyDensityMaxType != -1)
+				{
+					from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area.");
+					return;
+				}
+			}
+
 			//Forward to our script
 			if (!exists("Player.Produce") || (bool)callsync("Player.Produce", false, from, computer, product))
 			{	//Make a produce request
@@ -1182,7 +1266,7 @@ namespace InfServer.Game
 				//Forward to our script
 				if (!exists("Shop.Sell") || (bool)callsync("Shop.Sell", false, from, item, -quantity))
 				{	//Perform the transaction!
-					from.Cash += price;
+					from.Cash -= price; //We use a negative because quantity is negative
 					from.inventoryModify(item, quantity);
 				}
 			}
@@ -1583,11 +1667,10 @@ namespace InfServer.Game
 
 			player.Cash -= item.cashCost;
 			player.syncInventory();
-            Log.write(TLog.Warning, "Make vehicle");
+
 			//Forward to our script
 			if (!exists("Player.MakeVehicle") || (bool)callsync("Player.MakeVehicle", false, player, item, posX, posY))
 			{	//Attempt to create it 
-                Log.write(TLog.Warning, "Make vehicle attempt");
 				Vehicle vehicle = newVehicle(vehinfo, player._team, player, player._state);
 			}
 		}

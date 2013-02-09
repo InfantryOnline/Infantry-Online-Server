@@ -39,6 +39,7 @@ namespace InfServer.Protocol
                 SquadStats,
                 Alias = 20,
                 ChatCommand = 21,
+                StatsUpdate = 22
             }
 
             ///<summary>

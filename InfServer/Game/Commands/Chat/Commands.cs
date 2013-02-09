@@ -786,32 +786,47 @@ namespace InfServer.Game.Commands.Chat
                 {
                     IEnumerable<Player.InventoryItem> inventory = p._inventory.Values.Where(i => i.item.itemType == ItemInfo.ItemType.Ammo);
                     player.sendMessage(0, "Player " + p._alias + " has:");
-                    if (inventory.Count() > 0)
+                    if (inventory != null)
                     {
+                        bool found = true;
                         foreach (Player.InventoryItem item in inventory)
                         {
                             if (item.item.name.Contains("Ore"))
-                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
                             else if (item.item.name.Contains("Unilennium"))
-                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
                             else if (item.item.name.Contains("Tsolvy"))
-                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
                             else if (item.item.name.Contains("Titanium"))
                             {
                                 if (item.item.name.Equals("Titanium"))
-                                    player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                    player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
                                 else
-                                    player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                    player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
                             }
                             else if (item.item.name.Contains("Hydrocarbon"))
-                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
                             else if (item.item.name.Contains("Pandora"))
-                                player.sendMessage(0, String.Format(" {1}:{2}", item.item.name, item.quantity));
+                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
+                            else
+                                found = false;
                         }
+                        if (!found)
+                            player.sendMessage(0, "No resources.");
                     }
                     else
                         player.sendMessage(0, " No resources.");
                 }
+
+                player.sendMessage(0, "The team has: ");
+                IEnumerable<Team.TeamInventoryItem> tInvs = player._team._tInventory.Values;
+                if (tInvs != null)
+                {
+                    foreach (Team.TeamInventoryItem tInv in tInvs)
+                        player.sendMessage(0, String.Format("{0}:{1}", tInv.item.name, tInv.quantity));
+                }
+                else
+                    player.sendMessage(0, "Nothing in the team's inventory.");
             }
         }
         #endregion
@@ -1241,7 +1256,8 @@ namespace InfServer.Game.Commands.Chat
                         }
                         else
                         {
-                            if (teamname.ToLower().Equals("spec") || teamname.ToLower().Equals("spectator") || teamname.ToLower().Contains("bot team"))
+                            string temp = teamname.ToLower();
+                            if (temp.Equals("spec") || temp.Equals("spectator") || temp.Contains("bot team"))
                             {
                                 player.sendMessage(-1, "You can't use this team name.");
                                 return;

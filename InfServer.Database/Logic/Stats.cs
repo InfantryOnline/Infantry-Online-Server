@@ -739,6 +739,127 @@ namespace InfServer.Logic
 		}
 
         /// <summary>
+        /// Handles a player's update stat request
+        /// </summary>
+        static public void Handle_CS_StatsUpdate(CS_StatsUpdate<Zone> pkt, Zone zone)
+		{
+			//Find player
+			Zone.Player player = zone.getPlayer(pkt.player.id);
+			if (player == null)
+			{
+				Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in zone mirror.", (pkt.player.alias != null ? pkt.player.alias : pkt.player.id));
+				return;
+			}
+			
+			using (InfantryDataContext db = zone._server.getContext())
+			{
+				//Get player entry
+				Data.DB.player dbplayer = db.players.SingleOrDefault(p => p.id == player.dbid);
+				if (dbplayer == null)
+				{
+					Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in database.", player.alias);
+					return;
+				}
+				
+				DateTime today = DateTime.Today;
+                switch (pkt.type)
+                {
+                    case CS_StatsUpdate<Zone>.StatsDaily:
+                        {
+                            //Add to the database
+                            Data.DB.statsDaily daily = new Data.DB.statsDaily();
+
+                            daily.experience = pkt.stats.experience;
+                            daily.experienceTotal = pkt.stats.experienceTotal;
+                            daily.kills = pkt.stats.kills;
+                            daily.deaths = pkt.stas.deaths;
+                            daily.killPoints = pkt.stats.killPoints;
+                            daily.deathPoints = pkt.stats.deathPoints;
+                            daily.assistPoints = pkt.stats.assistPoints;
+                            daily.bonusPoints = pkt.stats.bonusPoints;
+                            daily.vehicleKills = pkt.stats.vehicleKills;
+                            daily.vehicleDeaths = pkt.stats.vehicleDeaths;
+                            daily.playSeconds = pkt.stats.playSeconds;
+                            daily.zone = zone._zone;
+                            daily.date = pkt.stats.date;
+
+                            db.SubmitChanges();
+                        }
+                        break;
+
+                    case CS_StatsUpdate<Zone>.StatsWeekly:
+                        {
+                            //Add to the database
+                            Data.DB.statsWeekly weekly = new Data.DB.statsWeekly();
+
+                            weekly.experience = pkt.stats.experience;
+                            weekly.experienceTotal = pkt.stats.experienceTotal;
+                            weekly.kills = pkt.stats.kills;
+                            weekly.deaths = pkt.stas.deaths;
+                            weekly.killPoints = pkt.stats.killPoints;
+                            weekly.deathPoints = pkt.stats.deathPoints;
+                            weekly.assistPoints = pkt.stats.assistPoints;
+                            weekly.bonusPoints = pkt.stats.bonusPoints;
+                            weekly.vehicleKills = pkt.stats.vehicleKills;
+                            weekly.vehicleDeaths = pkt.stats.vehicleDeaths;
+                            weekly.playSeconds = pkt.stats.playSeconds;
+                            weekly.zone = zone._zone;
+                            weekly.date = pkt.stats.date;
+
+                            db.SubmitChanges();
+                        }
+                        break;
+
+                    case CS_StatsUpdate<Zone>.StatsMonthly:
+                        {
+                            //Add to the database
+                            Data.DB.statsMonthly monthly = new Data.DB.statsMonthly();
+
+                            monthly.experience = pkt.stats.experience;
+                            monthly.experienceTotal = pkt.stats.experienceTotal;
+                            monthly.kills = pkt.stats.kills;
+                            monthly.deaths = pkt.stas.deaths;
+                            monthly.killPoints = pkt.stats.killPoints;
+                            monthly.deathPoints = pkt.stats.deathPoints;
+                            monthly.assistPoints = pkt.stats.assistPoints;
+                            monthly.bonusPoints = pkt.stats.bonusPoints;
+                            monthly.vehicleKills = pkt.stats.vehicleKills;
+                            monthly.vehicleDeaths = pkt.stats.vehicleDeaths;
+                            monthly.playSeconds = pkt.stats.playSeconds;
+                            monthly.zone = zone._zone;
+                            monthly.date = pkt.stats.date;
+
+                            db.SubmitChanges();
+                        }
+                        break;
+
+                    case CS_StatsUpdate<Zone>.StatsYearly:
+                        {
+                            //Add to the database
+                            Data.DB.statsYearly yearly = new Data.DB.statsYearly();
+
+                            yearly.experience = pkt.stats.experience;
+                            yearly.experienceTotal = pkt.stats.experienceTotal;
+                            yearly.kills = pkt.stats.kills;
+                            yearly.deaths = pkt.stas.deaths;
+                            yearly.killPoints = pkt.stats.killPoints;
+                            yearly.deathPoints = pkt.stats.deathPoints;
+                            yearly.assistPoints = pkt.stats.assistPoints;
+                            yearly.bonusPoints = pkt.stats.bonusPoints;
+                            yearly.vehicleKills = pkt.stats.vehicleKills;
+                            yearly.vehicleDeaths = pkt.stats.vehicleDeaths;
+                            yearly.playSeconds = pkt.stats.playSeconds;
+                            yearly.zone = zone._zone;
+                            yearly.date = pkt.stats.date;
+
+                            db.SubmitChanges();
+                        }
+                        break;
+                }
+			}
+		}
+
+        /// <summary>
 		/// Handles a player update request
 		/// </summary>
         static public void Handle_CS_SquadMatch(CS_SquadMatch<Zone> pkt, Zone zone)
@@ -791,6 +912,7 @@ namespace InfServer.Logic
 		static public void Register()
 		{
 			CS_PlayerStatsRequest<Zone>.Handlers += Handle_CS_PlayerStatsRequest;
+            CS_StatsUpdate<Zone>.Handlers += Handle_CS_StatsUpdate;
             CS_SquadMatch<Zone>.Handlers += Handle_CS_SquadMatch;
 		}
 	}

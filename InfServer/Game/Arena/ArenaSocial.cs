@@ -128,7 +128,7 @@ namespace InfServer.Game
 
             if (!_commandRegistrar._modCommands.TryGetValue(command.ToLower(), out handler))
             {
-                if (command == "" && payload.Length > 1)
+                if (command == "" && payload.Length > 1 && from.PermissionLevelLocal > Data.PlayerPermission.Normal)
                 {
                     //Mod chat
                     foreach (Player p in Players)

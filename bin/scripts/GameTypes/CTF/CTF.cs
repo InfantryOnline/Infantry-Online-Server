@@ -112,8 +112,8 @@ namespace InfServer.Script.GameType_CTF
                 if (now - _tickVictoryStart > (_config.flag.victoryHoldTime * 10))
                 {
                     //Yes! Trigger game victory
-                    _gameWon = true; // game won
-                    gameVictory(_victoryTeam);
+                    if (!_gameWon)
+                        gameVictory(_victoryTeam);
                     return true;
                     
                 }
@@ -181,7 +181,10 @@ namespace InfServer.Script.GameType_CTF
 		/// Called when the specified team have won
 		/// </summary>
 		public void gameVictory(Team victors)
-		{	//Let everyone know
+		{
+            _gameWon = true;
+
+            //Let everyone know
 			if (_config.flag.useJackpot)
 				_jackpot = (int)Math.Pow(_arena.PlayerCount, 2);
 			_arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);            
@@ -253,15 +256,14 @@ namespace InfServer.Script.GameType_CTF
 		{	//We've started!
 			_tickGameStart = Environment.TickCount;
 			_tickGameStarting = 0;
-
-            //Scramble the teams!
-           // ScriptHelpers.scrambleTeams(_arena, 2, true);
             
 			//Spawn our flags!
 			_arena.flagSpawn();
 
 			//Let everyone know
 			_arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
+            
+            //Signal that a game has not been won yet
             _gameWon = false;
 			return true;
 		}
@@ -277,7 +279,6 @@ namespace InfServer.Script.GameType_CTF
 			_tickVictoryStart = 0;
 			_tickNextVictoryNotice = 0;
 			_victoryTeam = null;
-            _gameWon = false;
 
 			return true;
 		}

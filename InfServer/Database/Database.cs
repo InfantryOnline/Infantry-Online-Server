@@ -173,6 +173,56 @@ namespace InfServer.Data
 
 			//All good!
 			send(upd);
+
+            //Lets check the timers for other stat updates
+            DateTime now = DateTime.Now;
+            DateTime specDate = DateTime.Today.AddDays(1);
+
+            //Note: Time.Today uses a format 00/00/0000 time 12:00:00am
+            if (now >= (specDate.AddMinutes(-2)))
+            {
+                CS_StatsUpdate<Data.Database> stat = new CS_StatsUpdate<Data.Database>();
+                stat.player = player.toInstance();
+                stat.scoreType = CS_StatsUpdate<Data.Database>.ScoreType.ScoreDaily;
+                stat.stats = stats;
+                stat.date = now;
+                send(stat);
+            }
+
+            DayOfWeek day = DayOfWeek.Sunday;
+            if (now.DayOfWeek == day && now >= (specDate.AddMinutes(-2)))
+            {
+                CS_StatsUpdate<Data.Database> stat = new CS_StatsUpdate<Data.Database>();
+                stat.player = player.toInstance();
+                stat.scoreType = CS_StatsUpdate<Data.Database>.ScoreType.ScoreWeekly;
+                stat.stats = stats;
+                stat.date = now;
+                send(stat);
+            }
+
+            DateTime month = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            month = month.AddMonths(1);
+            if (now < month && now >= (specDate.AddMinutes(-2)))
+            {
+                CS_StatsUpdate<Data.Database> stat = new CS_StatsUpdate<Data.Database>();
+                stat.player = player.toInstance();
+                stat.scoreType = CS_StatsUpdate<Data.Database>.ScoreType.ScoreMonthly;
+                stat.stats = stats;
+                stat.date = now;
+                send(stat);
+            }
+
+            DateTime year = new DateTime(DateTime.Today.Year, 1, 1);
+            year = year.AddYears(1);
+            if (now < year && now >= (specDate.AddMinutes(-2)))
+            {
+                CS_StatsUpdate<Data.Database> stat = new CS_StatsUpdate<Data.Database>();
+                stat.player = player.toInstance();
+                stat.scoreType = CS_StatsUpdate<Data.Database>.ScoreType.ScoreYearly;
+                stat.stats = stats;
+                stat.date = now;
+                send(stat);
+            }
 		}
 
         public void reportMatch(long winner, long loser, CS_SquadMatch<Database>.SquadStats wStats, CS_SquadMatch<Database>.SquadStats lStats)

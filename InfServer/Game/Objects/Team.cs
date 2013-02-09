@@ -36,7 +36,8 @@ namespace InfServer.Game
 		public int _calculatedKills;			//The amount of kills for the team, since the last calculation
 		public int _calculatedDeaths;			//The amoutn of deaths for the team, since the last calculation
 
-		public CfgInfo.TeamInfo _info;		//The team-specific info
+		public CfgInfo.TeamInfo _info;		    //The team-specific info
+        public Dictionary<int, TeamInventoryItem> _tInventory;	//Our current inventory
 
 		//Events
 		public event Action<Team> Empty;	//Called when an team runs out of players and is empty
@@ -135,6 +136,21 @@ namespace InfServer.Game
 			return String.Format("{0} ({1})", _name, _id);
 		}
 
+        ///////////////////////////////////////////////////
+        // Member Classes
+        ///////////////////////////////////////////////////
+        #region Member Classes
+        /// <summary>
+        /// Represents a single element in the inventory
+        /// </summary>
+        public class TeamInventoryItem
+        {
+            public ItemInfo item;		//The type of item
+            public ushort quantity;		//The amount which we have
+
+            static public int MaxItems = 100;
+        }
+        #endregion
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -148,6 +164,7 @@ namespace InfServer.Game
 			_server = server;
 
 			_players = new List<Player>();
+            _tInventory = new Dictionary<int, TeamInventoryItem>();
 		}
 
 		#region State
@@ -237,9 +254,132 @@ namespace InfServer.Game
 			//as the player will either be leaving or joining another
 			//team - both of which infer leaving the old team.
 		}
+
+        /// <summary>
+        /// Modifies and updates the team's inventory
+        /// </summary>
+        public bool inventoryModify(ItemInfo item, int adjust)
+        {
+            //Do we already have such an item?
+            TeamInventoryItem ii;
+            _tInventory.TryGetValue(item.id, out ii);
+            if (ii != null && adjust < 0)
+            {
+                //Trying to take away too many?? I dont understand why wouldn't just wrap to -ii.quantity 
+                if (ii.quantity + adjust < 0) // but I'll keep this how it was
+                    return false;
+
+                //Will there be any items left?
+                if (ii.quantity + adjust == 0)
+                    _tInventory.Remove(item.id);
+                else
+                    ii.quantity = (ushort)(ii.quantity + adjust);
+
+                return true;
+            }
+
+            if (ii != null)
+            {	//Is there enough space?
+                if (item.maxAllowed < 0 && adjust > 0 && ii.quantity + adjust > (-item.maxAllowed))
+                    //Add only the amount we're able to
+                    adjust = -item.maxAllowed - ii.quantity;
+
+                //Do we have enough items?
+                if (ii.quantity + adjust < 0)
+                    return false;
+
+                //Will there be any items left?
+                if (adjust < 0 && (ii.quantity + adjust == 0))
+                    _tInventory.Remove(item.id);
+                else
+                    ii.quantity = (ushort)(ii.quantity + adjust);
+            }
+            else if (adjust < 0)
+            {
+                return false;
+            }
+            else
+            {	//Is there enough space?
+                if (item.maxAllowed < 0)
+                    adjust = Math.Min(-item.maxAllowed, adjust);
+
+                //We need to add a new inventory item
+                ii = new TeamInventoryItem();
+
+                ii.item = _server._assets.getItemByID(item.id);
+                ii.quantity = (ushort)adjust;
+                _tInventory.Add(item.id, ii);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Modifies and updates the team's inventory
+        /// </summary>
+        public bool inventoryModify(int itemid, int adjust)
+        {	//Redirect
+            return inventoryModify(_server._assets.getItemByID(itemid), adjust);
+        }
+
+        /// <summary>
+        /// Removes all items of a specific type from the player's inventory
+        /// </summary>
+        public void removeAllItemFromInventory(int itemID)
+        {	//Attempt to remove it!
+            removeAllItemFromTeamInventory(itemID);
+        }
+
+        /// <summary>
+        /// Removes all items of a specific type from the player's inventory
+        /// </summary>
+        public void removeAllItemFromTeamInventory(int itemID)
+        {	//Attempt to remove it!
+            if (_tInventory.Remove(itemID))
+            {
+            }
+        }
 		#endregion
 
-		#region Social
+        #region Helpers
+        /// <summary>
+        /// Retrives the inventory item count for the specified item type
+        /// </summary>
+        public int getInventoryAmount(int itemid)
+        {	//Do we have such an item?
+            TeamInventoryItem ii;
+
+            if (!_tInventory.TryGetValue(itemid, out ii))
+                return 0;
+            return ii.quantity;
+        }
+
+        /// <summary>
+        /// Retrives the inventory entry for the specified item type
+        /// </summary>
+        public TeamInventoryItem getInventory(int itemid)
+        {	//Do we have such an item?
+            TeamInventoryItem ii;
+
+            if (!_tInventory.TryGetValue(itemid, out ii))
+                return null;
+            return ii;
+        }
+
+        /// <summary>
+        /// Retrives the inventory entry for the specified item type
+        /// </summary>
+        public TeamInventoryItem getInventory(ItemInfo item)
+        {	//Do we have such an item?
+            TeamInventoryItem ii;
+
+            if (!_tInventory.TryGetValue(item.id, out ii))
+                return null;
+            return ii;
+        }
+        #endregion
+
+        #region Social
         /// <summary>
         /// Returns the list of players to for team chat (' or ")
         /// </summary>

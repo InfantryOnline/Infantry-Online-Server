@@ -209,6 +209,10 @@ namespace InfServer.Data
                     packet = new CS_ChatCommand<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_StatsUpdate<T>.TypeID:
+                    packet = new CS_StatsUpdate<T>(typeID, buffer, offset, size);
+                    break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);
