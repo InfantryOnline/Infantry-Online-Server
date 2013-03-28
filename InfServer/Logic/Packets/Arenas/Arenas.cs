@@ -65,7 +65,7 @@ namespace InfServer.Logic
                         CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
                         pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
                         pktquery.sender = player._alias;
-                        pktquery.payload = String.Format("![Security] Player {0} kicked. Checksum mismatch - (Original={2} New={3})", player._alias, player._assetCS, pkt.AssetChecksum);
+                        pktquery.payload = String.Format("![Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum);
                         //Send it!
                         player._server._db.send(pktquery);
                     }

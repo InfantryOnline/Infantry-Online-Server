@@ -376,7 +376,10 @@ namespace InfServer.Game
 
                     //???
                     if (door == null)
+                    {
+                        Log.write(TLog.Warning, "Door is null");
                         continue;
+                    }
 
                     //Add to our list
                     
@@ -543,7 +546,7 @@ namespace InfServer.Game
                     	//Try again
                         continue;
 
-                    itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, pX, pY, hs.Hide.HideData.RelativeId, hs.Hide.HideData.AssignFrequency);
+                    itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, pX, pY, hs.Hide.HideData.RelativeId, hs.Hide.HideData.AssignFrequency, null);
 
                     if (clumpQuantity > 1)
                     {   //Have more to spawn, so make sure it runs again
@@ -751,10 +754,10 @@ namespace InfServer.Game
 		/// </summary>
 		public bool switchRequest(bool bForce, bool bOpen, Player player, LioInfo.Switch swi)
 		{	//Are we close enough?
-			if (!bForce && !Helpers.isInRange(100,
-				player._state.positionX, player._state.positionY,
-				swi.GeneralData.OffsetX, swi.GeneralData.OffsetY))
-				return false;
+            if (!bForce && !Helpers.isInRange(100,
+                player._state.positionX, player._state.positionY,
+                swi.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16), swi.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16)))
+                return false;
 
 			//Obtain our state
 			SwitchState ss;
@@ -766,12 +769,18 @@ namespace InfServer.Game
 			}
 
 			//Is it an opposite state request?
-			if ((bOpen && ss.bOpen) || (!bOpen && !ss.bOpen))
-				return false;
+            if ((bOpen && ss.bOpen) || (!bOpen && !ss.bOpen))
+            {
+                Log.write(TLog.Warning, "Opposite state");
+                return false;
+            }
 
 			//Has there been enough time since the last operation?
-			if (!bForce && Environment.TickCount - ss.lastOperation < (swi.SwitchData.SwitchDelay * 10))
-				return false;
+            if (!bForce && Environment.TickCount - ss.lastOperation < (swi.SwitchData.SwitchDelay * 10))
+            {
+                Log.write(TLog.Warning, "Not enough time went by.");
+                return false;
+            }
 
 			//Gather relevant information
 			ItemInfo.Ammo ammo = _server._assets.getItemByID(swi.SwitchData.AmmoId) as ItemInfo.Ammo;
@@ -813,8 +822,11 @@ namespace InfServer.Game
 			}
 
 			//Are we qualified?
-			if (!bValid)
-				return false;
+            if (!bValid)
+            {
+                Log.write(TLog.Warning, "Not qualified");
+                return false;
+            }
 
             //We've done it! Update everything
             ss.bOpen = bOpen;
@@ -1023,7 +1035,10 @@ namespace InfServer.Game
 		/// Spawns all the qualified flags in the arena
 		/// </summary>
 		public void flagSpawn()
-		{
+		{   //Set offsets
+            int levelX = _server._assets.Level.OffsetX * 16;
+            int levelY = _server._assets.Level.OffsetY * 16;
+
             //For each flag type..
 			foreach (FlagState fs in _flags.Values)
 			{	//Should we spawn it?
@@ -1054,8 +1069,8 @@ namespace InfServer.Game
                         break;
                     }
 
-                    fs.posX = (short)(fs.flag.GeneralData.OffsetX);
-                    fs.posY = (short)(fs.flag.GeneralData.OffsetY);
+                    fs.posX = (short)(fs.flag.GeneralData.OffsetX - levelX);
+                    fs.posY = (short)(fs.flag.GeneralData.OffsetY - levelY);
 
                     //Taken from Math.cs
                     //For random flag spawn if applicable

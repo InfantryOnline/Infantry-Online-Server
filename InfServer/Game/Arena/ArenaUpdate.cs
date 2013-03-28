@@ -159,6 +159,12 @@ namespace InfServer.Game
         public virtual void handlePlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
         {   }
 
+        /// <summary>
+        /// Triggered when a player requests to take/steal ownership of a vehicle item
+        /// </summary>
+        public virtual void handlePlayerControl(Player player, ItemInfo.ControlItem item, UInt16 targetVehicle, short posX, short posY)
+        {   }
+
 		/// <summary>
 		/// Triggered when a player attempts to spectate another player
 		/// </summary>

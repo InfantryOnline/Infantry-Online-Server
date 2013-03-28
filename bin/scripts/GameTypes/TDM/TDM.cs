@@ -278,6 +278,7 @@ namespace InfServer.Script.GameType_TDM
             _tickGameStarting = 0;
             _callReset = false;
             _gameWon = false;
+            _victoryTeam = null;
 
             //Are we recording stats?
             _arena._saveStats = true;
