@@ -21,6 +21,7 @@ namespace InfServer.Logic
 		public class EventState
 		{
 			public bool bWarping;									//Are we going to warp?
+            public bool bWarpInPlace = true;                        //Do we want to warp in place?
 			public Helpers.ResetFlags warpFlags;					//The warp flags to use
 			public IEnumerable<LioInfo.WarpField> warpGroup;		//Our warpgroup to warp to, if any
 
@@ -235,6 +236,7 @@ namespace InfServer.Logic
 
 						//We have our group, set it in the state
 						state.bWarping = true;
+                        state.bWarpInPlace = false;
                         state.warpGroup = wGroup;
                         Logic_Lio.Warp(state.warpFlags, player, wGroup);
 					}
@@ -368,7 +370,35 @@ namespace InfServer.Logic
 							break;
 
 						state.bWarping = true;
-						state.warpFlags = Helpers.ResetFlags.ResetAll;
+   						state.warpFlags = Helpers.ResetFlags.ResetAll;
+
+                        //Lets check for what they want to reset
+                        if (param != "")
+                        {
+                            switch(Convert.ToInt32(param))
+                            {
+                                case 0:
+                                    state.warpFlags = Helpers.ResetFlags.ResetNone;
+                                    break;
+                                case 1:
+                                    state.warpFlags = Helpers.ResetFlags.ResetEnergy;
+                                    break;
+                                case 2:
+                                    state.warpFlags = Helpers.ResetFlags.ResetHealth;
+                                    break;
+                                case 3: //Dont know yet
+                                    state.warpFlags = Helpers.ResetFlags.ResetAll;
+                                    break;
+                                case 4:
+                                    state.warpFlags = Helpers.ResetFlags.ResetVelocity;
+                                    break;
+                                case 5: //Dont know yet
+                                case 6: //Dont know yet
+                                case 7:
+                                    state.warpFlags = Helpers.ResetFlags.ResetAll;
+                                    break;
+                            }
+                        }
 					}
 					break;
 
@@ -436,8 +466,9 @@ namespace InfServer.Logic
 		/// </summary>		
 		static private void executeState(Player player, EventState state)
 		{	//Do we need to be warping?
-			if (state.bWarping)
-			{	//Get our warpgroup
+			if (state.bWarping && !state.bWarpInPlace)
+			{	
+                //Get our warpgroup
 				IEnumerable<LioInfo.WarpField> wGroup = state.warpGroup;
 				if (wGroup == null)
 				{	//Lets attempt to use the default warpgroup
@@ -452,6 +483,16 @@ namespace InfServer.Logic
 				//Great! Apply the warp				
                 Logic_Lio.Warp(state.warpFlags, player, wGroup);
 			}
+
+            else if (state.bWarping && state.bWarpInPlace)
+            {
+                short energy = player._state.energy;
+                if (state.warpFlags == Helpers.ResetFlags.ResetAll || state.warpFlags == Helpers.ResetFlags.ResetEnergy)
+                    energy = -1;
+
+                //We want to warp in place
+                player.warp(state.warpFlags, energy, player._state.positionX, player._state.positionY);
+            }
 		}
 	}
 }

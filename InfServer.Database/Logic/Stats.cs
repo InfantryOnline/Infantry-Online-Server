@@ -296,7 +296,7 @@ namespace InfServer.Logic
 
                             //Get the top100 stats sorted by points
                             //For this month
-                            var monthly = (from mt in db.statsMontlies
+                            var monthly = (from mt in db.statsMonthlies
                                          where mt.zone1 == zone._zone && mt.date >= now
                                          orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
                                          select mt).Take(100);
@@ -309,7 +309,7 @@ namespace InfServer.Logic
                                 {
                                     DateTime today = now;
                                     now = now.AddMonths(-1);
-                                    monthly = (from mt in db.statsMontlies
+                                    monthly = (from mt in db.statsMonthlies
                                               where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
                                               orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
                                               select mt).Take(100);
@@ -331,7 +331,7 @@ namespace InfServer.Logic
                                     }
                                     DateTime add = now.AddMonths(1);
 
-                                    monthly = (from mt in db.statsMontlies
+                                    monthly = (from mt in db.statsMonthlies
                                               where mt.zone1 == zone._zone && mt.date >= now && mt.date < add
                                               orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
                                               select mt).Take(100);
@@ -341,7 +341,7 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsMontly month in monthly)
+                                foreach (Data.DB.statsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(month.players[0].alias1.name.ToCharArray());
@@ -619,7 +619,7 @@ namespace InfServer.Logic
                             DateTime today = now;
                             now = now.AddMonths(-((int)now.Month - 1));
 
-                            var monthly = (from mt in db.statsMontlies
+                            var monthly = (from mt in db.statsMonthlies
                                        where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
                                        orderby mt.date descending
                                        select mt);
@@ -627,7 +627,7 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsMontly month in monthly)
+                                foreach (Data.DB.statsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(month.players[0].alias1.name.ToCharArray());
@@ -663,7 +663,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly;
-                            response.columns = "ScoreHistory Montly Score,Name,Squad";
+                            response.columns = "ScoreHistory Monthly Score,Name,Squad";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
@@ -747,7 +747,7 @@ namespace InfServer.Logic
 			Zone.Player player = zone.getPlayer(pkt.player.id);
 			if (player == null)
 			{
-				Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in zone mirror.", (pkt.player.alias != null ? pkt.player.alias : pkt.player.id));
+				Log.write(TLog.Warning, "Ignoring stat update for id {0}, not present in zone mirror.", pkt.player.id);
 				return;
 			}
 			
@@ -762,9 +762,9 @@ namespace InfServer.Logic
 				}
 				
 				DateTime today = DateTime.Today;
-                switch (pkt.type)
+                switch (pkt.scoreType)
                 {
-                    case CS_StatsUpdate<Zone>.StatsDaily:
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreDaily:
                         {
                             //Add to the database
                             Data.DB.statsDaily daily = new Data.DB.statsDaily();
@@ -772,7 +772,7 @@ namespace InfServer.Logic
                             daily.experience = pkt.stats.experience;
                             daily.experienceTotal = pkt.stats.experienceTotal;
                             daily.kills = pkt.stats.kills;
-                            daily.deaths = pkt.stas.deaths;
+                            daily.deaths = pkt.stats.deaths;
                             daily.killPoints = pkt.stats.killPoints;
                             daily.deathPoints = pkt.stats.deathPoints;
                             daily.assistPoints = pkt.stats.assistPoints;
@@ -780,14 +780,14 @@ namespace InfServer.Logic
                             daily.vehicleKills = pkt.stats.vehicleKills;
                             daily.vehicleDeaths = pkt.stats.vehicleDeaths;
                             daily.playSeconds = pkt.stats.playSeconds;
-                            daily.zone = zone._zone;
-                            daily.date = pkt.stats.date;
+                            daily.zone = zone._zone.id;
+                            daily.date = pkt.date;
 
                             db.SubmitChanges();
                         }
                         break;
 
-                    case CS_StatsUpdate<Zone>.StatsWeekly:
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreWeekly:
                         {
                             //Add to the database
                             Data.DB.statsWeekly weekly = new Data.DB.statsWeekly();
@@ -795,7 +795,7 @@ namespace InfServer.Logic
                             weekly.experience = pkt.stats.experience;
                             weekly.experienceTotal = pkt.stats.experienceTotal;
                             weekly.kills = pkt.stats.kills;
-                            weekly.deaths = pkt.stas.deaths;
+                            weekly.deaths = pkt.stats.deaths;
                             weekly.killPoints = pkt.stats.killPoints;
                             weekly.deathPoints = pkt.stats.deathPoints;
                             weekly.assistPoints = pkt.stats.assistPoints;
@@ -803,14 +803,14 @@ namespace InfServer.Logic
                             weekly.vehicleKills = pkt.stats.vehicleKills;
                             weekly.vehicleDeaths = pkt.stats.vehicleDeaths;
                             weekly.playSeconds = pkt.stats.playSeconds;
-                            weekly.zone = zone._zone;
-                            weekly.date = pkt.stats.date;
+                            weekly.zone = zone._zone.id;
+                            weekly.date = pkt.date;
 
                             db.SubmitChanges();
                         }
                         break;
 
-                    case CS_StatsUpdate<Zone>.StatsMonthly:
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreMonthly:
                         {
                             //Add to the database
                             Data.DB.statsMonthly monthly = new Data.DB.statsMonthly();
@@ -818,7 +818,7 @@ namespace InfServer.Logic
                             monthly.experience = pkt.stats.experience;
                             monthly.experienceTotal = pkt.stats.experienceTotal;
                             monthly.kills = pkt.stats.kills;
-                            monthly.deaths = pkt.stas.deaths;
+                            monthly.deaths = pkt.stats.deaths;
                             monthly.killPoints = pkt.stats.killPoints;
                             monthly.deathPoints = pkt.stats.deathPoints;
                             monthly.assistPoints = pkt.stats.assistPoints;
@@ -826,14 +826,14 @@ namespace InfServer.Logic
                             monthly.vehicleKills = pkt.stats.vehicleKills;
                             monthly.vehicleDeaths = pkt.stats.vehicleDeaths;
                             monthly.playSeconds = pkt.stats.playSeconds;
-                            monthly.zone = zone._zone;
-                            monthly.date = pkt.stats.date;
+                            monthly.zone = zone._zone.id;
+                            monthly.date = pkt.date;
 
                             db.SubmitChanges();
                         }
                         break;
 
-                    case CS_StatsUpdate<Zone>.StatsYearly:
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreYearly:
                         {
                             //Add to the database
                             Data.DB.statsYearly yearly = new Data.DB.statsYearly();
@@ -841,7 +841,7 @@ namespace InfServer.Logic
                             yearly.experience = pkt.stats.experience;
                             yearly.experienceTotal = pkt.stats.experienceTotal;
                             yearly.kills = pkt.stats.kills;
-                            yearly.deaths = pkt.stas.deaths;
+                            yearly.deaths = pkt.stats.deaths;
                             yearly.killPoints = pkt.stats.killPoints;
                             yearly.deathPoints = pkt.stats.deathPoints;
                             yearly.assistPoints = pkt.stats.assistPoints;
@@ -849,8 +849,8 @@ namespace InfServer.Logic
                             yearly.vehicleKills = pkt.stats.vehicleKills;
                             yearly.vehicleDeaths = pkt.stats.vehicleDeaths;
                             yearly.playSeconds = pkt.stats.playSeconds;
-                            yearly.zone = zone._zone;
-                            yearly.date = pkt.stats.date;
+                            yearly.zone = zone._zone.id;
+                            yearly.date = pkt.date;
 
                             db.SubmitChanges();
                         }

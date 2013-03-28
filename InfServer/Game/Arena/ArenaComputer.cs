@@ -34,6 +34,8 @@ namespace InfServer.Game
             public Team team = null;
         }
 
+        private int _lastTurretUpdate = Environment.TickCount;
+
         ///////////////////////////////////////////////////
         // Member Functions
         ///////////////////////////////////////////////////
@@ -50,7 +52,7 @@ namespace InfServer.Game
                 lock (productionLine)
                 {
                     foreach (ProduceRequest req in productionLine.ToList())
-                    {	
+                    {
                         //Is this a team product?
                         if (req.team != null)
                         {
@@ -86,10 +88,11 @@ namespace InfServer.Game
 
                 //Does it need to send an update?
                 if (computer.poll() || computer._sendUpdate)
-                {	//Prepare and send an update packet for the vehicle
+                {	//Prepare and send an update packet for the vehicle                      
                     computer._state.updateNumber++;
 
                     Helpers.Update_RouteComputer(computer);
+
                 }
             }
         }
@@ -313,12 +316,6 @@ namespace InfServer.Game
                     {
                         //Lets notify the team
                         client.sendTeamMessage(0, item.name + " has been added to your team's inventory.");
-
-                        //Lets delete the item on the ground
-                        Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
-                        if (ve != null)
-                            ve.destroy(true);
-
                         return true;
                     }
                     else
@@ -332,12 +329,6 @@ namespace InfServer.Game
                 if (client.inventoryModify(item, itemsCreated))
                 {
                     client.sendMessage(0, item.name + " has been added to your inventory.");
-
-                    //Lets delete the item on the ground
-                    Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
-                    if (ve != null)
-                        ve.destroy(true);
-
                     return true;
                 }
                 else
@@ -361,10 +352,10 @@ namespace InfServer.Game
                     case VehInfo.Types.Computer:
                         {
                             //Lets destroy the vehicle being morphed
-                            Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
-                            if (ve != null)
-                                ve.destroy(true);
-                            
+                      //      Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                     //       if (ve != null)
+                      //          ve.destroy(true);
+
                             //Spawn new vehicle
                             Vehicle vehicle = newVehicle(vehInfo, client._team, client, client._state);
                             if (vehicle != null)
@@ -378,9 +369,9 @@ namespace InfServer.Game
                             Vehicle vehicle = newVehicle(vehInfo, client._team, client, client._state);
 
                             //Lets destroy the morphing vehicle
-                            Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
-                            if (ve != null)
-                                ve.destroy(true);
+                   //         Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                   //         if (ve != null)
+                   //             ve.destroy(true);
 
                             //Place him in the vehicle!
                             return client.enterVehicle(vehicle);

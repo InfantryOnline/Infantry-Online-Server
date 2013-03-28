@@ -119,6 +119,13 @@ namespace InfServer.Logic
                     player._bSilenced = true;
                     player._lengthOfSilence = duration;
                     player._timeOfSilence = DateTime.Now;
+                    if (player._server._playerSilenced.ContainsKey(player._alias))
+                        player._server._playerSilenced[player._alias].Add(player._lengthOfSilence, player._timeOfSilence);
+                    else
+                    {
+                        player._server._playerSilenced.Add(player._alias, new Dictionary<int, DateTime>());
+                        player._server._playerSilenced[player._alias].Add(player._lengthOfSilence, player._timeOfSilence);
+                    }
                     return;
                 }
 
@@ -139,6 +146,14 @@ namespace InfServer.Logic
                             Handle_CS_Chat(pkt, player);
                             break;
                         }
+
+                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                        {
+                            pkt.chatType = Helpers.Chat_Type.Team;
+                            Handle_CS_Chat(pkt, player);
+                            break;
+                        }
+
                         //Send it to our arena!
                         player._arena.handleEvent(delegate(Arena arena)
                             {
@@ -156,6 +171,14 @@ namespace InfServer.Logic
                             Handle_CS_Chat(pkt, player);
                             break;
                         }
+
+                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                        {
+                            pkt.chatType = Helpers.Chat_Type.Team;
+                            Handle_CS_Chat(pkt, player);
+                            break;
+                        }
+
                         pkt.chatType = Helpers.Chat_Type.Normal;
                         Handle_CS_Chat(pkt, player);
                         break;
@@ -169,6 +192,7 @@ namespace InfServer.Logic
                         if (!player._server.IsStandalone)
                         {
                             CS_PrivateChat<Data.Database> pchat = new CS_PrivateChat<Data.Database>();
+                            Log.write(TLog.Warning, "Sending chat to db");
                             pchat.chat = pkt.recipient;
                             pchat.message = pkt.message;
                             pchat.from = player._alias;
@@ -180,8 +204,16 @@ namespace InfServer.Logic
                         {	//Find our recipient
                             Player recipient = player._server.getPlayer(pkt.recipient);
 
-                            if (Allowed && ((recipient != null) && !recipient.IsSpectator))
-                                break;
+                            //For league and spec quiet toggles
+                            if ((recipient != null) && !recipient.IsSpectator)
+                            {
+                                if (Allowed)
+                                    break;
+                                if (player._arena._specQuiet || player._specQuiet)
+                                    if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                                        break;
+                            }
+
                             //Are we connected to a database?
                             if (!player._server.IsStandalone)
                             {   //Yeah, lets route it through the DB so we can pm globally!

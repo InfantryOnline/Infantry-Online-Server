@@ -53,6 +53,7 @@ namespace InfServer.Game
 		public bool _bIgnoreUpdates;			//Are we temporarily ignoring player updates? (Usually due to vehicle change)
 		public bool _bSpectator;				//Is the player in spectator mode?
         public bool _bIsStealth;                //Is the mod hidden to player lists?
+        public int _level;                      //The players level
 
         //Player shutup stuff..
         public bool _bSilenced;                 //Is the player currently silenced?
@@ -61,6 +62,7 @@ namespace InfServer.Game
 
         public bool _bLocked;                   //Is the player locked in spec?
         public bool _bAllowSpectator;           //Is the player allowing spectators?
+        public bool _specQuiet;                 //Is the player allowed to type outside of spec?
 
 		public Helpers.ObjectState _state;		//The player's positional state
 
@@ -451,7 +453,7 @@ namespace InfServer.Game
 
             //Are we able to enter the vehicle?
 			if (!toEnter.playerEnter(this))
-				return false;
+				return false;                      
 
 			//We're in!
 			return true;
@@ -1329,7 +1331,8 @@ namespace InfServer.Game
         public void sendTeamMessage(int bong, string message)
         {
             //Send it
-            Helpers.Social_ArenaChat(this._team.ActivePlayers, message, bong);
+            Helpers.Social_ArenaChat(this, message, bong); //To player
+            Helpers.Social_ArenaChat(this._team.ActivePlayers, message, bong); //To team
         }
 
 		/// <summary>

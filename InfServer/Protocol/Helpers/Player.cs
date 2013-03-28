@@ -347,7 +347,7 @@ namespace InfServer.Protocol
         /// <summary>
         /// Provides an easy means of routing an explosion to multiple players
         /// </summary>
-        static public void Player_RouteExplosion(IEnumerable<Player> players, Int16 itemID, Int16 posX, Int16 posY, Int16 posZ, byte yaw, Int16 creator=Int16.MinValue)
+        static public void Player_RouteExplosion(IEnumerable<Player> players, Int16 itemID, Int16 posX, Int16 posY, Int16 posZ, byte yaw, Int16 creator = Int16.MinValue)
         {
             SC_Projectile explosion = new SC_Projectile();
 

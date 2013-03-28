@@ -69,10 +69,10 @@ namespace InfServer.Protocol
 					Write(veh._state.positionX);
 					Write(veh._state.positionY);
 					Write(veh._state.positionZ);
-					Write(veh._state.pitch);
+					Write(veh._state.yaw);//was pitch [pitch always zero?]
 					Write((byte)veh._parentSlot);
-					Write(veh._state.yaw);
-					Write(veh._state.yaw);
+                    Write((byte)veh._state.pitch);//was yaw 
+					Write((byte)0);//was yaw
 					break;
 
 				case VehInfo.Types.Spectator:
@@ -86,7 +86,7 @@ namespace InfServer.Protocol
 					Write((byte)20);		//Sizeof
 
 					Write(veh._state.health);
-					Write((short)veh._team._id);
+                    Write((short)veh._team._id);
 					Write(veh._state.positionX);
 					Write(veh._state.positionY);
 					Write(veh._state.positionZ);

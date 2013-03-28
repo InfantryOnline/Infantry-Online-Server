@@ -481,9 +481,11 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void drop(Player player, Player recipient, string payload, int bong)
         {
-            
+            if (player.IsSpectator || player.IsDead)
+                return;
             char[] splitArr = { ',' };
             string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
             // parse the drop string
             foreach (string itemAmount in items)
             {
@@ -557,12 +559,12 @@ namespace InfServer.Game.Commands.Chat
                         if (player._arena.getItemCountInRange(item, player.getState().positionX, player.getState().positionY, 50) > 0)
                         {
                             //If there is another item nearby increases quantity instead of spawning new item
-                            player._arena.itemStackSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 50);
+                            player._arena.itemStackSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 50, player);
                         }
                         else
                         {
                             //Spawn new item since there are no other items nearby
-                            player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 0, (int)player._team._id);
+                            player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 0, (int)player._team._id, player);
                         }
                     }
 
@@ -778,6 +780,7 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
+            var resources = new List<string> { "Ore", "Unilennium", "Tsolvy", "Titanium", "Hydrocarbon", "Pandora" };
             IEnumerable<Player> Players = player._arena.PlayersIngame.Where(p => p._team == player._team);
             if (Players.Count() > 0)
             {
@@ -785,28 +788,13 @@ namespace InfServer.Game.Commands.Chat
                 foreach (Player p in Players)
                 {
                     IEnumerable<Player.InventoryItem> inventory = p._inventory.Values.Where(i => i.item.itemType == ItemInfo.ItemType.Ammo);
-                    player.sendMessage(0, "Player " + p._alias + " has:");
+                    player.sendMessage(0, "&Player " + p._alias + " has:");
                     if (inventory != null)
                     {
                         bool found = true;
                         foreach (Player.InventoryItem item in inventory)
                         {
-                            if (item.item.name.Contains("Ore"))
-                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
-                            else if (item.item.name.Contains("Unilennium"))
-                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
-                            else if (item.item.name.Contains("Tsolvy"))
-                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
-                            else if (item.item.name.Contains("Titanium"))
-                            {
-                                if (item.item.name.Equals("Titanium"))
-                                    player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
-                                else
-                                    player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
-                            }
-                            else if (item.item.name.Contains("Hydrocarbon"))
-                                player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
-                            else if (item.item.name.Contains("Pandora"))
+                            if (resources.Any(x => item.item.name.Contains(x)))
                                 player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
                             else
                                 found = false;
@@ -818,7 +806,7 @@ namespace InfServer.Game.Commands.Chat
                         player.sendMessage(0, " No resources.");
                 }
 
-                player.sendMessage(0, "The team has: ");
+                player.sendMessage(0, "&The team has: ");
                 IEnumerable<Team.TeamInventoryItem> tInvs = player._team._tInventory.Values;
                 if (tInvs != null)
                 {
@@ -843,9 +831,9 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
-                v._type.Type == VehInfo.Types.Computer);
-            IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v._team._id == player._team._id &&
+            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v != null && ((v._owner != null && v._owner._id == player._team._id)||(v._team != null &&
+                v._team._id == player._team._id)) && v._type.Type == VehInfo.Types.Computer);
+            IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v != null && v._team != null && v._team._id == player._team._id &&
                 v._type.Type == VehInfo.Types.Car);
 
             //Display computers

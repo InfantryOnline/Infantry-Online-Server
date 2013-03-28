@@ -97,6 +97,30 @@ namespace InfServer.Game
 				_players[pk] = newPlayer;
 				_nameToPlayer[alias.ToLower()] = newPlayer;
 
+                //Lets setup the players silence list
+                if (!_playerSilenced.ContainsKey(alias))
+                    _playerSilenced.Add(alias, new Dictionary<int, DateTime>());
+                else
+                {
+                    //Lets check his current silence time
+                    int numberKey = newPlayer._server._playerSilenced[newPlayer._alias].Keys.Count;
+                    int numberValue = newPlayer._server._playerSilenced[newPlayer._alias].Values.Count;
+                    if (numberKey > 0)
+                    {
+                        foreach (int length in newPlayer._server._playerSilenced[newPlayer._alias].Keys)
+                        {
+                            //Lets find the last one then set it
+                            newPlayer._lengthOfSilence = length;
+                            newPlayer._bSilenced = true;
+                        }
+                    }
+                    if (numberValue > 0)
+                    {
+                        foreach (DateTime stamp in newPlayer._server._playerSilenced[newPlayer._alias].Values)
+                            newPlayer._timeOfSilence = stamp;
+                    }
+                }
+
 				return newPlayer;
 			}
 		}
@@ -139,6 +163,20 @@ namespace InfServer.Game
 	
 				//Disconnect him from the server
 				removeClient(player._client);
+
+                //Lets update the players silence list
+                if ((_playerSilenced.ContainsKey(player._alias)) && _playerSilenced[player._alias].Keys.Count > 0)
+                {
+                    int min = 0; DateTime time = DateTime.Now;
+                    foreach (int length in _playerSilenced[player._alias].Keys)
+                        min = length;
+                    if (_playerSilenced[player._alias].Values.Count > 0)
+                        foreach (DateTime timer in _playerSilenced[player._alias].Values)
+                            time = timer;
+                    _playerSilenced.Remove(player._alias);
+                    _playerSilenced.Add(player._alias, new Dictionary<int, DateTime>());
+                    _playerSilenced[player._alias].Add(min, time);
+                }
 
 				//Make sure his stats get updated
 				if (player._bDBLoaded && !player._server.IsStandalone)

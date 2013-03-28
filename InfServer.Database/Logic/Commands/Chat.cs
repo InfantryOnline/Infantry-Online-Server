@@ -59,7 +59,7 @@ namespace InfServer.Logic
                         //Query for an IP?
                         System.Net.IPAddress ip;
 
-                        if (System.Net.IPAddress.TryParse(pkt.payload, out ip))
+                        if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ip))
                         {
                             aliases = db.alias.Where(a => a.IPAddress.Equals(ip.ToString()));
                             zone._server.sendMessage(zone, pkt.sender, "*" + ip.ToString());
@@ -204,7 +204,7 @@ namespace InfServer.Logic
                             System.Net.IPAddress ipaddress;
 
                             //Check for an ip lookup first
-                            if (System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
+                            if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
                                 aliases = db.alias.Where(a => a.IPAddress.Equals(ipaddress.ToString()));
                             //Alias!
                             else
@@ -234,7 +234,7 @@ namespace InfServer.Logic
                                             created = b.created;
                                             reason = b.reason;
                                             found = true;
-                                            zone._server.sendMessage(zone, pkt.sender, String.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.name.ToString(), type, created, expires, reason));
+                                            zone._server.sendMessage(zone, pkt.sender, String.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.name.ToString(), type, Convert.ToString(created), Convert.ToString(expires), reason));
                                         }
                                     }
                                 }
@@ -257,7 +257,7 @@ namespace InfServer.Logic
 
                         //Check the results first
                         if (end.id <= resultseachpage)
-                            helps = db.helpcalls.Where(e => e.id > 0).ToList();
+                            helps = db.helpcalls.Where(e => e.id <= end.id).ToList();
                         else
                             helps = db.helpcalls.Where(e =>
                                 e.id >= (end.id - (resultseachpage * (pageNum + 1))) &&
@@ -265,7 +265,7 @@ namespace InfServer.Logic
 
                         //List them
                         foreach (Data.DB.helpcall h in helps)
-                            zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                            zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> {4}",
                                 Convert.ToString(h.date), h.zone, h.arena, h.sender, h.reason));
 
                         zone._server.sendMessage(zone, pkt.sender, "End of page, use *helpcall 1, *helpcall 2, etc to navigate previous pages");
@@ -510,8 +510,9 @@ namespace InfServer.Logic
                         else
                         {
                             //Leave the squad...
+                            dbplayer.squad1 = null;
                             dbplayer.squad = null;
-                            db.SubmitChanges();
+                            //db.SubmitChanges();
                             zone._server.sendMessage(zone, pkt.alias, "You have left your squad");
                             //Notify his squadmates
                             foreach (Data.DB.player sm in squadmates)
@@ -534,7 +535,8 @@ namespace InfServer.Logic
                         }
 
                         //List his online squadmates!
-                        zone._server.sendMessage(zone, pkt.alias, "&Squad Online List: " + dbplayer.squad1.name + " Captain: " + db.players.First(p => p.id == dbplayer.squad1.owner).alias1.name);
+                        zone._server.sendMessage(zone, pkt.alias, "&Squad Online List: " + dbplayer.squad1.name);
+                        zone._server.sendMessage(zone, pkt.alias, "&Captain: " + db.players.First(p => p.id == dbplayer.squad1.owner).alias1.name);
                         List<string> sonline = new List<string>();
                         foreach (Data.DB.player smate in db.players.Where(p => p.squad == targetSquadOnline.id))
                             //Make sure he's online!
@@ -557,7 +559,8 @@ namespace InfServer.Logic
                         }
 
                         //List the squad name, captain, and members!
-                        zone._server.sendMessage(zone, pkt.alias, "&Squad List: " + targetSquadList.name + " Captain: " + db.players.First(p => p.id == targetSquadList.owner).alias1.name);
+                        zone._server.sendMessage(zone, pkt.alias, "&Squad List: " + targetSquadList.name);
+                        zone._server.sendMessage(zone, pkt.alias, "&Captain: " + db.players.First(p => p.id == targetSquadList.owner).alias1.name);
                         List<string> splayers = new List<string>();
                         foreach (Data.DB.player splayer in db.players.Where(p => p.squad == targetSquadList.id))
                             splayers.Add(splayer.alias1.name);

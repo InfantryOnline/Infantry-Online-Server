@@ -443,5 +443,34 @@ namespace InfServer.Protocol
 			foreach (Player player in p)
 				player._client.sendReliable(update);
 		}
+
+        /// <summary>
+        /// Sends a series of ball updates 
+        /// </summary>
+        static public void Object_Ball(Player p, IEnumerable<Ball> bState)
+        {
+            //Prepare the packet
+            foreach (Ball b in bState)
+            {
+                SC_BallState ball = new SC_BallState();
+                ball.ballID = b._id;
+                if (b._state.carrier != null)
+                    ball.playerID = (short)b._state.carrier._id;
+                else
+                    ball.playerID = 0;
+                ball.positionX = b._state.positionX;
+                ball.positionY = b._state.positionY;
+                ball.positionZ = b._state.positionZ;
+                ball.velocityX = b._state.velocityX;
+                ball.velocityY = b._state.velocityY;
+                ball.velocityZ = b._state.velocityZ;
+
+                //Fix this when ball packets are fixed
+                ball.unk7 = b._state.unk7;
+
+                //Send it
+                p._client.sendReliable(ball);
+            }
+        }
 	}
 }

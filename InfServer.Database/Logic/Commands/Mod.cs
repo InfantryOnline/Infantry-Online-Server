@@ -20,131 +20,197 @@ namespace InfServer.Logic
                 switch (pkt.aliasType)
                 {
                     case CS_Alias<Zone>.AliasType.transfer:
-                        if (pkt.alias == "" || pkt.aliasTo == "")
                         {
-                            zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
-                            return;
-                        }
-
-                        //Who the alias is going to
-                        Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => aTo.name.Equals(pkt.aliasTo));
-                        if (paliasTo == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "Cant find the recipient's alias.");
-                            return;
-                        }
-
-                        //The alias in question
-                        Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
-                        Data.DB.player playerA = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
-                        if (alias == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "Can't find the alias in question, maybe its not created yet.");
-                            return;
-                        }
-
-                        if (playerA == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "Can't find the player structure of said alias.");
-                            return;
-                        }
-
-                        //Check for a squad
-                        if (playerA.squad != null)
-                        {
-                            List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == playerA.squad && plyr.squad != null));
-                            if (playerA.squad1.owner == playerA.id)
+                            if (pkt.alias == "" || pkt.aliasTo == "")
                             {
-                                if (squadmates.Count() > 1)
-                                {
-                                    Random rand = new Random();
-                                    Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
-                                    //Since the player is the owner, lets just give it to someone else
-                                    temp.squad1.owner = temp.id;
-                                }
-                                else if (squadmates.Count() == 1)
-                                {
-                                    //Lets delete the squad
-                                    db.squads.DeleteOnSubmit(playerA.squad1);
-                                    playerA.squad1 = null;
-                                }
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
                             }
-                            playerA.squad = null;
+
+                            //Who the alias is going to
+                            Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => aTo.name.Equals(pkt.aliasTo));
+                            if (paliasTo == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cant find the recipient's alias.");
+                                return;
+                            }
+
+                            //The alias in question
+                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
+                            Data.DB.player playerA = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
+                            if (alias == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Can't find the alias in question, maybe its not created yet.");
+                                return;
+                            }
+
+                            if (playerA == null)
+                            {
+                                //Lets check if its the trash account
+                                Data.DB.account check = db.accounts.FirstOrDefault(c => c.name.Contains("TEMPACCOUNT") && c.id == alias.account);
+                                if (check != null)
+                                {
+                                    //Its on the trash account, lets transfer it
+                                    alias.IPAddress = paliasTo.IPAddress.Trim();
+                                    alias.timeplayed = 0;
+                                    alias.account = paliasTo.account;
+                                    alias.account1 = paliasTo.account1;
+                                    db.SubmitChanges();
+                                    zone._server.sendMessage(zone, pkt.sender, "Alias transfer completed.");
+                                    return;
+                                }
+                                zone._server.sendMessage(zone, pkt.sender, "Can't find the player structure of said alias.");
+                                return;
+                            }
+
+                            //Check for a squad
+                            if (playerA.squad != null)
+                            {
+                                List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == playerA.squad && plyr.squad != null));
+                                if (playerA.squad1.owner == playerA.id)
+                                {
+                                    if (squadmates.Count() > 1)
+                                    {
+                                        Random rand = new Random();
+                                        Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                        //Since the player is the owner, lets just give it to someone else
+                                        temp.squad1.owner = temp.id;
+                                    }
+                                    else if (squadmates.Count() == 1)
+                                        //Lets delete the squad
+                                        db.squads.DeleteOnSubmit(playerA.squad1);
+                                }
+                                playerA.squad1 = null;
+                                playerA.squad = null;
+                            }
+                            //Lets delete stats/player structures
+                            //Note: the server will treat this as a new alias and create structures
+                            db.stats.DeleteOnSubmit(playerA.stats1);
+                            db.players.DeleteOnSubmit(playerA);
+                            /*
+                             Data.DB.player newP = new Data.DB.player();
+                             playerA = newP;
+                             //Lets clear all stats and create a new stat row
+                             Data.DB.stats newStat = new Data.DB.stats();
+                             playerA.stats1 = newStat;
+                             */
+                            //Now lets transfer
+                            alias.IPAddress = paliasTo.IPAddress.Trim();
+                            alias.timeplayed = 0;
+                            alias.account = paliasTo.account;
+                            alias.account1 = paliasTo.account1;
+                            db.SubmitChanges();
+                            zone._server.sendMessage(zone, pkt.sender, "Alias transfer completed.");
                         }
-                        //Lets delete stats/player structures
-                        //Note: the server will treat this as a new alias and create structures
-                        db.stats.DeleteOnSubmit(playerA.stats1);
-                        db.players.DeleteOnSubmit(playerA);
-                       /*
-                        Data.DB.player newP = new Data.DB.player();
-                        playerA = newP;
-                        //Lets clear all stats and create a new stat row
-                        Data.DB.stats newStat = new Data.DB.stats();
-                        playerA.stats1 = newStat;
-                        */
-                        //Now lets transfer
-                        alias.IPAddress = paliasTo.IPAddress;
-                        alias.timeplayed = 0;
-                        alias.account = paliasTo.account;
-                        db.SubmitChanges();
-                        zone._server.sendMessage(zone, pkt.sender, "Alias transfer completed.");
                         break;
 
                     case CS_Alias<Zone>.AliasType.remove:
-                        if (pkt.alias == "")
                         {
-                            zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
-                            return;
-                        }
-
-                        //Lets get all account related info then delete it
-                        Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
-                        Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
-                        if (palias == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
-                            return;
-                        }
-
-                        if (player == null)
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified player.");
-                            return;
-                        }
-
-                        //Check for a squad
-                        if (player.squad != null)
-                        {
-                            List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == player.squad && plyr.squad != null
-                                                                                        && plyr.zone == player.zone));
-                            if (player.squad1.owner == player.id)
+                            if (pkt.alias == "")
                             {
-                                if (squadmates.Count() > 1)
-                                {
-                                    Random rand = new Random();
-                                    Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
-                                    //Since the player is the owner, lets just give it to someone else
-                                    temp.squad1.owner = temp.id;
-                                }
-                                else if (squadmates.Count() == 1)
-                                {
-                                    //Lets delete the squad
-                                    db.squads.DeleteOnSubmit(player.squad1);
-                                    player.squad1 = null;
-                                }
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
                             }
-                            player.squad = null;
-                            db.SubmitChanges();
-                        }
 
-                        //Now lets remove stats
-                        db.stats.DeleteOnSubmit(player.stats1);
-                        //Next the player structure
-                        db.players.DeleteOnSubmit(player);
-                        //Finally the alias
-                        db.alias.DeleteOnSubmit(palias);
-                        db.SubmitChanges();
-                        zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
+                            //Lets get all account related info then delete it
+                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
+                            Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
+                            if (palias == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                                return;
+                            }
+
+                            if (player == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified player.");
+                                return;
+                            }
+
+                            //Check for a squad
+                            if (player.squad != null)
+                            {
+                                List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == player.squad && plyr.squad != null
+                                                                                            && plyr.zone == player.zone));
+                                if (player.squad1.owner == player.id)
+                                {
+                                    if (squadmates.Count() > 1)
+                                    {
+                                        Random rand = new Random();
+                                        Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                        //Since the player is the owner, lets just give it to someone else
+                                        temp.squad1.owner = temp.id;
+                                    }
+                                    else if (squadmates.Count() == 1)
+                                        //Lets delete the squad
+                                        db.squads.DeleteOnSubmit(player.squad1);
+                                }
+                                player.squad1 = null;
+                                player.squad = null;
+                            }
+
+                            //Now lets remove stats
+                            db.stats.DeleteOnSubmit(player.stats1);
+                            //Next the player structure
+                            db.players.DeleteOnSubmit(player);
+                            //Finally the alias
+                            db.alias.DeleteOnSubmit(palias);
+                            db.SubmitChanges();
+                            zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
+                        }
+                        break;
+
+                    case CS_Alias<Zone>.AliasType.mod:
+                        {
+                            if (pkt.alias == "")
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
+                            }
+
+                            //Lets get all account related info then delete it
+                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
+                            Data.DB.account account = db.accounts.FirstOrDefault(p => p.id == palias.account1.id);
+                            if (palias == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                                return;
+                            }
+
+                            if (account == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified account.");
+                                return;
+                            }
+
+                            //Lets mod/de-mod them
+                            account.permission = pkt.level;
+                            db.SubmitChanges();
+                            zone._server.sendMessage(zone, pkt.sender, "Changing player " + palias.name + "'s level to " + pkt.level + " has been completed.");
+                        }
+                        break;
+
+                    case CS_Alias<Zone>.AliasType.dev:
+                        {
+                            if (pkt.alias == "")
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
+                            }
+
+                            //Lets get all account related info
+                            Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
+                            if (player == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                                return;
+                            }
+
+                            //Lets mod/de-mod them
+                            player.permission = (short)pkt.level;
+                            db.SubmitChanges();
+                            zone._server.sendMessage(zone, pkt.sender, "Changing player " + player.alias1.name + "'s dev level to " + pkt.level + " has been completed.");
+                        }
                         break;
                 }
             }
@@ -171,7 +237,7 @@ namespace InfServer.Logic
 
                         //Lets update what we need then submit
                         if (pkt.time != 0)
-                            b.expires = DateTime.Now.AddMinutes(pkt.time);
+                            b.expires = b.expires.AddMinutes(pkt.time);
                         else if (pkt.time == 0)
                             b.expires = DateTime.Now;
 
@@ -186,13 +252,15 @@ namespace InfServer.Logic
                         newBan.uid3 = b.uid3;
                         if ((short)pkt.banType == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != null && b.zone == zone._zone.id)
                             newBan.zone = b.zone;
+                        db.bans.DeleteOnSubmit(b);
                         found = true;
                         break;
                     }
 
                 if (found)
                 {
-                    //Lets submit
+                    //Lets insert and submit
+                    db.bans.InsertOnSubmit(newBan);
                     db.SubmitChanges();
                     return;
                 }

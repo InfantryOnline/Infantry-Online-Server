@@ -96,8 +96,33 @@ namespace InfServer.Data
 		/// Constructor
 		/// </summary>
 		public PlayerStats()
-		{	
+		{
+            zonestat1 = 0;
+            zonestat2 = 0;
+            zonestat3 = 0;
+            zonestat4 = 0;
+            zonestat5 = 0;
+            zonestat6 = 0;
+            zonestat7 = 0;
+            zonestat8 = 0;
+            zonestat9 = 0;
+            zonestat10 = 0;
+            zonestat11 = 0;
+            zonestat12 = 0;
 
+            kills = 0;
+            deaths = 0;
+            killPoints = 0;
+            deathPoints = 0;
+            assistPoints = 0;
+            bonusPoints = 0;
+            vehicleKills = 0;
+            vehicleDeaths = 0;
+            playSeconds = 0;
+
+            cash = 0;
+            experience = 0;
+            experienceTotal = 0;
 		}
 
 		/// <summary>

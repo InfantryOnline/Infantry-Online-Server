@@ -17,6 +17,7 @@ namespace InfServer.Protocol
         public string sender;           //Player requesting
         public string alias;            //Target alias 
         public string aliasTo;          //Recipient
+        public int level;               //For mod/de-modding
 
         //Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Alias;
@@ -26,6 +27,8 @@ namespace InfServer.Protocol
         {
             transfer,
             remove,
+            mod,
+            dev
         }
 
 
@@ -74,6 +77,10 @@ namespace InfServer.Protocol
             Write(alias, 0);
             Write((byte)aliasType);
             Write(aliasTo, 0);
+            if (level >= 0)
+                Write((Int16)level);
+            else
+                Skip(2);
         }
 
         /// <summary>
@@ -85,6 +92,7 @@ namespace InfServer.Protocol
             alias = ReadNullString();
             aliasType = (AliasType)_contentReader.ReadByte();
             aliasTo = ReadNullString();
+            level = _contentReader.ReadInt16();
         }
 
         /// <summary>

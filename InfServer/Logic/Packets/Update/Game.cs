@@ -408,6 +408,10 @@ namespace InfServer.Logic
 						case ItemInfo.ItemType.Repair:
 							player._arena.handlePlayerRepair(player, info as ItemInfo.RepairItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
 							break;
+
+                        case ItemInfo.ItemType.Control:
+                            player._arena.handlePlayerControl(player, info as ItemInfo.ControlItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
+                            break;
 					}
 				}
 			);

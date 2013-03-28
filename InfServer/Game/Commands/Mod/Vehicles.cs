@@ -97,6 +97,9 @@ namespace InfServer.Game.Commands.Mod
                     newState.positionY = Convert.ToInt16(player._state.positionY + radius * Math.Sin(Math.PI * 2 * ((double)j / numturrets)));
                     newState.positionZ = player._state.positionZ;
                     newState.yaw = player._state.yaw;
+                    newState.fireAngle = player._state.fireAngle;
+                    newState.direction = player._state.direction;                   
+                    
                     player._arena.newVehicle(
                         vehicle,
                         player._team, null,

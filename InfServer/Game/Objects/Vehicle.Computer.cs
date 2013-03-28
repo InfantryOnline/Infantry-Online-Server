@@ -62,6 +62,7 @@ namespace InfServer.Game
 
 			//What is the gun we're going to be shooting?			
 			int wepID = type.InventoryItems[0];
+            //_arena.sendArenaMessage("wepid: " + wepID);
 
 			if (wepID != 0)
 			{	//Find our primary weapon
@@ -249,7 +250,10 @@ namespace InfServer.Game
 			if (p.IsSpectator) return false;
 
 			// Don't fire at teammates
-            if (p._team == _team) return false;
+            if (p._team == _team && (_owner == null || _owner == p._team)) return false;
+
+            //Don't fire at temporary teammates
+            if (_owner == p._team) return false;
 
 			// Don't fire at dead people
 			if (p.IsDead) return false;

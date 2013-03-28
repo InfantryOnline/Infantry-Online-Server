@@ -27,6 +27,8 @@ namespace InfServer.Protocol
 			{
 				Login = 0x01,
 				SetBanner = 0x02,
+                //Unknown Packet #3 = 0x03, deals with a player leaving the zone but not switching arenas Note: doesnt have any data why?
+                //SendBanner = 0x04,
 				Shop = 0x05,
 				Explosion = 0x06,
 				ShopSkill = 0x07,
@@ -38,11 +40,15 @@ namespace InfServer.Protocol
 				PlayerProduce = 0x0D,
 				PlayerPickup = 0x0E,
 				PlayerUseItem = 0x0F,
+                VehiclePickup = 0x10,
 				ChartRequest = 0x11,
+                //Unknown packet #18 = 0x12, has to do with joining a zone.. contains the playerID and 3 other 00 bytes
+                SendBannerTo = 0x13,
+                //SendBanner = 0x14,
 				Frames = 0x15,
-                VehiclePickup = 0x16,
                 PlayerDrop = 0x17,
                 Chat = 0x18,
+                //Unknown packet #25 = 0x19, has to do with being in the arena/zone - Note: this is a semi big packet
                 BallPickup = 0x1A,
                 BallDrop = 0x1B,
 				PlayerUpdate = 0x1C,
@@ -52,10 +58,24 @@ namespace InfServer.Protocol
 				PlayerDeath = 0x21,
 				PlayerPortal = 0x22,
 				FileSend = 0x23,
+                //SendBanner = 0x24,
 				Security = 0x25,
+                //SendBanner = 0x26,
                 GoalScored = 0x27,
+                //SendBanner = 0x28,
+                //SendBanner = 0x29,
                 AllowSpectator = 0x2A,
 				RequestSpectator = 0x2B,
+                //SendBanner = 0x2C,
+                //SendBanner = 0x2D,
+                //SendBanner = 0x2E,
+                //SendBanner = 0x2F,
+                //VehiclePickup = 0x30,
+                //VehiclePickup = 0x31,
+                //VehiclePickup = 0x32,
+                //VehiclePickup = 0x33,
+                //VehiclePickup = 0x34,
+                //VehiclePickup = 0x35,
                 SecurityResponse = 36,
 			}
 
@@ -110,7 +130,7 @@ namespace InfServer.Protocol
 				SetBounty = 0x2E,
 				ConfirmFileSend = 0x2F,
 				DisplayChart = 0x30,
-				BannerTransfer = 0x31, /*TODO: ?*/
+				BannerTransfer = 0x31, /*This is NOT banner transfer, This is a packet to check if player is in the zone or not*/
 				BannerInfo = 0x32,
 				ItemReload = 0x33,
 				PlayerSpectate = 0x35,

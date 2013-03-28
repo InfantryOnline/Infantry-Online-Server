@@ -34,7 +34,7 @@ namespace InfServer.Game
 		{	//Handle each bot
 			int now = Environment.TickCount;
 
-			foreach (Bot bot in _bots)
+			foreach (Bot bot in _bots.ToList())
 			{	//Does it need to send an update?
 				if (bot.poll())
 				{	//Prepare and send an update packet for the vehicle

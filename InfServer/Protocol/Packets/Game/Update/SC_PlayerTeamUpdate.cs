@@ -95,7 +95,10 @@ namespace InfServer.Protocol
 
 				case VehInfo.Types.Computer:
 					Write(vehicle._state.health);
-					Write((vehicle._team != null) ? vehicle._team._id : (short)-1);
+                    if (vehicle._owner != null)
+                        Write(vehicle._owner._id);
+                    else
+    					Write((vehicle._team != null) ? vehicle._team._id : (short)-1);
 					Write(vehicle._state.positionX);
 					Write(vehicle._state.positionY);
 					Write(vehicle._state.positionZ);
@@ -104,6 +107,8 @@ namespace InfServer.Protocol
 					Write((short)0);
 					Write(vehicle._state.fireAngle);	//Base yaw?
 					Write(vehicle._state.fireAngle);	//Turret yaw?
+                  //  Write(vehicle._state.yaw);
+                 //   Write(vehicle._state.yaw);
 					Write((ushort)206);
 					break;
 			}

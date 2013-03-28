@@ -19,6 +19,7 @@ namespace InfServer.Bots
         public new VehInfo.Car _type;					//The car type we represent
 		public MovementController _movement;			//Our movement controller
 		public WeaponController _weapon;				//Our trusty weapon controller
+       // public int _lane;
 			
 		public int _itemUseID;							//The item we're using
 
@@ -155,28 +156,29 @@ namespace InfServer.Bots
 			configureBot();
 		}
 
-		/// <summary>
-		/// Generic constructor
-		/// </summary>
-		public Bot(VehInfo.Car type, Helpers.ObjectState state, Arena arena, MovementController movement)
-			: base(type, state, arena)
-		{	//Initialize the event object
-			eventInit(true);
+       
 
-			//Populate variables
-			_type = type;
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        public Bot(VehInfo.Car type, Helpers.ObjectState state, Arena arena, MovementController movement)
+            : base(type, state, arena)
+        {	//Initialize the event object
+            eventInit(true);
 
-			_movement = movement;
-			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
-			_activeEquip = new List<ItemInfo.UtilityItem>();
+            //Populate variables
+            _type = type;
 
-			_tickLastPoll = Environment.TickCount;
+            _movement = movement;
+            _weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
+            _activeEquip = new List<ItemInfo.UtilityItem>();
 
-			_bBotVehicle = true;
+            _tickLastPoll = Environment.TickCount;
 
-			configureBot();
-		}
+            _bBotVehicle = true;
 
+            configureBot();
+        }
 		/// <summary>
 		/// Configures the bot based on the vehicle information
 		/// </summary>

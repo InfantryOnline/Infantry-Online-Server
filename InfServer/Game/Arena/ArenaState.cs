@@ -191,6 +191,10 @@ namespace InfServer.Game
 			//info about anything happening until then.
 			_players.Add(player);
 
+            //Lets check his level and set watchMod
+            if (player.PermissionLevel >= Data.PlayerPermission.Sysop)
+                player._arena._watchMod = true;
+
             //Define the player's self object
 			Helpers.Object_Players(player, player);
 
@@ -222,6 +226,10 @@ namespace InfServer.Game
 			if (_vehicles.Count > 0)
 				Helpers.Object_Vehicles(player, _vehicles);
 
+            //Load the ball state if any
+            if (_balls.Count > 0)
+                Helpers.Object_Ball(player, _balls);
+
             //Suspend his stats if it's a private arena
             if(!_server.IsStandalone)
             {
@@ -246,7 +254,7 @@ namespace InfServer.Game
                     player._permissionTemp = Data.PlayerPermission.ArenaMod;
             }
 
-			//Initialize the player's state
+            //Initialize the player's state
 			Helpers.Player_StateInit(player,
 				delegate()
 				{
@@ -280,7 +288,7 @@ namespace InfServer.Game
                         callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-                    player.sendMessage(-3, "[Notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email newemail");
+               //     player.sendMessage(-3, "[Notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email newemail");
 
                     //x2
                     if (_server._config["zone/DoubleReward"].boolValue)
@@ -457,6 +465,7 @@ namespace InfServer.Game
 
 			veh._team = team;
 			veh._creator = creator;
+            veh._owner = team;
 
 			veh._tickUnoccupied = veh._tickCreation = Environment.TickCount;
 
@@ -466,8 +475,25 @@ namespace InfServer.Game
 				veh._state.positionY = state.positionY;
 				veh._state.positionZ = state.positionZ;
 				veh._state.yaw = state.yaw;
+                //Temporary fix for computer updates rotating north by default, perm fix would be sc_vehices.cs packet fix
+                //this was causing turrets to not rotate
+              /*  switch (veh._type.Type)
+                {
+                    case VehInfo.Types.Computer:
+                        veh._state.fireAngle = state.yaw;
+                        break;
+                    case VehInfo.Types.Dependent:
+                        veh._state.fireAngle = state.yaw;
+                        break;
+                }*/
                 if (veh._type.Type == VehInfo.Types.Computer)
                     veh._state.fireAngle = state.yaw; //Temporary fix for computer updates rotating north by default, perm fix would be sc_vehices.cs packet fix
+                if (veh._type.Type == VehInfo.Types.Dependent)
+                {
+                    VehInfo.Dependent dep = veh._type as VehInfo.Dependent;
+                    veh._state.pitch = (byte)(dep.ChildElevationLowAngle > 0 ? dep.ChildElevationLowAngle : 0);
+                }
+	                        
 			}
 
 			veh.assignDefaultState();
@@ -580,7 +606,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Creates an item drop at the specified location
 		/// </summary>
-		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, short range)
+		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, short range, Player p)
 		{
 			int attempts = 0;
 
@@ -600,7 +626,7 @@ namespace InfServer.Game
 					//Try again
 					continue;
 
-				return itemSpawn(item, quantity, (short)pX, (short)pY);
+				return itemSpawn(item, quantity, (short)pX, (short)pY, p);
 			}
 
 			return null;
@@ -609,7 +635,7 @@ namespace InfServer.Game
 		/// <summary>
 		/// Creates an item drop at the specified location
 		/// </summary>
-		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, int relativeID, int freq)
+		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, int relativeID, int freq, Player p)
 		{	//Too many items?
 			if (_items.Count == maxItems)
 			{
@@ -650,7 +676,7 @@ namespace InfServer.Game
                                 continue;
                             }
 
-                            spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)it.number, pX, pY, 0, freq);
+                            spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)it.number, pX, pY, 0, freq, p);
                             break;
                         }
                     }
@@ -691,6 +717,8 @@ namespace InfServer.Game
 			id.relativeID = (relativeID == 0 ? item.relativeID : relativeID);
             id.freq = freq;
 
+            id.owner = p; //For bounty abuse upon pickup
+
             int expire = getTerrain(positionX, positionY).prizeExpire;
             id.tickExpire = (expire > 0 ? (Environment.TickCount + (expire * 1000)) : 0);
 
@@ -702,15 +730,15 @@ namespace InfServer.Game
 			return id;
 		}
 
-		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY)
+		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, Player p)
 		{
-			return itemSpawn(item, quantity, positionX, positionY, 0, -1);
+			return itemSpawn(item, quantity, positionX, positionY, 0, -1, p);
 		}
 
         /// <summary>
 		/// Updates a stack of items to increase the quantity or creates item drop
 		/// </summary>
-        public ItemDrop itemStackSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, short range)
+        public ItemDrop itemStackSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, short range, Player p)
         {
             //Too many items?
             if (_items.Count == maxItems)
@@ -737,7 +765,7 @@ namespace InfServer.Game
             else
             {
                 //Add new item if none nearby exists
-                itemSpawn(item, quantity, positionX, positionY);
+                itemSpawn(item, quantity, positionX, positionY, p);
             }
             return id;
         }

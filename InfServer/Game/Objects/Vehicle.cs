@@ -22,12 +22,13 @@ namespace InfServer.Game
 		///////////////////////////////////////////////////
 		public bool bCondemned;				//Is the vehicle ready to be deleted?
 		public Arena _arena;				//The arena we belong to
-		public VehInfo _type;				//The type of vehicle we represent
+        public VehInfo _type;				//The type of vehicle we represent
 
 		private VehicleAbstract _abstract;	//Used for communicating with the opensteer framework
 
 		public Team _team;					//The team we belong to
 		public Player _creator;				//The player which created us
+        public Team _owner;                 //The current team which owns us
 
 		public List<Vehicle> _childs;		//Our child vehicles
 		public Vehicle _parent;				//Our parent vehicle, if we're a dependent vehicle
@@ -36,6 +37,7 @@ namespace InfServer.Game
 		public bool _bBotVehicle;			//Are we a bot-owned vehicle?
 		public bool _bBaseVehicle;			//Are we a base vehicle, implied by a player?
 		public Player _inhabitant;			//The player, if any, that's inside the vehicle
+        public int _lane;
 
 		public ushort _id;					//Our vehicle ID
 
@@ -54,6 +56,8 @@ namespace InfServer.Game
 		public int _tickCreation;			//The time at which the vehicle was created
 		public int _tickUnoccupied;			//The time at which the vehicle was last unoccupied
 		public int _tickDead;				//The time at which the vehicle was last dead
+        public int _tickControlTime;        //The time at which the vehicle was taken control of
+        public int _tickControlEnd;         //How long the duration is
 		#endregion
 
 		#region Events
@@ -179,6 +183,8 @@ namespace InfServer.Game
 				child._state.velocityX = _state.velocityX;
 				child._state.velocityY = _state.velocityY;
 				child._state.velocityZ = _state.velocityZ;
+                //no changes
+                child._state.yaw = _state.yaw;
 			}
 		}
 
@@ -314,9 +320,7 @@ namespace InfServer.Game
 
 			Helpers.Object_VehicleBind(_arena.Players, this, null);
 
-		}
-
-
+		}       
 
 		/// <summary>
 		/// Handles damage from explosions triggered nearby
@@ -334,24 +338,26 @@ namespace InfServer.Game
 				return;
 
 			//Will this weapon even harm us?
-			switch (wep.damageMode)
-			{
-				case 2:			//Enemy
-					if (attacker._team == _team)
-						return;
-					break;
+            if (attacker != null)
+            {
+                switch (wep.damageMode)
+                {
+                    case 2:			//Enemy
+                        if (attacker._team == _team)
+                            return;
+                        break;
 
-				case 3:			//Friendly but self
-					if (attacker._team != _team)
-						return;
-					break;
+                    case 3:			//Friendly but self
+                        if (attacker._team != _team)
+                            return;
+                        break;
 
-				case 4:			//Friendly
-					if (attacker._team != _team)
-						return;
-					break;
-			}
-
+                    case 4:			//Friendly
+                        if (attacker._team != _team)
+                            return;
+                        break;
+                }
+            }
 			//Find the radius at which we were closest to the blast
 			double radius = getImpliedRadius(dmgX, dmgY, maxRadius + _type.TriggerRadius);
 
@@ -413,14 +419,18 @@ namespace InfServer.Game
 			if (netDamage > 0)
 			{
 				_state.health -= (short)Math.Round((netDamage / 1000));
-				if (!_attackers.Contains(attacker))
-					_attackers.Add(attacker);
+				if (attacker != null)
+                    if (!_attackers.Contains(attacker))
+					    _attackers.Add(attacker);
 			}
 
 			//Have we been killed?
 			if (_state.health <= 0)
 			{
-				kill(attacker, wep.id);
+                if (attacker != null)
+                    kill(attacker, wep.id);
+                else
+                    kill(null, wep.id);
 				_state.health = 0;
 			}
 		}

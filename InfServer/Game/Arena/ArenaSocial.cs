@@ -159,6 +159,10 @@ namespace InfServer.Game
             {   //Notify his superiors in the arena
                 string sRecipient;
                 foreach (Player p in Players)
+                {
+                    if (p != from && !p._arena._watchMod)
+                        //We have watchmod commands off, bypass this player
+                        continue;
                     if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
                     {
                         p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",
@@ -170,7 +174,7 @@ namespace InfServer.Game
                             command,
                             payload));
                     }
-                        //Developer?
+                    //Developer?
                     else if (from.PermissionLevelLocal == Data.PlayerPermission.Developer)
                     {
                         if (p.PermissionLevelLocal >= Data.PlayerPermission.Mod && p != from)
@@ -183,7 +187,7 @@ namespace InfServer.Game
                             command,
                             payload));
                     }
-            
+                }
 
                 //Log it in the history database
                 if (!_server.IsStandalone)

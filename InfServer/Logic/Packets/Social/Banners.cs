@@ -12,7 +12,7 @@ namespace InfServer.Logic
 	///////////////////////////////////////////////////////
 	class Logic_Banners
 	{	/// <summary>
-		/// Handles chat packets sent from the client
+		/// Handles set banner packets sent from the client
 		/// </summary>
 		static public void Handle_CS_SetBanner(CS_SetBanner pkt, Player player)
 		{	//Set the player's new banner data
@@ -34,6 +34,37 @@ namespace InfServer.Logic
 			}
 		}
 
+        /// <summary>
+        /// Handles sendingTo banner requests from the client
+        /// </summary>
+        static public void Handle_CS_SendBanner(CS_SendBanner pkt, Player player)
+        {
+            Player target = null;
+
+            //Lets find the player in question
+            if ((target = player._arena.getPlayerById(pkt.playerID)) == null)
+            {
+                Log.write(TLog.Warning, "Sending banner request without a proper player ID from player {0}", player._alias);
+                return;
+            }
+
+            if (target == player)
+            {
+                player.sendMessage(-1, "&You tried sending yourself a banner.");
+                return;
+            }
+
+            if (pkt.bannerData == null)
+                return;
+
+            SC_SendBanner banner = new SC_SendBanner();
+            banner.playerID = (short)player._id;
+            banner.bannerData = pkt.bannerData;
+
+            //Send it
+            target._client.sendReliable(banner);
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -41,6 +72,7 @@ namespace InfServer.Logic
 		static public void Register()
 		{
 			CS_SetBanner.Handlers += Handle_CS_SetBanner;
+            CS_SendBanner.Handlers += Handle_CS_SendBanner;
 		}
 	}
 }

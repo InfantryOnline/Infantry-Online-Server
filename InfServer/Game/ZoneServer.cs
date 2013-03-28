@@ -47,11 +47,14 @@ namespace InfServer.Game
         private LogClient _dbLogger;
         public int _lastDBAttempt;
         public int _attemptDelay;
+        public int _recycleAttempt;
 
 	    private ClientPingResponder _pingResponder;
         public Dictionary<IPAddress, DateTime> _connections;
 
+        public Dictionary<ZoneServer, DateTime> _recycle; //When to recycle
         public Dictionary<string, Dictionary<string, DateTime>> _arenaBans; //Our arena banning list
+        public Dictionary<string, Dictionary<int, DateTime>> _playerSilenced; //Self explanitory
 
         /// <summary>
   	  	/// Compiled game events that have been pulled out of the zone's cfg file.
@@ -108,9 +111,12 @@ namespace InfServer.Game
 			{
 				//TODO: Kick all players from the server, etc
                 //Disconnect everyone.
-                foreach (var arena in _arenas)
-                    foreach (Player p in arena.Value.Players)
-                        p.disconnect();
+                if (_arenas != null && _arenas.Count() > 0)
+                {
+                    foreach (var arena in _arenas)
+                        foreach (Player p in arena.Value.Players)
+                            p.disconnect();
+                }
 			}
 		}
 
@@ -310,6 +316,13 @@ namespace InfServer.Game
 
             //Create a new banning list
             _arenaBans = new Dictionary<string, Dictionary<string, DateTime>>();
+            //Create a new player silenced list
+            _playerSilenced = new Dictionary<string, Dictionary<int, DateTime>>();
+
+            //Setup a new zoneserver recycling class
+            _recycle = new Dictionary<ZoneServer, DateTime>();
+            _recycleAttempt = Environment.TickCount;
+
             //InitializeGameEventsDictionary();
 
 			return true;
@@ -362,7 +375,24 @@ namespace InfServer.Game
             {
                 //Are we connected to the database currently? If so break out of this operation
                 if (_db._bLoginSuccess || _attemptDelay == 0)
+                {
+                    //Are we on an auto-recycle timer?
+                    if ((now - _recycleAttempt) > 1 && _recycle.Count > 0)
+                    {
+                        foreach (var zone in _recycle)
+                        {
+                            if (zone.Key == null)
+                                continue;
+                            if (zone.Value.Second > DateTime.Now.Second)
+                                continue;
+
+                            //Time to recycle
+                            recycle();
+                        }
+                        _recycleAttempt = now;
+                    }
                     return;
+                }
 
 
                 _db = new Database(this, _config["Database"], _dbLogger);

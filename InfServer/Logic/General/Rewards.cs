@@ -233,6 +233,7 @@ namespace InfServer.Logic
             List<Player> sharedCash = victim._arena.getPlayersInRange(update.positionX, update.positionY, cfg.cash.shareRadius);
             List<Player> sharedExp = victim._arena.getPlayersInRange(update.positionX, update.positionY, cfg.experience.shareRadius);
             List<Player> sharedPoints = victim._arena.getPlayersInRange(update.positionX, update.positionY, cfg.point.shareRadius);
+            List<Player> sharedKills = killer._arena.getPlayersInRange(killer._state.positionX, killer._state.positionY, 50);
             Dictionary<int, int> cashRewards = new Dictionary<int, int>();
             Dictionary<int, int> expRewards = new Dictionary<int, int>();
             Dictionary<int, int> pointRewards = new Dictionary<int, int>();
@@ -333,6 +334,21 @@ namespace InfServer.Logic
                     continue;
 
                 Helpers.Player_RouteKill(p, update, victim, 0, killerPoints, 0, 0);
+            }
+
+            //Lets check for sibling kills and update
+            if (update.type == Helpers.KillType.Player)
+            {
+                if (killer._occupiedVehicle != null && killer._occupiedVehicle._type.SiblingKillsShared > 0)
+                {
+                    foreach (Player p in sharedKills)
+                    {
+                        if (p == killer)
+                            continue;
+                        if (p._occupiedVehicle != null)
+                            p.Kills++;
+                    }
+                }
             }
         }
 	}

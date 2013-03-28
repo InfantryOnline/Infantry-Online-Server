@@ -23,6 +23,7 @@ namespace InfServer.Game
         public ushort _id;           //Our unique identifier
         public BallState _state;
         public Player _owner;       //The person holding us
+        public Player _lastOwner;   //The person who held us last
 
         ///////////////////////////////////////////////////
         // Member Classes
@@ -47,6 +48,7 @@ namespace InfServer.Game
             public short unk7 { get; set; }
             public short delete { get; set; }
             public short inProgress { get; set; }
+            public int timeStamp { get; set; }
 
         }
         #endregion
@@ -69,11 +71,18 @@ namespace InfServer.Game
             state.unk6 = _state.unk6;
             state.unk7 = _state.unk7;
             state.ballID = _id;
+
             if (_state.carrier != null)
+            {
                 state.playerID = (short)_state.carrier._id;
+                Log.write(TLog.Warning, "Player ID {0}", _arena.getPlayerById(_state.carrier._id));
+            }
             else
+            {
                 state.playerID = 0;
+            }
             state.TimeStamp = Environment.TickCount;
+             
             Log.write(String.Format("SC_State {0}", state.unk2));
 
             //state.delete = _state.delete;

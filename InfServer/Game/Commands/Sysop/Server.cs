@@ -24,15 +24,20 @@ namespace InfServer.Game.Commands.Mod
                 delay = Int32.Parse(payload);
             }
 
+            player._arena.recycling = true;
             player._arena.setTicker(0, 0, delay * 100, "Server closing in: ", player._server.recycle);
             player._arena.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
 
+            //For players leaving the zone, still will recycle it on its own
+            if (!player._server._recycle.ContainsKey(player._server))
+                player._server._recycle.Add(player._server, DateTime.Now.AddSeconds(delay));
 
             foreach (KeyValuePair<string, Arena> arena in player._server._arenas)
             {
                 if (arena.Value == player._arena)
                     continue;
 
+                arena.Value.recycling = true;
                 arena.Value.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
                 arena.Value.setTicker(0, 0, delay * 100, "Server closing in:");
             }
@@ -119,7 +124,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void showGif(Player player, Player recipient, string payload, int bong)
 		{	//Download the gif!
-			
+		/*	
             WebClient client = new WebClient();
 			Stream file = client.OpenRead(payload);
 			BinaryReader br = new BinaryReader(file);
@@ -130,7 +135,7 @@ namespace InfServer.Game.Commands.Mod
 			gif.website = payload;
 
 			recipient._client.sendReliable(gif, 1);
-             
+         */    
 		}
 
         /// <summary>

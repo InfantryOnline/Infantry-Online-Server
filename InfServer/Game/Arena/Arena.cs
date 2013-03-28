@@ -44,10 +44,13 @@ namespace InfServer.Game
 
 		public Dictionary<int, TickerInfo> _tickers;	//The tickers!
 		public bool _bGameRunning;						//Is the game running?
+        public bool recycling = false;                  //Are we recycling an active zone?
         public int _tickGameStarted;					//The tick at which our game started
 		public int _tickGameEnded;						//The tick at which our game ended
         public bool _bLocked;
-        public bool _isMatch;
+        public bool _specQuiet;                         //Arena spec chat only on/off
+        public bool _watchMod;                          //Viewing of mod commands on/off
+        public bool _isMatch;                           //For leagues
         public bool _saveStats = true;
         public BreakdownSettings _breakdownSettings;
         private int _bountyTick;                        //Last time AutoBounty ticked
@@ -307,6 +310,8 @@ namespace InfServer.Game
 			public int relativeID;      //Relative ID of the item or the hide
 			public int tickExpire;      //Tick the item expires on
 			public int freq = -1;       //Owning frequency
+
+            public Player owner;        //To prevent bounty abuse
 		}
 
 		/// <summary>
@@ -455,7 +460,7 @@ namespace InfServer.Game
 			initLio();
 
             //Initialize our breakdown settings
-            _breakdownSettings = new BreakdownSettings();
+            _breakdownSettings = new BreakdownSettings();            
 		}
 
 		/// <summary>
@@ -573,7 +578,7 @@ namespace InfServer.Game
                             player.sendMessage(-1, "You have been sent to spectator mode for high packet loss.");
                         }
 
-                        else if (pStats.clientAverageUpdate > 600)
+                        if (pStats.clientAverageUpdate > 600)
                         {
                             player.spec();
                             player.sendMessage(-1, "You have been sent to spectator mode for high ping.");
@@ -596,6 +601,9 @@ namespace InfServer.Game
                         p._bSilenced = false;
                         p._lengthOfSilence = 0;
                         p.sendMessage(-1, "You may speak now.");
+
+                        if (p._server._playerSilenced.ContainsKey(p._alias))
+                            p._server._playerSilenced.Remove(p._alias);
                     }
                 }
 
@@ -641,6 +649,23 @@ namespace InfServer.Game
 									vehicle.destroy(true);
 							}
 							break;
+
+                        case VehInfo.Types.Computer:
+                            {
+                                //Check our control timer and update if necessary
+                                if (vehicle._tickControlEnd != 0 && vehicle._tickControlTime != 0 &&
+                                    (now - vehicle._tickControlTime) > (vehicle._tickControlEnd * 1000))
+                                {
+                                    //Reset till the next ownership change
+                                    if (vehicle._team.ActivePlayerCount > 0)
+                                        vehicle._owner = vehicle._team;
+                                    else
+                                        vehicle._owner = null;
+                                    vehicle._tickControlEnd = 0;
+                                    vehicle._tickControlTime = 0;
+                                }
+                            }
+                            break;
 					}
 				}
 
@@ -788,7 +813,7 @@ namespace InfServer.Game
         public Player getPlayerById(uint id)
         {	//Attempt to find him
             foreach (Player player in _players)
-                if (player._id.Equals(id))
+                if (player._id == id)
                     return player;
 
             return null;
