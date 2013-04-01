@@ -14,8 +14,8 @@ namespace InfServer.Protocol
     {	// Member Variables
         ///////////////////////////////////////////////////
         public Int16 bPickup;		//Pick up or put down?
-        public Int16 ballID;
-        public Int16 playerID;
+        public UInt16 ballID;
+        public UInt16 playerID;
         public Int16 velocityX;
         public Int16 velocityY;
         public Int16 velocityZ;
@@ -29,6 +29,9 @@ namespace InfServer.Protocol
         public Int16 unk5;
         public Int16 unk6;
         public Int16 unk7;
+        public Int16 uTest;
+        public Int16 nTest;
+        public Int32 tickcount;
         public bool bSuccess;		//Was it a successful drop?
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallDrop;
@@ -84,17 +87,19 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
+            //22 bytes is the max read
             //NOTE - 15th byte is the playerID who drops it
             //NOTE - 2nd byte is ballID
-            bPickup = _contentReader.ReadByte(); // wtf is this?
+            bPickup = _contentReader.ReadByte(); // wtf is this? // always zero ?
             ballID = _contentReader.ReadByte();
             velocityX = _contentReader.ReadInt16();
             velocityY = _contentReader.ReadInt16();
             velocityZ = _contentReader.ReadInt16();
-            positionX = _contentReader.ReadInt16();
-            positionY = _contentReader.ReadInt16();
-            positionZ = _contentReader.ReadInt16();
+            positionX = _contentReader.ReadInt16(); // Confirmed
+            positionY = _contentReader.ReadInt16(); // Confirmed
+            positionZ = _contentReader.ReadInt16(); // Confirmed
             playerID = _contentReader.ReadByte();
+//            uTest = _contentReader.ReadInt16();
             unk1 = _contentReader.ReadByte();
             unk2 = _contentReader.ReadByte();
             unk3 = _contentReader.ReadByte();
@@ -102,8 +107,10 @@ namespace InfServer.Protocol
             unk5 = _contentReader.ReadByte();
             unk6 = _contentReader.ReadByte();
             unk7 = _contentReader.ReadByte();
-            Log.write(String.Format("balllll DROP123 {0}-{1}-{2}", playerID, positionY, positionZ));
-            Log.write(DataDump);
+            //tickcount = _contentReader.ReadInt32();
+            string format = String.Format("velX {0} velY {1} velZ {2} posX {3} posY {4} posZ {5}", velocityX, velocityY, velocityZ, positionX, positionY, positionZ);
+            Log.write(String.Format("balllll DROP123 bID {0} {1} pID {2} bPickup {3} unk1 {4} unk2 {5} unk3 {6} unk4 {7} unk5 {8} unk6 {9} unk7 {10} time {11} current time {12} uTest {13} nTest {14}", ballID, format, playerID, bPickup, unk1, unk2, unk3, unk4, unk5, unk6, unk7, tickcount, (Environment.TickCount),uTest,nTest));
+            Log.write("BallDrop {0}",DataDump);
         }
 
         /// <summary>

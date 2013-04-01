@@ -791,13 +791,14 @@ namespace InfServer.Game.Commands.Chat
                     player.sendMessage(0, "&Player " + p._alias + " has:");
                     if (inventory != null)
                     {
-                        bool found = true;
+                        bool found = false;
                         foreach (Player.InventoryItem item in inventory)
                         {
                             if (resources.Any(x => item.item.name.Contains(x)))
+                            {
                                 player.sendMessage(0, String.Format(" {0}:{1}", item.item.name, item.quantity));
-                            else
-                                found = false;
+                                found = true;
+                            }
                         }
                         if (!found)
                             player.sendMessage(0, "No resources.");

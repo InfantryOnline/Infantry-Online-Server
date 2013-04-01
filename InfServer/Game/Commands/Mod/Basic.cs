@@ -403,112 +403,6 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
-        /// Bans the player from a specific arena - if granted players, privately owned only
-        /// </summary>
-        static public void kick(Player player, Player recipient, string payload, int bong)
-        {
-            //Sanity check
-            if (player._server.IsStandalone)
-            {
-                player.sendMessage(0, "Server is currently in stand-alone mode.");
-                return;
-            }
-
-            //Get players mod level first
-            int level;
-            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
-                level = (int)player.PermissionLevelLocal;
-            else
-                level = (int)player.PermissionLevel;
-
-            //Check if they are granted and in a private arena
-            if (level == (int)Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
-            {
-                player.sendMessage(-1, "Nice try.");
-                return;
-            }
-
-            if (level == (int)Data.PlayerPermission.Developer && player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
-            {
-                player.sendMessage(-1, "You can only use it in non-public arena's.");
-                return;
-            }
-
-            if (recipient != null && payload == "")
-            {
-                //Assume they just want to kick them out of the arena temporarily
-                recipient.sendMessage(-1, "You have been kicked out of the arena.");
-                recipient.disconnect();
-                player.sendMessage(0, String.Format("You have kicked player {0} from the arena.", recipient._alias.ToString()));
-                return;
-            }
-
-            if (recipient == null && payload == "")
-            {
-                player.sendMessage(-1, "Syntax: ::*kick time(Optional) OR *kick alias time(Optional)");
-                return;
-            }
-
-            string alias;
-            int minutes = 0;
-            string[] param = payload.Split(' ');
-
-            //Lets grab the players name
-            if (recipient != null)
-            {
-                alias = recipient._alias.ToString();
-                //Lets get the time too
-                try
-                {
-                    minutes = Convert.ToInt32(payload);
-                }
-                catch (OverflowException) //We are only catching overflow, null can be 0, we can kick without a time limit 
-                {
-                    player.sendMessage(-1, "That is not a valid time.");
-                    return;
-                }
-            }
-            else
-            {
-                alias = param.ElementAt(0);
-
-                //Lets check to see if they just used a timer without a name
-                if ((recipient = player._arena.getPlayerByName(alias)) == null)
-                {
-                    player.sendMessage(-1, "That player isn't here.");
-                    return;
-                }
-                alias = recipient._alias.ToString();
-
-                //Lets check for time now
-                try
-                {
-                    minutes = Convert.ToInt32(param.ElementAt(1).Split(' ').ElementAt(1));
-                }
-                catch (OverflowException) //We are only catching overflow, null = 0 which we can kick without a time limit 
-                {
-                    player.sendMessage(-1, "That is not a valid time.");
-                    return;
-                }
-            }
-            //Remove his privileges
-            if (player._arena._owner != null && player._arena._owner.Count > 0)
-            {
-                foreach (var p in player._arena._owner)
-                    if (recipient._alias.Equals(p))
-                    {
-                        player._arena._owner.Remove(p);
-                        break;
-                    }
-            }
-            recipient.sendMessage(-1, String.Format("You have been kicked from the arena{0}", (minutes > 0) ? String.Format(" for {0} minutes.", minutes) : "."));
-            recipient._server._arenaBans[recipient._arena._name].Add(recipient._alias, DateTime.Now.AddMinutes(minutes));
-            recipient.disconnect();
-
-            player.sendMessage(0, String.Format("You have kicked player {0}{1}", recipient._alias, (minutes > 0) ? String.Format (" for {0} minutes.", minutes) : ".") );
-        }
-
-        /// <summary>
         /// Permits a player in a permission-only zone
         /// </summary>
         static public void permit(Player player, Player recipient, string payload, int bong)
@@ -1860,6 +1754,35 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Force dc's a player from the server
+        /// </summary>
+        static public void dc(Player player, Player recipient, string payload, int bong)
+        {
+            //Check if they are granted and in a private arena
+            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+            {
+                player.sendMessage(-1, "Nice try.");
+                return;
+            }
+
+            //Kill all?
+            if (payload != null && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
+            {
+                foreach (Player p in player._arena.Players)
+                    if (p != player)
+                        p.disconnect();
+            }
+            else
+            {
+                if (recipient != null && (int)player.PermissionLevel >= (int)recipient.PermissionLevel)
+                    //Destroy him!
+                    recipient.disconnect();
+                else
+                    player.sendMessage(-1, "Syntax: ::*kill reason (optional) or *kill all");
+            }
+        }
+
+        /// <summary>
         /// Bans a player from a specific zone
         /// </summary>
         static public void ipban(Player player, Player recipient, string payload, int bong)
@@ -2037,24 +1960,6 @@ namespace InfServer.Game.Commands.Mod
             newBan.reason = reason.ToString();
 
             player._server._db.send(newBan);
-        }
-
-        /// <summary>
-        /// Removes a player from the server
-        /// </summary>
-        static public void kill(Player player, Player recipient, string payload, int bong)
-        {
-            //Kill all?
-            if (payload != null && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
-                foreach (Player p in player._arena.Players)
-                    if (p != player)
-                        p.disconnect();
-            else
-                if (recipient != null && (int)player.PermissionLevel >= (int)recipient.PermissionLevel)
-                    //Destroy him!
-                    recipient.disconnect();
-                else
-                    player.sendMessage(-1, "Syntax: ::*kill reason (optional) or *kill all");
         }
 
         /// <summary>
@@ -2267,6 +2172,112 @@ namespace InfServer.Game.Commands.Mod
             */
 
         /// <summary>
+        /// Bans or just kicks the player from a specific arena - if granted players, privately owned only
+        /// </summary>
+        static public void kick(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity check
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(0, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            //Get players mod level first
+            int level;
+            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+                level = (int)player.PermissionLevelLocal;
+            else
+                level = (int)player.PermissionLevel;
+
+            //Check if they are granted and in a private arena
+            if (level == (int)Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+            {
+                player.sendMessage(-1, "Nice try.");
+                return;
+            }
+
+            if (level == (int)Data.PlayerPermission.Developer && player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            {
+                player.sendMessage(-1, "You can only use it in non-public arena's.");
+                return;
+            }
+
+            if (recipient != null && payload == "")
+            {
+                //Assume they just want to kick them out of the arena temporarily
+                recipient.sendMessage(-1, "You have been kicked out of the arena.");
+                recipient.disconnect();
+                player.sendMessage(0, String.Format("You have kicked player {0} from the arena.", recipient._alias.ToString()));
+                return;
+            }
+
+            if (recipient == null && payload == "")
+            {
+                player.sendMessage(-1, "Syntax: ::*kick time(Optional) OR *kick alias time(Optional)");
+                return;
+            }
+
+            string alias;
+            int minutes = 0;
+            string[] param = payload.Split(' ');
+
+            //Lets grab the players name
+            if (recipient != null)
+            {
+                alias = recipient._alias.ToString();
+                //Lets get the time too
+                try
+                {
+                    minutes = Convert.ToInt32(payload);
+                }
+                catch (OverflowException) //We are only catching overflow, null can be 0, we can kick without a time limit 
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
+                }
+            }
+            else
+            {
+                alias = param.ElementAt(0);
+
+                //Lets check to see if they just used a timer without a name
+                if ((recipient = player._arena.getPlayerByName(alias)) == null)
+                {
+                    player.sendMessage(-1, "That player isn't here.");
+                    return;
+                }
+                alias = recipient._alias.ToString();
+
+                //Lets check for time now
+                try
+                {
+                    minutes = Convert.ToInt32(param.ElementAt(1).Split(' ').ElementAt(1));
+                }
+                catch (OverflowException) //We are only catching overflow, null = 0 which we can kick without a time limit 
+                {
+                    player.sendMessage(-1, "That is not a valid time.");
+                    return;
+                }
+            }
+            //Remove his privileges
+            if (player._arena._owner != null && player._arena._owner.Count > 0)
+            {
+                foreach (var p in player._arena._owner)
+                    if (recipient._alias.Equals(p))
+                    {
+                        player._arena._owner.Remove(p);
+                        break;
+                    }
+            }
+            recipient.sendMessage(-1, String.Format("You have been kicked from the arena{0}", (minutes > 0) ? String.Format(" for {0} minutes.", minutes) : "."));
+            recipient._server._arenaBans[recipient._arena._name].Add(recipient._alias, DateTime.Now.AddMinutes(minutes));
+            recipient.disconnect();
+
+            player.sendMessage(0, String.Format("You have kicked player {0}{1}", recipient._alias, (minutes > 0) ? String.Format(" for {0} minutes.", minutes) : "."));
+        }
+
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ModCommand)]
@@ -2293,17 +2304,22 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(ban, "ban",
                 "Bans a player from all zones",
-                "*ban alias minutes:reason(optional) or ::*ban minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                "*ban alias minutes:reason(optional) or :player:*ban minutes:reason(optional)",
+                InfServer.Data.PlayerPermission.SMod, false);
 
             yield return new HandlerDescriptor(block, "block",
                 "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
-                "*block alias minutes:reason(optional) or ::*block minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.SMod, true);
+                "*block alias minutes:reason(optional) or :player:*block minutes:reason(optional)",
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(cash, "cash",
                 "Prizes specified amount of cash to target player",
                 "*cash [amount] or ::*cash [amount]",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(dc, "dc",
+                "Kicks a player from the server",
+                "*dc reason (optional) or dc all",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(experience, "experience",
@@ -2317,7 +2333,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(gkill, "gkill",
                 "Globally bans a player from the entire server",
-                "::*gkill minutes:reason(Optional) or *gkill alias minutes:reason(Optional)",
+                ":player:*gkill minutes:reason(Optional) or *gkill alias minutes:reason(Optional)",
                 InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(global, "global",
@@ -2332,13 +2348,13 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(grant, "grant",
                 "Gives arena privileges to a player",
-                "::*grant or *grant alias",
+                ":player:*grant or *grant alias",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(ipban, "ipban",
                 "IPBans a player from all zones",
-                "*ipban alias minutes:reason(optional) or ::*ipban minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                "*ipban alias minutes:reason(optional) or :player:*ipban minutes:reason(optional)",
+                InfServer.Data.PlayerPermission.SMod, false);
 
             yield return new HandlerDescriptor(helpcall, "helpcall",
                 "helpcall shows all helpcalls from all zones",
@@ -2347,13 +2363,13 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(kick, "kick",
                 "Kicks and can also ban a player from an arena",
-                "::*kick minutes(Optional) or *kick alias minutes(optional)",
+                ":player:*kick minutes(Optional) or *kick alias minutes(optional)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
-            yield return new HandlerDescriptor(kill, "kill",
-               "Removes the target player from the server",
-               "::*kill reason or *kill all",
-               InfServer.Data.PlayerPermission.ArenaMod, true);
+            yield return new HandlerDescriptor(block, "kill",
+                "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
+                "*kill alias minutes:reason(optional) or :player:*kill minutes:reason(optional)",
+               InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(speclock, "lock",
                 "Locks the target player into spec",

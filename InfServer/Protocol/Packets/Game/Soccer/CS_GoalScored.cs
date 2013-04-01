@@ -13,14 +13,15 @@ namespace InfServer.Protocol
     public class CS_GoalScored : PacketBase
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public Int16 bPickup;		//Pick up or put down?
-        public Int16 ballID;
-        public Int16 playerID;
-        public Int16 teamScoredID;
+        public UInt16 ballID;
         public Int16 positionX;
         public Int16 positionY;
-        public Int16 positionZ;
-        public bool bSuccess;		//Was it a successful drop?
+        public Int32 tickcount;
+        public Int16 unk1;
+        public UInt32 unk2;
+        public Int16 unk3;
+        public Int16 unk4;
+
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.GoalScored;
         static public event Action<CS_GoalScored, Player> Handlers;
@@ -73,18 +74,21 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            //bPickup = _contentReader.ReadBoolean();
+            //This packet is max of 9 bytes
             ballID = _contentReader.ReadByte(); // Ball id
-            playerID = _contentReader.ReadByte(); // Last 4 of ballstate
-            playerID = _contentReader.ReadByte();// Last 4 of ballstate
-            playerID = _contentReader.ReadByte();// Last 4 of ballstate
-            playerID = _contentReader.ReadByte();// Last 4 of ballstate
-            playerID = _contentReader.ReadByte();// unknown
-            teamScoredID = _contentReader.ReadByte();// team who scored ID
-            playerID = _contentReader.ReadByte();// seems to be a reference to where the ball crosses the line? maybe uses next byte as well?
-            playerID = _contentReader.ReadByte();// unknown
-            Log.write(DataDump);
+            //tickcount = _contentReader.ReadInt32(); //Time it happened
+            //unk1 = _contentReader.ReadByte();
+            unk2 = _contentReader.ReadUInt32();
+            //unk3 = _contentReader.ReadByte();
+            //unk4 = _contentReader.ReadByte();
+            positionX = _contentReader.ReadInt16(); //Where the ball crosses the line
+            positionY = _contentReader.ReadInt16(); //Where the ball crosses the line
+            TimeSpan ts = new TimeSpan(0);
+            double ms = ts.TotalMilliseconds;
+            ms = ms / 1000;
 
+            Log.write(TLog.Warning, "ballID {0} tickcount {1} current tick {2} in seconds {3}", ballID, tickcount, Environment.TickCount, ms);
+            Log.write(TLog.Warning, "unk1 {0} unk2 {1} unk3 {2} unk4 {3}", unk1, unk2, unk3, unk4);
         }
 
         /// <summary>

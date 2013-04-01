@@ -14,12 +14,15 @@ namespace InfServer.Protocol
     {	// Member Variables
         ///////////////////////////////////////////////////
         public Int16 bPickup;		//Pick up or put down?
-        public Int16 ballID;
-        public Int16 playerID;
+        public UInt16 ballID;
+        public UInt32 test;
+        public Int16 ntest;
+        public UInt16 playerID;
         public Int16 unk1;
         public Int16 unk2;
         public Int16 unk3;
         public Int16 unk4;
+        public Int32 tickcount;
         public bool bSuccess;		//Was it a successful drop?
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallPickup;
@@ -73,14 +76,26 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            //bPickup = _contentReader.ReadBoolean();
-            ballID = _contentReader.ReadByte(); // this is 100% the ballID
-            Skip(1);
-            unk1 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
-            unk2 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
-            unk3 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
-            unk4 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate            
-            Log.write(String.Format("balllll PICKUP {0}-{1}-{2}", ballID, unk1, unk2));
+            //6 bytes = max read for this
+            //Kon, this is the max read for pickup.. anymore and its beyond the stream length
+            ballID = _contentReader.ReadUInt16(); // this is 100% the ballID
+            //Skip(1); //always 0
+            //test = _contentReader.ReadUInt32();
+            //ntest = _contentReader.ReadByte();
+            //UInt16 tests = test;
+            //playerID = test;
+            Log.write(TLog.Warning, "test {0} ntest {1}", test, 0);
+            //unk1 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            //unk2 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            //unk3 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            //unk4 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
+            //ntest = _contentReader.ReadInt16();
+            tickcount = _contentReader.ReadInt32();
+            TimeSpan ts = new TimeSpan(0);
+            double ms = ts.TotalMilliseconds;
+            ms = ms / 1000;
+            Log.write(String.Format("balllll PICKUP bID {0} test {1} unk1 {2} unk2 {3} unk3 {4} unk4 {5} tickcount {6} current tick {7} converted {8}", ballID, test, unk1, unk2, unk3, unk4, tickcount, Environment.TickCount, ms));
+            Log.write(String.Format("playerID {0} ntest {1}", playerID, ntest));
             Log.write(DataDump);
         }
 

@@ -21,6 +21,7 @@ namespace InfServer.Game
 	{	// Member variables
 		///////////////////////////////////////////////////
 		public Dictionary<int, SwitchState> _switches;
+        public Dictionary<int, DoorState> _doors;
 		public Dictionary<int, FlagState> _flags;
         public int _lastFlagReward;
 		public List<HideState> _hides;
@@ -39,6 +40,8 @@ namespace InfServer.Game
 
 			public int _tickLastAttempt;			//The time we last attempted to hide
 			public int _tickLastSuccessAttempt;		//The last time we successfully attempted to hide (0 == N/A)
+
+            public SwitchState switchLink;          //Who owns us
 		}
 
 		/// <summary>
@@ -51,9 +54,31 @@ namespace InfServer.Game
 			public bool bOpen;				//Is the switch open?
 			public int lastOperation;		//The time at which the switch was last triggered
 			public int closeDelay;			//Autoclose delay
+
+            public DoorState doorLink;      //Which door we own
+            public HideState turretLink;    //Which turret we own
 		}
 
-		/// <summary>
+        /// <summary>
+        /// Represents the state of a lio door
+        /// </summary>
+        public class DoorState
+        {
+            public LioInfo.Door Door;	    //Our door information
+
+            public bool Opened;			    //Is the door open?
+            public bool initialState;       //Is the door initially opened or closed?
+            public int relativePhysicsX;    //Our tile positions
+            public int relativePhysicsY;
+            public int physicsWidth;        //Our physical width and heights
+            public int physicsHeight;
+            public bool inverseState;       //Is the door state reversed
+            public int linkedId;            //Are we linked to another door
+
+            public SwitchState switchLink;  //Who owns us
+        }
+
+        /// <summary>
 		/// Represents the state of a lio flag
 		/// </summary>
 		public class FlagState
@@ -202,22 +227,30 @@ namespace InfServer.Game
 		/// Initializes arena details
 		/// </summary>
 		private void initLio()
-		{	//Initialize our list of switch states
-			IEnumerable<LioInfo.Switch> switches = _server._assets.Lios.Switches;
-			_switches = new Dictionary<int, SwitchState>();
+		{
+            //Lets set our door states
+            IEnumerable<LioInfo.Door> doors = _server._assets.Lios.Doors;
+            _doors = new Dictionary<int, DoorState>();
 
-			foreach (LioInfo.Switch swi in switches)
-			{	//Create a switch state for this switch
-				SwitchState ss = new SwitchState();
+            foreach (LioInfo.Door d in doors)
+            {
+                //Create a door state
+                DoorState dd = new DoorState();
 
-				ss.bOpen = false;
-				ss.lastOperation = 0;
-				ss.closeDelay = swi.SwitchData.AutoCloseDelay * 10;
+                dd.initialState = dd.Opened = (d.DoorData.InitialState == 0 ? false : true);
+                dd.inverseState = (d.DoorData.InverseState == 0 ? false : true);
+                dd.relativePhysicsX = d.DoorData.RelativePhysicsTileX;
+                dd.relativePhysicsY = d.DoorData.RelativePhysicsTileY;
+                dd.physicsWidth = d.DoorData.PhysicsWidth;
+                dd.physicsHeight = d.DoorData.PhysicsHeight;
+                dd.linkedId = d.DoorData.LinkedDoorId;
 
-				ss.Switch = swi;
+                dd.switchLink = new SwitchState();
+                dd.switchLink = null;
+                dd.Door = d;
 
-				_switches[swi.GeneralData.Id] = ss;
-			}
+                _doors[d.GeneralData.Id] = dd;
+            }
 
 			//Initialize our list of flag states
 			IEnumerable<LioInfo.Flag> flags = _server._assets.Lios.Flags;
@@ -240,9 +273,102 @@ namespace InfServer.Game
 				HideState hs = new HideState();
 
 				hs.Hide = hide;
+                hs.switchLink = new SwitchState();
+                hs.switchLink = null;
 
 				_hides.Add(hs);
 			}
+
+            //Initialize our list of switch states
+            IEnumerable<LioInfo.Switch> switches = _server._assets.Lios.Switches;
+            _switches = new Dictionary<int, SwitchState>();
+
+            foreach (LioInfo.Switch swi in switches)
+            {	//Create a switch state for this switch
+                SwitchState ss = new SwitchState();
+
+                ss.bOpen = false;
+                ss.lastOperation = 0;
+                ss.closeDelay = swi.SwitchData.AutoCloseDelay * 10;
+
+                ss.Switch = swi;
+
+                _switches[swi.GeneralData.Id] = ss;
+
+                ss.doorLink = new DoorState();
+                ss.turretLink = new HideState();
+                ss.doorLink = null;
+                ss.turretLink = null;
+
+                if (swi.SwitchData.Switch == 1)
+                {
+                    List<LioInfo.Hide> turretList = new List<LioInfo.Hide>();
+                    //This is a turret switch
+                    foreach (HideState h in _hides)
+                    {
+                        if (h.Hide.HideData.HideId < 0 && h.Hide.HideData.HideTurretGroup > 0)
+                            for (int i = 0; i < swi.SwitchData.SwitchLioId.Count(); i++)
+                            {
+                                if (h.Hide.HideData.HideTurretGroup == swi.SwitchData.SwitchLioId[i])
+                                {
+                                    VehInfo vehicle = _server._assets.getVehicleByID(-h.Hide.HideData.HideId);
+                                    if (vehicle != null)
+                                    {
+                                        turretList.Add(h.Hide);
+                                        h.switchLink = ss; //Our daddy
+                                        ss.turretLink = h; //Our child
+                                    }
+                                }
+                            }
+                    }
+
+                    if (turretList.Count > 0)
+                    {
+                        foreach (LioInfo.Hide hh in turretList)
+                        {
+                            foreach (HideState hide in _hides)
+                                if (hh.GeneralData.Id == hide.Hide.HideData.HideId)
+                                    hide.switchLink = ss;
+                        }
+                    }
+                }
+
+                if (swi.SwitchData.Switch == 0)
+                {
+                    List<LioInfo.Door> doorList = new List<LioInfo.Door>();
+                    //This is a door switch
+                    foreach (DoorState d in _doors.Values)
+                    {
+                        for (int i = 0; i < swi.SwitchData.SwitchLioId.Count(); i++)
+                            if (d.Door.GeneralData.Id == swi.SwitchData.SwitchLioId[i])
+                            {
+                                doorList.Add(d.Door);
+                                d.switchLink = ss; //Our daddy
+                                ss.doorLink = d; //Our child
+                                //Are we supposed to be opened according to our door's initial state?
+                                if (d.Door.DoorData.InitialState == 1)
+                                    ss.bOpen = true;
+                            }
+                    }
+
+                    //Now lets find linked doors that match our doorList
+                    if (doorList.Count > 0)
+                    {
+                        foreach (LioInfo.Door dd in doorList)
+                        {
+                            foreach (DoorState door in _doors.Values)
+                                if (dd.GeneralData.Id == door.linkedId)
+                                {
+                                    //Lets make sure to follow our bosses
+                                    door.switchLink = ss;
+                                    door.initialState = (dd.DoorData.InitialState == 0 ? false : true);
+                                    door.inverseState = (dd.DoorData.InverseState == 0 ? false : true);
+                                    door.Opened = door.initialState;
+                                }
+                        }
+                    }
+                }
+            }
 		}
 
 		/// <summary>
@@ -325,16 +451,20 @@ namespace InfServer.Game
 					(tickUpdate - ss.lastOperation > ss.closeDelay))
 				{	//Set and update!
 					ss.bOpen = false;
-					Helpers.Object_LIOs(Players, ss);
                     if (ss.Switch.SwitchData.Switch == 0)
                     {
-                        //Update map tiles
-                        updateDoors();
-                        //Lets update clients
-                        Helpers.Object_LIOs(Players, ss);
+                        //Lets update the map tiles for each door in our list
+                        foreach (DoorState d in _doors.Values)
+                        {
+                            if (d.switchLink == ss)
+                                //Update map tiles
+                                updateDoors(d.Door, false);
+                        }
                     }
                     else
                         _turretGroups.Switch(ss.Switch.SwitchData.SwitchLioId, null, false);
+                    //Lets update clients
+                    Helpers.Object_LIOs(Players, ss);
 				}
 			}
 
@@ -353,59 +483,45 @@ namespace InfServer.Game
 		}
 
         /// <summary>
-        /// Updates the map tiles based on doors. TODO: Include linked doors, will only updated doors specified by Switch
+        /// Updates the map tiles based on doors.
         /// </summary>
-        private void updateDoors()
+        private void updateDoors(LioInfo.Door door, bool opened)
         {
-            foreach (SwitchState ss in _switches.Values)
+            DoorState dd;
+            //The door that's being switched
+            if (!_doors.TryGetValue(door.GeneralData.Id, out dd))
             {
-                if (ss.Switch.SwitchData.Switch == 1)
-                    //This is a turret switch, not a door.
-                    continue;
+                Log.write(TLog.Warning, "Door id {0} doesn't exist.", door.GeneralData.Id);
+                return;
+            }
 
-                //Lets make a new list for each switch
-                List<LioInfo.Door> _linked = new List<LioInfo.Door>();
+            bool isBlocked = opened; //Is the door closed/opened?
+            if ((dd.Opened && opened) || (!dd.Opened && !opened)) //Is the door closed/opened already
+                return;
 
-                foreach (int doorid in ss.Switch.SwitchData.SwitchLioId)
-                {   //Update map level info with whether or not door is open or closed
-                    if (doorid == 0) //Is a door specified?
-                        continue;
+            if (dd.inverseState) //Is the state reversed?
+                isBlocked = !isBlocked;
 
-                    //The door that's being switched
-                    LioInfo.Door door = _server._assets.Lios.Doors.FirstOrDefault(d => d.GeneralData.Id == doorid);
-
-                    //???
-                    if (door == null)
-                    {
-                        Log.write(TLog.Warning, "Door is null");
-                        continue;
-                    }
-
-                    //Add to our list
-                    
-                    bool isBlocked = !ss.bOpen; //Is the door closed?
-
-                    if (door.DoorData.InverseState == 1)//Is the state inversed?
-                        isBlocked = !isBlocked;
-
-                    for (int y = 0; y < door.DoorData.PhysicsHeight; y++)
-                    {
-                        int posy = (door.GeneralData.OffsetY / 16) - _server._assets.Level.OffsetY + door.DoorData.RelativePhysicsTileY + y;
-                        for (int x = 0; x < door.DoorData.PhysicsWidth; x++)
-                        {
-                            int posx = (door.GeneralData.OffsetX / 16) - _server._assets.Level.OffsetX + door.DoorData.RelativePhysicsTileX + x;
-                            int t = posy * _levelWidth + posx;
-                            //are we removing tiles or adding tiles?
-                            if (isBlocked)
-                                //Recreate the tile
-                                _tiles[t].PhysicsVision = _originaltiles[t].PhysicsVision;
-                            else
-                                //Clear the tile
-                                _tiles[t].PhysicsVision = (byte)0x00;
-                        }
-                    }
+            for (int y = 0; y < dd.physicsHeight; y++)
+            {
+                int posy = (door.GeneralData.OffsetY / 16) - _server._assets.Level.OffsetY + dd.relativePhysicsY + y;
+                for (int x = 0; x < dd.physicsWidth; x++)
+                {
+                    int posx = (door.GeneralData.OffsetX / 16) - _server._assets.Level.OffsetX + dd.relativePhysicsX + x;
+                    int t = posy * _levelWidth + posx;
+                    //Are we removing or adding tiles?
+                    if (isBlocked)
+                        //Recreate the tiles
+                        _tiles[t].PhysicsVision = _originaltiles[t].PhysicsVision;
+                    else
+                        //Clear the tiles
+                        _tiles[t].PhysicsVision = (byte)0x00;
                 }
             }
+
+            //Lets update our door state and our daddy
+            dd.Opened = !isBlocked;
+            dd.switchLink.bOpen = opened;
         }
 
 		/// <summary>
@@ -434,17 +550,11 @@ namespace InfServer.Game
                                            //|| (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
                                            && v.relativeID == relID)
                                        select new RelativeObj(v._state.positionX, v._state.positionY, v._team._id));
-                /*
-                possibilities.AddRange(from v in Vehicles
-                                        where (v.relativeID == relID &&
-                 	                    (v._type.Type == VehInfo.Types.Computer)
-                 	                    || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v)
-                 	                    || (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
-                 	                    select new RelativeObj(v._state.positionX, v._state.positionY, v._team._id));
-                */
+
                 possibilities.AddRange(from f in _flags.Values
                                        where f.bActive && f.flag.FlagData.FlagRelativeId == relID
                                        select new RelativeObj(f.posX, f.posY, f.team._id));
+
                 possibilities.AddRange(from it in _items.Values
                                        where it.relativeID == relID
                                        select new RelativeObj(it.positionX, it.positionY, it.freq));
@@ -753,10 +863,14 @@ namespace InfServer.Game
 		/// Attempts to allow a player to activate a switch
 		/// </summary>
 		public bool switchRequest(bool bForce, bool bOpen, Player player, LioInfo.Switch swi)
-		{	//Are we close enough?
+		{
+            int levelX = _server._assets.Level.OffsetX * 16;
+            int levelY = _server._assets.Level.OffsetY * 16;
+
+            //Are we close enough?
             if (!bForce && !Helpers.isInRange(100,
                 player._state.positionX, player._state.positionY,
-                swi.GeneralData.OffsetX - (_server._assets.Level.OffsetX * 16), swi.GeneralData.OffsetY - (_server._assets.Level.OffsetY * 16)))
+                swi.GeneralData.OffsetX - levelX, swi.GeneralData.OffsetY - levelY))
                 return false;
 
 			//Obtain our state
@@ -771,7 +885,7 @@ namespace InfServer.Game
 			//Is it an opposite state request?
             if ((bOpen && ss.bOpen) || (!bOpen && !ss.bOpen))
             {
-                Log.write(TLog.Warning, "Opposite state");
+                Log.write(TLog.Warning, "Opposite state, bOpen = {0} ss.Open = {1}", bOpen, ss.bOpen);
                 return false;
             }
 
@@ -831,13 +945,44 @@ namespace InfServer.Game
             //We've done it! Update everything
             ss.bOpen = bOpen;
             ss.lastOperation = Environment.TickCount;
-            if (swi.SwitchData.Switch == 0)
-                updateDoors();
-            else
-                //This is a turret switch
-                _turretGroups.Switch(swi.SwitchData.SwitchLioId, player, bOpen);
+            if (ss.Switch.SwitchData.Switch == 0)
+            {
+                //Find the door(s) to update
+                foreach (DoorState d in _doors.Values)
+                {
+                    if (d.switchLink == ss)
+                        //Update map tiles
+                        updateDoors(d.Door, bOpen);
+                }
 
-			Helpers.Object_LIOs(Players, ss);
+                //Lets update related switches
+                foreach (SwitchState sw in _switches.Values)
+                {
+                    if (sw.doorLink == ss.doorLink && sw != ss)
+                    {
+                        //Update switches linked
+                        sw.bOpen = bOpen;
+                        sw.lastOperation = ss.lastOperation;
+                        Helpers.Object_LIOs(Players, sw);
+                    }
+                }
+            }
+            else
+            {   //This is a turret switch
+                //Lets update related switches
+                foreach (SwitchState sw in _switches.Values)
+                {
+                    if (sw.turretLink == ss.turretLink && sw != ss)
+                    {
+                        sw.bOpen = bOpen;
+                        sw.lastOperation = ss.lastOperation;
+                        Helpers.Object_LIOs(Players, sw);
+                    }
+                }
+                _turretGroups.Switch(swi.SwitchData.SwitchLioId, player, bOpen);
+            }
+            //Update all players
+            Helpers.Object_LIOs(Players, ss);
 			return true;
 		}
 
