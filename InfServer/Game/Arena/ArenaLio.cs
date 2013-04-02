@@ -41,7 +41,7 @@ namespace InfServer.Game
 			public int _tickLastAttempt;			//The time we last attempted to hide
 			public int _tickLastSuccessAttempt;		//The last time we successfully attempted to hide (0 == N/A)
 
-            public SwitchState switchLink;          //Who owns us
+            public Dictionary<int, SwitchState> switchLink;          //Who owns us
 		}
 
 		/// <summary>
@@ -54,9 +54,6 @@ namespace InfServer.Game
 			public bool bOpen;				//Is the switch open?
 			public int lastOperation;		//The time at which the switch was last triggered
 			public int closeDelay;			//Autoclose delay
-
-            public DoorState doorLink;      //Which door we own
-            public HideState turretLink;    //Which turret we own
 		}
 
         /// <summary>
@@ -75,7 +72,7 @@ namespace InfServer.Game
             public bool inverseState;       //Is the door state reversed
             public int linkedId;            //Are we linked to another door
 
-            public SwitchState switchLink;  //Who owns us
+            public Dictionary<int, SwitchState> switchLink;  //Who owns us
         }
 
         /// <summary>
@@ -245,7 +242,7 @@ namespace InfServer.Game
                 dd.physicsHeight = d.DoorData.PhysicsHeight;
                 dd.linkedId = d.DoorData.LinkedDoorId;
 
-                dd.switchLink = new SwitchState();
+                dd.switchLink = new Dictionary<int, SwitchState>();
                 dd.switchLink = null;
                 dd.Door = d;
 
@@ -273,8 +270,7 @@ namespace InfServer.Game
 				HideState hs = new HideState();
 
 				hs.Hide = hide;
-                hs.switchLink = new SwitchState();
-                hs.switchLink = null;
+                hs.switchLink = new Dictionary<int, SwitchState>();
 
 				_hides.Add(hs);
 			}
@@ -295,14 +291,8 @@ namespace InfServer.Game
 
                 _switches[swi.GeneralData.Id] = ss;
 
-                ss.doorLink = new DoorState();
-                ss.turretLink = new HideState();
-                ss.doorLink = null;
-                ss.turretLink = null;
-
                 if (swi.SwitchData.Switch == 1)
                 {
-                    List<LioInfo.Hide> turretList = new List<LioInfo.Hide>();
                     //This is a turret switch
                     foreach (HideState h in _hides)
                     {
@@ -314,22 +304,11 @@ namespace InfServer.Game
                                     VehInfo vehicle = _server._assets.getVehicleByID(-h.Hide.HideData.HideId);
                                     if (vehicle != null)
                                     {
-                                        turretList.Add(h.Hide);
-                                        h.switchLink = ss; //Our daddy
-                                        ss.turretLink = h; //Our child
+                                        if (!h.switchLink.ContainsKey(swi.GeneralData.Id))
+                                            h.switchLink[swi.GeneralData.Id] = ss; //Our daddy
                                     }
                                 }
                             }
-                    }
-
-                    if (turretList.Count > 0)
-                    {
-                        foreach (LioInfo.Hide hh in turretList)
-                        {
-                            foreach (HideState hide in _hides)
-                                if (hh.GeneralData.Id == hide.Hide.HideData.HideId)
-                                    hide.switchLink = ss;
-                        }
                     }
                 }
 
@@ -343,8 +322,9 @@ namespace InfServer.Game
                             if (d.Door.GeneralData.Id == swi.SwitchData.SwitchLioId[i])
                             {
                                 doorList.Add(d.Door);
-                                d.switchLink = ss; //Our daddy
-                                ss.doorLink = d; //Our child
+                                if (!d.switchLink.ContainsKey(swi.GeneralData.Id))
+                                    d.switchLink[swi.GeneralData.Id] = ss; //Our daddy
+
                                 //Are we supposed to be opened according to our door's initial state?
                                 if (d.Door.DoorData.InitialState == 1)
                                     ss.bOpen = true;
@@ -360,7 +340,8 @@ namespace InfServer.Game
                                 if (dd.GeneralData.Id == door.linkedId)
                                 {
                                     //Lets make sure to follow our bosses
-                                    door.switchLink = ss;
+                                    if (!door.switchLink.ContainsKey(swi.GeneralData.Id))
+                                        door.switchLink[swi.GeneralData.Id] = ss; //Our daddy
                                     door.initialState = (dd.DoorData.InitialState == 0 ? false : true);
                                     door.inverseState = (dd.DoorData.InverseState == 0 ? false : true);
                                     door.Opened = door.initialState;
@@ -455,11 +436,9 @@ namespace InfServer.Game
                     {
                         //Lets update the map tiles for each door in our list
                         foreach (DoorState d in _doors.Values)
-                        {
-                            if (d.switchLink == ss)
+                            if (d.switchLink.ContainsKey(ss.Switch.GeneralData.Id))
                                 //Update map tiles
                                 updateDoors(d.Door, false);
-                        }
                     }
                     else
                         _turretGroups.Switch(ss.Switch.SwitchData.SwitchLioId, null, false);
@@ -495,8 +474,8 @@ namespace InfServer.Game
                 return;
             }
 
-            bool isBlocked = opened; //Is the door closed/opened?
-            if ((dd.Opened && opened) || (!dd.Opened && !opened)) //Is the door closed/opened already
+            bool isBlocked = opened; //Is the door opened/closed?
+            if ((dd.Opened && opened) || (!dd.Opened && !opened)) //Is the door opened/closed already
                 return;
 
             if (dd.inverseState) //Is the state reversed?
@@ -510,7 +489,7 @@ namespace InfServer.Game
                     int posx = (door.GeneralData.OffsetX / 16) - _server._assets.Level.OffsetX + dd.relativePhysicsX + x;
                     int t = posy * _levelWidth + posx;
                     //Are we removing or adding tiles?
-                    if (isBlocked)
+                    if (!isBlocked) //False = closed
                         //Recreate the tiles
                         _tiles[t].PhysicsVision = _originaltiles[t].PhysicsVision;
                     else
@@ -519,9 +498,8 @@ namespace InfServer.Game
                 }
             }
 
-            //Lets update our door state and our daddy
-            dd.Opened = !isBlocked;
-            dd.switchLink.bOpen = opened;
+            //Lets update our door state
+            dd.Opened = isBlocked;
         }
 
 		/// <summary>
@@ -884,17 +862,11 @@ namespace InfServer.Game
 
 			//Is it an opposite state request?
             if ((bOpen && ss.bOpen) || (!bOpen && !ss.bOpen))
-            {
-                Log.write(TLog.Warning, "Opposite state, bOpen = {0} ss.Open = {1}", bOpen, ss.bOpen);
                 return false;
-            }
 
 			//Has there been enough time since the last operation?
             if (!bForce && Environment.TickCount - ss.lastOperation < (swi.SwitchData.SwitchDelay * 10))
-            {
-                Log.write(TLog.Warning, "Not enough time went by.");
                 return false;
-            }
 
 			//Gather relevant information
 			ItemInfo.Ammo ammo = _server._assets.getItemByID(swi.SwitchData.AmmoId) as ItemInfo.Ammo;
@@ -937,10 +909,7 @@ namespace InfServer.Game
 
 			//Are we qualified?
             if (!bValid)
-            {
-                Log.write(TLog.Warning, "Not qualified");
                 return false;
-            }
 
             //We've done it! Update everything
             ss.bOpen = bOpen;
@@ -950,36 +919,40 @@ namespace InfServer.Game
                 //Find the door(s) to update
                 foreach (DoorState d in _doors.Values)
                 {
-                    if (d.switchLink == ss)
+                    if (d.switchLink.ContainsKey(ss.Switch.GeneralData.Id))
+                    {
                         //Update map tiles
                         updateDoors(d.Door, bOpen);
-                }
 
-                //Lets update related switches
-                foreach (SwitchState sw in _switches.Values)
-                {
-                    if (sw.doorLink == ss.doorLink && sw != ss)
-                    {
-                        //Update switches linked
-                        sw.bOpen = bOpen;
-                        sw.lastOperation = ss.lastOperation;
-                        Helpers.Object_LIOs(Players, sw);
+                        //Lets update related switches
+                        foreach (SwitchState sw in d.switchLink.Values)
+                            if (sw != ss)
+                            {
+                                sw.bOpen = bOpen;
+                                sw.lastOperation = ss.lastOperation;
+                                Helpers.Object_LIOs(Players, sw);
+                            }
                     }
                 }
             }
             else
             {   //This is a turret switch
+                _turretGroups.Switch(swi.SwitchData.SwitchLioId, player, bOpen);
+
                 //Lets update related switches
-                foreach (SwitchState sw in _switches.Values)
+                foreach (HideState h in _hides)
                 {
-                    if (sw.turretLink == ss.turretLink && sw != ss)
+                    if (h.switchLink.ContainsKey(ss.Switch.GeneralData.Id))
                     {
-                        sw.bOpen = bOpen;
-                        sw.lastOperation = ss.lastOperation;
-                        Helpers.Object_LIOs(Players, sw);
+                        foreach (SwitchState sw in h.switchLink.Values)
+                            if (sw != ss)
+                            {
+                                sw.bOpen = bOpen;
+                                sw.lastOperation = ss.lastOperation;
+                                Helpers.Object_LIOs(Players, sw);
+                            }
                     }
                 }
-                _turretGroups.Switch(swi.SwitchData.SwitchLioId, player, bOpen);
             }
             //Update all players
             Helpers.Object_LIOs(Players, ss);
@@ -1059,8 +1032,6 @@ namespace InfServer.Game
                     fs.posX = player._state.positionX;
                     fs.posY = player._state.positionY;
                 }
-
-
 			}
 			else
 				fs.team = fs.oldTeam;
