@@ -162,22 +162,36 @@
   <ItemGroup>
     <Compile Include="Bots\DuelBot\DuelBot.cs" />
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
+    <Compile Include="GameTypes\Basic\Basic.cs" />
     <Compile Include="GameTypes\BugHunt\BugHunt.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\BasicDefense.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\Captain.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\Engineer.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\RoamingAttacker.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\RoamingCaptain.cs" />
     <Compile Include="GameTypes\CTF\OGCTF.cs" />
     <Compile Include="GameTypes\CTFHQ\CTFHQ.cs" />
     <Compile Include="GameTypes\CTFHQ\Objects\Headquarters.cs" />
+    <Compile Include="GameTypes\FantasyZone\Bots\BasicDefense.cs" />
+    <Compile Include="GameTypes\FantasyZone\Fantasy.cs" />
+    <Compile Include="GameTypes\GravBall\Gravball.cs" />
     <Compile Include="GameTypes\HQ\Headquarters.cs" />
     <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />
     <Compile Include="GameTypes\Frontlines\TDM.cs" />
     <Compile Include="GameTypes\HQ\Events.cs" />
     <Compile Include="GameTypes\HQ\Objects\HQ.cs" />
     <Compile Include="GameTypes\KOTH\KOTH.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\Projectile.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\RangeMinion.cs" />
+    <Compile Include="GameTypes\MOBA\Objects\Level.cs" />
+    <Compile Include="GameTypes\MOBA\Turrets\Tower.cs" />
     <Compile Include="GameTypes\SKCTF\Objects\Points.cs" />
     <Compile Include="GameTypes\SKCTF\SKCTF.cs" />
     <Compile Include="GameTypes\SoccerBrawl\SoccerBrawl.cs" />
     <Compile Include="GameTypes\TDM\TDM.cs" />
     <Compile Include="GameTypes\CTF\CTF_OvD\OvD.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\ChopperEnding.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\CombatBot.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\DualZombieBot.cs" />
     <Compile Include="GameTypes\ZombieZone\Turrets\EnergizerBotTurret.cs" />
@@ -192,8 +206,14 @@
     <Compile Include="GameTypes\ZombieZone\ZombieZone.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieZone.Stats.cs" />
     <Compile Include="Helpers\Functions.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\JungleBot.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\MeleeMinion.cs" />
+    <Compile Include="GameTypes\MOBA\MOBA.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="GameTypes\Basic\Objects\" />
   </ItemGroup>
 </Project>

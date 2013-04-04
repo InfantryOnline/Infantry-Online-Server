@@ -102,6 +102,7 @@
     <Compile Include="Packets\Social\Whisper\SC_Whisper.cs" />
     <Compile Include="Packets\Stats\CS_SquadStats.cs" />
     <Compile Include="Packets\Stats\CS_PlayerStatsRequest.cs" />
+    <Compile Include="Packets\Stats\CS_StatsUpdate.cs" />
     <Compile Include="Packets\Stats\SC_PlayerStatsResponse.cs" />
     <Compile Include="Packets\Zone\Disconnect.cs" />
     <Compile Include="Packets\Zone\SC_Zones.cs" />

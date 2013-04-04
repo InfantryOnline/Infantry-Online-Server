@@ -162,7 +162,7 @@ namespace InfServer.Bots
 			int now = Environment.TickCount;
 			_tickShotTime = now;
 
-			//Adjust ammo accordingly
+			//Adjust ammo accordingly            
 			if (_ammoCapacity != 0 && --_ammoRemaining <= 0)
 			{
 				_tickReloadTime = now + _reloadTime;
