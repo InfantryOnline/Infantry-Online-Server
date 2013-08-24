@@ -13,11 +13,14 @@ namespace InfServer.Logic
             DBServer server = zone._server;
             Zone.Player player = server.getPlayer(pkt.from);
             char[] splitArr = { ',' };
-            string[] chats = pkt.chat.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            string[] chats = pkt.chat.Trim().Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             //Hey, how'd you get here?!
             if (player == null)
+            {
+                Log.write(TLog.Error, "Handle_CS_JoinChat() called with null player.");
                 return;
+            }
 
             //He wants to see the player list of each chat..
             if (pkt.chat.Length == 0)
@@ -50,6 +53,7 @@ namespace InfServer.Logic
                 //New chat
                 if (!server._chats.ContainsValue(_chat))
                 {
+                    Log.write(TLog.Inane, "Chat created: {0}", chat);
                     _chat = new Chat(server, chat);
                 }
 
@@ -66,7 +70,7 @@ namespace InfServer.Logic
             {
                 if (!chats.Contains(c._name))
                 {
-                    if (c.hasPlayer(pkt.from) == true)
+                    if (c.hasPlayer(pkt.from))
                         c.lostPlayer(pkt.from);
                 }
             }
@@ -79,7 +83,10 @@ namespace InfServer.Logic
 
             //WTF MATE?
             if (chat == null)
+            {
+                Log.write(TLog.Error, "Handle_CS_Chat() called with null chat.");
                 return;
+            }
 
             SC_PrivateChat<Zone> reply = new SC_PrivateChat<Zone>();
             reply.chat = pkt.chat;
@@ -151,6 +158,4 @@ namespace InfServer.Logic
             CS_ChatCommand<Zone>.Handlers += Handle_CS_ChatCommand;
         }
     }
-
-
 }

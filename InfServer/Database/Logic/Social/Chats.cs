@@ -13,17 +13,15 @@ namespace InfServer.Logic
 	///////////////////////////////////////////////////////
     class Logic_Chats
     {
-
         //Handles private chat entries.
-        static public void Handle_SC_JoinChat(SC_JoinChat<Database> pkt, Database db)
+        static public void Handle_SC_JoinChat(SC_JoinChat<Database> pkt, Database _db)
         {   //Todo: refactor this entire func
-            Player player = db._server.getPlayer(pkt.from);
+            Player player = _db._server.getPlayer(pkt.from);
 
             if (player == null)
                 return;
 
-            //char[] splitArr = { ',' };
-            char[] splitArr = { ' ' };
+            string[] splitArr = { ", " };
             string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             SC_Chat notify = new SC_Chat();
@@ -33,7 +31,7 @@ namespace InfServer.Logic
 
             foreach (string user in users)
             {
-                Player p = db._server.getPlayer(user);
+                Player p = _db._server.getPlayer(user);
                 if (p == null)
                     continue;
 
@@ -44,10 +42,9 @@ namespace InfServer.Logic
             }
         }
 
-        static public void Handle_SC_LeaveChat(SC_LeaveChat<Database> pkt, Database db)
+        static public void Handle_SC_LeaveChat(SC_LeaveChat<Database> pkt, Database _db)
         {
-            //char[] splitArr = { ',' };
-            char[] splitArr = { ' ' };
+            string[] splitArr = { ", " };
             string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 
             SC_Chat notify = new SC_Chat();
@@ -57,7 +54,7 @@ namespace InfServer.Logic
 
             foreach (string user in users)
             {
-                Player p = db._server.getPlayer(user);
+                Player p = _db._server.getPlayer(user);
                 if (p == null)
                     continue;
 
@@ -68,22 +65,23 @@ namespace InfServer.Logic
             }
         }
 
-        static public void Handle_SC_Chat(SC_PrivateChat<Database> pkt, Database db)
+        static public void Handle_SC_Chat(SC_PrivateChat<Database> pkt, Database _db)
         {
             SC_Chat msg = new SC_Chat();
             msg.chatType = Helpers.Chat_Type.PrivateChat;
             msg.message = pkt.chat + ":" + pkt.message;
             msg.from = pkt.from;
 
-
-            //char[] splitArr = { ',' };
-            char[] splitArr = { ' ' };
+            string[] splitArr = { ", " };
             string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
             foreach (string user in users)
             {
-                Player p = db._server.getPlayer(user);
+                Player p = _db._server.getPlayer(user);
                 if (p == null)
+                {
+                    //Log.write(TLog.Inane, "Attempted to send chat to non-existent player '{0}'", user);
                     continue;
+                }
 
                 if (p._alias == pkt.from)
                     continue;
@@ -104,5 +102,4 @@ namespace InfServer.Logic
             SC_PrivateChat<Database>.Handlers += Handle_SC_Chat;
         }
     }
-
 }

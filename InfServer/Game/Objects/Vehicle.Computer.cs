@@ -28,7 +28,10 @@ namespace InfServer.Game
 		protected int _tickLastUpdate;					//The last time at which we sent an update packet
 		protected int _tickShotTime;					//The last time at which we fired a shot
 		protected int _tickReloadTime;					//The last time at which we started reloading
-		protected int _ammoRemaining;						//The amount of ammo we have remaining in our clip
+        protected int _tickAntiRecharge;                //The last time at which we were stoped from recharging
+        protected int _tickAntiFire;                    //The last time at which we were stoped from firing
+        protected int _tickAntiRotate;                  //The last time at which we were stoped from rotating
+        protected int _ammoRemaining;					//The amount of ammo we have remaining in our clip
 
 		//Turret settings
 		public ItemInfo _primaryGun;					//The weapon we're using to shoot
@@ -106,11 +109,17 @@ namespace InfServer.Game
             _activeEquip = new List<ItemInfo.UtilityItem>();
             foreach (int item in _type.InventoryItems)
             {
-                ItemInfo.UtilityItem util = AssetManager.Manager.getItemByID(item) as ItemInfo.UtilityItem;
-                if (util == null)
-                    continue;
-                else
-                    _activeEquip.Add(util);
+                if (item != 0)
+                {
+                    ItemInfo.UtilityItem util = AssetManager.Manager.getItemByID(item) as ItemInfo.UtilityItem;
+                    if (util == null)
+                    {
+                        //Log.write(TLog.Inane, "configureComp(): computer inventory item ({0}) not found", item);
+                        continue;
+                    }
+                    else
+                        _activeEquip.Add(util);
+                }
             }
         }
 
@@ -356,9 +365,21 @@ namespace InfServer.Game
 		/// Handles damage from explosions triggered nearby
 		/// </summary>		
 		public override void applyExplosion(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
-		{	//Apply our damage
+        {   //Apply our damage
 			applyExplosionDamage(false, attacker, dmgX, dmgY, wep);
-			
+
+            if ( wep.antiEffectsRecharge != 0)
+            {
+            }
+
+            if ( wep.antiEffectsFire != 0 )
+            {
+            }
+
+            if ( wep.antiEffectsRotate != 0 )
+            {
+            }
+
 			//Did we die?
 			if (_state.health <= 0)
 			{	//Are we destroyable?
@@ -367,7 +388,7 @@ namespace InfServer.Game
                     _state.health = 0;
                 else
                     //Computer vehicles don't linger, so destroy it
-                    destroy(true);
+                   kill(null);
 			}
 
 			_sendUpdate = true;

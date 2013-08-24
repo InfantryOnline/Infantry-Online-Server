@@ -57,7 +57,7 @@ namespace InfServer.Game
         public List<ItemDrop> _condemnedItems;
 
         public PollSettings _poll;						//For our poll command
-
+        
 		public int _levelWidth;
 		public int _levelHeight;
 		public LvlInfo.Tile[] _tiles;					//The terrain tiles in the arena, can be updated to reflect switches, etc
@@ -717,7 +717,55 @@ namespace InfServer.Game
 				pollBots();
 			}
 		}
+        /// <summary>
+        /// Returns a specific item in the specified area
+        /// </summary>
+        public List<ItemDrop> getItemsInRange(short x, short y, int range)
+        {//2
+            List<ItemDrop> returnDrops = new List<ItemDrop>();
 
+            int bestX = -1;
+            int bestY = -1;
+
+            foreach (ItemDrop drop in _items.Values)
+            {
+                //In the given area?
+                if ((x + range) > drop.positionX)
+                {
+                    if ((x - range) < drop.positionX)
+                    {
+                        if ((y + range) > drop.positionY)
+                        {
+                            if ((y - range) < drop.positionY)
+                            {
+                                returnDrops.Add(drop);
+
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            return returnDrops;
+        }
+
+        
 		/// <summary>
 		/// Cleans up the arena and removes it from the zone server list
 		/// </summary>
@@ -1026,12 +1074,12 @@ namespace InfServer.Game
 			return objArea;
 		}
 		#endregion
-
+       
         /// <summary>
         /// Returns a specific item in the specified area
         /// </summary>
         public ItemDrop getItemInRange(ItemInfo item, short x, short y, int range)
-        {
+        {//1
             ItemDrop returnDrop = null;
 
             int bestX = -1;

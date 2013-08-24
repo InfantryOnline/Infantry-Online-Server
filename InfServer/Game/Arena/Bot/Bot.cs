@@ -186,11 +186,19 @@ namespace InfServer.Bots
 		{	//Are we using any equipment?
 			foreach (int item in _type.InventoryItems)
 			{
-				ItemInfo.UtilityItem util = AssetManager.Manager.getItemByID(item) as ItemInfo.UtilityItem;
-				if (util == null)
-					continue;
-
-				_activeEquip.Add(util);
+                if (item != 0)
+                {
+                    ItemInfo.UtilityItem util = AssetManager.Manager.getItemByID(item) as ItemInfo.UtilityItem;
+                    if (util == null)
+                    {
+                        //Log.write(TLog.Inane, "configureBot(): bot inventory item ({0}) not found", item);
+                        continue;
+                    }
+                    else
+                    {
+                        _activeEquip.Add(util);
+                    }
+                }
 			}
 		}
 
@@ -243,7 +251,14 @@ namespace InfServer.Bots
 
 			//Are we dead?
 			if (IsDead)
-			{	//Should we remove ourself from the world?
+			{
+                //Drop our items
+                VehInfo vehicle = _arena._server._assets.getVehicleByID(_type.Id);
+                ItemInfo item = _arena._server._assets.getItemByID(vehicle.DropItemId);
+                if (item != null)
+                    _arena.itemSpawn(item, (ushort)vehicle.DropItemQuantity, _state.positionX, _state.positionY, null);
+                
+                //Should we remove ourself from the world?
 				if (_type.RemoveDeadTimer != 0 && _tickDead != 0 &&
 					tickCount - _tickDead > (_type.RemoveDeadTimer * 1000))
 					destroy(true);

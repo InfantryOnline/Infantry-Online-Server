@@ -276,11 +276,17 @@ namespace InfServer.Game
 		/// Gets the ItemInfo of a particular ID
 		/// </summary>		
 		public ItemInfo getItemByID(int id)
-		{
+		{   //id 0 is default value of unused vehicle inventory item slots
+            if (id == 0)
+                return null;
+
 			ItemInfo item;
 
-			if (!_idToItem.TryGetValue(id, out item))
-				return null;
+            if (!_idToItem.TryGetValue(id, out item))
+            {
+                Log.write(TLog.Warning, "Unable to get item by ID: {0}", id);
+                return null;
+            }
 
 			return item;
 		}
@@ -292,8 +298,11 @@ namespace InfServer.Game
 		{
 			ItemInfo item;
 
-			if (!_nameToItem.TryGetValue(name.ToLower(), out item))
-				return null;
+            if (!_nameToItem.TryGetValue(name.ToLower(), out item))
+            {
+                Log.write(TLog.Warning, "Unable to get item by name: {0}", name);
+                return null;
+            }
 
 			return item;
 		}
@@ -305,8 +314,11 @@ namespace InfServer.Game
 		{
 			SkillInfo skill;
 
-			if (!_idToSkill.TryGetValue(id, out skill))
-				return null;
+            if (!_idToSkill.TryGetValue(id, out skill))
+            {
+                Log.write(TLog.Warning, "Unable to get skill by ID: {0}", id);
+                return null;
+            }
 
 			return skill;
 
@@ -318,8 +330,11 @@ namespace InfServer.Game
 		{
 			SkillInfo skill;
 
-			if (!_nameToSkill.TryGetValue(name.ToLower(), out skill))
-				return null;
+            if (!_nameToSkill.TryGetValue(name.ToLower(), out skill))
+            {
+                Log.write(TLog.Warning, "Unable to get skill by name: {0}", name);
+                return null;
+            }
 
 			return skill;
 		}
@@ -331,8 +346,12 @@ namespace InfServer.Game
 		{
 			VehInfo veh;
 
-			if (!_idToVehicle.TryGetValue(id, out veh))
-				return null;
+            if (!_idToVehicle.TryGetValue(id, out veh))
+            {
+                Log.write(TLog.Warning, "Unable to get vehicle by ID: {0}", id);
+                return null;
+            }
+
 			return veh;
 		}
 
@@ -343,8 +362,12 @@ namespace InfServer.Game
 		{
 			LioInfo lio;
 
-			if (!_idToLio.TryGetValue(id, out lio))
-				return null;
+            if (!_idToLio.TryGetValue(id, out lio))
+            {
+                Log.write(TLog.Warning, "Unable to get LIO by ID: {0}", id);
+                return null;
+            }
+
 			return lio;
 		}
 

@@ -86,12 +86,6 @@ namespace InfServer.DirectoryServer.Directory
             timer.AutoReset = true;
             timer.Elapsed += (sender, e) => Zones.ForEach(z => z.PollServerForPlayers());
             timer.Start();
-
-            while (true)
-            {
-                // No need to do anything at the moment
-                // NOTE: Implement autoreloading zone listing? Hmm..
-            }
         }
 
         private HttpJsonResponder httpJsonResponder;

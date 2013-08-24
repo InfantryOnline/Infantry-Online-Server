@@ -93,7 +93,7 @@ namespace InfServer.Script.GameType_MOBA
             { return owner; }
             public int getLane()
             { return lane; }
-
+            
         }
         public Dictionary<int, wayPoint> _topWaypoints = new Dictionary<int, wayPoint>();
         public Dictionary<int, wayPoint> _bottomWaypoints = new Dictionary<int, wayPoint>();
@@ -106,7 +106,7 @@ namespace InfServer.Script.GameType_MOBA
             Team owner;   //The team that owns this object
             bool exists;//Tells us if the tower exists on the map
             int lane;   //Tells us what lane this tower is in
-
+            
             public towerObject(short xPos, short yPos, Team team, int lan)
             {
                 exists = false;
@@ -221,7 +221,7 @@ namespace InfServer.Script.GameType_MOBA
             _hqSpawny1 = 2192;
             _hqSpawnX2 = 6064;
             _hqSpawny2 = 2192;
-
+          //  _arena._server.
             _lastMinionSpacer = 0;
             _minionSpacerTick = 625;
             stage1 = 0;
@@ -236,7 +236,7 @@ namespace InfServer.Script.GameType_MOBA
             _team2 = "Collective";
 
             _victoryTeam = null;
-
+            
             //Take care of waypoints -- you can switch locations here -- make sure team passed if oppisite of team using waypoint
             _topWaypoints.Add(0, new wayPoint(1032, 1280, _arena.PublicTeams.ElementAt(2), 0)); //Top Lane
             _topWaypoints.Add(1, new wayPoint(1204, 1132, _arena.PublicTeams.ElementAt(2), 0));

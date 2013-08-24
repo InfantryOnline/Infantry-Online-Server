@@ -507,8 +507,8 @@ namespace InfServer.Protocol
 				if (ri.timeSent != 0)
 				{
 					ri.attempts++;
-
-					Log.write(TLog.Warning, "Reliable packet #" + ri.rid + " lost. (" + ri.attempts + ")");
+                    
+					//Log.write(TLog.Warning, "Reliable packet #" + ri.rid + " lost. (" + ri.attempts + ")");
 				}
 
 				ri.timeSent = Environment.TickCount;

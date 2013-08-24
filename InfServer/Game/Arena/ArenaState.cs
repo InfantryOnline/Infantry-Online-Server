@@ -28,8 +28,8 @@ namespace InfServer.Game
 		private List<Vehicle> _condemnedVehicles;				//Vehicles to be deleted
 		private ushort _lastVehicleKey;							//The last vehicle key which was allocated
 
-		protected SortedDictionary<ushort, ItemDrop> _items;	//The items belonging to the arena, indexed by id
-		private ushort _lastItemKey;							//The last item key which was allocated
+		public SortedDictionary<ushort, ItemDrop> _items;	//The items belonging to the arena, indexed by id
+		public ushort _lastItemKey;							//The last item key which was allocated
 
 
 		///////////////////////////////////////////////////
@@ -145,9 +145,11 @@ namespace InfServer.Game
 		public void newPlayer(Player player)
 		{	///////////////////////////////////////////////
 			// Prepare the player state
-			///////////////////////////////////////////////
+			///////////////////////////////////////////////           
+
 			//We're entering the arena..
-			player._arena = this;
+			player._arena = this;            
+
 	        player.migrateStats();
 			player.resetVars();
 
@@ -288,8 +290,11 @@ namespace InfServer.Game
                         callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-               //     player.sendMessage(-3, "[Notice] If you registered your account without an email or used an invalid email, it's suggested you update it now. You can do so by using ?email newemail");
+                    player.sendMessage(-3, "[Notice] Welcome to Infantry, IRC support at ircd.suroot.info #infantry, which can quicky be accessed at freeinfantry.org. Enjoy your stay.");
 
+                    //Mod notice
+                    if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+                        player.sendMessage(-3, "[Mod Notice] Don't use *spawnbot unless you know what you are spawning --- it will crash a zone and prevent players from connecting ty");
                     //x2
                     if (_server._config["zone/DoubleReward"].boolValue)
                         player.sendMessage(-3, "&[Notice] Double rewards game-wide are enabled!");
@@ -636,17 +641,25 @@ namespace InfServer.Game
 		/// Creates an item drop at the specified location
 		/// </summary>
 		public ItemDrop itemSpawn(ItemInfo item, ushort quantity, short positionX, short positionY, int relativeID, int freq, Player p)
-		{	//Too many items?
-			if (_items.Count == maxItems)
-			{
-				Log.write(TLog.Warning, "Item count full.");
-				return null;
-			}
-			else if (item == null)
+		{
+			if (item == null)
 			{
 				Log.write(TLog.Error, "Attempted to spawn invalid item.");
 				return null;
 			}
+
+            if (quantity == 0)
+            {
+                Log.write(TLog.Warning, "Attempted to spawn 0 of an item.");
+                return null;
+            }
+
+            //Too many items?
+            if (_items.Count == maxItems)
+            {
+                Log.write(TLog.Warning, "Item count full.");
+                return null;
+            }
 
             if (item.itemType == ItemInfo.ItemType.Multi)
             {   //Do we need to expand?
@@ -675,8 +688,14 @@ namespace InfServer.Game
                                     return null;
                                 continue;
                             }
-
-                            spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)it.number, pX, pY, 0, freq, p);
+                            //Consider odds of dropping
+                            ItemInfo current = _server._assets.getItemByID(it.value);
+                            if (current.pruneOdds != 1000)
+                                if (_rand.Next(0, 1000) >= current.pruneOdds)
+                                   break;
+                            //testing this
+                         //   spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)it.number, pX, pY, 0, freq, p);
+                            spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)1, pX, pY, 0, freq, p);
                             break;
                         }
                     }

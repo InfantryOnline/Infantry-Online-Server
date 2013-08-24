@@ -173,7 +173,16 @@
     <Compile Include="GameTypes\CTFHQ\CTFHQ.cs" />
     <Compile Include="GameTypes\CTFHQ\Objects\Headquarters.cs" />
     <Compile Include="GameTypes\FantasyZone\Bots\BasicDefense.cs" />
+    <Compile Include="GameTypes\FantasyZone\Bots\BotHandler.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Books\BookInfo.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Books\Library.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Database.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Recipes\RecipeInfo.cs" />
     <Compile Include="GameTypes\FantasyZone\Fantasy.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Book.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Chest.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Recipe.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Vendor.cs" />
     <Compile Include="GameTypes\GravBall\Gravball.cs" />
     <Compile Include="GameTypes\HQ\Headquarters.cs" />
     <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />

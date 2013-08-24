@@ -40,6 +40,10 @@ namespace InfServer.Logic
                 decimal percent = (i / 1000);
                 int quantity = (int)(itm.Value.quantity * percent);
 
+                //Don't drop 0
+                if (quantity == 0)
+                    continue;
+
                 //You've got to ask yourself one question: 'Do I feel lucky?' Well, do ya punk?
                 if (chance >= item.pruneOdds)
                 {   //BOOM, drop some items.

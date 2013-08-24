@@ -17,7 +17,7 @@ namespace InfServer
 
 		public Data.DB.zone _zone;							//Our zone database entry
 
-		public Dictionary<int, Player> _players;			//The players present in our server
+		public Dictionary<int, Player> _players;			//The players present in our zone
 
 
 		///////////////////////////////////////////////////
@@ -167,6 +167,7 @@ namespace InfServer
             if (!_players.Keys.Contains(id))
                 return;
             _server.lostPlayer(_players[id]);
+            //Remove him from the zone player list
             _players.Remove(id);
 		}
 		#endregion

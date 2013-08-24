@@ -185,8 +185,10 @@ namespace InfServer.Script.GameType_SKCTF
             _arena.gameEnd();
 
             //Set off some fireworks using the .lio file to specify locations based on name (starts with 'firework' in name)
+            /*
             foreach (LioInfo.Hide firework in _arena._server._assets.Lios.Hides.Where(h => h.GeneralData.Name.ToLower().Contains("firework")))
-                Helpers.Player_RouteExplosion(_arena.Players, (short)firework.HideData.HideId, firework.GeneralData.OffsetX, firework.GeneralData.OffsetY, 0, 0);
+                Helpers.Player_RouteExplosion(_arena.Players, (short)firework.HideData.HideId, firework.GeneralData.OffsetX, firework.GeneralData.OffsetY, 0, 0, -1);
+            */
 		}
 
         /// <summary>

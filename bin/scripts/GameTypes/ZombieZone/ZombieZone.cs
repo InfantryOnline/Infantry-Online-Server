@@ -2264,7 +2264,7 @@ namespace InfServer.Script.GameType_ZombieZone
             {
                 int skillID;
                 bool parsed = Int32.TryParse(payload, out skillID);
- 
+                
                 if (!parsed)
                 {
                     //if (player.isZombie())

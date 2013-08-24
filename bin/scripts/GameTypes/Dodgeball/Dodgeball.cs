@@ -24,8 +24,6 @@ namespace InfServer.Script.GameType_Dodgeball
 		private Arena _arena;					//Pointer to our arena class
 		private CfgInfo _config;				//The zone config
 
-		private Team _victoryTeam;				//The team currently winning!
-        //private Dictionary<Team, int> _teams;   //Our teams, and how many players left.
         private Random _rand;		
         Team team1;
         Team team2;
@@ -35,10 +33,8 @@ namespace InfServer.Script.GameType_Dodgeball
         Dictionary<Player, bool> inPlayers;
 		private int _lastGameCheck;				//The tick at which we last checked for game viability
 		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
-		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
 		//Settings
 		private int _minPlayers;				//The minimum amount of players
-        //private bool bVictory = false;
 
 
 
@@ -75,35 +71,40 @@ namespace InfServer.Script.GameType_Dodgeball
             //Do we have enough players ingame?
             int playing = _arena.PlayerCount;
 
-            if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
-            {	//Stop the game!
+            //If game is running or starting and we don't have enough players
+            if ((_arena._bGameRunning || _tickGameStarting != 0) && playing < _minPlayers)
+            {   //Stop the game!
+                _arena.gameEnd();
+            }
+
+            //If game is not running or starting, show the not enough players
+            if ((!_arena._bGameRunning || _tickGameStarting == 0) && playing < _minPlayers)
+            {
                 _arena.setTicker(1, 1, 0, "Not Enough Players");
                 _arena.gameReset();
             }
 
-            if (_tickGameStart != 0)
+            if (_arena._bGameRunning)
             {                
                 if (team1Count == 0 || team2Count == 0)
                 {   //Victory
-                    gameEnd();
+                    _arena.gameEnd();
                 }
             }
 
            //Do we have enough players to start a game?
-            else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
+            if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
                 _arena.setTicker(1, 1, 8 * 100, "Next game: ",
                     delegate()
                     {	//Trigger the game start
-
                         _arena.gameStart();
                     }
                 );
             }
             return true;
         }
-
 
 
 		#region Events
@@ -114,7 +115,7 @@ namespace InfServer.Script.GameType_Dodgeball
         [Scripts.Event("Player.Explosion")]
         public bool playerExplosion(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
         {	//Is a hit?
-            if (weapon.id == 1011)
+            if (inPlayers.ContainsKey(player) && weapon.id == 1011)
             {   //Are they trying to catch?
                 IEnumerable<Player> players = player._arena.getPlayersInRange(posX, posY, 15);
                 if (players.Count() > 0)
@@ -125,6 +126,9 @@ namespace InfServer.Script.GameType_Dodgeball
                         foreach (Player p in teamPlayers)
                         {
                             if (p.IsDead)
+                                continue;
+
+                            if (p == player)
                                 continue;
 
                             if (inPlayers.ContainsKey(p))
@@ -145,8 +149,6 @@ namespace InfServer.Script.GameType_Dodgeball
                         }
                     }
                 }
-
-
             }
             return true;
         }
@@ -183,7 +185,6 @@ namespace InfServer.Script.GameType_Dodgeball
         [Scripts.Event("Game.Start")]
         public bool gameStart()
         {	//We've started!
-            _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
 
             inPlayers = new Dictionary<Player, bool>();
@@ -209,13 +210,8 @@ namespace InfServer.Script.GameType_Dodgeball
 		[Scripts.Event("Game.End")]
 		public bool gameEnd()
 		{	//Game finished, perhaps start a new one
-
-
-			_tickGameStart = 0;
 			_tickGameStarting = 0;
-			_victoryTeam = null;
-
-
+			Team _victoryTeam = null;
 
             int pcount = 0;
 
@@ -242,7 +238,6 @@ namespace InfServer.Script.GameType_Dodgeball
 
             foreach (Player p in rankedPlayers)
             {
-
                 if (idx-- == 0)
                     break;
 
@@ -276,38 +271,6 @@ namespace InfServer.Script.GameType_Dodgeball
                 p.syncState();
             }
 
-            //Shuffle the players up randomly into a new list
-            var random = _rand;
-            Player[] shuffledPlayers = _arena.PlayersIngame.ToArray(); //Arrays ftw
-            for (int i = shuffledPlayers.Length - 1; i >= 0; i--)
-            {
-                int swap = random.Next(i + 1);
-                Player tmp = shuffledPlayers[i];
-                shuffledPlayers[i] = shuffledPlayers[swap];
-                shuffledPlayers[swap] = tmp;
-            }
-
-            //Assign the new list of players to teams
-            int j = 1;
-            foreach (Player p in shuffledPlayers)
-            {
-                if (j <= Math.Ceiling((double)shuffledPlayers.Length / 2)) //Team 1 always get the extra player :)
-                {
-                    if (p._team != team1) //Only change his team if he's not already on the team d00d
-                        team1.addPlayer(p);
-                }
-                else
-                {
-                    if(p._team != team2)
-                        team2.addPlayer(p);
-                }
-                j++;
-
-            }
-
-            //Notify players of the scramble
-            _arena.sendArenaMessage("Teams have been scrambled!");
-
 			return false;
 		}
 
@@ -327,12 +290,7 @@ namespace InfServer.Script.GameType_Dodgeball
 		/// </summary>
 		[Scripts.Event("Game.Reset")]
 		public bool gameReset()
-		{	//Game reset, perhaps start a new one
-			_tickGameStart = 0;
-			_tickGameStarting = 0;
-
-			_victoryTeam = null;
-
+		{
 			return true;
 		}
 
@@ -381,7 +339,6 @@ namespace InfServer.Script.GameType_Dodgeball
 
             if (queue.Count > 0)
             {
-
                 if (team1.ActivePlayerCount < 8)
                     queue.ElementAt(0).Key.unspec(team1._name);
                 else if (team2.ActivePlayerCount < 8)
@@ -434,14 +391,17 @@ namespace InfServer.Script.GameType_Dodgeball
 		[Scripts.Event("Player.PlayerKill")]
 		public bool playerPlayerKill(Player victim, Player killer)
 		{
-            if (victim._team == team1)
-                team1Count--;
-            else
-                team2Count--;
+            if (inPlayers.ContainsKey(victim))
+            {
+                if (victim._team == team1)
+                    team1Count--;
+                else
+                    team2Count--;
 
 
-            killer.setVar("Hits", killer.getVarInt("Hits") + 1);
-            inPlayers.Remove(victim);
+                killer.setVar("Hits", killer.getVarInt("Hits") + 1);
+                inPlayers.Remove(victim);
+            }
 			return true;
 		}
 		#endregion

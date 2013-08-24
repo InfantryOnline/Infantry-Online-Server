@@ -243,7 +243,6 @@ namespace InfServer.Game
                 dd.linkedId = d.DoorData.LinkedDoorId;
 
                 dd.switchLink = new Dictionary<int, SwitchState>();
-                dd.switchLink = null;
                 dd.Door = d;
 
                 _doors[d.GeneralData.Id] = dd;
@@ -305,7 +304,7 @@ namespace InfServer.Game
                                     if (vehicle != null)
                                     {
                                         if (!h.switchLink.ContainsKey(swi.GeneralData.Id))
-                                            h.switchLink[swi.GeneralData.Id] = ss; //Our daddy
+                                            h.switchLink.Add(swi.GeneralData.Id, ss); //Our daddy
                                     }
                                 }
                             }
@@ -323,7 +322,7 @@ namespace InfServer.Game
                             {
                                 doorList.Add(d.Door);
                                 if (!d.switchLink.ContainsKey(swi.GeneralData.Id))
-                                    d.switchLink[swi.GeneralData.Id] = ss; //Our daddy
+                                    d.switchLink.Add(swi.GeneralData.Id, ss); //Our daddy
 
                                 //Are we supposed to be opened according to our door's initial state?
                                 if (d.Door.DoorData.InitialState == 1)
@@ -341,7 +340,7 @@ namespace InfServer.Game
                                 {
                                     //Lets make sure to follow our bosses
                                     if (!door.switchLink.ContainsKey(swi.GeneralData.Id))
-                                        door.switchLink[swi.GeneralData.Id] = ss; //Our daddy
+                                        door.switchLink.Add(swi.GeneralData.Id, ss); //Our daddy
                                     door.initialState = (dd.DoorData.InitialState == 0 ? false : true);
                                     door.inverseState = (dd.DoorData.InverseState == 0 ? false : true);
                                     door.Opened = door.initialState;

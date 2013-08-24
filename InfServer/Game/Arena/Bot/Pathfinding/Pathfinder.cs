@@ -194,7 +194,7 @@ namespace InfServer.Bots
 			}
 			catch (Exception e)
 			{
-				Log.write(TLog.Exception, "Error while pathfinding: " + e.ToString());
+				Log.write(TLog.Exception, isBlocked(pathHandleClr2, start) + " " + "Error while pathfinding: " + e.ToString());
 			}
 
 			if (searchContext == 0)

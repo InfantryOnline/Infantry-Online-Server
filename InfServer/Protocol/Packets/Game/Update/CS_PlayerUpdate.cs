@@ -113,7 +113,7 @@ namespace InfServer.Protocol
 					direction = _contentReader.ReadUInt16();
 					unk1 = _contentReader.ReadByte();
 
-					structRead = 18;
+                    structRead = 18;
 					break;
 
 				case VehInfo.Types.Dependent:

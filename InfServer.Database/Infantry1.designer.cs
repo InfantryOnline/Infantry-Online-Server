@@ -2952,6 +2952,8 @@ namespace InfServer.Data.DB
 		
 		private string _reason;
 		
+		private string _name;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -2978,6 +2980,8 @@ namespace InfServer.Data.DB
     partial void OnzoneChanged();
     partial void OnreasonChanging(string value);
     partial void OnreasonChanged();
+    partial void OnnameChanging(string value);
+    partial void OnnameChanged();
     #endregion
 		
 		public ban()
@@ -3201,6 +3205,26 @@ namespace InfServer.Data.DB
 					this._reason = value;
 					this.SendPropertyChanged("reason");
 					this.OnreasonChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_name", DbType="VarChar(MAX) NULL")]
+		public string name
+		{
+			get
+			{
+				return this._name;
+			}
+			set
+			{
+				if ((this._name != value))
+				{
+					this.OnnameChanging(value);
+					this.SendPropertyChanging();
+					this._name = value;
+					this.SendPropertyChanged("name");
+					this.OnnameChanged();
 				}
 			}
 		}

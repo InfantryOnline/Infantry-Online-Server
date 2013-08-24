@@ -26,6 +26,12 @@ namespace DirectoryServer.Directory.Protocol
                 case CS_AckZoneList.TypeID:
                     packet = new CS_AckZoneList(typeID, buffer, index, count);
                     break;
+
+                default:
+                    //Undefined packet type
+                    //TODO: Type 7
+                    packet = new PacketDummy(typeID, buffer, index, count);
+                    break;
             }
 
             return packet;

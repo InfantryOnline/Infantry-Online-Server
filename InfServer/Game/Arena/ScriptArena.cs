@@ -264,7 +264,7 @@ namespace InfServer.Game
 		/// </summary>
 		public override void individualBreakdown(Player from, bool bCurrent)
 		{	//Give the script a chance to take over
-			if (exists("Player.Breakdown") && ((bool)callsync("Player.Breakdown", false, from, bCurrent)) == false)
+			if (exists("Player.Breakdown") && (bool)callsync("Player.Breakdown", false, from, bCurrent))
 				return;
 
 			//Display Team Stats?
@@ -343,8 +343,8 @@ namespace InfServer.Game
                         if (!rankedPlayers.Contains(from))
                             ranked = false;
                     }
-
 				}
+
                 if (ranked)
                 {
                     if (from != null)
@@ -354,11 +354,6 @@ namespace InfServer.Game
                             (bCurrent ? from.StatsCurrentGame.kills : from.StatsLastGame.kills),
                             (bCurrent ? from.StatsCurrentGame.deaths : from.StatsLastGame.deaths)));
                     }
-
-                }
-                else
-                {
-                    Log.write(TLog.Warning, "They were not in the list ---- debug 1");
                 }
 			}
 		}
@@ -369,17 +364,13 @@ namespace InfServer.Game
 		/// Called when the game needs to display end game statistics
 		/// </summary>
 		public override void breakdown(bool bCurrent)
-		{	//Show a breakdown for each player in the arena
-            foreach (Player p in Players.ToList())
-            {
-                if (p == null)
-                {
-                    Log.write(TLog.Warning, "They were not in the list ---- debug 2");
-                    continue;
-                }
+		{   //Let the script add custom info
+            callsync("Game.Breakdown", false, bCurrent);
+
+            //Show a breakdown for each player in the arena
+            foreach (Player p in Players)
                 individualBreakdown(p, bCurrent);
-            }
-		}
+        }
         #endregion
 
         #region Handlers
@@ -951,7 +942,7 @@ namespace InfServer.Game
                 {	//Is it a default item?
                     if (!from.ActiveVehicle._type.InventoryItems.Any(item => item == update.itemID))
                     {
-                        Log.write(TLog.Warning, "Player {0} attempted to fire unowned item.", from);
+                        Log.write(TLog.Security, "Player {0} attempted to fire unowned item '{1}'.", from, info.name);
                         return;
                     }
                 }
@@ -959,7 +950,7 @@ namespace InfServer.Game
                 //And does he have the appropriate skills?
                 if (!Logic_Assets.SkillCheck(from, info.skillLogic))
                 {
-                    Log.write(TLog.Warning, "Player {0} attempted unqualified use of item.", from);
+                    Log.write(TLog.Security, "Player {0} attempted unqualified use of item '{1}'.", from, info.name);
                     return;
                 }
 
@@ -1327,14 +1318,21 @@ namespace InfServer.Game
 		{   //Do we have the skills required for this?
             if (!Logic_Assets.SkillCheck(from, skill.Logic))
             {
-                Log.write("do not " + skill.Logic);
+                Log.write(TLog.Warning, "Player {0} attempted to buy invalid skill '{1}'", from, skill.Name);
+                return;
+            }
+
+            //Are we in a vehicle that we may no longer be able to use?
+            if (!from._bSpectator && from._occupiedVehicle != null)
+            {   //TODO: Limit this only to skills that we could no longer use
+                from.sendMessage(-1, "Unable to buy skill while occupying a vehicle.");
                 return;
             }
 
             //Make sure it's okay with our script...
             if (!exists("Shop.SkillRequest") || (bool)callsync("Shop.SkillRequest", false, from, skill))
                 //Perform the skill modify
-                if (from.skillModify(skill, 1))            
+                if (from.skillModify(skill, 1))
                     //Success! Forward to our script
                     callsync("Shop.SkillPurchase", false, from, skill);
 		}
@@ -1480,6 +1478,14 @@ namespace InfServer.Game
 						if (target == null)
 							return;
 
+                        //Is he on the correct team?
+                        if (target._team != player._team)
+                            return;
+
+                        //Is he warpable?
+                        if (!target.IsDead && !target.ActiveVehicle._type.IsWarpable)
+                            return;
+
                         //Is the target player ignoring this player's summons?
                         if (target._summonIgnore.Contains(player._alias) || target._summonIgnore.Contains("*"))
                         {
@@ -1487,13 +1493,29 @@ namespace InfServer.Game
                             return;
                         }
 
-						//Is he on the correct team?
-						if (target._team != player._team)
-							return;
+                        //Is target being AntiWarped?
+                        Bot targetAntiWarpBot = checkBotAntiwarp(target);
+                        if (targetAntiWarpBot != null)
+                        {
+                            player.sendMessage(-1, "The specified player is being antiwarped by a " + targetAntiWarpBot._type.Name);
+                            return;
+                        }
 
-						//Is he warpable?
-						if (!target.IsDead && !target.ActiveVehicle._type.IsWarpable)
-							return;
+                        //By a computer vehicle?
+                        Computer targetAntiWarpVeh = checkVehAntiWarp(target);
+                        if (targetAntiWarpVeh != null)
+                        {
+                            player.sendMessage(-1, "The specified player is being antiwarped by a " + targetAntiWarpVeh._type.Name);
+                            return;
+                        }
+
+                        //How about a player?
+                        Player targetAntiWarp = target.checkAntiWarp();
+                        if (targetAntiWarp != null)
+                        {
+                            player.sendMessage(-1, String.Format("The specified player is being antiwarped by {0}", targetAntiWarp._alias));
+                            return;
+                        }
 
 						//Forward to our script
 						if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
@@ -1814,8 +1836,10 @@ namespace InfServer.Game
 			{	//Does the player have appropriate ammo?
 				if (item.useAmmoID != 0 && !player.inventoryModify(false, item.useAmmoID, -item.ammoUsedPerShot))
 					return;
-				
-				//What type of repair is it?
+
+                int percentage = (item.repairPercentage / 100) + item.repairAmount;
+
+                //What type of repair is it?
 				switch (item.repairType)
 				{
 					//Health and energy repair
@@ -1886,49 +1910,57 @@ namespace InfServer.Game
 								//Is it occupied?
 								if (target._inhabitant != null)
 									target._inhabitant.heal(item, player);
-								else
-								{	//Apply the healing effect
-									target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + item.repairAmount);
+                                //if (target._
+								//else
+								//{	//Apply the healing effect
+									target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + percentage);
 
 									//TODO: A bit hackish, should probably standardize this or improve computer updates
 									if (target is Computer)
 										(target as Computer)._sendUpdate = true;
-								}
+								//}
 							}
 							else if (item.repairDistance < 0)
 							{	//An area heal! Get all vehicles within this area..
 								List<Vehicle> players = _vehicles.getObjsInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
 
 								//Check each vehicle
-								foreach (Vehicle v in players)
-								{	//Is it on the correct team?
-                                    if (v._team != player._team)
-                                    {   //Are we not on the same team temporarily?
-                                        if (_owner != null && v._owner != player._team)
+                                if (players.Count > 0)
+								    foreach (Vehicle v in players)
+								    {	//Is it on the correct team?
+                                        if (v._team != player._team)
+                                        {   //Are we not on the same team temporarily?
+                                            if (_owner != null && v._owner != player._team)
+                                                continue;
                                             continue;
-                                        continue;
-                                    }
+                                        }
 
-									//Can we self heal?
-									if (v._inhabitant == player && !item.repairSelf)
-										continue;
 
-									//Repair!
-									if (v._inhabitant != null)
-										v._inhabitant.heal(item, player);
-									else
-									{	//Apply the healing effect
-										v._state.health = (short)Math.Min(v._type.Hitpoints, v._state.health + item.repairAmount);
+									//else
+									//{	//Apply the healing effect
+										v._state.health = (short)Math.Min(v._type.Hitpoints, v._state.health + percentage);
+
+                                        //Can we self heal?
+                                        if (v._inhabitant == player && item.repairSelf)
+                                            //Repair!
+                                            v._inhabitant.heal(item, player);
 
 										//TODO: A bit hackish, should probably standardize this or improve computer updates
 										if (v is Computer)
 											(v as Computer)._sendUpdate = true;
-									}
+
+									//}
 								}
 							}
 							else
 							{	//A self heal! Sure you can!
-								player.heal(item, player);
+								//player.heal(item, player);
+                                Vehicle target = _vehicles.getObjByID(targetVehicle);
+                                if (target != null)
+                                {
+                                    target._inhabitant.heal(item, player);
+                                    target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + percentage);
+                                }
 							}
 						}
 						break;
@@ -2107,7 +2139,7 @@ namespace InfServer.Game
 				return;
 
 			//Check spectator permission
-            if (!target._bAllowSpectator && player.PermissionLevel < Data.PlayerPermission.Mod)
+            if (!target._bAllowSpectator && player.PermissionLevel <= Data.PlayerPermission.ArenaMod)
             {
                 player.sendMessage(-1, "Specified player isn't allowing spectators");
                 return;
@@ -2312,7 +2344,7 @@ namespace InfServer.Game
         }
         #endregion
         #endregion
-
+        
         #endregion
     }
 }

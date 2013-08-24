@@ -319,7 +319,15 @@ namespace InfServer.Game
         /// </summary>
         public bool inventoryModify(int itemid, int adjust)
         {	//Redirect
-            return inventoryModify(_server._assets.getItemByID(itemid), adjust);
+            if (itemid == 0)
+            {
+                Log.write(TLog.Warning, "Team.inventoryModify(): itemid is 0");
+                return false;
+            }
+            else
+            {
+                return inventoryModify(_server._assets.getItemByID(itemid), adjust);
+            }
         }
 
         /// <summary>
@@ -446,14 +454,23 @@ namespace InfServer.Game
 			int deaths = 0;
 
 			//Add up the stats for each player
-			foreach (Player player in ActivePlayers)
+			foreach (Player player in ActivePlayers.ToList())
 			{
+                if (player == null)
+                    continue;
                 try
                 {
                     if (bCurrent)
                     {
-                        kills = kills + player.StatsCurrentGame.kills;
-                        deaths = deaths + player.StatsCurrentGame.deaths;
+                        try
+                        {
+                            kills = kills + player.StatsCurrentGame.kills;
+                            deaths = deaths + player.StatsCurrentGame.deaths;
+                        }
+                        catch (Exception)
+                        {
+                            Log.write(TLog.Warning, " debug 3 -- player doesnt exist");
+                        }
                     }
                     else
                     {
@@ -463,7 +480,7 @@ namespace InfServer.Game
                 }
                 catch (Exception e)
                 {
-                    Log.write(TLog.Warning, "precalculatestats" + e);
+                    Log.write(TLog.Warning, "precalculatestats for player " + player._alias + e);
                 }
 			}
 

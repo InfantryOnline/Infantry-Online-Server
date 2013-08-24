@@ -63,6 +63,10 @@ namespace InfServer.Protocol
 			posY = _contentReader.ReadInt16();
 			yaw = _contentReader.ReadByte();
 			unk3 = _contentReader.ReadByte();
+            if (unk1 != 0 | unk2 != 0 | unk3 != 0)
+            {
+                Log.write(TLog.Error, "PlayerUseItem {0} unk1={1} unk2={2} unk3={3}", itemID, unk1, unk2, unk3);
+            }
 		}
 
 		/// <summary>

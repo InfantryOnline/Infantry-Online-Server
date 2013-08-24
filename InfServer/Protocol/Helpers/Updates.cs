@@ -115,17 +115,28 @@ namespace InfServer.Protocol
 
 			up.activeEquip = pkt.activeEquip;
 
-            ItemInfo item = _server._assets.getItemByID(pkt.itemID);
+            //Get the routing audience
 
-			//Get the routing audience
-			int weaponRouteRange = 0;
-			if (pkt.itemID != 0)
+            bool itemUpdate = false;
+            bool itemRouteFriendly = false;
+            int weaponRouteRange = 0;
+
+            if (pkt.itemID != 0)
             {
-				if (item != null)
-					item.getRouteRange(out weaponRouteRange);
-			}
+                itemUpdate = true;
+                ItemInfo item = _server._assets.getItemByID(pkt.itemID);
+                if (item != null)
+                {
+                    itemRouteFriendly = item.routeFriendly;
+                    item.getRouteRange(out weaponRouteRange);
+                }
+                else
+                {
+                    Log.write(TLog.Warning, "Update_RoutePlayer(): item is null");
+                }
+            }
 
-			List<Player> audience = getRouteList(update._arena, update._state, (pkt.itemID != 0), weaponRouteRange, update._spectators, oldPosX, oldPosY);
+			List<Player> audience = getRouteList(update._arena, update._state, itemUpdate, weaponRouteRange, update._spectators, oldPosX, oldPosY);
 
 			//Send our updates..
 			foreach (Player player in audience)
@@ -133,11 +144,11 @@ namespace InfServer.Protocol
 				if (player == update)
 					continue;
 
-                //Our we updating an item?
-                if (pkt.itemID != 0)
+                //Are we updating an item?
+                if (itemUpdate)
                 {
                     //Route friendly?
-                    if (item.routeFriendly)
+                    if (itemRouteFriendly)
                     {
                         //Route only to teammates.
                         if (player._team == update._team)
@@ -181,8 +192,14 @@ namespace InfServer.Protocol
 			if (update._itemUseID != 0)
 			{
 				ItemInfo item = AssetManager.Manager.getItemByID(update._itemUseID);
-				if (item != null)
-					item.getRouteRange(out weaponRouteRange);
+                if (item != null)
+                {
+                    item.getRouteRange(out weaponRouteRange);
+                }
+                else
+                {
+                    Log.write(TLog.Warning, "RouteBot(): item is null");
+                }
 			}
 
 			List<Player> audience = getRouteList(update._arena, update._state, (update._itemUseID != 0), weaponRouteRange, null, 

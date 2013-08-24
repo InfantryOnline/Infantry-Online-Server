@@ -160,7 +160,7 @@ namespace InfServer.Logic
                     if (sentTo.Contains(p._id))
                         continue;
 
-                    p.triggerMessage(5, 500, String.Format("{0} killed by {1}", victim._type.Name, killer._alias));
+             //       p.triggerMessage(5, 500, String.Format("{0} killed by {1}", victim._type.Name, killer._alias));
                 }
         }
 		

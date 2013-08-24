@@ -20,12 +20,15 @@ namespace InfServer.Logic
 		{
             try
             {
+                Data.DB.player player = stat.players.First(s => s.stats1.id == stat.id);
                 BinaryWriter bw = new BinaryWriter(stream);
 
-                bw.Write(stat.players[0].alias1.name.ToCharArray());
+                //bw.Write(stat.players[0].alias1.name.ToCharArray());
+                bw.Write(player.alias1.name.ToCharArray());
                 bw.Write((byte)0);
 
-                Data.DB.squad squad = stat.players[0].squad1;
+                //Data.DB.squad squad = stat.players[0].squad1;
+                Data.DB.squad squad = player.squad1;
                 string squadname = "";
                 if (squad != null)
                     squadname = squad.name;

@@ -46,20 +46,13 @@ namespace InfServer.Logic
 
                             if (playerA == null)
                             {
-                                //Lets check if its the trash account
-                                Data.DB.account check = db.accounts.FirstOrDefault(c => c.name.Contains("TEMPACCOUNT") && c.id == alias.account);
-                                if (check != null)
-                                {
-                                    //Its on the trash account, lets transfer it
-                                    alias.IPAddress = paliasTo.IPAddress.Trim();
-                                    alias.timeplayed = 0;
-                                    alias.account = paliasTo.account;
-                                    alias.account1 = paliasTo.account1;
-                                    db.SubmitChanges();
-                                    zone._server.sendMessage(zone, pkt.sender, "Alias transfer completed.");
-                                    return;
-                                }
-                                zone._server.sendMessage(zone, pkt.sender, "Can't find the player structure of said alias.");
+                                //Since structure doesn't exist, go ahead and transfer
+                                alias.IPAddress = paliasTo.IPAddress.Trim();
+                                alias.timeplayed = 0;
+                                alias.account = paliasTo.account;
+                                alias.account1 = paliasTo.account1;
+                                db.SubmitChanges();
+                                zone._server.sendMessage(zone, pkt.sender, "Alias transfer completed.");
                                 return;
                             }
 
@@ -229,7 +222,7 @@ namespace InfServer.Logic
            
                 //Lets check to see if they are banned already
                 foreach (Data.DB.ban b in db.bans.Where(b => b.account == dbplayer.account1.id))
-                    if (b.type == (short)pkt.banType)
+                    if (b.type == (short)pkt.banType && b.name.Equals(dbplayer.name))
                     {
                         //It does exist, lets check and update it
                         if ((short)pkt.banType == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != null && b.zone != zone._zone.id)
@@ -283,6 +276,7 @@ namespace InfServer.Logic
                             newBan.IPAddress = dbplayer.IPAddress;
                             newBan.zone = zone._zone.id;
                             newBan.reason = pkt.reason;
+                            newBan.name = dbplayer.name;
                         }
                         break;
 
@@ -300,6 +294,7 @@ namespace InfServer.Logic
                             newBan.account = dbplayer.account;
                             newBan.IPAddress = dbplayer.IPAddress;
                             newBan.reason = pkt.reason;
+                            newBan.name = dbplayer.name;
                         }
                         break;
 
@@ -317,6 +312,7 @@ namespace InfServer.Logic
                             newBan.account = dbplayer.account;
                             newBan.IPAddress = dbplayer.IPAddress;
                             newBan.reason = pkt.reason;
+                            newBan.name = dbplayer.name;
                         }
                         break;
 
@@ -334,6 +330,7 @@ namespace InfServer.Logic
                             newBan.account = dbplayer.account;
                             newBan.IPAddress = dbplayer.IPAddress;
                             newBan.reason = pkt.reason;
+                            newBan.name = dbplayer.name;
                         }
                         break;
                 }

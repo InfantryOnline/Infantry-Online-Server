@@ -72,7 +72,7 @@ namespace InfServer.Logic
                             zone._server.sendMessage(zone, pkt.sender, "*" + pkt.payload);
                         }
 
-                        if (aliases != null)
+                        if (aliases.Count() > 0)
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                             //Loop through them and display
@@ -80,7 +80,18 @@ namespace InfServer.Logic
                                 zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
                         }
                         else
-                            zone._server.sendMessage(zone, pkt.sender, "That alias doesn't exist.");
+                        {
+                            //Didnt find any, lets try just a contains method
+                            if (!pkt.payload.Contains('.'))
+                            {
+                                IQueryable<Data.DB.alias> args = db.alias.Where(w => w.name.Contains(pkt.payload));
+                                if (args.Count() > 0)
+                                    foreach (var alias in args)
+                                        zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
+                            }
+                            else
+                                zone._server.sendMessage(zone, pkt.sender, "That alias doesn't exist.");
+                        }
                         break;
 
                     case CS_Query<Zone>.QueryType.emailupdate:
@@ -214,7 +225,7 @@ namespace InfServer.Logic
                             }
 
                             zone._server.sendMessage(zone, pkt.sender, "Current Bans for player");
-                            if (aliases != null)
+                            if (aliases.Count() > 0)
                             {
                                 foreach (Data.DB.alias what in aliases)
                                 {
@@ -564,7 +575,7 @@ namespace InfServer.Logic
                         List<string> splayers = new List<string>();
                         foreach (Data.DB.player splayer in db.players.Where(p => p.squad == targetSquadList.id))
                             splayers.Add(splayer.alias1.name);
-                        zone._server.sendMessage(zone, pkt.alias, "*" + string.Join(", ", splayers));
+                        zone._server.sendMessage(zone, pkt.alias, string.Join(", ", splayers));
                         break;
 
                     case CS_Squads<Zone>.QueryType.invitessquad:

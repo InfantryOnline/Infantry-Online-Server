@@ -18,7 +18,7 @@
       <Association Name="squad_player" Member="squad1" ThisKey="squad" OtherKey="id" Type="squad" IsForeignKey="true" />
       <Association Name="statsDaily_player" Member="statsDaily" ThisKey="stats" OtherKey="id" Type="statsDaily" IsForeignKey="true" />
       <Association Name="statsWeekly_player" Member="statsWeekly" ThisKey="stats" OtherKey="id" Type="statsWeekly" IsForeignKey="true" />
-      <Association Name="statsMontly_player" Member="statsMonthly" Storage="_statsMontly" ThisKey="stats" OtherKey="id" Type="statsMonthly" IsForeignKey="true" />
+      <Association Name="statsMonthly_player" Member="statsMonthly" Storage="_statsMontly" ThisKey="stats" OtherKey="id" Type="statsMonthly" IsForeignKey="true" />
       <Association Name="statsYearly_player" Member="statsYearly" ThisKey="stats" OtherKey="id" Type="statsYearly" IsForeignKey="true" />
     </Type>
   </Table>
@@ -84,7 +84,7 @@
       <Association Name="zone_squad" Member="squads" ThisKey="id" OtherKey="zone" Type="squad" />
       <Association Name="zone_statsDaily" Member="statsDailies" ThisKey="id" OtherKey="zone" Type="statsDaily" />
       <Association Name="zone_statsWeekly" Member="statsWeeklies" ThisKey="id" OtherKey="zone" Type="statsWeekly" />
-      <Association Name="zone_statsMontly" Member="statsMonthlies" Storage="_statsMontlies" ThisKey="id" OtherKey="zone" Type="statsMonthly" />
+      <Association Name="zone_statsMonthly" Member="statsMonthlies" Storage="_statsMontlies" ThisKey="id" OtherKey="zone" Type="statsMonthly" />
       <Association Name="zone_statsYearly" Member="statsYearlies" ThisKey="id" OtherKey="zone" Type="statsYearly" />
     </Type>
   </Table>
@@ -130,6 +130,7 @@
       <Column Name="expires" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="zone" Type="System.Int64" DbType="BigInt NULL" CanBeNull="true" />
       <Column Name="reason" Type="System.String" DbType="Text" CanBeNull="true" />
+      <Column Name="name" Type="System.String" DbType="VarChar(MAX) NULL" CanBeNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.history" Member="histories">
@@ -235,8 +236,8 @@
       <Column Name="vehicleDeaths" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="playSeconds" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="date" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Association Name="statsMontly_player" Member="players" ThisKey="id" OtherKey="stats" Type="player" />
-      <Association Name="zone_statsMontly" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
+      <Association Name="statsMonthly_player" Member="players" ThisKey="id" OtherKey="stats" Type="player" />
+      <Association Name="zone_statsMonthly" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.statsYearly" Member="statsYearlies">

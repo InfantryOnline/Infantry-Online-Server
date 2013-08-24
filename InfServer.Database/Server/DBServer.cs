@@ -69,13 +69,16 @@ namespace InfServer
             //Remove him from any chats that didn't come over in the packet.
             foreach (Chat c in _chats.Values)
             {
-                if (c.hasPlayer(player.alias) == true)
+                if (c.hasPlayer(player.alias))
                     c.lostPlayer(player.alias);
-
             }
 
             if (!_players.ContainsValue(player))
+            {
+                Log.write(TLog.Error, "Lost player not in the list: {0}", player.alias);
                 return;
+            }
+            //Remove him from the DB server master player list
             _players.Remove(player.alias);
         }
 
@@ -97,10 +100,30 @@ namespace InfServer
 
         public void sendMessage(Zone zone, string player, string message)
         {
-            SC_Chat<Zone> msg = new SC_Chat<Zone>();
-            msg.message = message;
-            msg.recipient = player;
-            zone._client.send(msg);
+            //297 bytes is the maximum size of a chat message that can be sent without crashing the client
+            int maxSize = 297;
+            int size = message.Length;
+
+            int idx = 0;
+
+            //Make sure that the message won't crash our player!
+            //TODO: FIXME: Less Gheto
+            StringBuilder sb = new StringBuilder(maxSize);
+            while (size - idx > 0)
+            {
+                SC_Chat<Zone> msg = new SC_Chat<Zone>();
+                sb.Clear();
+
+                while ((size - idx > 0) && (sb.Length < maxSize))
+                {
+                    sb.Append(message[idx]);
+                    idx++;
+                }
+
+                msg.recipient = player;
+                msg.message = sb.ToString();
+                zone._client.send(msg);
+            }
         }
 
 		/// <summary>

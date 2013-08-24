@@ -134,7 +134,7 @@ namespace InfServer.Game
                     foreach (Player p in Players)
                         if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
                         {
-                            p.sendMessage(0, String.Format("#[ModChat] [{0}]> {1}",
+                            p.sendMessage(0, String.Format("*[ModChat] [{0}]> {1}",
                                 from._alias, payload));
                         }
                 }

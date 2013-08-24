@@ -15,7 +15,8 @@ namespace InfServer.Logic
 	///////////////////////////////////////////////////////
 	public partial class Logic_Assets
 	{
-		static public Regex paramRegex = new Regex(@"\!?([%@#\-]?)([0-9]+)");		
+		static private Regex paramRegex = new Regex(@"\!?([%@#\-]?)([0-9]+)");
+        static private Regex illiegalChars = new Regex(@"[^[!|()%@#&\-][0-9]+]", RegexOptions.IgnoreCase);
 
 		/// <summary>
 		/// The public skillcheck method
@@ -45,7 +46,7 @@ namespace InfServer.Logic
 
             //First, kill all spaces then replace with proper boolean values
             //The calculate boolean values
-            String booleanString = paramRegex.Replace(buildingString.Replace(" ", "").TrimStart('&'), delegate(Match m)
+            String booleanString = paramRegex.Replace(illiegalChars.Replace(buildingString, "").TrimStart('&'), delegate(Match m)
             {
                 bool val = false;
                 int numVal = int.Parse(m.Groups[1].Value);
@@ -70,9 +71,9 @@ namespace InfServer.Logic
             {
                 qualified = expr(booleanString, ref pos);
             }
-            catch (ParseException)
+            catch (ParseException e)
             {
-                Log.write(TLog.Error, "Error in parsing building string: {0}", buildingString);
+                Log.write(TLog.Error, "Error parsing building string: '{0}', {1}", buildingString, e);
             }
             return qualified;
         }
@@ -89,7 +90,7 @@ namespace InfServer.Logic
 			
 			// First, we kill all spaces (if any), then replace all the junk with proper boolean values.				
 			// Then Calculate boolean values for all the shit in the expression.
-			String booleanString = paramRegex.Replace(skillString.Replace(" ", "").TrimStart('&'), delegate(Match m)
+			String booleanString = paramRegex.Replace(illiegalChars.Replace(skillString, "").TrimStart('&'), delegate(Match m)
 			{
 				bool val;
 
@@ -134,9 +135,9 @@ namespace InfServer.Logic
 			{
 				bQualified = expr(booleanString, ref pos);
 			}				
-			catch (ParseException)
+			catch (ParseException e)
 			{
-				Log.write(TLog.Error, "Error parsing skill string: {0}", skillString);					
+				Log.write(TLog.Error, "Error parsing skill string '{0}', {1}", skillString, e);					
 			}
 			
 			return bQualified;

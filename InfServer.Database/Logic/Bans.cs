@@ -49,7 +49,8 @@ namespace InfServer.Logic
                 b.IPAddress == pkt.ipaddress ||
                 b.uid1 == pkt.UID1 ||
                 b.uid2 == pkt.UID2 ||
-                b.uid3 == pkt.UID3))
+                b.uid3 == pkt.UID3 ||
+                b.name == pkt.alias))
             {
                 //Is it the correct zone?
                 if (b.zone != null && (b.type == (int)Ban.BanType.ZoneBan && b.zone != zoneid))

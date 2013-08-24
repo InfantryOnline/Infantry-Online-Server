@@ -330,7 +330,7 @@ namespace InfServer.Game.Commands.Mod
 
                 int playerPermission = (int)player.PermissionLevelLocal;
 
-                string[] powers = { "Basic", "ArenaMod", "Mod", "SMod", "Head Mod", "Server Operator", "Developer" };
+                string[] powers = { "Basic", "ArenaMod", "Mod", "SMod", "Manager", "Head Mod/Sysop", "Developer" };
                 int level;
 
                 //New help list, sorted by level
@@ -809,18 +809,19 @@ namespace InfServer.Game.Commands.Mod
         static public void speclock(Player player, Player recipient, string payload, int bong)
         {
             //Lock Entire Arena
-            if (payload == "all")
+            if (payload == "all" || (payload == null && recipient == null))
             {
                 player._arena._bLocked = !player._arena._bLocked;
-                player._arena.sendArenaMessage("Arena lock has been toggled");
+                player._arena.sendArenaMessage("Arena lock has been toggled" + (player._arena._bLocked ? " ON!" : " OFF!"));
 
                 //Spec them all.
+                /*
                 if (player._arena._bLocked)
                 {
                     foreach (Player p in player._arena.Players.ToList())
                         p.spec();
                 }
-
+                */
                 return;
             }
 
@@ -841,10 +842,10 @@ namespace InfServer.Game.Commands.Mod
             if (recipient._bLocked)
             {
                 recipient.spec();
-                player.sendMessage(0, recipient._alias + " has been locked in spec");
+                player.sendMessage(0, recipient._alias + " has been locked in spec.");
             }
             else
-                player.sendMessage(0, recipient._alias + " has been been unlocked from spec");
+                player.sendMessage(0, recipient._alias + " has been been unlocked from spec.");
         }
 
         /// <summary>
@@ -2190,6 +2191,8 @@ namespace InfServer.Game.Commands.Mod
             else
                 level = (int)player.PermissionLevel;
 
+            int rLevel = (int)recipient.PermissionLevel;
+
             //Check if they are granted and in a private arena
             if (level == (int)Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
             {
@@ -2200,6 +2203,12 @@ namespace InfServer.Game.Commands.Mod
             if (level == (int)Data.PlayerPermission.Developer && player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
+                return;
+            }
+
+            if (((rLevel == (int)Data.PlayerPermission.Developer) && (level < (int)Data.PlayerPermission.Manager)) || level <= rLevel)
+            {
+                player.sendMessage(-1, "No.");
                 return;
             }
 
@@ -2372,8 +2381,8 @@ namespace InfServer.Game.Commands.Mod
                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(speclock, "lock",
-                "Locks the target player into spec",
-                "::*lock",
+                "*lock will toggle arena lock on or off, using lock in a pm will lock and spec or unlock a player in spec",
+                "*lock OR :target:*lock",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(permit, "permit",

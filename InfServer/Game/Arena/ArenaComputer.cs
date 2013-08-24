@@ -410,7 +410,11 @@ namespace InfServer.Game
                     continue;
 
                 //Ignore your own team
-                if (candidate._team._name == player._team._name || candidate._state.health < candidate._type.HitpointsRequiredToOperate)
+                if (candidate._team == player._team)
+                    continue;
+
+                //Is computer still operable?
+                if (candidate._state.health < candidate._type.HitpointsRequiredToOperate)
                     continue;
 
                 //Is it within the distance?

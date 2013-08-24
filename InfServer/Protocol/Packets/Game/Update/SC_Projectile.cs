@@ -13,7 +13,7 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 		public Int16 projectileID;
-		public Int16 playerID;
+        public ushort playerID;
 
 		public Int16 posX;
 		public Int16 posY;

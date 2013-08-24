@@ -352,7 +352,7 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
-		/// Handles a skill shop transaction request from the client
+		/// Handles a use item request from the client
 		/// </summary>
 		static public void Handle_CS_PlayerUseItem(CS_PlayerUseItem pkt, Player player)
 		{	//Allow the player's arena to handle it
@@ -362,60 +362,61 @@ namespace InfServer.Logic
 				return;
 			}
 
+            //Resolve the item in question
+            ItemInfo item = player._server._assets.getItemByID(pkt.itemID);
+            if (item == null)
+            {
+                Log.write(TLog.Warning, "Player {0} attempted to use non-existent item.", player);
+                return;
+            }
+
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to use a warp item from spec.", player);
+				Log.write(TLog.Warning, "Player {0} attempted to use item from spec '{1}'.", player, item.name);
 				return;
-
 			}
 
 			//Check the player isn't lying about his coordinates
 			if (!Helpers.isInRange(200, player._state.positionX, player._state.positionY, pkt.posX, pkt.posY))
 			{
-				Log.write(TLog.Warning, "Player {0} coordinate mismatch on use item.", player);
-				return;
-			}
-
-			//Resolve the item in question
-			ItemInfo info = player._server._assets.getItemByID(pkt.itemID);
-			if (info == null)
-			{
-				Log.write(TLog.Warning, "Player {0} attempted to use non-existent item.", player);
+				Log.write(TLog.Warning, "Player {0} coordinate mismatch on item '{1}'.", player, item.name);
 				return;
 			}
 
 			//Are we able to use it?
-			if (!Logic_Assets.SkillCheck(player, info.skillLogic))
-				return;
+            if (!Logic_Assets.SkillCheck(player, item.skillLogic))
+            {
+                Log.write(TLog.Security, "Player {0} failed skill check to use item '{1}'.", player, item.name);
+                return;
+            }
 
 			//The action taken depends on the type of item
 			player._arena.handleEvent(delegate(Arena arena)
 				{
-					switch (info.itemType)
+					switch (item.itemType)
 					{
 						case ItemInfo.ItemType.Warp:
-							player._arena.handlePlayerWarp(player, info as ItemInfo.WarpItem, (ushort)pkt.targetVehicle, pkt.posX, pkt.posY);
+							player._arena.handlePlayerWarp(player, item as ItemInfo.WarpItem, (ushort)pkt.targetVehicle, pkt.posX, pkt.posY);
 							break;
 
 						case ItemInfo.ItemType.VehicleMaker:
-							player._arena.handlePlayerMakeVehicle(player, info as ItemInfo.VehicleMaker, pkt.posX, pkt.posY);
+							player._arena.handlePlayerMakeVehicle(player, item as ItemInfo.VehicleMaker, pkt.posX, pkt.posY);
 							break;
 
 						case ItemInfo.ItemType.ItemMaker:
-							player._arena.handlePlayerMakeItem(player, info as ItemInfo.ItemMaker, pkt.posX, pkt.posY);
+							player._arena.handlePlayerMakeItem(player, item as ItemInfo.ItemMaker, pkt.posX, pkt.posY);
 							break;
 
 						case ItemInfo.ItemType.Repair:
-							player._arena.handlePlayerRepair(player, info as ItemInfo.RepairItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
+							player._arena.handlePlayerRepair(player, item as ItemInfo.RepairItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
 							break;
 
                         case ItemInfo.ItemType.Control:
-                            player._arena.handlePlayerControl(player, info as ItemInfo.ControlItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
+                            player._arena.handlePlayerControl(player, item as ItemInfo.ControlItem, (UInt16)pkt.targetVehicle, pkt.posX, pkt.posY);
                             break;
 					}
 				}
 			);
-
 
 		}
 
@@ -438,11 +439,15 @@ namespace InfServer.Logic
             {
                 foreach (Player p in player._spectators.ToList())
                 {
-                    p.sendMessage(-1, player._alias + " has disabled spectators");
-                    p._spectating = null;
-                    Helpers.Player_SpectatePlayer(p, player, true); //true = stop spectating
+                    if (p.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                    {
+                        p.sendMessage(-1, player._alias + " has disabled spectators");
+                        p._spectating = null;
+                        Helpers.Player_SpectatePlayer(p, player, true); //true = stop spectating
+                        player._spectators.Remove(p);
+                    }
                 }
-                player._spectators.Clear();
+                //player._spectators.Clear();
             }
         }
 

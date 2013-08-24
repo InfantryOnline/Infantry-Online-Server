@@ -54,6 +54,7 @@ namespace InfServer.Game
 		public bool _bSpectator;				//Is the player in spectator mode?
         public bool _bIsStealth;                //Is the mod hidden to player lists?
         public int _level;                      //The players level
+        private bool _bCloaked;                 //Is the player cloaked?
 
         //Player shutup stuff..
         public bool _bSilenced;                 //Is the player currently silenced?
@@ -665,9 +666,23 @@ namespace InfServer.Game
 		/// Sets an absolute amount for a specific item
 		/// </summary>
 		public void inventorySet(bool bSync, ItemInfo item, int amount)
-		{	//Do we already have such an item?
-			InventoryItem ii;
-			_inventory.TryGetValue(item.id, out ii);
+		{
+            if (item == null)
+            {
+                Log.write(TLog.Error, "inventorySet(): item is null");
+                return;
+            }
+
+            //Do we already have such an item?
+            InventoryItem ii;
+            try
+            {
+                _inventory.TryGetValue(item.id, out ii);
+            }
+            catch
+            {
+                ii = null;
+            }
 
 			if (ii == null)
 			{	//We need to add a new inventory item
@@ -698,9 +713,23 @@ namespace InfServer.Game
 		/// </summary>
 		public bool inventoryModify(bool bSync, ItemInfo item, int adjust)
 		{
+            if (item == null)
+            {
+                Log.write(TLog.Error, "inventoryModify(): item is null");
+                return false;
+            }
+
             //Do we already have such an item?
             InventoryItem ii;
-            _inventory.TryGetValue(item.id, out ii);
+            try
+            {
+                _inventory.TryGetValue(item.id, out ii);
+            }
+            catch
+            {
+                ii = null;
+            }
+
             if (ii != null && adjust < 0)
             {
                 //Trying to take away too many?? I dont understand why wouldn't just wrap to -ii.quantity 
@@ -843,7 +872,15 @@ namespace InfServer.Game
 		/// </summary>
 		public bool inventoryModify(bool bSyncInv, int itemid, int adjust)
 		{	//Get the item info
-			return inventoryModify(bSyncInv, _server._assets.getItemByID(itemid), adjust);
+            if (itemid == 0)
+            {
+                Log.write(TLog.Warning, "Player.inventoryModify(): itemid is 0");
+                return false;
+            }
+            else
+            {
+                return inventoryModify(bSyncInv, _server._assets.getItemByID(itemid), adjust);
+            }
 		}
 
 		/// <summary>
@@ -1129,7 +1166,14 @@ namespace InfServer.Game
 		/// Sends the player to spectator mode
 		/// </summary>
 		public bool spec(Team team)
-		{	//Let's create a new spectator vehicle
+		{
+            if (_bSpectator & _team == team)
+            {
+                Log.write(TLog.Warning, "Attempted to spec player already in spec: {0}", this);
+//                return false;
+            }
+
+            //Let's create a new spectator vehicle
 			Vehicle specVeh = _arena.newVehicle(_server._zoneConfig.arena.spectatorVehicleId);
 
             //If we're currently in a vehicle, we want to desert it MIZZ123
@@ -1139,7 +1183,7 @@ namespace InfServer.Game
 			//Have the player enter it
 			if (!enterVehicle(specVeh))
 			{	//This shouldn't happen!
-				Log.write(TLog.Error, "Unable to bind player to spectator vehicle. {0}", this);
+				Log.write(TLog.Error, "Unable to bind player to spectator vehicle: {0}", this);
 				return false;
 			}
 

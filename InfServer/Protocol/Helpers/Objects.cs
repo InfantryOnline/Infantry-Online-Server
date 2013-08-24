@@ -159,7 +159,17 @@ namespace InfServer.Protocol
 			foreach (Player p in players)
 				p._client.sendReliable(items);
 		}
+        /// <summary>
+        /// Notifies a single player of an item drop
+        /// </summary>
+        static public void Object_ItemDrop(Player player, Arena.ItemDrop drop)
+        {	//Create the notification packet
+            SC_Items items = new SC_Items();
 
+            items.singleItem = drop;
+
+            player._client.sendReliable(items);
+        }
 		/// <summary>
 		/// Instructs the client to reset and disable all flags
 		/// </summary>

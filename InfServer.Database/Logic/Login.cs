@@ -53,7 +53,8 @@ namespace InfServer.Logic
 			client._obj = zone;
 
 			server._zones.Add(zone);
-			zone._client.Destruct += delegate(NetworkClient nc)
+
+            zone._client.Destruct += delegate(NetworkClient nc)
 			{
 				server._zones.Remove(zone);
                 //Remove them from the base db server list.

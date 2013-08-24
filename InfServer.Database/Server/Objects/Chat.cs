@@ -16,7 +16,7 @@ namespace InfServer
     {
         DBServer _server;                               //Who we work for..
         public Dictionary<string, string[]> _players;    //The players in our chat..
-        public string _name;                            //The name of our chat          
+        public string _name;                            //The name of our chat
 
         public Chat(DBServer server, string chat)
         {
@@ -28,7 +28,15 @@ namespace InfServer
 
         public void newPlayer(string player, string[] chats)
         {
-            _players.Add(player, chats);
+            try
+            {
+                _players.Add(player, chats);
+            }
+            catch (ArgumentException)
+            {
+                Log.write(TLog.Error, "Player '{0}' already exists in chat '{1}'.", player, chats);
+                return;
+            }
             SC_JoinChat<Zone> join = new SC_JoinChat<Zone>();
             join.from = player;
             join.chat = _name;
@@ -42,7 +50,11 @@ namespace InfServer
 
         public void lostPlayer(string player)
         {
-            _players.Remove(player);
+            if (!_players.Remove(player))
+            {
+                Log.write(TLog.Warning, "Lost player '{0}' that wasn't in chat '{1}'.", player, _name);
+                return;
+            }
 
             SC_LeaveChat<Zone> leave = new SC_LeaveChat<Zone>();
             leave.from = player;
@@ -62,8 +74,6 @@ namespace InfServer
             return false;
         }
 
-
-
         public void sendList(string player)
         {
             SC_JoinChat<Zone> reply = new SC_JoinChat<Zone>();
@@ -75,29 +85,12 @@ namespace InfServer
 
         public string List()
         {
-            StringBuilder builder = new StringBuilder();
+            List<string> members = new List<string>();
             foreach (var player in _players)
             {
-                builder.Append(player.Key).Append(" ");
-                // return builder.ToString();           
+                members.Add(player.Key);
             }
-            return builder.ToString();
+            return string.Join(", ", members);
         }
     }
-
 }
-/*
-        public string List()
-        {
-            StringBuilder builder = new StringBuilder();
-            foreach (var player in _players)
-            {
- 	            builder.Append(player.Key).Append(",");
- 	            builder.Append(player.Key).Append(" ");
-            }
-            builder.ToString().TrimEnd(' ');
-            return builder.ToString().TrimEnd(',');
- }
-
-
-*/

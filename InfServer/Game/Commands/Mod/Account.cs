@@ -102,7 +102,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     alias = recipient._alias.ToString();
                     //Since they are here, lets dc them to complete the transfer
-                    recipient.sendMessage(-1, "You are being forced a dc to complete the alias transfer.");
+                    recipient.sendMessage(-1, "You are being forced to dc to complete the alias transfer.");
                 }
                 else
                     alias = param[1];
@@ -114,12 +114,13 @@ namespace InfServer.Game.Commands.Mod
                     player.sendMessage(-1, "Syntax: :playerGoingTo:*transferalias aliasToTransfer");
                     return;
                 }
-                
+
+                Player online;
                 //Our transfer alias is playing, force a dc
-                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                if ((online = player._arena.getPlayerByName(payload)) != null)
                 {
-                    alias = recipient._alias.ToString();
-                    recipient.sendMessage(-1, "You are being forced a dc to transfer the alias.");
+                    alias = online._alias.ToString();
+                    online.sendMessage(-1, "You are being forced a dc to transfer the alias.");
                 }
                 else
                     alias = payload;
@@ -335,6 +336,33 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 player.sendMessage(0, "You have mod promoted " + payload + " to level " + level + ".");
+
+                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                { //They are playing, lets update them
+                    switch (level)
+                    {
+                        case 1:
+                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            break;
+                        case 2:
+                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            break;
+                        case 3:
+                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            break;
+                        case 4:
+                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            break;
+                        case 5:
+                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            break;
+                        case 6:
+                            recipient._permissionStatic = Data.PlayerPermission.Developer;
+                            break;
+                    }
+                    recipient.sendMessage(0, "You have been mod promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
+                }
+
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
@@ -457,6 +485,33 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 player.sendMessage(0, "You have mod demoted " + payload + " to level " + level + ".");
+
+                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                { //They are playing, lets update them
+                    switch (level)
+                    {
+                        case 0:
+                            recipient._permissionStatic = Data.PlayerPermission.Normal;
+                            break;
+                        case 1:
+                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            break;
+                        case 2:
+                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            break;
+                        case 3:
+                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            break;
+                        case 4:
+                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            break;
+                        case 5:
+                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            break;
+                    }
+                    recipient.sendMessage(0, "You have been mod demoted to level " + level + ".");
+                }
+
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
@@ -579,6 +634,32 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 player.sendMessage(0, "You have dev promoted " + payload + " to level " + level + ".");
+
+                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                { //They are playing, lets update them
+                    switch (level)
+                    {
+                        case 1:
+                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            break;
+                        case 2:
+                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            break;
+                        case 3:
+                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            break;
+                        case 4:
+                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            break;
+                        case 5:
+                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            break;
+                        case 6:
+                            recipient._permissionStatic = Data.PlayerPermission.Developer;
+                            break;
+                    }
+                    recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
+                }
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
@@ -701,6 +782,32 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 player.sendMessage(0, "You have dev demoted " + payload + " to level " + level + ".");
+
+                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                { //They are playing, lets update them
+                    switch (level)
+                    {
+                        case 0:
+                            recipient._permissionStatic = Data.PlayerPermission.Normal;
+                            break;
+                        case 1:
+                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            break;
+                        case 2:
+                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            break;
+                        case 3:
+                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            break;
+                        case 4:
+                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            break;
+                        case 5:
+                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            break;
+                    }
+                    recipient.sendMessage(0, "You have been dev demoted to level " + level + ".");
+                }
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.dev;

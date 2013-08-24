@@ -70,7 +70,7 @@ namespace InfServer.Logic
 		static public void Handle_OutOfSync(OutOfSync pkt, Client client)
 		{
 			//TODO: Resend packet?
-			Log.write(TLog.Error, "** OUTOFSYNC: " + pkt.rNumber);
+			//Log.write(TLog.Error, "** OUTOFSYNC: " + pkt.rNumber);
 		}
 
 		/// <summary>
