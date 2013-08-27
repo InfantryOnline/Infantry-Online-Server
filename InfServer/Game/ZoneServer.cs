@@ -34,6 +34,8 @@ namespace InfServer.Game
 
         public IPEndPoint _dbEP;
 
+        public uint _reliableChecksum = 0;       //Reliable checksum value for this zone
+
 		public new LogClient _logger;			//Our zone server log
 
 		private bool _bStandalone;				//Are we in standalone mode?
@@ -425,10 +427,10 @@ namespace InfServer.Game
             }
         }
 
-        /// <summary>
-        /// Recycles our zoneserver
-        /// </summary>
-        public void recycle()
+        /// <sumary>
+        /// Cleanup for shutdown or recycle
+        /// </sumary>
+        public void cleanup()
         {
             //Loop through each arena and save stats for each player in that arena.
             Dictionary<string, Arena> alist = _arenas;
@@ -447,9 +449,31 @@ namespace InfServer.Game
 
             //Add a little delay...
             Thread.Sleep(2000);
+        }
+
+        /// <summary>
+        /// Recycles our zoneserver
+        /// </summary>
+        public void recycle()
+        {
+            Log.write("Recycling...");
+
+            //cleanup
+            cleanup();
 
             //Restart!
             InfServer.Program.Restart();
+        }
+
+        public void shutdown()
+        {
+            Log.write("Shutting down...");
+
+            //cleanup
+            cleanup();
+
+            //Shutdown!
+            InfServer.Program.Stop();
         }
 
         private void InitializeGameEventsDictionary()

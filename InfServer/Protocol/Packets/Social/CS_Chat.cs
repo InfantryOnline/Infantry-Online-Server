@@ -68,7 +68,6 @@ namespace InfServer.Protocol
                     break;
 
                 case Helpers.Chat_Type.Whisper:
-                    Log.write(TLog.Warning, "Whisper test cs_chat serialize");
                     Write(recipient, 0);
                     Write(message, 0);
                     break;
@@ -94,7 +93,6 @@ namespace InfServer.Protocol
                     break;
 
                 case Helpers.Chat_Type.PrivateChat:
-                    Log.write(TLog.Warning, "CS_Chat private sending to client");
                     Write(recipient, 0);
                     Write(message, 0);
                     break;
@@ -117,13 +115,11 @@ namespace InfServer.Protocol
 					break;
 
                 case Helpers.Chat_Type.PrivateChat:
-                    Log.write(TLog.Warning, "CS_Chat recieved from the client");
                     recipient = ReadNullString();
                     message = ReadNullString();
                     break;
 
 				case Helpers.Chat_Type.Whisper:
-                    Log.write(TLog.Warning, "Whisper test cs_chat deserialize");
 					recipient = ReadNullString();
 					message = ReadNullString();
 					break;

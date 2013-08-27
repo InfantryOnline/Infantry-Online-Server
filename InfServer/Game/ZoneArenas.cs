@@ -180,11 +180,21 @@ namespace InfServer.Game
 		/// Finds the most suitable arena for a player to join
 		/// </summary>
 		public Arena allocatePlayer(Player player)
-		{	//TODO: Let's just stick him in public1 for now
-			Arena arena = null;
-			if (!_arenas.TryGetValue("Public1", out arena))
-				return newArena("");
-			return arena;
+		{
+            int maxPlayers = _zoneConfig.arena.maxPlayers;
+            int playingDesired = _zoneConfig.arena.playingDesired;
+
+            foreach (KeyValuePair<string, Arena> a in _arenas)
+            {
+                if (a.Key.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+                {   //Is there space?
+                    if (a.Value.PlayerCount < playingDesired && a.Value.TotalPlayerCount < maxPlayers)
+                        return a.Value;
+                }
+            }
+            
+            //Make a new one
+            return newArena("");
 		}
 
 		/// <summary>
@@ -219,6 +229,14 @@ namespace InfServer.Game
                     _arenaBans[arenaName].Remove(player._alias);
                 }
             }
+
+            //Is it full?
+            if (arena.TotalPlayerCount >= _zoneConfig.arena.maxPlayers)
+            {
+                player.sendMessage(-1, "Arena is full.");
+                return null;
+            }
+
 			return arena;
 		}
 	}

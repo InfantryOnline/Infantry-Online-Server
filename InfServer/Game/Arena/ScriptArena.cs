@@ -78,10 +78,16 @@ namespace InfServer.Game
 		/// Called when a player enters the game
 		/// </summary>
 		public override void playerEnter(Player player)
-		{	//Pass it to the script environment
-			base.playerEnter(player);
+		{
+            if (player != null)
+            {
+                base.playerEnter(player);
 
-			callsync("Player.Enter", false, player);
+                //Pass it to the script environment
+                callsync("Player.Enter", false, player);
+            }
+            else
+                Log.write(TLog.Error, "playerEnter(): Called with null player");
 		}
         #endregion
 
@@ -90,10 +96,16 @@ namespace InfServer.Game
 		/// Called when a player leaves the game
 		/// </summary>
 		public override void playerLeave(Player player)
-		{	//Pass it to the script environment
-			base.playerLeave(player);
+		{
+            if (player != null)
+            {
+                //Pass it to the script environment
+                callsync("Player.Leave", false, player);
 
-         	callsync("Player.Leave", false, player);
+                base.playerLeave(player);
+            }
+            else
+                Log.write(TLog.Error, "playerLeave(): Called with null player");
 		}
         #endregion
 
@@ -193,6 +205,13 @@ namespace InfServer.Game
 				if (!player.IsSpectator)
 					Logic_Assets.RunEvent(player, startGame);
 			}
+
+            //Clear the team stats
+            foreach (Team t in Teams)
+            {
+                t._currentGameKills = 0;
+                t._currentGameDeaths = 0;
+            }
 			
 			//Pass it to the script environment
 			callsync("Game.Start", false);
@@ -210,7 +229,7 @@ namespace InfServer.Game
             //We've stopped
 			_bGameRunning = false;
 			_tickGameEnded = Environment.TickCount;
-            
+
             //Reset the game state
             if (_scriptType != "GameType_KOTH")
                 flagReset();                      
@@ -263,7 +282,14 @@ namespace InfServer.Game
 		/// Creates a breakdown tailored for one player
 		/// </summary>
 		public override void individualBreakdown(Player from, bool bCurrent)
-		{	//Give the script a chance to take over
+		{
+            if (from == null)
+            {
+                Log.write(TLog.Error, "individualBreakdown(): Called with null player.");
+                return;
+            }
+
+            //Give the script a chance to take over
 			if (exists("Player.Breakdown") && (bool)callsync("Player.Breakdown", false, from, bCurrent))
 				return;
 
@@ -272,12 +298,8 @@ namespace InfServer.Game
 			{
 				from.sendMessage(0, "#Team Statistics Breakdown");
 
-				//Make sure stats are up-to-date
-				foreach (Team t in _teams.Values)
-					t.precalculateStats(bCurrent);
-
 				List<Team> activeTeams = _teams.Values.Where(entry => entry.ActivePlayerCount > 0).ToList();
-                List<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._calculatedKills).ToList();
+                List<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._currentGameKills).ToList();
 				int idx = 3;	//Only display top three teams
 
 				foreach (Team t in rankedTeams)
@@ -296,32 +318,30 @@ namespace InfServer.Game
 							format = "!2nd (K={0} D={1}): {2}";
 							break;
 					}
-                    if (from != null)
-                    {
-                        from.sendMessage(0, String.Format(format,
-                            t._calculatedKills, t._calculatedDeaths,
-                            t._name));
-                    }
+
+                    from.sendMessage(0, String.Format(format,
+                        t._currentGameKills, t._currentGameDeaths,
+                        t._name));
 				}
 			}
 
 			//Do we want to display individual statistics?
-            if (_breakdownSettings.bDisplayIndividual && _scriptType != "GameType_CTF")
+            if (_breakdownSettings.bDisplayIndividual)
 			{
-                bool ranked = true;
 				from.sendMessage(0, "#Individual Statistics Breakdown");
 
 				List<Player> rankedPlayers = _playersIngame.ToList().OrderByDescending(
-                    player => (bCurrent ? (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills) : player.StatsLastGame.kills)).ToList();
+                    player => (bCurrent ? (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills)
+                        : (player.StatsLastGame == null ? 0 : player.StatsLastGame.kills))).ToList();
 				int idx = 3;	//Only display top three players
 
 				foreach (Player p in rankedPlayers)
-				{
-					if (idx-- == 0)
-						break;
-
-                    if (p == null)
+				{   //Do they even have stats?
+                    if (bCurrent ? p.StatsCurrentGame == null : p.StatsLastGame == null)
                         continue;
+
+                    if (idx-- == 0)
+                        break;
 
 					string format = "!3rd (K={0} D={1}): {2}";
 
@@ -334,26 +354,20 @@ namespace InfServer.Game
 							format = "!2nd (K={0} D={1}): {2}";
 							break;
 					}
-                    if (from != null)
-                    {
-                        from.sendMessage(0, String.Format(format,
-                            (bCurrent ? p.StatsCurrentGame.kills : p.StatsLastGame.kills),
-                            (bCurrent ? p.StatsCurrentGame.deaths : p.StatsLastGame.deaths),
-                            p._alias));
-                        if (!rankedPlayers.Contains(from))
-                            ranked = false;
-                    }
+                    
+                    from.sendMessage(0, String.Format(format,
+                        (bCurrent ? p.StatsCurrentGame.kills : p.StatsLastGame.kills),
+                        (bCurrent ? p.StatsCurrentGame.deaths : p.StatsLastGame.deaths),
+                        p._alias));
 				}
 
-                if (ranked)
+                //Do we have stats for them?
+                if ((bCurrent && from.StatsCurrentGame != null) || (!bCurrent && from.StatsLastGame != null))
                 {
-                    if (from != null)
-                    {
-                        string personalFormat = "@Personal Score: (K={0} D={1})";
-                        from.sendMessage(0, String.Format(personalFormat,
-                            (bCurrent ? from.StatsCurrentGame.kills : from.StatsLastGame.kills),
-                            (bCurrent ? from.StatsCurrentGame.deaths : from.StatsLastGame.deaths)));
-                    }
+                    string personalFormat = "@Personal Score: (K={0} D={1})";
+                    from.sendMessage(0, String.Format(personalFormat,
+                        (bCurrent ? from.StatsCurrentGame.kills : from.StatsLastGame.kills),
+                        (bCurrent ? from.StatsCurrentGame.deaths : from.StatsLastGame.deaths)));
                 }
 			}
 		}
@@ -365,10 +379,10 @@ namespace InfServer.Game
 		/// </summary>
 		public override void breakdown(bool bCurrent)
 		{   //Let the script add custom info
-            callsync("Game.Breakdown", false, bCurrent);
+            callsync("Game.Breakdown", false);
 
             //Show a breakdown for each player in the arena
-            foreach (Player p in Players)
+            foreach (Player p in Players.ToList())
                 individualBreakdown(p, bCurrent);
         }
         #endregion
@@ -735,7 +749,14 @@ namespace InfServer.Game
 		/// Triggered when a player wants to spec or unspec
 		/// </summary>
 		public override void handlePlayerJoin(Player from, bool bSpec)
-		{	//Let them!
+		{
+            if (from == null)
+            {
+                Log.write(TLog.Warning, "handlePlayerJoin(): Called with null player");
+                return;
+            }
+
+            //Let them!
 			if (bSpec)
 			{	//Forward to our script
 				if (!exists("Player.LeaveGame") || (bool)callsync("Player.LeaveGame", false, from))
@@ -1315,17 +1336,25 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to use the skill shop
 		/// </summary>
 		public override void handlePlayerShopSkill(Player from, SkillInfo skill)
-		{   //Do we have the skills required for this?
-            if (!Logic_Assets.SkillCheck(from, skill.Logic))
+		{
+            //Are we allowed to buy skills from spec?
+            if (from._bSpectator && !_server._zoneConfig.arena.spectatorSkills)
             {
-                Log.write(TLog.Warning, "Player {0} attempted to buy invalid skill '{1}'", from, skill.Name);
+                from.sendMessage(-1, "Unable to buy skill from spec.");
+                return;
+            }
+            
+            //Are we in a vehicle that we may no longer be able to use?
+            if (!from._bSpectator && !_server._zoneConfig.arena.allowSkillPurchaseInVehicle && from._occupiedVehicle != null)
+            {   //TODO: Limit this only to skills that we could no longer use
+                from.sendMessage(-1, "Unable to buy skill while occupying a vehicle.");
                 return;
             }
 
-            //Are we in a vehicle that we may no longer be able to use?
-            if (!from._bSpectator && from._occupiedVehicle != null)
-            {   //TODO: Limit this only to skills that we could no longer use
-                from.sendMessage(-1, "Unable to buy skill while occupying a vehicle.");
+            //Do we have the skills required for this?
+            if (!Logic_Assets.SkillCheck(from, skill.Logic))
+            {
+                Log.write(TLog.Warning, "Player {0} attempted to buy invalid skill '{1}'", from, skill.Name);
                 return;
             }
 

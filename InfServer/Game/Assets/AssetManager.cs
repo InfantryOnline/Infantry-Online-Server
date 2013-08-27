@@ -300,7 +300,7 @@ namespace InfServer.Game
 
             if (!_nameToItem.TryGetValue(name.ToLower(), out item))
             {
-                Log.write(TLog.Warning, "Unable to get item by name: {0}", name);
+                //Log.write(TLog.Warning, "Unable to get item by name: {0}", name);
                 return null;
             }
 

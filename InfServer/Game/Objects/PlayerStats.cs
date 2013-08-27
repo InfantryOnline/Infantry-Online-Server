@@ -189,6 +189,10 @@ namespace InfServer.Game
 
 				if (_statsGame != null)
 					_statsGame.kills += diff;
+
+                //Update our team stats
+                if (_team != null)
+                    _team._currentGameKills += value;
 			}	
 		}
 
@@ -213,6 +217,10 @@ namespace InfServer.Game
 
 				if (_statsGame != null)
 					_statsGame.deaths += diff;
+
+                //Update our team stats
+                if (_team != null)
+                    _team._currentGameDeaths += value;
 			}
 		}
 
