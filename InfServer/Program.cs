@@ -26,15 +26,15 @@ namespace InfServer
                 recycler.StartInfo.Arguments = String.Format("-d1:\"{0}\" -d2:\"{1}\" -id:\"{2}\"", config["server/copyServerFrom"].Value, Directory.GetCurrentDirectory().ToString(), process.Id);
 
                 //Start the recycler
-                recycler.Start(); //The recycler waits for this process to end before starting recycle/copy
+                recycler.Start(); //The recycler waits for this (our) process to end before starting recycle/copy
 
-                //Kill current process
-                process.Kill();
+                //Exit
+                Stop();
             }
             else
             {
                 Process.Start(Environment.CurrentDirectory + "/InfServer.exe");
-                process.Kill();
+                Stop();
             }
         }
 
@@ -43,13 +43,16 @@ namespace InfServer
         /// </summary>
         public static void Stop()
         {
-            Process.GetCurrentProcess().Kill();
+            System.Environment.Exit(1);
         }
 
         //Called when the console window is closed with Ctrl+C
         protected static void Exit(object sender, ConsoleCancelEventArgs args)
         {
-            Log.write("Ctrl+C recieved.");
+            //We'll handle this
+            args.Cancel = true;
+
+            Log.write("{0} recieved.", args.SpecialKey);
             server.shutdown();
         }
 
@@ -82,7 +85,7 @@ namespace InfServer
 			LogClient handlerLogger = Log.createClient("ServerHandler");
 			Log.assume(handlerLogger);
 
-            //Set a handler for if we are with Ctrl+C or Ctrl+BREAK
+            //Set a handler for if we recieve Ctrl+C or Ctrl+BREAK
             Console.CancelKeyPress += new ConsoleCancelEventHandler(Exit);
 
 			//Allow functions to pre-register

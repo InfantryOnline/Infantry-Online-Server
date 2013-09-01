@@ -18,7 +18,7 @@ namespace InfServer.Logic
             //Hey, how'd you get here?!
             if (player == null)
             {
-                Log.write(TLog.Error, "Handle_CS_JoinChat() called with null player.");
+                Log.write(TLog.Error, "Handle_CS_JoinChat(): Called with null player.");
                 return;
             }
 
@@ -53,7 +53,7 @@ namespace InfServer.Logic
                 //New chat
                 if (!server._chats.ContainsValue(_chat))
                 {
-                    Log.write(TLog.Inane, "Chat created: {0}", chat);
+                    Log.write(TLog.Normal, "Chat created: {0}", chat);
                     _chat = new Chat(server, chat);
                 }
 
@@ -84,7 +84,7 @@ namespace InfServer.Logic
             //WTF MATE?
             if (chat == null)
             {
-                Log.write(TLog.Error, "Handle_CS_Chat() called with null chat.");
+                Log.write(TLog.Error, "Handle_CS_Chat(): Called with null chat.");
                 return;
             }
 

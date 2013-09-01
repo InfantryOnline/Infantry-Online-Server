@@ -15,15 +15,23 @@ namespace InfServer.Logic
 	///////////////////////////////////////////////////////
 	public partial class Logic_Assets
 	{
-		static private Regex paramRegex = new Regex(@"\!?([%@#\-]?)([0-9]+)");
-        static private Regex illiegalChars = new Regex(@"[^[!|()%@#&\-][0-9]+]", RegexOptions.IgnoreCase);
+		static private Regex paramRegex = new Regex(@"\!?([%@#\-]?)([0-9]+)", RegexOptions.Compiled);
+        static private Regex illiegalChars = new Regex(@"[^[!|()%@#&\-][0-9]+]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		/// <summary>
 		/// The public skillcheck method
 		/// </summary>		
 		static public bool SkillCheck(Player player, string skillString)
-		{	// Is there any need?
-			if (skillString == "" || skillString == "\"\"")
+		{
+            // Any need?
+            if (String.IsNullOrWhiteSpace(skillString) || skillString == "\"\"")
+                return true;
+
+            // Make the string safe to test
+            String cleanString = illiegalChars.Replace(skillString, "");
+
+            // Is there still any need?
+            if (String.IsNullOrEmpty(cleanString))
 				return true;
 
 			// Compute ClassId for this case
@@ -31,7 +39,7 @@ namespace InfServer.Logic
 				player._baseVehicle._type.ClassId : // Player is not in a car
 				player._occupiedVehicle._type.ClassId; // Player is in a car
 
-			return SkillCheckTester(player, classId, skillString);
+			return SkillCheckTester(player, classId, cleanString);
 		}
 
         /// <summary>
@@ -39,14 +47,22 @@ namespace InfServer.Logic
         /// </summary>
         static public bool BuildingCheck(Player player, string buildingString)
         {
-            if (buildingString == "" || buildingString == "\"\"")
+            // We're done here.
+            if (String.IsNullOrWhiteSpace(buildingString) || buildingString == "\"\"")
+                return true;
+
+            // Make the string safe to test
+            String cleanString = illiegalChars.Replace(buildingString, "");
+
+            // Is there still any need?
+            if (String.IsNullOrEmpty(cleanString))
                 return true;
 
             IEnumerable<Vehicle> vehs = player._arena.Vehicles.Where(v => v != null && v._team == player._team);
 
             //First, kill all spaces then replace with proper boolean values
             //The calculate boolean values
-            String booleanString = paramRegex.Replace(illiegalChars.Replace(buildingString, "").TrimStart('&'), delegate(Match m)
+            String booleanString = paramRegex.Replace(cleanString.TrimStart('&'), delegate(Match m)
             {
                 bool val = false;
                 int numVal = int.Parse(m.Groups[1].Value);
@@ -73,7 +89,7 @@ namespace InfServer.Logic
             }
             catch (ParseException e)
             {
-                Log.write(TLog.Error, "Error parsing building string: '{0}', {1}", buildingString, e);
+                Log.write(TLog.Error, "Error parsing building string: '{0}', {1}", cleanString, e);
             }
             return qualified;
         }
@@ -90,7 +106,7 @@ namespace InfServer.Logic
 			
 			// First, we kill all spaces (if any), then replace all the junk with proper boolean values.				
 			// Then Calculate boolean values for all the shit in the expression.
-			String booleanString = paramRegex.Replace(illiegalChars.Replace(skillString, "").TrimStart('&'), delegate(Match m)
+			String booleanString = paramRegex.Replace(skillString.TrimStart('&'), delegate(Match m)
 			{
 				bool val;
 
@@ -134,12 +150,12 @@ namespace InfServer.Logic
 			try
 			{
 				bQualified = expr(booleanString, ref pos);
-			}				
+			}
 			catch (ParseException e)
 			{
-				Log.write(TLog.Error, "Error parsing skill string '{0}', {1}", skillString, e);					
+				Log.write(TLog.Error, "Error parsing skill string '{0}', {1}", skillString, e);
 			}
-			
+
 			return bQualified;
 		}
 

@@ -322,10 +322,6 @@ namespace InfServer.Script.GameType_TDM
         /// </summary>
         public void updateTickers()
         {
-            //Make sure stats are up-to-date
-            foreach (Team t in _arena.ActiveTeams)
-                t.precalculateStats(true);
-
             string format;
             if (_arena.ActiveTeams.Count() > 1)
             {
@@ -401,12 +397,8 @@ namespace InfServer.Script.GameType_TDM
 
             from.sendMessage(0, "#Team Statistics Breakdown");
 
-            //Make sure stats are up-to-date
-            foreach (Team t in _arena.Teams)
-                t.precalculateStats(bCurrent);
-
             IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
-            IEnumerable<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._calculatedKills);
+            IEnumerable<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._currentGameKills);
             int idx = 3;	//Only display top three teams
 
             foreach (Team t in rankedTeams)

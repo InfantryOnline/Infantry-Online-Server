@@ -289,6 +289,11 @@ namespace InfServer.Game
                 return;
             }
 
+            //WTF, Over.
+            //No need to return here, just logging.
+            if (from.StatsCurrentGame == null)
+                Log.write(TLog.Error, "Player {0} has no stats.", from);
+
             //Give the script a chance to take over
 			if (exists("Player.Breakdown") && (bool)callsync("Player.Breakdown", false, from, bCurrent))
 				return;
@@ -885,11 +890,17 @@ namespace InfServer.Game
 		/// </summary>
 		public override void handlePlayerExplosion(Player from, CS_Explosion update)
 		{	//Damage any computer vehicles (future, also bots) in the blast radius
-			ItemInfo.Projectile usedWep = Helpers._server._assets.getItemByID(update.explosionID) as ItemInfo.Projectile;
+            if (from == null)
+            {
+                Log.write(TLog.Error, "handlePlayerExplosion(): Called with null player.");
+                return;
+            }
 
-			if (usedWep == null)
+            ItemInfo.Projectile usedWep = Helpers._server._assets.getItemByID(update.explosionID) as ItemInfo.Projectile;
+            
+            if (usedWep == null)
 			{	//All things that explode should be projectiles. But just in case...
-				Log.write(TLog.Warning, "Player fired unsupported weapon id {0}", update.explosionID);
+				Log.write(TLog.Warning, "Player {0} fired unsupported weapon id {0}", from, update.explosionID);
 				return;
 			}
 
@@ -899,36 +910,6 @@ namespace InfServer.Game
 				int maxDamageRadius = Helpers.getMaxBlastRadius(usedWep);
 
 				List<Vehicle> vechs = _vehicles.getObjsInRange(update.positionX, update.positionY, maxDamageRadius + 500);
-
-                //Don't bother running empty events
-                if (usedWep.damageEventString != "\"\"")
-                {
-                    List<Player> players = from._arena.getPlayersInRange(update.positionX, update.positionY, usedWep.damageEventRadius);
-                    //Run any event logic on players..
-                    foreach (Player p in players)
-                    {
-                        //Will this weapon even harm us?
-                        switch (usedWep.damageMode)
-                        {
-                            case 2:			//Enemy
-                                if (from._team == p._team)
-                                    return;
-                                break;
-
-                            case 3:			//Friendly but self
-                                if (from._team != p._team)
-                                    return;
-                                break;
-
-                            case 4:			//Friendly
-                                if (from._team != p._team)
-                                    return;
-                                break;
-                        }
-                        //Run it!
-                        Logic_Assets.RunEvent(p, usedWep.damageEventString);
-                    }
-                }
 				
                 //Notify all vehicles in the vicinity
 				foreach (Vehicle v in vechs)	
@@ -1250,6 +1231,17 @@ namespace InfServer.Game
                     if (!exists("Player.ComputerKill") || (bool)callsync("Player.ComputerKill", false, from, cvehicle))
                     {	//Update stats
                         from.Deaths++;
+
+                        //Is our creator stll around, and are we still on the same team?
+                        if (cvehicle._creator != null && cvehicle._creator._team == cvehicle._owner)
+                        {
+                            cvehicle._creator.Kills++;
+                        }
+                        //Nope, give it directly to the team
+                        else if (cvehicle._owner != null)
+                        {
+                            cvehicle._owner._currentGameKills++;
+                        }
 
                         //Route
                         Logic_Rewards.calculateTurretKillRewards(from, cvehicle, update);
@@ -2148,7 +2140,6 @@ namespace InfServer.Game
         }
         #endregion
 
-
         #region handlePlayerSpectate
         /// <summary>
 		/// Triggered when a player attempts to spectate another player
@@ -2372,6 +2363,63 @@ namespace InfServer.Game
             } 
         }
         #endregion
+
+        #region handlePlayerDamageEvent
+        /// <summary>
+        /// Triggered when a player notifies the server of a damage event
+        /// </summary>
+        public override void handlePlayerDamageEvent(Player from, CS_DamageEvent update)
+        {
+            if (from == null)
+            {
+                Log.write(TLog.Warning, "handlePlayerDamageEvent(): Called with null player.");
+                return;
+            }
+
+            ItemInfo.Projectile usedWep = Helpers._server._assets.getItemByID(update.damageID) as ItemInfo.Projectile;
+
+            if (usedWep == null)
+            {
+                Log.write(TLog.Error, "No weapon ({0}) found for damage event from Player {1}", update.damageID, from);
+                return;
+            }
+
+            if (String.IsNullOrWhiteSpace(usedWep.damageEventString) || usedWep.damageEventString == "\"\"")
+            {
+                Log.write(TLog.Error, "No damage event string found for weapon: {0}", usedWep.name);
+                return;
+            }
+
+            Log.write(TLog.Warning, "DamageEvent: Unk={0}, Wep={1} ({2}), Player={3}", update.positionZ, usedWep.name, usedWep.id, from);
+
+            //Forward to our script
+            if (!(bool)callsync("Player.DamageEvent", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
+            {
+                //Did this weapon even harm us?
+                /*                switch (usedWep.damageMode)
+                                {
+                                    case 2:			//Enemy
+                                        if (from._team == p._team)
+                                            return;
+                                        break;
+
+                                    case 3:			//Friendly but self
+                                        if (from._team != p._team)
+                                            return;
+                                        break;
+
+                                    case 4:			//Friendly
+                                        if (from._team != p._team)
+                                            return;
+                                        break;
+                                }
+                                //Run it!
+                */
+                Logic_Assets.RunEvent(from, usedWep.damageEventString);
+            }
+        }
+        #endregion
+
         #endregion
         
         #endregion

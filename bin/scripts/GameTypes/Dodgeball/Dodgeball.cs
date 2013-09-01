@@ -50,10 +50,12 @@ namespace InfServer.Script.GameType_Dodgeball
 			_config = _arena._server._zoneConfig;
             _rand = new Random();
 
+            _minPlayers = 2;
+
             team1 = _arena.getTeamByName(_config.teams[0].name);
             team2 = _arena.getTeamByName(_config.teams[1].name);
-            _minPlayers = 2;
             queue = new Dictionary<Player, int>();
+            inPlayers = new Dictionary<Player, bool>();
 			return true;
 		}
 
@@ -114,47 +116,57 @@ namespace InfServer.Script.GameType_Dodgeball
 		/// </summary>
         [Scripts.Event("Player.Explosion")]
         public bool playerExplosion(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
-        {	//Is a hit?
-            if (inPlayers.ContainsKey(player) && weapon.id == 1011)
-            {   //Are they trying to catch?
-                IEnumerable<Player> players = player._arena.getPlayersInRange(posX, posY, 15);
-                if (players.Count() > 0)
+        {
+            //Log.write(TLog.Warning, "Explosion: X={0}, Y={1}, Z={2}, Wep={3}, Player={4}", posX, posY, posZ, weapon.id, player);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when a player notifies the server of an explosion
+        /// </summary>
+        [Scripts.Event("Player.DamageEvent")]
+        public bool playerDamageEvent(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
+        {
+            //Are they trying to catch?
+            if (player.getInventoryAmount(28) > 0 && inPlayers.ContainsKey(player))
+            {
+                //Yes, lets summon a teammate back in
+                IEnumerable<Player> teamPlayers = player._team.ActivePlayers.OrderBy(plyr => _rand.Next(0, 200));
+                foreach (Player p in teamPlayers)
                 {
-                    IEnumerable<Player> teamPlayers = players.First()._team.ActivePlayers.OrderBy(plyr => _rand.Next(0, 200));
-                    if (players.First().getInventoryAmount(28) > 0)
-                    {//Yes, lets summon a teammate back in
-                        foreach (Player p in teamPlayers)
-                        {
-                            if (p.IsDead)
-                                continue;
+                    if (p.IsDead)
+                        continue;
 
-                            if (p == player)
-                                continue;
+                    if (p == player)
+                        continue;
 
-                            if (inPlayers.ContainsKey(p))
-                                continue;
+                    if (inPlayers.ContainsKey(p))
+                        continue;
 
-                            if (p._team == team1)
-                                team1Count++;
-                            else
-                                team2Count++;
+                    inPlayers.Add(p, true);
+                    if (p._team == team1)
+                        team1Count++;
+                    else
+                        team2Count++;
 
-                            _arena.triggerMessage(5, 500, String.Format("{0} caught {1}'s ball and returned {2} to the court.", players.First()._alias, player._alias, p._alias));
-                            players.First().Cash += 800;
-                            players.First().sendMessage(0, "Catch award: (Cash=800)");
-                            inPlayers.Add(p, true);
-                            Player warpTo = players.First();
-                            p.warp(warpTo._state.positionX + _rand.Next(0, 15), warpTo._state.positionY + _rand.Next(0, 15));
-                            break;
-                        }
-                    }
+                    _arena.triggerMessage(5, 500, String.Format("{0} caught a ball and returned {1} to the court.", player._alias, p._alias));
+                    player.setVar("Catches", player.getVarInt("Catches") + 1);
+                    player.Cash += 800;
+                    player.sendMessage(0, "Catch award: (Cash=800)");
+                    p.warp(player._state.positionX + _rand.Next(0, 15), player._state.positionY + _rand.Next(0, 15));
+                    break;
                 }
+                //Log.write(TLog.Warning, "Player catch {0}", player);
+                //Run the damage event
+                return false;
             }
+            //Stop the damage event from being run
             return true;
         }
 
 		/// <summary>
-		/// Called when a player enters the game
+		/// Called when a player unspecs
 		/// </summary>
 		[Scripts.Event("Player.Enter")]
 		public void playerEnter(Player player)
@@ -175,6 +187,17 @@ namespace InfServer.Script.GameType_Dodgeball
 		[Scripts.Event("Player.Leave")]
 		public void playerLeave(Player player)
 		{
+            if (inPlayers.ContainsKey(player))
+            {
+                if (player._team == team1)
+                    team1Count--;
+                else
+                    team2Count--;
+
+                inPlayers.Remove(player);
+                return;
+            }
+
             updateQueue(queue);
 		}
 
@@ -187,13 +210,15 @@ namespace InfServer.Script.GameType_Dodgeball
         {	//We've started!
             _tickGameStarting = 0;
 
-            inPlayers = new Dictionary<Player, bool>();
+            //Clear out our dictionary of in players
+            inPlayers.Clear();
 
             foreach (Player p in _arena.PlayersIngame)
             {
                 inPlayers.Add(p, true);
-                int x = 0;
-                p.setVar("Hits", x);
+                p.setVar("Hits", 0);
+                p.setVar("Outs", 0);
+                p.setVar("Catches", 0);
             }
             team1Count = team1.ActivePlayerCount;
             team2Count = team2.ActivePlayerCount;
@@ -226,9 +251,17 @@ namespace InfServer.Script.GameType_Dodgeball
                 pcount = team2Count;
             }
 
-            _arena.sendArenaMessage("Game Over");
             _arena.sendArenaMessage(String.Format("&{0} are victorious with {1} player(s) left", _victoryTeam._name, pcount));
 
+			return false;
+		}
+
+        /// <summary>
+        /// Called when the statistical breakdown is displayed
+        /// </summary>
+        [Scripts.Event("Game.Breakdown")]
+        public bool breakdown()
+        {	//Allows additional "custom" per-arena breakdown information
 
             IEnumerable<Player> rankedPlayers;
             int idx;
@@ -242,23 +275,20 @@ namespace InfServer.Script.GameType_Dodgeball
                     break;
 
                 //Set up the format
-                string format = "!3rd - (Hits={0}): {1}";
+                string format = "!3rd - (Hits={0} Outs={1} Catches={2}): {3}";
 
                 switch (idx)
                 {
                     case 2:
-                        format = "!1st - (Hits={0}): {1}";
+                        format = "!1st - (Hits={0} Outs={1} Catches={2}): {3}";
                         break;
                     case 1:
-                        format = "!2nd - (Hits={0}): {1}";
+                        format = "!2nd - (Hits={0} Outs={1} Catches={2}): {3}";
                         break;
                 }
 
-                _arena.sendArenaMessage(String.Format(format, p.getVarInt("Hits"), p._alias));
-            }
+                _arena.sendArenaMessage(String.Format(format, p.getVarInt("Hits"), p.getVarInt("Outs"), p.getVarInt("Catches"), p._alias));
 
-            foreach (Player p in _arena.Players)
-            {
                 int hits = p.getVarInt("Hits");
                 int cash = 300 * hits;
                 int experience = 200 * hits;
@@ -266,22 +296,21 @@ namespace InfServer.Script.GameType_Dodgeball
                 p.Cash += cash;
                 p.KillPoints += points;
                 p.ExperienceTotal += experience;
-                p.sendMessage(0, String.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, experience, points)); 
+                p.sendMessage(0, String.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, experience, points));
                 p.resetVars();
                 p.syncState();
             }
 
-			return false;
-		}
+            //Always return true;
+            return true;
+        }
 
         /// <summary>
-        /// Called when the statistical breakdown is displayed
-        /// </summary>
-        [Scripts.Event("Game.Breakdown")]
-        public bool breakdown()
-        {	//Allows additional "custom" breakdown information
-
-            //Always return true;
+		/// Creates a breakdown tailored for one player
+		/// </summary>
+   		[Scripts.Event("Player.Breakdown")]
+		public bool individualBreakdown(Player from, bool bCurrent)
+        {
             return true;
         }
 
@@ -400,6 +429,7 @@ namespace InfServer.Script.GameType_Dodgeball
 
 
                 killer.setVar("Hits", killer.getVarInt("Hits") + 1);
+                victim.setVar("Outs", victim.getVarInt("Outs") + 1);
                 inPlayers.Remove(victim);
             }
 			return true;

@@ -39,7 +39,11 @@ namespace InfServer.Logic
 						{
 							if (idx >= players.Count)
 								return null;
-							return players[idx].StatsTotal;
+
+                            if (players[idx].StatsTotal != null)
+                                return players[idx].StatsTotal;
+
+                            return null;
 						};
 
 						player._client.sendReliable(chart, 1);
@@ -58,7 +62,11 @@ namespace InfServer.Logic
 						{
 							if (idx >= players.Count)
 								return null;
-							return players[idx].StatsCurrentGame;
+
+                            if (players[idx].StatsCurrentGame != null)
+                                return players[idx].StatsCurrentGame;
+
+                            return null;
 						};
 
 						player._client.sendReliable(chart, 1);
@@ -77,7 +85,11 @@ namespace InfServer.Logic
 						{
 							if (idx >= players.Count)
 								return null;
-							return players[idx].StatsLastGame;
+
+                            if (players[idx].StatsLastGame != null)
+                                return players[idx].StatsLastGame;
+
+                            return null;
 						};
 
 						player._client.sendReliable(chart, 1);
@@ -96,7 +108,11 @@ namespace InfServer.Logic
 						{
 							if (idx >= players.Count)
 								return null;
-							return players[idx].StatsCurrentSession;
+
+                            if (players[idx].StatsCurrentSession != null)
+                                return players[idx].StatsCurrentSession;
+
+                            return null;
 						};
 
 						player._client.sendReliable(chart, 1);
@@ -169,6 +185,7 @@ namespace InfServer.Logic
 
                         req.player = player.toInstance();
                         req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryDaily;
+
                         if (pkt.options == "")
                             req.options = player._alias.ToString();
                         else
@@ -184,6 +201,7 @@ namespace InfServer.Logic
 
                         req.player = player.toInstance();
                         req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryWeekly;
+
                         if (pkt.options == "")
                             req.options = player._alias.ToString();
                         else
@@ -199,6 +217,7 @@ namespace InfServer.Logic
 
                         req.player = player.toInstance();
                         req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryMonthly;
+
                         if (pkt.options == "")
                             req.options = player._alias.ToString();
                         else
@@ -214,6 +233,7 @@ namespace InfServer.Logic
 
                         req.player = player.toInstance();
                         req.type = CS_PlayerStatsRequest<Data.Database>.ChartType.ScoreHistoryYearly;
+
                         if (pkt.options == "")
                             req.options = player._alias.ToString();
                         else

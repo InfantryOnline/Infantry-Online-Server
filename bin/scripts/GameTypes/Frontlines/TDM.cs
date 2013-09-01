@@ -133,12 +133,6 @@ namespace InfServer.Script.GameType_FL_TDM
             }
             );
 
-            foreach (Team t in _arena.Teams)
-            {
-                t._calculatedKills = 0;
-                t._calculatedDeaths = 0;
-            }
-
             return true;
         }
 
@@ -152,9 +146,9 @@ namespace InfServer.Script.GameType_FL_TDM
             {
                 format = String.Format("{0}={1} - {2}={3}",
                     _arena.ActiveTeams.ElementAt(0)._name,
-                    _arena.ActiveTeams.ElementAt(0)._calculatedKills,
+                    _arena.ActiveTeams.ElementAt(0)._currentGameKills,
                     _arena.ActiveTeams.ElementAt(1)._name,
-                    _arena.ActiveTeams.ElementAt(1)._calculatedKills);
+                    _arena.ActiveTeams.ElementAt(1)._currentGameKills);
                 _arena.setTicker(1, 0, 0, format);
             }
 
@@ -283,8 +277,6 @@ namespace InfServer.Script.GameType_FL_TDM
         [Scripts.Event("Player.PlayerKill")]
         public bool playerPlayerKill(Player victim, Player killer)
         {
-            victim._team._calculatedDeaths++;
-            killer._team._calculatedKills++;
             return true;
         }
         #endregion

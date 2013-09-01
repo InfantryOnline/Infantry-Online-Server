@@ -344,7 +344,7 @@ namespace InfServer.Script.GameType_SKCTF
                 foreach (Team t in teams)
                 {
                     from.sendMessage(0, String.Format("!{0} (Points={1} Kills={2} Deaths={3}): {4}",
-                        ScriptHelpers.toOrdinal(j), _points[t], t._calculatedKills, t._calculatedDeaths, t._name));
+                        ScriptHelpers.toOrdinal(j), _points[t], t._currentGameKills, t._currentGameDeaths, t._name));
                     j++;
                 }
             }

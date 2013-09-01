@@ -265,6 +265,10 @@ namespace InfServer.Game
             activeUtilities = new List<ItemInfo.UtilityItem>();
 
             _msgTimeStamps = new List<DateTime>();
+
+            _statsSession = new Data.PlayerStats();
+            _statsGame = new Data.PlayerStats();
+            _statsLastGame = new Data.PlayerStats();
 		}
 
 		#region State
@@ -1522,9 +1526,6 @@ namespace InfServer.Game
 
 			//No basic stats
 			_stats = new InfServer.Data.PlayerStats();
-			_statsSession = new Data.PlayerStats();
-			_statsGame = null;
-			_statsLastGame = null;
 
             //Sets checker for a first time setup
             //event. Changed to be called after the arena
@@ -1555,9 +1556,6 @@ namespace InfServer.Game
 
 			//Copy basic stats
 			_stats = stats;
-			_statsSession = new Data.PlayerStats();
-			_statsGame = null;
-			_statsLastGame = null;
 
 			//Convert our inventory
 			foreach (Data.PlayerStats.InventoryStat stat in stats.inventory)

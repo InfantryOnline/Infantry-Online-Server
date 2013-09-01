@@ -101,7 +101,7 @@ namespace InfServer.Script.GameType_CTF
             }
 
             //Update our tickers
-            if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
+/*            if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
             {
                 if (now - _tickLastTickerUpdate > 1500)
                 {
@@ -109,6 +109,7 @@ namespace InfServer.Script.GameType_CTF
                     _tickLastTickerUpdate = now;
                 }
             }
+ */
             //Is anybody experiencing a victory?
             if (_tickVictoryStart != 0)
             {	//Have they won yet?
@@ -180,27 +181,35 @@ namespace InfServer.Script.GameType_CTF
                 }
             }
         }
+
         public void updateTickers()
         {
-            foreach (Team t in _arena.ActiveTeams)
-                t.precalculateStats(true);
-
+            int kills = 0;
+            int deaths = 0;
+            int pKills = 0;
+            int pDeaths = 0;
             string format;
+
             if (_arena.ActiveTeams.Count() > 1)
             {
                 //Team scores
                 format = String.Format("{0}={1} - {2}={3}",
                     _arena.ActiveTeams.ElementAt(0)._name,
-                   _arena.ActiveTeams.ElementAt(0)._calculatedKills,
+                   _arena.ActiveTeams.ElementAt(0)._currentGameKills,
                     _arena.ActiveTeams.ElementAt(1)._name,
-                    _arena.ActiveTeams.ElementAt(1)._calculatedKills);
+                    _arena.ActiveTeams.ElementAt(1)._currentGameKills);
                 _arena.setTicker(1, 2, 0, format);
 
                 //Personal scores
                 _arena.setTicker(2, 1, 0, delegate(Player p)
                 {
+                    if (p.StatsCurrentGame != null)
+                    {
+                        kills = p.StatsCurrentGame.kills;
+                        deaths = p.StatsCurrentGame.deaths;
+                    }
                     //Update their ticker
-                    return "Personal Score: Kills=" + p.StatsCurrentGame.kills + " - Deaths=" + p.StatsCurrentGame.deaths;
+                    return "Personal Score: Kills=" + kills + " - Deaths=" + deaths;
 
                 });
 
@@ -209,8 +218,14 @@ namespace InfServer.Script.GameType_CTF
                 int idx = 3; format = "";
                 foreach (Player rankers in ranking)
                 {
-                    if (!_arena.Players.Contains(rankers))
-                        continue;
+                    int rKills = 0;
+                    int rDeaths = 0;
+
+                    if (rankers.StatsCurrentGame != null)
+                    {
+                        rKills = rankers.StatsCurrentGame.kills;
+                        rDeaths = rankers.StatsCurrentGame.deaths;
+                    }
 
                     if (idx-- == 0)
                         break;
@@ -219,16 +234,16 @@ namespace InfServer.Script.GameType_CTF
                     {
                         case 2:
                             format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
-                            rankers.StatsCurrentGame.kills, rankers.StatsCurrentGame.deaths);
+                            rKills, rDeaths);
                             break;
                         case 1:
                             format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
-                              rankers.StatsCurrentGame.kills, rankers.StatsCurrentGame.deaths));
+                              rKills, rDeaths));
                             break;
                     }
                 }
-                if (!_arena.recycling)
-                    _arena.setTicker(2, 0, 0, format);
+//                if (!_arena.recycling)
+//                    _arena.setTicker(2, 0, 0, format);
             }
 
         }

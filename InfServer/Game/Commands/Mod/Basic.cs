@@ -809,26 +809,18 @@ namespace InfServer.Game.Commands.Mod
         static public void speclock(Player player, Player recipient, string payload, int bong)
         {
             //Lock Entire Arena
-            if (payload == "all" || (payload == null && recipient == null))
+            if (payload == "all" || (payload == "" && recipient == null))
             {
                 player._arena._bLocked = !player._arena._bLocked;
                 player._arena.sendArenaMessage("Arena lock has been toggled" + (player._arena._bLocked ? " ON!" : " OFF!"));
 
-                //Spec them all.
-                /*
-                if (player._arena._bLocked)
-                {
-                    foreach (Player p in player._arena.Players.ToList())
-                        p.spec();
-                }
-                */
                 return;
             }
 
             //Sanity checks
             if (recipient == null)
             {
-                player.sendMessage(-1, "Syntax: ::*lock");
+                player.sendMessage(-1, "Syntax: ::*lock or *lock");
                 return;
             }
 

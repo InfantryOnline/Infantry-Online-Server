@@ -44,7 +44,7 @@ namespace InfServer.Protocol
 				ChartRequest = 0x11,
                 //Unknown packet #18 = 0x12, has to do with joining a zone.. contains the playerID and 3 other 00 bytes
                 SendBannerTo = 0x13,
-                //SendBanner = 0x14,
+                DamageEvent = 0x14,
 				Frames = 0x15,
                 PlayerDrop = 0x17,
                 Chat = 0x18,

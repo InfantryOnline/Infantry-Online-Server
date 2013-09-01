@@ -192,7 +192,7 @@ namespace InfServer.Game
 
                 //Update our team stats
                 if (_team != null)
-                    _team._currentGameKills += value;
+                    _team._currentGameKills += diff;
 			}	
 		}
 
@@ -220,7 +220,7 @@ namespace InfServer.Game
 
                 //Update our team stats
                 if (_team != null)
-                    _team._currentGameDeaths += value;
+                    _team._currentGameDeaths += diff;
 			}
 		}
 
@@ -739,8 +739,8 @@ namespace InfServer.Game
             //Retrieve his stats
 			_stats = _suspStats;
 			_statsSession = new Data.PlayerStats();
-            _statsGame = _statsLastGame;
-			_statsLastGame = null;
+            _statsGame = (_statsLastGame == null) ? new InfServer.Data.PlayerStats() : _statsLastGame;
+            _statsLastGame = null;
 
 			_inventory = _suspInventory;
 			_skills = _suspSkills;

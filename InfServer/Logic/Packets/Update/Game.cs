@@ -523,6 +523,30 @@ namespace InfServer.Logic
             );
         }
 
+        /// <summary>
+        /// Handles a damage event notifier from a client
+        /// </summary>
+        static public void Handle_CS_DamageEvent(CS_DamageEvent pkt, Player player)
+        {	//Allow the player's arena to handle it
+            if (player._arena == null)
+            {
+                Log.write(TLog.Error, "Player {0} sent damage event update packet with no arena.", player);
+                return;
+            }
+
+            if (player.IsSpectator)
+            {
+                Log.write(TLog.Warning, "Player {0} attempted to trigger a damage event from spec.", player);
+                return;
+            }
+
+            player._arena.handleEvent(delegate(Arena arena)
+            {
+                player._arena.handlePlayerDamageEvent(player, pkt);
+            }
+            );
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -544,6 +568,7 @@ namespace InfServer.Logic
 			CS_RequestSpectator.Handlers += Handle_CS_RequestSpectator;
 			CS_ItemExpired.Handlers += Handle_CS_ItemExpired;
             CS_VehiclePickup.Handlers += Handle_CS_VehiclePickup;
+            CS_DamageEvent.Handlers += Handle_CS_DamageEvent;
 		}
 	}
 }

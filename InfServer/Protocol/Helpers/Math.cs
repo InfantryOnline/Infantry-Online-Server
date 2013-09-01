@@ -265,7 +265,14 @@ namespace InfServer.Protocol
 		/// <param name="y1">y-component of the other vertex</param>
 		/// <returns>All tiles that intersect with the line segment</returns>
 		static public List<LvlInfo.Tile> calcBresenhems(Arena arena, short x0, short y0, short x1, short y1)
-		{	//Make sure we're dealing with just tile coordinates
+		{
+            if (arena == null)
+            {
+                Log.write(TLog.Error, "calcBresenhems(): Called with null arena.");
+                return null;
+            }
+
+            //Make sure we're dealing with just tile coordinates
 			x0 /= 16;
 			y0 /= 16;
 			x1 /= 16;

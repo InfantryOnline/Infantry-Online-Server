@@ -589,6 +589,9 @@ namespace InfServer.Game
                 //Do we have any players that need to be unsilenced?
                 foreach (Player p in _players.ToList())
                 {
+                    if (p == null)
+                        continue;
+
                     if (!p._bSilenced)
                         continue;
 
@@ -717,15 +720,13 @@ namespace InfServer.Game
 				pollBots();
 			}
 		}
+
         /// <summary>
         /// Returns a specific item in the specified area
         /// </summary>
         public List<ItemDrop> getItemsInRange(short x, short y, int range)
         {//2
             List<ItemDrop> returnDrops = new List<ItemDrop>();
-
-            int bestX = -1;
-            int bestY = -1;
 
             foreach (ItemDrop drop in _items.Values)
             {

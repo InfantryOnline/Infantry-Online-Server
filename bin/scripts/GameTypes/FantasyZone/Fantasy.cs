@@ -27,7 +27,7 @@ namespace InfServer.Script.GameType_Fantasy
         private List<BookInfo> _books;
         private List<RecipeInfo> _recipes;
         //   private List<Chest> _chests;
-        //   private Dictionary<Player, Helper.oState> _oStates;
+     //   private Dictionary<Player, Helper.oState> _oStates;
 
         private int _jackpot;					//The game's jackpot so far
 
@@ -479,7 +479,7 @@ namespace InfServer.Script.GameType_Fantasy
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
             _gameWon = false;
-
+            
             foreach (var s in _spawns)
                 foreach (var w in s._waypoints)
                 {
@@ -494,7 +494,7 @@ namespace InfServer.Script.GameType_Fantasy
                                     _arena.Teams.ElementAt(7), null,
                                    waypointState);
                 }
-
+            
             return true;
         }
 
@@ -552,65 +552,65 @@ namespace InfServer.Script.GameType_Fantasy
         {
             return true;
         }
-        /// <summary>
-        /// Triggered when a player requests to drop an item
-        /// </summary>
-        [Scripts.Event("Player.ItemDrop")]
-        public bool playerItemDrop(Player player, ItemInfo item, ushort quantity)
-        {
-            if (_arena.getTerrainID(player._state.positionX, player._state.positionY) == 10)
-            {
-
-                if (player.inventoryModify(item, -quantity))
+                /// <summary>
+                /// Triggered when a player requests to drop an item
+                /// </summary>
+                [Scripts.Event("Player.ItemDrop")]
+                public bool playerItemDrop(Player player, ItemInfo item, ushort quantity)
                 {
-                    //We want to continue wrapping around the vehicleid limits
-                    //looking for empty spots.
-                    ushort ik;
+                    if (_arena.getTerrainID(player._state.positionX, player._state.positionY) == 10)
+                    {
 
-                    for (ik = _arena._lastItemKey; ik <= Int16.MaxValue; ++ik)
-                    {	//If we've reached the maximum, wrap around
-                        if (ik == Int16.MaxValue)
+                        if (player.inventoryModify(item, -quantity))
                         {
-                            ik = (ushort)ZoneServer.maxPlayers;
-                            continue;
+                            //We want to continue wrapping around the vehicleid limits
+                            //looking for empty spots.
+                            ushort ik;
+
+                            for (ik = _arena._lastItemKey; ik <= Int16.MaxValue; ++ik)
+                            {	//If we've reached the maximum, wrap around
+                                if (ik == Int16.MaxValue)
+                                {
+                                    ik = (ushort)ZoneServer.maxPlayers;
+                                    continue;
+                                }
+
+                                //Does such an item exist?
+                                if (_arena._items.ContainsKey(ik))
+                                    continue;
+
+                                //We have a space!
+                                break;
+                            }
+
+                            _arena._lastItemKey = ik;
+                            //Create our drop class		
+                            Arena.ItemDrop id = new Arena.ItemDrop();
+
+                            id.item = item;
+                            id.id = ik;
+                            id.quantity = (short)quantity;
+                            id.positionX = player._state.positionX;
+                            id.positionY = player._state.positionY;
+                            id.relativeID = (0 == 0 ? item.relativeID : 0);
+                            id.freq = player._team._id;
+
+                            id.owner = player; //For bounty abuse upon pickup
+
+                            int expire = _arena.getTerrain(player._state.positionX, player._state.positionY).prizeExpire;
+                            id.tickExpire = (expire > 0 ? (Environment.TickCount + (expire * 1000)) : 0);
+
+                            //Add it to our list
+                            _arena._items[ik] = id;
+
+                            //Notify JUST the player
+                            Helpers.Object_ItemDrop(player, id);
                         }
-
-                        //Does such an item exist?
-                        if (_arena._items.ContainsKey(ik))
-                            continue;
-
-                        //We have a space!
-                        break;
+                        return false;
                     }
-
-                    _arena._lastItemKey = ik;
-                    //Create our drop class		
-                    Arena.ItemDrop id = new Arena.ItemDrop();
-
-                    id.item = item;
-                    id.id = ik;
-                    id.quantity = (short)quantity;
-                    id.positionX = player._state.positionX;
-                    id.positionY = player._state.positionY;
-                    id.relativeID = (0 == 0 ? item.relativeID : 0);
-                    id.freq = player._team._id;
-
-                    id.owner = player; //For bounty abuse upon pickup
-
-                    int expire = _arena.getTerrain(player._state.positionX, player._state.positionY).prizeExpire;
-                    id.tickExpire = (expire > 0 ? (Environment.TickCount + (expire * 1000)) : 0);
-
-                    //Add it to our list
-                    _arena._items[ik] = id;
-
-                    //Notify JUST the player
-                    Helpers.Object_ItemDrop(player, id);
+                    return true;
                 }
-                return false;
-            }
-            return true;
-        }
-
+        
         /// <summary>
         /// Handles a player's portal request
         /// </summary>
@@ -856,7 +856,7 @@ namespace InfServer.Script.GameType_Fantasy
         public bool playerExplosion(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
         {
             //Teleport
-            if (weapon.id == 1127 || weapon.id == 1130 || weapon.id == 1131 || weapon.id == 1137)
+            if (weapon.id == 1130)
             {   //Warp the player to the location
                 player.warp(posX, posY);
             }
@@ -1017,11 +1017,11 @@ namespace InfServer.Script.GameType_Fantasy
         [Scripts.Event("Vehicle.Death")]
         public bool vehicleDeath(Vehicle dead, Player killer)
         {
-            #region Stone Skin
+             #region Stone Skin
             if (dead._type.Id == 121)
             {
                 dead.destroy(true, true);
-                return false;
+               return false;
             }
             #endregion
 

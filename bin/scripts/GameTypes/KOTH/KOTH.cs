@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
@@ -191,9 +191,9 @@ namespace InfServer.Script.GameType_KOTH
                     continue;
 
                 //Obtain the respective rewards
-                int cashReward = _config.king.cashReward * _arena.PlayerCount;
-                int experienceReward = _config.king.experienceReward * _arena.PlayerCount;
-                int pointReward = _config.king.pointReward * _arena.PlayerCount;
+                int cashReward = _config.king.cashReward;
+                int experienceReward = _config.king.experienceReward;
+                int pointReward = _config.king.pointReward;
 
                 p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
 
@@ -287,28 +287,21 @@ namespace InfServer.Script.GameType_KOTH
         {	//We've started!
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
-            _playerCrownStatus.Clear();            
+            _playerCrownStatus.Clear();
 
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", 1);
 
-            foreach (Team t in _arena.Teams)
-            {
-                t._calculatedKills = 0;
-                t._calculatedDeaths = 0;
-            }
-
             _crownTeams = new List<Team>();
             _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
             List<Player> crownPlayers = (_config.king.giveSpecsCrowns ? _arena.Players : _arena.PlayersIngame).ToList();
-            
+
             //Check for first game to spawn flags, otherwise leave them alone
             if (_firstGame)
             {
                 _arena.flagSpawn();
                 _firstGame = false;
             }
-           
 
             foreach (var p in crownPlayers)
             {
@@ -329,14 +322,14 @@ namespace InfServer.Script.GameType_KOTH
             //string format;
             if (_arena.ActiveTeams.Count() > 1)
             {//Show players their crown timer using a ticker
-                    _arena.setTicker(1, 0, 0, delegate(Player p)
-                    {
-                        if (_playerCrownStatus.ContainsKey(p) && _playerCrownStatus[p].crown)                        
-                            return String.Format("Crown Timer: {0}", (_playerCrownStatus[p].expireTime - Environment.TickCount) / 1000);
-                       
-                        else 
-                            return "";
-                    } );
+                _arena.setTicker(1, 0, 0, delegate(Player p)
+                {
+                    if (_playerCrownStatus.ContainsKey(p) && _playerCrownStatus[p].crown)
+                        return String.Format("Crown Timer: {0}", (_playerCrownStatus[p].expireTime - Environment.TickCount) / 1000);
+
+                    else
+                        return "";
+                });
             }
         }
 
@@ -369,13 +362,13 @@ namespace InfServer.Script.GameType_KOTH
         {	//Show some statistics!
             return false;
         }
+
         /// <summary>
         /// Called when the statistical breakdown is displayed
         /// </summary>
         [Scripts.Event("Game.Breakdown")]
         public bool breakdown()
         {	//Allows additional "custom" breakdown information
-
 
             //Always return true;
             return false;
@@ -407,11 +400,11 @@ namespace InfServer.Script.GameType_KOTH
                     player.sendMessage(0, "&Crown kills: " + _playerCrownStatus[player].crownKills);
             }
 
-           /* if (command.ToLower().Equals("Skear"))
-            {
-                foreach (LioInfo.Hide firework in _arena._server._assets.Lios.Hides.Where(h => h.GeneralData.Name.ToLower().Contains("firework")))
-                    Helpers.Player_RouteExplosion(_arena.Players, (short)firework.HideData.HideId, firework.GeneralData.OffsetX, firework.GeneralData.OffsetY, 0, 0);
-            }*/
+            /* if (command.ToLower().Equals("Skear"))
+             {
+                 foreach (LioInfo.Hide firework in _arena._server._assets.Lios.Hides.Where(h => h.GeneralData.Name.ToLower().Contains("firework")))
+                     Helpers.Player_RouteExplosion(_arena.Players, (short)firework.HideData.HideId, firework.GeneralData.OffsetX, firework.GeneralData.OffsetY, 0, 0);
+             }*/
             return true;
         }
 
@@ -467,7 +460,7 @@ namespace InfServer.Script.GameType_KOTH
         {
             //Check if a game is running
             if (_activeCrowns.Count == 0)
-                return true;           
+                return true;
 
             if (_playerCrownStatus[victim].crown)
             {   //Incr crownDeaths

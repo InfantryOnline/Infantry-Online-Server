@@ -243,7 +243,10 @@ namespace InfServer.Game
 
 			foreach (Player p in inTrackingRange)
 			{
-				// Since we used the box to look for players, quit if we're looking beyond tracking range (in corners)				
+                if (p == null)
+                    continue;
+
+				// Since we used the box to look for players, quit if we're looking beyond tracking range (in corners)
 				if (isValidTarget(p)) return p;
 			}
 
@@ -254,7 +257,13 @@ namespace InfServer.Game
 		/// Compute if a player is a valid target that satisfies the turret's config parameters
 		/// </summary>		
 		protected virtual bool isValidTarget(Player p)
-		{					
+		{
+            if (p == null)
+            {
+                Log.write(TLog.Error, "isValidTarget(): Called with null player.");
+                return false;   //I dunno -X15
+            }
+
 			// Don't fire at spectators
 			if (p.IsSpectator) return false;
 
@@ -302,7 +311,14 @@ namespace InfServer.Game
         /// <param name="p">player to check</param>
         /// <returns>true if player cannot be seen</returns>
 		protected Boolean IsPlayerOccluded(Player p)
-        {   //Pretty ugly way to get it done but it works perfectly. Vision tiles are all calculated seemingly fine. If you have a better way of doing it, by all means. - Super-man
+        {
+            if (p == null || p._arena == null)
+            {
+                Log.write(TLog.Error, "IsPlayerOccluded(): Called with null player and / or arena.");
+                return true; //True? False? I dunno -X15
+            }
+
+            //Pretty ugly way to get it done but it works perfectly. Vision tiles are all calculated seemingly fine. If you have a better way of doing it, by all means. - Super-man
             int tileSize = 8; //8 is nonexistant.
             int tileDistance = 0;
             List<LvlInfo.Tile> tiles = Helpers.calcBresenhems(p._arena, _state.positionX, _state.positionY, p._state.positionX, p._state.positionY);

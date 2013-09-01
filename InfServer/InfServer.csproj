@@ -266,6 +266,7 @@
     <Compile Include="Protocol\Packets\Game\State\SC_LIOUpdates.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_Items.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_PlayerEnter.cs" />
+    <Compile Include="Protocol\Packets\Game\Update\CS_DamageEvent.cs" />
     <Compile Include="Protocol\Packets\Login\SC_EnterArena.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_PlayerLeave.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_PlayerState.cs" />

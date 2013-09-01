@@ -165,6 +165,9 @@ namespace InfServer.Game
 
             _players = new List<Player>();
             _tInventory = new Dictionary<int, TeamInventoryItem>();
+
+            _currentGameKills = 0;
+            _currentGameDeaths = 0;
         }
 
         #region State

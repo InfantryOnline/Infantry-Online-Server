@@ -58,8 +58,14 @@ namespace InfServer
 		/// </summary>
 		public void destroy()
 		{
+            //Remove the players from the zone and chats.
+            foreach (KeyValuePair<int, Player> p in this._players.ToList())
+            {
+                lostPlayer(p.Key);
+            }
+
+            //Remove the zone from the list
             _server._zones.Remove(this);
-            Log.write("{0} disconnected gracefully", _zone.name);
 		}
 
 		/// <summary>
@@ -166,6 +172,8 @@ namespace InfServer
 		{	//Attempt to remove him
             if (!_players.Keys.Contains(id))
                 return;
+
+            //Remove him from the base db list
             _server.lostPlayer(_players[id]);
             //Remove him from the zone player list
             _players.Remove(id);

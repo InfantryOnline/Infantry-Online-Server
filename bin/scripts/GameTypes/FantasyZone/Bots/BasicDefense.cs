@@ -184,7 +184,7 @@ namespace InfServer.Script.GameType_Fantasy
             if (_targetPlayer == null || _targetVehicle == null || now - _lastTargetSearch > _lockInTime)
             {
                 _targetPlayer = getTargetPlayer();
-                _targetVehicle = getTargetVehicle();
+                //_targetVehicle = getTargetVehicle();
             }
 
             //Check if we have any player targets
@@ -220,21 +220,21 @@ namespace InfServer.Script.GameType_Fantasy
             //We have the option of moving farther away from home when engaged in combat
             if (Helpers.distanceTo(_state, _home._state) < _attackRadius && _targetPlayer != null)
             {
-                   Vehicle waypoint = getWaypoint(402);
-                   if (waypoint != null && Helpers.distanceTo(_state, waypoint._state) < Helpers.distanceTo(_state, _targetPlayer._state))
-                       goToWaypoint();
-                   else
-                        attackPlayer();
-                        
+                Vehicle waypoint = getWaypoint(402);
+                if (waypoint != null && Helpers.distanceTo(_state, waypoint._state) < Helpers.distanceTo(_state, _targetPlayer._state))
+                    goToWaypoint();
+                else
+                    attackPlayer();
+
                 return base.poll();
             }
             if (Helpers.distanceTo(_state, _home._state) > _distanceFromHome && _targetPlayer == null)
             {
-                    Vehicle waypoint = getWaypoint(402);
-                    if (waypoint != null && Helpers.distanceTo(_state, waypoint._state) < Helpers.distanceTo(_state, _home._state))
-             
+                Vehicle waypoint = getWaypoint(402);
+                if (waypoint != null && Helpers.distanceTo(_state, waypoint._state) < Helpers.distanceTo(_state, _home._state))
+
                     goToWaypoint();
-                   else
+                else
                     goHome();
                 return base.poll();
             }
@@ -246,7 +246,7 @@ namespace InfServer.Script.GameType_Fantasy
                 goToWaypoint();
             else
                 goPatrol();
-            
+
 
             //Handle normal functionality
             return base.poll();
@@ -668,8 +668,8 @@ namespace InfServer.Script.GameType_Fantasy
                     homeIDs.Add(s.spawnID);
 
                 if (homeIDs.Contains(v._type.Id))
-                    continue;   
-                        
+                    continue;
+
                 if (v._type.Id == _homeID)
                     continue;
 

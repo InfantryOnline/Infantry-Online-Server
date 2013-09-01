@@ -196,6 +196,12 @@ namespace InfServer.Game
 		public virtual void handleBotDeath(Bot dead, Player killer, int weaponID)
 		{ }
 
+        /// <summary>
+        /// Triggered when a player notifies the server of a damage event
+        /// </summary>
+        public virtual void handlePlayerDamageEvent(Player from, CS_DamageEvent update)
+        { }
+
 		#endregion
 	}
 }

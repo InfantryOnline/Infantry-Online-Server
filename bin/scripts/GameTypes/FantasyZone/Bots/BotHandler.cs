@@ -1,4 +1,4 @@
-﻿/*using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,44 +24,19 @@ namespace InfServer.Script.GameType_Fantasy
 
         //Bot spawns
         private List<fantasyBot> _spawns = new List<fantasyBot>();
-        public class fantasyBot
+        private class fantasyBot
         {
-            //General settings
-            public int ID;                  //Our bot ID
-            public int vehID;               //Our vehicle ID
-            public int spawnID;             //Vehicle ID of where we spawn
-            public int count;               //Current amount of this bot
-            public int max;                 //Max amount of this bot for assigned spawn
-            public int multiple;            //Multiple of bots to spawn at one time
-            public int ticksBetweenSpawn;   //How many ticks to wait in between spawns
+            public int vehID;
+            public int spawnID;
+            public int count;
+            public int max;
 
-            //Targetting settings
-            public bool atkBots;    //Do we attack bots
-            public bool atkVeh;     //Do we attack computer vehicles?
-            public bool atkPlayer;  //Do we attack players?
-            public bool atkCloak;   //Do we attack cloakers?
-
-            //Spawn point settings
-            public bool relyOnSpawn;//Do we cease to exist when our spawn point is missing
-
-            //Distances
-            public int defenseRadius;       //Distance from player until we attack them
-            public int distanceFromHome;    //Distance from home we have to be to ignore targets and run back [if not fighting]
-            public int patrolRadius;        //Radius to patrol around home
-            public int lockInTime;          //Amount of time we spend focused on one target
-            public int attackRadius;        //Distance from home that we keep engaging units
-            //      public bool patrolWaypoints;       //Whether or not to use waypoints for patrol
-
-            //Weapon settings
-
-            //Utility settings
-
-
-            public fantasyBot(int id)
+            public fantasyBot(int bid, int sid, int m)
             {
-                //General settings
-                ID = id;
-
+                vehID = bid;
+                spawnID = sid;
+                count = 0;
+                max = m;
             }
 
         }
@@ -107,4 +82,3 @@ namespace InfServer.Script.GameType_Fantasy
         }
     }
 }
-*/

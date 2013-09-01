@@ -19,7 +19,10 @@ namespace InfServer.Game
 	{	// Member variables
 		///////////////////////////////////////////////////
 		private Dictionary<ushort, Player> _players;		//The players in our zone, indexed by id
+
+        //TODO: Get rid of this stupid thing!
 		private Dictionary<string, Player> _nameToPlayer;	//Player name lookup
+
 		public ushort _lastPlayerKey;						//The last player key to be allocated
 
 		//Settings
@@ -92,7 +95,7 @@ namespace InfServer.Game
 				newPlayer._alias = alias;
 				newPlayer._server = this;
 
-				Log.write(TLog.Normal, "New player: " + alias);
+				Log.write(TLog.Normal, "New player: " + newPlayer);
 
 				_players[pk] = newPlayer;
 				_nameToPlayer[alias.ToLower()] = newPlayer;
@@ -130,6 +133,11 @@ namespace InfServer.Game
 		/// </summary>
 		public void lostPlayer(Player player)
 		{
+            if (player == null)
+            {
+                Log.write(TLog.Error, "lostPlayer(): Called with null player.");
+                return;
+            }
             // find users throttling logins
             // problem: users cannot leave zone and join the same one for 10 seconds
             // add: message informing user to wait so their client won't hang
@@ -151,7 +159,7 @@ namespace InfServer.Game
 			{	//Is it present in our list?
 				if (!_players.ContainsKey(player._id))
 				{	//Notify and discontinue
-					Log.write(TLog.Error, "Lost a player which wasn't present in the ZoneServer list.");
+					Log.write(TLog.Error, "Lost player '{0}' who wasn't present in the ZoneServer list.", player);
 					return;
 				}
 				
@@ -159,7 +167,7 @@ namespace InfServer.Game
 				_players.Remove(player._id);
 				_nameToPlayer.Remove(player._alias);
 
-				Log.write(TLog.Normal, "Lost player: " + player._alias);
+				Log.write(TLog.Normal, "Lost player: " + player);
 	
 				//Disconnect him from the server
 				removeClient(player._client);

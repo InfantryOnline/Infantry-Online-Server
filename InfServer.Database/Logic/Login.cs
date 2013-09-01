@@ -54,14 +54,10 @@ namespace InfServer.Logic
 
 			server._zones.Add(zone);
 
+            //Called on connection close / timeout
             zone._client.Destruct += delegate(NetworkClient nc)
 			{
-				server._zones.Remove(zone);
-                //Remove them from the base db server list.
-                foreach (var player in zone._players.Values)
-                {
-                    zone._server.lostPlayer(player);
-                }
+                zone.destroy();
 			};
 
 			//Success!
@@ -367,6 +363,7 @@ namespace InfServer.Logic
                 }
             }
 
+            //Remove the player from the zone
 			zone.lostPlayer(pkt.player.id);
 		}
 
@@ -375,7 +372,10 @@ namespace InfServer.Logic
 		/// </summary>
         static public void Handle_Disconnect(Disconnect<Zone> pkt, Zone zone)
         {
-            zone.destroy();
+            Log.write("{0} disconnected gracefully", zone._zone.name);
+
+            //Close our connection, calls zone._client.Destruct
+            zone._client.destroy();
         }
 
 		/// <summary>
