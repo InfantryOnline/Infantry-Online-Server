@@ -163,6 +163,7 @@
     <Compile Include="Bots\DuelBot\DuelBot.cs" />
     <Compile Include="Bots\FollowBot\FollowBot.cs" />
     <Compile Include="GameTypes\Basic\Basic.cs" />
+    <Compile Include="GameTypes\Blank\Blank.cs" />
     <Compile Include="GameTypes\BugHunt\BugHunt.cs" />
     <Compile Include="GameTypes\CTFHQ\Bots\BasicDefense.cs" />
     <Compile Include="GameTypes\CTFHQ\Bots\Captain.cs" />
@@ -190,6 +191,9 @@
     <Compile Include="GameTypes\HQ\Events.cs" />
     <Compile Include="GameTypes\HQ\Objects\HQ.cs" />
     <Compile Include="GameTypes\KOTH\KOTH.cs" />
+    <Compile Include="GameTypes\LaserTag\Events.cs" />
+    <Compile Include="GameTypes\LaserTag\LaserTag.cs" />
+    <Compile Include="GameTypes\LaserTag\Objects\HQ.cs" />
     <Compile Include="GameTypes\MOBA\Minions\Projectile.cs" />
     <Compile Include="GameTypes\MOBA\Minions\RangeMinion.cs" />
     <Compile Include="GameTypes\MOBA\Objects\Level.cs" />
@@ -200,6 +204,8 @@
     <Compile Include="GameTypes\TDM\TDM.cs" />
     <Compile Include="GameTypes\CTF\CTF_OvD\OvD.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />
+    <Compile Include="GameTypes\USL\Rating.cs" />
+    <Compile Include="GameTypes\USL\TDM.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\ChopperEnding.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\CombatBot.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\DualZombieBot.cs" />
@@ -214,6 +220,7 @@
     <Compile Include="GameTypes\ZombieZone\ZombieTransitions.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieZone.cs" />
     <Compile Include="GameTypes\ZombieZone\ZombieZone.Stats.cs" />
+    <Compile Include="GameTypes\ZombieZone\ZZExtensions.cs" />
     <Compile Include="Helpers\Functions.cs" />
     <Compile Include="GameTypes\MOBA\Minions\JungleBot.cs" />
     <Compile Include="GameTypes\MOBA\Minions\MeleeMinion.cs" />
