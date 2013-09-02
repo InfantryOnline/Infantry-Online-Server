@@ -84,8 +84,7 @@ namespace InfServer.Game
                 base.playerEnter(player);
 
                 //Pass it to the script environment
-                if (exists("Game.Enter"))
-                    callsync("Player.Enter", false, player);
+                callsync("Player.Enter", false, player);
             }
             else
                 Log.write(TLog.Error, "playerEnter(): Called with null player");
@@ -101,8 +100,7 @@ namespace InfServer.Game
             if (player != null)
             {
                 //Pass it to the script environment
-                if (exists("Player.Leave"))
-                    callsync("Player.Leave", false, player);
+                callsync("Player.Leave", false, player);
 
                 base.playerLeave(player);
             }
@@ -216,8 +214,7 @@ namespace InfServer.Game
             }
 			
 			//Pass it to the script environment
-            if (exists("Game.Start"))
-                callsync("Game.Start", false);
+            callsync("Game.Start", false);
 		}
         #endregion
 
@@ -258,8 +255,7 @@ namespace InfServer.Game
                 pollQuestion(this, true);
 
 			//Pass it to the script environment
-            if (exists("Game.End"))
-                callsync("Game.End", false);
+            callsync("Game.End", false);
 		}
         #endregion
 
@@ -277,8 +273,7 @@ namespace InfServer.Game
 				resetVehicles();
 
 			//Pass it to the script environment
-            if (exists("Game.Reset"))
-                callsync("Game.Reset", false);
+            callsync("Game.Reset", false);
 		}
         #endregion
 
@@ -300,7 +295,7 @@ namespace InfServer.Game
                 Log.write(TLog.Error, "Player {0} has no stats.", from);
 
             //Give the script a chance to take over
-			if (exists("Player.Breakdown") && (bool)callsync("Player.Breakdown", false, from, bCurrent))
+			if ((bool)callsync("Player.Breakdown", false, from, bCurrent))
 				return;
 
 			//Display Team Stats?
@@ -1360,8 +1355,7 @@ namespace InfServer.Game
                 //Perform the skill modify
                 if (from.skillModify(skill, 1))
                     //Success! Forward to our script
-                    if (exists("Shop.SkillPurchase"))
-                        callsync("Shop.SkillPurchase", false, from, skill);
+                    callsync("Shop.SkillPurchase", false, from, skill);
 		}
         #endregion
 
@@ -2189,6 +2183,12 @@ namespace InfServer.Game
                 return;
             }
 
+            if (from == null)
+            {
+                Log.write(TLog.Warning, "handleVehiclePickup(): Called with null player.");
+                return;
+            }
+
             //Find the vehicle item in question
             lock (_vehicles)
             {
@@ -2240,6 +2240,12 @@ namespace InfServer.Game
                 {
                     if (veh.Type == VehInfo.Types.Computer)
                     {
+                        if (from._team == null)
+                        {
+                            Log.write(TLog.Error, "handleVehiclePickup(): Player has no team.");
+                            return;
+                        }
+
                         VehInfo.Computer comp = veh as VehInfo.Computer;
                         List<Vehicle> vehicles = from._arena.getVehiclesInRange(from._state.positionX, from._state.positionY,
                                 (comp.DensityRadius > 0 ? comp.DensityRadius : comp.DensityRadius + 50));
@@ -2249,25 +2255,25 @@ namespace InfServer.Game
                             //Lets check for same team/taking ownership or stealing ownership
                             foreach (Vehicle see in vehicles)
                             {
-                                if (see != null && see._team != null)
+                                if (see == null || see._team == null)
+                                    continue;
+
+                                if (see._team == from._team)
+                                    found++;
+                                else if (see._type.Type == VehInfo.Types.Computer)
                                 {
-                                    if (see._team._name.ToLower().Equals(from._team._name.ToLower()))
+                                    VehInfo.Computer check = see._type as VehInfo.Computer;
+                                    if (Logic_Assets.SkillCheck(from, check.LogicTakeOwnership))
                                         found++;
-                                    else if (see._type.Type == VehInfo.Types.Computer)
-                                    {
-                                        VehInfo.Computer check = see._type as VehInfo.Computer;
-                                        if (Logic_Assets.SkillCheck(from, check.LogicTakeOwnership))
-                                            found++;
-                                        if (Logic_Assets.SkillCheck(from, check.LogicStealOwnership))
-                                            found++;
-                                    }
+                                    if (Logic_Assets.SkillCheck(from, check.LogicStealOwnership))
+                                        found++;
                                 }
                             }
 
                             //Sanity check for hackers
                             if (quantity > found)
                             {
-                                Log.write(TLog.Warning, "Player {0} tried picking up more then 1 at a time.", from._alias);
+                                Log.write(TLog.Warning, "Player {0} tried picking up more then 1 vehicle at a time.", from._alias);
                                 return;
                             }
 
@@ -2399,7 +2405,7 @@ namespace InfServer.Game
             Log.write(TLog.Warning, "DamageEvent: Unk={0}, Wep={1} ({2}), Player={3}", update.positionZ, usedWep.name, usedWep.id, from);
 
             //Forward to our script
-            if (exists("Player.DamageEvent") && !(bool)callsync("Player.DamageEvent", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
+            if (!(bool)callsync("Player.DamageEvent", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
             {
                 //Did this weapon even harm us?
                 /*                switch (usedWep.damageMode)

@@ -149,7 +149,7 @@ namespace InfServer.Game
             if (exists(name))
                 return EventObjects.callsync(this, name, bSync, args);
             else
-                return null;
+                return false;
 		}
 
 		/// <summary>

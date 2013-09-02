@@ -87,7 +87,7 @@ namespace InfServer.Logic
             {
                 qualified = expr(booleanString, ref pos);
             }
-            catch (ParseException e)
+            catch (Exception e)
             {
                 Log.write(TLog.Error, "Error parsing building string: '{0}', {1}", cleanString, e);
             }
@@ -106,6 +106,7 @@ namespace InfServer.Logic
 			
 			// First, we kill all spaces (if any), then replace all the junk with proper boolean values.				
 			// Then Calculate boolean values for all the shit in the expression.
+            // Returns "1" or "0" for each value 
 			String booleanString = paramRegex.Replace(skillString.TrimStart('&'), delegate(Match m)
 			{
 				bool val;
@@ -153,7 +154,7 @@ namespace InfServer.Logic
 			}
 			catch (Exception e)
 			{
-				Log.write(TLog.Error, "Error parsing skill string '{0}', {1}", skillString, e);
+				Log.write(TLog.Error, "Error parsing skill string '{0}' as '{1}', {2}", skillString, booleanString, e);
 			}
 
 			return bQualified;
@@ -178,7 +179,7 @@ namespace InfServer.Logic
         private static bool expr(String exp, ref int pos)
 		{
 			bool x = and_expr(exp, ref pos);
-			while (pos < exp.Length && exp[pos] == '|')
+			while ((pos + 1) < exp.Length && exp[pos] == '|')
 			{
 				pos++;
 				x |= and_expr(exp, ref pos);
@@ -189,7 +190,7 @@ namespace InfServer.Logic
 		private static bool and_expr(String exp, ref int pos)
 		{
 			bool x = not_expr(exp, ref pos);
-			while (pos < exp.Length && exp[pos] == '&')
+			while ((pos + 1) < exp.Length && exp[pos] == '&')
 			{
 				pos++;
 				x &= not_expr(exp, ref pos);

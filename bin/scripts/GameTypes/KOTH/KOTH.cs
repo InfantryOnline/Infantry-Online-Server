@@ -140,7 +140,7 @@ namespace InfServer.Script.GameType_KOTH
                 else //still bugged, no winner
                 {//All our crowners expired at the same time
                     _arena.sendArenaMessage("There was no winner");
-                    gameReset();
+                    gameEnd();
                     return true;
                 }
                 return true;
@@ -349,8 +349,6 @@ namespace InfServer.Script.GameType_KOTH
             //Needs testing
             Helpers.Player_Crowns(_arena, false, _arena.Players.ToList());
             _playerCrownStatus.Clear();
-
-            _arena.gameReset();
 
             return true;
         }
