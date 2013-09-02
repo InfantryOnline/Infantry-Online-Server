@@ -13,11 +13,11 @@ using InfServer.Protocol;
 
 using Assets;
 
-namespace InfServer.Script.GameType_LaserTag
+namespace InfServer.Script.GameType_Name
 {	// Script Class
     /// Provides the interface between the script and arena
     ///////////////////////////////////////////////////////
-    class Script_LaserTag : Scripts.IScript
+    class Script_Name : Scripts.IScript
     {
         public struct Teams
         {

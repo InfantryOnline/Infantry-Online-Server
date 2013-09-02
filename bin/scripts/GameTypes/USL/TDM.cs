@@ -162,24 +162,16 @@ namespace InfServer.Script.GameType_USL_TDM
         /// </summary>
         public void updateTickers()
         {
-
-            //Make sure stats are up-to-date
-            foreach (Team t in _arena.ActiveTeams)
-                t.precalculateStats(true);
-
-
-                string format;
-                if (_arena.ActiveTeams.Count() > 1)
-                {
-                    format = String.Format("{0}={1} - {2}={3}",
-                        _arena.ActiveTeams.ElementAt(0)._name,
-                        _arena.ActiveTeams.ElementAt(0)._calculatedKills,
-                        _arena.ActiveTeams.ElementAt(1)._name,
-                        _arena.ActiveTeams.ElementAt(1)._calculatedKills);
-                    _arena.setTicker(1, 0, 0, format);
-                }
-
-
+            string format;
+            if (_arena.ActiveTeams.Count() > 1)
+            {
+                format = String.Format("{0}={1} - {2}={3}",
+                    _arena.ActiveTeams.ElementAt(0)._name,
+                    _arena.ActiveTeams.ElementAt(0)._currentGameKills,
+                    _arena.ActiveTeams.ElementAt(1)._name,
+                    _arena.ActiveTeams.ElementAt(1)._currentGameKills);
+                _arena.setTicker(1, 0, 0, format);
+            }
         }
 
 		/// <summary>
@@ -208,12 +200,8 @@ namespace InfServer.Script.GameType_USL_TDM
 
 				from.sendMessage(0, "#Team Statistics Breakdown");
 
-				//Make sure stats are up-to-date
-				foreach (Team t in _arena.Teams)
-					t.precalculateStats(bCurrent);
-
 				IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
-				IEnumerable<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._calculatedKills);
+				IEnumerable<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._currentGameKills);
 				int idx = 3;	//Only display top three teams
 
                 foreach (Team t in rankedTeams)
@@ -234,7 +222,7 @@ namespace InfServer.Script.GameType_USL_TDM
                     }
 
                     from.sendMessage(0, String.Format(format,
-                        t._calculatedKills, t._calculatedDeaths,
+                        t._currentGameKills, t._currentGameDeaths,
                         t._name));
                 }
 
