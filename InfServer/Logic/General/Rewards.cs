@@ -258,9 +258,6 @@ namespace InfServer.Logic
                     cashRewards[p._id] = 0;
                 if (!pointRewards.ContainsKey(p._id))
                     pointRewards[p._id] = 0;
-               
-                //Share bounty within the experience radius, Dunno if there is a sharebounty radius?
-                p.Bounty += (int)((killerPoints * (((float)cfg.bounty.percentToAssistBounty) / 1000)) * multi);
             }
 
             foreach (Player p in sharedPoints)
@@ -273,6 +270,9 @@ namespace InfServer.Logic
                     cashRewards[p._id] = 0;
                 if (!expRewards.ContainsKey(p._id))
                     expRewards[p._id] = 0;
+
+                //Share bounty within the experience radius, Dunno if there is a sharebounty radius?
+                p.Bounty += (int)((killerPoints * (((float)cfg.bounty.percentToAssistBounty) / 1000)) * multi);
             }
 
             //Sent reward notices to our lucky witnesses

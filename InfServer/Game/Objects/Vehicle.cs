@@ -58,6 +58,10 @@ namespace InfServer.Game
 		public int _tickDead;				//The time at which the vehicle was last dead
         public int _tickControlTime;        //The time at which the vehicle was taken control of
         public int _tickControlEnd;         //How long the duration is
+
+        public int _tickAntiFire;           //The time until fire has been disabled
+        public int _tickAntiRotate;         //The time until rotation has been disabled
+        public int _tickAntiRecharge;       //TODO: The time until energy regen has been disabled
 		#endregion
 
 		#region Events
@@ -414,6 +418,17 @@ namespace InfServer.Game
 				// if (netDamage > 0)
 				// TODO: take care of energy damage
 			}
+
+            //anti effects
+            if (radius <= wep.antiEffectsRadius)
+            {
+                if (wep.antiEffectsFire > 0)
+                    _tickAntiFire = Environment.TickCount + (wep.antiEffectsFire * 10000);
+                if (wep.antiEffectsRecharge > 0)
+                    _tickAntiRecharge = Environment.TickCount + (wep.antiEffectsRecharge * 10000);
+                if (wep.antiEffectsRotate > 0)
+                    _tickAntiRotate = Environment.TickCount + (wep.antiEffectsRotate * 10000);
+            }
 
 			//Apply the damage
 			if (netDamage > 0)

@@ -150,6 +150,14 @@ namespace InfServer.Game
 			if (_team._id == -1)
 				return false;
 
+            //Are we under no-rotation anti-effect?
+            if (_tickAntiRotate > now)
+            {
+                //YEAH! Let's do something whacky
+                _state.fireAngle = (byte)((_state.fireAngle + 1) % 255);
+                return false;
+            }
+
 			//See if there are any valid targets within the tracking radius
 			Player target = getClosestValidTarget();
             if (target == null)
@@ -199,6 +207,10 @@ namespace InfServer.Game
 
 			//Look at our target!
 			_state.fireAngle = Helpers.computeLeadFireAngle(_state, target._state, _primaryProjectile.muzzleVelocity / 1000);
+
+            //Are we under anti fire effect?
+            if (_tickAntiFire > now)
+                return false;
 
 			//If not reloaded yet don't fire
 			if (_tickShotTime + _fireDelay > now ||
@@ -384,7 +396,7 @@ namespace InfServer.Game
         {   //Apply our damage
 			applyExplosionDamage(false, attacker, dmgX, dmgY, wep);
 
-            if ( wep.antiEffectsRecharge != 0)
+            /*if ( wep.antiEffectsRecharge != 0)
             {
             }
 
@@ -395,7 +407,7 @@ namespace InfServer.Game
             if ( wep.antiEffectsRotate != 0 )
             {
             }
-
+            */
 			//Did we die?
 			if (_state.health <= 0)
 			{	//Are we destroyable?

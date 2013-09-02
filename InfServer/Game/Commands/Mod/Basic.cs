@@ -899,14 +899,24 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void summon(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
-            if (recipient == null)
+            if (recipient == null && payload != "all")
             {
-                player.sendMessage(-1, "Syntax: ::*summon");
+                player.sendMessage(-1, "Syntax: ::*summon or *summon all");
                 return;
             }
 
-            //Simply warp the recipient
-            recipient.warp(player);
+            if (recipient != null)
+            {
+                //Simply warp the recipient
+                recipient.warp(player);
+            }
+
+            if (payload == "all")
+            {
+                //summon everybody
+                foreach (Player p in player._arena.PlayersIngame)
+                    p.warp(player);
+            }
         }
 
         /// <summary>
@@ -1072,40 +1082,13 @@ namespace InfServer.Game.Commands.Mod
             //Do we have a target team?
             if (payload != "")
             {	//Find the team
-                string checkName = payload.ToLower();
-                if (checkName.Equals("spec") || checkName.Equals("spectator"))
-                {
-                    player.sendMessage(-1, "You cannot use spectator as a team.");
-                    return;
-                }
-
                 Team newTeam = player._arena.getTeamByName(payload);
-                if (newTeam == null)
-                {
-                    List<string> teamNames = new List<string>();
-                    List<Team> teams = new List<Team>(player._arena.Teams);
-                    //Teamname wasnt used, default to using it
-                    //Check for league related teams first
-                    if (payload.ToLower().Contains("- t"))
-                        teamNames.Add(payload); //in teamname 1,2.. 1 = titan, 2 = collie
-                    else if (payload.ToLower().Contains("- c"))
-                        teamNames.Add(payload);
-                    else
-                        //For non related league stuff
-                        teamNames.Add(payload);
 
-                    for (int i = 0; i < teamNames.Count; i++)
-                    {
-                        if (teams[i + 1]._name == null)
-                        {
-                            newTeam = new Team(player._arena, player._server);
-                            teams.Add(newTeam);
-                        }
-                        //Add 1 to avoid renaming spectator
-                        teams[i + 1]._name = teamNames[i];
-                    }
-                    //player.sendMessage(-1, "The specified team doesn't exist.");
-                    //return;
+                string temp = payload.ToLower();
+                if (temp.Equals("spec") || temp.Equals("spectator") || newTeam == null)
+                {
+                    player.sendMessage(-1, "Invalid team specified");
+                    return;
                 }
 
                 if (player.IsSpectator)
@@ -2428,8 +2411,8 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.Mod, false);
 
             yield return new HandlerDescriptor(summon, "summon",
-                "Summons a specified player to your location.",
-                "::*summon",
+                "Summons a specified player to your location, or all players to your location.",
+                "::*summon or *summon al",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(team, "team",
