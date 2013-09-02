@@ -151,7 +151,7 @@ namespace InfServer.Logic
 			{
 				bQualified = expr(booleanString, ref pos);
 			}
-			catch (ParseException e)
+			catch (Exception e)
 			{
 				Log.write(TLog.Error, "Error parsing skill string '{0}', {1}", skillString, e);
 			}

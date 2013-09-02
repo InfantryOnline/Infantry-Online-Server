@@ -146,7 +146,10 @@ namespace InfServer.Game
 		/// </summary>
 		public object callsync(string name, bool bSync, params object[] args)
 		{
-			return EventObjects.callsync(this, name, bSync, args);
+            if (exists(name))
+                return EventObjects.callsync(this, name, bSync, args);
+            else
+                return null;
 		}
 
 		/// <summary>

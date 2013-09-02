@@ -48,7 +48,7 @@ namespace InfServer.Logic
 
 			//Add him to the arena
 			match.newPlayer(player);
-
+            
             //TODO: Compare to the server's checksum instead.
             if (player._assetCS == 0)
             {
@@ -56,6 +56,7 @@ namespace InfServer.Logic
             }
             else
             {
+                
                 //What the tomfoolery is goin' here?
                 if (player._assetCS != pkt.AssetChecksum)
                 {

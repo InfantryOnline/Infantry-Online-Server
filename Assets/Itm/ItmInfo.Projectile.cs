@@ -242,9 +242,9 @@ namespace Assets
                 projectile.antiEffectsRadius = CSVReader.GetInt(values[134]);
                 projectile.antiEffectsRecharge = CSVReader.GetInt(values[135]);
                 projectile.antiEffectsFire = CSVReader.GetInt(values[136]);
-                projectile.antiEffectsBallPickupDuration = CSVReader.GetInt(values[137]);
+                projectile.antiEffectsThrust = CSVReader.GetInt(values[137]);
                 projectile.antiEffectsRotate = CSVReader.GetInt(values[138]);
-                projectile.antiEffectsThrust = CSVReader.GetInt(values[139]);
+                projectile.antiEffectsBallPickupDuration = CSVReader.GetInt(values[139]);
                 projectile.antiEffectsBallThrowDuration = CSVReader.GetInt(values[140]);
                 projectile.preventPointBlank = CSVReader.GetBool(values[141]);
                 projectile.explodeItem = CSVReader.GetInt(values[142]);

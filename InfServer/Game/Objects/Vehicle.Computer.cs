@@ -198,13 +198,9 @@ namespace InfServer.Game
             if(_tickAntiRotate < now)
 			    _state.fireAngle = Helpers.computeLeadFireAngle(_state, target._state, _primaryProjectile.muzzleVelocity / 1000);
 
-            //Are we under anti fire effect?
-            if (_tickAntiFire > now)
-                return false;
-
 			//If not reloaded yet don't fire
 			if (_tickShotTime + _fireDelay > now ||
-				_tickReloadTime > now)
+				_tickReloadTime > now || _tickAntiFire > now)
 			{	//But maybe send an update packet?
 				if (now - _tickLastUpdate > 300)
 				{
@@ -214,8 +210,8 @@ namespace InfServer.Game
 
 				return false;
 			}
-			
-			_shouldFire = true;
+            
+            _shouldFire = true;
 			_tickShotTime = Environment.TickCount;
 
 			//Adjust ammo accordingly

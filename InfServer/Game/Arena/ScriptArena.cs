@@ -55,7 +55,7 @@ namespace InfServer.Game
             _startCfg = _server._zoneConfig.startGame;
 
             //Run initial hides if it doesn't depend on a game running
-            if (!_startCfg.initialHides)
+            if (_startCfg.initialHides)
                 initialHideSpawns();
 		}
 
@@ -84,7 +84,8 @@ namespace InfServer.Game
                 base.playerEnter(player);
 
                 //Pass it to the script environment
-                callsync("Player.Enter", false, player);
+                if (exists("Game.Enter"))
+                    callsync("Player.Enter", false, player);
             }
             else
                 Log.write(TLog.Error, "playerEnter(): Called with null player");
@@ -100,7 +101,8 @@ namespace InfServer.Game
             if (player != null)
             {
                 //Pass it to the script environment
-                callsync("Player.Leave", false, player);
+                if (exists("Player.Leave"))
+                    callsync("Player.Leave", false, player);
 
                 base.playerLeave(player);
             }
@@ -214,7 +216,8 @@ namespace InfServer.Game
             }
 			
 			//Pass it to the script environment
-			callsync("Game.Start", false);
+            if (exists("Game.Start"))
+                callsync("Game.Start", false);
 		}
         #endregion
 
@@ -255,7 +258,8 @@ namespace InfServer.Game
                 pollQuestion(this, true);
 
 			//Pass it to the script environment
-			callsync("Game.End", false);
+            if (exists("Game.End"))
+                callsync("Game.End", false);
 		}
         #endregion
 
@@ -273,7 +277,8 @@ namespace InfServer.Game
 				resetVehicles();
 
 			//Pass it to the script environment
-			callsync("Game.Reset", false);
+            if (exists("Game.Reset"))
+                callsync("Game.Reset", false);
 		}
         #endregion
 
@@ -1355,7 +1360,8 @@ namespace InfServer.Game
                 //Perform the skill modify
                 if (from.skillModify(skill, 1))
                     //Success! Forward to our script
-                    callsync("Shop.SkillPurchase", false, from, skill);
+                    if (exists("Shop.SkillPurchase"))
+                        callsync("Shop.SkillPurchase", false, from, skill);
 		}
         #endregion
 
@@ -2393,7 +2399,7 @@ namespace InfServer.Game
             Log.write(TLog.Warning, "DamageEvent: Unk={0}, Wep={1} ({2}), Player={3}", update.positionZ, usedWep.name, usedWep.id, from);
 
             //Forward to our script
-            if (!(bool)callsync("Player.DamageEvent", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
+            if (exists("Player.DamageEvent") && !(bool)callsync("Player.DamageEvent", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
             {
                 //Did this weapon even harm us?
                 /*                switch (usedWep.damageMode)

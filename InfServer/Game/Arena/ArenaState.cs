@@ -287,7 +287,8 @@ namespace InfServer.Game
                     Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
 
                     //Trigger our event for player entering arena
-                    callsync("Player.EnterArena", false, player);
+                    if (exists("Player.EnterArena"))
+                        callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
                     player.sendMessage(-3, "[Notice] Welcome to Infantry, IRC support at ircd.suroot.info #infantry, which can quicky be accessed at freeinfantry.org. Enjoy your stay.");

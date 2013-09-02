@@ -425,14 +425,14 @@ namespace InfServer.Game
                 if (wep.antiEffectsFire > 0)
                 {
                     _tickAntiFire = Environment.TickCount + (wep.antiEffectsFire * 10);
-                    _arena.sendArenaMessage(_tickAntiFire.ToString());
                 }
                 if (wep.antiEffectsRecharge > 0)
+                {
                     _tickAntiRecharge = Environment.TickCount + (wep.antiEffectsRecharge * 10);
+                }
                 if (wep.antiEffectsRotate > 0)
                 {
                     _tickAntiRotate = Environment.TickCount + (wep.antiEffectsRotate * 10);
-                    _arena.sendArenaMessage(_tickAntiRotate.ToString());
                 }
             }
 

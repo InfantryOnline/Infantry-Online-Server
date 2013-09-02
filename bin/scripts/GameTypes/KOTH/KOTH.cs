@@ -160,7 +160,6 @@ namespace InfServer.Script.GameType_KOTH
             if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
             {	//Stop the game!
                 _arena.setTicker(1, 1, 0, "Not Enough Players");
-                _arena.gameReset();
             }
 
             //Do we have enough players to start a game?
@@ -350,6 +349,8 @@ namespace InfServer.Script.GameType_KOTH
             //Needs testing
             Helpers.Player_Crowns(_arena, false, _arena.Players.ToList());
             _playerCrownStatus.Clear();
+
+            _arena.gameReset();
 
             return true;
         }
