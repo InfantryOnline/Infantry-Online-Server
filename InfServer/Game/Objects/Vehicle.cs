@@ -423,11 +423,11 @@ namespace InfServer.Game
             if (radius <= wep.antiEffectsRadius)
             {
                 if (wep.antiEffectsFire > 0)
-                    _tickAntiFire = Environment.TickCount + (wep.antiEffectsFire * 10000);
+                    _tickAntiFire = Environment.TickCount + (wep.antiEffectsFire * 10);
                 if (wep.antiEffectsRecharge > 0)
-                    _tickAntiRecharge = Environment.TickCount + (wep.antiEffectsRecharge * 10000);
+                    _tickAntiRecharge = Environment.TickCount + (wep.antiEffectsRecharge * 10);
                 if (wep.antiEffectsRotate > 0)
-                    _tickAntiRotate = Environment.TickCount + (wep.antiEffectsRotate * 10000);
+                    _tickAntiRotate = Environment.TickCount + (wep.antiEffectsRotate * 10);
             }
 
 			//Apply the damage
