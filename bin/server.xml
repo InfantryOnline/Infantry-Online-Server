@@ -37,6 +37,7 @@
 		<zoneid value="0" />
 		<password value="123" />
 		
+      <!-- Set to 0 for no database connection/stand-alone mode -->
 		<connectionDelay value="2000" />
 	</database>
 	

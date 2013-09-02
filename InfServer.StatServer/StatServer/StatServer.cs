@@ -17,7 +17,7 @@ namespace InfServer.StatServer
 
 
         public ConfigSetting _config;
-        public new LogClient _logger;
+        public LogClient _logger;
 
        
         private SqlConnection db;

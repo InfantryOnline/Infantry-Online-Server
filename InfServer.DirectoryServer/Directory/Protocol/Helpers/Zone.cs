@@ -84,7 +84,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
                 data.Client.Close();
                 data.Client.Client.Dispose();
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
         }

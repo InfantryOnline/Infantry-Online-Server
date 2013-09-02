@@ -87,6 +87,24 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -183,8 +201,7 @@
     <Compile Include="GameTypes\FantasyZone\Objects\Book.cs" />
     <Compile Include="GameTypes\FantasyZone\Objects\Chest.cs" />
     <Compile Include="GameTypes\FantasyZone\Objects\Recipe.cs" />
-    <Compile Include="GameTypes\FantasyZone\Objects\Vendor.cs" />
-    <Compile Include="GameTypes\GravBall\Gravball.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Vendor.cs" />    <Compile Include="GameTypes\GravBall\Gravball.cs" />
     <Compile Include="GameTypes\HQ\Headquarters.cs" />
     <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />
     <Compile Include="GameTypes\Frontlines\TDM.cs" />

@@ -297,12 +297,24 @@ namespace InfServer.Game
 			///////////////////////////////////////////////
 			//Attempt to connect to our database
 
-            _dbLogger = Log.createClient("Database");
-			_db = new Database(this, _config["database"], _dbLogger);
-            _attemptDelay = _config["database/connectionDelay"].intValue;
-            _dbEP = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
+            //Are we connecting at all?
+            if (_attemptDelay == 0)
+            {
+                //Skip the database!
+                _bStandalone = true;
+                Log.write(TLog.Warning, "Skipping database server connection, server is in stand-alone mode..");
+            }
+            else
+            {
+                _bStandalone = false;
+                _dbLogger = Log.createClient("Database");
+                _db = new Database(this, _config["database"], _dbLogger);
+                _attemptDelay = _config["database/connectionDelay"].intValue;
+                _dbEP = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
 
-            _db.connect(_dbEP, true);
+                _db.connect(_dbEP, true);
+            }
+
 
 			//Initialize other parts of the zoneserver class
 			if (!initPlayers())
@@ -402,7 +414,8 @@ namespace InfServer.Game
                 //Take a stab at connecting
                 if (!_db.connect(_dbEP, true))
                 {//it has failed!
-                    Log.write("Fail");
+                    Log.write(TLog.Warning, "Failed database connection");
+                    _bStandalone = true;
                     //Send out some message to all of the server's players
                     foreach (var arena in _arenas)
                     {
@@ -416,6 +429,7 @@ namespace InfServer.Game
                     foreach (var arena in _arenas)
                     {
                         //Let them know to reconnect
+                        _bStandalone = false;
                         if (arena.Value._bActive)
                             arena.Value.sendArenaMessage("!Connection to the database has been re-established, Please relog to continue playing..");
 
