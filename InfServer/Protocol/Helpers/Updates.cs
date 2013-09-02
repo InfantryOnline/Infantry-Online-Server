@@ -71,7 +71,9 @@ namespace InfServer.Protocol
 			tu.vehicle = update;
 			tu.itemID = (short)(update._shouldFire ? update._primaryGun.id : -1);
 
-            tu.activeUtilities = update._activeEquip;
+            //We only route active utilities if we're not broken
+            if (update._state.health > update._type.HitpointsRequiredToOperate)
+                tu.activeUtilities = update._activeEquip;
 
 			//TODO: Should we use SC_PlayerUpdate for computers too?
 
