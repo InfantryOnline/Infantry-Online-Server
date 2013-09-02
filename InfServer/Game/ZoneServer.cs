@@ -292,6 +292,7 @@ namespace InfServer.Game
             _isAdvanced = _config["server/zoneIsAdvanced"].boolValue;
             _bindIP = _config["server/bindIP"].Value;
             _bindPort = _config["server/bindPort"].intValue;
+            _attemptDelay = _config["database/connectionDelay"].intValue;
 
 			// Connect to the database
 			///////////////////////////////////////////////
@@ -309,7 +310,6 @@ namespace InfServer.Game
                 _bStandalone = false;
                 _dbLogger = Log.createClient("Database");
                 _db = new Database(this, _config["database"], _dbLogger);
-                _attemptDelay = _config["database/connectionDelay"].intValue;
                 _dbEP = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
 
                 _db.connect(_dbEP, true);
