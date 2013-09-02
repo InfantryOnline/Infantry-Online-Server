@@ -28,9 +28,6 @@ namespace InfServer.Game
 		protected int _tickLastUpdate;					//The last time at which we sent an update packet
 		protected int _tickShotTime;					//The last time at which we fired a shot
 		protected int _tickReloadTime;					//The last time at which we started reloading
-        protected int _tickAntiRecharge;                //The last time at which we were stoped from recharging
-        protected int _tickAntiFire;                    //The last time at which we were stoped from firing
-        protected int _tickAntiRotate;                  //The last time at which we were stoped from rotating
         protected int _ammoRemaining;					//The amount of ammo we have remaining in our clip
 
 		//Turret settings
