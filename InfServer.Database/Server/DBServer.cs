@@ -69,8 +69,8 @@ namespace InfServer
             //Remove him from any chats
             foreach (Chat c in _chats.Values)
             {
-                if (c.hasPlayer(player.alias))
-                    c.lostPlayer(player.alias);
+                if (c.hasPlayer(player))
+                    c.lostPlayer(player);
             }
 
             if (!_players.ContainsValue(player))
@@ -78,6 +78,7 @@ namespace InfServer
                 Log.write(TLog.Error, "Lost player not in the list: {0}", player.alias);
                 return;
             }
+
             //Remove him from the DB server master player list
             _players.Remove(player.alias);
         }

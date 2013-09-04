@@ -66,7 +66,10 @@ namespace InfServer
 		}
 
 		static void Main(string[] args)
-		{	//Initialize the logging system
+		{
+            Console.WriteLine("Initializing logger..");
+
+            //Initialize the logging system
 			if (!Log.init())
 			{	//Abort..
 				Console.WriteLine("Logger initialization failed, exiting..");

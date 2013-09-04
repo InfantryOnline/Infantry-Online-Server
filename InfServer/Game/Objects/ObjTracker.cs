@@ -300,21 +300,6 @@ namespace InfServer.Game
 
 		public void CopyTo(T[] array, int index)
 		{
-			if (array == null) 
-				throw new ArgumentNullException();
-            if (index < 0)
-            {
-                Log.write(TLog.Warning, "CopyTo came across an index less than 0 - {0} ", index);
-                throw new ArgumentOutOfRangeException();
-            }
-			if (index + _idToObj.Count > array.Length) 
-				throw new ArgumentException("Destination array is too small.");
-
-            /*
-            foreach (T p in _idToObj.Values)//Errors here
-				array[index++] = p;
-             */
-            //Thanks Super-man!
             _idToObj.Values.CopyTo(array, index);
 		}
 

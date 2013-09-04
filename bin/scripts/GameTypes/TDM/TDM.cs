@@ -44,14 +44,6 @@ namespace InfServer.Script.GameType_TDM
         private int _minPlayers;				//The minimum amount of players
         private bool _gameWon = false;
 
-        Dictionary<Team, TeamStats> _teamStats;
-
-        public class TeamStats
-        {
-            public int kills { get; set; }
-            public int deaths { get; set; }
-        }
-
         Dictionary<String, PlayerStats> _savedPlayerStats;
 
         public class PlayerStats
@@ -247,14 +239,12 @@ namespace InfServer.Script.GameType_TDM
         [Scripts.Event("Player.Enter")]
         public void playerEnter(Player player)
         {
-            // string alias = @"player*";
-            if (!_savedPlayerStats.ContainsKey(player._alias.ToString()))
+            if (!_savedPlayerStats.ContainsKey(player._alias))
             {
                 PlayerStats temp = new PlayerStats();
                 temp.deaths = 0;
                 temp.kills = 0;
-                //if (!_savedPlayerStats.ContainsKey(player._alias.ToString()))
-                _savedPlayerStats.Add(player._alias.ToString(), temp);
+                _savedPlayerStats.Add(player._alias, temp);
             }
         }
 
@@ -264,7 +254,6 @@ namespace InfServer.Script.GameType_TDM
         [Scripts.Event("Player.Leave")]
         public void playerLeave(Player player)
         {
-
         }
 
         /// <summary>
@@ -283,25 +272,15 @@ namespace InfServer.Script.GameType_TDM
             //Are we recording stats?
             _arena._saveStats = true;
 
-            //Spawn our flags if we have some!
-            _arena.flagSpawn();
-
-            _teamStats = new Dictionary<Team, TeamStats>();
-
-            _teamStats[_arena.ActiveTeams.ElementAt(0)] = new TeamStats();
-            _teamStats[_arena.ActiveTeams.ElementAt(1)] = new TeamStats();
-
             //Start a new session for players, clears the old one
-            _savedPlayerStats = new Dictionary<String, PlayerStats>();
+            _savedPlayerStats.Clear();
 
-            string format;
             foreach (Player p in _arena.Players)
             {
-                //_savedPlayerStats[p._alias.ToString()] = new PlayerStats();
                 PlayerStats temp = new PlayerStats();
                 temp.kills = 0;
                 temp.deaths = 0;
-                _savedPlayerStats.Add(p._alias.ToString(), temp);
+                _savedPlayerStats.Add(p._alias, temp);
             }
 
             //Let everyone know
@@ -312,7 +291,6 @@ namespace InfServer.Script.GameType_TDM
                     _arena.gameEnd();
                 }
             );
-
 
             return true;
         }
@@ -328,9 +306,9 @@ namespace InfServer.Script.GameType_TDM
                 //Team scores
                 format = String.Format("{0}={1} - {2}={3}",
                     _arena.ActiveTeams.ElementAt(0)._name,
-                    _teamStats[_arena.ActiveTeams.ElementAt(0)].kills,
+                    _arena.ActiveTeams.ElementAt(0)._currentGameKills,
                     _arena.ActiveTeams.ElementAt(1)._name,
-                    _teamStats[_arena.ActiveTeams.ElementAt(1)].kills);
+                    _arena.ActiveTeams.ElementAt(1)._currentGameKills);
                 _arena.setTicker(1, 2, 0, format);
 
                 //Personal scores
@@ -338,13 +316,13 @@ namespace InfServer.Script.GameType_TDM
                 {
                     //Update their ticker
                     if (_savedPlayerStats.ContainsKey(p._alias))
-                        return "Personal Score: Kills=" + _savedPlayerStats[p._alias.ToString()].kills + " - Deaths=" + _savedPlayerStats[p._alias.ToString()].deaths;
+                        return "Personal Score: Kills=" + _savedPlayerStats[p._alias].kills + " - Deaths=" + _savedPlayerStats[p._alias].deaths;
 
                     return "";
                 });
 
                 //1st and 2nd place with mvp (for flags later)
-                IEnumerable<Player> ranking = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias.ToString()].kills);
+                IEnumerable<Player> ranking = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
                 int idx = 3; format = "";
                 foreach (Player rankers in ranking)
                 {
@@ -358,11 +336,11 @@ namespace InfServer.Script.GameType_TDM
                     {
                         case 2:
                             format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
-                              _savedPlayerStats[rankers._alias.ToString()].kills, _savedPlayerStats[rankers._alias.ToString()].deaths);
+                              _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
                             break;
                         case 1:
                             format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
-                              _savedPlayerStats[rankers._alias.ToString()].kills, _savedPlayerStats[rankers._alias.ToString()].deaths));
+                              _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
                             break;
                     }
                 }
@@ -395,6 +373,9 @@ namespace InfServer.Script.GameType_TDM
         public bool breakdown(Player from, bool bCurrent)
         {	//Allows additional "custom" breakdown information
 
+            if (from == null)
+                return false;
+
             from.sendMessage(0, "#Team Statistics Breakdown");
 
             IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
@@ -403,6 +384,9 @@ namespace InfServer.Script.GameType_TDM
 
             foreach (Team t in rankedTeams)
             {
+                if (t == null)
+                    continue;
+
                 if (idx-- == 0)
                     break;
 
@@ -417,26 +401,23 @@ namespace InfServer.Script.GameType_TDM
                         format = "!2nd (K={0} D={1}): {2}";
                         break;
                 }
-                try
-                {
-                    from.sendMessage(0, String.Format(format,
-                       _teamStats[t].kills, _teamStats[t].deaths,
-                        t._name));
-                }
-                catch (Exception e)
-                {
-                    Log.write(TLog.Warning, "4 " + e);
-                }
+
+                from.sendMessage(0, String.Format(format,
+                    t._currentGameKills, t._currentGameDeaths,
+                    t._name));
             }
 
             from.sendMessage(0, "#Individual Statistics Breakdown");
 
-            IEnumerable<Player> rankedPlayers = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias.ToString()].kills);
-            //      IEnumerable<Player> rankedPlayers = _savedPlayerStats.Keys.OrderByDescending(player => _savedPlayerStats[player._alias.ToString()].kills);
+            IEnumerable<Player> rankedPlayers = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
+            //      IEnumerable<Player> rankedPlayers = _savedPlayerStats.Keys.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
             idx = 3;	//Only display top three players
 
             foreach (Player p in rankedPlayers)
             {
+                if (p == null)
+                    continue;
+
                 if (!_arena.Players.Contains(p))
                     continue;
 
@@ -454,24 +435,24 @@ namespace InfServer.Script.GameType_TDM
                         format = "!2nd (K={0} D={1}): {2}";
                         break;
                 }
-                try
+
+                if (_savedPlayerStats[p._alias] != null)
                 {
-                    from.sendMessage(0, String.Format(format,
-                        (bCurrent ? _savedPlayerStats[p._alias.ToString()].kills : _savedPlayerStats[p._alias.ToString()].kills),
-                        (bCurrent ? _savedPlayerStats[p._alias.ToString()].deaths : _savedPlayerStats[p._alias.ToString()].deaths),
+                    from.sendMessage(0, String.Format(format, _savedPlayerStats[p._alias].kills,
+                        _savedPlayerStats[p._alias].deaths,
                         p._alias));
                 }
-                catch (Exception e)
-                {
-                    Log.write(TLog.Warning, "3 " + e);
-                }
             }
+
             from.sendMessage(0, "Most Deaths");
-            IEnumerable<Player> specialPlayers = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias.ToString()].deaths);
+            IEnumerable<Player> specialPlayers = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
             //  IEnumerable<Player> specialPlayers = _savedPlayerStats.Keys.OrderByDescending(player => _savedPlayerStats[player].deaths);
             idx = 1; //Only display the top person
             foreach (Player p in specialPlayers)
             {
+                if (p == null)
+                    continue;
+
                 if (!_arena.PlayersIngame.Contains(p))
                     continue;
 
@@ -479,32 +460,23 @@ namespace InfServer.Script.GameType_TDM
                     break;
 
                 string format = "(D={0}): {1}";
-                try
+                if (_savedPlayerStats[p._alias] != null)
                 {
                     from.sendMessage(0, String.Format(format,
-                        (bCurrent ? _savedPlayerStats[p._alias.ToString()].deaths : _savedPlayerStats[p._alias.ToString()].deaths),
+                        _savedPlayerStats[p._alias].deaths,
                         p._alias));
                 }
-                catch (Exception e)
-                {
-                    Log.write(TLog.Warning, "1 " + e);
-                }
             }
-            try
+
+            if (_savedPlayerStats[from._alias] != null)
             {
-                //                  if (!from.IsSpectator)
-                //                  {
                 string personalFormat = "!Personal Score: (K={0} D={1})";
                 from.sendMessage(0, String.Format(personalFormat,
-                    (bCurrent ? _savedPlayerStats[from._alias.ToString()].kills : _savedPlayerStats[from._alias.ToString()].kills),
-                    (bCurrent ? _savedPlayerStats[from._alias.ToString()].deaths : _savedPlayerStats[from._alias.ToString()].deaths)));
-                //                  }
+                    _savedPlayerStats[from._alias].kills,
+                    _savedPlayerStats[from._alias].deaths));
             }
-            catch (Exception e)
-            {
-                Log.write(TLog.Warning, "2 " + e);
-            }
-            return false;
+
+            return true;
         }
 
         /// <summary>
@@ -624,17 +596,10 @@ namespace InfServer.Script.GameType_TDM
         {
             if (_tickGameStart > 0)
             {
-                _teamStats[killer._team].kills++;
-                _teamStats[victim._team].deaths++;
-                try
-                {
-                    _savedPlayerStats[killer._alias.ToString()].kills++;
-                    _savedPlayerStats[victim._alias.ToString()].deaths++;
-                }
-                catch (Exception e)
-                {
-                    Log.write(TLog.Warning, "{0},{1}" + e, killer, killer._alias.ToString());
-                }
+                if (_savedPlayerStats.ContainsKey(killer._alias))
+                    _savedPlayerStats[killer._alias].kills++;
+                if (_savedPlayerStats.ContainsKey(victim._alias))
+                    _savedPlayerStats[victim._alias].deaths++;
             }
             return true;
         }

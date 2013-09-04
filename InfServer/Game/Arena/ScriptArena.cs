@@ -388,7 +388,12 @@ namespace InfServer.Game
 
             //Show a breakdown for each player in the arena
             foreach (Player p in Players.ToList())
+            {
+                if (p == null)
+                    continue;
+
                 individualBreakdown(p, bCurrent);
+            }
         }
         #endregion
 
@@ -944,7 +949,7 @@ namespace InfServer.Game
                 {	//Is it a default item?
                     if (!from.ActiveVehicle._type.InventoryItems.Any(item => item == update.itemID))
                     {
-                        Log.write(TLog.Security, "Player {0} attempted to fire unowned item '{1}'.", from, info.name);
+                        Log.write(TLog.Warning, "Player {0} attempted to fire unowned item '{1}'.", from, info.name);
                         return;
                     }
                 }
@@ -952,7 +957,7 @@ namespace InfServer.Game
                 //And does he have the appropriate skills?
                 if (!Logic_Assets.SkillCheck(from, info.skillLogic))
                 {
-                    Log.write(TLog.Security, "Player {0} attempted unqualified use of item '{1}'.", from, info.name);
+                    Log.write(TLog.Warning, "Player {0} attempted unqualified use of item '{1}'.", from, info.name);
                     return;
                 }
 
@@ -2384,7 +2389,7 @@ namespace InfServer.Game
         {
             if (from == null)
             {
-                Log.write(TLog.Warning, "handlePlayerDamageEvent(): Called with null player.");
+                Log.write(TLog.Error, "handlePlayerDamageEvent(): Called with null player.");
                 return;
             }
 
@@ -2402,31 +2407,9 @@ namespace InfServer.Game
                 return;
             }
 
-            Log.write(TLog.Warning, "DamageEvent: Unk={0}, Wep={1} ({2}), Player={3}", update.positionZ, usedWep.name, usedWep.id, from);
-
-            //Forward to our script
+            //Forward to our script and give it the option of taking over
             if (!(bool)callsync("Player.DamageEvent", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
             {
-                //Did this weapon even harm us?
-                /*                switch (usedWep.damageMode)
-                                {
-                                    case 2:			//Enemy
-                                        if (from._team == p._team)
-                                            return;
-                                        break;
-
-                                    case 3:			//Friendly but self
-                                        if (from._team != p._team)
-                                            return;
-                                        break;
-
-                                    case 4:			//Friendly
-                                        if (from._team != p._team)
-                                            return;
-                                        break;
-                                }
-                                //Run it!
-                */
                 Logic_Assets.RunEvent(from, usedWep.damageEventString);
             }
         }

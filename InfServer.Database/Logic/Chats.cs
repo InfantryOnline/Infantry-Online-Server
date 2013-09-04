@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using InfServer.Protocol;
@@ -13,7 +14,7 @@ namespace InfServer.Logic
             DBServer server = zone._server;
             Zone.Player player = server.getPlayer(pkt.from);
             char[] splitArr = { ',' };
-            string[] chats = pkt.chat.Trim().Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            List<string> chats = new List<string>();
 
             //Hey, how'd you get here?!
             if (player == null)
@@ -23,15 +24,18 @@ namespace InfServer.Logic
             }
 
             //He wants to see the player list of each chat..
-            if (pkt.chat.Length == 0)
+            if (String.IsNullOrWhiteSpace(pkt.chat))
             {
                 foreach (var chat in server._chats.Values)
                 {
-                    if (chat.hasPlayer(pkt.from))
+                    if (chat.hasPlayer(player))
                         server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat._name, chat.List()));
                 }
                 return;
             }
+
+            //Split and trim our skills
+            chats = pkt.chat.Split(splitArr, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
 
             foreach (string chat in chats)
             {
@@ -43,8 +47,8 @@ namespace InfServer.Logic
                 {
                     foreach (var c in server._chats)
                     {
-                        if (c.Value.hasPlayer(pkt.from))
-                            c.Value.lostPlayer(pkt.from);
+                        if (c.Value.hasPlayer(player))
+                            c.Value.lostPlayer(player);
                     }
                     server.sendMessage(zone, pkt.from, "No Chat Channels Defined");
                     return;
@@ -58,20 +62,21 @@ namespace InfServer.Logic
                 }
 
                 //Add him
-                if (!_chat.hasPlayer(pkt.from))
-                    _chat.newPlayer(pkt.from, chats);
+                if (!_chat.hasPlayer(player))
+                    _chat.newPlayer(player);
 
                 //Send him the updated list..
                 server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat, _chat.List()));
             }
 
             //Remove him from any chats that didn't come over in the packet.
+            //Rewrite me! Just make sure I'm case-insensitive
             foreach (Chat c in server._chats.Values)
             {
-                if (!chats.Contains(c._name))
+                if (!chats.Contains(c._name, StringComparer.OrdinalIgnoreCase))
                 {
-                    if (c.hasPlayer(pkt.from))
-                        c.lostPlayer(pkt.from);
+                    if (c.hasPlayer(player))
+                        c.lostPlayer(player);
                 }
             }
         }
@@ -84,7 +89,7 @@ namespace InfServer.Logic
             //WTF MATE?
             if (chat == null)
             {
-                Log.write(TLog.Error, "Handle_CS_Chat(): Called with null chat.");
+                Log.write(TLog.Error, "Handle_CS_Chat(): Unable to get chat.");
                 return;
             }
 

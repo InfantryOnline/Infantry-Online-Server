@@ -64,14 +64,22 @@ namespace InfServer.Protocol
 		{	//Since this packet can come in 2 formats depending on the client state, we need to serialize for both
 			rNumber = Flip(_contentReader.ReadUInt16());
 
-			data = _contentReader.ReadBytes((int)(_content.Length - 2));
+            try
+            {
+                data = _contentReader.ReadBytes((int)(_content.Length - 2));
+            }
+            catch
+            {
+                Log.write(TLog.Warning, "DataPacketRcv line 69.");
+            }
+
             try
             {
                 dataSize = Flip(BitConverter.ToInt32(data, 0));
             }
-            catch (Exception e)
+            catch
             {
-                Log.write(TLog.Exception, "{0}", e);
+                Log.write(TLog.Warning, "DataPacketRcv line 78.");
             }
 		}
 

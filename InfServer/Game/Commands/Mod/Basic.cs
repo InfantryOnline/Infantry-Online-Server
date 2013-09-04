@@ -1121,7 +1121,7 @@ namespace InfServer.Game.Commands.Mod
         {	//Do we have a target?
             if (recipient != null)
             {	//Do we have a destination?
-                if (payload == "")
+                if (String.IsNullOrWhiteSpace(payload))
                     //Simply warp to the recipient
                     player.warp(recipient);
                 else
@@ -1151,7 +1151,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {	//We must have a payload for this
-                if (payload == "")
+                if (String.IsNullOrWhiteSpace(payload))
                 {
                     player.sendMessage(-1, "Syntax: ::*warp or *warp A4 or *warp 123,123");
                     return;

@@ -14,31 +14,36 @@ namespace InfServer
     ///////////////////////////////////////////////////////
     public class Chat
     {
-        DBServer _server;                               //Who we work for..
-        public Dictionary<string, string[]> _players;    //The players in our chat..
-        public string _name;                            //The name of our chat
+        DBServer _server;                       //Who we work for..
+        public List<Zone.Player> _players;      //The players in our chat..
+        public string _name;                    //The name of our chat
 
         public Chat(DBServer server, string chat)
         {
             _server = server;
-            _players = new Dictionary<string, string[]>();
+            _players = new List<Zone.Player>();
             _name = chat;
             server._chats.Add(chat, this);
         }
 
-        public void newPlayer(string player, string[] chats)
+        public void newPlayer(Zone.Player player)
         {
-            try
+            if (player == null)
             {
-                _players.Add(player, chats);
-            }
-            catch (ArgumentException)
-            {
-                Log.write(TLog.Error, "Player '{0}' already exists in chat '{1}'.", player, chats);
+                Log.write(TLog.Error, "Chat.newPlayer(): Called with null player.");
                 return;
             }
+
+            if (hasPlayer(player))
+            {
+                Log.write(TLog.Warning, "Player '{0}' already exists in chat '{1}'.", player, _name);
+                return;
+            }
+
+            _players.Add(player);
+            
             SC_JoinChat<Zone> join = new SC_JoinChat<Zone>();
-            join.from = player;
+            join.from = player.alias;
             join.chat = _name;
             join.users = List();
 
@@ -48,7 +53,7 @@ namespace InfServer
             }
         }
 
-        public void lostPlayer(string player)
+        public void lostPlayer(Zone.Player player)
         {
             if (!_players.Remove(player))
             {
@@ -57,7 +62,7 @@ namespace InfServer
             }
 
             SC_LeaveChat<Zone> leave = new SC_LeaveChat<Zone>();
-            leave.from = player;
+            leave.from = player.alias;
             leave.chat = _name;
             leave.users = List();
 
@@ -67,20 +72,12 @@ namespace InfServer
             }
         }
 
-        public bool hasPlayer(string player)
+        public bool hasPlayer(Zone.Player player)
         {
-            if (_players.ContainsKey(player))
-                return true;
-            return false;
-        }
+            if (player == null)
+                return false;
 
-        public void sendList(string player)
-        {
-            SC_JoinChat<Zone> reply = new SC_JoinChat<Zone>();
-            reply.chat = _name;
-            reply.from = player;
-            reply.users = List();
-            _server.getPlayer(player).zone._client.send(reply);
+            return _players.Contains(player);
         }
 
         public string List()
@@ -88,7 +85,10 @@ namespace InfServer
             List<string> members = new List<string>();
             foreach (var player in _players)
             {
-                members.Add(player.Key);
+                if (player == null)
+                    continue;
+
+                members.Add(player.alias);
             }
             return string.Join(", ", members);
         }

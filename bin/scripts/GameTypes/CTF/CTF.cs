@@ -186,8 +186,6 @@ namespace InfServer.Script.GameType_CTF
         {
             int kills = 0;
             int deaths = 0;
-            int pKills = 0;
-            int pDeaths = 0;
             string format;
 
             if (_arena.ActiveTeams.Count() > 1)
@@ -289,21 +287,6 @@ namespace InfServer.Script.GameType_CTF
             _arena.gameEnd();
         }
         
-        /// <summary>
-        /// Called when a player enters the game
-        /// </summary>
-        [Scripts.Event("Player.Enter")]
-        public void playerEnter(Player player)
-        {
-        }
-
-        /// <summary>
-        /// Called when a player leaves the game
-        /// </summary>
-        [Scripts.Event("Player.Leave")]
-        public void playerLeave(Player player)
-        {
-        }
 
         /// <summary>
         /// Called when the game begins
@@ -350,7 +333,6 @@ namespace InfServer.Script.GameType_CTF
         public bool breakdown()
         {	//Allows additional "custom" breakdown information
 
-
             //Always return true;
             return true;
         }
@@ -372,16 +354,7 @@ namespace InfServer.Script.GameType_CTF
 
             return true;
         }
-
-        /// <summary>
-        /// Triggered when a player requests to pick up an item
-        /// </summary>
-        [Scripts.Event("Player.ItemPickup")]
-        public bool playerItemPickup(Player player, Arena.ItemDrop drop, ushort quantity)
-        {
-            return true;
-        }
-
+        
         /// <summary>
         /// Handles a player's portal request
         /// </summary>
@@ -405,187 +378,6 @@ namespace InfServer.Script.GameType_CTF
             return true;
         }
 
-        /// <summary>
-        /// Handles a player's produce request
-        /// </summary>
-        [Scripts.Event("Player.Produce")]
-        public bool playerProduce(Player player, Computer computer, VehInfo.Computer.ComputerProduct product)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Handles a player's switch request
-        /// </summary>
-        [Scripts.Event("Player.Switch")]
-        public bool playerSwitch(Player player, LioInfo.Switch swi)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Handles a player's flag request
-        /// </summary>
-        [Scripts.Event("Player.FlagAction")]
-        public bool playerFlagAction(Player player, bool bPickup, bool bInPlace, LioInfo.Flag flag)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Handles the spawn of a player
-        /// </summary>
-        [Scripts.Event("Player.Spawn")]
-        public bool playerSpawn(Player player, bool bDeath)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to unspec and join the game
-        /// </summary>
-        [Scripts.Event("Player.JoinGame")]
-        public bool playerJoinGame(Player player)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to spec and leave the game
-        /// </summary>
-        [Scripts.Event("Player.LeaveGame")]
-        public bool playerLeaveGame(Player player)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to enter a vehicle
-        /// </summary>
-        [Scripts.Event("Player.EnterVehicle")]
-        public bool playerEnterVehicle(Player player, Vehicle vehicle)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to leave a vehicle
-        /// </summary>
-        [Scripts.Event("Player.LeaveVehicle")]
-        public bool playerLeaveVehicle(Player player, Vehicle vehicle)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player notifies the server of an explosion
-        /// </summary>
-        [Scripts.Event("Player.Explosion")]
-        public bool playerExplosion(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player has died, by any means
-        /// </summary>
-        /// <remarks>killer may be null if it wasn't a player kill</remarks>
-        [Scripts.Event("Player.Death")]
-        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when one player has killed another
-        /// </summary>
-        [Scripts.Event("Player.PlayerKill")]
-        public bool playerPlayerKill(Player victim, Player killer)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a bot has killed a player
-        /// </summary>
-        [Scripts.Event("Player.BotKill")]
-        public bool playerBotKill(Player victim, Bot bot)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a computer vehicle has killed a player
-        /// </summary>
-        [Scripts.Event("Player.ComputerKill")]
-        public bool playerComputerKill(Player victim, Computer computer)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player attempts to use a warp item
-        /// </summary>
-        [Scripts.Event("Player.WarpItem")]
-        public bool playerWarpItem(Player player, ItemInfo.WarpItem item, ushort targetPlayerID, short posX, short posY)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player attempts to use a warp item
-        /// </summary>
-        [Scripts.Event("Player.MakeVehicle")]
-        public bool playerMakeVehicle(Player player, ItemInfo.VehicleMaker item, short posX, short posY)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player attempts to use a warp item
-        /// </summary>
-        [Scripts.Event("Player.MakeItem")]
-        public bool playerMakeItem(Player player, ItemInfo.ItemMaker item, short posX, short posY)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player is buying an item from the shop
-        /// </summary>
-        [Scripts.Event("Shop.Buy")]
-        public bool shopBuy(Player patron, ItemInfo item, int quantity)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player is selling an item to the shop
-        /// </summary>
-        [Scripts.Event("Shop.Sell")]
-        public bool shopSell(Player patron, ItemInfo item, int quantity)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a vehicle is created
-        /// </summary>
-        /// <remarks>Doesn't catch spectator or dependent vehicle creation</remarks>
-        [Scripts.Event("Vehicle.Creation")]
-        public bool vehicleCreation(Vehicle created, Team team, Player creator)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a vehicle dies
-        /// </summary>
-        [Scripts.Event("Vehicle.Death")]
-        public bool vehicleDeath(Vehicle dead, Player killer)
-        {
-            return true;
-        }
         #endregion
     }
 }
