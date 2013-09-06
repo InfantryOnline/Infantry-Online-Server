@@ -1238,14 +1238,14 @@ namespace InfServer.Game
                         from.Deaths++;
 
                         //Is our creator stll around, and are we still on the same team?
-                        if (cvehicle._creator != null && cvehicle._creator._team == cvehicle._owner)
+                        if (cvehicle._creator != null && cvehicle._creator._team == cvehicle._team)
                         {
                             cvehicle._creator.Kills++;
                         }
                         //Nope, give it directly to the team
-                        else if (cvehicle._owner != null)
+                        else if (cvehicle._team != null)
                         {
-                            cvehicle._owner._currentGameKills++;
+                            cvehicle._team._currentGameKills++;
                         }
 
                         //Route
@@ -2014,7 +2014,7 @@ namespace InfServer.Game
             Vehicle target = _vehicles.getObjByID(targetVehicle);
             if (target == null)
             {
-                Log.write(TLog.Warning, "Player {0} tried taking or stealing ownership of an invalid vehicle id.", player);
+                Log.write(TLog.Warning, "Player {0} tried taking or stealing ownership of invalid vehicle id '{1}'.", player, targetVehicle);
                 return;
             }
 
@@ -2063,7 +2063,7 @@ namespace InfServer.Game
                         if (comp != null)
                         {
                             //If the computer is on the same team
-                            if (comp._team._name == player._team._name)
+                            if (comp._team == player._team)
                             {
                                 totalAmount++;
                                 if (comp._type.Name == compCheck.Name)
@@ -2083,7 +2083,7 @@ namespace InfServer.Game
                         if (comp != null)
                         {
                             //If the comp is on the same team
-                            if (comp._team._name == player._team._name)
+                            if (comp._team == player._team)
                             {
                                 densityAmount++;
                                 if (comp._type.Name == compCheck.Name)

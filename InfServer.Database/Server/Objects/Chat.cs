@@ -49,6 +49,9 @@ namespace InfServer
 
             foreach (Zone z in _server._zones)
             {
+                if (z == null)
+                    continue;
+
                 z._client.send(join);
             }
         }
@@ -68,8 +71,25 @@ namespace InfServer
 
             foreach (Zone z in _server._zones)
             {
+                if (z == null)
+                    continue;
+
                 z._client.send(leave);
             }
+
+            //Do we still have a raison d'etre?
+            if (_players.Count() == 0)
+            {
+                //Abandon ourselves to die
+                if (!_server._chats.Remove(_name))
+                {
+                    Log.write(TLog.Error, "Attempted to remove chat '{0}' not present in chats list.", _name);
+                    return;
+                }
+
+                Log.write(TLog.Normal, "Closed chat: '{0}'", _name);
+            }
+
         }
 
         public bool hasPlayer(Zone.Player player)

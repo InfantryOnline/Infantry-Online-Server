@@ -21,7 +21,7 @@ namespace InfServer.Logic
 			//Is the reliable number what we expected?
 			if (pkt.rNumber > stream.C2S_Reliable)
 			{	//Report it!
-				Log.write(TLog.Warning, "OOS Data Packet Stream[{0}]. {1} vs {2}", pkt.streamID, pkt.rNumber, stream.C2S_Reliable);
+				Log.write(TLog.Inane, "OOS Data Packet Stream[{0}]. {1} vs {2}", pkt.streamID, pkt.rNumber, stream.C2S_Reliable);
 				client.reportOutOfSync(pkt, pkt.rNumber, pkt.streamID);
 				return;
 			}

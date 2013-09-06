@@ -26,8 +26,11 @@ namespace InfServer.Logic
             //He wants to see the player list of each chat..
             if (String.IsNullOrWhiteSpace(pkt.chat))
             {
-                foreach (var chat in server._chats.Values)
+                foreach (var chat in server._chats.Values.ToList())
                 {
+                    if (chats == null)
+                        continue;
+
                     if (chat.hasPlayer(player))
                         server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat._name, chat.List()));
                 }
@@ -39,16 +42,22 @@ namespace InfServer.Logic
 
             foreach (string chat in chats)
             {
+                if (chat == null)
+                    continue;
+
                 string name = chat.ToLower();
                 Chat _chat = server.getChat(chat);
 
                 //Remove him from everything..
                 if (name == "off")
                 {
-                    foreach (var c in server._chats)
+                    foreach (var c in server._chats.Values.ToList())
                     {
-                        if (c.Value.hasPlayer(player))
-                            c.Value.lostPlayer(player);
+                        if (c == null)
+                            continue;
+
+                        if (c.hasPlayer(player))
+                            c.lostPlayer(player);
                     }
                     server.sendMessage(zone, pkt.from, "No Chat Channels Defined");
                     return;
@@ -57,7 +66,7 @@ namespace InfServer.Logic
                 //New chat
                 if (!server._chats.ContainsValue(_chat))
                 {
-                    Log.write(TLog.Normal, "Chat created: {0}", chat);
+                    Log.write(TLog.Normal, "Opened chat: '{0}'", chat);
                     _chat = new Chat(server, chat);
                 }
 
@@ -71,8 +80,11 @@ namespace InfServer.Logic
 
             //Remove him from any chats that didn't come over in the packet.
             //Rewrite me! Just make sure I'm case-insensitive
-            foreach (Chat c in server._chats.Values)
+            foreach (Chat c in server._chats.Values.ToList())
             {
+                if (c == null)
+                    continue;
+
                 if (!chats.Contains(c._name, StringComparer.OrdinalIgnoreCase))
                 {
                     if (c.hasPlayer(player))
@@ -101,6 +113,9 @@ namespace InfServer.Logic
 
             foreach (Zone z in server._zones)
             {
+                if (z == null)
+                    continue;
+
                 z._client.send(reply);
             }
         }

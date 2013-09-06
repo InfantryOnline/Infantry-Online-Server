@@ -16,7 +16,8 @@ namespace InfServer.Logic
 	public partial class Logic_Assets
 	{
 		static private Regex paramRegex = new Regex(@"\!?([%@#\-]?)([0-9]+)", RegexOptions.Compiled);
-        static private Regex illiegalChars = new Regex(@"[^[!|()%@#&\-][0-9]+]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        // Matches anything except: - ! @ # % & ( ) | 0 to 9
+        static private Regex illiegalChars = new Regex(@"[^-!@#%&()|0-9]", RegexOptions.Compiled);
 
 		/// <summary>
 		/// The public skillcheck method
@@ -31,7 +32,7 @@ namespace InfServer.Logic
             String cleanString = illiegalChars.Replace(skillString, "");
 
             // Is there still any need?
-            if (String.IsNullOrEmpty(cleanString))
+            if (cleanString == "")
 				return true;
 
 			// Compute ClassId for this case
@@ -55,7 +56,7 @@ namespace InfServer.Logic
             String cleanString = illiegalChars.Replace(buildingString, "");
 
             // Is there still any need?
-            if (String.IsNullOrEmpty(cleanString))
+            if (cleanString == "")
                 return true;
 
             IEnumerable<Vehicle> vehs = player._arena.Vehicles.Where(v => v != null && v._team == player._team);
@@ -89,7 +90,7 @@ namespace InfServer.Logic
             }
             catch (Exception e)
             {
-                Log.write(TLog.Error, "Error parsing building string: '{0}', {1}", cleanString, e);
+                Log.write(TLog.Error, "Error parsing building string '{0}' as '{1}', {2}", cleanString, booleanString, e);
             }
             return qualified;
         }
@@ -139,7 +140,7 @@ namespace InfServer.Logic
                     else { val = false; }
                 }
 				else
-				{ // Skill (aaerox is super mean!)
+				{ // No prefix, skill ID
 					val = player._skills.ContainsKey(numVal);
 				}
 

@@ -67,8 +67,11 @@ namespace InfServer
         public void lostPlayer(Zone.Player player)
         {
             //Remove him from any chats
-            foreach (Chat c in _chats.Values)
+            foreach (Chat c in _chats.Values.ToList())
             {
+                if (c == null)
+                    continue;
+
                 if (c.hasPlayer(player))
                     c.lostPlayer(player);
             }

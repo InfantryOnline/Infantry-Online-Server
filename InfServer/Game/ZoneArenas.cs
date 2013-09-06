@@ -149,11 +149,7 @@ namespace InfServer.Game
 			arena.init();
 			using (DdMonitor.Lock(_arenas))
 				_arenas.Add(name, arena);
-
-            //Create a new ban list within the main zone banlist
-            if (!arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
-                _arenaBans.Add(arena._name, new Dictionary<string,DateTime>());
-
+            
 			Log.write(TLog.Normal, "Opened arena: " + name);
 
 			return arena;
@@ -168,10 +164,6 @@ namespace InfServer.Game
 
 			using (DdMonitor.Lock(_arenas))
 				_arenas.Remove(arena._name);
-
-            //Lets remove the created ban list since arena is dead
-            if (_arenaBans.ContainsKey(arena._name))
-                _arenaBans.Remove(arena._name);
 
 			Log.write(TLog.Normal, "Closed arena: " + arena._name);
 		}
@@ -200,34 +192,43 @@ namespace InfServer.Game
 		/// <summary>
 		/// Determines, given a specific arena request, which arena the player should join
 		/// </summary>
-		public Arena playerJoinArena(Player player, String arenaName)
-		{	//Do we have such an arena?
-			Arena arena = null;
-			if (!_arenas.TryGetValue(arenaName, out arena))
-			{	//Let's attempt to make it!
-				//Is it a reserved public arena?
-				if (arenaName.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
-					//Can't do this I'm afraid
-					return null;
-
-				//Create it!
-				return newArena(arenaName);
-			}
-
-			//Test for join arena privileges
-            if (arenaName.StartsWith("#", StringComparison.OrdinalIgnoreCase))
+        public Arena playerJoinArena(Player player, String arenaName)
+        {
+            if (player == null)
             {
-                if (_arenaBans[arenaName] != null && _arenaBans[arenaName].ContainsKey(player._alias))
+                Log.write(TLog.Error, "playerJoinArena(): Called with null player.");
+                return null;
+            }
+
+            if (String.IsNullOrWhiteSpace(arenaName))
+            {
+                Log.write(TLog.Error, "playerJoinArena(): Called with null / empty arena.");
+                return null;
+            }
+
+            //Do we have such an arena?
+            Arena arena = null;
+            if (!_arenas.TryGetValue(arenaName, out arena))
+            {	//Let's attempt to make it!
+                //Is it a reserved public arena?
+                if (arenaName.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+                    //Can't do this I'm afraid
+                    return null;
+
+                //Create it!
+                return newArena(arenaName);
+            }
+
+            if (arena._blockedList.ContainsKey(player._alias))
+            {
+                TimeSpan check = DateTime.Now - (arena._blockedList.First(v => v.Key.Equals(player._alias)).Value);
+                if (check.Minutes < DateTime.Now.Minute)
                 {
-                    TimeSpan check = DateTime.Now - (_arenaBans[arenaName].First(v => v.Key.Equals(player._alias)).Value);
-                    if (check.Minutes < DateTime.Now.Minute)
-                    {
-                        player.sendMessage(-1, "You are banned from this arena for " + check.Minutes + " minutes.");
-                        return null;
-                    }
-                    //Lets delete him from the list
-                    _arenaBans[arenaName].Remove(player._alias);
+                    player.sendMessage(-1, "You are banned from this arena for " + check.Minutes + " minutes.");
+                    return null;
                 }
+                //Lets delete him from the list
+                arena._blockedList.Remove(player._alias);
             }
 
             //Is it full?
@@ -237,7 +238,7 @@ namespace InfServer.Game
                 return null;
             }
 
-			return arena;
-		}
+            return arena;
+        }
 	}
 }

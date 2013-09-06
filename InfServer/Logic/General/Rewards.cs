@@ -325,8 +325,12 @@ namespace InfServer.Logic
             }
 
             //Route the kill to the rest of the arena
-            foreach (Player p in victim._arena.Players)
+            foreach (Player p in victim._arena.Players.ToList())
             {	//As long as we haven't already declared it, send
+
+                if (p == null)
+                    continue;
+
                 if (p == killer)
                     continue;
 

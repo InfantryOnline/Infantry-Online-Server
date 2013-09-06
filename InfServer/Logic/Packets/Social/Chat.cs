@@ -192,7 +192,6 @@ namespace InfServer.Logic
                         if (!player._server.IsStandalone)
                         {
                             CS_PrivateChat<Data.Database> pchat = new CS_PrivateChat<Data.Database>();
-                            Log.write(TLog.Warning, "Sending chat to db");
                             pchat.chat = pkt.recipient;
                             pchat.message = pkt.message;
                             pchat.from = player._alias;

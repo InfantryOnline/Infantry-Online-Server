@@ -2209,7 +2209,7 @@ namespace InfServer.Game.Commands.Mod
             //Lets grab the players name
             if (recipient != null)
             {
-                alias = recipient._alias.ToString();
+                alias = recipient._alias;
                 //Lets get the time too
                 try
                 {
@@ -2231,7 +2231,7 @@ namespace InfServer.Game.Commands.Mod
                     player.sendMessage(-1, "That player isn't here.");
                     return;
                 }
-                alias = recipient._alias.ToString();
+                alias = recipient._alias;
 
                 //Lets check for time now
                 try
@@ -2255,7 +2255,7 @@ namespace InfServer.Game.Commands.Mod
                     }
             }
             recipient.sendMessage(-1, String.Format("You have been kicked from the arena{0}", (minutes > 0) ? String.Format(" for {0} minutes.", minutes) : "."));
-            recipient._server._arenaBans[recipient._arena._name].Add(recipient._alias, DateTime.Now.AddMinutes(minutes));
+            recipient._arena._blockedList.Add(recipient._alias, DateTime.Now.AddMinutes(minutes));
             recipient.disconnect();
 
             player.sendMessage(0, String.Format("You have kicked player {0}{1}", recipient._alias, (minutes > 0) ? String.Format(" for {0} minutes.", minutes) : "."));

@@ -55,7 +55,6 @@ namespace InfServer.Game
         public Dictionary<IPAddress, DateTime> _connections;
 
         public Dictionary<ZoneServer, DateTime> _recycle; //When to recycle
-        public Dictionary<string, Dictionary<string, DateTime>> _arenaBans; //Our arena banning list
         public Dictionary<string, Dictionary<int, DateTime>> _playerSilenced; //Self explanitory
 
         /// <summary>
@@ -328,8 +327,6 @@ namespace InfServer.Game
 
             Log.write("Asset Checksum: " + _assets.checkSum());
 
-            //Create a new banning list
-            _arenaBans = new Dictionary<string, Dictionary<string, DateTime>>();
             //Create a new player silenced list
             _playerSilenced = new Dictionary<string, Dictionary<int, DateTime>>();
 
@@ -446,20 +443,29 @@ namespace InfServer.Game
         /// </sumary>
         public void cleanup()
         {
-            //Loop through each arena and save stats for each player in that arena.
-            Dictionary<string, Arena> alist = _arenas;
-            foreach (KeyValuePair<string, Arena> arena in alist)
+            //Do we have a DB server to update?
+            if (!_bStandalone)
             {
-                IEnumerable<Player> plist = arena.Value.Players;
-                foreach (Player p in plist)
+                //Loop through each arena and save stats for each player in that arena.
+                Dictionary<string, Arena> alist = _arenas;
+                foreach (KeyValuePair<string, Arena> arena in alist)
                 {
-                    //Update his stats first
-                    _db.updatePlayer(p);
-                }
-            }
+                    foreach (Player p in arena.Value.Players.ToList())
+                    {
+                        if (p == null)
+                            continue;
 
-            //Disconnect from the database gracefully..
-            _db.send(new Disconnect<Database>());
+                        //Update his stats first
+                        _db.updatePlayer(p);
+
+                        //Disconnect them
+                        //Helpers.Player_Disconnect(p);
+                    }
+                }
+
+                //Disconnect from the database gracefully..
+                _db.send(new Disconnect<Database>());
+            }
 
             //Add a little delay...
             Thread.Sleep(2000);

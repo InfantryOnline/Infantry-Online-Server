@@ -882,7 +882,7 @@ namespace InfServer.Script.GameType_ZombieZone
                 {
                     //_zombieHorde.addPlayer(player);
                     player.upgradeVehicle(player.getVarInt("baseClassVehicle"));
-                    player.checkSkillLevel();
+                    //player.checkSkillLevel();
  
                     //adds them to this team's original players (since this is likely because mod put them on team)
                     TeamState state = getTeamState(player._team);

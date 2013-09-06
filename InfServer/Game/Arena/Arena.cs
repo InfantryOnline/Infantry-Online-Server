@@ -31,7 +31,7 @@ namespace InfServer.Game
 		protected ObjTracker<Player> _playersIngame;	//The list of players currently ingame
 
         public List<string> _owner;                     //The owner's name of this arena - we use a list because we can grant players
-        public Dictionary<Arena, Player> _notAllowed;   //Banned list for owned arenas
+        public Dictionary<string,DateTime> _blockedList;//Banned list for owned arenas
 
         public List<Ball> _balls;
 
@@ -437,6 +437,7 @@ namespace InfServer.Game
             _balls = new List<Ball>();
            
             _owner = new List<string>();
+            _blockedList = new Dictionary<string, DateTime>();
 
 			//Instance our tiles array
 			LvlInfo lvl = server._assets.Level;
@@ -662,11 +663,16 @@ namespace InfServer.Game
                                 if (vehicle._tickControlEnd != 0 && vehicle._tickControlTime != 0 &&
                                     (now - vehicle._tickControlTime) > (vehicle._tickControlEnd * 1000))
                                 {
-                                    //Reset till the next ownership change
+                                    //Do we still have a team to go back to?
                                     if (vehicle._team.ActivePlayerCount > 0)
+                                    {
                                         vehicle._owner = vehicle._team;
+                                    }
                                     else
+                                    {
                                         vehicle._owner = null;
+                                    }
+                                    
                                     vehicle._tickControlEnd = 0;
                                     vehicle._tickControlTime = 0;
                                 }

@@ -15,18 +15,14 @@ namespace InfServer.Logic
     {
         //Handles private chat entries.
         static public void Handle_SC_JoinChat(SC_JoinChat<Database> pkt, Database _db)
-        {   //Todo: refactor this entire func
-            Player player = _db._server.getPlayer(pkt.from);
-
-            if (player == null)
-                return;
-
+        {
             string[] splitArr = { ", " };
-            string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            List<string> users = new List<string>();
+            users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
 
             SC_Chat notify = new SC_Chat();
             notify.chatType = Helpers.Chat_Type.PrivateChat;
-            notify.message = pkt.chat + ":<< Entering chat >>";
+            notify.message = pkt.chat + ":<< Entering Chat >>";
             notify.from = pkt.from;
 
             foreach (string user in users)
@@ -45,7 +41,8 @@ namespace InfServer.Logic
         static public void Handle_SC_LeaveChat(SC_LeaveChat<Database> pkt, Database _db)
         {
             string[] splitArr = { ", " };
-            string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            List<string> users = new List<string>();
+            users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
 
             SC_Chat notify = new SC_Chat();
             notify.chatType = Helpers.Chat_Type.PrivateChat;
@@ -67,21 +64,20 @@ namespace InfServer.Logic
 
         static public void Handle_SC_Chat(SC_PrivateChat<Database> pkt, Database _db)
         {
+            string[] splitArr = { ", " };
+            List<string> users = new List<string>();
+            users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+
             SC_Chat msg = new SC_Chat();
             msg.chatType = Helpers.Chat_Type.PrivateChat;
             msg.message = pkt.chat + ":" + pkt.message;
             msg.from = pkt.from;
 
-            string[] splitArr = { ", " };
-            string[] users = pkt.users.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
             foreach (string user in users)
             {
                 Player p = _db._server.getPlayer(user);
                 if (p == null)
-                {
-                    //Log.write(TLog.Inane, "Attempted to send chat to non-existent player '{0}'", user);
                     continue;
-                }
 
                 if (p._alias == pkt.from)
                     continue;
