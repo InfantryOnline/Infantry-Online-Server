@@ -118,7 +118,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Log the player in. Stand-Alone Mode only.
         /// </summary>
-        static public void authenticate(Player player, Player recipient, string payload, int bong)
+        static public void auth(Player player, Player recipient, string payload, int bong)
         {
             if (!player._server.IsStandalone)
             {
@@ -2282,7 +2282,7 @@ namespace InfServer.Game.Commands.Mod
                 "*arena message",
                InfServer.Data.PlayerPermission.ArenaMod, true);
 
-            yield return new HandlerDescriptor(authenticate, "auth",
+            yield return new HandlerDescriptor(auth, "auth",
                 "Log in during Stand-Alone Mode",
                 "*auth password");
 
