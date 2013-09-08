@@ -49,23 +49,49 @@ namespace InfServer
             _squadInvites = new List<KeyValuePair<int, int>>();
 		}
 
-        public void newPlayer(Zone.Player player)
+        public bool newPlayer(Zone.Player player)
         {
-         
+            if (player == null)
+            {
+                Log.write(TLog.Error, "DBServer.newPlayer(): Called with null player.");
+                return false;
+            }
+            if (String.IsNullOrWhiteSpace(player.alias))
+            {
+                Log.write(TLog.Error, "DBServer.newPlayer(): Player has no alias.");
+                return false;
+            }
             if (_players.ContainsValue(player))
             {
-                Log.write(TLog.Warning, "A player who is already logged in made an attempt at a secondary login.");
-                return;
+                Log.write(TLog.Error, "DBServer.newPlayer(): Player for '{0}' is already present.", player.alias);
+                return false;
             }
-           
-            _players.Add(player.alias, player);
+
+            //Give it a go
+            try
+            {
+                _players.Add(player.alias, player);
+            }
+            catch
+            {
+                Log.write(TLog.Exception, "DBServer.newPlayer(): Key '{0}' already exists.", player.alias);
+                return false;
+            }
 
             if (_players.Count() > playerPeak)
                 playerPeak = _players.Count();
+
+            return true;
         }
 
         public void lostPlayer(Zone.Player player)
         {
+            if (player == null)
+            {
+                Log.write(TLog.Error, "DBServer.lostPlayer(): Called with null player.");
+                return;
+            }
+
             //Remove him from any chats
             foreach (Chat c in _chats.Values.ToList())
             {
@@ -76,14 +102,20 @@ namespace InfServer
                     c.lostPlayer(player);
             }
 
-            if (!_players.ContainsValue(player))
+            //Remove him from the DB server master player list
+            if (!_players.Remove(player.alias))
             {
-                Log.write(TLog.Error, "Lost player not in the list: {0}", player.alias);
+                if (_players.ContainsValue(player))
+                {
+                    Log.write(TLog.Error, "Failed removing player '{0}' by name.", player.alias);
+                }
+                else
+                {
+                    Log.write(TLog.Error, "Lost player not in the list '{0}'.", player.alias);
+                }
+
                 return;
             }
-
-            //Remove him from the DB server master player list
-            _players.Remove(player.alias);
         }
 
         public Chat getChat(string name)
@@ -91,6 +123,7 @@ namespace InfServer
             Chat chat = _chats.Values.SingleOrDefault(c => c._name.ToLower() == name.ToLower());
             if (chat == null)
                 return null;
+
             return chat;
         }
 
@@ -99,6 +132,7 @@ namespace InfServer
             Zone.Player player;
             if (!_players.TryGetValue(name, out player))
                 return null;
+
             return player;
         }
 

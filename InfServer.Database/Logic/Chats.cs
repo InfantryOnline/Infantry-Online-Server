@@ -19,7 +19,7 @@ namespace InfServer.Logic
             //Hey, how'd you get here?!
             if (player == null)
             {
-                Log.write(TLog.Error, "Handle_CS_JoinChat(): Called with null player.");
+                Log.write(TLog.Error, "Handle_CS_JoinChat(): Unable to find player.");
                 return;
             }
 
@@ -28,7 +28,7 @@ namespace InfServer.Logic
             {
                 foreach (var chat in server._chats.Values.ToList())
                 {
-                    if (chats == null)
+                    if (chat == null)
                         continue;
 
                     if (chat.hasPlayer(player))
@@ -37,7 +37,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            //Split and trim our skills
+            //Split and trim our chats
             chats = pkt.chat.Split(splitArr, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
 
             foreach (string chat in chats)
@@ -46,7 +46,6 @@ namespace InfServer.Logic
                     continue;
 
                 string name = chat.ToLower();
-                Chat _chat = server.getChat(chat);
 
                 //Remove him from everything..
                 if (name == "off")
@@ -63,8 +62,10 @@ namespace InfServer.Logic
                     return;
                 }
 
+                Chat _chat = server.getChat(chat);
+
                 //New chat
-                if (!server._chats.ContainsValue(_chat))
+                if (_chat == null)
                 {
                     Log.write(TLog.Normal, "Opened chat: '{0}'", chat);
                     _chat = new Chat(server, chat);
@@ -96,7 +97,7 @@ namespace InfServer.Logic
         static public void Handle_CS_Chat(CS_PrivateChat<Zone> pkt, Zone zone)
         {
             DBServer server = zone._server;
-            Chat chat = server.getChat(pkt.chat.ToLower());
+            Chat chat = server.getChat(pkt.chat);
 
             //WTF MATE?
             if (chat == null)

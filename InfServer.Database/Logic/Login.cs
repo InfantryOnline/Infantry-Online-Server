@@ -89,44 +89,55 @@ namespace InfServer.Logic
 		/// <summary>
 		/// Handles the zone login request packet 
 		/// </summary>
-		static public void Handle_CS_PlayerLogin(CS_PlayerLogin<Zone> pkt, Zone zone)
-		{	//Make a note
-			Log.write(TLog.Inane, "Player login request for {0} on {1}", pkt.alias, zone);
+        static public void Handle_CS_PlayerLogin(CS_PlayerLogin<Zone> pkt, Zone zone)
+        {	//Make a note
+            Log.write(TLog.Inane, "Player login request for '{0}' on '{1}'", pkt.alias, zone);
 
-			using (InfantryDataContext db = zone._server.getContext())
-			{
-				SC_PlayerLogin<Zone> plog = new SC_PlayerLogin<Zone>();
+            SC_PlayerLogin<Zone> plog = new SC_PlayerLogin<Zone>();
+            plog.player = pkt.player;
 
-				plog.player = pkt.player;
+            //Are they using the launcher?
+            if (String.IsNullOrWhiteSpace(pkt.ticketid))
+            {	//They're trying to trick us, jim!
+                plog.bSuccess = false;
+                plog.loginMessage = "Please use the Infantry launcher to run the game.";
 
-				//Are they using the launcher?
-				if (pkt.ticketid == "")
-				{	//They're trying to trick us, jim!
-					plog.bSuccess = false;
-					plog.loginMessage = "Please use the Infantry launcher to run the game.";
+                zone._client.send(plog);
+                return;
+            }
+            if (pkt.ticketid.Contains(':'))
+            {   //They're using the old, outdated launcher
+                plog.bSuccess = false;
+                plog.loginMessage = "Please use the updated launcher from the website.";
 
-					zone._client.send(plog);
-					return;
-				}
-                if (pkt.ticketid.Contains(':'))
-                {   //They're using the old, outdated launcher
+                zone._client.send(plog);
+                return;
+            }
+
+            Data.DB.player player = null;
+
+            using (InfantryDataContext db = zone._server.getContext())
+            {
+                Data.DB.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
+
+                if (account == null)
+                {	//They're trying to trick us, jim!
                     plog.bSuccess = false;
-                    plog.loginMessage = "Please use the updated launcher from the website";
+                    plog.loginMessage = "Your session id has expired. Please re-login.";
 
                     zone._client.send(plog);
                     return;
                 }
 
-				Data.DB.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
+                //Is there already a player online under this account?
+                if (!DBServer.bAllowMulticlienting && zone._server._zones.Any(z => z.hasAccountPlayer(account.id)))
+                {
+                    plog.bSuccess = false;
+                    plog.loginMessage = "Account is currently in use.";
 
-				if (account == null)
-				{	//They're trying to trick us, jim!
-					plog.bSuccess = false;
-					plog.loginMessage = "Your session id has expired. Please re-login.";
-
-					zone._client.send(plog);
-					return;
-				}
+                    zone._client.send(plog);
+                    return;
+                }
 
                 //Check for IP and UID bans
                 Logic_Bans.Ban banned = Logic_Bans.checkBan(pkt, db, account, zone._zone.id);
@@ -171,38 +182,27 @@ namespace InfServer.Logic
                     return;
                 }
 
-				//Is there already a player online under this account?
-				if (!DBServer.bAllowMulticlienting && zone._server._zones.Any(z => z.hasAccountPlayer(account.id)))
-				{	
-					plog.bSuccess = false;
-					plog.loginMessage = "Account is currently in use.";
-
-					zone._client.send(plog);
-					return;
-				}
                 //They made it!
-				
-				//We have the account associated!
-				plog.permission = (PlayerPermission)account.permission;
 
-				//Attempt to find the related alias
+                //We have the account associated!
+                plog.permission = (PlayerPermission)account.permission;
+
+                //Attempt to find the related alias
                 Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
-                //Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
-				Data.DB.player player = null;
-				Data.DB.stats stats = null;
+                Data.DB.stats stats = null;
 
-				//Is there already a player online under this alias?
-				if (alias != null && zone._server._zones.Any(z => z.hasAliasPlayer(alias.id)))
-				{	
-					plog.bSuccess = false;
-					plog.loginMessage = "Alias is currently in use.";
+                //Is there already a player online under this alias?
+                if (alias != null && zone._server._zones.Any(z => z.hasAliasPlayer(alias.id)))
+                {
+                    plog.bSuccess = false;
+                    plog.loginMessage = "Alias is currently in use.";
 
-					zone._client.send(plog);
-					return;
-				}
+                    zone._client.send(plog);
+                    return;
+                }
 
-				if (alias == null && !pkt.bCreateAlias)
-				{	//Prompt him to create a new alias if he has room
+                if (alias == null && !pkt.bCreateAlias)
+                {	//Prompt him to create a new alias if he has room
                     if (account.alias.Count < 30)
                     {   //He has space! Prompt him to make a new alias
                         plog.bSuccess = false;
@@ -214,120 +214,133 @@ namespace InfServer.Logic
                     else
                     {
                         plog.bSuccess = false;
-                        plog.loginMessage = "Your account has reached the maximum number of aliases allowed";
+                        plog.loginMessage = "Your account has reached the maximum number of aliases allowed.";
 
                         zone._client.send(plog);
                         return;
                     }
-				}
-				else if (alias == null && pkt.bCreateAlias)
-				{	//We want to create a new alias!
-					alias = new InfServer.Data.DB.alias();
+                }
+                else if (alias == null && pkt.bCreateAlias)
+                {	//We want to create a new alias!
+                    alias = new InfServer.Data.DB.alias();
 
-					alias.name = pkt.alias;
-					alias.creation = DateTime.Now;
-					alias.account1 = account;
+                    alias.name = pkt.alias;
+                    alias.creation = DateTime.Now;
+                    alias.account1 = account;
                     alias.IPAddress = pkt.ipaddress;
                     alias.lastAccess = DateTime.Now;
                     alias.timeplayed = 0;
 
-					db.alias.InsertOnSubmit(alias);
+                    db.alias.InsertOnSubmit(alias);
 
-					Log.write(TLog.Normal, "Creating new alias {0} on account {1}", pkt.alias, account.name);
-				}
-				else if (alias != null)
-				{	//We can't recreate an existing alias or login to one that isn't ours..
-					if (pkt.bCreateAlias || 
-						alias.account1 != account)
-					{
-						plog.bSuccess = false;
-						plog.loginMessage = "The specified alias already exists.";
+                    Log.write(TLog.Normal, "Creating new alias '{0}' on account '{1}'", pkt.alias, account.name);
+                }
+                else if (alias != null)
+                {	//We can't recreate an existing alias or login to one that isn't ours..
+                    if (pkt.bCreateAlias ||
+                        alias.account1 != account)
+                    {
+                        plog.bSuccess = false;
+                        plog.loginMessage = "The specified alias already exists.";
 
-						zone._client.send(plog);
-						return;
-					}
-				}
+                        zone._client.send(plog);
+                        return;
+                    }
+                }
 
-				//Do we have a player row for this zone?
-				player = db.players.SingleOrDefault(
-					plyr => plyr.alias1 == alias && plyr.zone1 == zone._zone);
+                //Do we have a player row for this zone?
+                player = db.players.SingleOrDefault(
+                    plyr => plyr.alias1 == alias && plyr.zone1 == zone._zone);
 
-				if (player == null)
-				{	//We need to create another!
-                    Log.write(TLog.Warning, "Player doesn't exist, creating another structure");
+                if (player == null)
+                {	//We need to create another!
+                    Log.write(TLog.Normal, "Player doesn't exist, creating another structure");
                     player = new InfServer.Data.DB.player();
 
-					player.squad1 = null;
-					player.zone = zone._zone.id;
-					player.alias1 = alias;
+                    player.squad1 = null;
+                    player.zone = zone._zone.id;
+                    player.alias1 = alias;
 
-					player.lastAccess = DateTime.Now;
-					player.permission = 0;
+                    player.lastAccess = DateTime.Now;
+                    player.permission = 0;
 
-					//Create a blank stats row
-					stats = new InfServer.Data.DB.stats();
+                    //Create a blank stats row
+                    stats = new InfServer.Data.DB.stats();
 
-					stats.zone = zone._zone.id;
-					player.stats1 = stats;
+                    stats.zone = zone._zone.id;
+                    player.stats1 = stats;
 
-					db.stats.InsertOnSubmit(stats);
-					db.players.InsertOnSubmit(player);
+                    db.stats.InsertOnSubmit(stats);
+                    db.players.InsertOnSubmit(player);
 
-					//It's a first-time login, so no need to load stats
-					plog.bSuccess = true;
-					plog.bFirstTimeSetup = true;
-				}
-				else
-				{	//Load the player details and stats!
-					plog.banner = player.banner;
-					plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
-					plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
+                    //It's a first-time login, so no need to load stats
+                    plog.bFirstTimeSetup = true;
+                }
+                else
+                {	//Load the player details and stats!
+                    plog.banner = player.banner;
+                    plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
+                    plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
                     if (player.squad1 != null)
                         plog.squadID = player.squad1.id;
-					plog.bSuccess = true;
 
-					stats = player.stats1;
+                    stats = player.stats1;
 
-					plog.stats.zonestat1 = stats.zonestat1;
-					plog.stats.zonestat2 = stats.zonestat2;
-					plog.stats.zonestat3 = stats.zonestat3;
-					plog.stats.zonestat4 = stats.zonestat4;
-					plog.stats.zonestat5 = stats.zonestat5;
-					plog.stats.zonestat6 = stats.zonestat6;
-					plog.stats.zonestat7 = stats.zonestat7;
-					plog.stats.zonestat8 = stats.zonestat8;
-					plog.stats.zonestat9 = stats.zonestat9;
-					plog.stats.zonestat10 = stats.zonestat10;
-					plog.stats.zonestat11 = stats.zonestat11;
-					plog.stats.zonestat12 = stats.zonestat12;
+                    plog.stats.zonestat1 = stats.zonestat1;
+                    plog.stats.zonestat2 = stats.zonestat2;
+                    plog.stats.zonestat3 = stats.zonestat3;
+                    plog.stats.zonestat4 = stats.zonestat4;
+                    plog.stats.zonestat5 = stats.zonestat5;
+                    plog.stats.zonestat6 = stats.zonestat6;
+                    plog.stats.zonestat7 = stats.zonestat7;
+                    plog.stats.zonestat8 = stats.zonestat8;
+                    plog.stats.zonestat9 = stats.zonestat9;
+                    plog.stats.zonestat10 = stats.zonestat10;
+                    plog.stats.zonestat11 = stats.zonestat11;
+                    plog.stats.zonestat12 = stats.zonestat12;
 
-					plog.stats.kills = stats.kills;
-					plog.stats.deaths = stats.deaths;
-					plog.stats.killPoints = stats.killPoints;
-					plog.stats.deathPoints = stats.deathPoints;
-					plog.stats.assistPoints = stats.assistPoints;
-					plog.stats.bonusPoints = stats.bonusPoints;
-					plog.stats.vehicleKills = stats.vehicleKills;
-					plog.stats.vehicleDeaths = stats.vehicleDeaths;
-					plog.stats.playSeconds = stats.playSeconds;
+                    plog.stats.kills = stats.kills;
+                    plog.stats.deaths = stats.deaths;
+                    plog.stats.killPoints = stats.killPoints;
+                    plog.stats.deathPoints = stats.deathPoints;
+                    plog.stats.assistPoints = stats.assistPoints;
+                    plog.stats.bonusPoints = stats.bonusPoints;
+                    plog.stats.vehicleKills = stats.vehicleKills;
+                    plog.stats.vehicleDeaths = stats.vehicleDeaths;
+                    plog.stats.playSeconds = stats.playSeconds;
 
-					plog.stats.cash = stats.cash;
-					plog.stats.inventory = new List<PlayerStats.InventoryStat>();
-					plog.stats.experience = stats.experience;
-					plog.stats.experienceTotal = stats.experienceTotal;
-					plog.stats.skills = new List<PlayerStats.SkillStat>();
+                    plog.stats.cash = stats.cash;
+                    plog.stats.inventory = new List<PlayerStats.InventoryStat>();
+                    plog.stats.experience = stats.experience;
+                    plog.stats.experienceTotal = stats.experienceTotal;
+                    plog.stats.skills = new List<PlayerStats.SkillStat>();
 
-					//Convert the binary inventory/skill data
-					if (player.inventory != null)
-						DBHelpers.binToInventory(plog.stats.inventory, player.inventory);
-					if (player.skills != null)
-						DBHelpers.binToSkills(plog.stats.skills, player.skills);
+                    //Convert the binary inventory/skill data
+                    if (player.inventory != null)
+                        DBHelpers.binToInventory(plog.stats.inventory, player.inventory);
+                    if (player.skills != null)
+                        DBHelpers.binToSkills(plog.stats.skills, player.skills);
+                }
 
-					plog.bSuccess = true;
-				}
                 //Rename him
                 plog.alias = alias.name;
-				zone._client.sendReliable(plog);
+
+                //loaded?
+                if (zone.newPlayer(pkt.player.id, alias.name, player))
+                {
+                    plog.bSuccess = true;
+                    Log.write("Player '{0}' logged into zone '{1}'", alias.name, zone._zone.name);
+                }
+                else
+                {
+                    plog.bSuccess = false;
+                    plog.loginMessage = "Unknown login failure.";
+                    zone._client.sendReliable(plog);
+                    Log.write("Failed adding player '{0}' from '{1}'", alias.name, zone._zone.name);
+                    return;
+                }
+
+                zone._client.sendReliable(plog);
 
                 //Modify his alias IP address and access times
                 alias.IPAddress = pkt.ipaddress.Trim();
@@ -335,18 +348,26 @@ namespace InfServer.Logic
 
                 //Submit our modifications
                 db.SubmitChanges();
-
-				//Consider him loaded!
-				zone.newPlayer(pkt.player.id, alias.name, player);
-				Log.write("Player {0} logged into zone {1}", alias.name, zone._zone.name);
-			}
-		}
+            }
+        }
 
 		/// <summary>
 		/// Handles a player leave notification 
 		/// </summary>
 		static public void Handle_CS_PlayerLeave(CS_PlayerLeave<Zone> pkt, Zone zone)
 		{	//He's gone!
+            if (zone == null)
+            {
+                Log.write(TLog.Error, "Handle_CS_PlayerLeave(): Called with null zone.");
+                return;
+            }
+
+            if (zone.getPlayer(pkt.alias) == null)
+            {
+                Log.write(TLog.Warning, "Handle_CS_PlayerLeave(): Player not found.");
+                //Don't return until I have a better grasp of this
+            }
+            
             using (InfantryDataContext db = zone._server.getContext())
             {
                 Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
@@ -359,12 +380,13 @@ namespace InfServer.Logic
                     alias.timeplayed += minutes;
 
                     db.SubmitChanges();
-                    Log.write("Player {0} left zone {1}", pkt.alias, zone._zone.name);
                 }
             }
 
             //Remove the player from the zone
 			zone.lostPlayer(pkt.player.id);
+
+            Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.name);
 		}
 
         /// <summary>

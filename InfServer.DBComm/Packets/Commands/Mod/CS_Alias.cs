@@ -28,7 +28,8 @@ namespace InfServer.Protocol
             transfer,
             remove,
             mod,
-            dev
+            dev,
+            rename
         }
 
 

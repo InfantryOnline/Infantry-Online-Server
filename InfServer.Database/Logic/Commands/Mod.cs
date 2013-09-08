@@ -153,6 +153,35 @@ namespace InfServer.Logic
                         }
                         break;
 
+                    case CS_Alias<Zone>.AliasType.rename:
+                        {
+                            if (pkt.alias == "")
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
+                            }
+
+                            //Get all account related info
+                            Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => aTo.name.Equals(pkt.aliasTo));
+                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
+                            if (paliasTo == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                                return;
+                            }
+
+                            if (alias != null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "That alias is already being used.");
+                                return;
+                            }
+
+                            paliasTo.name = pkt.alias;
+                            db.SubmitChanges();
+                            zone._server.sendMessage(zone, pkt.sender, "Renamed player " + paliasTo.name + " to " + pkt.alias + " has been completed.");
+                        }
+                        break;
+
                     case CS_Alias<Zone>.AliasType.mod:
                         {
                             if (pkt.alias == "")

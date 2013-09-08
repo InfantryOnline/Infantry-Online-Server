@@ -61,6 +61,9 @@ namespace InfServer
             //Remove the players from the zone and chats.
             foreach (KeyValuePair<int, Player> p in this._players.ToList())
             {
+                if (p.Value == null)
+                    continue;
+
                 lostPlayer(p.Key);
             }
 
@@ -73,7 +76,12 @@ namespace InfServer
 		/// </summary>
 		public Player getPlayer(int id)
 		{	//Attempt to get him..
-			Player player;
+            if (id == 0)
+            {
+                Log.write(TLog.Warning, "Zone.getPlayer(): Attempted to find id 0.");
+            }
+            
+            Player player;
 
 			if (!_players.TryGetValue(id, out player))
 				return null;
@@ -85,6 +93,11 @@ namespace InfServer
         /// </summary>
         public Player getPlayer(string alias)
         {
+            if (string.IsNullOrWhiteSpace(alias))
+            {
+                Log.write(TLog.Error, "Zone.getPlayer(): Called with no alias.");
+                return null;
+            }
 
             foreach (KeyValuePair<int, Player> p in _players)
             {
@@ -122,8 +135,23 @@ namespace InfServer
 		/// <summary>
 		/// Indicates that a player has joined the zone server
 		/// </summary>
-		public void newPlayer(int id, string alias, Data.DB.player dbplayer)
-		{	//Add him to our player list
+		public bool newPlayer(int id, string alias, Data.DB.player dbplayer)
+		{
+            if (string.IsNullOrWhiteSpace(alias))
+            {
+                Log.write(TLog.Error, "Zone.newPlayer(): Called with no alias.");
+                return false;
+            }
+            if (id == 0)
+            {
+                Log.write(TLog.Error, "Zone.newPlayer(): ID was 0 for player '{0}.", alias);
+            }
+            if (dbplayer == null)
+            {
+                Log.write(TLog.Error, "Zone.getPlayer(): Called with null dbplayer for '{0}'.", alias);
+                return false;
+            }
+
 			Player player = new Player();
 
 			player.acctid = dbplayer.alias1.account1.id;
@@ -133,9 +161,27 @@ namespace InfServer
             player.permission = dbplayer.permission;
             player.zone = this;
             player.arena = "TODO"; //TODO: ?
-           
 
-			_players[id] = player;
+            // Add them to the Zone players list
+            try
+            {
+                _players.Add(id, player);
+            }
+            catch
+            {
+                Log.write(TLog.Error, "Zone.newPlayer(): Key '{0}' already exists for player '{1}'.", id, alias);
+                return false;
+            }
+            
+            // And the global list
+            if (!_server.newPlayer(player))
+            {
+                // Back out of the zone list
+                _players.Remove(id);
+                return false;
+            }
+
+            // Squad shit
             using (Data.InfantryDataContext db = _server.getContext())
             {
                 Data.DB.squad pSquad = db.squads.FirstOrDefault(s => s.id == dbplayer.squad);
@@ -146,7 +192,6 @@ namespace InfServer
                     //Check for any scheduled matches this squad may have
                     IQueryable<Data.DB.squadmatch> matches = db.squadmatches.Where
                         (m => m.squad1 == pSquad.id || m.squad2 == pSquad.id);
-
 
 
                     if (matches.Count() > 0)
@@ -161,8 +206,8 @@ namespace InfServer
                     }
                 }
             }
-            //Alert our boss!
-            _server.newPlayer(player);
+
+            return true;
 		}
 
 		/// <summary>
@@ -171,10 +216,14 @@ namespace InfServer
 		public void lostPlayer(int id)
 		{	//Attempt to remove him
             if (!_players.Keys.Contains(id))
+            {
+                Log.write(TLog.Error, "Zone.lostPlayer(): id not found in list.");
                 return;
+            }
 
-            //Remove him from the base db list
+            //Remove him from the base db list and chats
             _server.lostPlayer(_players[id]);
+
             //Remove him from the zone player list
             _players.Remove(id);
 		}

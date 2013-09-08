@@ -176,40 +176,6 @@ namespace InfServer.Game.Commands.Mod
                     recipient.sendMessage(-1, "Your alias is being deleted, you will be forced a dc.");
                 }
             }
-            /*
-            db = new SqlConnection("Server=INFANTRY\\SQLEXPRESS;Database=Data;Trusted_Connection=True;");
-            db.Open();
-            //Get their player ID
-            var playerID = new SqlCommand("SELECT * FROM alias WHERE name='"+alias+"'", db);
-
-            using (var reader = playerID.ExecuteReader())
-             {
-                while (reader.Read())
-                    pID = reader["id"].ToString(); //Could not find simpler code to do this               
-             }
-          
-            //Using playerID, get all their aliases and delete them
-            using (SqlCommand Command = new SqlCommand("DELETE FROM player WHERE alias=" + pID, db))
-                Command.ExecuteNonQuery(); //Here we can see how many rows were affected to inform command user
-
-            string returnValue = "";
-
-            //Now delete their player account for that alias
-            using (SqlCommand Command = new SqlCommand("DELETE FROM alias WHERE id=" + pID, db))
-                returnValue = (string)Command.ExecuteScalar();
-            
-            //Inform remover
-            if (returnValue == "")
-            {
-                player.sendMessage(-1, "No aliases were found by that name.");
-                return;
-            }
-
-            player.sendMessage(0, String.Format("Alias {0} deleted.", alias));
-
-            //Close connection with database
-            db.Close();
-            */
 
             //For some reason the player never see's the message
             //so putting it here to give send message a chance
@@ -220,6 +186,69 @@ namespace InfServer.Game.Commands.Mod
             CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
             query.aliasType = CS_Alias<Data.Database>.AliasType.remove;
             query.sender = player._alias.ToString();
+            query.alias = alias;
+            //Send it!
+            player._server._db.send(query);
+        }
+
+        /// <summary>
+        /// Rename's the players alias
+        /// </summary>
+        static public void renamealias(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
+
+            string alias = "";
+            string aliasTo;
+            string[] param;
+
+            //Are we pm'ing someone?
+            if (recipient == null)
+            {
+                if (!payload.Contains(':'))
+                {
+                    player.sendMessage(-1, "Syntax: *renamealias alias:new alias");
+                    return;
+                }
+
+                param = payload.Split(':');
+                aliasTo = param[0];
+                alias = param[1];
+
+                if ((recipient = player._arena.getPlayerByName(param[0])) != null)
+                {
+                    aliasTo = recipient._alias;
+                    //Since they are here, lets dc them to complete the transfer
+                    recipient.sendMessage(-1, "You are being forced to dc to complete the alias rename.");
+                }
+            }
+            else
+            {
+                if (payload == "")
+                {
+                    player.sendMessage(-1, "Syntax: :playerGoingTo:*renamealias newAlias");
+                    return;
+                }
+
+                //Our alias is playing, force a dc
+                recipient.sendMessage(-1, "You are being forced a dc to rename the alias.");
+                alias = payload;
+                aliasTo = recipient._alias;
+            }
+
+            //For some reason the player never see's the message
+            //so putting it here to give send message a chance
+            if (recipient != null)
+                recipient.disconnect();
+
+            CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
+            query.aliasType = CS_Alias<Data.Database>.AliasType.rename;
+            query.sender = player._alias;
+            query.aliasTo = aliasTo;
             query.alias = alias;
             //Send it!
             player._server._db.send(query);
@@ -842,7 +871,10 @@ namespace InfServer.Game.Commands.Mod
                 "Takes dev powers away, default level is player level",
                 "*devremove alias:level(optional) or ::*devremove level(optional)",
                 InfServer.Data.PlayerPermission.Sysop, false);
-
+            yield return new HandlerDescriptor(renamealias, "renamealias",
+                "Rename's the current players alias",
+                "::*renameealias newAlias OR *renamealias alias:newAlias - to rename one on the account",
+                InfServer.Data.PlayerPermission.SMod, false);
             yield return new HandlerDescriptor(removealias, "removealias",
                 "Deletes the current players alias",
                 "::*removealias OR *removealias alias - to delete one from the account",

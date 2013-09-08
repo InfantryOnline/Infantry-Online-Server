@@ -15,7 +15,14 @@ namespace InfServer.Logic
 		/// Handles chat packets sent from the client
 		/// </summary>
 		static public void Handle_CS_Chat(CS_Chat pkt, Player player)
-		{	//Ignore blank messages
+		{
+            if (player == null)
+            {
+                Log.write(TLog.Error, "Handle_CS_Chat(): Called with null player.");
+                return;
+            }
+
+            //Ignore blank messages
             if (pkt.message == "")
 				return;
 

@@ -15,7 +15,14 @@ namespace InfServer.Logic
 		/// Handles all player update packets received from clients
 		/// </summary>
 		static public void Handle_CS_PlayerUpdate(CS_PlayerUpdate pkt, Player player)
-		{	//Allow the player's arena to handle it
+		{
+            if (player == null)
+            {
+                Log.write(TLog.Error, "Handle_CS_PlayerUpdate(): Called with null player.");
+                return;
+            }
+
+            //Allow the player's arena to handle it
 			if (player._arena == null)
 			{
 				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
@@ -32,7 +39,14 @@ namespace InfServer.Logic
 		/// Handles the declaration of death from a client
 		/// </summary>
 		static public void Handle_CS_PlayerDeath(CS_VehicleDeath pkt, Player player)
-		{	//Allow the player's arena to handle it
+		{
+            if (player == null)
+            {
+                Log.write(TLog.Error, "Handle_CS_PlayerDeath(): Called with null player.");
+                return;
+            }
+
+            //Allow the player's arena to handle it
 			if (player._arena == null)
 			{
 				Log.write(TLog.Error, "Player {0} sent death packet with no arena.", player);
