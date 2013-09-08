@@ -359,11 +359,6 @@ namespace InfServer.Game
 			int tickUpdate = Environment.TickCount;
             int flagDelay = _server._zoneConfig.flag.periodicRewardDelay * 1000;
 
-            bool x2 = _server._config["zone/DoubleReward"].boolValue;
-            int multi = 1;
-            if (x2)
-                multi = 2;
-
             if (flagDelay != 0 && (tickUpdate - _lastFlagReward) > flagDelay)
             {
 
@@ -386,19 +381,19 @@ namespace InfServer.Game
 
                         //Cash
                         if (flagSettings.PeriodicCashReward < 0)
-                            cashReward += (Math.Abs(flagSettings.PeriodicCashReward) * _playersIngame.Count()) / 1000 * multi;
+                            cashReward += (Math.Abs(flagSettings.PeriodicCashReward) * _playersIngame.Count()) / 1000;
                         else
-                            cashReward += Math.Abs(flagSettings.PeriodicCashReward) * multi;
+                            cashReward += Math.Abs(flagSettings.PeriodicCashReward);
                         //Experience
                         if (flagSettings.PeriodicExperienceReward < 0)
-                            expReward += (Math.Abs(flagSettings.PeriodicExperienceReward) * _playersIngame.Count()) / 1000 * multi;
+                            expReward += (Math.Abs(flagSettings.PeriodicExperienceReward) * _playersIngame.Count()) / 1000;
                         else
-                            expReward += Math.Abs(flagSettings.PeriodicExperienceReward) * multi;
+                            expReward += Math.Abs(flagSettings.PeriodicExperienceReward);
                         //Points
                         if (flagSettings.PeriodicPointsReward < 0)
-                            pointReward += (Math.Abs(flagSettings.PeriodicPointsReward) * _playersIngame.Count()) / 1000 * multi;
+                            pointReward += (Math.Abs(flagSettings.PeriodicPointsReward) * _playersIngame.Count()) / 1000;
                         else
-                            pointReward += Math.Abs(flagSettings.PeriodicPointsReward * multi);
+                            pointReward += Math.Abs(flagSettings.PeriodicPointsReward);
 
                     }
 

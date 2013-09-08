@@ -24,9 +24,6 @@ namespace InfServer.Logic
             if (owner == null)
                 return;
 
-            //x2Rewards
-            bool x2 = victim._server._config["zone/DoubleReward"].boolValue;
-
             //Calculate kill reward for the turret owner
             CfgInfo cfg = victim._server._zoneConfig;
             int killerCash = (int)(cfg.cash.killReward +
@@ -40,14 +37,6 @@ namespace InfServer.Logic
             int rewardExp = (int)(killerExp * (((float)cfg.arena.turretExperienceSharePercent) / 1000));
             int rewardPoints = (int)(killerPoints * (((float)cfg.arena.turretPointsSharePercent) / 1000));
 
-            //x2 rewards?
-            if (x2)
-            {
-                rewardCash = rewardCash * 2;
-                rewardExp = rewardExp * 2;
-                rewardPoints = rewardPoints * 2;
-            }
-
             //Update his stats
             owner.Cash += rewardCash;
             owner.KillPoints += rewardExp;
@@ -59,109 +48,85 @@ namespace InfServer.Logic
         /// </summary>
         static public void calculateBotKillRewards(Bots.Bot victim, Player killer)
         {
+            CfgInfo cfg = killer._server._zoneConfig;
+            int killerCash = 0;
+            int killerExp = 0;
+            int killerPoints = 0;
+            int killerBounty = 0;
 
-            //x2Rewards
-            bool x2 = killer._server._config["zone/DoubleReward"].boolValue;
-           
-                CfgInfo cfg = killer._server._zoneConfig;
-                int killerCash = 0;
-                int killerExp = 0;
-                int killerPoints = 0;
-                int killerBounty = 0;
+            killerCash = (int)cfg.bot.cashKillReward;
+            killerExp = (int)cfg.bot.expKillReward;
+            killerPoints = (int)cfg.bot.pointsKillReward;
+            killerBounty = (int)cfg.bot.fixedBountyToKiller;
 
-                killerCash = (int)cfg.bot.cashKillReward;
-                killerExp = (int)cfg.bot.expKillReward;
-                killerPoints = (int)cfg.bot.pointsKillReward;
-                killerBounty = (int)cfg.bot.fixedBountyToKiller;
-
-                //x2 rewards?
-                if (x2)
-                {
-                    killerCash = killerCash * 2;
-                    killerExp = killerExp * 2;
-                    killerPoints = killerPoints * 2;
-                    killerBounty = killerBounty * 2;
-                }
-
-                //Update his stats
-                killer.Cash += killerCash;
-                killer.Experience += killerExp;
-                killer.KillPoints += killerPoints;
-                killer.Bounty += killerBounty;
+            //Update his stats
+            killer.Cash += killerCash;
+            killer.Experience += killerExp;
+            killer.KillPoints += killerPoints;
+            killer.Bounty += killerBounty;
 
 
-                //Inform the killer..
-                killer.triggerMessage(1, 500,
+            //Inform the killer..
+            killer.triggerMessage(1, 500,
+                String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
+                victim._type.Name, killer._alias,
+                killerCash, killerExp, killerPoints));
+
+            //Sync his state
+            killer.syncState();
+
+            //Check for players in the share radius
+            List<Player> sharedRewards = victim._arena.getPlayersInRange(victim._state.positionX, victim._state.positionY, cfg.bot.shareRadius);
+            Dictionary<int, int> cashRewards = new Dictionary<int, int>();
+            Dictionary<int, int> expRewards = new Dictionary<int, int>();
+            Dictionary<int, int> pointRewards = new Dictionary<int, int>();
+
+            foreach (Player p in sharedRewards)
+            {
+                if (p == killer || p._team != killer._team)
+                    continue;
+
+                cashRewards[p._id] = (int)((((float)killerCash) / 1000) * cfg.bot.sharePercent);
+                expRewards[p._id] = (int)((((float)killerExp) / 1000) * cfg.bot.sharePercent);
+                pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.bot.sharePercent);
+            }
+
+
+
+            //Sent reward notices to our lucky witnesses
+            List<int> sentTo = new List<int>();
+            foreach (Player p in sharedRewards)
+            {
+                if (p == killer || p._team != killer._team)
+                    continue;
+
+                //Let em know
+                p.triggerMessage(5, 500,
                     String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
-                    victim._type.Name, killer._alias,
-                    killerCash, killerExp, killerPoints));
+                    victim._type.Name, killer._alias, cashRewards[p._id],
+                    expRewards[p._id], pointRewards[p._id]));
 
-                //Sync his state
-                killer.syncState();
+                p.Cash += cashRewards[p._id];
+                p.Experience += expRewards[p._id];
+                p.AssistPoints += pointRewards[p._id];
 
-                //Check for players in the share radius
-                List<Player> sharedRewards = victim._arena.getPlayersInRange(victim._state.positionX, victim._state.positionY, cfg.bot.shareRadius);
-                Dictionary<int, int> cashRewards = new Dictionary<int, int>();
-                Dictionary<int, int> expRewards = new Dictionary<int, int>();
-                Dictionary<int, int> pointRewards = new Dictionary<int, int>();
+                //Sync their state
+                p.syncState();
 
-                foreach (Player p in sharedRewards)
-                {
-                    if (p == killer || p._team != killer._team)
-                        continue;
+                sentTo.Add(p._id);
+            }
 
-                    //DoubleRewards?
-                    if (x2)
-                    {
-                        cashRewards[p._id] = (int)((((float)killerCash) / 1000) * cfg.bot.sharePercent) * 2;
-                        expRewards[p._id] = (int)((((float)killerExp) / 1000) * cfg.bot.sharePercent) * 2;
-                        pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.bot.sharePercent) * 2;
-                    }
-                    //Reward normally..
-                    else
-                    {
-                        cashRewards[p._id] = (int)((((float)killerCash) / 1000) * cfg.bot.sharePercent);
-                        expRewards[p._id] = (int)((((float)killerExp) / 1000) * cfg.bot.sharePercent);
-                        pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.bot.sharePercent);
-                    }
-                }
+            //Route the kill to the rest of the arena
+            foreach (Player p in victim._arena.Players)
+            {	//As long as we haven't already declared it, send
+                if (p == killer)
+                    continue;
 
+                if (sentTo.Contains(p._id))
+                    continue;
 
-
-                //Sent reward notices to our lucky witnesses
-                List<int> sentTo = new List<int>();
-                foreach (Player p in sharedRewards)
-                {
-                    if (p == killer || p._team != killer._team)
-                        continue;
-
-                    //Let em know
-                    p.triggerMessage(5, 500,
-                        String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
-                        victim._type.Name, killer._alias, cashRewards[p._id],
-                        expRewards[p._id], pointRewards[p._id]));
-
-                    p.Cash += cashRewards[p._id];
-                    p.Experience += expRewards[p._id];
-                    p.AssistPoints += pointRewards[p._id];
-
-                    //Sync their state
-                    p.syncState();
-
-                    sentTo.Add(p._id);
-                }
-
-                //Route the kill to the rest of the arena
-                foreach (Player p in victim._arena.Players)
-                {	//As long as we haven't already declared it, send
-                    if (p == killer)
-                        continue;
-
-                    if (sentTo.Contains(p._id))
-                        continue;
-
-             //       p.triggerMessage(5, 500, String.Format("{0} killed by {1}", victim._type.Name, killer._alias));
-                }
+                //p.triggerMessage(5, 500, String.Format("{0} killed by {1}", victim._type.Name, killer._alias));
+            }
         }
 		
 		/// <summary>
@@ -175,12 +140,6 @@ namespace InfServer.Logic
             int killerExp = 0;
             int killerPoints = 0;
 
-            bool x2 = killer._server._config["zone/DoubleReward"].boolValue;
-            int multi = 1;
-            if (x2)
-                multi = 2;
-
-
             if (killer._team != victim._team)
             {
 
@@ -190,13 +149,13 @@ namespace InfServer.Logic
               
                 killerCash = (int)(cfg.cash.killReward +
                     (victim.Bounty * (((float)cfg.cash.percentOfTarget) / 1000)) +
-                    (killer.Bounty * (((float)cfg.cash.percentOfKiller) / 1000))) * multi;
+                    (killer.Bounty * (((float)cfg.cash.percentOfKiller) / 1000)));
                 killerExp = (int)(cfg.experience.killReward +
                    (victim.Bounty * (((float)cfg.experience.percentOfTarget) / 1000)) +
-                   (killer.Bounty * (((float)cfg.experience.percentOfKiller) / 1000))) * multi;
+                   (killer.Bounty * (((float)cfg.experience.percentOfKiller) / 1000)));
                 killerPoints = (int)(cfg.point.killReward +
                    (victim.Bounty * (((float)cfg.point.percentOfTarget) / 1000)) +
-                   (killer.Bounty * (((float)cfg.point.percentOfKiller) / 1000))) * multi;
+                   (killer.Bounty * (((float)cfg.point.percentOfKiller) / 1000)));
 
          /*       if (carriers.Contains(killer))
                 {
@@ -227,7 +186,7 @@ namespace InfServer.Logic
 
             //Update his bounty
             killer.Bounty += (int)((cfg.bounty.fixedToKillerBounty / 1000) +
-                (killerPoints * (((float)cfg.bounty.percentToKillerBounty) / 1000))) * multi;
+                (killerPoints * (((float)cfg.bounty.percentToKillerBounty) / 1000)));
 
             //Check for players in the share radius
             List<Player> sharedCash = victim._arena.getPlayersInRange(update.positionX, update.positionY, cfg.cash.shareRadius);
@@ -243,7 +202,7 @@ namespace InfServer.Logic
                 if (p == killer || p._team != killer._team)
                     continue;
 
-                cashRewards[p._id] = (int)((((float)killerCash) / 1000) * cfg.cash.sharePercent) * multi;
+                cashRewards[p._id] = (int)((((float)killerCash) / 1000) * cfg.cash.sharePercent);
                 expRewards[p._id] = 0;
                 pointRewards[p._id] = 0;
             }
@@ -253,7 +212,7 @@ namespace InfServer.Logic
                 if (p == killer || p._team != killer._team)
                     continue;
 
-                expRewards[p._id] = (int)((((float)killerExp) / 1000) * cfg.experience.sharePercent) * multi;
+                expRewards[p._id] = (int)((((float)killerExp) / 1000) * cfg.experience.sharePercent);
                 if (!cashRewards.ContainsKey(p._id))
                     cashRewards[p._id] = 0;
                 if (!pointRewards.ContainsKey(p._id))
@@ -265,14 +224,14 @@ namespace InfServer.Logic
                 if (p == killer || p._team != killer._team)
                     continue;
 
-                pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.point.sharePercent) * multi;
+                pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.point.sharePercent);
                 if (!cashRewards.ContainsKey(p._id))
                     cashRewards[p._id] = 0;
                 if (!expRewards.ContainsKey(p._id))
                     expRewards[p._id] = 0;
 
                 //Share bounty within the experience radius, Dunno if there is a sharebounty radius?
-                p.Bounty += (int)((killerPoints * (((float)cfg.bounty.percentToAssistBounty) / 1000)) * multi);
+                p.Bounty += (int)((killerPoints * (((float)cfg.bounty.percentToAssistBounty) / 1000)));
             }
 
             //Sent reward notices to our lucky witnesses

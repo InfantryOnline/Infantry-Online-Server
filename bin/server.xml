@@ -15,7 +15,9 @@
 		
 		<maxPlayers value="5000" />
 		
+      <!-- Where to grab global news file from, ex: http://freeinfantry.org/files/svn/?count=30 -->
 		<updateGlobalNws value="" />
+      <!-- Where to copy server files from on recycle, ex: "C:\infsrv\latest\" -->
 		<copyServerFrom value="" />
 		
 		<loadBlobs value="false" />
@@ -23,12 +25,9 @@
 		<permitMode value="false" />
 		<pathFindingEnabled value="false" />
 		
-		<managerPassword value="p" />
+      <!-- Used to grant self arena mod when server is in SAM via *authenticate [password] command -->
+		<managerPassword value="changeThis123" />
 	</server>
-	
-	<zone>
-		<DoubleReward value="true" />
-	</zone>
 	
 	<database>
 		<ip value="127.0.0.1" />

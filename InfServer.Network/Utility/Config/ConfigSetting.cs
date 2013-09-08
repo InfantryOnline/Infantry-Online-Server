@@ -341,6 +341,10 @@ namespace InfServer
         /// </returns>        
         public bool Validate()
         {
+            //Ignore comments
+            if (this.node.NodeType == XmlNodeType.Comment)
+                return true;
+
             // Check this node's name for validity
             foreach (Char c in this.Name)
                 if (!Char.IsLetterOrDigit(c))

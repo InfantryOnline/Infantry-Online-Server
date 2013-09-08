@@ -295,9 +295,6 @@ namespace InfServer.Game
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
                         player.sendMessage(-3, "[Mod Notice] Don't use *spawnbot unless you know what you are spawning --- it will crash a zone and prevent players from connecting ty");
-                    //x2
-                    if (_server._config["zone/DoubleReward"].boolValue)
-                        player.sendMessage(-3, "&[Notice] Double rewards game-wide are enabled!");
 				}
 			);
 		}
