@@ -98,7 +98,12 @@ namespace Assets
         /// Locates an asset file in the server's directory tree
         /// </summary>
 		public static string findAssetFile(string filename, string path)
-		{	//Does the file exist here?
+		{
+            //Does the directory we're looking for exist?
+            if (!Directory.Exists(path))
+                return null;
+
+            //Does the file exist here?
 			string filePath = Path.Combine(path, filename);
 
 			if (File.Exists(filePath))

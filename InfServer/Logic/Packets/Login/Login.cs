@@ -10,37 +10,24 @@ namespace InfServer.Logic
 	/// Deals with the login process
 	///////////////////////////////////////////////////////
 	class Logic_Login
-	{	
+	{
 		/// <summary>
 		/// Handles the login request packet sent by the client
 		/// </summary>
 		static public void Handle_CS_Login(CS_Login pkt, Client<Player> client)
 		{	//Let's escalate our client's status to player!
 			ZoneServer server = (client._handler as ZoneServer);
-            
-            // check for excessive joins to zone from same IP
-            try
-            {
-                if (server._connections != null)
-                {
-                    if ((pkt.bCreateAlias != true) && server._connections.ContainsKey(client._ipe.Address))
-                    {
-                        Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Please wait 10 seconds before logging in again.");
-                        Log.write(TLog.Warning, String.Format("Possible throttler removed: " + client._ipe.ToString()));
-                        return;
-                    }
-                    else if (!server._connections.ContainsKey(client._ipe.Address))
-                        server._connections.Add(client._ipe.Address, DateTime.Now.AddSeconds(10));
-                }
-            }
-            catch (Exception e)
-            {
-                Log.write(TLog.Warning, e.ToString());
-            }
 
-			Player newPlayer = server.newPlayer(client, pkt.Username);
-            String alias = newPlayer._alias;
-            
+            // check for excessive joins to zone from same IP
+            if (pkt.bCreateAlias != true && server._connections.ContainsKey(client._ipe.Address))
+            {
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Please wait 10 seconds before logging in again.");
+                Log.write(TLog.Warning, "Possible throttler removed: {0}", client._ipe.ToString());
+                return;
+            }
+            else if (!server._connections.ContainsKey(client._ipe.Address))
+                server._connections.Add(client._ipe.Address, DateTime.Now.AddSeconds(10));
+
             //Check their client version and UIDs
             //TODO: find out what the UIDs are and what an invalid UID might look like, and reject spoofed ones
             if (pkt.Version != Helpers._serverVersion ||
@@ -48,17 +35,18 @@ namespace InfServer.Logic
                 pkt.UID2 <= 10000 ||
                 pkt.UID3 <= 10000)
             {
-                Log.write(TLog.Warning, String.Format("Suspicious login packet from {0} : Version ({1}) UID1({2}) UID2({3}) UID3({4})",
+                Log.write(TLog.Warning, "Suspicious login packet from {0} : Version ({1}) UID1({2}) UID2({3}) UID3({4})",
                     pkt.Username,
                     pkt.Version,
                     pkt.UID1,
                     pkt.UID2,
-                    pkt.UID3));             
-               
+                    pkt.UID3);
             }
 
+            String alias = pkt.Username;
+
             //Check alias for illegal characters
-            if (alias.Length == 0)
+            if (String.IsNullOrWhiteSpace(alias))
             {
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias cannot be blank.");
                 return;
@@ -77,24 +65,33 @@ namespace InfServer.Logic
             catch (ArgumentOutOfRangeException)
             {
                 Log.write(TLog.Warning, "Player login name is {0}", alias);
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, must start with a letter or number and cannot end with a space.");
+                return;
             }
+
+            if (alias.Length > 64)
+            {
+                //Change this if alias.name in the db is changed.. currently at varchar(64)
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias length is too long.");
+                return;
+            }
+
+            //Are we in permission mode?
+            if (server._config["server/permitMode"].boolValue && !Logic_Permit.checkPermit(alias))
+            {
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
+                return;
+            }
+            
+            Player newPlayer = server.newPlayer(client, alias);
 
 			//If it failed for some reason, present a failure message
 			if (newPlayer == null)
 			{
-				Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Unknown login failure.");
-                Log.write(TLog.Error, "New player is null");
+				Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Login Failure, Zone is full.");
+                Log.write(TLog.Error, "New player is null possibly due to zone being full.");
 				return;
 			}
-
-            //Are we in permission mode?
-            if (server._config["server/permitMode"].boolValue)
-                if (!Logic_Permit.checkPermit(alias))
-                {
-                    Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
-                    return;
-                }
-
 
             newPlayer._UID1 = pkt.UID1;
             newPlayer._UID2 = pkt.UID2;

@@ -24,6 +24,7 @@ namespace InfServer.Game
 	public partial class ZoneServer : Server
 	{	// Member variables
 		///////////////////////////////////////////////////
+        public bool run = true;
 		public ConfigSetting _config;			//Our server config
 		public CfgInfo _zoneConfig;				//The zone-specific configuration file
 
@@ -115,7 +116,7 @@ namespace InfServer.Game
                 if (_arenas != null && _arenas.Count() > 0)
                 {
                     foreach (var arena in _arenas)
-                        foreach (Player p in arena.Value.Players)
+                        foreach (Player p in arena.Value.Players.ToList())
                             p.disconnect();
                 }
 			}

@@ -89,11 +89,18 @@ namespace InfServer.Script.GameType_TDM
             //Do we have enough players ingame?
             int playing = _arena.PlayerCount;
 
-            if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
-            {	//Stop the game!
-                _arena.setTicker(1, 3, 0, "Not Enough Players");
+            //If game is running and we don't have enough players
+            if (_arena._bGameRunning && playing < _minPlayers)
+            {   //Stop the game!
+                _arena.gameEnd();
             }
 
+            //If were under min players, show the not enough players
+            if (playing < _minPlayers)
+            {
+                _tickGameStarting = 0;
+                _arena.setTicker(1, 3, 0, "Not Enough Players");
+            }
 
             //Update our tickers
             if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
@@ -106,7 +113,7 @@ namespace InfServer.Script.GameType_TDM
             }
 
             //Do we have enough players to start a game?
-            else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
+            if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
                 _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
@@ -116,6 +123,7 @@ namespace InfServer.Script.GameType_TDM
                     }
                 );
             }
+
             //Is anybody experiencing a victory?
             if (_tickVictoryStart > 0)
             {	//Have they won yet?
@@ -234,10 +242,10 @@ namespace InfServer.Script.GameType_TDM
             return true;
         }
         /// <summary>
-        /// Called when a player enters the game
+        /// Called when a player enters the arena
         /// </summary>
-        [Scripts.Event("Player.Enter")]
-        public void playerEnter(Player player)
+        [Scripts.Event("Player.EnterArena")]
+        public void playerEnterArena(Player player)
         {
             if (!_savedPlayerStats.ContainsKey(player._alias))
             {

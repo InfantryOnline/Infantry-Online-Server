@@ -153,9 +153,6 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-//            string alias = "33noone33";
-//            string pID = "1"; //Junk Account
-//            SqlConnection db;
             string alias;
             if (payload == "") //Assume this is a pm'd person
             {

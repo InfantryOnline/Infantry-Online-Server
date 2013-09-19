@@ -43,7 +43,7 @@ namespace InfServer
         /// </summary>
         public static void Stop()
         {
-            System.Environment.Exit(1);
+            server.run = false;
         }
 
         //Called when the console window is closed with Ctrl+C

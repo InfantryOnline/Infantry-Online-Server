@@ -178,6 +178,7 @@ namespace InfServer
             {
                 // Back out of the zone list
                 _players.Remove(id);
+
                 return false;
             }
 
@@ -215,17 +216,27 @@ namespace InfServer
 		/// </summary>
 		public void lostPlayer(int id)
 		{	//Attempt to remove him
-            if (!_players.Keys.Contains(id))
+            if (id == 0)
             {
-                Log.write(TLog.Error, "Zone.lostPlayer(): id not found in list.");
+                Log.write(TLog.Error, "Zone.lostPlayer(): ID was 0.");
+            }
+
+            //Try and get the player so we can pass it to the global list
+            Player player = getPlayer(id);
+            if (player == null)
+            {
+                Log.write(TLog.Error, "Zone.lostPlayer(): ID ({0}) not found in list.", id);
                 return;
             }
 
-            //Remove him from the base db list and chats
-            _server.lostPlayer(_players[id]);
-
             //Remove him from the zone player list
-            _players.Remove(id);
+            if (!_players.Remove(id))
+            {
+                Log.write(TLog.Error, "Zone.lostPlayer(): Failed removing player ID ({0}).", id);
+            }
+
+            //Remove him from the base db list and chats
+            _server.lostPlayer(player);
 		}
 		#endregion
 

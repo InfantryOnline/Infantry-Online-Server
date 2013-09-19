@@ -559,7 +559,7 @@ namespace InfServer.Game
 		{	//Make sure the item index is sensible
 			if (produceItem > 15)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to produce item > 15.", from);
+				Log.write(TLog.Warning, "Player {0} attempted to produce item ({0}) > 15.", from, produceItem);
 				return;
 			}
 			
@@ -568,14 +568,14 @@ namespace InfServer.Game
 
 			if ((vehicle = _vehicles.getObjByID(computerVehID)) == null)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to produce using invalid vehicle.", from);
+				Log.write(TLog.Warning, "Player {0} attempted to produce item ({0}) using invalid vehicle ({1}).", from, computerVehID, produceItem);
 				return;
 			}
 
 			Computer computer = vehicle as Computer;
 			if (computer == null)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to produce using non-computer vehicle.", from);
+				Log.write(TLog.Warning, "Player {0} attempted to produce item ({0}) using non-computer vehicle ({1}).", from, computerVehID, produceItem);
 				return;
 			}
 

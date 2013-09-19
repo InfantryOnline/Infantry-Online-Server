@@ -170,9 +170,23 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            if (alias != null)
+                            if (alias == null)
+                            {
+                                paliasTo.name = pkt.alias;
+                                db.SubmitChanges();
+                                zone._server.sendMessage(zone, pkt.sender, "Renamed player " + paliasTo.name + " to " + pkt.alias + " has been completed.");
+                                return;
+                            }
+
+                            if (alias.account1 != paliasTo.account1)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "That alias is already being used.");
+                                return;
+                            }
+
+                            if (alias.id != paliasTo.id)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot change an alias to one already existing on the account.");
                                 return;
                             }
 

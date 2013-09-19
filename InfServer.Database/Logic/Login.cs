@@ -96,6 +96,14 @@ namespace InfServer.Logic
             SC_PlayerLogin<Zone> plog = new SC_PlayerLogin<Zone>();
             plog.player = pkt.player;
 
+            if (String.IsNullOrWhiteSpace(pkt.alias))
+            {
+                plog.bSuccess = false;
+                plog.loginMessage = "Please enter an alias.";
+
+                zone._client.send(plog);
+                return;
+            }
             //Are they using the launcher?
             if (String.IsNullOrWhiteSpace(pkt.ticketid))
             {	//They're trying to trick us, jim!
@@ -114,10 +122,10 @@ namespace InfServer.Logic
                 return;
             }
 
-            Data.DB.player player = null;
 
             using (InfantryDataContext db = zone._server.getContext())
             {
+                Data.DB.player player = null;
                 Data.DB.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
 
                 if (account == null)
@@ -325,29 +333,31 @@ namespace InfServer.Logic
                 //Rename him
                 plog.alias = alias.name;
 
-                //loaded?
+                //Submit any new rows before we try anduse them
+                db.SubmitChanges();
+
+                //Add them
                 if (zone.newPlayer(pkt.player.id, alias.name, player))
                 {
                     plog.bSuccess = true;
                     Log.write("Player '{0}' logged into zone '{1}'", alias.name, zone._zone.name);
+
+                    //Modify his alias IP address and access times
+                    alias.IPAddress = pkt.ipaddress.Trim();
+                    alias.lastAccess = DateTime.Now;
+
+                    //Change it
+                    db.SubmitChanges();
                 }
                 else
                 {
                     plog.bSuccess = false;
                     plog.loginMessage = "Unknown login failure.";
-                    zone._client.sendReliable(plog);
                     Log.write("Failed adding player '{0}' from '{1}'", alias.name, zone._zone.name);
-                    return;
                 }
 
+                //Give them an answer
                 zone._client.sendReliable(plog);
-
-                //Modify his alias IP address and access times
-                alias.IPAddress = pkt.ipaddress.Trim();
-                alias.lastAccess = DateTime.Now;
-
-                //Submit our modifications
-                db.SubmitChanges();
             }
         }
 
@@ -361,17 +371,28 @@ namespace InfServer.Logic
                 Log.write(TLog.Error, "Handle_CS_PlayerLeave(): Called with null zone.");
                 return;
             }
-
-            if (zone.getPlayer(pkt.alias) == null)
+            if (string.IsNullOrWhiteSpace(pkt.alias))
             {
-                Log.write(TLog.Warning, "Handle_CS_PlayerLeave(): Player not found.");
+                Log.write(TLog.Warning, "Handle_CS_PlayerLeave(): No alias provided.");
+            }
+
+            Zone.Player p = zone.getPlayer(pkt.alias);
+            if (p == null)
+            {
+                Log.write(TLog.Warning, "Handle_CS_PlayerLeave(): Player '{0}' not found by alias.", pkt.alias);
                 //Don't return until I have a better grasp of this
             }
+
+            //Remove the player from the zone
+            zone.lostPlayer(pkt.player.id);
+
+            Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.name);
             
+            // Update their playtime
             using (InfantryDataContext db = zone._server.getContext())
             {
                 Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
-//                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name == pkt.alias);
+                //Data.DB.alias alias = db.alias.SingleOrDefault(a => a.id == p.aliasid);
                 //If person was loaded correctly, save their info
                 if (alias != null)
                 {
@@ -382,11 +403,6 @@ namespace InfServer.Logic
                     db.SubmitChanges();
                 }
             }
-
-            //Remove the player from the zone
-			zone.lostPlayer(pkt.player.id);
-
-            Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.name);
 		}
 
         /// <summary>

@@ -122,16 +122,14 @@ namespace InfServer.Logic
 				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
 				return;
 			}
-
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to produce an item from spec.", player);
+				Log.write(TLog.Warning, "Player {0} attempted to produce item ({0}) from spec.", player, pkt.produceItem);
 				return;
 			}
-
 			if (player.IsDead)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to produce an item while dead.", player);
+				Log.write(TLog.Warning, "Player {0} attempted to produce item ({0}) while dead.", player, pkt.produceItem);
 				return;
 			}
 

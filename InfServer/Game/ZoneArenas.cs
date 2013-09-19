@@ -57,7 +57,7 @@ namespace InfServer.Game
 			int lastArenaUpdate = Environment.TickCount;
 			List<Arena> arenas = new List<Arena>(_arenas.Values);
 
-			while (true)
+			while (run)
 			{	//Is it time to update our list yet?
 				if (Environment.TickCount - lastArenaUpdate > 1000)
 				{	//Grab a list of arenas

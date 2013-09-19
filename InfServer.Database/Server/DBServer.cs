@@ -74,7 +74,7 @@ namespace InfServer
             }
             catch
             {
-                Log.write(TLog.Exception, "DBServer.newPlayer(): Key '{0}' already exists.", player.alias);
+                Log.write(TLog.Error, "DBServer.newPlayer(): Key '{0}' already exists.", player.alias);
                 return false;
             }
 
