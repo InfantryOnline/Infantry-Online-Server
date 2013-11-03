@@ -2583,15 +2583,13 @@ namespace InfServer.Data.DB
 		
 		private long _zone;
 		
-		private long _stats;
-		
 		private EntitySet<player> _players;
+		
+		private EntitySet<squadstats> _squadstats;
 		
 		private EntitySet<squadmatch> _squadmatches;
 		
 		private EntitySet<squadmatch> _squadmatches1;
-		
-		private EntitySet<squadstats> _squadstats;
 		
 		private EntityRef<zone> _zone1;
 		
@@ -2611,16 +2609,14 @@ namespace InfServer.Data.DB
     partial void OnownerChanged();
     partial void OnzoneChanging(long value);
     partial void OnzoneChanged();
-    partial void OnstatsChanging(long value);
-    partial void OnstatsChanged();
     #endregion
 		
 		public squad()
 		{
 			this._players = new EntitySet<player>(new Action<player>(this.attach_players), new Action<player>(this.detach_players));
+			this._squadstats = new EntitySet<squadstats>(new Action<squadstats>(this.attach_squadstats), new Action<squadstats>(this.detach_squadstats));
 			this._squadmatches = new EntitySet<squadmatch>(new Action<squadmatch>(this.attach_squadmatches), new Action<squadmatch>(this.detach_squadmatches));
 			this._squadmatches1 = new EntitySet<squadmatch>(new Action<squadmatch>(this.attach_squadmatches1), new Action<squadmatch>(this.detach_squadmatches1));
-			this._squadstats = new EntitySet<squadstats>(new Action<squadstats>(this.attach_squadstats), new Action<squadstats>(this.detach_squadstats));
 			this._zone1 = default(EntityRef<zone>);
 			OnCreated();
 		}
@@ -2749,26 +2745,6 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_stats", DbType="BigInt Not NULL")]
-		public long stats
-		{
-			get
-			{
-				return this._stats;
-			}
-			set
-			{
-				if ((this._stats != value))
-				{
-					this.OnstatsChanging(value);
-					this.SendPropertyChanging();
-					this._stats = value;
-					this.SendPropertyChanged("stats");
-					this.OnstatsChanged();
-				}
-			}
-		}
-		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_player", Storage="_players", ThisKey="id", OtherKey="squad")]
 		public EntitySet<player> players
 		{
@@ -2779,6 +2755,19 @@ namespace InfServer.Data.DB
 			set
 			{
 				this._players.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadstats", Storage="_squadstats", ThisKey="id", OtherKey="squad")]
+		public EntitySet<squadstats> squadstats
+		{
+			get
+			{
+				return this._squadstats;
+			}
+			set
+			{
+				this._squadstats.Assign(value);
 			}
 		}
 		
@@ -2805,19 +2794,6 @@ namespace InfServer.Data.DB
 			set
 			{
 				this._squadmatches1.Assign(value);
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadstats", Storage="_squadstats", ThisKey="stats", OtherKey="squad")]
-		public EntitySet<squadstats> squadstats
-		{
-			get
-			{
-				return this._squadstats;
-			}
-			set
-			{
-				this._squadstats.Assign(value);
 			}
 		}
 		
@@ -2887,6 +2863,18 @@ namespace InfServer.Data.DB
 			entity.squad1 = null;
 		}
 		
+		private void attach_squadstats(squadstats entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad1 = this;
+		}
+		
+		private void detach_squadstats(squadstats entity)
+		{
+			this.SendPropertyChanging();
+			entity.squad1 = null;
+		}
+		
 		private void attach_squadmatches(squadmatch entity)
 		{
 			this.SendPropertyChanging();
@@ -2909,18 +2897,6 @@ namespace InfServer.Data.DB
 		{
 			this.SendPropertyChanging();
 			entity.squad3 = null;
-		}
-		
-		private void attach_squadstats(squadstats entity)
-		{
-			this.SendPropertyChanging();
-			entity.squad1 = this;
-		}
-		
-		private void detach_squadstats(squadstats entity)
-		{
-			this.SendPropertyChanging();
-			entity.squad1 = null;
 		}
 	}
 	
@@ -3696,7 +3672,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadstats", Storage="_squad1", ThisKey="squad", OtherKey="stats", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_squadstats", Storage="_squad1", ThisKey="squad", OtherKey="id", IsForeignKey=true)]
 		public squad squad1
 		{
 			get
@@ -3719,7 +3695,7 @@ namespace InfServer.Data.DB
 					if ((value != null))
 					{
 						value.squadstats.Add(this);
-						this._squad = value.stats;
+						this._squad = value.id;
 					}
 					else
 					{

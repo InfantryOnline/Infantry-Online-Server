@@ -361,7 +361,7 @@ namespace InfServer.Logic
                         newsquad.owner = dbplayer.id;
                         newsquad.dateCreated = DateTime.Now;
                         newsquad.zone = zone._zone.id;
-                        newsquad.stats = stats.id;
+                        stats.squad = newsquad.id;
 
                         db.squads.InsertOnSubmit(newsquad);
 
@@ -655,7 +655,7 @@ namespace InfServer.Logic
                             }
                             else
                             {
-                                Data.DB.squadstats squadstats = db.squadstats.FirstOrDefault(s => s.id == targetSquad.stats);
+                                Data.DB.squadstats squadstats = db.squadstats.FirstOrDefault(s => s.squad == targetSquad.id);
                                 if (squadstats != null)
                                 {
                                     zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", targetSquad.name));

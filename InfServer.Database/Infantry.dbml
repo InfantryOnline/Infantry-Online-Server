@@ -109,11 +109,10 @@
       <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="owner" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="zone" Type="System.Int64" DbType="BigInt Not NULL" CanBeNull="false" />
-      <Column Name="stats" Type="System.Int64" DbType="BigInt Not NULL" CanBeNull="false" />
       <Association Name="squad_player" Member="players" ThisKey="id" OtherKey="squad" Type="player" />
+      <Association Name="squad_squadstats" Member="squadstats" ThisKey="id" OtherKey="squad" Type="squadstats" />
       <Association Name="squad_squadmatch" Member="squadmatches" ThisKey="id" OtherKey="squad1" Type="squadmatch" />
       <Association Name="squad_squadmatch1" Member="squadmatches1" ThisKey="id" OtherKey="squad2" Type="squadmatch" />
-      <Association Name="squad_squadstats" Member="squadstats" ThisKey="stats" OtherKey="squad" Type="squadstats" />
       <Association Name="zone_squad" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
     </Type>
   </Table>
@@ -155,7 +154,7 @@
       <Column Name="rating" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="season" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="squad" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Association Name="squad_squadstats" Member="squad1" ThisKey="squad" OtherKey="stats" Type="squad" IsForeignKey="true" />
+      <Association Name="squad_squadstats" Member="squad1" ThisKey="squad" OtherKey="id" Type="squad" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.squadmatch" Member="squadmatches">

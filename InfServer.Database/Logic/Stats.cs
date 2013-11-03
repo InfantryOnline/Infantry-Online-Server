@@ -876,8 +876,8 @@ namespace InfServer.Logic
                 if (winner == null || loser == null)
                     return;
 
-                Data.DB.squadstats wStats = db.squadstats.FirstOrDefault(s => s.id == winner.stats);
-                Data.DB.squadstats lStats = db.squadstats.FirstOrDefault(s => s.id == loser.stats);
+                Data.DB.squadstats wStats = db.squadstats.FirstOrDefault(s => s.squad == winner.id);
+                Data.DB.squadstats lStats = db.squadstats.FirstOrDefault(s => s.squad == loser.id);
 
                 //Again, try it!
                 if (wStats == null || lStats == null)
