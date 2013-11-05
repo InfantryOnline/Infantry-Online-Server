@@ -26,14 +26,20 @@ namespace InfServer.DirectoryServer.Directory
 
         public DirectoryServer() : base(new Factory(), new DirectoryClient())
         {
+            _config = ConfigSetting.Blank;
             httpJsonResponder = new HttpJsonResponder(this);
         }
 
         public bool Init()
         {
+            Log.write(TLog.Normal, "Loading Server Configuration");
+            _config = new Xmlconfig("server.xml", false).Settings;
+
+            String _connectionString = _config["database/connectionString"].Value;
+
             //Connect to our database
             Log.write("Connecting to database...");
-            db = new SqlConnection("Server=INFANTRY\\SQLEXPRESS;Database=Data;Trusted_Connection=True;");
+            db = new SqlConnection(_connectionString);
             db.Open();
             grabZones();
             return true;
@@ -71,9 +77,7 @@ namespace InfServer.DirectoryServer.Directory
             IPEndPoint listenPoint = new IPEndPoint(IPAddress.Any, 4850);
             try
             {
-
                 begin(listenPoint);
-
             }
             catch (System.NullReferenceException)
             {
@@ -91,5 +95,3 @@ namespace InfServer.DirectoryServer.Directory
         private HttpJsonResponder httpJsonResponder;
     }
 }
-	  
-       
