@@ -3,4 +3,9 @@
 	<database>
 		<connectionString value = "Server=INFANTRY\SQLEXPRESS;Database=Data;Trusted_Connection=True;" />
 	</database>
+
+	<responder>
+		<start value = "true" />
+		<bindURI value = "http://*:80/directory/" />
+	</responder>
 </xml>

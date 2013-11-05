@@ -24,10 +24,13 @@ namespace InfServer.DirectoryServer.Directory
 
         private SqlConnection db;
 
+        private HttpJsonResponder httpJsonResponder;
+        public Boolean _jsonStart;
+        public String _jsonURI;
+
         public DirectoryServer() : base(new Factory(), new DirectoryClient())
         {
             _config = ConfigSetting.Blank;
-            httpJsonResponder = new HttpJsonResponder(this);
         }
 
         public bool Init()
@@ -35,6 +38,12 @@ namespace InfServer.DirectoryServer.Directory
             Log.write(TLog.Normal, "Loading Server Configuration");
             _config = new Xmlconfig("server.xml", false).Settings;
 
+            _jsonStart = _config["responder/start"].boolValue;
+            _jsonURI = _config["responder/bindURI"].Value;
+
+            //Have to know the URI first
+            httpJsonResponder = new HttpJsonResponder(this);
+            
             String _connectionString = _config["database/connectionString"].Value;
 
             //Connect to our database
@@ -42,6 +51,7 @@ namespace InfServer.DirectoryServer.Directory
             db = new SqlConnection(_connectionString);
             db.Open();
             grabZones();
+
             return true;
         }
 
@@ -83,7 +93,8 @@ namespace InfServer.DirectoryServer.Directory
             {
             }
 
-            httpJsonResponder.Start();
+            if (_jsonStart)
+                httpJsonResponder.Start();
 
             var timer = new Timer(5000);
             timer.Enabled = true;
@@ -91,7 +102,5 @@ namespace InfServer.DirectoryServer.Directory
             timer.Elapsed += (sender, e) => Zones.ForEach(z => z.PollServerForPlayers());
             timer.Start();
         }
-
-        private HttpJsonResponder httpJsonResponder;
     }
 }
