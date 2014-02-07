@@ -92,6 +92,7 @@ namespace InfServer.Game
 		public Player _spectating;				//The player we're currently spectating
 		public List<Player> _spectators;		//The players that are currently spectating us
         public List<string> _summonIgnore;      //The players that are currently summon-ignored.
+        public List<string> _accountIgnore;     //The players that are currently account ignored.
 
         public int _gotBallID = 999;			//The Id of the ball
 
@@ -261,6 +262,7 @@ namespace InfServer.Game
 
 			_spectators = new List<Player>();
             _summonIgnore = new List<string>();
+            _accountIgnore = new List<string>();
 
             activeUtilities = new List<ItemInfo.UtilityItem>();
 
@@ -520,12 +522,13 @@ namespace InfServer.Game
 					return false;
 				}
 			}
+            /*
 			else if (adjust < 0)
 			{
 				Log.write(TLog.Warning, "Attempted to remove attributes which didn't exist from player {0}.", this);
 				return false;
 			}
-
+            */
 			//Attribute or skill?
 			if (skill.SkillId >= 0)
 			{   //Do we have enough experience for this skill?

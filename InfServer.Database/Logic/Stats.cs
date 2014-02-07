@@ -20,7 +20,13 @@ namespace InfServer.Logic
 		{
             try
             {
-                Data.DB.player player = stat.players.First(s => s.stats1.id == stat.id);
+                Data.DB.player player = stat.players.Single(s => s.stats1.id == stat.id);
+                if (player == null)
+                {	//Make a note
+                    Log.write(TLog.Warning, "No player found for stat ID {0}.", stat.id);
+                    return;
+                }
+
                 BinaryWriter bw = new BinaryWriter(stream);
 
                 //bw.Write(stat.players[0].alias1.name.ToCharArray());
@@ -41,7 +47,8 @@ namespace InfServer.Logic
                 bw.Write(stat.vehicleKills);
                 bw.Write(stat.killPoints);
                 bw.Write(stat.deathPoints);
-                bw.Write(stat.assistPoints);
+                bw.Write((int)0);
+                //bw.Write(stat.assistPoints);
                 bw.Write(stat.bonusPoints);
                 bw.Write(stat.kills);
                 bw.Write(stat.deaths);
@@ -63,7 +70,7 @@ namespace InfServer.Logic
             
            catch (Exception e)
            {
-                Log.write(TLog.Warning, "WriteElementToBuffer " + e);
+                Log.write(TLog.Warning, "WriteElementToBuffer stat.id " + stat.id + ":" + e);
            }
 		}
 
@@ -89,10 +96,11 @@ namespace InfServer.Logic
 										 where st.zone1 == zone._zone
 										 orderby st.assistPoints + st.bonusPoints + st.killPoints descending
 										 select st).Take(100);
+
 							MemoryStream stream = new MemoryStream();
-                            
                             foreach (Data.DB.stats lifetime in stats)
-                                writeElementToBuffer(lifetime, stream);
+                                if (lifetime != null)
+                                    writeElementToBuffer(lifetime, stream);
                             
 							SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
 

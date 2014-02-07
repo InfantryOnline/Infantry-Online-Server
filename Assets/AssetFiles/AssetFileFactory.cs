@@ -66,6 +66,11 @@ namespace Assets
             //Attempt to find the file in the directory structure
             string filePath = findAssetFile(filename, "..\\Blobs\\");
             if (filePath == null)
+            {
+                filePath = findAssetFile(filename, ".\\Assets\\");
+            }
+
+            if (filePath == null)
             {	//It's missing!
                 _missingFiles.Add(filename);
                 return null;

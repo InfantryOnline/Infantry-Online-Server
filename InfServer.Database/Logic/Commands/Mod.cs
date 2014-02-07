@@ -21,6 +21,7 @@ namespace InfServer.Logic
                 {
                     case CS_Alias<Zone>.AliasType.transfer:
                         {
+
                             if (pkt.alias == "" || pkt.aliasTo == "")
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");

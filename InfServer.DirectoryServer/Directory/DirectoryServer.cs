@@ -25,7 +25,7 @@ namespace InfServer.DirectoryServer.Directory
         private SqlConnection db;
 
         private HttpJsonResponder httpJsonResponder;
-        public Boolean _jsonStart;
+        public Boolean _json;
         public String _jsonURI;
 
         public DirectoryServer() : base(new Factory(), new DirectoryClient())
@@ -38,11 +38,12 @@ namespace InfServer.DirectoryServer.Directory
             Log.write(TLog.Normal, "Loading Server Configuration");
             _config = new Xmlconfig("server.xml", false).Settings;
 
-            _jsonStart = _config["responder/start"].boolValue;
+            _json = _config["responder/load"].boolValue;
             _jsonURI = _config["responder/bindURI"].Value;
 
             //Have to know the URI first
-            httpJsonResponder = new HttpJsonResponder(this);
+            if (_json)
+                httpJsonResponder = new HttpJsonResponder(this);
             
             String _connectionString = _config["database/connectionString"].Value;
 
@@ -93,7 +94,7 @@ namespace InfServer.DirectoryServer.Directory
             {
             }
 
-            if (_jsonStart)
+            if (_json)
                 httpJsonResponder.Start();
 
             var timer = new Timer(5000);

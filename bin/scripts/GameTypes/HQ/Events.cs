@@ -32,7 +32,7 @@ namespace InfServer.Script.GameType_HQ
             hq.team.sendArenaMessage
                 ((String.Format("~[HQ] - Reward=(Cash={0}) (Experience={1}) (Points={2})", cash, experience, points)));
 
-            foreach (Player player in hq.team.ActivePlayers)
+            foreach (Player player in hq.team.AllPlayers)
             {
                 player.Cash += cash;
                 player.Experience += experience;

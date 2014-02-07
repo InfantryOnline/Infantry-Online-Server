@@ -167,13 +167,21 @@ namespace InfServer.Game
             Log.write(TLog.Normal, "Loading Server Configuration");
 			_config = new Xmlconfig("server.xml", false).Settings;
 
+            string assetsPath = "assets\\";
+
 			//Load our zone config
             Log.write(TLog.Normal, "Loading Zone Configuration");
 
-			string filePath = AssetFileFactory.findAssetFile(_config["server/zoneConfig"].Value, "assets\\");
+            if (!System.IO.Directory.Exists(assetsPath))
+            {
+                Log.write(TLog.Error, "Unable to find assets directory '" + assetsPath + "'.");
+                return false;
+            }
+
+			string filePath = AssetFileFactory.findAssetFile(_config["server/zoneConfig"].Value, assetsPath);
 			if (filePath == null)
 			{
-				Log.write(TLog.Error, "Unable to find config file '" + _config["server/zoneConfig"].Value + "'.");
+				Log.write(TLog.Error, "Unable to find config file '" + assetsPath + _config["server/zoneConfig"].Value + "'.");
 				return false;
 			}
 

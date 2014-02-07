@@ -228,19 +228,7 @@ namespace InfServer.Script.GameType_TDM
             //Stop the game
             _arena.gameEnd();
         }
-        /// <summary>
-        /// Called when a player sends a chat command
-        /// </summary>
-        [Scripts.Event("Player.ChatCommand")]
-        public bool playerChatCommand(Player player, Player recipient, string command, string payload)
-        {
 
-            if (command.ToLower().Equals("co"))
-            {
-                player.sendMessage(0, "X: " + player._state.positionX + " Y: " + player._state.positionY);
-            }
-            return true;
-        }
         /// <summary>
         /// Called when a player enters the arena
         /// </summary>
@@ -256,13 +244,6 @@ namespace InfServer.Script.GameType_TDM
             }
         }
 
-        /// <summary>
-        /// Called when a player leaves the game
-        /// </summary>
-        [Scripts.Event("Player.Leave")]
-        public void playerLeave(Player player)
-        {
-        }
 
         /// <summary>
         /// Called when the game begins
@@ -502,97 +483,6 @@ namespace InfServer.Script.GameType_TDM
             _callReset = true;
             _gameWon = false;
 
-            return true;
-        }
-
-        /*    /// <summary>
-            /// Handles the spawn of a player
-            /// </summary>
-            [Scripts.Event("Player.Spawn")]
-            public bool playerSpawn(Player player, bool bDeath)
-            {
-                return true;
-            }*/
-
-        /*   /// <summary>
-           /// Handles a player's switch request
-           /// </summary>
-           [Scripts.Event("Player.Switch")]
-           public bool playerSwitch(Player player, LioInfo.Switch swi)
-           {
-               return true;
-           }*/
-
-        /*    /// <summary>
-            /// Handles a player's flag request
-            /// </summary>
-            [Scripts.Event("Player.FlagAction")]
-            public bool playerFlagAction(Player player, bool bPickup, bool bInPlace, LioInfo.Flag flag)
-            {
-                return true;
-            }*/
-
-        /*    /// <summary>
-            /// Triggered when a player wants to unspec and join the game
-            /// </summary>
-            [Scripts.Event("Player.JoinGame")]
-            public bool playerJoinGame(Player player)
-            {
-                return true;
-            }*/
-
-        /// <summary>
-        /// Triggered when a player wants to spec and leave the game
-        /// </summary>
-        [Scripts.Event("Player.LeaveGame")]
-        public bool playerLeaveGame(Player player)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to enter a vehicle
-        /// </summary>
-        [Scripts.Event("Player.EnterVehicle")]
-        public bool playerEnterVehicle(Player player, Vehicle vehicle)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to leave a vehicle
-        /// </summary>
-        [Scripts.Event("Player.LeaveVehicle")]
-        public bool playerLeaveVehicle(Player player, Vehicle vehicle)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player notifies the server of an explosion
-        /// </summary>
-        [Scripts.Event("Player.Explosion")]
-        public bool playerExplosion(Player player, ItemInfo.Projectile weapon, short posX, short posY, short posZ)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player has died, by any means
-        /// </summary>
-        /// <remarks>killer may be null if it wasn't a player kill</remarks>
-        [Scripts.Event("Player.Death")]
-        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a vehicle dies
-        /// </summary>
-        [Scripts.Event("Vehicle.Death")]
-        public bool vehicleDeath(Vehicle dead, Player killer)
-        {
             return true;
         }
 

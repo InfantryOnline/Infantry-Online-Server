@@ -5,7 +5,7 @@
 	</database>
 
 	<responder>
-		<start value = "true" />
+		<load value = "true" />
 		<bindURI value = "http://*:80/directory/" />
 	</responder>
 </xml>

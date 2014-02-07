@@ -161,8 +161,6 @@ namespace InfServer.Script.GameType_KOTH
             {	//Stop the game!
                 _arena.setTicker(1, 1, 0, "Not Enough Players");
             }
-
-            //Do we have enough players to start a game?
             else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;

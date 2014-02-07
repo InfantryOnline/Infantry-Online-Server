@@ -875,7 +875,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(removealias, "removealias",
                 "Deletes the current players alias",
                 "::*removealias OR *removealias alias - to delete one from the account",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.SMod, false);
             yield return new HandlerDescriptor(transferalias, "transferalias",
                 "Transfers aliases between characters",
                 "*transferalias aliasGoingTo:alias in question OR :playerGoingTo:*transferalias alias in question",

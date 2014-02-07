@@ -166,7 +166,7 @@ namespace InfServer.Data
 
 			//All good!
 			send(upd);
-
+            /*
             //Lets check the timers for other stat updates
             DateTime now = DateTime.Now;
             DateTime specDate = DateTime.Today.AddDays(1);
@@ -215,7 +215,7 @@ namespace InfServer.Data
                 stat.stats = stats;
                 stat.date = now;
                 send(stat);
-            }
+            }*/
 		}
 
         public void reportMatch(long winner, long loser, CS_SquadMatch<Database>.SquadStats wStats, CS_SquadMatch<Database>.SquadStats lStats)

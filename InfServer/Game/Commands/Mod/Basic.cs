@@ -530,10 +530,10 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-            //Determine the item and quantitiy
+            //Determine the item and quantity
             string[] args = payload.Split(':');
 
-            //Our handy string/int checkar
+            //Our handy string/int checker
             bool IsNumeric = Regex.IsMatch(args[0], @"^\d+$");
 
             ItemInfo item;
@@ -561,6 +561,7 @@ namespace InfServer.Game.Commands.Mod
             else
             {	//Modify the recipient inventory
                 recipient.inventoryModify(item, quantity);
+
             }
         }
 
@@ -730,6 +731,82 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Gives a player a certain skill/attribute
+        /// </summary>
+        static public void skill(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity checks
+            if (payload == "" || recipient == null)
+            {
+                player.sendMessage(-1, "Syntax: :player:*skill id:amount");
+                return;
+            }
+
+            int level;
+            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+                level = (int)player.PermissionLevelLocal;
+            else
+                level = (int)player.PermissionLevel;
+
+            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase)
+                && !player._arena.IsPrivate)
+                if (level < (int)Data.PlayerPermission.Mod)
+                {
+                    player.sendMessage(-1, "You can only use it in private arena's.");
+                    return;
+                }
+
+            if (!payload.Contains(':'))
+            {
+                player.sendMessage(-1, "Syntax error: :player:*skill id:amount");
+                return;
+            }
+
+            //Determine the id and quantity
+            string[] args = payload.Split(':');
+
+            //Our handy string/int checker
+            bool IsNumeric = Regex.IsMatch(args[0], @"^[-0-9]+$");
+
+            SkillInfo skill;
+            //Asking for a skill id?
+            if (!IsNumeric)
+                //Nope
+                skill = player._server._assets.getSkillByName(args[0].Trim());
+            else
+                skill = player._server._assets.getSkillByID(Int32.Parse(args[0].Trim()));
+
+            int quantity = (args.Length == 1) ? 1 : Convert.ToInt32(args[1].Trim());
+
+            if (skill == null)
+            {
+                player.sendMessage(-1, "Unable to find specified skill.");
+                return;
+            }
+
+            Player.SkillItem sk;
+            int adjust = 0;
+            if (recipient._skills.TryGetValue(skill.SkillId, out sk))
+                adjust = player._server._zoneConfig.rpg.attributeBaseCost + skill.Price;
+
+            recipient.skillModify(skill, quantity);
+            //Give back their exp
+            if (quantity < 0)
+                recipient.Experience += (-adjust * quantity);
+            else
+                recipient.Experience -= (adjust * quantity);
+
+            player.sendMessage(0, "The command has been completed.");
+        }
+
+        /// <summary>
+        /// Spawns a flag to a specified position
+        /// </summary>
+        static public void spawnFlag(Player player, Player recipient, string payload, int bong)
+        {
+        }
+
+        /// <summary>
         /// Puts a player into spectator mode
         /// </summary>
         static public void spec(Player player, Player recipient, string payload, int bong)
@@ -880,10 +957,18 @@ namespace InfServer.Game.Commands.Mod
             {
                 player.sendMessage(0, "Stealth mode is now 'ON'. You will no longer be seen in arena lists.");
                 player._bIsStealth = true;
+
                 foreach (Player person in audience)
+                {
+                    if (person == player)
+                        continue;
                     //Their level is the same or greater, allow them to see him/her
-                    if (person != player && player.PermissionLevel >= person.PermissionLevel)
+                    if (player.PermissionLevel > person.PermissionLevel)
+                    {
                         Helpers.Object_PlayerLeave(person, player);
+                        //Add here to spoof leave chat
+                    }
+                }
                 return;
             }
 
@@ -2389,6 +2474,11 @@ namespace InfServer.Game.Commands.Mod
                "Toggles a players ability to use the messaging system entirely",
                ":alias:*shutup",
                InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(skill, "skill",
+                "Gives or sets a skill to a player",
+                "::*skill id:amount",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(spec, "spec",
                 "Puts a player into spectator mode, optionally on a specified team.",

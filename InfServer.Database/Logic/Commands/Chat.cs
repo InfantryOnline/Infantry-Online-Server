@@ -173,12 +173,18 @@ namespace InfServer.Logic
 
                     case CS_Query<Zone>.QueryType.history:
                         int page = Convert.ToInt32(pkt.payload);
+                        string[] name = pkt.payload.Split(':');
                         int resultsperpage = 30;
 
                         zone._server.sendMessage(zone, pkt.sender, "!Command History (" + page + ")");
 
                         //Find all commands!
-                        Data.DB.history last = (db.histories.OrderByDescending(a => a.id).ToList()).First();
+                        Data.DB.history last;
+                        if (pkt.payload.Contains(':'))
+                            last = (db.histories.OrderByDescending(n => n.sender == name[0].Trim()).ToList()).First();
+                        else
+                            last = (db.histories.OrderByDescending(a => a.id).ToList()).First();
+
                         List<Data.DB.history> cmds;
                         //If less then 30 results, just show what we have
                         if (last.id <= resultsperpage)
@@ -655,7 +661,7 @@ namespace InfServer.Logic
                             }
                             else
                             {
-                                Data.DB.squadstats squadstats = db.squadstats.FirstOrDefault(s => s.squad == targetSquad.id);
+                                Data.DB.squadstats squadstats = db.squadstats.FirstOrDefault(s => s.id == targetSquad.stats);
                                 if (squadstats != null)
                                 {
                                     zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", targetSquad.name));

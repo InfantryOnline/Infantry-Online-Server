@@ -180,7 +180,7 @@ namespace InfServer
 				Log.write(TLog.Error, "Invalid protocol/crcLength, must be less than 4.");
 				return false;
 			}
-			
+
 			Client.connectionTimeout = _config["protocol/connectionTimeout"].intValue;
 
 			bAllowMulticlienting = _config["allowMulticlienting"].boolValue;

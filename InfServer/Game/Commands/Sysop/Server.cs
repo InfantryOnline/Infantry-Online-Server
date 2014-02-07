@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
+
 using InfServer.Protocol;
 
 namespace InfServer.Game.Commands.Mod
@@ -144,23 +146,44 @@ namespace InfServer.Game.Commands.Mod
         static public void history(Player player, Player recipient, string payload, int bong)
         {
             int page;
-            if (payload == "")
+            string name = "";
+            string[] args = payload.Split(':');
+            bool IsNumeric = Regex.IsMatch(args[0], @"^[0-9]+$");
+
+            if (String.IsNullOrEmpty(payload))
                 page = 0;
             else
             {
-                try
+                //Are we just typing a page number?
+                if (IsNumeric)
                 {
-                    page = Convert.ToInt32(payload);
+                    try
+                    {
+                        page = Convert.ToInt32(payload);
+                    }
+                    catch
+                    {
+                        page = 0;
+                    }
                 }
-                catch
+                else
                 {
+                    //We are typing a name first
+                    name = args[0].Trim();
                     page = 0;
+
+                    if (payload.Contains(':'))
+                        page = Convert.ToInt32(args[1].Trim());
                 }
             }
+
             CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
             pkt.sender = player._alias;
             pkt.queryType = CS_Query<Data.Database>.QueryType.history;
-            pkt.payload = page.ToString();
+            if (!String.IsNullOrEmpty(name))
+                pkt.payload = payload;
+            else
+                pkt.payload = page.ToString();
             player._server._db.send(pkt);
         }
 
@@ -182,7 +205,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(history, "history",
                 "Returns a list of mod commands used in every server",
-                "*history [page]",
+                "*history [page], *history [name], or *history [name]:[page]",
                 InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(log, "log",

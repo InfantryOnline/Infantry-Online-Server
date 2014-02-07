@@ -333,8 +333,17 @@ namespace InfServer.Logic
                 //Rename him
                 plog.alias = alias.name;
 
-                //Submit any new rows before we try anduse them
-                db.SubmitChanges();
+                //Try and submit any new rows before we try and use them
+                try
+                {
+                    db.SubmitChanges();
+                }
+                catch (Exception e)
+                {
+                    plog.bSuccess = false;
+                    plog.loginMessage = "Unable to create new player / alias, please try again.";
+                    Log.write(TLog.Exception, "Exception adding player or alias to DB: {0}", e);
+                }
 
                 //Add them
                 if (zone.newPlayer(pkt.player.id, alias.name, player))

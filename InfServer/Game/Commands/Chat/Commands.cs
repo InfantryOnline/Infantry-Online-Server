@@ -17,7 +17,41 @@ namespace InfServer.Game.Commands.Chat
     /// </summary>
     public class Normal
     {
-        
+        #region account ignore
+        /// <summary>
+        /// Ignore Account Chats
+        /// </summary>
+        public static void accountignore(Player player, Player recipient, string payload, int bong)
+        {
+            if (payload == "")
+            {
+                //Tell him who he's currently ignoring
+                string ignoreList = "";
+                foreach (string p in player._accountIgnore)
+                    ignoreList += p + ", ";
+
+                player.sendMessage(0, "&Account Ignore List");
+                if (ignoreList.Length > 0)
+                    player.sendMessage(0, "*" + ignoreList);
+                else
+                    player.sendMessage(0, "*Empty");
+
+                return;
+            }
+
+            if (player._accountIgnore.Contains(payload))
+            {
+                player._accountIgnore.Remove(payload);
+                player.sendMessage(0, "Removed '" + payload + "' from account-ignore list");
+            }
+            else
+            {
+                player._accountIgnore.Add(payload);
+                player.sendMessage(0, "Added '" + payload + "' to account-ignore list");
+            }
+        }
+        #endregion
+
         #region accountinfo
         /// <summary>
         /// Queries the database and returns a list of aliases associated with the player
@@ -1442,6 +1476,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(accountinfo, "accountinfo",
                 "Displays all aliases registered to a single account.",
                 "?accountinfo");
+
+            yield return new HandlerDescriptor(accountignore, "accountignore",
+                "Ignores chats from specified account(s)",
+                "?accountignore Player1,Player2,Player3");
 
             yield return new HandlerDescriptor(aid, "aid",
                 "Allows a player to aid another player in the form of money",

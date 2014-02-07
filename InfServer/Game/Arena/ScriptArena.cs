@@ -882,10 +882,17 @@ namespace InfServer.Game
 
             //Forward to our script
             if (!exists("Player.EnterVehicle") || (bool)callsync("Player.EnterVehicle", false, from, entry))
+            {
                 //Attempt to enter the vehicle!
-                from.enterVehicle(entry);
-            //Update our last entry/exit
-            from._lastVehicleEntry = Environment.TickCount;
+                if (!from.enterVehicle(entry))
+                {
+                    Log.write(TLog.Warning, "Player {0} failed to enter vehicle ({1}).", from, vehicleID);
+                    return;
+                }
+
+                //Update our last entry/exit
+                from._lastVehicleEntry = Environment.TickCount;
+            }
         } 
         #endregion
 
@@ -1267,7 +1274,7 @@ namespace InfServer.Game
 		/// Triggered when a player attempts to use the store
 		/// </summary>
 		public override void handlePlayerShop(Player from, ItemInfo item, int quantity)
-		{	
+		{
 			//Get the player's related inventory item
 			Player.InventoryItem ii = from.getInventory(item);
 
