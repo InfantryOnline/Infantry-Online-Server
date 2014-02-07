@@ -661,7 +661,7 @@ namespace InfServer.Logic
                             }
                             else
                             {
-                                Data.DB.squadstats squadstats = db.squadstats.FirstOrDefault(s => s.id == targetSquad.stats);
+                                Data.DB.squadstats squadstats = db.squadstats.FirstOrDefault(s => s.squad == targetSquad.id);
                                 if (squadstats != null)
                                 {
                                     zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", targetSquad.name));
