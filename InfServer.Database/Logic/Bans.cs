@@ -47,9 +47,9 @@ namespace InfServer.Logic
             foreach (Data.DB.ban b in db.bans.Where(b =>
                 b.account == account.id ||
                 b.IPAddress == pkt.ipaddress ||
-                b.uid1 == pkt.UID1 ||
-                b.uid2 == pkt.UID2 ||
-                b.uid3 == pkt.UID3 ||
+                b.uid1 == pkt.UID1 && pkt.UID1 != 0 ||
+                b.uid2 == pkt.UID2 && pkt.UID2 != 0 ||
+                b.uid3 == pkt.UID3 && pkt.UID3 != 0 ||
                 b.name == pkt.alias))
             {
                 //Is it the correct zone?

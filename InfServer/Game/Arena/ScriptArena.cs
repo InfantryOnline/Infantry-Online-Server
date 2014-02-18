@@ -1198,7 +1198,7 @@ namespace InfServer.Game
                         //Calculate rewards
                         Logic_Rewards.calculatePlayerKillRewards(from, killer, update);
 
-
+                        //Update normally
                         killer.Kills++;
                         from.Deaths++;
                     }
@@ -1940,18 +1940,15 @@ namespace InfServer.Game
 								if (!Helpers.isInRange(item.repairDistance, target._state, player._state))
 									return;
 
-								//Is it occupied?
-								if (target._inhabitant != null)
-									target._inhabitant.heal(item, player);
-                                //if (target._
-								//else
-								//{	//Apply the healing effect
-									target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + percentage);
+                                target.heal(player, item);
 
-									//TODO: A bit hackish, should probably standardize this or improve computer updates
-									if (target is Computer)
-										(target as Computer)._sendUpdate = true;
-								//}
+								//TODO: A bit hackish, should probably standardize this or improve computer updates
+                                if (target is Computer)
+                                {
+                                    //Computer health is server controlled
+                                    target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + percentage);
+                                    (target as Computer)._sendUpdate = true;
+                                }
 							}
 							else if (item.repairDistance < 0)
 							{	//An area heal! Get all vehicles within this area..
@@ -1959,8 +1956,9 @@ namespace InfServer.Game
 
 								//Check each vehicle
                                 if (players.Count > 0)
-								    foreach (Vehicle v in players)
-								    {	//Is it on the correct team?
+                                {
+                                    foreach (Vehicle v in players)
+                                    {	//Is it on the correct team?
                                         if (v._team != player._team)
                                         {   //Are we not on the same team temporarily?
                                             if (_owner != null && v._owner != player._team)
@@ -1968,32 +1966,38 @@ namespace InfServer.Game
                                             continue;
                                         }
 
-
-									//else
-									//{	//Apply the healing effect
-										v._state.health = (short)Math.Min(v._type.Hitpoints, v._state.health + percentage);
-
                                         //Can we self heal?
-                                        if (v._inhabitant == player && item.repairSelf)
-                                            //Repair!
-                                            v._inhabitant.heal(item, player);
+                                        if (v._inhabitant == player && !item.repairSelf)
+                                            continue;
 
-										//TODO: A bit hackish, should probably standardize this or improve computer updates
-										if (v is Computer)
-											(v as Computer)._sendUpdate = true;
+                                        //Repair our main!
+                                        v.heal(player, item);
 
-									//}
-								}
+                                        //Heal our childs
+                                        foreach (Vehicle child in v._childs)
+                                        {
+                                            //Can we self heal?
+                                            if (child._inhabitant == player && !item.repairSelf)
+                                                continue;
+
+                                            child.heal(player, item);
+                                        }
+
+                                        //TODO: A bit hackish, should probably standardize this or improve computer updates
+                                        if (v is Computer)
+                                        {
+                                            //Computer health is server controlled
+                                            v._state.health = (short)Math.Min(v._type.Hitpoints, v._state.health + percentage);
+                                            (v as Computer)._sendUpdate = true;
+                                        }
+                                    }
+                                }
 							}
 							else
 							{	//A self heal! Sure you can!
-								//player.heal(item, player);
                                 Vehicle target = _vehicles.getObjByID(targetVehicle);
                                 if (target != null)
-                                {
-                                    target._inhabitant.heal(item, player);
-                                    target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + percentage);
-                                }
+                                    target.heal(player, item);
 							}
 						}
 						break;

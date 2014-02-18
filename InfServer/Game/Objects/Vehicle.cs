@@ -198,6 +198,15 @@ namespace InfServer.Game
 		#endregion
 
 		#region State
+        /// <summary>
+        /// Heals a vehicle with a specific item
+        /// </summary>
+        public void heal(Player from, ItemInfo item)
+        {
+            Helpers.Player_RouteItemUsed(this._inhabitant != null ? this._inhabitant : from, from, this._id,
+                (short)item.id, from._state.positionX, from._state.positionY, (byte)from._state.yaw);
+        }
+
 		/// <summary>
 		/// Causes the vehicle to die
 		/// </summary>
