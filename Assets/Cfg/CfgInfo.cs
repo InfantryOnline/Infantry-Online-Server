@@ -96,13 +96,9 @@ namespace Assets
                             Console.WriteLine("Found missing '=' in header {0} in filename {1}",
                                 (currentHeader != "") ? currentHeader : "Unknown", filename);
                         }
-
-                        if (!values.ContainsKey(line.Substring(0, eqIdx)))
+                        else if (!values.ContainsKey(line.Substring(0, eqIdx)))
                         {
-                            if (eqIdx == -1)
-                                values.Add(line, "");
-                            else
-                                values.Add(line.Substring(0, eqIdx), line.Substring(eqIdx + 1));
+                            values.Add(line.Substring(0, eqIdx), line.Substring(eqIdx + 1));
                         }
                     }
                 }
