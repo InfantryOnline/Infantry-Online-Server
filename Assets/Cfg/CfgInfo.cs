@@ -77,7 +77,7 @@ namespace Assets
 
                 while ((line = reader.ReadLine()) != null)
                 {
-                    if (line.Length > 0 && line[0] == '[')
+                    if (!String.IsNullOrWhiteSpace(line) && line[0] == '[')
                     {
                         if (values.Count > 0)
                         {
@@ -87,7 +87,7 @@ namespace Assets
                         values = new Dictionary<string, string>();
                         currentHeader = line.Trim(removeFromParsing.ToCharArray());
                     }
-                    else if (line.Length > 0)
+                    else if (!String.IsNullOrWhiteSpace(line))
                     {
                         int eqIdx = line.IndexOf('=');
                         //Check for missing =
