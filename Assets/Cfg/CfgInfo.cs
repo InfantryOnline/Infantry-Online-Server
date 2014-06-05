@@ -93,8 +93,8 @@ namespace Assets
                         //Check for missing =
                         if (eqIdx == -1) //return value when = isnt present
                         {
-                            Console.WriteLine("Found missing '=' in header {0} in filename {1}",
-                                (currentHeader != "") ? currentHeader : "Unknown", filename);
+                            Console.WriteLine("Found missing '=' in line '{0}' header {1} in filename {2}",
+                                line, (currentHeader != "") ? currentHeader : "Unknown", filename);
                         }
                         else if (!values.ContainsKey(line.Substring(0, eqIdx)))
                         {
