@@ -1128,6 +1128,7 @@ namespace InfServer.Game
 		{	//Check whether the players are appropriate
 			if (toSpectate.IsSpectator)
 				return false;
+
 			if (!IsSpectator)
 				return false;
 

@@ -205,7 +205,7 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            //Lets get all account related info then delete it
+                            //Lets get all account related info
                             Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
                             Data.DB.account account = db.accounts.FirstOrDefault(p => p.id == palias.account1.id);
                             if (palias == null)

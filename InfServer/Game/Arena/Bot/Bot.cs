@@ -246,6 +246,7 @@ namespace InfServer.Bots
 			if (delta > 600)
 			{
 				Log.write(TLog.Warning, "Encountered excessive bot delta of {0}", delta);
+                destroy(true);
 				return false;
 			}
 

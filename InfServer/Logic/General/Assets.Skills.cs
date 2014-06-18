@@ -17,10 +17,10 @@ namespace InfServer.Logic
 	{
 		static private Regex paramRegex = new Regex(@"\!?([%@#\-]?)([0-9]+)", RegexOptions.Compiled);
         // Matches anything except: - ! @ # % & ( ) | 0 to 9
-        static private Regex illiegalChars = new Regex(@"[^-!@#%&()|0-9]", RegexOptions.Compiled);
+        static private Regex illegalChars = new Regex(@"[^-!@#%&()|0-9]", RegexOptions.Compiled);
 
 		/// <summary>
-		/// The public skillcheck method
+		/// The public skillcheck method, uses the players base class id.
 		/// </summary>		
 		static public bool SkillCheck(Player player, string skillString)
 		{
@@ -29,7 +29,7 @@ namespace InfServer.Logic
                 return true;
 
             // Make the string safe to test
-            String cleanString = illiegalChars.Replace(skillString, "");
+            String cleanString = illegalChars.Replace(skillString, "");
 
             // Is there still any need?
             if (cleanString == "")
@@ -44,6 +44,46 @@ namespace InfServer.Logic
 		}
 
         /// <summary>
+        /// The public skill id check method, checks the future class id.
+        /// </summary>
+        static public bool AllowedClassCheck(Player player, SkillInfo skill, string skillString)
+        {
+            if (String.IsNullOrWhiteSpace(skillString) || skillString == "\"\"")
+                return true;
+
+            // Make the string safe to test
+            String cleanString = illegalChars.Replace(skillString, "");
+
+            // Is there still any need?
+            if (cleanString == "")
+                return true;
+
+            //First, kill all spaces then replace with proper boolean values
+            //The calculate boolean values
+            String booleanString = paramRegex.Replace(cleanString.TrimStart('&'), delegate(Match m)
+            {
+                bool val = false;
+                int numVal = int.Parse(m.Groups[2].Value);
+
+                val = skill.SkillId == numVal ? true : false;
+                return (val ^ m.Groups[0].Value.StartsWith("!")) ? "1" : "0";
+            });
+
+            int pos = 0;
+            bool bQualified = false;
+            try
+            {
+                bQualified = expr(booleanString, ref pos);
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Error, "Error parsing exit spectator logic string '{0}' as '{1}', {2}", skillString, booleanString, e);
+            }
+
+            return bQualified;
+        }
+
+        /// <summary>
         /// The public buildingcheck method
         /// </summary>
         static public bool BuildingCheck(Player player, string buildingString)
@@ -53,7 +93,7 @@ namespace InfServer.Logic
                 return true;
 
             // Make the string safe to test
-            String cleanString = illiegalChars.Replace(buildingString, "");
+            String cleanString = illegalChars.Replace(buildingString, "");
 
             // Is there still any need?
             if (cleanString == "")
@@ -66,9 +106,9 @@ namespace InfServer.Logic
             String booleanString = paramRegex.Replace(cleanString.TrimStart('&'), delegate(Match m)
             {
                 bool val = false;
-                int numVal = int.Parse(m.Groups[1].Value);
+                int numVal = int.Parse(m.Groups[2].Value);
 
-                if (vehs != null)
+                if (vehs.Count() > 0)
                 {
                     foreach (Vehicle veh in vehs)
                     {
@@ -98,7 +138,7 @@ namespace InfServer.Logic
 		/// <summary>
 		/// Determines whether a player satisifes a skill check
 		/// </summary>
-		static public bool SkillCheckTester(Player player, int classId, string skillString)
+		private static bool SkillCheckTester(Player player, int classId, string skillString)
 		{	// Get player's current experience - prefixed by '@' in the skill string for >= comparison
 			int exp = player.Experience;
 

@@ -37,6 +37,7 @@ namespace Assets
             public int playingDesired;
             public int scrambleTeams;
             public bool allowInfo;
+            public bool allowSpectating;
             public bool showBounty;
             public bool specsSeeEnergy;
             public bool friendlySeeEnergy;
@@ -100,6 +101,7 @@ namespace Assets
                 playingDesired = Parser.GetInt("PlayingDesired");
                 scrambleTeams = Parser.GetInt("ScrambleTeams");
                 allowInfo = Parser.GetBool("AllowInfo");
+                allowSpectating = Parser.GetBool("AllowSpectating");
                 showBounty = Parser.GetBool("ShowBounty");
                 specsSeeEnergy = Parser.GetBool("SpecsSeeEnergy");
                 friendlySeeEnergy = Parser.GetBool("FriendlySeeEnergy");

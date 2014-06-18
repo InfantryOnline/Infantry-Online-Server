@@ -331,14 +331,6 @@ namespace InfServer.Logic
 				return;
 			}
 
-            //Is he able to pick these classes?
-            /*
-            if (!player.IsSpectator && !Logic_Assets.SkillCheckTester(player, skill.SkillId, player._server._zoneConfig.arena.exitSpectatorLogic))
-            {
-                player.sendMessage(-1, "That is not an eligible class to play.");
-                return;
-            }
-            */
 			player._arena.handleEvent(delegate(Arena arena)
 				{
 					player._arena.handlePlayerShopSkill(player, skill);
@@ -439,18 +431,17 @@ namespace InfServer.Logic
                 {
                     if (p.PermissionLevel < Data.PlayerPermission.ArenaMod)
                     {
-                        p.sendMessage(-1, player._alias + " has disabled spectators");
+                        p.sendMessage(-1, player._alias + " has disabled spectators.");
                         p._spectating = null;
                         Helpers.Player_SpectatePlayer(p, player, true); //true = stop spectating
                         player._spectators.Remove(p);
                     }
                 }
-                //player._spectators.Clear();
             }
         }
 
 		/// <summary>
-		/// Handles an spectator request for a client
+		/// Handles a spectator request for a client
 		/// </summary>
 		static public void Handle_CS_RequestSpectator(CS_RequestSpectator pkt, Player player)
 		{	//Allow the player's arena to handle it

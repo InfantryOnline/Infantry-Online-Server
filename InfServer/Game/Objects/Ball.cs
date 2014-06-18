@@ -73,18 +73,11 @@ namespace InfServer.Game
             state.ballID = _id;
 
             if (_state.carrier != null)
-            {
                 state.playerID = (short)_state.carrier._id;
-                Log.write(TLog.Warning, "Player ID {0}", _arena.getPlayerById(_state.carrier._id));
-            }
             else
-            {
                 state.playerID = 0;
-            }
             state.TimeStamp = Environment.TickCount;
              
-            Log.write(String.Format("SC_State {0}", state.unk2));
-
             //state.delete = _state.delete;
             //Log.write(String.Format("ball state update for player {0}", player._id));
 

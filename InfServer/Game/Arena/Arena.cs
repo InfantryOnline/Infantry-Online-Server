@@ -58,6 +58,10 @@ namespace InfServer.Game
 
         public PollSettings _poll;						//For our poll command
         
+        public int _lastSecurityCheck;                  //For our security checks
+        public int _lastAssetCheck;
+        public int _clientReliable;                     //Reliable client checksum value
+
 		public int _levelWidth;
 		public int _levelHeight;
 		public LvlInfo.Tile[] _tiles;					//The terrain tiles in the arena, can be updated to reflect switches, etc
@@ -198,6 +202,9 @@ namespace InfServer.Game
 			}
 		}
 
+        /// <summary>
+        /// Returns a list of the active players of a public team
+        /// </summary>
         public IEnumerable<Player> PublicPlayersInGame
         {
             get
@@ -527,27 +534,27 @@ namespace InfServer.Game
 					}
 
                     //Check inactivity
-                    if ((_server._zoneConfig.arena.inactivityTimeout > 0) &&
-                        (now - player._lastMovement) > (_server._zoneConfig.arena.inactivityTimeout * 1000) &&
-                        player._lastMovement != 0)
+                    if (_server._zoneConfig.arena.inactivityTimeout > 0 && player._lastMovement != 0 &&
+                        (now - player._lastMovement) > (_server._zoneConfig.arena.inactivityTimeout * 1000))
                     {
                         player.spec();
                         player.sendMessage(-1, "You have been sent to spectator mode for being inactive.");
                     }
                      
                     //Check maxTimeAllowed inactivity
-                    if (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed > 0)
+                    if (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed > 0
+                        && player._lastMovement != 0)
                     {
                         int maxTime = (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed * 1000);
                         
                         //Send message at half of max time
-                        if ((now - player._lastMovement) >= ((maxTime / 2) - 10) && (now - player._lastMovement) <= ((maxTime / 2) + 10) && player._lastMovement != 0)
+                        if ((now - player._lastMovement) >= ((maxTime / 2) - 10) && (now - player._lastMovement) <= ((maxTime / 2) + 10))
                         {
                             string format = "WARNING! Staying in this location for another {0} seconds will send you to spectator mode.";
                             player.sendMessage(-1, String.Format(format, ((maxTime / 2) / 1000)));
                         }
                         //Send to spectator due to inactivity
-                        if ((now - player._lastMovement) > maxTime && player._lastMovement != 0)
+                        if ((now - player._lastMovement) > maxTime)
                         {
                             player.spec();                            
                             player.sendMessage(-1, "You have been sent to spectator mode due to inactivity.");
@@ -684,6 +691,39 @@ namespace InfServer.Game
 				foreach (Vehicle vehicle in _condemnedVehicles)
 					_vehicles.Remove(vehicle);
 				_condemnedVehicles.Clear();
+
+                //Randomly check players processes for hacks at random intervals
+                if (now - _lastSecurityCheck > _rand.Next(100000, 300000))
+                {
+                    foreach (Player p in Players)
+                    {
+                        if (p == null)
+                            continue;
+
+                        _lastSecurityCheck = now;
+                        //mark mods?
+                        SC_Environment env = new SC_Environment();
+                        env.bLimitLength = false;
+                        p._client.sendReliable(env);
+                    }
+                }
+
+                //Randomly check players processes for hacks at random intervals
+                if (now - _lastAssetCheck > _rand.Next(100000, 300000))
+                {
+                    foreach (Player p in Players)
+                    {
+                        if (p == null)
+                            continue;
+
+                        _lastAssetCheck = now;
+
+                        SC_SecurityCheck cs = new SC_SecurityCheck();
+                        cs.key = 9815; //Key we are using
+                        cs.unknown = 0; // Unknown, send as 0   
+                        p._client.send(cs); //Send it    
+                    }
+                }
 
 				//Take care of our delayed actions
 				List<DelayedAction> executedActions = null;
@@ -1186,6 +1226,7 @@ namespace InfServer.Game
 				player._spectating._spectators.Remove(player);
 				player._spectating = null;
 			}
+            
 		}
 
 		/// <summary>
@@ -1231,7 +1272,17 @@ namespace InfServer.Game
         {
         }
 
+        /// <summary>
+        /// Called when a script chat command is used.
+        /// </summary>
         public virtual void handlePlayerChatCommand(Player player, Player recipient, string command, string payload)
+        {
+        }
+
+        /// <summary>
+        /// Called when a script mod command is used.
+        /// </summary>
+        public virtual void handlePlayerModCommand(Player player, Player recipient, string command, string payload)
         {
         }
 

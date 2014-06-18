@@ -138,10 +138,15 @@ namespace InfServer.Game
                                 from._alias, payload));
                         }
                 }
+                else
+                    //Possibly a scripted mod command, lets pass it
+                    from._arena.handlePlayerModCommand(from, recipient, command, payload);
                 return;
             }
+
+            //Are they a developer?
             if (from.PermissionLevelLocal != Data.PlayerPermission.Developer)
-            {
+            {   //No
                 //Check the permission levels
                 if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
                 {	//Not going to happen.
@@ -150,6 +155,7 @@ namespace InfServer.Game
             }
             else
             {
+                //They are, is this a dev command?
                 if (!handler.isDevCommand)
                     return;
             }

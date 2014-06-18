@@ -26,10 +26,10 @@ namespace InfServer.Game.Commands.Mod
 
             if (ballID > 4)
             {
-                Log.write(TLog.Warning, "Attempt to add a 7th ball, too many!!!!");
                 player.sendMessage(-1, "All the balls are currently in the game.");
                 return;
             }
+            /*
             //Lets create a new ball!
             Ball newBall = new Ball((short)ballID, player._arena);
 
@@ -40,68 +40,61 @@ namespace InfServer.Game.Commands.Mod
             newBall._state.positionX = 2817;
             newBall._state.positionY = 1600;
             newBall._state.positionZ = 5;
+            newBall._state.velocityX = 0;
+            newBall._state.velocityY = 0;
+            newBall._state.velocityZ = 0;
             newBall._state.unk2 = -1;
             //newBall._state.carrier = 1;
 
-
             //Store it.
-            //player._arena._balls.Add(newBall);
-
+            player._arena._balls.Add(newBall);
 
             //Make each player aware of the ball
-            //newBall.Route_Ball(player._arena.Players);
-            //player._arena.sendArenaMessage("Ball Added");
+            newBall.Route_Ball(player._arena.Players);
+            player._arena.sendArenaMessage("Ball Added.");
+             */
         }
+
         static public void getball(Player player, Player recipient, string payload, int bong)
         {
             ushort askedBallId; // Id of the requested getball
-            if (payload == "")
-            {
+            if (String.IsNullOrEmpty(payload))
                 askedBallId = 0;
-            }
             else
             {
                 ushort requestBallID = Convert.ToUInt16(payload);
                 if (requestBallID > 4 || requestBallID < 0)
                 {
-                    Log.write(TLog.Warning, "Invalid getball Ball ID");
                     player.sendMessage(-1, "Invalid getball Ball ID");
                     return;
                 }
                 askedBallId = requestBallID;
             }
+
             //Get the ball in question..
-            Ball ball = recipient._arena._balls.FirstOrDefault(b => b._id == askedBallId);
+            Ball ball = player._arena._balls.FirstOrDefault(b => b._id == askedBallId);
             foreach (Player p in player._arena.Players)
-            {
                 p._gotBallID = 999;
-            }
+
             if (ball == null)
             {
-                Log.write(TLog.Warning, "Ball does not exist.");
                 player.sendMessage(-1, "Ball does not exist.");
                 return;
             }
-            recipient._gotBallID = ball._id;
+            player._gotBallID = ball._id;
             //Assign the ball to the player
-            ball._state.carrier = recipient;
+            ball._state.carrier = player;
             //Assign default state
-            ball._state.positionX = recipient._state.positionX;
-            ball._state.positionY = recipient._state.positionY;
-            ball._state.positionZ = recipient._state.positionZ;
+            ball._state.positionX = player._state.positionX;
+            ball._state.positionY = player._state.positionY;
+            ball._state.positionZ = player._state.positionZ;
             ball._state.velocityX = 0;
             ball._state.velocityY = 0;
             ball._state.velocityZ = 0;
-            ball._state.unk2 = -1;
-            //newBall._state.carrier = 1;
-
-
-            //Store it.
-            //player._arena._balls.Add(newBall);
+            ball._state.unk2 = 0;
 
             //Make each player aware of the ball
-            ball.Route_Ball(recipient._arena.Players);
-
+            ball.Route_Ball(player._arena.Players);
         }
 
         /// <summary>
@@ -109,8 +102,8 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void arena(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
-                player.sendMessage(-1, "Message can not be empty");
+            if (String.IsNullOrEmpty(payload))
+                player.sendMessage(-1, "Message can not be empty.");
             else
                 player._arena.sendArenaMessage(payload, bong);
         }
@@ -231,7 +224,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void global(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "And say what?");
                 return;
@@ -288,7 +281,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: *grant alias");
                     return;
@@ -324,7 +317,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void help(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {	//List all mod commands
                 player.sendMessage(0, "&Commands available to you:");
 
@@ -381,7 +374,7 @@ namespace InfServer.Game.Commands.Mod
         static public void helpcall(Player player, Player recipient, string payload, int bong)
         {
             int page;
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
                 page = 0;
             else
             {
@@ -407,7 +400,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void permit(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: *permit name");
                 return;
@@ -474,7 +467,7 @@ namespace InfServer.Game.Commands.Mod
 			}
 			else
 			{
-				if (payload == "")
+				if (String.IsNullOrEmpty(payload))
 				{
 					player.sendMessage(-1, "Syntax: *poll <Question>(Optional <time> - Note: to use time seperate the question with : I.E ?poll Like me?:60");
 					return;
@@ -504,7 +497,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void prize(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: *prize item:amount or ::*prize item:amount");
                 return;
@@ -571,7 +564,7 @@ namespace InfServer.Game.Commands.Mod
         static public void profile(Player player, Player recipient, string payload, int bong)
         {
             Player target = (recipient == null) ? player : recipient;
-            if (payload != "")
+            if (!String.IsNullOrEmpty(payload))
             {
                 if ((target = player._arena.getPlayerByName(payload)) == null)
                     target = player;
@@ -647,7 +640,7 @@ namespace InfServer.Game.Commands.Mod
             if (player != recipient && (int)player.PermissionLevel < (int)recipient.PermissionLevel)
                 return;
 
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: :alias:*shutup timeinminutes");
                 return;
@@ -736,7 +729,7 @@ namespace InfServer.Game.Commands.Mod
         static public void skill(Player player, Player recipient, string payload, int bong)
         {
             //Sanity checks
-            if (payload == "" || recipient == null)
+            if (String.IsNullOrEmpty(payload) || recipient == null)
             {
                 player.sendMessage(-1, "Syntax: :player:*skill id:amount");
                 return;
@@ -822,7 +815,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Do we have a target team?
-            if (payload != "")
+            if (!String.IsNullOrEmpty(payload))
             {	//Find the team
                 Team newTeam = player._arena.getTeamByName(payload);
                 if (newTeam == null)
@@ -842,7 +835,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void spectate(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: ::*spectate [player] or *spectate [player]");
                 return;
@@ -886,7 +879,7 @@ namespace InfServer.Game.Commands.Mod
         static public void speclock(Player player, Player recipient, string payload, int bong)
         {
             //Lock Entire Arena
-            if (payload == "all" || (payload == "" && recipient == null))
+            if (payload == "all" || (String.IsNullOrEmpty(payload) && recipient == null))
             {
                 player._arena._bLocked = !player._arena._bLocked;
                 player._arena.sendArenaMessage("Arena lock has been toggled" + (player._arena._bLocked ? " ON!" : " OFF!"));
@@ -1009,7 +1002,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void team(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: *team [teamname] or ::*team [teamname]");
                 return;
@@ -1041,7 +1034,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void teamname(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: *teamname [teamname1,teamname2,...]");
             }
@@ -1075,7 +1068,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void ticker(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "" || !payload.Contains(','))
+            if (String.IsNullOrEmpty(payload) || !payload.Contains(','))
             {
                 player.sendMessage(-1, "Syntax: *ticker [message],[index],[color=optional],[timer=optional]");
             }
@@ -1104,7 +1097,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void timer(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {   //Clear current timer if payload is empty
                 player._arena.setTicker(1, 1, 0, "");
             }
@@ -1165,7 +1158,7 @@ namespace InfServer.Game.Commands.Mod
             Player target = (recipient == null) ? player : recipient;
 
             //Do we have a target team?
-            if (payload != "")
+            if (!String.IsNullOrEmpty(payload))
             {	//Find the team
                 Team newTeam = player._arena.getTeamByName(payload);
 
@@ -1465,7 +1458,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (recipient == null && payload == "")
+            if (recipient == null && String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: either ::*ban time:reason(optional) or *ban alias time:reason(optional)");
                 return;
@@ -1486,7 +1479,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: ::*ban time:reason(Optional)");
                     return;
@@ -1579,7 +1572,7 @@ namespace InfServer.Game.Commands.Mod
                     }
 
                     //Check if there is a reason
-                    if (param[1] != null && param[1] != "")
+                    if (!String.IsNullOrEmpty(param[1]))
                         reason = param[1];
                 }
                 else //Just a timed ban
@@ -1645,7 +1638,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (recipient == null && payload == "")
+            if (recipient == null && String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: either ::*block time:reason(optional) or *block alias time:reason(optional)");
                 player.sendMessage(-1, "Note: make sure you are in the zone you want to ban from");
@@ -1667,7 +1660,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: ::*block time:reason(Optional)");
                     return;
@@ -1697,7 +1690,7 @@ namespace InfServer.Game.Commands.Mod
                     }
 
                     //Was a reason used?
-                    if (param[1] != null || param[1] != "")
+                    if (!String.IsNullOrEmpty(param[1]))
                         reason = param[1];
                 }
                 else //Just check for a time
@@ -1760,7 +1753,7 @@ namespace InfServer.Game.Commands.Mod
                     }
 
                     //Check if there is a reason
-                    if (param[1] != null && param[1] != "")
+                    if (!String.IsNullOrEmpty(param[1]))
                         reason = param[1];
                 }
                 else //Just a timed ban
@@ -1827,7 +1820,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Kill all?
-            if (payload != null && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
+            if (!String.IsNullOrEmpty(payload) && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
             {
                 foreach (Player p in player._arena.Players)
                     if (p != player)
@@ -1855,7 +1848,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (recipient == null && payload == "")
+            if (recipient == null && String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: either ::*ipban time:reason(optional) or *ipban alias time:reason(optional)");
                 return;
@@ -1876,7 +1869,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: ::*ipban time:reason(Optional)");
                     return;
@@ -1906,7 +1899,7 @@ namespace InfServer.Game.Commands.Mod
                     }
 
                     //Was a reason used?
-                    if (param[1] != null || param[1] != "")
+                    if (!String.IsNullOrEmpty(param[1]))
                         reason = param[1];
                 }
                 else //Just check for a time
@@ -1969,7 +1962,7 @@ namespace InfServer.Game.Commands.Mod
                     }
 
                     //Check if there is a reason
-                    if (param[1] != null && param[1] != "")
+                    if (!String.IsNullOrEmpty(param[1]))
                         reason = param[1];
                 }
                 else //Just a timed ban
@@ -2036,7 +2029,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (payload == "" && recipient == null)
+            if (String.IsNullOrEmpty(payload) && recipient == null)
             {
                 player.sendMessage(-1, "Syntax: Either PM the person with *gkill time:reason(Optional) or *gkill alias time:reason(Optional)");
                 return;
@@ -2057,7 +2050,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: ::*gkill time:reason(Optional)");
                     return;
@@ -2087,7 +2080,7 @@ namespace InfServer.Game.Commands.Mod
                     }
 
                     //Was a reason used?
-                    if (param[1] != null || param[1] != "")
+                    if (!String.IsNullOrEmpty(param[1]))
                         reason = param[1];
                 }
                 else //Just check for a time
@@ -2150,7 +2143,7 @@ namespace InfServer.Game.Commands.Mod
                     }
 
                     //Check if there is a reason
-                    if (param[1] != null && param[1] != "")
+                    if (!String.IsNullOrEmpty(param[1]))
                         reason = param[1];
                 }
                 else //Just a timed ban
@@ -2272,7 +2265,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (recipient != null && payload == "")
+            if (recipient != null && String.IsNullOrEmpty(payload))
             {
                 //Assume they just want to kick them out of the arena temporarily
                 recipient.sendMessage(-1, "You have been kicked out of the arena.");
@@ -2281,7 +2274,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (recipient == null && payload == "")
+            if (recipient == null && String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: ::*kick time(Optional) OR *kick alias time(Optional)");
                 return;

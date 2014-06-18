@@ -17,7 +17,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void defaultVehicle(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
-			if (payload == "")
+            if (String.IsNullOrEmpty(payload))
 			{
 				player.sendMessage(-1, "Syntax: *defaultvehicle [vehicleid] or ::*defaultvehicle [vehicleid]");
 				return;
@@ -41,7 +41,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void spawnVehicle(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
-			if (payload == "" ||
+            if (String.IsNullOrEmpty(payload) ||
 				recipient != null)
 			{
 				player.sendMessage(-1, "Syntax: *vehicle [vehicleid]");

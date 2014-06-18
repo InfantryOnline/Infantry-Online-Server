@@ -785,7 +785,8 @@ namespace InfServer.Game
                 }
 
                 //Do we have a full arena?
-				if (PlayerCount >= _server._zoneConfig.arena.playingMax)
+				if (PlayerCount >= _server._zoneConfig.arena.playingMax
+                    && _scriptType != "GameType_SoccerBrawl") //Cheat fix for the queue system
 				{	//Yep, tell him why he can't get in
 					from.sendMessage(255, "Game is full.");
 					return;
@@ -794,7 +795,11 @@ namespace InfServer.Game
 				//Is he able to unspec?
 				if (!Logic_Assets.SkillCheck(from, _server._zoneConfig.arena.exitSpectatorLogic))
 				{
-					from.sendMessage(-1, _server._zoneConfig.arena.exitSpectatorMessage);
+                    if (!String.IsNullOrWhiteSpace(_server._zoneConfig.arena.exitSpectatorMessage))
+                        //Use logic message
+                        from.sendMessage(-1, _server._zoneConfig.arena.exitSpectatorMessage);
+                    else
+                        from.sendMessage(-1, "That is not an eligible class to play.");
 					return;
 				}
 
@@ -814,8 +819,10 @@ namespace InfServer.Game
 
 
 				//Forward to our script
-				if (exists("Player.JoinGame") && !(bool)callsync("Player.JoinGame", false, from))
-					return;
+                if (exists("Player.JoinGame") && !(bool)callsync("Player.JoinGame", false, from))
+                {
+                    return;
+                }
 
 				//Pick a team
                 Team pick = pickAppropriateTeam(from);
@@ -922,11 +929,10 @@ namespace InfServer.Game
 				int maxDamageRadius = Helpers.getMaxBlastRadius(usedWep);
 
 				List<Vehicle> vechs = _vehicles.getObjsInRange(update.positionX, update.positionY, maxDamageRadius + 500);
-				
                 //Notify all vehicles in the vicinity
-				foreach (Vehicle v in vechs)	
-					if (!v.IsDead)
-						v.applyExplosion(from, update.positionX, update.positionY, usedWep);
+                foreach (Vehicle v in vechs)
+                    if (!v.IsDead)
+                        v.applyExplosion(from, update.positionX, update.positionY, usedWep);
 			}
 		}
         #endregion
@@ -1344,14 +1350,25 @@ namespace InfServer.Game
             //Are we allowed to buy skills from spec?
             if (from._bSpectator && !_server._zoneConfig.arena.spectatorSkills)
             {
-                from.sendMessage(-1, "Unable to buy skill from spec.");
+                from.sendMessage(-1, "Unable to buy skills from spec.");
                 return;
             }
-            
+
+            //Are we able to pick these classes?
+            if (!Logic_Assets.AllowedClassCheck(from, skill, from._server._zoneConfig.arena.exitSpectatorLogic))
+            {
+                if (!String.IsNullOrWhiteSpace(from._server._zoneConfig.arena.exitSpectatorMessage))
+                    //Use logic message
+                    from.sendMessage(-1, from._server._zoneConfig.arena.exitSpectatorMessage);
+                else
+                    from.sendMessage(-1, "That is not an eligible class to play.");
+                return;
+            }
+
             //Are we in a vehicle that we may no longer be able to use?
             if (!from._bSpectator && !_server._zoneConfig.arena.allowSkillPurchaseInVehicle && from._occupiedVehicle != null)
-            {   //TODO: Limit this only to skills that we could no longer use
-                from.sendMessage(-1, "Unable to buy skill while occupying a vehicle.");
+            {
+                from.sendMessage(-1, "Unable to buy skills while occupying a vehicle.");
                 return;
             }
 
@@ -1859,6 +1876,75 @@ namespace InfServer.Game
         }
         #endregion
 
+        #region handlePlayerModCommand
+        /// <summary>
+        /// Triggered when a player sends a mod command
+        /// </summary>
+        public override void handlePlayerModCommand(Player player, Player recipient, string command, string payload)
+        {
+            //Do initial checks first before ok'ing it
+            if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod)
+                return;
+
+            if (player.PermissionLevel < Data.PlayerPermission.Mod)
+            {
+                if (recipient != null && !recipient._arena._name.Equals(player._arena._name))
+                {
+                    player.sendMessage(-1, "You cannot use commands from one arena to another.");
+                    return;
+                }
+            }
+
+            if ((bool)callsync("Player.ModCommand", false, player, recipient, command, payload))
+            {
+                //Only if return is true do we show mods the command
+                //NOTE: DO NOT LEAVE AN EMPTY SCRIPT MOD COMMAND, IT WILL LOG IN DB
+                //WITH ANYONE TYPING STUFF LIKE *HI
+
+                //Did someone just type *?
+                if (String.IsNullOrEmpty(command))
+                    return;
+
+                //Command logging (ignore normal player permission commands like *help, etc)
+                if (player.PermissionLevelLocal != Data.PlayerPermission.Normal)
+                {   //Notify his superiors in the arena
+                    string sRecipient;
+                    foreach (Player p in Players)
+                    {
+                        if (p == player)
+                            continue;
+
+                        if ((int)player.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
+                        {
+                            p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",
+                                player._arena._name,
+                                player._alias,
+                                sRecipient = (recipient != null)
+                                    ? " :" + recipient._alias + ":"
+                                    : String.Empty,
+                                command,
+                                payload));
+                        }
+                    }
+                }
+
+                //Log it in the history database
+                if (!_server.IsStandalone)
+                {
+                    CS_ModCommand<Data.Database> pkt = new CS_ModCommand<Data.Database>();
+                    pkt.sender = player._alias;
+                    pkt.recipient = (recipient != null) ? recipient._alias : "none";
+                    pkt.zone = player._server.Name;
+                    pkt.arena = player._arena._name;
+                    pkt.command = command + " " + payload;
+
+                    //Send it!
+                    player._server._db.send(pkt);
+                }
+            }
+        }
+        #endregion
+
         #region handlePlayerRepair
         /// <summary>
 		/// Triggered when a player attempts to repair/heal
@@ -1870,7 +1956,14 @@ namespace InfServer.Game
 				if (item.useAmmoID != 0 && !player.inventoryModify(false, item.useAmmoID, -item.ammoUsedPerShot))
 					return;
 
-                int percentage = (item.repairPercentage / 100) + item.repairAmount;
+                //New formula
+                float percentage = (float)item.repairPercentage / 100;
+                
+                //For old formula, too lazy to switch out all item files.. dont judge!
+                if (item.repairPercentage > 100)
+                    percentage = (float)item.repairPercentage / 1000;
+
+                int repairAmount = item.repairAmount;
 
                 //What type of repair is it?
 				switch (item.repairType)
@@ -1946,24 +2039,23 @@ namespace InfServer.Game
                                 if (target is Computer)
                                 {
                                     //Computer health is server controlled
-                                    target._state.health = (short)Math.Min(target._type.Hitpoints, target._state.health + percentage);
+                                    target._state.health = (short)Math.Min(target._type.Hitpoints, (int)(target._state.health + (percentage * target._state.health) + repairAmount));
                                     (target as Computer)._sendUpdate = true;
                                 }
 							}
 							else if (item.repairDistance < 0)
 							{	//An area heal! Get all vehicles within this area..
-								List<Vehicle> players = _vehicles.getObjsInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
+								List<Vehicle> vehicles = _vehicles.getObjsInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
 
 								//Check each vehicle
-                                if (players.Count > 0)
+                                if (vehicles.Count > 0)
                                 {
-                                    foreach (Vehicle v in players)
+                                    foreach (Vehicle v in vehicles)
                                     {	//Is it on the correct team?
                                         if (v._team != player._team)
                                         {   //Are we not on the same team temporarily?
-                                            if (_owner != null && v._owner != player._team)
+                                            if (v._owner != player._team)
                                                 continue;
-                                            continue;
                                         }
 
                                         //Can we self heal?
@@ -1987,7 +2079,7 @@ namespace InfServer.Game
                                         if (v is Computer)
                                         {
                                             //Computer health is server controlled
-                                            v._state.health = (short)Math.Min(v._type.Hitpoints, v._state.health + percentage);
+                                            v._state.health = (short)Math.Min(v._type.Hitpoints, (int)(v._state.health + (percentage * v._state.health) + repairAmount));
                                             (v as Computer)._sendUpdate = true;
                                         }
                                     }
@@ -2174,10 +2266,17 @@ namespace InfServer.Game
 			if (target.IsSpectator)
 				return;
 
-			//Check spectator permission
-            if (!target._bAllowSpectator && player.PermissionLevel <= Data.PlayerPermission.ArenaMod)
+            //Does the zone allow spectating?
+            if (!target._server._zoneConfig.arena.allowSpectating && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
             {
-                player.sendMessage(-1, "Specified player isn't allowing spectators");
+                player.sendMessage(-1, "Zone doesn't allow spectating players.");
+                return;
+            }
+
+			//Check spectator permission
+            if (!target._bAllowSpectator && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+            {
+                player.sendMessage(-1, "Specified player isn't allowing spectators.");
                 return;
             }
 
@@ -2418,10 +2517,17 @@ namespace InfServer.Game
                 return;
             }
 
+            if (usedWep.damageEventRadius == 0)
+                return;
+
             //Forward to our script and give it the option of taking over
             if (!(bool)callsync("Player.DamageEvent", false, from, usedWep, update.positionX, update.positionY, update.positionZ))
             {
-                Logic_Assets.RunEvent(from, usedWep.damageEventString);
+                List<Vehicle> vechs = _vehicles.getObjsInRange(update.positionX, update.positionY, usedWep.damageEventRadius + 500);
+                //Notify all vehicles in the vicinity
+                foreach (Vehicle v in vechs)
+                    if (!v.IsDead)
+                        Logic_Assets.RunEvent(from, usedWep.damageEventString);
             }
         }
         #endregion

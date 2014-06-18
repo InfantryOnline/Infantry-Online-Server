@@ -18,7 +18,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
 		static public void spawnBot(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
-			if (payload == "" ||
+            if (String.IsNullOrEmpty(payload) ||
 				recipient != null)
 			{
 				player.sendMessage(-1, "Syntax: *spawnbot [scriptType], [vehicleid]");

@@ -23,7 +23,7 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void accountignore(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 //Tell him who he's currently ignoring
                 string ignoreList = "";
@@ -669,7 +669,7 @@ namespace InfServer.Game.Commands.Chat
         public static void help(Player player, Player recipient, string payload, int bong)
         {
             //payload empty?
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
                 payload = "None specified";
             /*
             //Check our arena for moderators...
@@ -1146,7 +1146,7 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void summon(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 //Tell him who he's currently ignoring
                 string ignoreList = "";
@@ -1181,7 +1181,7 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void team(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
                 //Don't do anything if there is no payload, client will handle it
                 return;
 
@@ -1325,7 +1325,7 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void teamkick(Player player, Player recipient, string payload, int bong)
         {   //Check syntax
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Invalid syntax, Corrrect: ?teamkick targetalias");
                 return;
@@ -1377,7 +1377,7 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void teampassword(Player player, Player recipient, string payload, int bong)
         {   //Check syntax
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Invalid syntax, Corrrect: ?teampassword newpassword");
                 return;
@@ -1416,7 +1416,7 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Are you sure you want to wipe your character? Type ?wipecharacter yes to confirm");
                 return;

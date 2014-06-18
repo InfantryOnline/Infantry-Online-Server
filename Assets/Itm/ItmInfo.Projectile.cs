@@ -102,7 +102,7 @@ namespace Assets
             public int antiEffectsRotate;
             public int antiEffectsThrust;
             public int antiEffectsBallThrowDuration;
-            public bool preventPointBlank;
+            public int preventPointBlank;
             public int explodeItem;
             public int projectileRadarMode;
             public int damageEventRadius;
@@ -246,7 +246,7 @@ namespace Assets
                 projectile.antiEffectsRotate = CSVReader.GetInt(values[138]);
                 projectile.antiEffectsBallPickupDuration = CSVReader.GetInt(values[139]);
                 projectile.antiEffectsBallThrowDuration = CSVReader.GetInt(values[140]);
-                projectile.preventPointBlank = CSVReader.GetBool(values[141]);
+                projectile.preventPointBlank = CSVReader.GetInt(values[141]);
                 projectile.explodeItem = CSVReader.GetInt(values[142]);
                 projectile.projectileRadarMode = CSVReader.GetInt(values[143]);
                 projectile.damageEventRadius = CSVReader.GetInt(values[146]);

@@ -185,6 +185,8 @@
     <Compile Include="GameTypes\Blank\Blank.cs" />
     <Compile Include="GameTypes\BugHunt\BugHunt.cs" />
     <Compile Include="GameTypes\AxiCTF\CTF.cs" />
+    <Compile Include="GameTypes\Conquest\CTF.cs" />
+    <Compile Include="GameTypes\Conquest\Warps.cs" />
     <Compile Include="GameTypes\CTFHQ\Bots\BasicDefense.cs" />
     <Compile Include="GameTypes\CTFHQ\Bots\Captain.cs" />
     <Compile Include="GameTypes\CTFHQ\Bots\Engineer.cs" />

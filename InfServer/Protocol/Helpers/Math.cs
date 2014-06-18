@@ -428,5 +428,17 @@ namespace InfServer.Protocol
 
 			return String.Format("{0}{1}", lettercoord, ypos);
 		}
+
+        /// <summary>
+        /// Is this string value numeric?
+        /// </summary>
+        static public bool IsNumeric(string arg)
+        {
+            int parse;
+            if (int.TryParse(arg.Trim(), out parse))
+                return true;
+
+            return false;
+        }
 	}
 }
