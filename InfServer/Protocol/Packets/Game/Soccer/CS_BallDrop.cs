@@ -108,9 +108,11 @@ namespace InfServer.Protocol
             unk6 = _contentReader.ReadByte();
             unk7 = _contentReader.ReadByte();
             //tickcount = _contentReader.ReadInt32();
+            /*
             string format = String.Format("velX {0} velY {1} velZ {2} posX {3} posY {4} posZ {5}", velocityX, velocityY, velocityZ, positionX, positionY, positionZ);
             Log.write(String.Format("balllll DROP123 bID {0} {1} pID {2} bPickup {3} unk1 {4} unk2 {5} unk3 {6} unk4 {7} unk5 {8} unk6 {9} unk7 {10} time {11} current time {12} uTest {13} nTest {14}", ballID, format, playerID, bPickup, unk1, unk2, unk3, unk4, unk5, unk6, unk7, tickcount, (Environment.TickCount),uTest,nTest));
             Log.write("BallDrop {0}",DataDump);
+             */
         }
 
         /// <summary>

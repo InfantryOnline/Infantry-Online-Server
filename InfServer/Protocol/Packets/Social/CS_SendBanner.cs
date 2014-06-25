@@ -8,7 +8,7 @@ using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-    /// CS_SendBanner sends the banner data to a particular player
+    /// CS_SendBanner receives the banner data from a player
     /// </summary>
     public class CS_SendBanner : PacketBase
     {	// Member Variables

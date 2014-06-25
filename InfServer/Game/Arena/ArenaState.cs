@@ -194,9 +194,24 @@ namespace InfServer.Game
 			//info about anything happening until then.
 			_players.Add(player);
 
+            //Check his processes quick
+            SC_Environment env = new SC_Environment();
+            env.bLimitLength = false;
+            player._client.sendReliable(env);
+
             //Lets check his level and set watchMod
             if (player.PermissionLevel >= Data.PlayerPermission.Sysop)
                 player._arena._watchMod = true;
+
+            //Check if we can use him as a reliable player [check if mod]
+            if (player.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                player.setVar("reliable", player);            
+   
+            //Send a security check for their client asset checksum
+            SC_SecurityCheck cs = new SC_SecurityCheck();
+            cs.key = 9815; //Key we are using
+            cs.unknown = 0; // Unknown, send as 0   
+            player._client.send(cs); //Send it    
 
             //Define the player's self object
 			Helpers.Object_Players(player, player);
@@ -294,7 +309,7 @@ namespace InfServer.Game
 
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
-                        player.sendMessage(-3, "[Mod Notice] Don't use *spawnbot unless you know what you are spawning --- it will crash a zone and prevent players from connecting ty");
+                        player.sendMessage(-3, "[Mod Notice] Prime time of your life");
 				}
 			);
 		}

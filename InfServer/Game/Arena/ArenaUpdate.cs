@@ -29,21 +29,20 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player requests to pick up a ball
         /// </summary>
-        public virtual void handleBallPickup(Player from, CS_BallPickup update)
-        { }
+        public virtual void handleBallPickup(Player from, Ball update)
+        {   }
 
         /// <summary>
         /// Triggered when a player requests to drop a ball
         /// </summary>
-        public virtual void handleBallDrop(Player from, CS_BallDrop update)
-        { }
+        public virtual void handleBallDrop(Player from, Ball update)
+        {   }
 
         /// <summary>
         /// Triggered when a player has scored a goal
         /// </summary>
-        public virtual void handlePlayerGoal(Player from, CS_GoalScored update)
-        { }
-
+        public virtual void handlePlayerGoal(Player from, Ball update)
+        {   }
 
 		/// <summary>
 		/// Triggered when a player requests to pick up an item
@@ -170,6 +169,18 @@ namespace InfServer.Game
 		/// </summary>
 		public virtual void handlePlayerSpectate(Player player, ushort targetPlayerID)
 		{	}
+
+        /// <summary>
+        /// Called when a script chat command is used.
+        /// </summary>
+        public virtual void handlePlayerChatCommand(Player player, Player recipient, string command, string payload)
+        {   }
+
+        /// <summary>
+        /// Called when a script mod command is used.
+        /// </summary>
+        public virtual void handlePlayerModCommand(Player player, Player recipient, string command, string payload)
+        {   }
 
         /// <summary>
         /// Triggered when a player requests to pick up a vehicle

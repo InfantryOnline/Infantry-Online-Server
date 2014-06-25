@@ -252,7 +252,7 @@ namespace InfServer.Protocol
 			p._client.sendReliable(new SC_ShopFinished());
 		}
 
-		/// <summary>
+        /// <summary>
 		/// Clears all active projectiles
 		/// </summary>
 		static public void Player_ClearProjectiles(Player p)

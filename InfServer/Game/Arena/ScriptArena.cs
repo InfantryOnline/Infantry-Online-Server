@@ -403,7 +403,7 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player requests to pick up a ball
         /// </summary>
-        public override void handleBallPickup(Player from, CS_BallPickup update)
+        public override void handleBallPickup(Player from, Ball update)
         {
             //Forward to our script
             if (!exists("Player.BallPickup") || (bool)callsync("Player.BallPickup", false, from, update))
@@ -416,7 +416,7 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player requests to drop a ball
         /// </summary>
-        public override void handleBallDrop(Player from, CS_BallDrop update)
+        public override void handleBallDrop(Player from, Ball update)
         {
             //Forward to our script
             if (!exists("Player.BallDrop") || (bool)callsync("Player.BallDrop", false, from, update))
@@ -429,12 +429,18 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player has scored a goal
         /// </summary>
-        public override void handlePlayerGoal(Player from, CS_GoalScored update)
+        public override void handlePlayerGoal(Player from, Ball update)
         {   
             //Forward to our script
             if (!exists("Player.Goal") || (bool)callsync("Player.Goal", false, from, update))
             {
             }
+
+            //Reset our variables then spawn a new ball
+            update._owner = null;
+            update._lastOwner = null;
+            update._state.carrier = null;
+            Ball.Spawn_Ball(from, update);
         }
         #endregion
 

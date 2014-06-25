@@ -522,7 +522,7 @@ namespace InfServer.Game
                 bool tickTerrainBty = now - _bountyTick > 30000; //run every 30 seconds
                 if (tickTerrainBty)
                     _bountyTick = now;              
-
+                
 				foreach (Player player in PlayersIngame.ToList())
 				{	//Is he awaiting a respawn?
 					if (player._deathTime != 0 && now - player._deathTime > _server._zoneConfig.timing.enterDelay * 10)
@@ -1269,20 +1269,6 @@ namespace InfServer.Game
 		/// Called when the game needs to display end game statistics
 		/// </summary>
         public virtual void breakdown(bool bCurrent)
-        {
-        }
-
-        /// <summary>
-        /// Called when a script chat command is used.
-        /// </summary>
-        public virtual void handlePlayerChatCommand(Player player, Player recipient, string command, string payload)
-        {
-        }
-
-        /// <summary>
-        /// Called when a script mod command is used.
-        /// </summary>
-        public virtual void handlePlayerModCommand(Player player, Player recipient, string command, string payload)
         {
         }
 

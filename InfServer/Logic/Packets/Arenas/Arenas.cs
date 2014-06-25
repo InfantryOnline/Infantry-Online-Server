@@ -85,7 +85,7 @@ namespace InfServer.Logic
                 }
 
                 //Passed the first one, lets try the server difference
-                UInt32 checksum = (AssetManager.Manager.checkSum());
+             //   UInt32 checksum = (AssetManager.Manager.checkSum());
                 /*
                 if (player._assetCS != checksum)
                 {

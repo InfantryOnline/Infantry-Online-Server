@@ -317,11 +317,12 @@
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdate.cs" />
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdateInfo.cs" />
     <Compile Include="Protocol\Packets\Misc\CS_FileSend.cs" />
+    <Compile Include="Protocol\Packets\Misc\SC_TestPacket.cs" />
     <Compile Include="Protocol\Packets\Security\CS_SecurityCheck.cs" />
     <Compile Include="Protocol\Packets\Security\SC_SecurityCheck.cs" />
     <Compile Include="Protocol\Packets\Security\SC_RegQuery.cs" />
     <Compile Include="Protocol\Packets\Social\CS_SendBanner.cs" />
-    <Compile Include="Protocol\Packets\Social\SC_BannerTransfer.cs" />
+    <Compile Include="Protocol\Packets\Game\State\SC_PlayerConnected.cs" />
     <Compile Include="Protocol\Packets\Social\SC_SendBanner.cs" />
     <Compile Include="Protocol\Packets\State\SC_ZoneList.cs" />
     <Compile Include="Protocol\Packets\Stats\CS_ChartRequest.cs" />

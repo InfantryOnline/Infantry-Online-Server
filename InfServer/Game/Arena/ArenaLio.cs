@@ -971,10 +971,10 @@ namespace InfServer.Game
 				return false;
 
 			//Are we close enough?
-			if (!bForce && bPickup && !Helpers.isInRange(100,
-				player._state.positionX, player._state.positionY,
-				fs.posX, fs.posY))
-				return false;
+            if (!bForce && bPickup && !Helpers.isInRange(100,
+                player._state.positionX, player._state.positionY,
+                fs.posX, fs.posY))
+                return false;
 
 			//If the player is dead..
 			if (player.IsDead)
@@ -997,8 +997,8 @@ namespace InfServer.Game
 				return false;
 
 			//Do we have the skill to use this flag?
-			if (!Logic_Assets.SkillCheck(player, flag.FlagData.SkillLogic))
-				return false;
+            if (!Logic_Assets.SkillCheck(player, flag.FlagData.SkillLogic))
+                return false;
 
             bool turfFlag = fs.flag.FlagData.FlagCarriable == 0;
 			//We've done it! Update everything

@@ -703,7 +703,6 @@ namespace InfServer.Script.GameType_Fantasy
         /// </summary>
         protected Player getTargetPlayer()
         {
-            Player target = null;
             //Make a list of players around us within a radius
             List<Player> inTrackingRange =
                 _arena.getPlayersInRange(_state.positionX, _state.positionY, _defenseRadius);

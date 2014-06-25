@@ -19,42 +19,38 @@ namespace InfServer.Game.Commands.Mod
     /// </summary>
     public class Basic
     {
+        /// <summary>
+        /// Adds a soccerball on the field
+        /// </summary>
         static public void addball(Player player, Player recipient, string payload, int bong)
         {
             //Grab a new ballID
             int ballID = player._arena._balls.Count; // We don't add 1, as the first ballID is 0, so the count is always the correct next ID (1 ball = ballID of 0, = next ballID of 1)            
 
-            if (ballID > 4)
+            if (ballID > 3) //4 is max on the field, 0 id = 1 ball, 3 id = 4 balls
             {
                 player.sendMessage(-1, "All the balls are currently in the game.");
                 return;
             }
-            /*
+
             //Lets create a new ball!
             Ball newBall = new Ball((short)ballID, player._arena);
 
             //Initialize its ballstate
             newBall._state = new Ball.BallState();
 
-            //Assign default state
-            newBall._state.positionX = 2817;
-            newBall._state.positionY = 1600;
-            newBall._state.positionZ = 5;
-            newBall._state.velocityX = 0;
-            newBall._state.velocityY = 0;
-            newBall._state.velocityZ = 0;
-            newBall._state.unk2 = -1;
-            //newBall._state.carrier = 1;
-
             //Store it.
             player._arena._balls.Add(newBall);
 
             //Make each player aware of the ball
-            newBall.Route_Ball(player._arena.Players);
-            player._arena.sendArenaMessage("Ball Added.");
-             */
+            Ball.Spawn_Ball(player, newBall);
+
+            player._arena.sendArenaMessage("Ball Added.", player._arena._server._zoneConfig.soccer.ballAddedBong);
         }
 
+        /// <summary>
+        /// Grabs a ball on the field and gives it to the player
+        /// </summary>
         static public void getball(Player player, Player recipient, string payload, int bong)
         {
             ushort askedBallId; // Id of the requested getball
@@ -63,7 +59,7 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 ushort requestBallID = Convert.ToUInt16(payload);
-                if (requestBallID > 4 || requestBallID < 0)
+                if (requestBallID > 3 || requestBallID < 0) //4 is max on the field (0 id = 1 ball, 3 id = 4 balls)
                 {
                     player.sendMessage(-1, "Invalid getball Ball ID");
                     return;
@@ -73,15 +69,17 @@ namespace InfServer.Game.Commands.Mod
 
             //Get the ball in question..
             Ball ball = player._arena._balls.FirstOrDefault(b => b._id == askedBallId);
-            foreach (Player p in player._arena.Players)
-                p._gotBallID = 999;
-
             if (ball == null)
             {
                 player.sendMessage(-1, "Ball does not exist.");
                 return;
             }
+
+            foreach (Player p in player._arena.Players)
+                p._gotBallID = 999;
+
             player._gotBallID = ball._id;
+
             //Assign the ball to the player
             ball._state.carrier = player;
             //Assign default state
@@ -91,10 +89,49 @@ namespace InfServer.Game.Commands.Mod
             ball._state.velocityX = 0;
             ball._state.velocityY = 0;
             ball._state.velocityZ = 0;
-            ball._state.unk2 = 0;
+            ball._state.ballStatus = 0;
+            ball.deadBall = false;
+            ball._owner = player;
 
             //Make each player aware of the ball
             ball.Route_Ball(player._arena.Players);
+        }
+
+        /// <summary>
+        /// Removes a ball from the arena
+        /// </summary>
+        static public void removeball(Player player, Player recipient, string payload, int bong)
+        {
+            ushort askedBallId; // Id of the requested getball
+            if (String.IsNullOrEmpty(payload))
+                askedBallId = 0;
+            else
+            {
+                ushort requestBallID = Convert.ToUInt16(payload);
+                if (requestBallID > 3 || requestBallID < 0) //4 is max on the field (0 id = 1 ball, 3 id = 4 balls)
+                {
+                    player.sendMessage(-1, "Invalid getball Ball ID");
+                    return;
+                }
+                askedBallId = requestBallID;
+            }
+
+            //Get the ball in question..
+            Ball ball = player._arena._balls.FirstOrDefault(b => b._id == askedBallId);
+            if (ball == null)
+            {
+                player.sendMessage(-1, "Ball does not exist.");
+                return;
+            }
+
+            foreach (Player p in player._arena.Players)
+                p._gotBallID = 999;
+
+            //Remove it from arena
+            player._arena._balls.Remove(ball);
+
+            //Let players know
+            player._arena.sendArenaMessage("Ball removed.");
         }
 
         /// <summary>
@@ -480,13 +517,13 @@ namespace InfServer.Game.Commands.Mod
                 string[] result = payload.Split(':');
                 timer = Convert.ToInt32(result.ElementAt(1));
                 player._arena.setTicker(1, 4, timer * 100, result.ElementAt(0), delegate() { player._arena.pollQuestion(player._arena, true); });
-                player._arena.sendArenaMessage(String.Format("!A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), result.ElementAt(0)));
-                player._arena.sendArenaMessage("!Type ?poll yes or ?poll no to participate");
+                player._arena.sendArenaMessage(String.Format("&A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), result.ElementAt(0)));
+                player._arena.sendArenaMessage("&Type ?poll yes or ?poll no to participate");
             }
             else
             {
                 player._arena.setTicker(1, 4, timer, payload); //Game ending will stop and display results
-                player._arena.sendArenaMessage(String.Format("!A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), payload));
+                player._arena.sendArenaMessage(String.Format("&A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), payload));
             }
 
 			player._arena._poll.start = true;
@@ -2456,6 +2493,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(profile, "profile",
                 "Displays a player's inventory.",
                 "/*profile or :player:*profile or *profile",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(removeball, "removeball",
+                "Removes a ball from the arena.",
+                "*removeball (by itself, removes ballID 0), *removeball # (removes that ball id)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(scramble, "scramble",

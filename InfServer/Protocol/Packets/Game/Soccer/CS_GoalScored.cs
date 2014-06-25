@@ -83,12 +83,14 @@ namespace InfServer.Protocol
             //unk4 = _contentReader.ReadByte();
             positionX = _contentReader.ReadInt16(); //Where the ball crosses the line
             positionY = _contentReader.ReadInt16(); //Where the ball crosses the line
+            /*
             TimeSpan ts = new TimeSpan(0);
             double ms = ts.TotalMilliseconds;
             ms = ms / 1000;
 
             Log.write(TLog.Warning, "ballID {0} tickcount {1} current tick {2} in seconds {3}", ballID, tickcount, Environment.TickCount, ms);
             Log.write(TLog.Warning, "unk1 {0} unk2 {1} unk3 {2} unk4 {3}", unk1, unk2, unk3, unk4);
+             */
         }
 
         /// <summary>

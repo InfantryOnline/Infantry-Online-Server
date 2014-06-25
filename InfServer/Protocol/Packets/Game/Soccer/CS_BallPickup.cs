@@ -84,19 +84,21 @@ namespace InfServer.Protocol
             //ntest = _contentReader.ReadByte();
             //UInt16 tests = test;
             //playerID = test;
-            Log.write(TLog.Warning, "test {0} ntest {1}", test, 0);
+            //Log.write(TLog.Warning, "test {0} ntest {1}", test, 0);
             //unk1 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
             //unk2 = _contentReader.ReadByte(); // This is the EXACT same 4 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
             //unk3 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
             //unk4 = _contentReader.ReadByte(); // This is the EXACT same 5 bytes as the one present in the 19th/20th/21st/22nd byte of ballstate
             //ntest = _contentReader.ReadInt16();
             tickcount = _contentReader.ReadInt32();
+            /*
             TimeSpan ts = new TimeSpan(0);
             double ms = ts.TotalMilliseconds;
             ms = ms / 1000;
             Log.write(String.Format("balllll PICKUP bID {0} test {1} unk1 {2} unk2 {3} unk3 {4} unk4 {5} tickcount {6} current tick {7} converted {8}", ballID, test, unk1, unk2, unk3, unk4, tickcount, Environment.TickCount, ms));
             Log.write(String.Format("playerID {0} ntest {1}", playerID, ntest));
             Log.write(DataDump);
+             */
         }
 
         /// <summary>
@@ -106,7 +108,6 @@ namespace InfServer.Protocol
         {
             get
             {
-
                 return String.Format("Ball Pickup, Ball ID: {0}", ballID);
             }
         }

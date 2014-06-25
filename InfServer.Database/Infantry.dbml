@@ -152,8 +152,8 @@
       <Column Name="wins" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="losses" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="rating" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="season" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="squad" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="season" Type="System.Int32" DbType="Int" CanBeNull="false" />
+      <Column Name="squad" Type="System.Int64" DbType="BigInt" CanBeNull="false" />
       <Association Name="squad_squadstats" Member="squad1" ThisKey="squad" OtherKey="id" Type="squad" IsForeignKey="true" />
     </Type>
   </Table>

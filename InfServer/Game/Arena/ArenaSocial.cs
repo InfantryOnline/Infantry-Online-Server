@@ -131,12 +131,24 @@ namespace InfServer.Game
                 if (command == "" && payload.Length > 1 && from.PermissionLevelLocal > Data.PlayerPermission.Normal)
                 {
                     //Mod chat
-                    foreach (Player p in Players)
-                        if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
-                        {
-                            p.sendMessage(0, String.Format("*[ModChat] [{0}]> {1}",
-                                from._alias, payload));
-                        }
+                    if (_server.IsStandalone)
+                    {
+                        foreach (Player p in Players)
+                            if (p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                            {
+                                p.sendMessage(0, String.Format("@[ModChat] [{0}]> {1}",
+                                    from._alias, payload));
+                            }
+                    }
+                    else
+                    {
+                        CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+                        pkt.queryType = CS_Query<Data.Database>.QueryType.modChat;
+                        pkt.sender = from._alias;
+                        pkt.payload = String.Format("@[ModChat] [{0}]> {1}", from._alias, payload);
+                        //Send it!
+                        _server._db.send(pkt);
+                    }
                 }
                 else
                     //Possibly a scripted mod command, lets pass it

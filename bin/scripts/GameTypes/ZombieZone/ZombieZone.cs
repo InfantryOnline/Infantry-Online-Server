@@ -381,7 +381,6 @@ namespace InfServer.Script.GameType_ZombieZone
  
         //Game state  
         private Dictionary<Team, TeamState> _states;                    //The state for each team in the game
-        private int _marineTeamCount;                                                   //The amount of marine teams participating
  
         private int _lastHumanZombieCheck;      //the tick at which we last checked for zombies on human teams
  
@@ -1508,7 +1507,7 @@ namespace InfServer.Script.GameType_ZombieZone
                 {
                     newVeh = ZombieZoneStats.getPlayableZombie(player);
                 }
-                catch (System.NullReferenceException e)
+                catch (System.NullReferenceException)
                 {
                     Log.write(TLog.Error, "Null error happening when getting zombie value");
                     Log.write(TLog.Error, "Player in question was " + player._alias + ".  His vehicle is " + player._baseVehicle._type.Id);
@@ -1518,7 +1517,7 @@ namespace InfServer.Script.GameType_ZombieZone
                 {
                     player.setDefaultVehicle(newVeh);
                 }
-                catch (System.NullReferenceException e)
+                catch (System.NullReferenceException)
                 {
                     Log.write(TLog.Error, "Null error happening while setting player's vehicle to " + newVeh.Id);
                     Log.write(TLog.Error, "Player in question was " + player._alias + ".  His vehicle is " + player._baseVehicle._type.Id);
@@ -1529,7 +1528,7 @@ namespace InfServer.Script.GameType_ZombieZone
                     if (AssetManager.Manager.getVehicleByID(610) == newVeh) //if ammo-eater, give him some ammo
                         player.inventorySet(AssetManager.Manager.getItemByName("Ammo"), c_ammoEaterDefaultPrize);
                 }
-                catch (System.NullReferenceException e)
+                catch (System.NullReferenceException)
                 {
                     Log.write(TLog.Error, "Null error happened while prizing for ammo eater.");
                     Log.write(TLog.Error, "Player in question was " + player._alias + ".  His vehicle is " + player._baseVehicle._type.Id);

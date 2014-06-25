@@ -24,7 +24,6 @@ namespace InfServer.Script.GameType_USL_TDM
 		private Arena _arena;					//Pointer to our arena class
 		private CfgInfo _config;				//The zone config
 
-		private Team _victoryTeam;				//The team currently winning!
         private int _tickGameLastTickerUpdate;	
 		private int _lastGameCheck;				//The tick at which we last checked for game viability
 		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
@@ -183,10 +182,8 @@ namespace InfServer.Script.GameType_USL_TDM
 
             _arena.sendArenaMessage("Game Over");
 
-
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
-			_victoryTeam = null;
 
 			return true;
 		}
@@ -332,8 +329,6 @@ namespace InfServer.Script.GameType_USL_TDM
 		{	//Game reset, perhaps start a new one
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
-
-			_victoryTeam = null;
 
 			return true;
 		}

@@ -21,7 +21,6 @@ namespace InfServer.Script.GameType_ZombieZone
     public class KingZombieBot : ZombieBot
     {	// Member variables
         ///////////////////////////////////////////////////
-        private WeaponController _weaponClose;
         private WeaponController[] weapons;
         public float[] ranges;
 

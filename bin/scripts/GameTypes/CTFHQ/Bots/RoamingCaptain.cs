@@ -63,8 +63,6 @@ namespace InfServer.Script.GameType_CTFHQ
         /// </summary>
         public override bool poll()
         {
-            short x = 0, y = 0;
-
             //Dead? Do nothing
             if (IsDead)
             {//Dead

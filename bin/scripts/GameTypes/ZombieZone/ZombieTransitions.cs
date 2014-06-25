@@ -110,10 +110,6 @@ namespace InfServer.Script.GameType_ZombieZone
         ///////////////////////////////////////////////////
         private List<ZombieTransition> transitions;
 
-        private int transIdx;
-        private int tickStartPause;
-        private int tickNextTransition;
-
         public int currentLevel;
 
         public const int defaultSpawnRate = 800;
@@ -430,7 +426,6 @@ namespace InfServer.Script.GameType_ZombieZone
         /// </summary>
         public ZombieTransitions(Spawner s)
         {	//Start with no transition!
-            transIdx = -1;
             transitions = new List<ZombieTransition>();
 
             defaultSpawner = s;

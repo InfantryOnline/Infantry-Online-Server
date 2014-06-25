@@ -148,7 +148,13 @@ namespace InfServer.Bots
 		/// Queues a pathfinding operation
 		/// </summary>
 		public void queueRequest(short startX, short startY, short endX, short endY, Action<List<Vector3>, int> callback)
-		{	
+		{
+            if (pathingQueue.Count > 25)
+            {
+                //stuff
+                Console.WriteLine("!!!! " + pathingQueue.Count);
+                return;
+            }
 			PathfindReq req = new PathfindReq();
 
 			req.startX = startX;

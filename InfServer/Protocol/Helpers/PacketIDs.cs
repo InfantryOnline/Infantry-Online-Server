@@ -130,12 +130,14 @@ namespace InfServer.Protocol
 				SetBounty = 0x2E,
 				ConfirmFileSend = 0x2F,
 				DisplayChart = 0x30,
-				BannerTransfer = 0x31, /*This is NOT banner transfer, This is a packet to check if player is in the zone or not*/
+				IsZoneConnected = 0x31, /*This is a packet to check if player is in the zone or not*/
 				BannerInfo = 0x32,
 				ItemReload = 0x33,
 				PlayerSpectate = 0x35,
 				FileSend = 0x36,
 				ZoneList = 0x37,
+                /*0x38 type id packet returns a 0x44 packet*/
+                TestPacket = 0x38, /*Switch this around to whatever number you want to test*/
 			}
 		}
 	}

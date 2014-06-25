@@ -25,9 +25,9 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
             
-            if (payload == "" && recipient == null)
+            if (String.IsNullOrEmpty(payload) && recipient == null)
             {
-                player.sendMessage(-1, "Recipient/payload can not be empty. (*whois alias or *whois ipaddress or ::*whois)");
+                player.sendMessage(-1, "Recipient/payload can not be empty. (*whois alias or *whois ipaddress(with or without wildcard *) or ::*whois)");
                 return;
             }
 
@@ -41,10 +41,17 @@ namespace InfServer.Game.Commands.Mod
             if (recipient != null)
                 query.payload = recipient._alias;
             else if (payload.Length > 0)
+            {
+                if (payload == "*" || payload.StartsWith("*"))
+                {
+                    player.sendMessage(-1, "Error: wildcard cannot be the first argument.");
+                    return;
+                }
                 query.payload = payload;
+            }
             else
             {
-                player.sendMessage(-1, "Syntax: *whois alias or *whois ipaddress or ::*whois");
+                player.sendMessage(-1, "Syntax: *whois alias(with or without wildcard *) or *whois ipaddress(with or without wildcard *) or ::*whois");
                 return;
             }
 
@@ -77,7 +84,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: either *transferalias aliasGoingTo:alias in question OR :playerGoingTo:*transferalias aliastotransfer");
                 return;
@@ -109,7 +116,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: :playerGoingTo:*transferalias aliasToTransfer");
                     return;
@@ -154,7 +161,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             string alias;
-            if (payload == "") //Assume this is a pm'd person
+            if (String.IsNullOrEmpty(payload)) //Assume this is a pm'd person
             {
                 if (recipient == null)
                 {
@@ -225,7 +232,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: :playerGoingTo:*renamealias newAlias");
                     return;
@@ -331,7 +338,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 //Get name and possible level
                 Int16 number;
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "*modadd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                     return;
@@ -481,7 +488,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 //Get name and possible level
                 Int16 number;
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "*modremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to a normal player");
                     return;
@@ -630,7 +637,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 //Get name and possible level
                 Int16 number;
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "*devadd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                     return;
@@ -778,7 +785,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 //Get name and possible level
                 Int16 number;
-                if (payload == "")
+                if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "*devremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to a normal player");
                     return;
@@ -882,7 +889,7 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.Sysop, false);
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",
-                "*whois [ipaddress/alias] or ::*whois",
+                "*whois [ipaddress/alias](wildcard *) or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
                 InfServer.Data.PlayerPermission.Sysop, false);
         }
     }

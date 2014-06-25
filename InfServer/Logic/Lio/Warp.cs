@@ -32,28 +32,36 @@ namespace InfServer.Logic
 
 			foreach (LioInfo.WarpField warp in warpGroup)
 			{	//Do we have the appropriate skills?
-				if (!Logic_Assets.SkillCheck(player, warp.WarpFieldData.SkillLogic))
-					continue;
-
+                if (!Logic_Assets.SkillCheck(player, warp.WarpFieldData.SkillLogic))
+                {
+                    continue;
+                }
 				//Test for viability
 				int playerCount = player._arena.PlayerCount;
 
-				if (warp.WarpFieldData.MinPlayerCount > playerCount)
-					continue;
-				if (warp.WarpFieldData.MaxPlayerCount < playerCount)
-					continue;
+                if (warp.WarpFieldData.MinPlayerCount > playerCount)
+                {
+                    continue;
+                }
+                if (warp.WarpFieldData.MaxPlayerCount < playerCount)
+                {
+                    continue;
+                }
 
                 //Specific team warp but we're on the wrong team
-                if (warp.WarpFieldData.WarpMode == LioInfo.WarpField.WarpMode.SpecificTeam && 
+                if (warp.WarpFieldData.WarpMode == LioInfo.WarpField.WarpMode.SpecificTeam &&
                     player._team._id != warp.WarpFieldData.WarpModeParameter)
+                {
                     continue;
-
+                }
                 List<Arena.RelativeObj> spawnPoints;
                 if (warp.GeneralData.RelativeId != 0)
                 {   //Search for possible points to warp from
                     spawnPoints = player._arena.findRelativeID(warp.GeneralData.HuntFrequency, warp.GeneralData.RelativeId, player);
                     if (spawnPoints == null)
+                    {
                         continue;
+                    }
                 }
                 else
                 {   //Fake it to make it
@@ -61,7 +69,6 @@ namespace InfServer.Logic
                         new Arena.RelativeObj(warp.GeneralData.OffsetX, warp.GeneralData.OffsetY, 0)
                     };
                 }
-
                 foreach (Arena.RelativeObj point in spawnPoints)
                 {   //Check player concentration
                     playerCount = player._arena.getPlayersInBox(
@@ -69,10 +76,13 @@ namespace InfServer.Logic
                         warp.GeneralData.Width, warp.GeneralData.Height).Count;
 
                     if (warp.WarpFieldData.MinPlayersInArea > playerCount)
+                    {
                         continue;
+                    }
                     if (warp.WarpFieldData.MaxPlayersInArea < playerCount)
+                    {
                         continue;
-
+                    }
                     point.warp = warp;
 
                     if (warp.WarpFieldData.WarpMode == LioInfo.WarpField.WarpMode.Unassigned)
@@ -80,7 +90,6 @@ namespace InfServer.Logic
                         unassignedEscape = point;
                         break;
                     }
-
                     valid.Add(point);
                 }
 			}

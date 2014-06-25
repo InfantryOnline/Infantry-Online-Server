@@ -90,9 +90,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Infantry.cs">
-      <DependentUpon>Infantry.dbml</DependentUpon>
-    </Compile>
     <Compile Include="Infantry1.designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

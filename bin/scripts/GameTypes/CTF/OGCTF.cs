@@ -26,11 +26,6 @@ namespace InfServer.Script.GameType_OGCTF
 
 		private int _jackpot;					//The game's jackpot so far
 
-		private Team _victoryTeam;				//The team currently winning!
-		private int _tickVictoryStart;			//The tick at which the victory countdown began
-		private int _tickNextVictoryNotice;		//The tick at which we will next indicate imminent victory
-		private int _victoryNotice;				//The number of victory notices we've done
-
 		private int _lastGameCheck;				//The tick at which we last checked for game viability
 		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
 		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
@@ -223,9 +218,6 @@ namespace InfServer.Script.GameType_OGCTF
 		{	//Game finished, perhaps start a new one
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
-			_tickVictoryStart = 0;
-			_tickNextVictoryNotice = 0;
-			_victoryTeam = null;
 
 			return true;
 		}
@@ -250,10 +242,6 @@ namespace InfServer.Script.GameType_OGCTF
 		{	//Game reset, perhaps start a new one
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
-			_tickVictoryStart = 0;
-			_tickNextVictoryNotice = 0;
-
-			_victoryTeam = null;
 
 			return true;
 		}

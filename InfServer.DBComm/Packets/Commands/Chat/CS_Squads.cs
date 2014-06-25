@@ -29,6 +29,7 @@ namespace InfServer.Protocol
             kick,
             transfer,
             leave,
+            dissolve,
             online,
             list,
             invitessquad,

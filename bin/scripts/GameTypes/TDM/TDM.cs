@@ -38,8 +38,6 @@ namespace InfServer.Script.GameType_TDM
         private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
         private int _tickGameStart;			    //The tick at which the game started (0 == stopped)
 
-        private bool _callReset;                //To stop item drops from being constantly reset with no min players
-
         //Settings
         private int _minPlayers;				//The minimum amount of players
         private bool _gameWon = false;
@@ -254,7 +252,6 @@ namespace InfServer.Script.GameType_TDM
             //We've started!
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
-            _callReset = false;
             _gameWon = false;
             _victoryTeam = null;
 
@@ -480,7 +477,6 @@ namespace InfServer.Script.GameType_TDM
             _tickNextVictoryNotice = 0;
 
             _victoryTeam = null;
-            _callReset = true;
             _gameWon = false;
 
             return true;

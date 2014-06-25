@@ -1079,6 +1079,26 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
+        #region squaddissolve
+        /// <summary>
+        /// Dissolves the squad and anyone in it
+        /// </summary>
+        public static void squaddissolve(Player player, Player recipient, string payload, int bong)
+        {   //Sanity check
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
+
+            CS_Squads<Data.Database> squadQuery = new CS_Squads<Data.Database>();
+            squadQuery.queryType = CS_Squads<Data.Database>.QueryType.dissolve;
+            squadQuery.alias = player._alias;
+            squadQuery.payload = payload;
+            player._server._db.send(squadQuery);
+        }
+        #endregion
+
         #region squadiresponse
         /// <summary>
         /// Accepts or rejects a squad invitation

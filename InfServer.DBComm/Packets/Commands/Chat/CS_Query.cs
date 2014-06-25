@@ -36,6 +36,7 @@ namespace InfServer.Protocol
             squadstats,
             helpcall,
             alert,
+            modChat,
         }
 
 

@@ -64,6 +64,7 @@ namespace InfServer.Protocol
 			Unk2 = _contentReader.ReadUInt16();
 			Unk3 = _contentReader.ReadUInt16();
 			ArenaName = ReadString(16);
+            Log.write(TLog.Normal, "AssetsCheck {0}, EXECheck {1}, Unk2 {2}, Unk3 {3}", AssetChecksum, EXEChecksum, Unk2, Unk3);
 		}
 
         public override void Serialize()
