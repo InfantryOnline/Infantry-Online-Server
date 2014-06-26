@@ -128,13 +128,14 @@ namespace InfServer.Game
 
             if (!_commandRegistrar._modCommands.TryGetValue(command.ToLower(), out handler))
             {
-                if (command == "" && payload.Length > 1 && from.PermissionLevelLocal > Data.PlayerPermission.Normal)
+                if (String.IsNullOrEmpty(command) && !String.IsNullOrWhiteSpace(payload) 
+                    && from.PermissionLevelLocal > Data.PlayerPermission.Normal)
                 {
                     //Mod chat
                     if (_server.IsStandalone)
                     {
                         foreach (Player p in Players)
-                            if (p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                            if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
                             {
                                 p.sendMessage(0, String.Format("@[ModChat] [{0}]> {1}",
                                     from._alias, payload));
@@ -142,6 +143,14 @@ namespace InfServer.Game
                     }
                     else
                     {
+                        //For arena owners only
+                        foreach(Player p in Players)
+                            if (p != from && p._permissionTemp >= Data.PlayerPermission.ArenaMod)
+                            {
+                                p.sendMessage(0, String.Format("@[ModChat] [{0}]> {1}", from._alias, payload));
+                            }
+
+                        //For all other mods
                         CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
                         pkt.queryType = CS_Query<Data.Database>.QueryType.modChat;
                         pkt.sender = from._alias;

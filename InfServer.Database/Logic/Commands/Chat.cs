@@ -265,7 +265,10 @@ namespace InfServer.Logic
                             //Find all commands!
                             Data.DB.history last;
                             if (pkt.payload.Contains(':'))
-                                last = (db.histories.OrderByDescending(n => n.sender == name[0].Trim()).ToList()).First();
+                                last = (from hist in db.histories
+                                        where hist.sender.ToLower().Equals(name[0].ToLower())
+                                        orderby hist.id descending
+                                        select hist).ToList().First();
                             else
                                 last = (db.histories.OrderByDescending(a => a.id).ToList()).First();
 
@@ -337,7 +340,7 @@ namespace InfServer.Logic
                                             created = b.created;
                                             reason = b.reason;
                                             found = true;
-                                            zone._server.sendMessage(zone, pkt.sender, String.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.name.ToString(), type, Convert.ToString(created), Convert.ToString(expires), reason));
+                                            zone._server.sendMessage(zone, pkt.sender, String.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.name, type, Convert.ToString(created), Convert.ToString(expires), reason));
                                         }
                                     }
                                 }
@@ -382,7 +385,7 @@ namespace InfServer.Logic
                             foreach (Zone z in zone._server._zones)
                                 foreach (KeyValuePair<int, Zone.Player> player in z._players)
                                 {
-                                    pAlias = player.Value.alias.ToString();
+                                    pAlias = player.Value.alias;
                                     Data.DB.alias check = db.alias.SingleOrDefault(a => a.name.Equals(pAlias));
                                     if ((check != null) && check.account1.permission > 0 && player.Value.alias.Equals(check.name))
                                         z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
@@ -399,12 +402,17 @@ namespace InfServer.Logic
 
                             string pAlias;
                             foreach(Zone z in zone._server._zones)
-                                foreach (KeyValuePair<int, Zone.Player> player in z._players)
+                                foreach (KeyValuePair<int, Zone.Player> Player in z._players)
                                 {
-                                    pAlias = player.Value.alias;
-                                    var check = db.alias.SingleOrDefault(a => a.name.Equals(pAlias));
-                                    if ((check != null) && check.account1.permission > 0)
-                                        z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
+                                    pAlias = Player.Value.alias;
+                                    var player = db.players.SingleOrDefault(p => p.alias1.name.Equals(pAlias));
+                                    if (player == null)
+                                        continue;
+                                    if (player.alias1.name == pAlias)
+                                        continue;
+                                    if ((player.alias1.account1.permission > 0) 
+                                        || (player.zone == z._zone.id && player.permission > 0))
+                                        z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
                                 }
                         }
                         break;

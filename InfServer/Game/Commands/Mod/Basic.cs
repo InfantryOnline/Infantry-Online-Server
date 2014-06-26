@@ -142,7 +142,7 @@ namespace InfServer.Game.Commands.Mod
             if (String.IsNullOrEmpty(payload))
                 player.sendMessage(-1, "Message can not be empty.");
             else
-                player._arena.sendArenaMessage(payload, bong);
+                player._arena.sendArenaMessage(String.Format("[Arena] {0} - {1}", payload, player._alias, bong));
         }
 
         /// <summary>
@@ -276,7 +276,7 @@ namespace InfServer.Game.Commands.Mod
             CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
             pkt.queryType = CS_Query<Data.Database>.QueryType.global;
             pkt.sender = player._alias;
-            pkt.payload = payload;
+            pkt.payload = String.Format("[Global] {0} - {1}", payload, player._alias);
 
             player._server._db.send(pkt);
         }

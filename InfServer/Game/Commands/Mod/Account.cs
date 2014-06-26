@@ -105,9 +105,10 @@ namespace InfServer.Game.Commands.Mod
 
                 param = payload.Split(':');
                 aliasTo = param[0];
-                if ((recipient = player._arena.getPlayerByName(param[1])) != null)
+                if ((recipient = player._arena.getPlayerByName(param[1])) != null
+                    || (recipient = player._server.getPlayer(param[1])) != null)
                 {
-                    alias = recipient._alias.ToString();
+                    alias = recipient._alias;
                     //Since they are here, lets dc them to complete the transfer
                     recipient.sendMessage(-1, "You are being forced to dc to complete the alias transfer.");
                 }
@@ -124,14 +125,15 @@ namespace InfServer.Game.Commands.Mod
 
                 Player online;
                 //Our transfer alias is playing, force a dc
-                if ((online = player._arena.getPlayerByName(payload)) != null)
+                if ((online = player._arena.getPlayerByName(payload)) != null
+                    || (online = player._server.getPlayer(payload)) != null)
                 {
-                    alias = online._alias.ToString();
+                    alias = online._alias;
                     online.sendMessage(-1, "You are being forced a dc to transfer the alias.");
                 }
                 else
                     alias = payload;
-                aliasTo = recipient._alias.ToString();
+                aliasTo = recipient._alias;
             }
 
             //For some reason the player never see's the message
@@ -141,7 +143,7 @@ namespace InfServer.Game.Commands.Mod
 
             CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
             query.aliasType = CS_Alias<Data.Database>.AliasType.transfer;
-            query.sender = player._alias.ToString();
+            query.sender = player._alias;
             query.aliasTo = aliasTo;
             query.alias = alias;
             //Send it!
@@ -168,15 +170,16 @@ namespace InfServer.Game.Commands.Mod
                     player.sendMessage(-1, "Correct usage: :player:*removealias or *removealias alias");
                     return;
                 }
-                alias = recipient._alias.ToString();
+                alias = recipient._alias;
                 recipient.sendMessage(-1, "Your alias is being deleted, you will be forced a dc.");
             }
             else
             {
                 alias = payload;
-                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                if ((recipient = player._arena.getPlayerByName(payload)) != null
+                    || (recipient = player._server.getPlayer(payload)) != null)
                 {
-                    alias = recipient._alias.ToString();
+                    alias = recipient._alias;
                     recipient.sendMessage(-1, "Your alias is being deleted, you will be forced a dc.");
                 }
             }
@@ -189,7 +192,7 @@ namespace InfServer.Game.Commands.Mod
             //Send it to the db
             CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
             query.aliasType = CS_Alias<Data.Database>.AliasType.remove;
-            query.sender = player._alias.ToString();
+            query.sender = player._alias;
             query.alias = alias;
             //Send it!
             player._server._db.send(query);
@@ -223,7 +226,8 @@ namespace InfServer.Game.Commands.Mod
                 aliasTo = param[0];
                 alias = param[1];
 
-                if ((recipient = player._arena.getPlayerByName(param[0])) != null)
+                if ((recipient = player._arena.getPlayerByName(param[0])) != null
+                    || (recipient = player._server.getPlayer(param[0])) != null)
                 {
                     aliasTo = recipient._alias;
                     //Since they are here, lets dc them to complete the transfer
@@ -327,8 +331,8 @@ namespace InfServer.Game.Commands.Mod
                 //Send it to the db
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
-                query.sender = player._alias.ToString();
-                query.alias = recipient._alias.ToString();
+                query.sender = player._alias;
+                query.alias = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -399,7 +403,7 @@ namespace InfServer.Game.Commands.Mod
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
-                query.sender = player._alias.ToString();
+                query.sender = player._alias;
                 query.alias = payload;
                 query.level = level;
                 //Send it!
@@ -477,8 +481,8 @@ namespace InfServer.Game.Commands.Mod
                 //Send it to the db
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
-                query.sender = player._alias.ToString();
-                query.alias = recipient._alias.ToString();
+                query.sender = player._alias;
+                query.alias = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -548,7 +552,7 @@ namespace InfServer.Game.Commands.Mod
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
-                query.sender = player._alias.ToString();
+                query.sender = player._alias;
                 query.alias = payload;
                 query.level = level;
                 //Send it!
@@ -581,12 +585,14 @@ namespace InfServer.Game.Commands.Mod
                     catch
                     {
                         player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-6");
+                        player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
 
                     if (level < 1 || level > 6)
                     {
                         player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-6");
+                        player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
 
@@ -626,8 +632,8 @@ namespace InfServer.Game.Commands.Mod
                 //Send it to the db
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
-                query.sender = player._alias.ToString();
-                query.alias = recipient._alias.ToString();
+                query.sender = player._alias;
+                query.alias = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -640,6 +646,7 @@ namespace InfServer.Game.Commands.Mod
                 if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "*devadd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
+                    player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                     return;
                 }
 
@@ -661,6 +668,7 @@ namespace InfServer.Game.Commands.Mod
                     if (level < 1 || level > 6)
                     {
                         player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-6");
+                        player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
                     payload = param[0];
@@ -696,7 +704,7 @@ namespace InfServer.Game.Commands.Mod
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
-                query.sender = player._alias.ToString();
+                query.sender = player._alias;
                 query.alias = payload;
                 query.level = level;
                 //Send it!
@@ -729,12 +737,14 @@ namespace InfServer.Game.Commands.Mod
                     catch
                     {
                         player.sendMessage(-1, "*devremove alias:level(optional) OR :alias:*devremove level(optional) possible levels are 0-5");
+                        player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
                         return;
                     }
 
                     if (level < 0 || level > 5)
                     {
                         player.sendMessage(-1, "*devremove alias:level(optional) OR :alias:*devremove level(optional) possible levels are 0-5");
+                        player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
                         return;
                     }
 
@@ -774,8 +784,8 @@ namespace InfServer.Game.Commands.Mod
                 //Send it to the db
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
-                query.sender = player._alias.ToString();
-                query.alias = recipient._alias.ToString();
+                query.sender = player._alias;
+                query.alias = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -788,6 +798,7 @@ namespace InfServer.Game.Commands.Mod
                 if (String.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "*devremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to a normal player");
+                    player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
                     return;
                 }
 
@@ -809,6 +820,7 @@ namespace InfServer.Game.Commands.Mod
                     if (level < 0 || level > 5)
                     {
                         player.sendMessage(-1, "*devremove alias:level(optional) OR :alias:*devremove level(optional) possible levels are 0-5");
+                        player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
                         return;
                     }
                     payload = param[0];
@@ -844,7 +856,7 @@ namespace InfServer.Game.Commands.Mod
                 //Lets send it off
                 CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
                 query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
-                query.sender = player._alias.ToString();
+                query.sender = player._alias;
                 query.alias = payload;
                 query.level = level;
                 //Send it!
@@ -869,15 +881,15 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.Sysop, false);
             yield return new HandlerDescriptor(devadd, "devadd",
                 "Gives dev powers to a player, default level is arena mod",
-                "*devadd alias:level(optional) or ::*devadd level(optional)",
+                "*devadd alias:level(optional) or ::*devadd level(optional) - Note: devadd them in the zone you want",
                 InfServer.Data.PlayerPermission.Sysop, false);
             yield return new HandlerDescriptor(devremove, "devremove",
                 "Takes dev powers away, default level is player level",
-                "*devremove alias:level(optional) or ::*devremove level(optional)",
+                "*devremove alias:level(optional) or ::*devremove level(optional) - Note: devremove them in the zone you want",
                 InfServer.Data.PlayerPermission.Sysop, false);
             yield return new HandlerDescriptor(renamealias, "renamealias",
                 "Rename's the current players alias",
-                "::*renameealias newAlias OR *renamealias alias:newAlias - to rename one on the account",
+                "::*renamealias newAlias OR *renamealias alias:newAlias - to rename one on the account",
                 InfServer.Data.PlayerPermission.SMod, false);
             yield return new HandlerDescriptor(removealias, "removealias",
                 "Deletes the current players alias",

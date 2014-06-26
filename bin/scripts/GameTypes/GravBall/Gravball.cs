@@ -726,10 +726,7 @@ namespace InfServer.Script.GameType_Gravball
                     {
                         //Double check to see if someone used *getball
                         if (!ball.deadBall)
-                        {
-                            ball.deadBall = false;
                             return;
-                        }
 
                         //Respawn it
                         Ball.Spawn_Ball(ball._owner != null ? ball._owner : ball._lastOwner, ball);

@@ -401,7 +401,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 p.setVar("Hits", x);
                 if (!p.IsSpectator)
                     Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.joinTeam);
-                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
+                string update = String.Format("&{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
                 p._arena.setTicker(5, 1, 0, update); // Puts the score top right!
             }
 
@@ -467,7 +467,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 int x = 0;
                 p.setVar("Hits", x);
                 p._gotBallID = 999;
-                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
+                string update = String.Format("&{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
                 p._arena.setTicker(5, 1, 0, update); // Puts the score top right!
             }
 
@@ -690,7 +690,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
         {
             _arena.setTicker(5, 1, 0, delegate(Player P)
             {
-                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
+                string update = String.Format("&{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
 
                 if (P != null)
                     return update;
@@ -731,10 +731,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     {
                         //Double check to see if someone used *getball
                         if (!ball.deadBall)
-                        {
-                            ball.deadBall = false;
                             return;
-                        }
 
                         //Respawn it
                         Ball.Spawn_Ball(ball._owner != null ? ball._owner : ball._lastOwner, ball);

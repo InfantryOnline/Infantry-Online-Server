@@ -165,12 +165,14 @@ namespace InfServer.Logic
                             //Get all account related info
                             Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => aTo.name.Equals(pkt.aliasTo));
                             Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
+                            //Player even alive?
                             if (paliasTo == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
                                 return;
                             }
 
+                            //Does the payload already exist?
                             if (alias == null)
                             {
                                 paliasTo.name = pkt.alias;
@@ -245,6 +247,8 @@ namespace InfServer.Logic
 
                             //Lets mod/de-mod them
                             player.permission = (short)pkt.level;
+                            //Update our zone id just in case db was modified manually
+                            player.zone = zone._zone.id;
                             db.SubmitChanges();
                             zone._server.sendMessage(zone, pkt.sender, "Changing player " + player.alias1.name + "'s dev level to " + pkt.level + " has been completed.");
                         }

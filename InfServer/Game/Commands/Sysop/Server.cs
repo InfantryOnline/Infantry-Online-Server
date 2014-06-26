@@ -76,7 +76,7 @@ namespace InfServer.Game.Commands.Mod
 		{	//Send him an environment packet!
 			SC_Environment env = new SC_Environment();
             bool limit;
-            if (payload == "")
+            if (String.IsNullOrEmpty(payload))
                 limit = false;
             else
                 limit = true;
@@ -97,7 +97,7 @@ namespace InfServer.Game.Commands.Mod
                 foreach (Player p in player._arena.Players)
                 {
                     SC_SecurityCheck cs = new SC_SecurityCheck();
-                    cs.key = 54321; //Key we are using
+                    cs.key = 9815; //Key we are using
                     cs.unknown = 0; // Unknown, send as 0   
                     p.setVar("secReq", player); //Pass the person we need to PM the info
                     p._client.send(cs); //Send it
@@ -106,7 +106,7 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 SC_SecurityCheck cs = new SC_SecurityCheck();
-                cs.key = 54321; //Key we are using
+                cs.key = 9815; //Key we are using
                 cs.unknown = 0; // Unknown, send as 0
                 recipient.setVar("secReq", player); //Pass the person we need to PM the info
                 recipient._client.send(cs); //Send it
@@ -118,12 +118,33 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
-            //bannertime
+            //recipient._client.destroy();
+            /*
+            Disconnect discon = new Disconnect();
+
+            discon.connectionID = recipient._client._connectionID;
+            discon.reason = Disconnect.DisconnectReason.DisconnectReasonOtherSideTerminated;
+
+            recipient._client.send(discon);
+            Console.WriteLine("Disconnect packet sent to {0}", recipient);
+            */
+            /*
+            SC_TestPacket test = new SC_TestPacket();
+            test.player = player;
+            test.ball = player._arena._balls.SingleOrDefault(b => b._id == ((ushort)1));
+            player._client.sendReliable(test);
+             */
+
+                SC_TestPacket test = new SC_TestPacket();
+                //test.playerID = (short)player._id;
+                test.ball = player._arena._balls.SingleOrDefault(b => b._id == (ushort)1);
+                player.sendMessage(0, test.ball._id.ToString());
+                player._client.sendReliable(test);
 		}
 
-		/// <summary>
-		/// Displays a gif
-		/// </summary>
+        /// <summary>
+        /// Displays a gif
+        /// </summary>
         static public void showGif(Player player, Player recipient, string payload, int bong)
 		{	//Download the gif!
 		/*	
@@ -141,7 +162,7 @@ namespace InfServer.Game.Commands.Mod
 		}
 
         /// <summary>
-        /// Returns a list of mod commands used in every server
+        /// Returns a list of mod commands used in every zone
         /// </summary>
         static public void history(Player player, Player recipient, string payload, int bong)
         {
@@ -181,7 +202,7 @@ namespace InfServer.Game.Commands.Mod
             pkt.sender = player._alias;
             pkt.queryType = CS_Query<Data.Database>.QueryType.history;
             if (!String.IsNullOrEmpty(name))
-                pkt.payload = payload;
+                pkt.payload = String.Join(":", payload, page.ToString());
             else
                 pkt.payload = page.ToString();
             player._server._db.send(pkt);
