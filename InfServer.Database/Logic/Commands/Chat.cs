@@ -405,14 +405,18 @@ namespace InfServer.Logic
                                 foreach (KeyValuePair<int, Zone.Player> Player in z._players)
                                 {
                                     pAlias = Player.Value.alias;
-                                    var player = db.players.SingleOrDefault(p => p.alias1.name.Equals(pAlias));
-                                    if (player == null)
+                                    var alias = db.alias.SingleOrDefault(p => p.name.Equals(pAlias));
+                                    if (alias == null)
                                         continue;
-                                    if (player.alias1.name == pAlias)
+                                    if (alias.name == pkt.sender)
                                         continue;
-                                    if ((player.alias1.account1.permission > 0) 
-                                        || (player.zone == z._zone.id && player.permission > 0))
-                                        z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                                    var player = db.players.FirstOrDefault(plr => plr.alias1 == alias);
+                                    if (player != null)
+                                    {
+                                        if ((alias.account1.permission > 0)
+                                            || (player.zone == z._zone.id && player.permission > 0))
+                                            z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                                    }
                                 }
                         }
                         break;
