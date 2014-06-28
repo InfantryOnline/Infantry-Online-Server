@@ -647,7 +647,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
                 if (queue.Count > 0)
                 {
-                    foreach (KeyValuePair<Player, int> p in queue)
+                    foreach (KeyValuePair<Player, int> p in queue.ToList())
                     {
                         queue[p.Key] = queue[p.Key] - 1;
                         p.Key.sendMessage(0, String.Format("Queue position is now {0}", queue[p.Key]));
@@ -676,7 +676,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 //Remove
                 queue.Remove(queue.ElementAt(0).Key);
 
-                foreach (KeyValuePair<Player, int> player in queue)
+                foreach (KeyValuePair<Player, int> player in queue.ToList())
                 {
                     queue[player.Key] = queue[player.Key] - 1;
                     player.Key.sendMessage(0, String.Format("Queue position is now {0}", queue[player.Key]));

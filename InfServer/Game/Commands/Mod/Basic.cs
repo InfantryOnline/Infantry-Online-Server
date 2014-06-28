@@ -142,7 +142,19 @@ namespace InfServer.Game.Commands.Mod
             if (String.IsNullOrEmpty(payload))
                 player.sendMessage(-1, "Message can not be empty.");
             else
-                player._arena.sendArenaMessage(String.Format("[Arena] {0} - {1}", payload, player._alias, bong));
+            {
+                string format = String.Format("{0} - {1}", payload, player._alias);
+
+                //Snap color code before sending
+                Regex reg = new Regex(@"^(~|!|@|#|\$|%|\^|&|\*)", RegexOptions.IgnoreCase);
+                Match match = reg.Match(payload);
+                if (match.Success)
+                    format = String.Format("{0}[Arena] {1}", match.Groups[0].Value, format.Remove(0, 1));
+                else
+                    format = String.Format("[Arena] {0}", format);
+                //Send it
+                player._arena.sendArenaMessage(format, bong);
+            }
         }
 
         /// <summary>
@@ -273,10 +285,19 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
+            string format = String.Format("{0} - {1}", payload, player._alias);
+            //Snap the color code before sending
+            Regex reg = new Regex(@"^(~|!|@|#|\$|%|\^|&|\*)", RegexOptions.IgnoreCase);
+            Match match = reg.Match(payload);
+            if (match.Success)
+                format = String.Format("{0}[Global] {1}", match.Groups[0].Value, format.Remove(0, 1));
+            else
+                format = String.Format("[Global] {0}", format);
+
             CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
             pkt.queryType = CS_Query<Data.Database>.QueryType.global;
             pkt.sender = player._alias;
-            pkt.payload = String.Format("[Global] {0} - {1}", payload, player._alias);
+            pkt.payload = format;
 
             player._server._db.send(pkt);
         }

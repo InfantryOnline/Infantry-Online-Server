@@ -1256,18 +1256,7 @@ namespace InfServer.Game
                     {	//Update stats
                         from.Deaths++;
 
-                        //Is our creator stll around, and are we still on the same team?
-                        if (cvehicle._creator != null && cvehicle._creator._team == cvehicle._team)
-                        {
-                            cvehicle._creator.Kills++;
-                        }
-                        //Nope, give it directly to the team
-                        else if (cvehicle._team != null)
-                        {
-                            cvehicle._team._currentGameKills++;
-                        }
-
-                        //Route
+                        //Route and give rewards
                         Logic_Rewards.calculateTurretKillRewards(from, cvehicle, update);
                         Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
                     }

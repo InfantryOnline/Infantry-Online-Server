@@ -47,8 +47,8 @@ namespace InfServer.Logic
                 bw.Write(stat.vehicleKills);
                 bw.Write(stat.killPoints);
                 bw.Write(stat.deathPoints);
-                bw.Write((int)0);
-                //bw.Write(stat.assistPoints);
+                //bw.Write((int)0); //-Assist Points
+                bw.Write(stat.assistPoints);
                 bw.Write(stat.bonusPoints);
                 bw.Write(stat.kills);
                 bw.Write(stat.deaths);
@@ -744,6 +744,30 @@ namespace InfServer.Logic
 
                             zone._client.sendReliable(response, 1);
                         }
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.Score1:
+                        Log.write(TLog.Warning, "Score1");
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.Score2:
+                        Log.write(TLog.Warning, "Score2");
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.Score3:
+                        Log.write(TLog.Warning, "Score3");
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.Score4:
+                        Log.write(TLog.Warning, "Score4");
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.Score5:
+                        Log.write(TLog.Warning, "Score5");
+                        break;
+
+                    case CS_PlayerStatsRequest<Zone>.ChartType.Score6:
+                        Log.write(TLog.Warning, "Score6");
                         break;
 				}
 			}

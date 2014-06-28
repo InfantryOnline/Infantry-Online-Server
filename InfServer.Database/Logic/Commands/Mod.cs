@@ -81,13 +81,7 @@ namespace InfServer.Logic
                             //Note: the server will treat this as a new alias and create structures
                             db.stats.DeleteOnSubmit(playerA.stats1);
                             db.players.DeleteOnSubmit(playerA);
-                            /*
-                             Data.DB.player newP = new Data.DB.player();
-                             playerA = newP;
-                             //Lets clear all stats and create a new stat row
-                             Data.DB.stats newStat = new Data.DB.stats();
-                             playerA.stats1 = newStat;
-                             */
+
                             //Now lets transfer
                             alias.IPAddress = paliasTo.IPAddress.Trim();
                             alias.timeplayed = 0;
@@ -172,12 +166,14 @@ namespace InfServer.Logic
                                 return;
                             }
 
+                            string name = paliasTo.name;
+
                             //Does the payload already exist?
                             if (alias == null)
                             {
                                 paliasTo.name = pkt.alias;
                                 db.SubmitChanges();
-                                zone._server.sendMessage(zone, pkt.sender, "Renamed player " + paliasTo.name + " to " + pkt.alias + " has been completed.");
+                                zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.alias + " has been completed.");
                                 return;
                             }
 
@@ -195,7 +191,8 @@ namespace InfServer.Logic
 
                             paliasTo.name = pkt.alias;
                             db.SubmitChanges();
-                            zone._server.sendMessage(zone, pkt.sender, "Renamed player " + paliasTo.name + " to " + pkt.alias + " has been completed.");
+
+                            zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.alias + " has been completed.");
                         }
                         break;
 
@@ -238,7 +235,9 @@ namespace InfServer.Logic
                             }
 
                             //Lets get all account related info
-                            Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
+                            Data.DB.player player = (from plyr in db.players
+                                        where plyr.alias1.name == pkt.alias && plyr.zone1 == zone._zone
+                                        select plyr).FirstOrDefault();
                             if (player == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -247,8 +246,7 @@ namespace InfServer.Logic
 
                             //Lets mod/de-mod them
                             player.permission = (short)pkt.level;
-                            //Update our zone id just in case db was modified manually
-                            player.zone = zone._zone.id;
+
                             db.SubmitChanges();
                             zone._server.sendMessage(zone, pkt.sender, "Changing player " + player.alias1.name + "'s dev level to " + pkt.level + " has been completed.");
                         }

@@ -243,6 +243,30 @@ namespace InfServer.Logic
                     }
                     break;
 
+                case Helpers.ChartType.Score1:
+                    Log.write(TLog.Warning, "Score1");
+                    break;
+
+                case Helpers.ChartType.Score2:
+                    Log.write(TLog.Warning, "Score2");
+                    break;
+
+                case Helpers.ChartType.Score3:
+                    Log.write(TLog.Warning, "Score3");
+                    break;
+
+                case Helpers.ChartType.Score4:
+                    Log.write(TLog.Warning, "Score4");
+                    break;
+
+                case Helpers.ChartType.Score5:
+                    Log.write(TLog.Warning, "Score5");
+                    break;
+
+                case Helpers.ChartType.Score6:
+                    Log.write(TLog.Warning, "Score6");
+                    break;
+
 				default:
 					{
 						chart.type = Helpers.ChartType.ScoreCurrentGame;

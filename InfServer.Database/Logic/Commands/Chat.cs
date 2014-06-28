@@ -259,34 +259,42 @@ namespace InfServer.Logic
                             string[] name = pkt.payload.Split(':');
                             int page = (!pkt.payload.Contains(':') ? Convert.ToInt32(name[0].Trim()) : Convert.ToInt32(name[1]));
                             int resultsperpage = 30;
+                            bool contains = pkt.payload.Contains(':');
 
-                            zone._server.sendMessage(zone, pkt.sender, "!Command History (" + page + ")");
+                            zone._server.sendMessage(zone, pkt.sender, "Command History (" + page + ")");
 
                             //Find all commands!
-                            Data.DB.history last;
-                            if (pkt.payload.Contains(':'))
-                                last = (from hist in db.histories
-                                        where hist.sender.ToLower().Equals(name[0].ToLower())
-                                        orderby hist.id descending
-                                        select hist).ToList().First();
-                            else
-                                last = (db.histories.OrderByDescending(a => a.id).ToList()).First();
+                            Data.DB.history last = (db.histories.OrderByDescending(a => a.id)).First();
 
                             List<Data.DB.history> cmds;
+                            if (contains)
+                            {
+                                cmds = (from hist in db.histories
+                                        where hist.sender.ToLower() == name[0].ToLower()
+                                        orderby hist.id descending
+                                        select hist).ToList();
+                            }
+                            else
+                            {
+                                cmds = (from hist in db.histories 
+                                        orderby hist.id 
+                                        descending select hist).ToList();
+                            }
+
                             //If less then 30 results, just show what we have
                             if (last.id <= resultsperpage)
                                 cmds = db.histories.Where(c => c.id <= last.id).ToList();
                             else
-                                cmds = db.histories.Where(c =>
-                                    c.id >= (last.id - (resultsperpage * (page + 1))) &&
+                                cmds = db.histories.Where(c => c.id >= (last.id - (resultsperpage * (page + 1))) &&
                                     c.id < (last.id - (resultsperpage * page))).ToList();
 
                             //List them
                             foreach (Data.DB.history h in cmds)
+                            {
                                 zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
                                     Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.command));
-
-                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 1, *history 2, etc to navigate previous pages");
+                            }
+                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 1, *history 2, etc to navigate previous pages OR *history alias:1 *history alias:2");
                         }
                         break;
 
