@@ -42,10 +42,22 @@ namespace InfServer.Game.Commands.Mod
                 query.payload = recipient._alias;
             else if (payload.Length > 0)
             {
-                if (payload == "*" || payload.StartsWith("*"))
+                if (payload == "*")
                 {
-                    player.sendMessage(-1, "Error: wildcard cannot be the first argument.");
+                    player.sendMessage(-1, "Error: wildcard cannot be the only argument.");
                     return;
+                }
+
+                //Since db is reversed sides on wildcard lookups, lets snap it correctly for us
+                if (payload.StartsWith("*") && !payload.EndsWith("*"))
+                {
+                    payload = payload.TrimStart('*');
+                    payload += "*";
+                }
+                else if (payload.EndsWith("*") && !payload.StartsWith("*"))
+                {
+                    payload = payload.TrimEnd('*');
+                    payload = String.Format("*{0}", payload);
                 }
                 query.payload = payload;
             }
@@ -901,7 +913,7 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.Sysop, false);
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",
-                "*whois [ipaddress/alias](wildcard *) or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
+                "*whois [ipaddress/alias] or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
                 InfServer.Data.PlayerPermission.Sysop, false);
         }
     }

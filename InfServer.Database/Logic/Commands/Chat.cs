@@ -99,7 +99,7 @@ namespace InfServer.Logic
                             */
 
                             //Are we using wildcards?
-                            if (!pkt.payload.Contains('*') || pkt.payload.Length > pkt.payload.IndexOf('*'))
+                            if (!pkt.payload.Contains('*'))
                             {   //No we aren't, treat this as general matching
                                 //IP Lookup?
                                 if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ip))
@@ -139,8 +139,13 @@ namespace InfServer.Logic
                                         validated = false;
 
                                 if (!validated)
+                                {
                                     //Failed, must be an alias
-                                    aliases = db.alias.Where(w => w.name.Contains(pkt.payload.TrimEnd('*')));
+                                    string trimmed = pkt.payload.Replace('*', '%');
+                                    aliases = from w in db.alias
+                                              where System.Data.Linq.SqlClient.SqlMethods.Like(w.name, trimmed)
+                                              select w;
+                                }
                                 else
                                 {   //Validated IP
                                     //Ranged ip parser method, looks for wildcard as a string stopping point
@@ -152,8 +157,13 @@ namespace InfServer.Logic
                                 }
                             }
                             else
+                            {
                                 //Alias Wildcard Lookup
-                                aliases = db.alias.Where(w => w.name.Contains(pkt.payload.TrimEnd('*')));
+                                string trimmed = pkt.payload.Replace('*', '%');
+                                aliases = from w in db.alias 
+                                          where System.Data.Linq.SqlClient.SqlMethods.Like(w.name, trimmed)
+                                          select w;
+                            }
 
                             if (aliases.Count() > 0)
                             {
@@ -255,7 +265,6 @@ namespace InfServer.Logic
 
                     case CS_Query<Zone>.QueryType.history:
                         {
-                            //TODO: rework this to make it accurate for sender lookups
                             string[] name = pkt.payload.Split(':');
                             int page = (!pkt.payload.Contains(':') ? Convert.ToInt32(name[0].Trim()) : Convert.ToInt32(name[1]));
                             int resultsperpage = 30;
@@ -367,7 +376,7 @@ namespace InfServer.Logic
                             zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + pageNum + ")");
 
                             //Find all commands!
-                            Data.DB.helpcall end = (db.helpcalls.OrderByDescending(a => a.id).ToList()).First();
+                            Data.DB.helpcall end = db.helpcalls.OrderByDescending(a => a.id).First();
                             List<Data.DB.helpcall> helps;
 
                             //Check the results first
@@ -380,8 +389,10 @@ namespace InfServer.Logic
 
                             //List them
                             foreach (Data.DB.helpcall h in helps)
+                            {
                                 zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> {4}",
                                     Convert.ToString(h.date), h.zone, h.arena, h.sender, h.reason));
+                            }
 
                             zone._server.sendMessage(zone, pkt.sender, "End of page, use *helpcall 1, *helpcall 2, etc to navigate previous pages");
                         }
@@ -421,8 +432,9 @@ namespace InfServer.Logic
                                     var player = db.players.FirstOrDefault(plr => plr.alias1 == alias);
                                     if (player != null)
                                     {
-                                        if ((alias.account1.permission > 0)
-                                            || (player.zone == z._zone.id && player.permission > 0))
+                                        if (alias.account1.permission > 0)
+                                            z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                                        else if (player.zone == z._zone.id && player.permission > 0)
                                             z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
                                     }
                                 }

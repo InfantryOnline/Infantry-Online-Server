@@ -67,14 +67,44 @@ namespace InfServer.Game.Commands.Chat
         /// Displays a chart containing information reguarding each players chats
         /// </summary>
         public static void chatchart(Player player, Player recipient, string payload, int bong)
-        {
-            if (player._server.IsStandalone)
-            {
-                player.sendMessage(-1, "Server is in stand-alone mode.");
-                return;
+        {   //Set the title and colums
+            SC_Chart chart = new SC_Chart();
+
+            chart.title = "Online Chat Information Chart";
+            chart.columns = "-Name:14,-Squad:14,-Team:14,-Online:14,-Chats:28";
+
+            foreach (Player p in player._arena.Players)
+            {   //Append his stats
+                string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"{3}\",\"{4}\",\"{5}\"",
+                    p._alias, (p._squad == null ? "" : p._squad), (p._team == null ? "" : p._team._name),
+                    0, "");
+                chart.rows.Add(row);
             }
 
+            player._client.sendReliable(chart, 1);
+        }
 
+        /// <summary>
+        /// Displays a chart containing info reguarding each players squad
+        /// </summary>
+        public static void squadchart(Player player, Player recipient, string payload, int bong)
+        {   //Set the title and colums
+            SC_Chart chart = new SC_Chart();
+
+            chart.title = "Online Squad Chart Information";
+            chart.columns = "-Name:14,-Squad:14,-Team:14";
+
+            foreach (Player p in player._arena.Players)
+            {   //Append his stats
+                if (p._squad != player._squad)
+                    continue;
+
+                string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
+                    p._alias, p._squad, (p._team == null ? "" : p._team._name));
+                chart.rows.Add(row);
+            }
+
+            player._client.sendReliable(chart, 1);
         }
 
 		/// <summary>
@@ -90,6 +120,14 @@ namespace InfServer.Game.Commands.Chat
 			yield return new HandlerDescriptor(playerchart, "playerchart",
 				"Displays a chart containing information regarding each player.",
 				"?playerchart");
+
+            yield return new HandlerDescriptor(chatchart, "chatchart",
+                "Displays a chart containing information about who's chat is in yours.",
+                "?chatchart");
+
+            yield return new HandlerDescriptor(squadchart, "squadchart",
+                "Displays a chart containing who's online in your squad.",
+                "?squadchart");
 		}
 	}
 }

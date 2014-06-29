@@ -17,6 +17,7 @@ namespace InfServer
         DBServer _server;                       //Who we work for..
         public List<Zone.Player> _players;      //The players in our chat..
         public string _name;                    //The name of our chat
+        public int _id;                         //The id position within our server's list
 
         public Chat(DBServer server, string chat)
         {
@@ -24,6 +25,7 @@ namespace InfServer
             _players = new List<Zone.Player>();
             _name = chat;
             server._chats.Add(chat, this);
+            _id = server._chats.Count - 1;
         }
 
         public void newPlayer(Zone.Player player)

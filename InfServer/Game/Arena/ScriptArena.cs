@@ -1976,6 +1976,10 @@ namespace InfServer.Game
 									return;
 								}
 
+                                //Is he dead?
+                                if (target.IsDead)
+                                    return;
+
 								//Is he on the correct team?
 								if (target._team != player._team)
 									return;
@@ -1993,7 +1997,11 @@ namespace InfServer.Game
 
 								//Check each player
 								foreach (Player p in players)
-								{	//Is he on the correct team?
+								{	//Is he dead?
+                                    if (p.IsDead)
+                                        continue;
+
+                                    //Is he on the correct team?
 									if (p._team != player._team)
 										continue;
 

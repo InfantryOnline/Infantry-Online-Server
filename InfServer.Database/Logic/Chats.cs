@@ -26,13 +26,18 @@ namespace InfServer.Logic
             //He wants to see the player list of each chat..
             if (String.IsNullOrWhiteSpace(pkt.chat))
             {
-                foreach (var chat in server._chats.Values.ToList())
+                var serverChats = (from pair in server._chats
+                                   orderby pair.Value._id ascending
+                                   select pair).ToList();
+
+                //foreach (var chat in server._chats.Values.ToList())
+                foreach(var chat in serverChats)
                 {
-                    if (chat == null)
+                    if (chat.Value == null)
                         continue;
 
-                    if (chat.hasPlayer(player))
-                        server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat._name, chat.List()));
+                    if (chat.Value.hasPlayer(player))
+                        server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat.Value._name, chat.Value.List()));
                 }
                 return;
             }
