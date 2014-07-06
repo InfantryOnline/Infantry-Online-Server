@@ -35,6 +35,7 @@ namespace InfServer
             public Zone zone;                   //The zone he's in.
             public string arena;                //The arena he's in.
             public int permission;              //His permission level.
+            public List<string> chats;          //The chats they are in
 		}
 
 		///////////////////////////////////////////////////
@@ -160,7 +161,8 @@ namespace InfServer
             player.alias = alias;
             player.permission = dbplayer.permission;
             player.zone = this;
-            player.arena = "TODO"; //TODO: ?
+            player.arena = "";
+            player.chats = new List<string>();
 
             // Add them to the Zone players list
             try

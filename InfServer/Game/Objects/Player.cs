@@ -393,6 +393,15 @@ namespace InfServer.Game
 		{	//Send the enter packet
 			_bIngame = true;
 			_client.sendReliable(new SC_EnterArena());
+
+            //Lets update our database with our arena info
+            if (!_server.IsStandalone)
+            {
+                CS_ArenaUpdate<Data.Database> update = new CS_ArenaUpdate<Data.Database>();
+                update.player = this.toInstance();
+                update.arena = _arena._name;
+                _server._db.send(update);
+            }
 		}
 		#endregion
 

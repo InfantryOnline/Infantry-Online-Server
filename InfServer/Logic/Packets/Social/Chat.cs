@@ -137,17 +137,17 @@ namespace InfServer.Logic
                 }
 
                 //For league matches
-                bool Allowed = false;
+                bool Allowed = true;
                 if (player._arena._isMatch && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod
                     && player.IsSpectator)
-                    Allowed = player._arena._isMatch;
+                    Allowed = false;
 
                 //What sort of chat has occured?
                 switch (pkt.chatType)
                 {
                     case Helpers.Chat_Type.Normal:
                         //For leagues, dont allow them to talk to the teams
-                        if (Allowed)
+                        if (!Allowed)
                         {
                             pkt.chatType = Helpers.Chat_Type.Team;
                             Handle_CS_Chat(pkt, player);
@@ -171,7 +171,7 @@ namespace InfServer.Logic
                         break;
 
                     case Helpers.Chat_Type.Macro:
-                        if (Allowed)
+                        if (!Allowed)
                         {
                             //Arent allowed
                             pkt.chatType = Helpers.Chat_Type.Team;
@@ -213,7 +213,7 @@ namespace InfServer.Logic
                             //For league and spec quiet toggles
                             if ((recipient != null) && !recipient.IsSpectator)
                             {
-                                if (Allowed)
+                                if (!Allowed)
                                     break;
                                 if (player._arena._specQuiet || player._specQuiet)
                                     if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)

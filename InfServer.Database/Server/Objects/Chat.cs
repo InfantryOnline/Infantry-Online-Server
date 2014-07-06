@@ -17,7 +17,6 @@ namespace InfServer
         DBServer _server;                       //Who we work for..
         public List<Zone.Player> _players;      //The players in our chat..
         public string _name;                    //The name of our chat
-        public int _id;                         //The id position within our server's list
 
         public Chat(DBServer server, string chat)
         {
@@ -25,9 +24,11 @@ namespace InfServer
             _players = new List<Zone.Player>();
             _name = chat;
             server._chats.Add(chat, this);
-            _id = server._chats.Count - 1;
         }
 
+        /// <summary>
+        /// Adds a new player to the database chat list
+        /// </summary>
         public void newPlayer(Zone.Player player)
         {
             if (player == null)
@@ -43,7 +44,8 @@ namespace InfServer
             }
 
             _players.Add(player);
-            
+            player.chats.Add(_name);
+
             SC_JoinChat<Zone> join = new SC_JoinChat<Zone>();
             join.from = player.alias;
             join.chat = _name;
@@ -58,6 +60,9 @@ namespace InfServer
             }
         }
 
+        /// <summary>
+        /// Removes a player from the database chat list
+        /// </summary>
         public void lostPlayer(Zone.Player player)
         {
             if (!_players.Remove(player))
@@ -91,9 +96,12 @@ namespace InfServer
 
                 Log.write(TLog.Normal, "Closed chat: '{0}'", _name);
             }
-
         }
 
+        /// <summary>
+        /// Does this chat have a specific player?
+        /// </summary>
+        /// <returns>Returns true if found</returns>
         public bool hasPlayer(Zone.Player player)
         {
             if (player == null)
@@ -102,6 +110,9 @@ namespace InfServer
             return _players.Contains(player);
         }
 
+        /// <summary>
+        /// Sends a player list of this chat
+        /// </summary>
         public string List()
         {
             List<string> members = new List<string>();

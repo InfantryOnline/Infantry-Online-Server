@@ -745,30 +745,6 @@ namespace InfServer.Logic
                             zone._client.sendReliable(response, 1);
                         }
                         break;
-
-                    case CS_PlayerStatsRequest<Zone>.ChartType.Score1:
-                        Log.write(TLog.Warning, "Score1");
-                        break;
-
-                    case CS_PlayerStatsRequest<Zone>.ChartType.Score2:
-                        Log.write(TLog.Warning, "Score2");
-                        break;
-
-                    case CS_PlayerStatsRequest<Zone>.ChartType.Score3:
-                        Log.write(TLog.Warning, "Score3");
-                        break;
-
-                    case CS_PlayerStatsRequest<Zone>.ChartType.Score4:
-                        Log.write(TLog.Warning, "Score4");
-                        break;
-
-                    case CS_PlayerStatsRequest<Zone>.ChartType.Score5:
-                        Log.write(TLog.Warning, "Score5");
-                        break;
-
-                    case CS_PlayerStatsRequest<Zone>.ChartType.Score6:
-                        Log.write(TLog.Warning, "Score6");
-                        break;
 				}
 			}
 		}

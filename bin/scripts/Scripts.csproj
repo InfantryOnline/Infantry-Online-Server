@@ -185,6 +185,7 @@
     <Compile Include="GameTypes\Blank\Blank.cs" />
     <Compile Include="GameTypes\BugHunt\BugHunt.cs" />
     <Compile Include="GameTypes\AxiCTF\CTF.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Vote\VoteSystem.cs" />
     <Compile Include="GameTypes\Conquest\CTF.cs" />
     <Compile Include="GameTypes\Conquest\Warps.cs" />
     <Compile Include="GameTypes\CTFHQ\Bots\BasicDefense.cs" />
@@ -213,7 +214,13 @@
     <Compile Include="GameTypes\Frontlines\TDM.cs" />
     <Compile Include="GameTypes\HQ\Events.cs" />
     <Compile Include="GameTypes\HQ\Objects\HQ.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\CTF.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\Gladiator.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\KOTH.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\TDM.cs" />
     <Compile Include="GameTypes\KOTH\KOTH.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Main.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Settings.cs" />
     <Compile Include="GameTypes\LaserTag\Events.cs" />
     <Compile Include="GameTypes\LaserTag\LaserTag.cs" />
     <Compile Include="GameTypes\LaserTag\Objects\HQ.cs" />

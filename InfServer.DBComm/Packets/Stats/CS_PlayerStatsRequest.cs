@@ -32,12 +32,6 @@ namespace InfServer.Protocol
 			ScoreHistoryWeekly = 8,
 			ScoreHistoryMonthly = 9,
 			ScoreHistoryYearly = 10,
-            Score1 = 11,
-            Score2 = 12,
-            Score3 = 13,
-            Score4 = 14,
-            Score5 = 15,
-            Score6 = 16,
 			ScorePreviousGame = 17,
 			ScoreCurrentSession = 18,
 		}

@@ -102,10 +102,8 @@ namespace InfServer.Logic
 		}
 
         /// <summary>
-        /// 
+        /// Handles a chat whisper
         /// </summary>
-        /// <param name="pkt"></param>
-        /// <param name="zone"></param>
         static public void Handle_CS_Whisper(CS_Whisper<Zone> pkt, Zone zone)
         {
             foreach (Zone z in zone._server._zones)
@@ -122,6 +120,22 @@ namespace InfServer.Logic
             }
         }
 
+        /// <summary>
+        /// Handles an arena update from a player
+        /// </summary>
+        static public void Handle_CS_ArenaUpdate(CS_ArenaUpdate<Zone> pkt, Zone zone)
+        {
+            //Attempt to find the player in question
+            Zone.Player player = zone.getPlayer(pkt.player.id);
+            if (player == null)
+            {	//Make a note
+                Log.write(TLog.Warning, "Ignoring arena update for #{0}, not present in zone mirror.", pkt.player.id);
+                return;
+            }
+
+            player.arena = pkt.arena;
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -131,6 +145,7 @@ namespace InfServer.Logic
 			CS_PlayerUpdate<Zone>.Handlers += Handle_CS_PlayerUpdate;
 			CS_PlayerBanner<Zone>.Handlers += Handle_CS_PlayerBanner;
             CS_Whisper<Zone>.Handlers += Handle_CS_Whisper;
+            CS_ArenaUpdate<Zone>.Handlers += Handle_CS_ArenaUpdate;
 		}
 	}
 }

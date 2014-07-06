@@ -39,7 +39,9 @@ namespace InfServer.Protocol
                 SquadStats,
                 Alias = 20,
                 ChatCommand = 21,
-                StatsUpdate = 22
+                StatsUpdate = 22,
+                ArenaUpdate = 23,
+                ChartQuery = 24
             }
 
             ///<summary>
@@ -57,6 +59,7 @@ namespace InfServer.Protocol
                 Chat = 14,
                 ZoneList = 15,
                 Disconnect = 17,
+                ChartResponse = 24
             }
         }
     }

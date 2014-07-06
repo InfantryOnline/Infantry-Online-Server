@@ -20,7 +20,7 @@ namespace InfServer
 		///////////////////////////////////////////////////
 		public ConfigSetting _config;			                        //Our server config
 		public new LogClient _logger;			                        //Our zone server log
-        public Dictionary<string, Chat> _chats;
+        public SortedDictionary<string, Chat> _chats;
         public Dictionary<string, Zone.Player> _players;                //A list of every connected player
         public int playerPeak;
 
@@ -44,7 +44,7 @@ namespace InfServer
 		{
 			_config = ConfigSetting.Blank;
 			_zones = new List<Zone>();
-            _chats = new Dictionary<string, Chat>();
+            _chats = new SortedDictionary<string, Chat>();
             _players = new Dictionary<string, Zone.Player>();
             _squadInvites = new List<KeyValuePair<int, int>>();
 		}

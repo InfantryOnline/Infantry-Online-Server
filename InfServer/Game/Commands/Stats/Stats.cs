@@ -67,21 +67,35 @@ namespace InfServer.Game.Commands.Chat
         /// Displays a chart containing information reguarding each players chats
         /// </summary>
         public static void chatchart(Player player, Player recipient, string payload, int bong)
-        {   //Set the title and colums
-            SC_Chart chart = new SC_Chart();
+        {
+            if (player._server.IsStandalone)
+            {
+                //Set the title and colums
+                SC_Chart chart = new SC_Chart();
 
-            chart.title = "Online Chat Information Chart";
-            chart.columns = "-Name:14,-Squad:14,-Team:14,-Online:14,-Chats:28";
+                chart.title = "Online Chat Information Chart";
+                chart.columns = "-Name:14,-Zone:14,-Arena:14,-Chats:28";
 
-            foreach (Player p in player._arena.Players)
-            {   //Append his stats
-                string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"{3}\",\"{4}\",\"{5}\"",
-                    p._alias, (p._squad == null ? "" : p._squad), (p._team == null ? "" : p._team._name),
-                    0, "");
-                chart.rows.Add(row);
+                foreach (Player p in player._arena.Players)
+                {
+                    //Append his stats
+                    string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"\"{3}\"\"",
+                        p._alias, p._server.Name, p._arena._name, "");
+                    chart.rows.Add(row);
+                }
+
+                player._client.sendReliable(chart, 1);
             }
+            else
+            {
+                CS_ChartQuery<Data.Database> query = new CS_ChartQuery<Data.Database>();
+                query.type = CS_ChartQuery<Data.Database>.ChartType.chatchart;
+                query.title = "Online Chat Information Chart";
+                query.columns = "-Name:14,-Zone:14,-Arena:14,-Chats:28";
+                query.alias = player._alias;
 
-            player._client.sendReliable(chart, 1);
+                player._server._db.send(query);
+            }
         }
 
         /// <summary>
@@ -92,16 +106,23 @@ namespace InfServer.Game.Commands.Chat
             SC_Chart chart = new SC_Chart();
 
             chart.title = "Online Squad Chart Information";
-            chart.columns = "-Name:14,-Squad:14,-Team:14";
+            chart.columns = "-Name:14,-Squad:14,-Arena:14";
 
-            foreach (Player p in player._arena.Players)
-            {   //Append his stats
-                if (p._squad != player._squad)
-                    continue;
+            player.sendMessage(0, String.Format("{0} {1}", player._squadID, player._squad));
+            chart.rows.Add(String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
+                        player._alias, player._squad, player._arena._name));
+            foreach (Arena arena in player._server._arenas.Values.ToList())
+            {
+                foreach (Player p in arena.Players)
+                {
+                    //Append his stats
+                    if (String.IsNullOrWhiteSpace(p._squad))
+                        continue;
 
-                string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
-                    p._alias, p._squad, (p._team == null ? "" : p._team._name));
-                chart.rows.Add(row);
+                    string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
+                        p._alias, p._squad, p._arena._name);
+                    chart.rows.Add(row);
+                }
             }
 
             player._client.sendReliable(chart, 1);

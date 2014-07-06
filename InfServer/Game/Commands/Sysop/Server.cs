@@ -194,7 +194,7 @@ namespace InfServer.Game.Commands.Mod
                     page = 0;
 
                     if (payload.Contains(':'))
-                        page = Convert.ToInt32(args[1].Trim());
+                        page = Convert.ToInt32(args[1]);
                 }
             }
 

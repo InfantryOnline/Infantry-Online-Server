@@ -26,18 +26,17 @@ namespace InfServer.Logic
             //He wants to see the player list of each chat..
             if (String.IsNullOrWhiteSpace(pkt.chat))
             {
-                var serverChats = (from pair in server._chats
-                                   orderby pair.Value._id ascending
-                                   select pair).ToList();
-
-                //foreach (var chat in server._chats.Values.ToList())
-                foreach(var chat in serverChats)
+                if (player.chats.Count > 0)
                 {
-                    if (chat.Value == null)
-                        continue;
+                    foreach (var chat in player.chats)
+                    {
+                        if (String.IsNullOrEmpty(chat))
+                            continue;
 
-                    if (chat.Value.hasPlayer(player))
-                        server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat.Value._name, chat.Value.List()));
+                        Chat _chat = server.getChat(chat);
+                        if (_chat != null && _chat.hasPlayer(player))
+                            server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", _chat._name, _chat.List()));
+                    }
                 }
                 return;
             }
@@ -47,7 +46,7 @@ namespace InfServer.Logic
 
             foreach (string chat in chats)
             {
-                if (chat == null)
+                if (String.IsNullOrEmpty(chat))
                     continue;
 
                 string name = chat.ToLower();
@@ -80,6 +79,7 @@ namespace InfServer.Logic
                 if (!_chat.hasPlayer(player))
                     _chat.newPlayer(player);
 
+                
                 //Send him the updated list..
                 server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat, _chat.List()));
             }

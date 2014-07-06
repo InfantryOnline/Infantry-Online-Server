@@ -56,8 +56,20 @@ namespace InfServer.Game.Commands.Mod
                 }
                 else if (payload.EndsWith("*") && !payload.StartsWith("*"))
                 {
-                    payload = payload.TrimEnd('*');
-                    payload = String.Format("*{0}", payload);
+                    if (!payload.Contains("."))
+                    {
+                        payload = payload.TrimEnd('*');
+                        payload = String.Format("*{0}", payload);
+                    }
+                    else
+                    {
+                        string[] check = payload.Split('.');
+                        if (!Helpers.IsNumeric(check[0].Trim()))
+                        {
+                            payload = payload.TrimEnd('*');
+                            payload = String.Format("*{0}", payload);
+                        }
+                    }
                 }
                 query.payload = payload;
             }

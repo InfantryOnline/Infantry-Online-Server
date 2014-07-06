@@ -64,40 +64,6 @@ namespace InfServer.Logic
                             System.Net.IPAddress ip;
                             IQueryable<Data.DB.alias> aliases;
 
-                            /* Old way
-                            if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ip))
-                            {
-                                aliases = db.alias.Where(a => a.IPAddress.Equals(ip.ToString()));
-                                zone._server.sendMessage(zone, pkt.sender, "*" + ip.ToString());
-                            }
-                            //Alias!
-                            else
-                            {
-                                Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.payload));
-                                aliases = db.alias.Where(a => a.account.Equals(who.account));
-                                zone._server.sendMessage(zone, pkt.sender, "*" + pkt.payload);
-                            }
-
-                            if (aliases.Count() > 0)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
-                                //Loop through them and display
-                                foreach (var alias in aliases)
-                                    zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
-                            }
-                            else
-                            {
-                                //Didnt find any, lets try just a contains method
-                                if (!pkt.payload.Contains('.'))
-                                {   //Alias Contains
-                                    IQueryable<Data.DB.alias> args = db.alias.Where(w => w.name.Contains(pkt.payload));
-                                    if (args.Count() > 0)
-                                        foreach (var alias in args)
-                                            zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})", alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
-                                }
-                            }
-                            */
-
                             //Are we using wildcards?
                             if (!pkt.payload.Contains('*'))
                             {   //No we aren't, treat this as general matching
@@ -195,6 +161,9 @@ namespace InfServer.Logic
                         {
                             int minlength = 3;
                             var results = new List<KeyValuePair<string, Zone.Player>>();
+                            //Get our info
+                            Data.DB.account pAccount = db.alias.FirstOrDefault(f => f.name == pkt.sender).account1;
+                            Data.DB.player pPlayer = db.zones.First(z => z.id == zone._zone.id).players.First(p => p.alias1.name == pkt.sender);
 
                             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                             {
@@ -213,9 +182,34 @@ namespace InfServer.Logic
                                 zone._server.sendMessage(zone, pkt.sender, "&Search Results");
                                 foreach (KeyValuePair<string, Zone.Player> result in results)
                                 {
-                                    zone._server.sendMessage(zone, pkt.sender,
-                                        String.Format("*Found: {0} (Zone: {1}) (Arena:{2})", //TODO: Arena??
-                                        result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
+                                    //Are we not powered and in a private arena?
+                                    if (pAccount.permission < 1 && result.Value.arena.StartsWith("#"))
+                                    {
+                                        //We are, is this the same zone?
+                                        if (result.Value.zone._zone.id == zone._zone.id)
+                                        {
+                                            //It is, get the info needed
+                                            Data.DB.player find = db.zones.First(z => z.id == zone._zone.id).players.First(p => p.alias1.name == result.Value.alias);
+
+                                            //Are we on the same squad?
+                                            if (find.squad != pPlayer.squad || (find.squad == null && pPlayer.squad == null))
+                                                zone._server.sendMessage(zone, pkt.sender,
+                                                    String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                                    result.Value.alias, result.Value.zone._zone.name, "Hidden"));
+                                            else
+                                                zone._server.sendMessage(zone, pkt.sender,
+                                                    String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                                    result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
+                                        }
+                                        else
+                                            zone._server.sendMessage(zone, pkt.sender,
+                                                String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                                result.Value.alias, result.Value.zone._zone.name, "Hidden"));
+                                    }
+                                    else
+                                        zone._server.sendMessage(zone, pkt.sender,
+                                            String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                            result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
                                 }
                             }
                             else if (pkt.payload.Length < minlength)
@@ -275,26 +269,28 @@ namespace InfServer.Logic
                             //Find all commands!
                             Data.DB.history last = (db.histories.OrderByDescending(a => a.id)).First();
 
-                            List<Data.DB.history> cmds;
+                            List<Data.DB.history> sort, cmds;
                             if (contains)
                             {
-                                cmds = (from hist in db.histories
+                                sort = (from hist in db.histories
                                         where hist.sender.ToLower() == name[0].ToLower()
                                         orderby hist.id descending
                                         select hist).ToList();
                             }
                             else
                             {
-                                cmds = (from hist in db.histories 
+                                sort = (from hist in db.histories 
                                         orderby hist.id 
                                         descending select hist).ToList();
                             }
 
+                            //NOTE: refactor this by some sort of page system,
+                            //fails when searching for sender because of gapped id's I.E 22391 next could be 24195
                             //If less then 30 results, just show what we have
                             if (last.id <= resultsperpage)
-                                cmds = db.histories.Where(c => c.id <= last.id).ToList();
+                                cmds = sort.Where(c => c.id <= last.id).ToList();
                             else
-                                cmds = db.histories.Where(c => c.id >= (last.id - (resultsperpage * (page + 1))) &&
+                                cmds = sort.Where(c => c.id >= (last.id - (resultsperpage * (page + 1))) &&
                                     c.id < (last.id - (resultsperpage * page))).ToList();
 
                             //List them
@@ -683,7 +679,7 @@ namespace InfServer.Logic
                                 dbplayer.squad1 = null;
                                 dbplayer.squad = null;
                                 //db.SubmitChanges();
-                                zone._server.sendMessage(zone, pkt.alias, "You have left your squad");
+                                zone._server.sendMessage(zone, pkt.alias, "You have left your squad, please relog to complete the process.");
                                 //Notify his squadmates
                                 foreach (Data.DB.player sm in squadmates)
                                     zone._server.sendMessage(zone, sm.alias1.name, pkt.alias + " has left your squad");
@@ -897,6 +893,73 @@ namespace InfServer.Logic
         }
 
         /// <summary>
+        /// Handles a ?*chart query
+        /// </summary>
+        static public void Handle_CS_ChartQuery(CS_ChartQuery<Zone> pkt, Zone zone)
+        {
+            using (InfantryDataContext db = zone._server.getContext())
+            {
+                switch (pkt.type)
+                {
+                    case CS_ChartQuery<Zone>.ChartType.chatchart:
+                        {
+                            KeyValuePair<int, Zone.Player> from = zone._players.SingleOrDefault(p => p.Value.alias.Equals(pkt.alias));
+                            if (from.Value == null)
+                                return;
+
+                            var results = new Dictionary<string, Zone.Player>();
+                            List<string> chats = new List<string>();
+                            bool update = false;
+                            //Check chats
+                            foreach(Zone z in zone._server._zones)
+                                foreach (KeyValuePair<int, Zone.Player> player in z._players)
+                                {
+                                    if (player.Value == null)
+                                        continue;
+
+                                    if (player.Value.chats.Count < 1)
+                                        continue;
+
+                                    //Player has a chat, lets check it with ours
+                                    foreach (string chat in player.Value.chats)
+                                    {
+                                        //He/she does
+                                        if (from.Value.chats.Contains(chat))
+                                        {
+                                            chats.Add(chat);
+                                            update = true;
+                                        }
+                                    }
+
+                                    if (update)
+                                    {
+                                        results.Add((String.Join(",", chats)), player.Value);
+                                        update = false;
+                                    }
+                                }
+
+                            if (results.Count > 0)
+                            {
+                                SC_ChartResponse<Zone> respond = new SC_ChartResponse<Zone>();
+                                respond.alias = pkt.alias;
+                                respond.type = CS_ChartQuery<Zone>.ChartType.chatchart;
+                                respond.title = pkt.title;
+                                respond.columns = pkt.columns;
+                                foreach (KeyValuePair<string, Zone.Player> p in results)
+                                {
+                                    respond.data += String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"\"{3}\"\"",
+                                        p.Value.alias, p.Value.zone._zone.name, p.Value.arena, p.Key);
+                                    respond.data += "\n";
+                                }
+                                zone._client.sendReliable(respond, 1);
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+        
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [RegistryFunc]
@@ -904,6 +967,7 @@ namespace InfServer.Logic
         {
             CS_Query<Zone>.Handlers += Handle_CS_Query;
             CS_Squads<Zone>.Handlers += Handle_CS_SquadQuery;
+            CS_ChartQuery<Zone>.Handlers += Handle_CS_ChartQuery;
         }
     }
 }
