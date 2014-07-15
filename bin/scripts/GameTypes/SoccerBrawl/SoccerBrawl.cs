@@ -665,16 +665,15 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             if (queue.Count > 0)
             {
+                Player nextPlayer = queue.ElementAt(0).Key;
+
                 if (team1.ActivePlayerCount < (playingMax / 2))
-                    queue.ElementAt(0).Key.unspec(team1._name);
+                    nextPlayer.unspec(team1._name);
                 else if (team2.ActivePlayerCount < (playingMax / 2))
-                    queue.ElementAt(0).Key.unspec(team2._name);
-                else
-                    //Couldnt spec-in the player
-                    return;
+                    nextPlayer.unspec(team2._name);
 
                 //Remove
-                queue.Remove(queue.ElementAt(0).Key);
+                queue.Remove(nextPlayer);
 
                 foreach (KeyValuePair<Player, int> player in queue.ToList())
                 {
