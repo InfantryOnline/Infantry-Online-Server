@@ -144,6 +144,161 @@ namespace InfServer.Logic
                         }
                         break;
 
+                    case CS_Query<Zone>.QueryType.deletealias:
+                        {
+                            if (String.IsNullOrWhiteSpace(pkt.payload))
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
+                            }
+
+                            Data.DB.alias sender = db.alias.FirstOrDefault(sndr => sndr.name.Equals(pkt.sender));
+                            if (sender == null)
+                                return;
+
+                            //Single alias
+                            if (!pkt.payload.Contains(','))
+                            {
+                                //Lets get all account related info then delete it
+                                Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.payload));
+                                Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.payload));
+                                if (palias == null)
+                                {
+                                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                                    return;
+                                }
+                                if (player == null)
+                                {
+                                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified player.");
+                                    return;
+                                }
+
+                                //First and most important, check to see if this alias is on the account
+                                if (palias.account1 != sender.account1)
+                                {
+                                    zone._server.sendMessage(zone, pkt.sender, "You must be on the account that this alias belongs to.");
+                                    return;
+                                }
+
+                                //Check for a squad
+                                if (player.squad != null)
+                                {
+                                    List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == player.squad && plyr.squad != null
+                                    && plyr.zone == player.zone));
+                                    if (player.squad1.owner == player.id)
+                                    {
+                                        if (squadmates.Count() > 1)
+                                        {
+                                            Random rand = new Random();
+                                            Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                            //Since the player is the owner, lets just give it to someone else
+                                            temp.squad1.owner = temp.id;
+                                        }
+                                        else if (squadmates.Count() == 1)
+                                            //Lets delete the squad
+                                            db.squads.DeleteOnSubmit(player.squad1);
+                                    }
+                                    player.squad1 = null;
+                                    player.squad = null;
+                                }
+                                //Now lets remove stats
+                                db.stats.DeleteOnSubmit(player.stats1);
+                                //Next the player structure
+                                db.players.DeleteOnSubmit(player);
+                                //Finally the alias
+                                db.alias.DeleteOnSubmit(palias);
+                                db.SubmitChanges();
+                                zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
+                                break;
+                            }
+                            else
+                            {
+                                //Player wants to delete multiple aliases
+                                List<string> cannotFind = new List<string>();
+                                List<string> notOnAccount = new List<string>();
+                                string[] payload = pkt.payload.Split(',');
+                                int deleted = 0;
+
+                                foreach (string str in payload)
+                                {
+                                    Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(str));
+                                    Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(str));
+                                    if (palias == null)
+                                    {
+                                        cannotFind.Add(str);
+                                        continue;
+                                    }
+                                    if (player == null)
+                                    {
+                                        cannotFind.Add(str);
+                                        continue;
+                                    }
+
+                                    //First and most important, check to see if this alias is on the account
+                                    if (palias.account1 != sender.account1)
+                                    {
+                                        notOnAccount.Add(str);
+                                        continue;
+                                    }
+
+                                    //Check for a squad
+                                    if (player.squad != null)
+                                    {
+                                        List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == player.squad && plyr.squad != null
+                                        && plyr.zone == player.zone));
+                                        if (player.squad1.owner == player.id)
+                                        {
+                                            if (squadmates.Count() > 1)
+                                            {
+                                                Random rand = new Random();
+                                                Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                                //Since the player is the owner, lets just give it to someone else
+                                                temp.squad1.owner = temp.id;
+                                            }
+                                            else if (squadmates.Count() == 1)
+                                                //Lets delete the squad
+                                                db.squads.DeleteOnSubmit(player.squad1);
+                                        }
+                                        player.squad1 = null;
+                                        player.squad = null;
+                                    }
+                                    //Now lets remove stats
+                                    db.stats.DeleteOnSubmit(player.stats1);
+                                    //Next the player structure
+                                    db.players.DeleteOnSubmit(player);
+                                    //Finally the alias
+                                    db.alias.DeleteOnSubmit(palias);
+                                    db.SubmitChanges();
+                                }
+
+                                if (notOnAccount.Count > 0)
+                                {
+                                    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) are not on the account.", notOnAccount.Count));
+                                    string getAlias = "";
+                                    foreach (string str in notOnAccount)
+                                        getAlias += str + ", ";
+
+                                    getAlias = (getAlias.Substring(0, getAlias.Length - 2));
+                                    zone._server.sendMessage(zone, pkt.sender, getAlias);
+                                }
+
+                                if (cannotFind.Count > 0)
+                                {
+                                    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) cannot be found.", cannotFind.Count));
+                                    string getAlias = "";
+                                    foreach (string str in cannotFind)
+                                        getAlias += str + ", ";
+
+                                    getAlias = (getAlias.Substring(0, getAlias.Length - 2));
+                                    zone._server.sendMessage(zone, pkt.sender, getAlias);
+                                }
+
+                                if (deleted > 0)
+                                    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) have been deleted.", deleted));
+                            }
+                        }
+                        break;
+
                     case CS_Query<Zone>.QueryType.emailupdate:
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Email Update");
@@ -430,10 +585,118 @@ namespace InfServer.Logic
                                     {
                                         if (alias.account1.permission > 0)
                                             z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
-                                        else if (player.zone == z._zone.id && player.permission > 0)
+                                        if (player.zone == z._zone.id && player.permission > 0)
                                             z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
                                     }
                                 }
+                        }
+                        break;
+
+                    case CS_Query<Zone>.QueryType.wipe:
+                        {
+                            if (String.IsNullOrWhiteSpace(pkt.payload))
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Invalid payload.");
+                                return;
+                            }
+
+                            //Get the associated player making the command
+                            Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.First(p => p.alias1.name == pkt.sender);
+                            if (dbplayer == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find your player structure.");
+                                return;
+                            }
+
+                            Data.DB.stats stat;
+                            //Sanity checks
+                            if (pkt.payload.Equals("all"))
+                            {
+                                //Change all stats to zero
+                                List<Data.DB.player> players = db.players.Where(z => z.zone == dbplayer.zone).ToList();
+                                if (players.Count == 0)
+                                {
+                                    zone._server.sendMessage(zone, pkt.sender, "Cannot find any players attached to this zone.");
+                                    return;
+                                }
+
+                                foreach (Data.DB.player P in players)
+                                {
+                                    stat = P.stats1;
+
+                                    stat.cash = 0;
+                                    stat.experience = 0;
+                                    stat.experienceTotal = 0;
+                                    stat.kills = 0;
+                                    stat.deaths = 0;
+                                    stat.killPoints = 0;
+                                    stat.deathPoints = 0;
+                                    stat.assistPoints = 0;
+                                    stat.bonusPoints = 0;
+                                    stat.vehicleKills = 0;
+                                    stat.vehicleDeaths = 0;
+                                    stat.playSeconds = 0;
+
+                                    stat.zonestat1 = 0;
+                                    stat.zonestat2 = 0;
+                                    stat.zonestat3 = 0;
+                                    stat.zonestat4 = 0;
+                                    stat.zonestat5 = 0;
+                                    stat.zonestat6 = 0;
+                                    stat.zonestat7 = 0;
+                                    stat.zonestat8 = 0;
+                                    stat.zonestat9 = 0;
+                                    stat.zonestat10 = 0;
+                                    stat.zonestat11 = 0;
+                                    stat.zonestat12 = 0;
+                                }
+
+                                db.SubmitChanges();
+                                zone._server.sendMessage(zone, pkt.sender, "Wipe all has been completed.");
+                                break;
+                            }
+
+                            //Recipient lookup
+                            Data.DB.alias recipientAlias = db.alias.FirstOrDefault(a => a.name == pkt.payload);
+                            Data.DB.player recipientPlayer = db.players.FirstOrDefault(p => p.alias1 == recipientAlias && p.zone == dbplayer.zone);
+
+                            if (recipientPlayer == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "No such alias to wipe.");
+                                return;
+                            }
+
+                            //Change all stats to zero
+                            stat = recipientPlayer.stats1;
+
+                            stat.cash = 0;
+                            stat.experience = 0;
+                            stat.experienceTotal = 0;
+                            stat.kills = 0;
+                            stat.deaths = 0;
+                            stat.killPoints = 0;
+                            stat.deathPoints = 0;
+                            stat.assistPoints = 0;
+                            stat.bonusPoints = 0;
+                            stat.vehicleKills = 0;
+                            stat.vehicleDeaths = 0;
+                            stat.playSeconds = 0;
+
+                            stat.zonestat1 = 0;
+                            stat.zonestat2 = 0;
+                            stat.zonestat3 = 0;
+                            stat.zonestat4 = 0;
+                            stat.zonestat5 = 0;
+                            stat.zonestat6 = 0;
+                            stat.zonestat7 = 0;
+                            stat.zonestat8 = 0;
+                            stat.zonestat9 = 0;
+                            stat.zonestat10 = 0;
+                            stat.zonestat11 = 0;
+                            stat.zonestat12 = 0;
+
+                            db.SubmitChanges();
+                            zone._server.sendMessage(zone, pkt.sender, "Zone wipe has been completed.");
                         }
                         break;
                 }

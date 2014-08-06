@@ -131,11 +131,7 @@ namespace InfServer.Game.Commands.Mod
                 aliasTo = param[0];
                 if ((recipient = player._arena.getPlayerByName(param[1])) != null
                     || (recipient = player._server.getPlayer(param[1])) != null)
-                {
                     alias = recipient._alias;
-                    //Since they are here, lets dc them to complete the transfer
-                    recipient.sendMessage(-1, "You are being forced to dc to complete the alias transfer.");
-                }
                 else
                     alias = param[1];
             }
@@ -159,11 +155,6 @@ namespace InfServer.Game.Commands.Mod
                     alias = payload;
                 aliasTo = recipient._alias;
             }
-
-            //For some reason the player never see's the message
-            //so putting it here to give send message a chance
-            if (recipient != null)
-                recipient.disconnect();
 
             CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
             query.aliasType = CS_Alias<Data.Database>.AliasType.transfer;

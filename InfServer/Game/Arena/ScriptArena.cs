@@ -76,6 +76,7 @@ namespace InfServer.Game
         #region playerEnter
         /// <summary>
 		/// Called when a player enters the game
+        /// Note: this updates arena player counts
 		/// </summary>
 		public override void playerEnter(Player player)
 		{
@@ -94,15 +95,16 @@ namespace InfServer.Game
         #region playerLeave
         /// <summary>
 		/// Called when a player leaves the game
+        /// Note: this updates arena player counts
 		/// </summary>
 		public override void playerLeave(Player player)
 		{
             if (player != null)
             {
+                base.playerLeave(player);
+
                 //Pass it to the script environment
                 callsync("Player.Leave", false, player);
-
-                base.playerLeave(player);
             }
             else
                 Log.write(TLog.Error, "playerLeave(): Called with null player");
@@ -180,8 +182,8 @@ namespace InfServer.Game
 			string startGame = _server._zoneConfig.EventInfo.startGame;
 
             //Scramble teams if the cfg calls for it
-            if (_server._zoneConfig.arena.scrambleTeams > 0 && PlayerCount > 2)
-                scrambleTeams(this, 2, true);
+            if (_scramble && PlayerCount > 2)
+                scrambleTeams(this, _server._zoneConfig.arena.desiredFrequencies, true);
                 
 			foreach (Player player in Players)
 			{	//We don't want previous stats to count
@@ -432,8 +434,9 @@ namespace InfServer.Game
         public override void handlePlayerGoal(Player from, Ball update)
         {   
             //Forward to our script
-            if (!exists("Player.Goal") || (bool)callsync("Player.Goal", false, from, update))
+            if (exists("Player.Goal") && !(bool)callsync("Player.Goal", false, from, update))
             {
+                return;
             }
 
             //Reset our variables then spawn a new ball
@@ -792,7 +795,7 @@ namespace InfServer.Game
 
                 //Do we have a full arena?
 				if (PlayerCount >= _server._zoneConfig.arena.playingMax
-                    && _scriptType != "GameType_SoccerBrawl") //Cheat fix for the queue system
+                    && _scriptType != "GameType_SoccerBrawl") //Cheat fix for the queue system(Reversed this back so the queue system can work - Mizz)
 				{	//Yep, tell him why he can't get in
 					from.sendMessage(255, "Game is full.");
 					return;
@@ -837,7 +840,7 @@ namespace InfServer.Game
                 {
                     //Great, use it
                     from.unspec(pick);
-                    from._lastMovement = 0;
+                    from._lastMovement = Environment.TickCount;
                 }
                 else
                     from.sendMessage(-1, "Unable to pick a team.");

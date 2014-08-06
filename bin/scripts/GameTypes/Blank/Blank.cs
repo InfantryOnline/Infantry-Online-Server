@@ -72,7 +72,15 @@ namespace InfServer.Script.GameType_Blank
 		public void playerEnter(Player player)
 		{
 		}
-		
+
+        /// <summary>
+        /// Called when a player leaves the game
+        /// </summary>
+        [Scripts.Event("Player.Leave")]
+        public void playerLeave(Player player)
+        {
+        }
+
 		/// <summary>
 		/// Called when a player enters the arena
 		/// </summary>
@@ -81,14 +89,13 @@ namespace InfServer.Script.GameType_Blank
 		{
 		}
 
-		/// <summary>
-		/// Called when a player leaves the game
-		/// </summary>
-		[Scripts.Event("Player.Leave")]
-		public void playerLeave(Player player)
-		{
-		}
-
+        /// <summary>
+        /// Called when a player leaves the arena
+        /// </summary>
+        [Scripts.Event("Player.LeaveArena")]
+        public void playerLeaveArena(Player player)
+        {
+        }
 
 		/// <summary>
 		/// Called when the game begins
@@ -155,7 +162,6 @@ namespace InfServer.Script.GameType_Blank
 		[Scripts.Event("Player.LeaveGame")]
 		public bool playerLeaveGame(Player player)
 		{
-            Log.write("Wut");
 			return true;
 		}
 

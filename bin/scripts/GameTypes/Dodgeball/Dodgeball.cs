@@ -198,7 +198,12 @@ namespace InfServer.Script.GameType_Dodgeball
                 return;
             }
 
-            updateQueue(queue);
+            // Remove them from the queue if they were in it
+            if (queue.ContainsKey(player))
+            {
+                queue.Remove(player);
+                updateQueue(queue);
+            }
 		}
 
 
@@ -338,8 +343,12 @@ namespace InfServer.Script.GameType_Dodgeball
 		[Scripts.Event("Player.JoinGame")]
 		public bool playerJoinGame(Player player)
 		{
-            if (_arena.PlayersIngame.Count() == _config.arena.playingMax)
+            if (_arena.PlayersIngame.Count() >= _config.arena.playingMax)
+            {
                 enqueue(player);
+                return false;
+            }
+
 			return true;
 		}
 
@@ -362,24 +371,26 @@ namespace InfServer.Script.GameType_Dodgeball
         }
 
         public void updateQueue(Dictionary<Player, int> queue)
-        {   //Nonsense!
-            if (_arena.PlayersIngame.Count() == _config.arena.playingMax)
+        {   // Nothing to do here
+            if (queue.Count == 0)
                 return;
 
-            if (queue.Count > 0)
+            if (_arena.PlayersIngame.Count() < _config.arena.playingMax)
             {
-                if (team1.ActivePlayerCount < 8)
-                    queue.ElementAt(0).Key.unspec(team1._name);
-                else if (team2.ActivePlayerCount < 8)
-                    queue.ElementAt(0).Key.unspec(team2._name);
+                Player nextPlayer = queue.ElementAt(0).Key;
 
-                queue.Remove(queue.ElementAt(0).Key);
+                if (team1.ActivePlayerCount < _config.arena.maxPerFrequency)
+                    nextPlayer.unspec(team1._name);
+                else if (team2.ActivePlayerCount < _config.arena.maxPerFrequency)
+                    nextPlayer.unspec(team2._name);
 
-                foreach (KeyValuePair<Player, int> player in queue)
-                {
-                    queue[player.Key] = queue[player.Key] - 1;
-                    player.Key.sendMessage(0, String.Format("Queue position is now {0}", queue[player.Key]));
-                }
+                queue.Remove(nextPlayer);
+            }
+
+            foreach (KeyValuePair<Player, int> player in queue)
+            {
+                queue[player.Key] = queue[player.Key] - 1;
+                player.Key.sendMessage(0, String.Format("Queue position is now {0}", queue[player.Key]));
             }
         }
 

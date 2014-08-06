@@ -1163,7 +1163,6 @@ namespace InfServer.Game
             return spec("spec");
         }
 
-
 		/// <summary>
 		/// Sends the player to spectator mode
 		/// </summary>

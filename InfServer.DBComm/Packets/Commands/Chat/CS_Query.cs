@@ -37,6 +37,8 @@ namespace InfServer.Protocol
             helpcall,
             alert,
             modChat,
+            deletealias,
+            wipe,
         }
 
 

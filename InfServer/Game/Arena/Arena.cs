@@ -28,7 +28,7 @@ namespace InfServer.Game
 		public Bots.Pathfinder _pathfinder;				//The pathfinding object used for this arena
 
 		protected ObjTracker<Player> _players;			//The list of players in this arena
-		protected ObjTracker<Player> _playersIngame;	//The list of players currently ingame
+		protected ObjTracker<Player> _playersIngame;	//The list of players currently in game
 
         public List<string> _owner;                     //The owner's name of this arena - we use a list because we can grant players
         public Dictionary<string,DateTime> _blockedList;//Banned list for owned arenas
@@ -52,6 +52,7 @@ namespace InfServer.Game
         public bool _watchMod;                          //Viewing of mod commands on/off
         public bool _isMatch;                           //For leagues
         public bool _saveStats = true;
+        public bool _scramble;                           //Scramble toggle
         public BreakdownSettings _breakdownSettings;
         private int _bountyTick;                        //Last time AutoBounty ticked
         public List<ItemDrop> _condemnedItems;
@@ -180,7 +181,7 @@ namespace InfServer.Game
 		// Accessors
 		///////////////////////////////////////////////////
 		/// <summary>
-		/// Returns the amount of players that are actually ingame
+		/// Returns the amount of players that are actually in game
 		/// </summary>
 		public int PlayerCount
 		{
@@ -446,6 +447,8 @@ namespace InfServer.Game
             _owner = new List<string>();
             _blockedList = new Dictionary<string, DateTime>();
 
+            _scramble = _server._zoneConfig.arena.scrambleTeams > 0 ? true : false;
+
 			//Instance our tiles array
 			LvlInfo lvl = server._assets.Level;
 			_tiles = new LvlInfo.Tile[lvl.Tiles.Length];
@@ -529,12 +532,12 @@ namespace InfServer.Game
 					{	//So spawn him!
 						player._deathTime = 0;
                         //Reset lastMovement to prevent being specced too early for inactivity
-                        player._lastMovement = 0;
+                        player._lastMovement = now;
 						handlePlayerSpawn(player, true);
 					}
 
                     //Check inactivity
-                    if (_server._zoneConfig.arena.inactivityTimeout > 0 && player._lastMovement != 0 &&
+                    if (_server._zoneConfig.arena.inactivityTimeout > 0 &&
                         (now - player._lastMovement) > (_server._zoneConfig.arena.inactivityTimeout * 1000))
                     {
                         player.spec();
@@ -542,8 +545,7 @@ namespace InfServer.Game
                     }
                      
                     //Check maxTimeAllowed inactivity
-                    if (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed > 0
-                        && player._lastMovement != 0)
+                    if (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed > 0)
                     {
                         int maxTime = (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed * 1000);
                         
@@ -1226,7 +1228,6 @@ namespace InfServer.Game
 				player._spectating._spectators.Remove(player);
 				player._spectating = null;
 			}
-            
 		}
 
 		/// <summary>

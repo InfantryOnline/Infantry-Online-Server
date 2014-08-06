@@ -509,6 +509,63 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
+        #region delete alias
+        /// <summary>
+        /// Deletes an alias or aliases they are on/have
+        /// </summary>
+        public static void deletealias(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Type either ?deletealias yes (the one you are on), ?deletealias alias yes, OR more than one ?deletealias alias,alias yes");
+                return;
+            }
+
+            bool contains = payload.ToLower().Contains("yes");
+            if (!contains)
+            {
+                player.sendMessage(-1, "You must type yes after the alias(es) to complete the command.");
+                return;
+            }
+
+            string argument = payload;
+            //Lets see if this is the alias they are trying to delete
+            if (contains && payload.Length > 3)
+            {
+                //Not their current alias, double check if they typed it
+                argument = payload.Substring(0, (payload.Length - 3)).Trim(); //Removes yes from string
+                if (argument == player._alias)
+                {
+                    //They typed their own alias, kick them
+                    player.sendMessage(-1, "You are being forced a dc to continue deleting this alias.");
+                    player.disconnect();
+                }
+            }
+            else
+            {
+                //Is their current alias
+                argument = player._alias;
+
+                //Since they are playing on it, lets force dc them
+                player.sendMessage(-1, "You are being forced a dc to continue deleting this alias.");
+                player.disconnect();
+            }
+
+            //Pass the payload off to the database
+            CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+            query.queryType = CS_Query<Data.Database>.QueryType.deletealias;
+            query.sender = player._alias;
+            query.payload = argument;
+            player._server._db.send(query);
+        }
+        #endregion
+
         #region drop
         /// <summary>
         /// Drops items at the player's location in the form item1:x1, item2:x2 and so on
@@ -1524,6 +1581,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(chat, "chat",
                 "Joins or leaves specified chats",
                 "?chat chat1,chat2,chat3. ?chat off leaves all");
+
+            yield return new HandlerDescriptor(deletealias, "deletealias",
+                "Deletes any or all aliases you type and own",
+                "?deletealias alias yes OR ?deletealias alias,alias yes");
 
             yield return new HandlerDescriptor(drop, "drop",
                "Drops items",

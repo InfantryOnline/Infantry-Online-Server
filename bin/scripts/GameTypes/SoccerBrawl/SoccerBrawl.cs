@@ -29,17 +29,18 @@ namespace InfServer.Script.GameType_Soccerbrawl
         Team team1;
         Team team2;
         int gameTimerStart;                     // Tick when the game began
-        int team1Count;
-        int team2Count;
         int team1Goals;
         int team2Goals;
+        int bounces;
+        double carryTimeStart, carryTime;
 
-        Player assit;
-        Player assit2;
+        Player pass;                            //Who passed it
+        Player assist;
+        Player assist2;
         bool _overtime;                         //True if in overtime
         Player _futureGoal;
 
-        Dictionary<Player, int> queue;          //Our in queued players waiting to play
+        List<Player> queue;                     //Our in queued players waiting to play
         private int _lastGameCheck;				//The tick at which we last checked for game viability
         private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
         private int _tickGameStart;				//The tick at which the game started (0 == stopped)
@@ -102,11 +103,12 @@ namespace InfServer.Script.GameType_Soccerbrawl
             team2 = _arena.getTeamByName(_config.teams[1].name);
             team1Goals = 0;
             team2Goals = 0;
-            _minPlayers = 1;
+            _minPlayers = _config.arena.minimumKeepScorePublic;
+            bounces = 0;
             if (_config.soccer.deadBallTimer > _lostBallInterval)
                 _lostBallInterval = _config.soccer.deadBallTimer;
 
-            queue = new Dictionary<Player, int>();
+            queue = new List<Player>();
 
             return true;
         }
@@ -197,58 +199,32 @@ namespace InfServer.Script.GameType_Soccerbrawl
         #region Events
 
         /// <summary>
-        /// Called when a player leaves the arena
-        /// </summary>
-        [Scripts.Event("Player.Leave")]
-        public void playerLeave(Player player)
-        {
-            updateQueue(queue);
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to spec and leave the game
-        /// </summary>
-        [Scripts.Event("Player.LeaveGame")]
-        public bool playerLeaveGame(Player player)
-        {
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena._balls.FirstOrDefault(b => b._id == player._gotBallID);
-
-                player._gotBallID = 999;
-                //Initialize its ballstate
-                ball._state = new Ball.BallState();
-
-                //Assign default state
-                ball._state.positionX = player._state.positionX;
-                ball._state.positionY = player._state.positionY;
-                ball._state.positionZ = player._state.positionZ;
-                ball._state.velocityX = 0;
-                ball._state.velocityY = 0;
-                ball._state.velocityZ = 0;
-                ball._state.ballStatus = -1;
-
-                ball.Route_Ball(player._arena.Players);
-            }
-
-            updateQueue(queue);
-            return true;
-        }
-
-        /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
         [Scripts.Event("Player.BallDrop")]
         public bool handleBallDrop(Player player, Ball ball)
         {
             //Keep track of assists 
-            if (player != null && player != assit)
+            if (player != null && player != assist)
             {
-                assit2 = assit;
-                assit = player;
+                assist2 = assist;
+                assist = player;
             }
+
+            //Keep track of passes/catches/fumbles/steals
+            pass = player;
+            pass._team = player._team;
+
+            //Keep track of carry time
+            if (_tickGameStart > 0)
+            {
+                carryTime = Environment.TickCount - carryTimeStart;
+                carryTimeStart = 0;
+                if (_config.zoneStat.name8.Equals("Carry Time"))
+                    player.ZoneStat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
+            }
+
             //Now lets predict if this ball will hit the goal
-            //Ball ball = _arena._balls.FirstOrDefault(b => b._id == ball.ballID);
             double xf = 0;
             double yf = 0;
             double cxi = 0;
@@ -289,11 +265,13 @@ namespace InfServer.Script.GameType_Soccerbrawl
                             _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
                         {//Horizontal wall
                             dyi *= -1;
+                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked)
                         {//Vertical
                             dxi *= -1;
+                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
@@ -323,19 +301,12 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
                 //Check if it is within our goal box depending on team
                 //p1->p4 are left base, p5->p8 are right base
-                //       if (player._team == team2)
                 if (isInsideSquare(p1, p2, p3, p4, ballPoint) || isInsideSquare(p5, p6, p7, p8, ballPoint))
                 {//Will be a goal
                     _futureGoal = player;
-                    //   _arena.sendArenaMessage("going to be a goal");
                     break;
                 }
-                //    if (player._team == team1)
-                /*        if (isInsideSquare(p5, p6, p7, p8, ballPoint))
-                        {//Will be a goal
-                            _futureGoal = player;
-                            break;
-                        }*/
+
                 //Not going to be a goal
                 _futureGoal = null;
             }
@@ -350,15 +321,41 @@ namespace InfServer.Script.GameType_Soccerbrawl
         {//Handle saves and pinches and creases and irons and folds
             if (_futureGoal != null)
             {//It is a save or pinch
-                if (player._team == _futureGoal._team && player != _futureGoal)
+                if (bounces <= 0 && player._team == _futureGoal._team && player != _futureGoal)
                 {//It's a pinch
                     _arena.sendArenaMessage("Pinch=" + player._alias);
+                    if (_tickGameStart > 0 && _config.zoneStat.name9.Equals("Pinches")) //Game Progress
+                        //Save their stat
+                        player.ZoneStat10 += 1; //Pinches
                 }
-                else if (player._team != _futureGoal._team && player != _futureGoal)
+                else if (bounces <= 0 && player._team != _futureGoal._team && player != _futureGoal)
                 {//It's a save
                     _arena.sendArenaMessage("Save=" + player._alias);
+                    if (_tickGameStart > 0 && _config.zoneStat.name10.Equals("Saves"))
+                        //Save their stat
+                        player.ZoneStat11 += 1; //Saves
                 }
             }
+
+            //Keep track of passes/fumbles/catches/steals
+            if (pass != player && _tickGameStart > 0)
+            {
+                if (pass._team == player._team)
+                {
+                    //Completed pass, give a point to both
+                    player.ZoneStat4 += 1; //Teammate catched it
+                    pass.ZoneStat6 += 1; //Pass
+                }
+                else
+                {
+                    //Ball was stolen
+                    player.ZoneStat5 += 1; //Steal
+                    pass.ZoneStat7 += 1; //Fumbled the pass
+                }
+            }
+
+            carryTimeStart = Environment.TickCount;
+            bounces = 0;
             return true;
         }
 
@@ -370,7 +367,14 @@ namespace InfServer.Script.GameType_Soccerbrawl
         {	//We've started!
             //Check for saves/pinches/irons/folds/creases
             if (_futureGoal != null && player._team != _futureGoal._team)
-                return true;
+            {
+                _futureGoal = null;
+                return false;
+            }
+
+            //Reset
+            _futureGoal = null;
+            bounces = 0;
 
             if (player._team == team1)
                 team1Goals++;
@@ -378,12 +382,20 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 team2Goals++;
 
             //Let everyone know
-            if (assit != null && assit2 != null && assit2 != player && assit2._team == player._team)
-                _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name + "  Assist(" + assit2._alias + ")", _config.soccer.goalBong);
+            if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
+            {
+                _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name + "  Assist(" + assist2._alias + ")", _config.soccer.goalBong);
+                if (_tickGameStart > 0 && _config.zoneStat.name3.Equals("Assists"))
+                    assist2.ZoneStat4 += 1; //Assists
+            }
             else
                 _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name, _config.soccer.goalBong);
 
             _arena.sendArenaMessage("SCORE:  " + team1._name + "=" + team1Goals + "  " + team2._name + "=" + team2Goals);
+
+            //Save their stat
+            if (_tickGameStart > 0 && _config.zoneStat.name2.Equals("Goals"))
+                player.ZoneStat3 += 1; //Goals
 
             if (!_overtime)
             {
@@ -401,7 +413,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 p.setVar("Hits", x);
                 if (!p.IsSpectator)
                     Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.joinTeam);
-                string update = String.Format("&{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
+                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
                 p._arena.setTicker(5, 1, 0, update); // Puts the score top right!
             }
 
@@ -410,6 +422,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 _arena.gameEnd();
                 _arena.setTicker(1, 0, 0, null, null); // overtime top right   
             }
+
             return true;
         }
 
@@ -422,10 +435,10 @@ namespace InfServer.Script.GameType_Soccerbrawl
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
 
-            team1Count = team1.ActivePlayerCount;
-            team2Count = team2.ActivePlayerCount;
             team1Goals = 0;
             team2Goals = 0;
+            _futureGoal = null;
+            bounces = 0;
 
             //Lets clear our ball list first incase of added balls
             _arena._balls.Clear();
@@ -467,13 +480,13 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 int x = 0;
                 p.setVar("Hits", x);
                 p._gotBallID = 999;
-                string update = String.Format("&{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
+                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
                 p._arena.setTicker(5, 1, 0, update); // Puts the score top right!
             }
 
             //Make each player aware of the ball
             newBall.Route_Ball(_arena.Players);
-            
+
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
 
@@ -486,20 +499,35 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Game.End")]
         public bool gameEnd()
         {	//Game finished, perhaps start a new one
-            int pcount = 0;
             if (team1Goals > team2Goals)
             {
                 _victoryTeam = team1;
-                pcount = team1Count;
+                foreach (Player p in team1.ActivePlayers)
+                    //Give them a win score
+                    p.ZoneStat1 += 1;
+
+                foreach (Player p in team2.ActivePlayers)
+                    //Give them a lose score
+                    p.ZoneStat2 += 1;
             }
-            else
+            else if (team2Goals > team1Goals)
             {
                 _victoryTeam = team2;
-                pcount = team2Count;
+                foreach (Player p in team2.ActivePlayers)
+                    //Give them a win score
+                    p.ZoneStat1 += 1;
+
+                foreach (Player p in team1.ActivePlayers)
+                    //Give them a lose score
+                    p.ZoneStat2 += 1;
             }
 
             _arena.sendArenaMessage("Game Over!", _config.soccer.victoryBong);
-            _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
+            if (_victoryTeam == null)
+                //No one wins
+                _arena.sendArenaMessage("&Game ended in a draw. No one wins.");
+            else
+                _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
 
             IEnumerable<Player> rankedPlayers;
             int idx;
@@ -543,6 +571,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 p.clearProjectiles();
             }
 
+            /* 
             if (_config.arena.scrambleTeams == 1)
             {
                 //Shuffle the players up randomly into a new list
@@ -577,6 +606,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 //Notify players of the scramble
                 _arena.sendArenaMessage("Teams have been scrambled!");
             }
+            */
 
             //Reset variables
             _arena.gameReset();
@@ -614,6 +644,71 @@ namespace InfServer.Script.GameType_Soccerbrawl
         }
 
         /// <summary>
+        /// Called when a player leaves the arena
+        /// </summary>
+        [Scripts.Event("Player.LeaveArena")]
+        public void playerLeaveArena(Player player)
+        {
+            //Check to see if we are in the list still
+            dequeue(player);
+
+            //Try speccing someone in
+            specInQueue();
+        }
+
+        /// <summary>
+        /// Called after leave game(updates the arena player counts first) 
+        /// </summary>
+        [Scripts.Event("Player.Leave")]
+        public void playerLeave(Player player)
+        {
+            //Check to see if we are in the list
+            dequeue(player);
+
+            //See if another player can join
+            specInQueue();
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to spec and leave the game
+        /// </summary>
+        [Scripts.Event("Player.LeaveGame")]
+        public bool playerLeaveGame(Player player)
+        {
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena._balls.FirstOrDefault(b => b._id == player._gotBallID);
+
+                player._gotBallID = 999;
+                //Initialize its ballstate
+                ball._state = new Ball.BallState();
+
+                //Assign default state
+                ball._state.positionX = player._state.positionX;
+                ball._state.positionY = player._state.positionY;
+                ball._state.positionZ = player._state.positionZ;
+                ball._state.velocityX = 0;
+                ball._state.velocityY = 0;
+                ball._state.velocityZ = 0;
+                ball._state.ballStatus = -1;
+
+                ball.Route_Ball(player._arena.Players);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Called when the player joins the game
+        /// </summary>
+        [Scripts.Event("Player.Enter")]
+        public void playerEnter(Player player)
+        {
+            //Check the queue
+            dequeue(player);
+        }
+
+        /// <summary>
         /// Triggered when a player wants to unspec and join the game
         /// </summary>
         [Scripts.Event("Player.JoinGame")]
@@ -622,11 +717,20 @@ namespace InfServer.Script.GameType_Soccerbrawl
             if (player.getVarInt("Hits").Equals(null))
                 player.setVar("Hits", 0);
 
-            if (_arena.PlayerCount == _config.arena.playingMax)
+            if (_arena.PlayerCount >= _config.arena.playingMax)
             {
-                enqueue(player);
+                //First time queuer?
+                if (!queue.Contains(player))
+                    enqueue(player);
+                else
+                    //Wants to leave the list
+                    dequeue(player);
+
+                //Returns false so people arent joined onto a team
+                //See scriptArena handlePlayerJoin
                 return false;
             }
+
             return true;
         }
 
@@ -635,61 +739,83 @@ namespace InfServer.Script.GameType_Soccerbrawl
         /// </summary>
         public void enqueue(Player player)
         {
-            if (!queue.ContainsKey(player))
+            if (!queue.Contains(player))
             {
-                queue.Add(player, queue.Count() + 1);
-                player.sendMessage(-1, String.Format("The game is full, (Queue={0})", queue[player]));
+                queue.Add(player);
+                //Dont show us as 0 if we are first in list
+                int i = queue.IndexOf(player) + 1;
+                player.sendMessage(-1, String.Format("The game is full. (Queue={0})", i.ToString()));
             }
-            else
+        }
+
+        /// <summary>
+        /// Dequeues a player from the queue list
+        /// </summary>
+        public void dequeue(Player player)
+        {
+            if (queue.Contains(player))
             {
+                int index = queue.IndexOf(player) + 1;
+
                 queue.Remove(player);
                 player.sendMessage(-1, "Removed from queue.");
 
-                if (queue.Count > 0)
-                {
-                    foreach (KeyValuePair<Player, int> p in queue.ToList())
-                    {
-                        queue[p.Key] = queue[p.Key] - 1;
-                        p.Key.sendMessage(0, String.Format("Queue position is now {0}", queue[p.Key]));
-                    }
+                updateQueue(index);
+            }
+        }
+
+        /// <summary>
+        /// Auto spec's in a player if available
+        /// </summary>
+        private void specInQueue()
+        {
+            if (queue.Count == 0)
+                return;
+
+            if (_arena.PlayerCount < _config.arena.playingMax)
+            {
+                Player nextPlayer = queue.ElementAt(0);
+
+                //Does the player still exist?
+                if ((nextPlayer = _arena.getPlayerByName(nextPlayer._alias)) != null)
+                {   //Yep!
+
+                    if (team1.ActivePlayerCount < _config.arena.maxPerFrequency)
+                        nextPlayer.unspec(team1);
+                    else if (team2.ActivePlayerCount < _config.arena.maxPerFrequency)
+                        nextPlayer.unspec(team2);
+                    else
+                        //Cannot unspec, teams full due to mod powers
+                        return;
+
+                    queue.Remove(nextPlayer);
+                    updateQueue(1);
                 }
             }
         }
 
         /// <summary>
-        /// Updates the queue for any players in it, also auto specs in when available
+        /// Updates the queue for any players in it
         /// </summary>
-        private void updateQueue(Dictionary<Player, int> queue)
-        {
-            int playingMax = _config.arena.playingMax;
+        private void updateQueue(int index)
+        {   // Nothing to do here
+            if (queue.Count == 0)
+                return;
 
-            if (queue.Count > 0)
-            {
-                Player nextPlayer = queue.ElementAt(0).Key;
+            int i = 1; //Start at 1 because first element in list is 0, we dont show us as 0
+            foreach (Player p in queue.ToList())
+                //Lets update players
+                if (i++ >= index)
+                    p.sendMessage(0, String.Format("Queue position is now {0}", i.ToString()));
 
-                if (team1.ActivePlayerCount < (playingMax / 2))
-                    nextPlayer.unspec(team1._name);
-                else if (team2.ActivePlayerCount < (playingMax / 2))
-                    nextPlayer.unspec(team2._name);
-
-                //Remove
-                queue.Remove(nextPlayer);
-
-                foreach (KeyValuePair<Player, int> player in queue.ToList())
-                {
-                    queue[player.Key] = queue[player.Key] - 1;
-                    player.Key.sendMessage(0, String.Format("Queue position is now {0}", queue[player.Key]));
-                }
-
-                updateTickers();
-            }
+            updateTickers();
         }
 
         private void updateTickers()
         {
             _arena.setTicker(5, 1, 0, delegate(Player P)
             {
-                string update = String.Format("&{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
+                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
 
                 if (P != null)
                     return update;
@@ -698,8 +824,12 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             _arena.setTicker(4, 2, 0, delegate(Player p)
             {
-                if (queue.ContainsKey(p))
-                    return String.Format("Queue Position: {0}", queue[p]);
+                if (queue.Contains(p))
+                {
+                    //Dont show us as position 0
+                    int i = queue.IndexOf(p) + 1;
+                    return String.Format("Queue Position: {0}", i.ToString());
+                }
                 return "";
             });
         }
@@ -737,6 +867,19 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     });
                 }
             }
+        }
+
+        /// <summary>
+        /// Triggered when one player has killed another
+        /// </summary>
+        [Scripts.Event("Player.PlayerKill")]
+        public bool playerPlayerKill(Player victim, Player killer)
+        {
+            if (killer.getVarInt("Hits").Equals(null))
+                killer.setVar("Hits", 1);
+            else
+                killer.setVar("Hits", killer.getVarInt("Hits") + 1);
+            return true;
         }
 
         /// <summary>
@@ -783,9 +926,10 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 player.sendMessage(0, "Current Queue List:");
                 if (queue.Count > 0)
                 {
+                    int i = 0;
                     //Player wants to see who is waiting
-                    foreach (KeyValuePair<Player, int> P in queue)
-                        player.sendMessage(1, (String.Format("{0} - {1}", queue[P.Key], P.Key._alias)));
+                    foreach (Player P in queue)
+                        player.sendMessage(1, (String.Format("{0} - {1}", (++i).ToString(), P._alias)));
                 }
                 else
                     //Nothing in the list
@@ -834,18 +978,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
             return false;
         }
 
-        /// <summary>
-        /// Triggered when one player has killed another
-        /// </summary>
-        [Scripts.Event("Player.PlayerKill")]
-        public bool playerPlayerKill(Player victim, Player killer)
-        {
-            if (killer.getVarInt("Hits").Equals(null))
-                killer.setVar("Hits", 1);
-            else
-                killer.setVar("Hits", killer.getVarInt("Hits") + 1);
-            return true;
-        }
         #endregion
     }
 }

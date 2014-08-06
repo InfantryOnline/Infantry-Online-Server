@@ -41,7 +41,7 @@ namespace InfServer.Game.Commands.Mod
 
                 arena.Value.recycling = true;
                 arena.Value.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
-                arena.Value.setTicker(0, 0, delay * 100, "Server closing in:");
+                arena.Value.setTicker(0, 0, delay * 100, "Server closing in: ");
             }
         }
 

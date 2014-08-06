@@ -349,8 +349,13 @@ namespace InfServer.Game
 
             //Sob, let him go
 			_players.Remove(player);
+
+            //Trigger our event for a player leaving a game
 			if (!player.IsSpectator)
 				playerLeave(player);
+
+            //Trigger our event for player leaving an arena
+            callsync("Player.LeaveArena", false, player);
 
 			player.onLeaveArena();
 
@@ -380,7 +385,7 @@ namespace InfServer.Game
                     Helpers.Object_PlayerLeave(Players, player);
                 else
                 {
-                    foreach (Player person in Players)
+                    foreach (Player person in Players.ToList())
                         if (person.PermissionLevel >= player.PermissionLevel)
                             Helpers.Object_PlayerLeave(person, player);
                 }

@@ -662,12 +662,12 @@ namespace InfServer.Game.Commands.Mod
                 //Set script based on user input
                 if (payload.ToLower() == "on")
                 {
-                    player._arena._server._zoneConfig.arena.scrambleTeams = 1;
+                    player._arena._scramble = true;
                     player.sendMessage(0, "Scramble toggled ON.");
                 }
                 else if (payload.ToLower() == "off")
                 {
-                    player._arena._server._zoneConfig.arena.scrambleTeams = 0;
+                    player._arena._scramble = false;
                     player.sendMessage(0, "Scramble toggled OFF.");
                 }
                 else
@@ -1339,12 +1339,104 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         public static void wipe(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
-            if (recipient == null)
+            if (String.IsNullOrWhiteSpace(payload) || !payload.ToLower().Contains("yes"))
             {
-                player.sendMessage(-1, "Syntax: ::*wipe");
+                player.sendMessage(-1, "Syntax: *wipe alias yes, :alias:*wipe yes, or *wipe all yes (Note: wipe all wipes anyone that played this zone)");
                 return;
             }
 
+            //Is this a pm?
+            if (recipient != null)
+            {
+                if (!recipient.IsSpectator)
+                {
+                    player.sendMessage(-1, "That character must be in spec.");
+                    return;
+                }
+
+                //Wiping all stats/inv etc
+                recipient.assignFirstTimeStats(true);
+                recipient.syncInventory();
+                recipient.syncState();
+                Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeSkillSetup);
+                Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeInvSetup);
+
+                player.sendMessage(0, "His/her character has been wiped.");
+                return;
+            }
+
+            //Check level requirement
+            if (player.PermissionLevel < Data.PlayerPermission.Sysop)
+            {
+                player.sendMessage(-1, "Sorry, you are not high enough.");
+                return;
+            }
+
+            string[] argument = payload.Split(' ');
+            if (argument[0].ToLower().Equals("all"))
+            {
+                //For active players, reset them
+                foreach (KeyValuePair<string, Arena> a in player._server._arenas)
+                {
+                    if (a.Value.TotalPlayerCount > 0)
+                    {
+                        a.Value.sendArenaMessage("Zone reset has been called, wiping all stats.", 2);
+                        foreach (Player p in a.Value.Players)
+                        {
+                            if (!p.IsSpectator)
+                                p.spec();
+
+                            //Wiping all stats/inv etc
+                            p.assignFirstTimeStats(true);
+                            p.syncInventory();
+                            p.syncState();
+                            Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.firstTimeSkillSetup);
+                            Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.firstTimeInvSetup);
+                        }
+                    }
+                }
+
+                //Send it to the db
+                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+                query.queryType = CS_Query<Data.Database>.QueryType.wipe;
+                query.payload = argument[0].ToLower();
+                query.sender = player._alias;
+                player._server._db.send(query);
+                return;
+            }
+            else
+            {
+                //Nope, check for aliases
+                if (argument[0].ToLower().Equals("yes"))
+                {
+                    //Error, didnt type an alias
+                    player.sendMessage(-1, "Syntax: *wipe <alias> yes, :alias:*wipe yes, or *wipe all yes");
+                    return;
+                }
+
+                if ((recipient = player._server.getPlayer(argument[0])) != null)
+                {
+                    if (!recipient.IsSpectator)
+                        recipient.spec();
+                    //Wiping all stats/inv etc
+                    recipient.assignFirstTimeStats(true);
+                    recipient.syncInventory();
+                    recipient.syncState();
+                    Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeSkillSetup);
+                    Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeInvSetup);
+                    recipient.sendMessage(0, "Your stats have been wiped.");
+                }
+
+                //Send it to the db
+                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+                query.queryType = CS_Query<Data.Database>.QueryType.wipe;
+                query.payload = argument[0];
+                query.sender = player._alias;
+                player._server._db.send(query);
+
+                return;
+            }
+            /*
             if (!recipient.IsSpectator)
             {
                 player.sendMessage(-1, "That character must be in spec.");
@@ -1359,6 +1451,7 @@ namespace InfServer.Game.Commands.Mod
             Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeInvSetup);
 
             player.sendMessage(0, "His/her character has been wiped.");
+             */
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////
@@ -2581,6 +2674,11 @@ namespace InfServer.Game.Commands.Mod
                 "Syntax: *timer xx or *timer xx:xx",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
+            yield return new HandlerDescriptor(unspec, "unspec",
+                "Takes a player out of spectator mode and puts him on the specified team.",
+                "*unspec [team] or ::*unspec [team] or ::*unspec ..",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
             yield return new HandlerDescriptor(warp, "warp",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
                 "::*warp or *warp A4 or *warp 123,123",
@@ -2591,14 +2689,9 @@ namespace InfServer.Game.Commands.Mod
                 "*watchmod",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
-            yield return new HandlerDescriptor(unspec, "unspec",
-                "Takes a player out of spectator mode and puts him on the specified team.",
-                "*unspec [team] or ::*unspec [team] or ::*unspec ..",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
-
             yield return new HandlerDescriptor(wipe, "wipe",
-                "Wipes a character within the current zone",
-                "::*wipe",
+                "Wipes a character (or all) within the current zone",
+                "*wipe all yes, *wipe <alias> yes, :alias:*wipe yes",
                 InfServer.Data.PlayerPermission.Mod, false);
         }
     }
