@@ -166,7 +166,7 @@ namespace InfServer.Game
             }
 
             //Are they a developer?
-            if (from.PermissionLevelLocal != Data.PlayerPermission.Developer)
+            if (!from._developer)
             {   //No
                 //Check the permission levels
                 if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
@@ -187,7 +187,7 @@ namespace InfServer.Game
                 string sRecipient;
                 foreach (Player p in Players)
                 {
-                    if (p != from && !p._arena._watchMod)
+                    if (p != from && !p._watchMod)
                         //We have watchmod commands off, bypass this player
                         continue;
                     if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
@@ -202,7 +202,7 @@ namespace InfServer.Game
                             payload));
                     }
                     //Developer?
-                    else if (from.PermissionLevelLocal == Data.PlayerPermission.Developer)
+                    else if (from._developer)
                     {
                         if (p.PermissionLevelLocal >= Data.PlayerPermission.Mod && p != from)
                             p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",

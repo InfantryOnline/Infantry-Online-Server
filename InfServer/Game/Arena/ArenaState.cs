@@ -201,7 +201,7 @@ namespace InfServer.Game
 
             //Lets check his level and set watchMod
             if (player.PermissionLevel >= Data.PlayerPermission.Sysop)
-                player._arena._watchMod = true;
+                player._watchMod = true;
 
             //Check if we can use him as a reliable player [check if mod]
             if (player.PermissionLevel >= Data.PlayerPermission.ArenaMod)
@@ -369,7 +369,9 @@ namespace InfServer.Game
                         player._arena._owner.Remove(p);
                         if (player._permissionTemp >= Data.PlayerPermission.ArenaMod
                             && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                        {
                             player._permissionTemp = Data.PlayerPermission.Normal;
+                        }
                         break;
                     }
                 }

@@ -27,30 +27,32 @@ namespace InfServer.Script.GameType_Gravball
 
         private Team _victoryTeam;				//The team currently winning!
         private Random _rand;
-
         Team team1;
         Team team2;
-        Player assit;
-        Player assit2;
-
-        int gameTimerStart;                     //Tick when the game began
-        int gameLength;                         //Length of game
-        int team1Goals;                         //# of goals for each team
+        int gameTimerStart;                     // Tick when the game began
+        int team1Goals;
         int team2Goals;
+        int bounces;
+        double carryTimeStart, carryTime;
+
+        Player pass;                            //Who passed it
+        Player assist;
+        Player assist2;
         bool _overtime;                         //True if in overtime
         Player _futureGoal;
 
-        Dictionary<Player, int> queue;
-        private int _lastTickNotEnough;         //Only used for inactive games to keep balls active
+        List<Player> queue;                     //Our in queued players waiting to play
         private int _lastGameCheck;				//The tick at which we last checked for game viability
         private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
         private int _tickGameStart;				//The tick at which the game started (0 == stopped)
-        private int _lastBallCheck;             //Updates our ball in motion
-        private int _lastUpdateTicker;          //The last tick which our tickers were updated
-        private int _lostBallInterval = 5;      //How long till a ball respawns when glitched
+        private int _tickGameNotEnough;         //Only used for active balls without not enough players
+        private int _lastBallCheck;             //Updates our ball's in game motion
+        private int _tickGameLastTickerUpdate;  //Our Queue ticker update
+        private int _lostBallInterval = 5;      //How long a ball is glitched for, default is 5 seconds
         private int _lostBallTickerUpdate;
         //Settings
-        private int _minPlayers;				//The minimum amount of players
+        private int _minPlayers;				//The minimum amount of players needed to start a game
+        private int _minPlayersToKeepScore;     //Min players need to record stats
 
         //http://stackoverflow.com/questions/14672322/creating-a-point-class-c-sharp
         public class Point
@@ -63,12 +65,10 @@ namespace InfServer.Script.GameType_Gravball
                 Y = y; //Set the vertical location to y (The second argument)
             }
         }
-
         public double triangleArea(Point A, Point B, Point C)
         {
             return (C.X * B.Y - B.X * C.Y) - (C.X * A.Y - A.X * C.Y) + (B.X * A.Y - A.X * B.Y);
         }
-
         public bool isInsideSquare(Point A, Point B, Point C, Point D, Point P)
         {
             if (triangleArea(A, B, P) > 0 || triangleArea(B, C, P) > 0 || triangleArea(C, D, P) > 0 || triangleArea(D, A, P) > 0)
@@ -105,14 +105,14 @@ namespace InfServer.Script.GameType_Gravball
             team2 = _arena.getTeamByName(_config.teams[1].name);
             team1Goals = 0;
             team2Goals = 0;
-
-            gameLength = _config.soccer.timer;
-            _minPlayers = _config.soccer.minimumPlayers;
-
+            _minPlayers = 2;
+            _minPlayersToKeepScore = _config.arena.minimumKeepScorePublic;
+            bounces = 0;
             if (_config.soccer.deadBallTimer > _lostBallInterval)
                 _lostBallInterval = _config.soccer.deadBallTimer;
 
-            queue = new Dictionary<Player, int>();
+            queue = new List<Player>();
+
             return true;
         }
 
@@ -130,8 +130,10 @@ namespace InfServer.Script.GameType_Gravball
             //Do we have enough players ingame?
             int playing = _arena.PlayerCount;
 
+            //If game is running and we don't have enough players
             if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
             {	//Stop the game!
+                _arena._bGameRunning = false;
                 _arena.setTicker(1, 0, 0, "Not Enough Players");
                 _arena.gameReset();
 
@@ -151,8 +153,9 @@ namespace InfServer.Script.GameType_Gravball
                     {	//Trigger the game start
                         gameTimerStart = now;
                         _arena.gameStart();
-                        _arena.setTicker(1, 0, gameLength * 100, "Time remaining: ", delegate()
-                        {	//Trigger the end of game check                            
+                        _arena.setTicker(1, 0, _config.soccer.timer * 100, "Time remaining: ", delegate()
+                        {
+                            //Trigger the end of game check                            
                             if (team1Goals == team2Goals)
                             {
                                 _overtime = true;
@@ -166,32 +169,33 @@ namespace InfServer.Script.GameType_Gravball
                 );
             }
 
+            //Updates our balls(get it!)
             if ((_tickGameStart > 0 && now - _tickGameStart > 11000 && now - _lastBallCheck > 100)
-                || (!_arena._bGameRunning && now - _lastTickNotEnough > 11000 && now - _lastBallCheck > 100))
+                || (!_arena._bGameRunning && now - _tickGameNotEnough > 11000 && now - _lastBallCheck > 100))
             {
                 if (_arena._balls.Count() > 0)
                     foreach (Ball ball in _arena._balls.ToList())
                     {
                         //This updates the ball visually
                         ball.Route_Ball(_arena.Players);
-
                         _lastBallCheck = now;
-                        _lastTickNotEnough = now;
+                        _tickGameNotEnough = now;
 
-                        //Check for a dead ball(non-reachable)
+                        //Check for a dead ball(non reachable)
                         deadBallTimer(ball);
                     }
             }
 
-            //Update our queue
+            //Updates our queue
             if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
             {
-                if (now - _lastUpdateTicker > 1000)
+                if (now - _tickGameLastTickerUpdate > 1000)
                 {
                     updateTickers();
-                    _lastUpdateTicker = now;
+                    _tickGameLastTickerUpdate = now;
                 }
             }
+
             return true;
         }
 
@@ -203,10 +207,23 @@ namespace InfServer.Script.GameType_Gravball
         public bool handleBallDrop(Player player, Ball ball)
         {
             //Keep track of assists 
-            if (player != null && player != assit)
+            if (player != null && player != assist)
             {
-                assit2 = assit;
-                assit = player;
+                assist2 = assist;
+                assist = player;
+            }
+
+            //Keep track of passes/catches/fumbles/steals
+            pass = player;
+            pass._team = player._team;
+
+            //Keep track of carry time
+            if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore)
+            {
+                carryTime = Environment.TickCount - carryTimeStart;
+                carryTimeStart = 0;
+                if (_config.zoneStat.name8.Equals("Carry Time"))
+                    player.ZoneStat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
             }
 
             //Now lets predict if this ball will hit the goal
@@ -237,11 +254,13 @@ namespace InfServer.Script.GameType_Gravball
                             _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
                         {//Horizontal wall
                             dyi *= -1;
+                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked)
                         {//Vertical
                             dxi *= -1;
+                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
@@ -249,6 +268,7 @@ namespace InfServer.Script.GameType_Gravball
                             short tempx = dxi;
                             dxi = dyi;
                             dyi = tempx;
+                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked)
@@ -256,6 +276,7 @@ namespace InfServer.Script.GameType_Gravball
                             short tempx = dxi;
                             dxi = dyi *= -1;
                             dyi = tempx *= -1;
+                            bounces += 1;
                         }
                         else
                         {//OhShit case                            
@@ -292,23 +313,68 @@ namespace InfServer.Script.GameType_Gravball
                 if (player._team == _futureGoal._team && player != _futureGoal)
                 {   //It's a pinch
                     _arena.sendArenaMessage("Goal pinched by " + player._alias);
+                    if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
+                        && _config.zoneStat.name9.Equals("Pinches")) //Game Progress
+                        //Save their stat
+                        player.ZoneStat10 += 1; //Pinches
                 }
                 else if (player._team != _futureGoal._team && player != _futureGoal)
                 {   //It's a save
                     _arena.sendArenaMessage("Goal saved by " + player._alias);
+                    if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
+                        && _config.zoneStat.name10.Equals("Saves"))
+                        //Save their stat
+                        player.ZoneStat11 += 1; //Saves
                 }
             }
 
+            //Keep track of passes/fumbles/catches/steals
+            if (pass != player && _tickGameStart > 0
+                && _arena.PlayerCount >= _minPlayersToKeepScore)
+            {
+                if (pass._team == player._team)
+                {
+                    //Completed pass, give a point to both
+                    player.ZoneStat5 += 1; //Teammate catched it
+                    pass.ZoneStat7 += 1; //Pass
+                }
+                else
+                {
+                    //Ball was stolen
+                    player.ZoneStat6 += 1; //Steal
+                    pass.ZoneStat8 += 1; //Fumbled the pass
+                }
+            }
+
+            carryTimeStart = Environment.TickCount;
+            bounces = 0;
             return true;
         }
 
         /// <summary>
-        /// Called when a player leaves the game
+        /// Called when a player leaves the arena
+        /// </summary>
+        [Scripts.Event("Player.LeaveArena")]
+        public void playerLeaveArena(Player player)
+        {
+            //Check to see if we are in the list still
+            dequeue(player);
+
+            //Try speccing someone in
+            specInQueue();
+        }
+
+        /// <summary>
+        /// Called after leave game(updates the arena player counts first) 
         /// </summary>
         [Scripts.Event("Player.Leave")]
         public void playerLeave(Player player)
         {
-            updateQueue(queue);
+            //Check to see if we are in the list
+            dequeue(player);
+
+            //See if another player can join
+            specInQueue();
         }
 
         /// <summary>
@@ -336,6 +402,7 @@ namespace InfServer.Script.GameType_Gravball
 
                 ball.Route_Ball(player._arena.Players);
             }
+
             return true;
         }
 
@@ -347,7 +414,14 @@ namespace InfServer.Script.GameType_Gravball
         {	//We've started!
             //Check for saves/pinches/irons/folds/creases
             if (_futureGoal != null && player._team != _futureGoal._team)
-                return true;
+            {
+                _futureGoal = null;
+                return false;
+            }
+
+            //Reset
+            _futureGoal = null;
+            bounces = 0;
 
             if (player._team == team1)
                 team1Goals++;
@@ -355,12 +429,22 @@ namespace InfServer.Script.GameType_Gravball
                 team2Goals++;
 
             //Let everyone know
-            if (assit != null && assit2 != null && assit2 != player && assit2._team == player._team)
-                _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name + "  assist(" + assit2._alias + ")", _config.soccer.goalBong);
+            if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
+            {
+                _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name + "  assist(" + assist2._alias + ")", _config.soccer.goalBong);
+                if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
+                    && _config.zoneStat.name3.Equals("Assists"))
+                    assist2.ZoneStat4 += 1; //Assists
+            }
             else
                 _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name, _config.soccer.goalBong);
 
             _arena.sendArenaMessage("SCORE:  " + team1._name + "=" + team1Goals + "  " + team2._name + "=" + team2Goals);
+
+            //Save their stat
+            if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
+                && _config.zoneStat.name2.Equals("Goals"))
+                player.ZoneStat3 += 1; //Goals
 
             //See if we need to end the game
             if (!_overtime)
@@ -398,6 +482,8 @@ namespace InfServer.Script.GameType_Gravball
 
             team1Goals = 0;
             team2Goals = 0;
+            _futureGoal = null;
+            bounces = 0;
 
             //Lets clear the list
             _arena._balls.Clear();
@@ -417,8 +503,6 @@ namespace InfServer.Script.GameType_Gravball
             newBall._state.velocityX = 0;
             newBall._state.velocityY = 0;
             newBall._state.velocityZ = 0;
-            newBall._owner = null;
-            newBall._state.carrier = null;
             newBall._state.ballStatus = -1;
             newBall.deadBall = false;
 
@@ -461,41 +545,48 @@ namespace InfServer.Script.GameType_Gravball
         [Scripts.Event("Game.End")]
         public bool gameEnd()
         {	//Game finished, perhaps start a new one
-            _tickGameStart = 0;
-            _tickGameStarting = 0;
-            _victoryTeam = null;
-            _overtime = false;
-
-            /*
-            //Delete the ball at the game end
-            Ball ball = _arena._balls.FirstOrDefault(b => b._id == _ballID);
-            if (ball != null)
-            {
-                ball._state.ballStatus = 0;
-                ball._owner = null;
-                ball._state.carrier = null;
-                ball.Route_Ball(_arena.Players);
-                _arena._balls.Remove(ball);
-            }*/
-
-            //Find the winning team
+            bool record = _arena.PlayerCount >= _minPlayersToKeepScore;
             if (team1Goals > team2Goals)
+            {
                 _victoryTeam = team1;
-            else
+                if (record)
+                {
+                    foreach (Player p in team1.ActivePlayers)
+                        //Give them a win score
+                        p.ZoneStat1 += 1;
+
+                    foreach (Player p in team2.ActivePlayers)
+                        //Give them a lose score
+                        p.ZoneStat2 += 1;
+                }
+            }
+            else if (team2Goals > team1Goals)
+            {
                 _victoryTeam = team2;
+                if (record)
+                {
+                    foreach (Player p in team2.ActivePlayers)
+                        //Give them a win score
+                        p.ZoneStat1 += 1;
+
+                    foreach (Player p in team1.ActivePlayers)
+                        //Give them a lose score
+                        p.ZoneStat2 += 1;
+                }
+            }
 
             _arena.sendArenaMessage("Game Over!", _config.soccer.victoryBong);
-            _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
-
-            team1Goals = 0;
-            team2Goals = 0;
+            if (_victoryTeam == null)
+                //No one wins
+                _arena.sendArenaMessage("&Game ended in a draw. No one wins.");
+            else
+                _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
 
             IEnumerable<Player> rankedPlayers;
             rankedPlayers = _arena.PlayersIngame.OrderByDescending(
                 p => (p.getVarInt("Hits").Equals(null) ? 0 : p.getVarInt("Hits")));
 
             int idx = 3;	//Only display top three players
-
             foreach (Player p in rankedPlayers)
             {
                 if (idx-- == 0)
@@ -536,6 +627,7 @@ namespace InfServer.Script.GameType_Gravball
             }
 
             //Shuffle the players up randomly into a new list
+            /*
             if (_config.arena.scrambleTeams == 1)
             {
                 var random = _rand;
@@ -567,8 +659,10 @@ namespace InfServer.Script.GameType_Gravball
 
                 //Notify players of the scramble
                 _arena.sendArenaMessage("Teams have been scrambled!");
-            }
+            }*/
 
+            //Reset variables
+            _arena.gameReset();
             return true;
         }
 
@@ -595,10 +689,20 @@ namespace InfServer.Script.GameType_Gravball
             team2Goals = 0;
 
             _overtime = false;
-            _futureGoal = null;
             _victoryTeam = null;
+            _futureGoal = null;
 
             return true;
+        }
+
+        /// <summary>
+        /// Called when the player joins the game
+        /// </summary>
+        [Scripts.Event("Player.Enter")]
+        public void playerEnter(Player player)
+        {
+            //Check the queue
+            dequeue(player);
         }
 
         /// <summary>
@@ -610,9 +714,17 @@ namespace InfServer.Script.GameType_Gravball
             if (player.getVarInt("Hits").Equals(null))
                 player.setVar("Hits", 0);
 
-            if (_arena.PlayerCount == _config.arena.playingMax)
+            if (_arena.PlayerCount >= _config.arena.playingMax)
             {
-                enqueue(player);
+                //First time queuer?
+                if (!queue.Contains(player))
+                    enqueue(player);
+                else
+                    //Wants to leave the list
+                    dequeue(player);
+
+                //Returns false so people arent joined onto a team
+                //See scriptArena handlePlayerJoin
                 return false;
             }
 
@@ -624,60 +736,78 @@ namespace InfServer.Script.GameType_Gravball
         /// </summary>
         public void enqueue(Player player)
         {
-            if (!queue.ContainsKey(player))
+            if (!queue.Contains(player))
             {
-                queue.Add(player, queue.Count() + 1);
-                player.sendMessage(-1, String.Format("The game is full, (Queue={0})", queue[player]));
+                queue.Add(player);
+                //Dont show us as 0 if we are first in list
+                int i = queue.IndexOf(player) + 1;
+                player.sendMessage(-1, String.Format("The game is full. (Queue={0})", i.ToString()));
             }
-            else
+        }
+
+        /// <summary>
+        /// Dequeues a player from the queue list
+        /// </summary>
+        public void dequeue(Player player)
+        {
+            if (queue.Contains(player))
             {
+                int index = queue.IndexOf(player) + 1;
+
                 queue.Remove(player);
                 player.sendMessage(-1, "Removed from queue.");
 
-                if (queue.Count > 0)
-                {
-                    foreach (KeyValuePair<Player, int> p in queue.ToList())
-                    {
-                        queue[p.Key] = queue[p.Key] - 1;
-                        p.Key.sendMessage(0, String.Format("Queue position is now {0}.", queue[p.Key]));
-                    }
-                }
+                updateQueue(index);
             }
         }
 
         /// <summary>
-        /// Updates the queue for any players in it, also auto specs in when available
+        /// Auto spec's in a player if available
         /// </summary>
-        private void updateQueue(Dictionary<Player, int> queue)
+        private void specInQueue()
         {
-            int playingMax = _config.arena.playingMax;
+            if (queue.Count == 0)
+                return;
 
-            if (queue.Count > 0)
+            if (_arena.PlayerCount < _config.arena.playingMax)
             {
-                if (team1.ActivePlayerCount < (playingMax / 2))
-                    queue.ElementAt(0).Key.unspec(team1._name);
-                else if (team2.ActivePlayerCount < (playingMax / 2))
-                    queue.ElementAt(0).Key.unspec(team2._name);
-                else
-                    //Couldnt spec-in the player
-                    return;
+                Player nextPlayer = queue.ElementAt(0);
 
-                //Remove
-                queue.Remove(queue.ElementAt(0).Key);
+                //Does the player still exist?
+                if ((nextPlayer = _arena.getPlayerByName(nextPlayer._alias)) != null)
+                {   //Yep!
 
-                foreach (KeyValuePair<Player, int> player in queue.ToList())
-                {
-                    queue[player.Key] = queue[player.Key] - 1;
-                    player.Key.sendMessage(0, String.Format("Queue position is now {0}.", queue[player.Key]));
+                    if (team1.ActivePlayerCount < _config.arena.maxPerFrequency)
+                        nextPlayer.unspec(team1);
+                    else if (team2.ActivePlayerCount < _config.arena.maxPerFrequency)
+                        nextPlayer.unspec(team2);
+                    else
+                        //Cannot unspec, teams full due to mod powers
+                        return;
+
+                    queue.Remove(nextPlayer);
+                    updateQueue(1);
                 }
-
-                updateTickers();
             }
         }
 
         /// <summary>
-        /// Updates our queue position and team goals
+        /// Updates the queue for any players in it
         /// </summary>
+        private void updateQueue(int index)
+        {   // Nothing to do here
+            if (queue.Count == 0)
+                return;
+
+            int i = 1; //Start at 1 because first element in list is 0, we dont show us as 0
+            foreach (Player p in queue.ToList())
+                //Lets update players
+                if (i++ >= index)
+                    p.sendMessage(0, String.Format("Queue position is now {0}", i.ToString()));
+
+            updateTickers();
+        }
+
         private void updateTickers()
         {
             _arena.setTicker(5, 1, 0, delegate(Player P)
@@ -691,15 +821,16 @@ namespace InfServer.Script.GameType_Gravball
 
             _arena.setTicker(4, 2, 0, delegate(Player p)
             {
-                if (queue.ContainsKey(p))
-                    return String.Format("Queue Position: {0}", queue[p]);
+                if (queue.Contains(p))
+                {
+                    //Dont show us as position 0
+                    int i = queue.IndexOf(p) + 1;
+                    return String.Format("Queue Position: {0}", i.ToString());
+                }
                 return "";
             });
         }
 
-        /// <summary>
-        /// Updates our dead ball timer, respawns if necessary
-        /// </summary>
         private void deadBallTimer(Ball ball)
         {
             if (ball == null)
@@ -764,9 +895,10 @@ namespace InfServer.Script.GameType_Gravball
                 player.sendMessage(0, "Current Queue List:");
                 if (queue.Count > 0)
                 {
+                    int i = 0;
                     //Player wants to see who is waiting
-                    foreach (KeyValuePair<Player, int> P in queue)
-                        player.sendMessage(1, (String.Format("{0} - {1}", queue[P.Key], P.Key._alias)));
+                    foreach (Player P in queue)
+                        player.sendMessage(1, (String.Format("{0} - {1}", (++i).ToString(), P._alias)));
                 }
                 else
                     //Nothing in the list

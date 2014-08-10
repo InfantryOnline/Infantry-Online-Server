@@ -4,43 +4,27 @@ using System.Linq;
 using System.Text;
 
 using InfServer.Network;
+using InfServer.Data;
 
 namespace InfServer.Protocol
 {	/// <summary>
-    /// 
+    /// SC_Chart relays a chart request to the player
     /// </summary>
-    public class CS_Query<T> : PacketBase
+    public class SC_ChartResponse<T> : PacketBase
         where T : IClient
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public QueryType queryType;         //Query type
-        public string sender;               //Player requesting
-        public string payload;              //Query payload
+        public string alias;                        //The player's alias
+
+        public CS_ChartQuery<T>.ChartType type;     //The type of chart
+
+        public string title;
+        public string columns;
+        public string data;
 
         //Packet routing
-        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Query;
-        static public event Action<CS_Query<T>, T> Handlers;
-
-
-        public enum QueryType
-        {
-            accountinfo,
-            whois,
-            find,
-            online,
-            emailupdate,
-            zonelist,
-            history,
-            global,
-            ban,
-            squadstats,
-            helpcall,
-            alert,
-            modChat,
-            deletealias,
-            wipe,
-            adminlist,
-        }
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.ChartResponse;
+        static public event Action<SC_ChartResponse<T>, T> Handlers;
 
 
         ///////////////////////////////////////////////////
@@ -50,12 +34,9 @@ namespace InfServer.Protocol
         /// Creates an empty packet of the specified type. This is used
         /// for constructing new packets for sending.
         /// </summary>
-        public CS_Query()
+        public SC_ChartResponse()
             : base(TypeID)
-        {
-            sender = "";
-            payload = "";
-        }
+        { }
 
         /// <summary>
         /// Creates an instance of the dummy packet used to debug communication or 
@@ -63,10 +44,9 @@ namespace InfServer.Protocol
         /// </summary>
         /// <param name="typeID">The type of the received packet.</param>
         /// <param name="buffer">The received data.</param>
-        public CS_Query(ushort typeID, byte[] buffer, int index, int count)
+        public SC_ChartResponse(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
-        {
-        }
+        { }
 
         /// <summary>
         /// Routes a new packet to various relevant handlers
@@ -83,9 +63,14 @@ namespace InfServer.Protocol
         public override void Serialize()
         {	//Type ID
             Write((byte)TypeID);
-            Write(sender, 0);
-            Write((byte)queryType);
-            Write(payload, 0);
+
+            Write(alias, 0);
+
+            Write((byte)type);
+            Write(title, 0);
+            Write(columns, 0);
+
+            Write(data, 0);
         }
 
         /// <summary>
@@ -93,9 +78,13 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {
-            sender = ReadNullString();
-            queryType = (QueryType)_contentReader.ReadByte();
-            payload = ReadNullString();
+            alias = ReadNullString();
+
+            type = (CS_ChartQuery<T>.ChartType)_contentReader.ReadByte();
+            title = ReadNullString();
+            columns = ReadNullString();
+
+            data = ReadNullString();
         }
 
         /// <summary>
@@ -105,7 +94,7 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Zone server query request";
+                return "Zone server chart request";
             }
         }
     }

@@ -27,8 +27,6 @@ namespace InfServer.Data
 		SMod = 3,
         Manager = 4,
         Sysop = 5,
-        //Want to figure out a better way to do this, will rewrite everything eventually...
-        Developer = 6,
 	}
 
 	/// <summary>

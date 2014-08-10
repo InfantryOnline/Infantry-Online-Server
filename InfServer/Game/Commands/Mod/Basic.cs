@@ -322,7 +322,7 @@ namespace InfServer.Game.Commands.Mod
 
             if (recipient != null)
             {
-                if (recipient.PermissionLevel > Data.PlayerPermission.ArenaMod)
+                if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
                 {
                     player.sendMessage(-1, "That person doesn't need grant.");
                     return;
@@ -351,7 +351,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (recipient.PermissionLevel > Data.PlayerPermission.ArenaMod)
+                if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
                 {
                     player.sendMessage(-1, "That person doesn't need grant.");
                     return;
@@ -379,29 +379,43 @@ namespace InfServer.Game.Commands.Mod
             {	//List all mod commands
                 player.sendMessage(0, "&Commands available to you:");
 
+                SortedList<string, int> commands = new SortedList<string, int>();
                 int playerPermission = (int)player.PermissionLevelLocal;
-
-                string[] powers = { "Basic", "ArenaMod", "Mod", "SMod", "Manager", "Head Mod/Sysop", "Developer" };
+                string[] powers = { "Basic", "ArenaMod", "Mod", "SMod", "Manager", "Head Mod/Sysop" };
                 int level;
 
                 //New help list, sorted by level
-                if (player.PermissionLevelLocal != Data.PlayerPermission.Developer)
+                if (player._developer || player._permissionTemp == Data.PlayerPermission.ArenaMod)
                 {
+                    //First set list
+                    foreach (HandlerDescriptor cmd in player._arena._commandRegistrar._modCommands.Values)
+                        if (cmd.isDevCommand)
+                            commands.Add(cmd.handlerCommand, (int)cmd.permissionLevel);
+
+                    //Now sort by level
                     for (level = 0; level <= (int)player.PermissionLevelLocal; level++)
                     {
                         player.sendMessage(0, String.Format("!{0}", powers[level]));
-                        foreach (HandlerDescriptor cmd in player._arena._commandRegistrar._modCommands.Values)
-                            if (playerPermission >= (int)cmd.permissionLevel && level == (int)cmd.permissionLevel)
-                                player.sendMessage(0, "**" + cmd.handlerCommand);
+                        foreach (KeyValuePair<string, int> cmds in commands)
+                            if (playerPermission >= cmds.Value && level == cmds.Value)
+                                player.sendMessage(0, "**" + cmds.Key);
                     }
                 }
                 else
                 {
+                    //First set list
                     foreach (HandlerDescriptor cmd in player._arena._commandRegistrar._modCommands.Values)
-                        if (cmd.isDevCommand)
-                            player.sendMessage(0, "**" + cmd.handlerCommand);
-                }
+                        commands.Add(cmd.handlerCommand, (int)cmd.permissionLevel);
 
+                    //Now sort by level
+                    for (level = 0; level <= (int)player.PermissionLevelLocal; level++)
+                    {
+                        player.sendMessage(0, String.Format("!{0}", powers[level]));
+                        foreach (KeyValuePair<string, int> cmds in commands)
+                            if (playerPermission >= cmds.Value && level == cmds.Value)
+                                player.sendMessage(0, "**" + cmds.Key);
+                    }
+                }
                 return;
             }
 
@@ -625,15 +639,18 @@ namespace InfServer.Game.Commands.Mod
             if (!String.IsNullOrEmpty(payload))
             {
                 if ((target = player._arena.getPlayerByName(payload)) == null)
-                    target = player;
+                {
+                    player.sendMessage(-1, "That player isn't here.");
+                    return;
+                }
             }
 
             player.sendMessage(-3, "&Player Profile Information");
             player.sendMessage(0, "*" + target._alias);
             if (target == player)
-                player.sendMessage(0, "&Permission Level: " + (int)player.PermissionLevel);
+                player.sendMessage(0, "&Permission Level: " + (int)player.PermissionLevel + (player._developer ? "(Dev)" : ""));
             else if (player.PermissionLevel >= target.PermissionLevel)
-                player.sendMessage(0, "&Permission Level: " + (int)target.PermissionLevel);
+                player.sendMessage(0, "&Permission Level: " + (int)target.PermissionLevel + (target._developer ? "(Dev)" : ""));
             player.sendMessage(0, "Items");
             foreach (KeyValuePair<int, Player.InventoryItem> itm in target._inventory)
                 player.sendMessage(0, String.Format("~{0}={1}", itm.Value.item.name, itm.Value.quantity));
@@ -695,7 +712,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (player != recipient && (int)player.PermissionLevel < (int)recipient.PermissionLevel)
+            if (player != recipient && (int)player.PermissionLevelLocal < (int)recipient.PermissionLevel)
                 return;
 
             if (String.IsNullOrEmpty(payload))
@@ -952,7 +969,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (player != recipient && (int)player.PermissionLevel < (int)recipient.PermissionLevel)
+            if (player != recipient && (int)player.PermissionLevelLocal < (int)recipient.PermissionLevel)
                 return;
 
             //Toggle his locked status
@@ -997,7 +1014,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void stealth(Player player, Player recipient, string payload, int bong)
         {
-            if (player.PermissionLevel == Data.PlayerPermission.Developer)
+            if (player._developer || player._permissionTemp >= Data.PlayerPermission.ArenaMod)
             {
                 player.sendMessage(-1, "You are not authorized to use this command.");
                 return;
@@ -1013,7 +1030,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     if (person == player)
                         continue;
-                    //Their level is the same or greater, allow them to see him/her
+                    //Their level is greater, allow them to see him/her
                     if (player.PermissionLevel > person.PermissionLevel)
                     {
                         Helpers.Object_PlayerLeave(person, player);
@@ -1050,7 +1067,7 @@ namespace InfServer.Game.Commands.Mod
             if (payload == "all")
             {
                 //summon everybody
-                foreach (Player p in player._arena.PlayersIngame)
+                foreach (Player p in player._arena.PlayersIngame.ToList())
                     p.warp(player);
             }
         }
@@ -1228,8 +1245,12 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 if (player.IsSpectator)
-                {   //Unspec him
-                    target.unspec(newTeam);
+                {   //Is he on a spectator team?
+                    if (!player._team.IsSpec)
+                        newTeam.addPlayer(target);
+                    else
+                        //Unspec him
+                        target.unspec(newTeam);
                 }
                 else
                 {   //Change team
@@ -1330,8 +1351,8 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         public static void watchmod(Player p, Player recipient, string payload, int bong)
         {
-            p._arena._watchMod = !p._arena._watchMod;
-            p.sendMessage(0, "You will" + (p._arena._watchMod ? " now see " : " no longer see ") + "mod commands.");
+            p._watchMod = !p._watchMod;
+            p.sendMessage(0, "You will" + (p._watchMod ? " now see " : " no longer see ") + "mod commands.");
         }
 
         /// <summary>
@@ -1436,22 +1457,6 @@ namespace InfServer.Game.Commands.Mod
 
                 return;
             }
-            /*
-            if (!recipient.IsSpectator)
-            {
-                player.sendMessage(-1, "That character must be in spec.");
-                return;
-            }
-
-            //Wiping all stats/inv etc
-            recipient.assignFirstTimeStats(true);
-            recipient.syncInventory();
-            recipient.syncState();
-            Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeSkillSetup);
-            Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeInvSetup);
-
-            player.sendMessage(0, "His/her character has been wiped.");
-             */
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////
@@ -1598,7 +1603,7 @@ namespace InfServer.Game.Commands.Mod
         }
 */
         /// <summary>
-        /// Bans a player from a specific zone
+        /// Bans a player from all zones
         /// </summary>
         static public void ban(Player player, Player recipient, string payload, int bong)
         {
@@ -1606,6 +1611,12 @@ namespace InfServer.Game.Commands.Mod
             if (player._server.IsStandalone)
             {
                 player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            if (player._developer)
+            {
+                player.sendMessage(-1, "Nice try.");
                 return;
             }
 
@@ -1624,7 +1635,7 @@ namespace InfServer.Game.Commands.Mod
             //Check to see if we are pm'ing someone
             if (recipient != null)
             {
-                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
                 {
                     player.sendMessage(-1, "You can't ban someone equal or higher than you.");
                     return;
@@ -1756,7 +1767,14 @@ namespace InfServer.Game.Commands.Mod
 
             //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
             if ((recipient = player._arena.getPlayerByName(alias)) != null)
+            {
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
+                {
+                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
+                    return;
+                }
                 recipient.disconnect();
+            }
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
 
@@ -1805,7 +1823,7 @@ namespace InfServer.Game.Commands.Mod
             //Check to see if we are pm'ing someone
             if (recipient != null)
             {
-                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
                 {
                     player.sendMessage(-1, "You can't ban someone equal or higher than you.");
                     return;
@@ -1937,7 +1955,14 @@ namespace InfServer.Game.Commands.Mod
 
             //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
             if ((recipient = player._arena.getPlayerByName(alias)) != null)
+            {
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
+                {
+                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
+                    return;
+                }
                 recipient.disconnect();
+            }
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
 
@@ -1979,7 +2004,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                if (recipient != null && (int)player.PermissionLevel >= (int)recipient.PermissionLevel)
+                if (recipient != null && player.PermissionLevel >= recipient.PermissionLevel)
                     //Destroy him!
                     recipient.disconnect();
                 else
@@ -2014,7 +2039,7 @@ namespace InfServer.Game.Commands.Mod
             //Check to see if we are pm'ing someone
             if (recipient != null)
             {
-                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
                 {
                     player.sendMessage(-1, "You can't ban someone equal or higher than you.");
                     return;
@@ -2146,7 +2171,14 @@ namespace InfServer.Game.Commands.Mod
 
             //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
             if ((recipient = player._arena.getPlayerByName(alias)) != null)
+            {
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
+                {
+                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
+                    return;
+                }
                 recipient.disconnect();
+            }
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
 
@@ -2172,11 +2204,15 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void gkill(Player player, Player recipient, string payload, int bong)
         {
-            //SqlConnection db;
-            //string pAccount = "";
             if (player._server.IsStandalone)
             {
                 player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            if (player._developer)
+            {
+                player.sendMessage(-1, "Nice try.");
                 return;
             }
 
@@ -2195,9 +2231,9 @@ namespace InfServer.Game.Commands.Mod
             //Check to see if we are pm'ing someone
             if (recipient != null)
             {
-                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
                 {
-                    player.sendMessage(-1, "You can't ban someone equal or higher than you.");
+                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
                     return;
                 }
 
@@ -2327,7 +2363,14 @@ namespace InfServer.Game.Commands.Mod
 
             //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
             if ((recipient = player._arena.getPlayerByName(alias)) != null)
+            {
+                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
+                {
+                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
+                    return;
+                }
                 recipient.disconnect();
+            }
 
             player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
 
@@ -2347,34 +2390,6 @@ namespace InfServer.Game.Commands.Mod
 
             player._server._db.send(newBan);
         }
-
-            //Check if they are already banned
-            /*
-            db = new SqlConnection("Server=INFANTRY\\SQLEXPRESS;Database=Data;Trusted_Connection=True;");
-            db.Open();
-            //Get their Account ID
-            var playerID = new SqlCommand("SELECT * FROM alias WHERE name='" + alias + "'", db);
-            try
-            {
-                using (var reader = playerID.ExecuteReader())
-                {
-                    while (reader.Read())
-                    pAccount = reader["account"].ToString();
-                }
-            }
-            catch
-            {
-            }
-
-            if (pAccount != "")
-            {
-                //They already exist, delete current entry and move on to adding them
-                using (SqlCommand Command = new SqlCommand("DELETE FROM bans WHERE account=" + pAccount, db))
-                    Command.ExecuteNonQuery();
-            }
-
-            db.Close();
-            */
 
         /// <summary>
         /// Bans or just kicks the player from a specific arena - if granted players, privately owned only
@@ -2404,13 +2419,13 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (level == (int)Data.PlayerPermission.Developer && player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            if (level < (int)Data.PlayerPermission.Mod && player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
             }
 
-            if (((rLevel == (int)Data.PlayerPermission.Developer) && (level < (int)Data.PlayerPermission.Manager)) || level <= rLevel)
+            if (rLevel >= level && !player._admin)
             {
                 player.sendMessage(-1, "No.");
                 return;
@@ -2499,7 +2514,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(help, "help",
                 "Gives the user help information on a given command.",
                 "*help [commandName]",
-                InfServer.Data.PlayerPermission.ArenaMod,true);
+                InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(addball, "addball",
                 "Adds a ball to the arena.",

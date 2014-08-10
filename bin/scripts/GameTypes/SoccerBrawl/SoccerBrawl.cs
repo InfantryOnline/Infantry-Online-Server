@@ -50,7 +50,9 @@ namespace InfServer.Script.GameType_Soccerbrawl
         private int _lostBallInterval = 5;      //How long a ball is glitched for, default is 5 seconds
         private int _lostBallTickerUpdate;
         //Settings
-        private int _minPlayers;				//The minimum amount of players
+        private int _minPlayers;				//The minimum amount of players needed to start a game
+        private int _minPlayersToKeepScore;     //Min players need to record stats
+        private int saveRecordedTimeStamp;
 
         //http://stackoverflow.com/questions/14672322/creating-a-point-class-c-sharp
         public class Point
@@ -77,15 +79,15 @@ namespace InfServer.Script.GameType_Soccerbrawl
         }
 
         //Handle goal coords here for now
-        Point p1 = new Point(121, 1484);
-        Point p2 = new Point(253, 1484);
-        Point p3 = new Point(253, 1704);
-        Point p4 = new Point(121, 1704);
+        Point p1 = new Point(135, 1493);
+        Point p2 = new Point(240, 1493);
+        Point p3 = new Point(240, 1722);
+        Point p4 = new Point(135, 1722);
 
-        Point p5 = new Point(5377, 1484);
-        Point p6 = new Point(5501, 1484);
-        Point p7 = new Point(5501, 1712);
-        Point p8 = new Point(5377, 1712);
+        Point p5 = new Point(5385, 1493);
+        Point p6 = new Point(5495, 1493);
+        Point p7 = new Point(5495, 1722);
+        Point p8 = new Point(5385, 1722);
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -103,7 +105,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
             team2 = _arena.getTeamByName(_config.teams[1].name);
             team1Goals = 0;
             team2Goals = 0;
-            _minPlayers = _config.arena.minimumKeepScorePublic;
+            _minPlayers = 2;
+            _minPlayersToKeepScore = _config.arena.minimumKeepScorePublic;
             bounces = 0;
             if (_config.soccer.deadBallTimer > _lostBallInterval)
                 _lostBallInterval = _config.soccer.deadBallTimer;
@@ -197,7 +200,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
         }
 
         #region Events
-
         /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
@@ -216,7 +218,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             pass._team = player._team;
 
             //Keep track of carry time
-            if (_tickGameStart > 0)
+            if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore)
             {
                 carryTime = Environment.TickCount - carryTimeStart;
                 carryTimeStart = 0;
@@ -321,36 +323,40 @@ namespace InfServer.Script.GameType_Soccerbrawl
         {//Handle saves and pinches and creases and irons and folds
             if (_futureGoal != null)
             {//It is a save or pinch
-                if (bounces <= 0 && player._team == _futureGoal._team && player != _futureGoal)
+                if (player._team == _futureGoal._team && player != _futureGoal)
                 {//It's a pinch
                     _arena.sendArenaMessage("Pinch=" + player._alias);
-                    if (_tickGameStart > 0 && _config.zoneStat.name9.Equals("Pinches")) //Game Progress
+                    if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore 
+                        && _config.zoneStat.name9.Equals("Pinches")) //Game Progress
                         //Save their stat
                         player.ZoneStat10 += 1; //Pinches
                 }
-                else if (bounces <= 0 && player._team != _futureGoal._team && player != _futureGoal)
+                else if (player._team != _futureGoal._team && player != _futureGoal)
                 {//It's a save
                     _arena.sendArenaMessage("Save=" + player._alias);
-                    if (_tickGameStart > 0 && _config.zoneStat.name10.Equals("Saves"))
+                    if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
+                        && _config.zoneStat.name10.Equals("Saves"))
                         //Save their stat
                         player.ZoneStat11 += 1; //Saves
+                    saveRecordedTimeStamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                 }
             }
 
             //Keep track of passes/fumbles/catches/steals
-            if (pass != player && _tickGameStart > 0)
+            if (pass != player && _tickGameStart > 0
+                && _arena.PlayerCount >= _minPlayersToKeepScore)
             {
                 if (pass._team == player._team)
                 {
                     //Completed pass, give a point to both
-                    player.ZoneStat4 += 1; //Teammate catched it
-                    pass.ZoneStat6 += 1; //Pass
+                    player.ZoneStat5 += 1; //Teammate catched it
+                    pass.ZoneStat7 += 1; //Pass
                 }
                 else
                 {
                     //Ball was stolen
-                    player.ZoneStat5 += 1; //Steal
-                    pass.ZoneStat7 += 1; //Fumbled the pass
+                    player.ZoneStat6 += 1; //Steal
+                    pass.ZoneStat8 += 1; //Fumbled the pass
                 }
             }
 
@@ -366,7 +372,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
         public bool handlePlayerGoal(Player player, Ball ball)
         {	//We've started!
             //Check for saves/pinches/irons/folds/creases
-            if (_futureGoal != null && player._team != _futureGoal._team)
+            Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds - 1;
+            if ((_futureGoal != null && player._team != _futureGoal._team) || (saveRecordedTimeStamp >= unixTimestamp))
             {
                 _futureGoal = null;
                 return false;
@@ -385,7 +392,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
             if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
             {
                 _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name + "  Assist(" + assist2._alias + ")", _config.soccer.goalBong);
-                if (_tickGameStart > 0 && _config.zoneStat.name3.Equals("Assists"))
+                if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
+                    && _config.zoneStat.name3.Equals("Assists"))
                     assist2.ZoneStat4 += 1; //Assists
             }
             else
@@ -394,7 +402,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
             _arena.sendArenaMessage("SCORE:  " + team1._name + "=" + team1Goals + "  " + team2._name + "=" + team2Goals);
 
             //Save their stat
-            if (_tickGameStart > 0 && _config.zoneStat.name2.Equals("Goals"))
+            if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
+                && _config.zoneStat.name2.Equals("Goals"))
                 player.ZoneStat3 += 1; //Goals
 
             if (!_overtime)
@@ -499,27 +508,34 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Game.End")]
         public bool gameEnd()
         {	//Game finished, perhaps start a new one
+            bool record = _arena.PlayerCount >= _minPlayersToKeepScore;
             if (team1Goals > team2Goals)
             {
                 _victoryTeam = team1;
-                foreach (Player p in team1.ActivePlayers)
-                    //Give them a win score
-                    p.ZoneStat1 += 1;
+                if (record)
+                {
+                    foreach (Player p in team1.ActivePlayers)
+                        //Give them a win score
+                        p.ZoneStat1 += 1;
 
-                foreach (Player p in team2.ActivePlayers)
-                    //Give them a lose score
-                    p.ZoneStat2 += 1;
+                    foreach (Player p in team2.ActivePlayers)
+                        //Give them a lose score
+                        p.ZoneStat2 += 1;
+                }
             }
             else if (team2Goals > team1Goals)
             {
                 _victoryTeam = team2;
-                foreach (Player p in team2.ActivePlayers)
-                    //Give them a win score
-                    p.ZoneStat1 += 1;
+                if (record)
+                {
+                    foreach (Player p in team2.ActivePlayers)
+                        //Give them a win score
+                        p.ZoneStat1 += 1;
 
-                foreach (Player p in team1.ActivePlayers)
-                    //Give them a lose score
-                    p.ZoneStat2 += 1;
+                    foreach (Player p in team1.ActivePlayers)
+                        //Give them a lose score
+                        p.ZoneStat2 += 1;
+                }
             }
 
             _arena.sendArenaMessage("Game Over!", _config.soccer.victoryBong);
@@ -895,21 +911,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 victim._gotBallID = 999;
 
                 Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
-                /*
-                //Initialize its ballstate
-                ball._state = new Ball.BallState();
-
-                //Assign default state
-                ball._state.positionX = victim._state.positionX;
-                ball._state.positionY = victim._state.positionY;
-                ball._state.positionZ = victim._state.positionZ;
-                ball._state.velocityX = 0;
-                ball._state.velocityY = 0;
-                ball._state.velocityZ = 0;
-                ball._state.ballStatus = -1;
-
-                ball.Route_Ball(killer._arena.Players);
-                 */
             }
 
             return true;

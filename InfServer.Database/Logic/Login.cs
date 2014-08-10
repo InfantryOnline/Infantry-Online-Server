@@ -194,6 +194,8 @@ namespace InfServer.Logic
 
                 //We have the account associated!
                 plog.permission = (PlayerPermission)account.permission;
+                if (account.permission > (int)PlayerPermission.Sysop)
+                    plog.permission = PlayerPermission.Sysop;
 
                 //Attempt to find the related alias
                 Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
@@ -288,6 +290,15 @@ namespace InfServer.Logic
                 {	//Load the player details and stats!
                     plog.banner = player.banner;
                     plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
+
+                    if (player.permission > account.permission)
+                        //He's a dev here, set the bool
+                        plog.developer = true;
+
+                    //Check for admin
+                    if (Logic_Admins.checkAdmin(alias.name))
+                        plog.admin = true;
+
                     plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
                     if (player.squad1 != null)
                         plog.squadID = player.squad1.id;

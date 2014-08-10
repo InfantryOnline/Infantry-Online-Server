@@ -42,6 +42,8 @@ namespace InfServer.Game
 
 		public Data.PlayerPermission _permissionStatic;	//The player's global permission in this zone
 		public Data.PlayerPermission _permissionTemp;	//The player's permission in his current arena
+        public bool _developer;                         //Is the player zone powered only?
+        public bool _admin;                             //Is the player an admin?
 
         public IPAddress _ipAddress;
         public uint _UID1;
@@ -64,6 +66,7 @@ namespace InfServer.Game
         public bool _bLocked;                   //Is the player locked in spec?
         public bool _bAllowSpectator;           //Is the player allowing spectators?
         public bool _specQuiet;                 //Is the player allowed to type outside of spec?
+        public bool _watchMod;                  //Viewing of mod commands on/off
 
 		public Helpers.ObjectState _state;		//The player's positional state
 
@@ -365,21 +368,8 @@ namespace InfServer.Game
 
 			//Notify our current arena
             if (_arena != null)
-            {
-                //Lets take them away from the owner list
-                if (_arena.IsPrivate && _arena._owner != null && _arena._owner.Count > 0)
-                {
-                    foreach (var p in _arena._owner)
-                        if (this._alias.Equals(p))
-                        {
-                            _arena._owner.Remove(p);
-                            if (this.PermissionLevel < Data.PlayerPermission.ArenaMod)
-                                this._permissionTemp = Data.PlayerPermission.Normal;
-                            break;
-                        }
-                }
                 _arena.lostPlayer(this);
-            }
+
 			_arena = null;
 
 			//We are no longer ingame

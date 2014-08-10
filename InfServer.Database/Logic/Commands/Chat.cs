@@ -62,6 +62,7 @@ namespace InfServer.Logic
 
                             //Query for an IP?
                             System.Net.IPAddress ip;
+                            long accountID;
                             IQueryable<Data.DB.alias> aliases;
 
                             //Are we using wildcards?
@@ -70,6 +71,10 @@ namespace InfServer.Logic
                                 //IP Lookup?
                                 if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ip))
                                     aliases = db.alias.Where(a => a.IPAddress.Equals(ip.ToString()));
+                                else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
+                                {   //Account ID
+                                    aliases = db.alias.Where(a => a.account == accountID);
+                                }
                                 else
                                 {   //Alias
                                     Data.DB.alias who = db.alias.SingleOrDefault(a => a.name.Equals(pkt.payload));
@@ -85,7 +90,7 @@ namespace InfServer.Logic
                                             alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
                                 }
                                 else
-                                    zone._server.sendMessage(zone, pkt.sender, "That IP or alias doesn't exist.");
+                                    zone._server.sendMessage(zone, pkt.sender, "That IP, account id or alias doesn't exist.");
                                 break;
                             }
 
@@ -475,11 +480,15 @@ namespace InfServer.Logic
                             bool found = false;
 
                             System.Net.IPAddress ipaddress;
+                            long accountID;
                             IQueryable<Data.DB.alias> aliases;
 
                             //Check for an ip lookup first
                             if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
                                 aliases = db.alias.Where(a => a.IPAddress.Equals(ipaddress.ToString()));
+                            //Check for an account id
+                            else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
+                                aliases = db.alias.Where(a => a.account == accountID);
                             //Alias!
                             else
                             {
@@ -580,12 +589,13 @@ namespace InfServer.Logic
                                         continue;
                                     if (alias.name == pkt.sender)
                                         continue;
-                                    var player = db.players.FirstOrDefault(plr => plr.alias1 == alias);
-                                    if (player != null)
-                                    {
-                                        if (alias.account1.permission > 0)
-                                            z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
-                                        if (player.zone == z._zone.id && player.permission > 0)
+                                    //Are they a global mod?
+                                    if (alias.account1.permission > 0)
+                                        zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                                    else
+                                    {   //No, check dev powers
+                                        var player = db.zones.First(zones => zones.id == z._zone.id).players.First(p => p.alias1 == alias);
+                                        if (player != null && player.permission > 0)
                                             z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
                                     }
                                 }
@@ -696,7 +706,22 @@ namespace InfServer.Logic
                             stat.zonestat12 = 0;
 
                             db.SubmitChanges();
-                            zone._server.sendMessage(zone, pkt.sender, "Zone wipe has been completed.");
+                            zone._server.sendMessage(zone, pkt.sender, "Character wipe has been completed.");
+                        }
+                        break;
+
+                    case CS_Query<Zone>.QueryType.adminlist:
+                        {
+                            if (String.IsNullOrWhiteSpace(pkt.payload))
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Payload cannot be empty.");
+                                return;
+                            }
+
+                            zone._server.sendMessage(zone, pkt.sender, "Current Admin List:");
+
+                            if (pkt.payload.Equals("list"))
+                                zone._server.sendMessage(zone, pkt.sender, Logic_Admins.listAdmins());
                         }
                         break;
                 }

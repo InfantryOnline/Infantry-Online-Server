@@ -16,7 +16,6 @@ namespace InfServer.Game.Commands.Mod
     /// </summary>
     public class League
     {
-
         static public void startmatch(Player player, Player recipient, string payload, int bong)
         {
             if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
@@ -48,11 +47,10 @@ namespace InfServer.Game.Commands.Mod
         [Commands.RegistryFunc(HandlerType.ModCommand)]
         static public IEnumerable<Commands.HandlerDescriptor> Register()
         {
-
             yield return new HandlerDescriptor(startmatch, "startmatch",
                 "Toggles a league match and automatically locks an arena",
                 "*startmatch", 
-                InfServer.Data.PlayerPermission.Mod, false);
+                InfServer.Data.PlayerPermission.Mod, true);
         }
     }
 }

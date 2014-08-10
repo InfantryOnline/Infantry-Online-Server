@@ -51,6 +51,8 @@ namespace InfServer.Logic
 			//Let him in! Set his alias, squad and permissions
 			Helpers.Login_Response(player._client, SC_Login.Login_Result.Success, pkt.loginMessage);
             player._permissionStatic = pkt.permission;
+            player._developer = pkt.developer;
+            player._admin = pkt.admin;
             player._alias = pkt.alias;
             player._squad = pkt.squad;
             player._squadID = pkt.squadID;

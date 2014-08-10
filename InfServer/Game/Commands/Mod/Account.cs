@@ -27,7 +27,7 @@ namespace InfServer.Game.Commands.Mod
             
             if (String.IsNullOrEmpty(payload) && recipient == null)
             {
-                player.sendMessage(-1, "Recipient/payload can not be empty. (*whois alias or *whois ipaddress(with or without wildcard *) or ::*whois)");
+                player.sendMessage(-1, "Recipient/payload can not be empty. (*whois alias, *whois #id or *whois ipaddress(with or without wildcard *) or ::*whois)");
                 return;
             }
 
@@ -42,32 +42,47 @@ namespace InfServer.Game.Commands.Mod
                 query.payload = recipient._alias;
             else if (payload.Length > 0)
             {
-                if (payload == "*")
+                if (payload == "*" || payload == "#")
                 {
                     player.sendMessage(-1, "Error: wildcard cannot be the only argument.");
                     return;
                 }
 
-                //Since db is reversed sides on wildcard lookups, lets snap it correctly for us
-                if (payload.StartsWith("*") && !payload.EndsWith("*"))
+                //Are we looking for the account id?
+                if (payload.StartsWith("#"))
                 {
-                    payload = payload.TrimStart('*');
-                    payload += "*";
-                }
-                else if (payload.EndsWith("*") && !payload.StartsWith("*"))
-                {
-                    if (!payload.Contains("."))
+                    long id;
+                    string trim = payload.TrimStart('#');
+                    if (!Int64.TryParse(trim, out id))
                     {
-                        payload = payload.TrimEnd('*');
-                        payload = String.Format("*{0}", payload);
+                        player.sendMessage(-1, "That is not a valid number.");
+                        return;
                     }
-                    else
+                    //Do nothing here, query.payload will already be set to payload
+                }
+                else
+                {   //Nope, check wildcard lookups
+                    //Since db is reversed sides on wildcard lookups, lets snap it correctly for us
+                    if (payload.StartsWith("*") && !payload.EndsWith("*"))
                     {
-                        string[] check = payload.Split('.');
-                        if (!Helpers.IsNumeric(check[0].Trim()))
+                        payload = payload.TrimStart('*');
+                        payload += "*";
+                    }
+                    else if (payload.EndsWith("*") && !payload.StartsWith("*"))
+                    {
+                        if (!payload.Contains("."))
                         {
                             payload = payload.TrimEnd('*');
                             payload = String.Format("*{0}", payload);
+                        }
+                        else
+                        {
+                            string[] check = payload.Split('.');
+                            if (!Helpers.IsNumeric(check[0].Trim()))
+                            {
+                                payload = payload.TrimEnd('*');
+                                payload = String.Format("*{0}", payload);
+                            }
                         }
                     }
                 }
@@ -75,7 +90,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                player.sendMessage(-1, "Syntax: *whois alias(with or without wildcard *) or *whois ipaddress(with or without wildcard *) or ::*whois");
+                player.sendMessage(-1, "Syntax: *whois alias(with or without wildcard *), *whois #id, *whois ipaddress(with or without wildcard *) or ::*whois");
                 return;
             }
 
@@ -300,13 +315,13 @@ namespace InfServer.Game.Commands.Mod
                     }
                     catch
                     {
-                        player.sendMessage(-1, "*modadd alias:level(optional) OR :alias:*modadd level(optional) possible levels are 1-6");
+                        player.sendMessage(-1, "*modadd alias:level(optional) OR :alias:*modadd level(optional) possible levels are 1-5");
                         return;
                     }
 
-                    if (level < 1 || level > 6)
+                    if (level < 1 || level > 5)
                     {
-                        player.sendMessage(-1, "*modadd alias:level(optional) OR :alias:*modadd level(optional) possible levels are 1-6");
+                        player.sendMessage(-1, "*modadd alias:level(optional) OR :alias:*modadd level(optional) possible levels are 1-5");
                         return;
                     }
 
@@ -326,9 +341,6 @@ namespace InfServer.Game.Commands.Mod
                             break;
                         case 5:
                             recipient._permissionStatic = Data.PlayerPermission.Sysop;
-                            break;
-                        case 6:
-                            recipient._permissionStatic = Data.PlayerPermission.Developer;
                             break;
                     }
 
@@ -374,13 +386,13 @@ namespace InfServer.Game.Commands.Mod
                     }
                     catch (OverflowException)
                     {
-                        player.sendMessage(-1, "That is not a valid level. Possible levels are 1-6.");
+                        player.sendMessage(-1, "That is not a valid level. Possible levels are 1-5.");
                         return;
                     }
 
-                    if (level < 1 || level > 6)
+                    if (level < 1 || level > 5)
                     {
-                        player.sendMessage(-1, "*modadd alias:level(optional) OR :alias:*modadd level(optional) possible levels are 1-6");
+                        player.sendMessage(-1, "*modadd alias:level(optional) OR :alias:*modadd level(optional) possible levels are 1-5");
                         return;
                     }
                     payload = param[0];
@@ -407,9 +419,6 @@ namespace InfServer.Game.Commands.Mod
                             break;
                         case 5:
                             recipient._permissionStatic = Data.PlayerPermission.Sysop;
-                            break;
-                        case 6:
-                            recipient._permissionStatic = Data.PlayerPermission.Developer;
                             break;
                     }
                     recipient.sendMessage(0, "You have been mod promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
@@ -450,13 +459,13 @@ namespace InfServer.Game.Commands.Mod
                     }
                     catch
                     {
-                        player.sendMessage(-1, "*modremove alias:level(optional) OR :alias:*modremove level(optional) possible levels are 0-5");
+                        player.sendMessage(-1, "*modremove alias:level(optional) OR :alias:*modremove level(optional) possible levels are 0-4");
                         return;
                     }
 
-                    if (level < 0 || level > 5)
+                    if (level < 0 || level > 4)
                     {
-                        player.sendMessage(-1, "*modremove alias:level(optional) OR :alias:*modremove level(optional) possible levels are 0-5");
+                        player.sendMessage(-1, "*modremove alias:level(optional) OR :alias:*modremove level(optional) possible levels are 0-4");
                         return;
                     }
 
@@ -524,13 +533,13 @@ namespace InfServer.Game.Commands.Mod
                     }
                     catch (OverflowException)
                     {
-                        player.sendMessage(-1, "That is not a valid level. Possible demotion levels are 0-5.");
+                        player.sendMessage(-1, "That is not a valid level. Possible demotion levels are 0-4.");
                         return;
                     }
 
-                    if (level < 0 || level > 5)
+                    if (level < 0 || level > 4)
                     {
-                        player.sendMessage(-1, "*modremove alias:level(optional) OR :alias:*modremove level(optional) possible levels are 0-5");
+                        player.sendMessage(-1, "*modremove alias:level(optional) OR :alias:*modremove level(optional) possible levels are 0-4");
                         return;
                     }
                     payload = param[0];
@@ -599,14 +608,14 @@ namespace InfServer.Game.Commands.Mod
                     }
                     catch
                     {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-6");
+                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-5");
                         player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
 
-                    if (level < 1 || level > 6)
+                    if (level < 1 || level > 5)
                     {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-6");
+                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-5");
                         player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
@@ -628,16 +637,15 @@ namespace InfServer.Game.Commands.Mod
                         case 5:
                             recipient._permissionStatic = Data.PlayerPermission.Sysop;
                             break;
-                        case 6:
-                            recipient._permissionStatic = Data.PlayerPermission.Developer;
-                            break;
                     }
 
+                    recipient._developer = true;
                     recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
                     player.sendMessage(0, "You have dev promoted " + recipient._alias + " to level " + level + ".");
                 }
                 else //No level provided, use default
                 {
+                    recipient._developer = true;
                     recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
                     recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands and read the rules.");
                     player.sendMessage(0, "You have dev promoted " + recipient._alias + " to level " + level + ".");
@@ -676,13 +684,13 @@ namespace InfServer.Game.Commands.Mod
                     }
                     catch (OverflowException)
                     {
-                        player.sendMessage(-1, "That is not a valid level. Possible demotion levels are 0-5.");
+                        player.sendMessage(-1, "That is not a valid level. Possible dev modding levels are 1-5.");
                         return;
                     }
 
-                    if (level < 1 || level > 6)
+                    if (level < 1 || level > 5)
                     {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-6");
+                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-5");
                         player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
@@ -710,10 +718,8 @@ namespace InfServer.Game.Commands.Mod
                         case 5:
                             recipient._permissionStatic = Data.PlayerPermission.Sysop;
                             break;
-                        case 6:
-                            recipient._permissionStatic = Data.PlayerPermission.Developer;
-                            break;
                     }
+                    recipient._developer = true;
                     recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
                 }
                 //Lets send it off
@@ -767,6 +773,7 @@ namespace InfServer.Game.Commands.Mod
                     {
                         case 0:
                             recipient._permissionStatic = Data.PlayerPermission.Normal;
+                            recipient._developer = false;
                             break;
                         case 1:
                             recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
@@ -790,6 +797,7 @@ namespace InfServer.Game.Commands.Mod
                 }
                 else //No level provided, use default
                 {
+                    recipient._developer = false;
                     recipient._permissionStatic = Data.PlayerPermission.Normal;
                     recipient.sendMessage(0, "You have been dev demoted to level " + level + ".");
                     player.sendMessage(0, "You have dev demoted " + recipient._alias + " to level " + level + ".");
@@ -848,6 +856,7 @@ namespace InfServer.Game.Commands.Mod
                     switch (level)
                     {
                         case 0:
+                            recipient._developer = false;
                             recipient._permissionStatic = Data.PlayerPermission.Normal;
                             break;
                         case 1:
@@ -890,33 +899,40 @@ namespace InfServer.Game.Commands.Mod
                 "Gives mod powers to a player, default level is arena mod",
                 "*modadd alias:level(optional) or ::*modadd level(optional)",
                 InfServer.Data.PlayerPermission.Sysop, false);
+
             yield return new HandlerDescriptor(modremove, "modremove",
                 "Takes mod powers away, default level is player level",
                 "*modremove alias:level(optional) or ::*modremove level(optional)",
                 InfServer.Data.PlayerPermission.Sysop, false);
+
             yield return new HandlerDescriptor(devadd, "devadd",
                 "Gives dev powers to a player, default level is arena mod",
                 "*devadd alias:level(optional) or ::*devadd level(optional) - Note: devadd them in the zone you want",
                 InfServer.Data.PlayerPermission.Sysop, false);
+
             yield return new HandlerDescriptor(devremove, "devremove",
                 "Takes dev powers away, default level is player level",
                 "*devremove alias:level(optional) or ::*devremove level(optional) - Note: devremove them in the zone you want",
                 InfServer.Data.PlayerPermission.Sysop, false);
+
             yield return new HandlerDescriptor(renamealias, "renamealias",
                 "Rename's the current players alias",
                 "::*renamealias newAlias OR *renamealias alias:newAlias - to rename one on the account",
                 InfServer.Data.PlayerPermission.SMod, false);
+
             yield return new HandlerDescriptor(removealias, "removealias",
                 "Deletes the current players alias",
                 "::*removealias OR *removealias alias - to delete one from the account",
                 InfServer.Data.PlayerPermission.SMod, false);
+
             yield return new HandlerDescriptor(transferalias, "transferalias",
                 "Transfers aliases between characters",
                 "*transferalias aliasGoingTo:alias in question OR :playerGoingTo:*transferalias alias in question",
                 InfServer.Data.PlayerPermission.Sysop, false);
+
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",
-                "*whois [ipaddress/alias] or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
+                "*whois [ipaddress/alias/#id] or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
                 InfServer.Data.PlayerPermission.Sysop, false);
         }
     }

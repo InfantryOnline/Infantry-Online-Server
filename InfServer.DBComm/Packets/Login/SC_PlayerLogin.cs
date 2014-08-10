@@ -26,6 +26,8 @@ namespace InfServer.Protocol
         public long squadID;
 
 		public Data.PlayerPermission permission;	//The player's permission in this zone
+        public bool developer;                      //Are we just a dev?
+        public bool admin;                          //Are we an admin?
 
 		public bool bFirstTimeSetup;				//Is it the first time the player is setting up inventory?
 		public Data.PlayerStats stats;				//The player's statistics
@@ -98,6 +100,8 @@ namespace InfServer.Protocol
 			Write(squad, 0);
             Write(squadID);
 			Write((byte)permission);
+            Write(developer);
+            Write(admin);
 
 			Write(bFirstTimeSetup);
 			
@@ -136,6 +140,8 @@ namespace InfServer.Protocol
 			squad = ReadNullString();
             squadID = _contentReader.ReadInt64();
 			permission = (InfServer.Data.PlayerPermission)_contentReader.ReadByte();
+            developer = _contentReader.ReadBoolean();
+            admin = _contentReader.ReadBoolean();
 
 			bFirstTimeSetup = _contentReader.ReadBoolean();
 

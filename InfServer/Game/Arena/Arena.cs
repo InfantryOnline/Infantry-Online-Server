@@ -49,7 +49,6 @@ namespace InfServer.Game
 		public int _tickGameEnded;						//The tick at which our game ended
         public bool _bLocked;
         public bool _specQuiet;                         //Arena spec chat only on/off
-        public bool _watchMod;                          //Viewing of mod commands on/off
         public bool _isMatch;                           //For leagues
         public bool _saveStats = true;
         public bool _scramble;                           //Scramble toggle

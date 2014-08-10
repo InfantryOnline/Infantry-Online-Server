@@ -208,12 +208,34 @@ namespace InfServer.Game.Commands.Mod
             player._server._db.send(pkt);
         }
 
+        /// <summary>
+        /// Returns a list of admins currently powered
+        /// </summary>
+        static public void admins(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrEmpty(payload) || payload.ToLower().Contains("list"))
+            {
+                //They just want to see a list of admins
+                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+                query.queryType = CS_Query<Data.Database>.QueryType.adminlist;
+                query.sender = player._alias;
+                query.payload = "list";
+                player._server._db.send(query);
+                return;
+            }
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
 		[Commands.RegistryFunc(HandlerType.ModCommand)]
 		static public IEnumerable<Commands.HandlerDescriptor> Register()
 		{
+            yield return new HandlerDescriptor(admins, "admins",
+                "Currently returns a list of powered admins",
+                "*admins or *admins list",
+                InfServer.Data.PlayerPermission.Sysop, false);
+
             yield return new HandlerDescriptor(assets, "assets",
                "secret",
                "?quit",
