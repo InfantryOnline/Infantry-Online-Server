@@ -14,7 +14,6 @@ namespace InfServer.Protocol
 		///////////////////////////////////////////////////
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.ShopFinished;
 
-
 		///////////////////////////////////////////////////
 		// Member Functions
 		//////////////////////////////////////////////////
@@ -32,7 +31,7 @@ namespace InfServer.Protocol
 		public override void Serialize()
 		{	//Just need the id
 			Write((byte)TypeID);
-			Write(true);
+            Write(true);
 		}
 
 		/// <summary>

@@ -297,7 +297,7 @@ namespace InfServer.Game
 			);
 
             //Reset his movement timer
-            player._lastMovement = 0;
+            player._lastMovement = Environment.TickCount;
 
 			return true;
 		}
@@ -347,8 +347,8 @@ namespace InfServer.Game
 		public void applyExplosionDamage(bool bImpliedExplosion, Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
 		{	//Quick check to make sure that the weapon is even damaging before we do math
 			int maxRadius = Helpers.getMaxBlastRadius(wep);
-			if (maxRadius == 0)
-				return;
+            if (maxRadius == 0)
+                return;
 
 			//Will this weapon even harm us?
             if (attacker != null)
@@ -371,13 +371,14 @@ namespace InfServer.Game
                         break;
                 }
             }
+
 			//Find the radius at which we were closest to the blast
 			double radius = getImpliedRadius(dmgX, dmgY, maxRadius + _type.TriggerRadius);
 
 			radius -= _type.TriggerRadius;
 			if (radius < 1)
 				radius = 1;
-			
+
 			//Calculate the damage for each type
 			double fraction = 0;
 			double grossDamage = 0;
@@ -385,9 +386,14 @@ namespace InfServer.Game
 
 			if (radius <= wep.kineticDamageRadius)
 			{
+                //attacker.sendMessage(0, String.Format("Radius={0}", radius.ToString()));
 				fraction = 1 - radius / wep.kineticDamageRadius;
 				grossDamage = (wep.kineticDamageInner - wep.kineticDamageOuter) * fraction + wep.kineticDamageOuter;
 				netDamage += (grossDamage - _type.Armors[0].SelfIgnore) * (1.0d - _type.Armors[0].SelfReduction / 1000.0d);
+                //attacker.sendMessage(0, String.Format("fract={0},gross={1},kinD={2}", fraction.ToString(), grossDamage.ToString(), netDamage.ToString()));
+                //attacker.sendMessage(0, String.Format("g-selfig={0}, typeArmor={1}, final={2}", (grossDamage - _type.Armors[0].SelfIgnore).ToString(),
+                  //  (1.0d - _type.Armors[0].SelfReduction / 1000.0d).ToString(), netDamage.ToString()));
+ 
 			}
 
 			if (radius <= wep.explosiveDamageRadius)
