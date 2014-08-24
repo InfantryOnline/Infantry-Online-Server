@@ -198,9 +198,9 @@ namespace InfServer.Game.Commands.Mod
                 }
             }
 
-            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
+            CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
             pkt.sender = player._alias;
-            pkt.queryType = CS_Query<Data.Database>.QueryType.history;
+            pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.history;
             if (!String.IsNullOrEmpty(name))
                 pkt.payload = String.Join(":", payload, page.ToString());
             else
@@ -216,8 +216,8 @@ namespace InfServer.Game.Commands.Mod
             if (String.IsNullOrEmpty(payload) || payload.ToLower().Contains("list"))
             {
                 //They just want to see a list of admins
-                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-                query.queryType = CS_Query<Data.Database>.QueryType.adminlist;
+                CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
+                query.queryType = CS_ChatQuery<Data.Database>.QueryType.adminlist;
                 query.sender = player._alias;
                 query.payload = "list";
                 player._server._db.send(query);

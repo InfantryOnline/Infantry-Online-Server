@@ -914,7 +914,8 @@ namespace InfServer.Script.GameType_Gravball
         [Scripts.Event("Player.ModCommand")]
         public bool playerModCommand(Player player, Player recipient, string command, string payload)
         {
-            if (command.ToLower().Equals("setscore"))
+            command = (command.ToLower());
+            if (command.Equals("setscore"))
             {
                 if (String.IsNullOrEmpty(payload))
                 {
@@ -944,6 +945,262 @@ namespace InfServer.Script.GameType_Gravball
                 return true;
             }
 
+            if (command.Equals("poweradd"))
+            {
+                if (player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+                {
+                    player.sendMessage(-1, "Nice try.");
+                    return false;
+                }
+
+                int level = (int)Data.PlayerPermission.ArenaMod;
+                //Pm'd?
+                if (recipient != null)
+                {
+                    //Check for a possible level
+                    if (!String.IsNullOrWhiteSpace(payload))
+                    {
+                        try
+                        {
+                            level = Convert.ToInt16(payload);
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "Invalid level. Level must be either 1 or 2.");
+                            return false;
+                        }
+
+                        if (level < 1 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, ":alias:*poweradd level(optional), :alias:*poweradd level (Defaults to 1)");
+                            player.sendMessage(0, "Note: there can only be 1 admin level.");
+                            return false;
+                        }
+
+                        switch (level)
+                        {
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient._developer = true;
+                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                    }
+                    else
+                    {
+                        recipient._developer = true;
+                        recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                    }
+
+                    //Lets send it to the database
+                    //Send it to the db
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = recipient._alias;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+                else
+                {
+                    //We arent
+                    //Get name and possible level
+                    Int16 number;
+                    if (String.IsNullOrEmpty(payload))
+                    {
+                        player.sendMessage(-1, "*poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
+                        player.sendMessage(0, "Note: there can only be 1 admin.");
+                        return false;
+                    }
+                    if (payload.Contains(':'))
+                    {
+                        string[] param = payload.Split(':');
+                        try
+                        {
+                            number = Convert.ToInt16(param[1]);
+                            if (number >= 0)
+                                level = number;
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "That is not a valid level. Possible powering levels are 1 or 2.");
+                            return false;
+                        }
+                        if (level < 1 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, String.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(0, "Note: there can be only 1 admin level.");
+                            return false;
+                        }
+                        payload = param[0];
+                    }
+                    player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", payload, level));
+                    if ((recipient = player._server.getPlayer(payload)) != null)
+                    { //They are playing, lets update them
+                        switch (level)
+                        {
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient._developer = true;
+                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                    }
+
+                    //Lets send it off
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = payload;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+            }
+
+            if (command.Equals("powerremove"))
+            {
+                if (player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+                {
+                    player.sendMessage(-1, "Nice try.");
+                    return false;
+                }
+
+                int level = (int)Data.PlayerPermission.Normal;
+                //Pm'd?
+                if (recipient != null)
+                {
+                    //Check for a possible level
+                    if (!String.IsNullOrWhiteSpace(payload))
+                    {
+                        try
+                        {
+                            level = Convert.ToInt16(payload);
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "Invalid level. Levels must be between 0 and 2.");
+                            return false;
+                        }
+
+                        if (level < 0 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, ":alias:*powerremove level(optional), :alias:*powerremove level (Defaults to 0)");
+                            return false;
+                        }
+
+                        switch (level)
+                        {
+                            case 0:
+                                recipient._permissionStatic = Data.PlayerPermission.Normal;
+                                recipient._developer = false;
+                                break;
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                    }
+                    else
+                    {
+                        recipient._developer = false;
+                        recipient._permissionStatic = Data.PlayerPermission.Normal;
+                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                    }
+
+                    //Lets send it to the database
+                    //Send it to the db
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = recipient._alias;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+                else
+                {
+                    //We arent
+                    //Get name and possible level
+                    Int16 number;
+                    if (String.IsNullOrEmpty(payload))
+                    {
+                        player.sendMessage(-1, "*powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
+                        return false;
+                    }
+                    if (payload.Contains(':'))
+                    {
+                        string[] param = payload.Split(':');
+                        try
+                        {
+                            number = Convert.ToInt16(param[1]);
+                            if (number >= 0)
+                                level = number;
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "That is not a valid level. Possible depowering levels are between 0 and 2.");
+                            return false;
+                        }
+                        if (level < 0 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, String.Format("*powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            return false;
+                        }
+                        payload = param[0];
+                    }
+                    player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", payload, level));
+                    if ((recipient = player._server.getPlayer(payload)) != null)
+                    { //They are playing, lets update them
+                        switch (level)
+                        {
+                            case 0:
+                                recipient._permissionStatic = Data.PlayerPermission.Normal;
+                                recipient._developer = false;
+                                break;
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient.sendMessage(0, String.Format("You have been depowered to level {0}.", level));
+                    }
+
+                    //Lets send it off
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = payload;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+            }
             return false;
         }
 

@@ -43,6 +43,7 @@ namespace InfServer.Game
         public int _tickLastDatabaseSync;               //The time at which we last synced all our players with the database
 
 		public Dictionary<int, TickerInfo> _tickers;	//The tickers!
+        public int playtimeTickerIdx = 0;               //Our playing time ticker index
 		public bool _bGameRunning;						//Is the game running?
         public bool recycling = false;                  //Are we recycling an active zone?
         public int _tickGameStarted;					//The tick at which our game started
@@ -51,7 +52,7 @@ namespace InfServer.Game
         public bool _specQuiet;                         //Arena spec chat only on/off
         public bool _isMatch;                           //For leagues
         public bool _saveStats = true;
-        public bool _scramble;                           //Scramble toggle
+        public bool _scramble;                          //Scramble toggle
         public BreakdownSettings _breakdownSettings;
         private int _bountyTick;                        //Last time AutoBounty ticked
         public List<ItemDrop> _condemnedItems;
@@ -951,7 +952,7 @@ namespace InfServer.Game
         public bool IsGranted(Player player)
         {
             if (IsPrivate)
-                if (IsOwner(player) || player.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                if (IsOwner(player) || player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
                     return true;
             return false;
         }

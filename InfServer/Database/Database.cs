@@ -230,7 +230,6 @@ namespace InfServer.Data
             upd.loser = loser;
             upd.winner = winner;
 
-
             //All good!
             send(upd);
         }

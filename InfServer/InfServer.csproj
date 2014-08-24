@@ -231,6 +231,7 @@
     <Compile Include="Logic\General\Assets.Item.cs" />
     <Compile Include="Logic\General\Assets.Skills.cs" />
     <Compile Include="Logic\General\Rewards.cs" />
+    <Compile Include="Logic\Helpers\FileExport.cs" />
     <Compile Include="Logic\Helpers\Permit.cs" />
     <Compile Include="Logic\Helpers\Text.cs" />
     <Compile Include="Logic\Lio\Warp.cs" />

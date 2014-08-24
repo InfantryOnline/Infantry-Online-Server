@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace InfServer.Script.GameType_USL_TDM
+namespace InfServer.Script.GameType_USL
 {
     public class EloRating
     {

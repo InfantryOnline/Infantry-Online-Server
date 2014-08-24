@@ -31,13 +31,20 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Lock the arena
-            Basic.speclock(player, null, "all", bong);
+            if (!player._arena._bLocked)
+                Basic.speclock(player, null, "all", bong);
+            //Turn spec quiet on
+            if (!player._arena._specQuiet)
+                Basic.specquiet(player, null, null, bong);
 
             //Toggle Stat Saving for any attached script
             player._arena._isMatch = !player._arena._isMatch;
 
             //Let Everyone Know
-            player._arena.sendArenaMessage("A league match is starting, Please be patient while the referee sets the match up.");
+            if (player._arena._isMatch)
+                player._arena.sendArenaMessage("A league match is starting, Please be patient while the referee sets the match up.");
+            else
+                player._arena.sendArenaMessage("League match has ended.");
         }
    
 

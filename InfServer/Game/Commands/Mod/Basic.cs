@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Net;
-using System.Data.SqlClient;
 
 using Assets;
 using InfServer.Game;
@@ -53,6 +51,13 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void getball(Player player, Player recipient, string payload, int bong)
         {
+            Player target = recipient != null ? recipient : player;
+            if (target.IsSpectator || target._team.IsSpec)
+            {
+                player.sendMessage(-1, "You cannot use getball on a spectator.");
+                return;
+            }
+
             ushort askedBallId; // Id of the requested getball
             if (String.IsNullOrEmpty(payload))
                 askedBallId = 0;
@@ -78,20 +83,20 @@ namespace InfServer.Game.Commands.Mod
             foreach (Player p in player._arena.Players)
                 p._gotBallID = 999;
 
-            player._gotBallID = ball._id;
+            target._gotBallID = ball._id;
 
             //Assign the ball to the player
-            ball._state.carrier = player;
+            ball._state.carrier = target;
             //Assign default state
-            ball._state.positionX = player._state.positionX;
-            ball._state.positionY = player._state.positionY;
-            ball._state.positionZ = player._state.positionZ;
+            ball._state.positionX = target._state.positionX;
+            ball._state.positionY = target._state.positionY;
+            ball._state.positionZ = target._state.positionZ;
             ball._state.velocityX = 0;
             ball._state.velocityY = 0;
             ball._state.velocityZ = 0;
             ball._state.ballStatus = 0;
             ball.deadBall = false;
-            ball._owner = player;
+            ball._owner = target;
 
             //Make each player aware of the ball
             ball.Route_Ball(player._arena.Players);
@@ -294,8 +299,8 @@ namespace InfServer.Game.Commands.Mod
             else
                 format = String.Format("[Global] {0}", format);
 
-            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
-            pkt.queryType = CS_Query<Data.Database>.QueryType.global;
+            CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
+            pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.global;
             pkt.sender = player._alias;
             pkt.payload = format;
 
@@ -459,8 +464,8 @@ namespace InfServer.Game.Commands.Mod
                     page = 0;
                 }
             }
-            CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
-            pkt.queryType = CS_Query<Data.Database>.QueryType.helpcall;
+            CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
+            pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.helpcall;
             pkt.sender = player._alias;
             pkt.payload = page.ToString();
             //Send it!
@@ -713,7 +718,10 @@ namespace InfServer.Game.Commands.Mod
             }
 
             if (player != recipient && (int)player.PermissionLevelLocal < (int)recipient.PermissionLevel)
+            {
+                player.sendMessage(-1, "Nice try.");
                 return;
+            }
 
             if (String.IsNullOrEmpty(payload))
             {
@@ -958,7 +966,6 @@ namespace InfServer.Game.Commands.Mod
             {
                 player._arena._bLocked = !player._arena._bLocked;
                 player._arena.sendArenaMessage("Arena lock has been toggled" + (player._arena._bLocked ? " ON!" : " OFF!"));
-
                 return;
             }
 
@@ -1133,8 +1140,9 @@ namespace InfServer.Game.Commands.Mod
                     Team newTeam = new Team(player._arena, player._server);
                     teams.Add(newTeam);
                 }
-                //Add 1 to avoid renaming spec team   
-                teams[i + 1]._name = teamNames[i];
+                //Add 1 to avoid renaming spec team
+                //Remove spaces for dumb mods that use *teamname 1, 2
+                teams[i + 1]._name = (teamNames[i].StartsWith(" ") ? teamNames[i].Substring(1) : teamNames[i]);
             }
         }
 
@@ -1174,7 +1182,7 @@ namespace InfServer.Game.Commands.Mod
         {
             if (String.IsNullOrEmpty(payload))
             {   //Clear current timer if payload is empty
-                player._arena.setTicker(1, 1, 0, "");
+                player._arena.setTicker(1, player._arena.playtimeTickerIdx, 0, "");
             }
             else
             {
@@ -1211,11 +1219,12 @@ namespace InfServer.Game.Commands.Mod
 
                     if (minutes > 0 || seconds > 0)
                     {   //Timer works on increments of 10ms, excludes negative timers
-                        player._arena.setTicker(1, 1, minutes * 6000 + seconds * 100, "Time Remaining: ");
+                        player._arena.setTicker(1, player._arena.playtimeTickerIdx, minutes * 6000 + seconds * 100, "Time Remaining: ", delegate()
+                        { player._arena.gameEnd(); });
                     }
                     else
                     {
-                        player._arena.setTicker(1, 1, 0, "");
+                        player._arena.setTicker(1, player._arena.playtimeTickerIdx, 0, "");
                     }
                 }
                 catch
@@ -1244,9 +1253,9 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (player.IsSpectator)
+                if (target.IsSpectator)
                 {   //Is he on a spectator team?
-                    if (!player._team.IsSpec)
+                    if (!target._team.IsSpec)
                         newTeam.addPlayer(target);
                     else
                         //Unspec him
@@ -1298,6 +1307,12 @@ namespace InfServer.Game.Commands.Mod
                     }
                     else
                     {
+                        if (!payload.Contains(","))
+                        {
+                            player.sendMessage(-1, "Error: coordinates must be split using an apostrophy(,).");
+                            return;
+                        }
+
                         string[] coords = payload.Split(',');
                         int x = Convert.ToInt32(coords[0]) * 16;
                         int y = Convert.ToInt32(coords[1]) * 16;
@@ -1310,7 +1325,7 @@ namespace InfServer.Game.Commands.Mod
             {	//We must have a payload for this
                 if (String.IsNullOrWhiteSpace(payload))
                 {
-                    player.sendMessage(-1, "Syntax: ::*warp or *warp A4 or *warp 123,123");
+                    player.sendMessage(-1, "Syntax: ::*warp or *warp alias, A4 or *warp 123,123");
                     return;
                 }
 
@@ -1337,6 +1352,12 @@ namespace InfServer.Game.Commands.Mod
                 }
                 else
                 {
+                    if (!payload.Contains(","))
+                    {
+                        player.sendMessage(-1, "Error: coordinates must be split using an apostrophy(,).");
+                        return;
+                    }
+
                     string[] coords = payload.Split(',');
                     int x = Convert.ToInt32(coords[0]) * 16;
                     int y = Convert.ToInt32(coords[1]) * 16;
@@ -1418,8 +1439,8 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 //Send it to the db
-                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-                query.queryType = CS_Query<Data.Database>.QueryType.wipe;
+                CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
+                query.queryType = CS_ChatQuery<Data.Database>.QueryType.wipe;
                 query.payload = argument[0].ToLower();
                 query.sender = player._alias;
                 player._server._db.send(query);
@@ -1449,8 +1470,8 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 //Send it to the db
-                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-                query.queryType = CS_Query<Data.Database>.QueryType.wipe;
+                CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
+                query.queryType = CS_ChatQuery<Data.Database>.QueryType.wipe;
                 query.payload = argument[0];
                 query.sender = player._alias;
                 player._server._db.send(query);
@@ -1459,149 +1480,33 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
+        /// <summary>
+        /// Sends a arena/system message to all arena's in the zone
+        /// </summary>
+        static public void zone(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrEmpty(payload))
+                player.sendMessage(-1, "Message can not be empty.");
+            else
+            {
+                string format = String.Format("{0} - {1}", payload, player._alias);
+                //Snap color code before sending
+                Regex reg = new Regex(@"^(~|!|@|#|\$|%|\^|&|\*)", RegexOptions.IgnoreCase);
+                Match match = reg.Match(payload);
+                if (match.Success)
+                    format = String.Format("{0}[Zone] {1}", match.Groups[0].Value, format.Remove(0, 1));
+                else
+                    format = String.Format("[Zone] {0}", format);
+                //Send it to all
+                foreach(Arena arena in player._server._arenas.Values)
+                    if (arena != null)
+                        arena.sendArenaMessage(format, bong);
+            }
+        }
+ 
         ////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////Below are Banning Commands/////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////
-/*
-        /// <summary>
-        /// Bans a player from a specific zone
-        /// </summary>
-        static public void ban(Player player, Player recipient, string payload, int bong)
-        {
-            //Sanity check
-            if (player._server.IsStandalone)
-            {
-                player.sendMessage(-1, "Server is currently in stand-alone mode.");
-                return;
-            }
-
-            if (recipient == null && payload == "")
-            {
-                player.sendMessage(-1, "Syntax: either ::*ban time:reason(optional) or *ban alias time:reason(optional)");
-                return;
-            }
-
-            string[] param;
-            string reason = "None given";
-            string alias;
-            int minutes = 0;
-            int number;
-
-            //Check to see if we are pm'ing someone
-            if (recipient != null)
-            {
-                if ((int)player.PermissionLevel <= (int)recipient.PermissionLevel)
-                {
-                    player.sendMessage(-1, "You can't ban someone equal or higher than you.");
-                    return;
-                }
-
-                if (payload == "")
-                {
-                    player.sendMessage(-1, "Syntax: ::*ban time:reason(Optional)");
-                    return;
-                }
-
-                alias = recipient._alias.ToString();
-
-                //Let the person know
-                if (minutes > 0)
-                    recipient.sendMessage(0, String.Format("You are being banned for {0} minutes.", minutes));
-            }
-            else //Using an alias instead
-            {
-                param = payload.Split(' ');
-                if (!Int32.TryParse(param.ElementAt(0), out number))
-                    alias = param[0].ToString();
-                else
-                {
-                    player.sendMessage(-1, "Syntax: *ban alias time:reason(Optional)");
-                    return;
-                }
-            }
-
-            //Must be a timed ban?
-            if (payload.Contains(':'))
-            {
-                param = payload.Split(':');
-                string[] pick = param.ElementAt(0).Split(' ');
-                try
-                {
-                    if (recipient != null)
-                        minutes = Convert.ToInt32(param.ElementAt(0));
-                    else
-                        minutes = Convert.ToInt32(pick.ElementAt(1));
-                }
-                catch
-                {
-                    player.sendMessage(-1, "That is not a valid time.");
-                    return;
-                }
-
-                //Check if there is a reason
-                if (param[1] != null && param[1] != "")
-                    reason = param[1];
-            }
-            else
-            {
-                param = payload.Split(' ');
-                if (recipient == null)
-                {
-                    if (!Int32.TryParse(param.ElementAt(1), out number) || param[1] == "" || param[1] == null)
-                    {
-                        player.sendMessage(-1, "Syntax: *ban alias time:reason(optional)");
-                        return;
-                    }
-                    try
-                    {
-                        minutes = Convert.ToInt32(param[1]);
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                    }
-                }
-                else
-                {
-                    if (!Int32.TryParse(payload, out number))
-                    {
-                        player.sendMessage(-1, "Syntax: ::*ban time:reason(optional)");
-                        return;
-                    }
-                    try
-                    {
-                        minutes = Convert.ToInt32(payload);
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                    }
-                }
-            }
-
-            //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
-            if ((recipient = player._arena.getPlayerByName(alias)) != null)
-                recipient.disconnect();
-
-            player.sendMessage(0, String.Format("You are banning {0} for {1} minutes.", alias, minutes));
-
-            //Relay it to the database
-            CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
-            newBan.banType = CS_Ban<Data.Database>.BanType.account;
-            newBan.alias = alias;
-            if (recipient != null)
-            {
-                newBan.UID1 = recipient._UID1;
-                newBan.UID2 = recipient._UID2;
-                newBan.UID3 = recipient._UID3;
-            }
-            newBan.time = minutes;
-            newBan.sender = player._alias;
-            newBan.reason = reason.ToString();
-
-            player._server._db.send(newBan);
-        }
-*/
         /// <summary>
         /// Bans a player from all zones
         /// </summary>
@@ -2707,7 +2612,12 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(wipe, "wipe",
                 "Wipes a character (or all) within the current zone",
                 "*wipe all yes, *wipe <alias> yes, :alias:*wipe yes",
-                InfServer.Data.PlayerPermission.Mod, false);
+                InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(zone, "zone",
+                "Send a zone-wide system message.",
+                "*zone message",
+               InfServer.Data.PlayerPermission.ArenaMod, true);
         }
     }
 }

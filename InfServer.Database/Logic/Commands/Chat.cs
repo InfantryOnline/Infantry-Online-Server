@@ -12,13 +12,13 @@ namespace InfServer.Logic
         /// <summary>
         /// Handles a query packet
         /// </summary>
-        static public void Handle_CS_Query(CS_Query<Zone> pkt, Zone zone)
+        static public void Handle_CS_ChatQuery(CS_ChatQuery<Zone> pkt, Zone zone)
         {
             using (InfantryDataContext db = zone._server.getContext())
             {
                 switch (pkt.queryType)
                 {
-                    case CS_Query<Zone>.QueryType.accountinfo:
+                    case CS_ChatQuery<Zone>.QueryType.accountinfo:
                         {
                             Data.DB.alias from = db.alias.SingleOrDefault(a => a.name.Equals(pkt.sender));
                             var aliases = db.alias.Where(a => a.account == from.account);
@@ -55,7 +55,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.whois:
+                    case CS_ChatQuery<Zone>.QueryType.whois:
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Whois Information");
                             zone._server.sendMessage(zone, pkt.sender, "*" + pkt.payload);
@@ -149,7 +149,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.deletealias:
+                    case CS_ChatQuery<Zone>.QueryType.deletealias:
                         {
                             if (String.IsNullOrWhiteSpace(pkt.payload))
                             {
@@ -304,7 +304,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.emailupdate:
+                    case CS_ChatQuery<Zone>.QueryType.emailupdate:
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Email Update");
 
@@ -317,7 +317,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.find:
+                    case CS_ChatQuery<Zone>.QueryType.find:
                         {
                             int minlength = 3;
                             var results = new List<KeyValuePair<string, Zone.Player>>();
@@ -379,7 +379,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.online:
+                    case CS_ChatQuery<Zone>.QueryType.online:
                         {
                             DBServer server = zone._server;
 
@@ -391,7 +391,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.zonelist:
+                    case CS_ChatQuery<Zone>.QueryType.zonelist:
                         {
                             //Collect the list of zones and send it over
                             List<ZoneInstance> zoneList = new List<ZoneInstance>();
@@ -417,7 +417,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.history:
+                    case CS_ChatQuery<Zone>.QueryType.history:
                         {
                             string[] name = pkt.payload.Split(':');
                             int page = (!pkt.payload.Contains(':') ? Convert.ToInt32(name[0].Trim()) : Convert.ToInt32(name[1]));
@@ -463,12 +463,12 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.global:
+                    case CS_ChatQuery<Zone>.QueryType.global:
                         foreach(Zone z in zone._server._zones)
                             z._server.sendMessage(z, "*", pkt.payload);
                         break;
 
-                    case CS_Query<Zone>.QueryType.ban:
+                    case CS_ChatQuery<Zone>.QueryType.ban:
                         {
                             if (pkt.payload == "")
                                 return;
@@ -528,7 +528,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.helpcall:
+                    case CS_ChatQuery<Zone>.QueryType.helpcall:
                         {
                             int pageNum = Convert.ToInt32(pkt.payload);
                             int resultseachpage = 30;
@@ -558,7 +558,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.alert:
+                    case CS_ChatQuery<Zone>.QueryType.alert:
                         {
                             string pAlias;
                             foreach (Zone z in zone._server._zones)
@@ -574,7 +574,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.modChat:
+                    case CS_ChatQuery<Zone>.QueryType.modChat:
                         {
                             if (String.IsNullOrEmpty(pkt.payload))
                                 return;
@@ -602,7 +602,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.wipe:
+                    case CS_ChatQuery<Zone>.QueryType.wipe:
                         {
                             if (String.IsNullOrWhiteSpace(pkt.payload))
                             {
@@ -632,6 +632,9 @@ namespace InfServer.Logic
 
                                 foreach (Data.DB.player P in players)
                                 {
+                                    P.inventory = null;
+                                    P.skills = null;
+
                                     stat = P.stats1;
 
                                     stat.cash = 0;
@@ -667,7 +670,7 @@ namespace InfServer.Logic
                             }
 
                             //Recipient lookup
-                            Data.DB.alias recipientAlias = db.alias.FirstOrDefault(a => a.name == pkt.payload);
+                            Data.DB.alias recipientAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.payload));
                             Data.DB.player recipientPlayer = db.players.FirstOrDefault(p => p.alias1 == recipientAlias && p.zone == dbplayer.zone);
 
                             if (recipientPlayer == null)
@@ -676,6 +679,9 @@ namespace InfServer.Logic
                                 return;
                             }
 
+                            recipientPlayer.skills = null;
+                            recipientPlayer.inventory = null;
+                            
                             //Change all stats to zero
                             stat = recipientPlayer.stats1;
 
@@ -710,7 +716,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Query<Zone>.QueryType.adminlist:
+                    case CS_ChatQuery<Zone>.QueryType.adminlist:
                         {
                             if (String.IsNullOrWhiteSpace(pkt.payload))
                             {
@@ -739,7 +745,7 @@ namespace InfServer.Logic
             using (InfantryDataContext db = zone._server.getContext())
             {
                 //Get the associated player making the command
-                Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.First(p => p.alias1.name == pkt.alias);
+                Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.First(p => p.alias1.name.Equals(pkt.alias));
 
                 switch (pkt.queryType)
                 {   //Differentiate the type of query
@@ -828,7 +834,7 @@ namespace InfServer.Logic
                             //Adding or removing a squad invitation?
                             bool bAdd = (sInvite[0].ToLower().Equals("add")) ? true : false;
                             //The target player
-                            Data.DB.alias inviteAlias = db.alias.FirstOrDefault(a => a.name == sInvite[1]);
+                            Data.DB.alias inviteAlias = db.alias.FirstOrDefault(a => a.name.Equals(sInvite[1]));
                             Data.DB.player invitePlayer = db.players.FirstOrDefault(p => p.alias1 == inviteAlias && p.zone == dbplayer.zone);
                             if (invitePlayer == null)
                             {   //No such player!
@@ -878,7 +884,7 @@ namespace InfServer.Logic
                             }
 
                             //The target player
-                            Data.DB.alias kickAlias = db.alias.FirstOrDefault(a => a.name == pkt.payload);
+                            Data.DB.alias kickAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.payload));
                             Data.DB.player kickPlayer = db.players.FirstOrDefault(p => p.alias1 == kickAlias && p.zone == dbplayer.zone);
                             if (kickPlayer == null)
                             {   //No such player!
@@ -1253,7 +1259,7 @@ namespace InfServer.Logic
         [RegistryFunc]
         static public void Register()
         {
-            CS_Query<Zone>.Handlers += Handle_CS_Query;
+            CS_ChatQuery<Zone>.Handlers += Handle_CS_ChatQuery;
             CS_Squads<Zone>.Handlers += Handle_CS_SquadQuery;
             CS_ChartQuery<Zone>.Handlers += Handle_CS_ChartQuery;
         }

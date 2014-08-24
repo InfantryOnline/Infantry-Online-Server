@@ -63,8 +63,8 @@ namespace InfServer.Logic
                     //Kick the fucker and alert mods
                     if (!player._server.IsStandalone)
                     {
-                        CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
-                        pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                        CS_ChatQuery<Data.Database> pktquery = new CS_ChatQuery<Data.Database>();
+                        pktquery.queryType = CS_ChatQuery<Data.Database>.QueryType.alert;
                         pktquery.sender = player._alias;
                         pktquery.payload = String.Format("![Security] Player {0} kicked. Checksum mismatch - (Original={1} New={2})", player._alias, player._assetCS, pkt.AssetChecksum);
                         //Send it!

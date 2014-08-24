@@ -114,6 +114,7 @@ namespace InfServer.Script.GameType_TDM
             if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
+                _arena.playtimeTickerIdx = 3;
                 _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
                     delegate()
                     {	//Trigger the game start
@@ -302,16 +303,21 @@ namespace InfServer.Script.GameType_TDM
                 {
                     //Update their ticker
                     if (_savedPlayerStats.ContainsKey(p._alias))
-                        return "Personal Score: Kills=" + _savedPlayerStats[p._alias].kills + " - Deaths=" + _savedPlayerStats[p._alias].deaths;
+                        return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
+                            p._state.health,
+                            _savedPlayerStats[p._alias].kills,
+                            _savedPlayerStats[p._alias].deaths);
 
                     return "";
                 });
 
                 //1st and 2nd place with mvp (for flags later)
-                IEnumerable<Player> ranking = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
+                IEnumerable<Player> ranking = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
                 int idx = 3; format = "";
                 foreach (Player rankers in ranking)
                 {
+                    if (rankers == null)
+                        continue;
                     if (!_arena.Players.Contains(rankers))
                         continue;
 
@@ -395,7 +401,7 @@ namespace InfServer.Script.GameType_TDM
 
             from.sendMessage(0, "#Individual Statistics Breakdown");
 
-            IEnumerable<Player> rankedPlayers = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
+            IEnumerable<Player> rankedPlayers = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
             //      IEnumerable<Player> rankedPlayers = _savedPlayerStats.Keys.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
             idx = 3;	//Only display top three players
 
@@ -431,7 +437,7 @@ namespace InfServer.Script.GameType_TDM
             }
 
             from.sendMessage(0, "Most Deaths");
-            IEnumerable<Player> specialPlayers = _arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
+            IEnumerable<Player> specialPlayers = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
             //  IEnumerable<Player> specialPlayers = _savedPlayerStats.Keys.OrderByDescending(player => _savedPlayerStats[player].deaths);
             idx = 1; //Only display the top person
             foreach (Player p in specialPlayers)

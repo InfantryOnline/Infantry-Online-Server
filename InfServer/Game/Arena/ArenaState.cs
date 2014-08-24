@@ -264,7 +264,7 @@ namespace InfServer.Game
             }
 
             //Is this a private arena and are we the first one?
-            if (player._arena._name.StartsWith("#", StringComparison.OrdinalIgnoreCase) && player._arena.TotalPlayerCount == 1)
+            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && player._arena.TotalPlayerCount == 1)
             {
                 //Give player required privileges
                 player._arena._owner.Add(player._alias);

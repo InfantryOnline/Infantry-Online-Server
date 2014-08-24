@@ -148,6 +148,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             else if (!_arena._bGameRunning && _tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
+                _arena.playtimeTickerIdx = 0; //Sets the timer ticker
                 _arena.setTicker(1, 0, _config.soccer.startDelay * 100, "Next game: ",
                     delegate()
                     {	//Trigger the game start
@@ -343,7 +344,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             }
 
             //Keep track of passes/fumbles/catches/steals
-            if (pass != player && _tickGameStart > 0
+            if (pass != null && pass != player && _tickGameStart > 0
                 && _arena.PlayerCount >= _minPlayersToKeepScore)
             {
                 if (pass._team == player._team)
@@ -418,8 +419,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             foreach (Player p in _arena.Players)
             {
-                int x = 0;
-                p.setVar("Hits", x);
                 if (!p.IsSpectator)
                     Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.joinTeam);
                 string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
@@ -448,6 +447,9 @@ namespace InfServer.Script.GameType_Soccerbrawl
             team2Goals = 0;
             _futureGoal = null;
             bounces = 0;
+
+            team1 = _arena.ActiveTeams.ElementAt(0);
+            team2 = _arena.ActiveTeams.ElementAt(1);
 
             //Lets clear our ball list first incase of added balls
             _arena._balls.Clear();
@@ -487,7 +489,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             foreach (Player p in _arena.Players)
             {
                 int x = 0;
-                p.setVar("Hits", x);
+                p.setVar("ForcedFumbles", x);
                 p._gotBallID = 999;
                 string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
                 p._arena.setTicker(5, 1, 0, update); // Puts the score top right!
@@ -544,37 +546,37 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 _arena.sendArenaMessage("&Game ended in a draw. No one wins.");
             else
                 _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
-
-            IEnumerable<Player> rankedPlayers;
+            /*
+            IEnumerable<Player> rGoals;
             int idx;
-            rankedPlayers = _arena.PlayersIngame.OrderByDescending(
-                    p => (p.getVarInt("Hits").Equals(null) ? 0 : p.getVarInt("Hits")));
+            rGoals = _arena.PlayersIngame.OrderByDescending(
+                    p => (p.getVarInt("ForcedFumbles").Equals(null) ? 0 : p.getVarInt("ForcedFumbles")));
             idx = 3;	//Only display top three players
 
-            foreach (Player p in rankedPlayers)
+            foreach (Player p in rGoals)
             {
                 if (idx-- == 0)
                     break;
 
                 //Set up the format
-                string format = "!3rd - (Hits={0}): {1}";
+                string format = "!3rd - (Forced Fumbles={0}): {1}";
 
                 switch (idx)
                 {
                     case 2:
-                        format = "!1st - (Hits={0}): {1}";
+                        format = "!1st - (Forced Fumbles={0}): {1}";
                         break;
                     case 1:
-                        format = "!2nd - (Hits={0}): {1}";
+                        format = "!2nd - (Forced Fumbles={0}): {1}";
                         break;
                 }
 
-                _arena.sendArenaMessage(String.Format(format, p.getVarInt("Hits"), p._alias));
+                _arena.sendArenaMessage(String.Format(format, p.getVarInt("ForcedFumbles"), p._alias));
             }
-
+            */
             foreach (Player p in _arena.Players)
             {
-                int hits = p.getVarInt("Hits");
+                int hits = p.getVarInt("ForcedFumbles");
                 int cash = 300 * hits;
                 int experience = 200 * hits;
                 int points = 100 * hits;
@@ -582,6 +584,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 p.KillPoints += points;
                 p.ExperienceTotal += experience;
                 p.sendMessage(0, String.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, experience, points));
+                if (record)
+                   p.ZoneStat12 += hits;
                 p.resetVars();
                 p.syncState();
                 p.clearProjectiles();
@@ -631,14 +635,53 @@ namespace InfServer.Script.GameType_Soccerbrawl
         }
 
         /// <summary>
-        /// Called when the statistical breakdown is displayed
+        /// Called when the statistical breakdown is displayed at the end of a game
         /// </summary>
         [Scripts.Event("Game.Breakdown")]
         public bool breakdown()
         {	//Allows additional "custom" breakdown information
 
             //Always return true;
-            return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Called when the statistical breakdown is displayed
+        /// </summary>
+        [Scripts.Event("Player.Breakdown")]
+        public bool individualBreakdown(Player from, bool bCurrent)
+        {	//Allows additional "custom" breakdown information
+
+            if (from == null)
+                return false;
+
+            IEnumerable<Player> FFumbles;
+            int idx;
+            FFumbles = _arena.PlayersIngame.OrderByDescending(
+                    p => (p.getVarInt("ForcedFumbles").Equals(null) ? 0 : p.getVarInt("ForcedFumbles")));
+            idx = 3;	//Only display top three players
+
+            foreach (Player p in FFumbles)
+            {
+                if (idx-- == 0)
+                    break;
+
+                //Set up the format
+                string format = "!3rd - (Forced Fumbles={0}): {1}";
+
+                switch (idx)
+                {
+                    case 2:
+                        format = "!1st - (Forced Fumbles={0}): {1}";
+                        break;
+                    case 1:
+                        format = "!2nd - (Forced Fumbles={0}): {1}";
+                        break;
+                }
+                from.sendMessage(0, String.Format(format, p.getVarInt("ForcedFumbles"), p._alias));
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -665,6 +708,26 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Player.LeaveArena")]
         public void playerLeaveArena(Player player)
         {
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena._balls.FirstOrDefault(b => b._id == player._gotBallID);
+
+                player._gotBallID = 999;
+                //Initialize its ballstate
+                ball._state = new Ball.BallState();
+
+                //Assign default state
+                ball._state.positionX = player._state.positionX;
+                ball._state.positionY = player._state.positionY;
+                ball._state.positionZ = player._state.positionZ;
+                ball._state.velocityX = 0;
+                ball._state.velocityY = 0;
+                ball._state.velocityZ = 0;
+                ball._state.ballStatus = -1;
+
+                ball.Route_Ball(player._arena.Players);
+            }
+
             //Check to see if we are in the list still
             dequeue(player);
 
@@ -678,6 +741,26 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Player.Leave")]
         public void playerLeave(Player player)
         {
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena._balls.FirstOrDefault(b => b._id == player._gotBallID);
+
+                player._gotBallID = 999;
+                //Initialize its ballstate
+                ball._state = new Ball.BallState();
+
+                //Assign default state
+                ball._state.positionX = player._state.positionX;
+                ball._state.positionY = player._state.positionY;
+                ball._state.positionZ = player._state.positionZ;
+                ball._state.velocityX = 0;
+                ball._state.velocityY = 0;
+                ball._state.velocityZ = 0;
+                ball._state.ballStatus = -1;
+
+                ball.Route_Ball(player._arena.Players);
+            }
+
             //Check to see if we are in the list
             dequeue(player);
 
@@ -730,8 +813,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Player.JoinGame")]
         public bool playerJoinGame(Player player)
         {
-            if (player.getVarInt("Hits").Equals(null))
-                player.setVar("Hits", 0);
+            if (player.getVarInt("ForcedFumbles").Equals(null))
+                player.setVar("ForcedFumbles", 0);
 
             if (_arena.PlayerCount >= _config.arena.playingMax)
             {
@@ -891,10 +974,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Player.PlayerKill")]
         public bool playerPlayerKill(Player victim, Player killer)
         {
-            if (killer.getVarInt("Hits").Equals(null))
-                killer.setVar("Hits", 1);
-            else
-                killer.setVar("Hits", killer.getVarInt("Hits") + 1);
             return true;
         }
 
@@ -908,6 +987,13 @@ namespace InfServer.Script.GameType_Soccerbrawl
             if (victim._gotBallID != 999)
             {
                 Ball ball = _arena._balls.FirstOrDefault(b => b._id == victim._gotBallID);
+                if (ball._owner == victim)
+                {
+                    if (killer.getVarInt("ForcedFumbles").Equals(null))
+                        killer.setVar("ForcedFumbles", killer.getVarInt("ForcedFumbles") + 1);
+                    else
+                        killer.setVar("ForcedFumbles", killer.getVarInt("ForcedFumbles") + 1);
+                }
                 victim._gotBallID = 999;
 
                 Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
@@ -946,7 +1032,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Player.ModCommand")]
         public bool playerModCommand(Player player, Player recipient, string command, string payload)
         {
-            if (command.ToLower().Equals("setscore"))
+            command = (command.ToLower());
+            if (command.Equals("setscore"))
             {
                 if (String.IsNullOrEmpty(payload))
                 {
@@ -976,9 +1063,264 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 return true;
             }
 
+            if (command.Equals("poweradd"))
+            {
+                if (player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+                {
+                    player.sendMessage(-1, "Nice try.");
+                    return false;
+                }
+
+                int level = (int)Data.PlayerPermission.ArenaMod;
+                //Pm'd?
+                if (recipient != null)
+                {
+                    //Check for a possible level
+                    if (!String.IsNullOrWhiteSpace(payload))
+                    {
+                        try
+                        {
+                            level = Convert.ToInt16(payload);
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "Invalid level. Level must be either 1 or 2.");
+                            return false;
+                        }
+
+                        if (level < 1 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, ":alias:*poweradd level(optional), :alias:*poweradd level (Defaults to 1)");
+                            player.sendMessage(0, "Note: there can only be 1 admin level.");
+                            return false;
+                        }
+
+                        switch (level)
+                        {
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient._developer = true;
+                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                    }
+                    else
+                    {
+                        recipient._developer = true;
+                        recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                    }
+
+                    //Lets send it to the database
+                    //Send it to the db
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = recipient._alias;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+                else
+                {
+                    //We arent
+                    //Get name and possible level
+                    Int16 number;
+                    if (String.IsNullOrEmpty(payload))
+                    {
+                        player.sendMessage(-1, "*poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
+                        player.sendMessage(0, "Note: there can only be 1 admin.");
+                        return false;
+                    }
+                    if (payload.Contains(':'))
+                    {
+                        string[] param = payload.Split(':');
+                        try
+                        {
+                            number = Convert.ToInt16(param[1]);
+                            if (number >= 0)
+                                level = number;
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "That is not a valid level. Possible powering levels are 1 or 2.");
+                            return false;
+                        }
+                        if (level < 1 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, String.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(0, "Note: there can be only 1 admin level.");
+                            return false;
+                        }
+                        payload = param[0];
+                    }
+                    player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", payload, level));
+                    if ((recipient = player._server.getPlayer(payload)) != null)
+                    { //They are playing, lets update them
+                        switch (level)
+                        {
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient._developer = true;
+                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                    }
+
+                    //Lets send it off
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = payload;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+            }
+
+            if (command.Equals("powerremove"))
+            {
+                if (player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+                {
+                    player.sendMessage(-1, "Nice try.");
+                    return false;
+                }
+
+                int level = (int)Data.PlayerPermission.Normal;
+                //Pm'd?
+                if (recipient != null)
+                {
+                    //Check for a possible level
+                    if (!String.IsNullOrWhiteSpace(payload))
+                    {
+                        try
+                        {
+                            level = Convert.ToInt16(payload);
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "Invalid level. Levels must be between 0 and 2.");
+                            return false;
+                        }
+
+                        if (level < 0 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, ":alias:*powerremove level(optional), :alias:*powerremove level (Defaults to 0)");
+                            return false;
+                        }
+
+                        switch (level)
+                        {
+                            case 0:
+                                recipient._permissionStatic = Data.PlayerPermission.Normal;
+                                recipient._developer = false;
+                                break;
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                    }
+                    else
+                    {
+                        recipient._developer = false;
+                        recipient._permissionStatic = Data.PlayerPermission.Normal;
+                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                    }
+
+                    //Lets send it to the database
+                    //Send it to the db
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = recipient._alias;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+                else
+                {
+                    //We arent
+                    //Get name and possible level
+                    Int16 number;
+                    if (String.IsNullOrEmpty(payload))
+                    {
+                        player.sendMessage(-1, "*powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
+                        return false;
+                    }
+                    if (payload.Contains(':'))
+                    {
+                        string[] param = payload.Split(':');
+                        try
+                        {
+                            number = Convert.ToInt16(param[1]);
+                            if (number >= 0)
+                                level = number;
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "That is not a valid level. Possible depowering levels are between 0 and 2.");
+                            return false;
+                        }
+                        if (level < 0 || level > (int)player.PermissionLevelLocal
+                            || level == (int)Data.PlayerPermission.SMod)
+                        {
+                            player.sendMessage(-1, String.Format("*powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            return false;
+                        }
+                        payload = param[0];
+                    }
+                    player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", payload, level));
+                    if ((recipient = player._server.getPlayer(payload)) != null)
+                    { //They are playing, lets update them
+                        switch (level)
+                        {
+                            case 0:
+                                recipient._permissionStatic = Data.PlayerPermission.Normal;
+                                recipient._developer = false;
+                                break;
+                            case 1:
+                                recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                                break;
+                            case 2:
+                                recipient._permissionStatic = Data.PlayerPermission.Mod;
+                                break;
+                        }
+                        recipient.sendMessage(0, String.Format("You have been depowered to level {0}.", level));
+                    }
+
+                    //Lets send it off
+                    CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                    query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                    query.sender = player._alias;
+                    query.query = payload;
+                    query.level = level;
+                    //Send it!
+                    player._server._db.send(query);
+                    return true;
+                }
+            }
             return false;
         }
-
         #endregion
     }
 }

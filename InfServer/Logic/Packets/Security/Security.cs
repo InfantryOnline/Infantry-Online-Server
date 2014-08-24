@@ -40,8 +40,8 @@ namespace InfServer.Logic
                     {//They have a cheat running or debugger, kick them out and inform mods
                         if (!player._server.IsStandalone)
                         {
-                            CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
-                            pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                            CS_ChatQuery<Data.Database> pktquery = new CS_ChatQuery<Data.Database>();
+                            pktquery.queryType = CS_ChatQuery<Data.Database>.QueryType.alert;
                             pktquery.sender = player._alias;
                             pktquery.payload = String.Format("&ALERT - Player Kicked: (Zone={0}, Arena={1}, Player={2}) Reason=Using a hack or cheat engine. Program={3}", 
                                 player._server.Name, player._arena._name, player._alias, Logic_Text.RemoveIllegalCharacters(element).ToLower());
@@ -68,8 +68,8 @@ namespace InfServer.Logic
 
                         if (!player._server.IsStandalone)
                         {
-                            CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
-                            pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                            CS_ChatQuery<Data.Database> pktquery = new CS_ChatQuery<Data.Database>();
+                            pktquery.queryType = CS_ChatQuery<Data.Database>.QueryType.alert;
                             pktquery.sender = player._alias;
                             pktquery.payload = String.Format("&ALERT - Player Kicked: (Zone={0}, Arena={1}, Player={2}) Reason=Using a hack or cheat engine. Program={3}", player._server.Name, player._arena._name, player._alias, Logic_Text.RemoveIllegalCharacters(element).ToLower());
                             //Send it!
@@ -131,8 +131,8 @@ namespace InfServer.Logic
 
                     if (!player._server.IsStandalone)
                     {
-                        CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
-                        pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                        CS_ChatQuery<Data.Database> pktquery = new CS_ChatQuery<Data.Database>();
+                        pktquery.queryType = CS_ChatQuery<Data.Database>.QueryType.alert;
                         pktquery.sender = player._alias;
                         pktquery.payload = String.Format("&ALERT - Player Kicked: (Zone={0}, Arena={1}, Player={2}, Checksum={3}, Reliable={4}) Reason=Client checksum mismatch.", player._server.Name, player._arena._name, player._alias, pkt.Unk3, player._server._reliableChecksum);
                         //Send it!

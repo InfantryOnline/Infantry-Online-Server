@@ -185,8 +185,8 @@ namespace InfServer.Data
                     packet = new CS_Squads<T>(typeID, buffer, offset, size);
                     break;
 
-                case CS_Query<T>.TypeID:
-                    packet = new CS_Query<T>(typeID, buffer, offset, size);
+                case CS_ChatQuery<T>.TypeID:
+                    packet = new CS_ChatQuery<T>(typeID, buffer, offset, size);
                     break;
 
                 case Disconnect<T>.TypeID:
@@ -201,8 +201,8 @@ namespace InfServer.Data
                     packet = new CS_SquadMatch<T>(typeID, buffer, offset, size);
                     break;
 
-                case CS_Alias<T>.TypeID:
-                    packet = new CS_Alias<T>(typeID, buffer, offset, size);
+                case CS_ModQuery<T>.TypeID:
+                    packet = new CS_ModQuery<T>(typeID, buffer, offset, size);
                     break;
 
                 case CS_ChatCommand<T>.TypeID:

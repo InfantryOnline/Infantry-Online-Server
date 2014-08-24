@@ -34,8 +34,8 @@ namespace InfServer.Game.Commands.Mod
             string queryBan;
 
             //Create a new query packet.
-            CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-            query.queryType = CS_Query<Data.Database>.QueryType.whois;
+            CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
+            query.queryType = CS_ChatQuery<Data.Database>.QueryType.whois;
             query.sender = player._alias;
 
             if (recipient != null)
@@ -103,8 +103,8 @@ namespace InfServer.Game.Commands.Mod
 
             //Added - shows bans
             //Create a ban query packet
-            CS_Query<Data.Database> ban = new CS_Query<Data.Database>();
-            ban.queryType = CS_Query<Data.Database>.QueryType.ban;
+            CS_ChatQuery<Data.Database> ban = new CS_ChatQuery<Data.Database>();
+            ban.queryType = CS_ChatQuery<Data.Database>.QueryType.ban;
             ban.sender = player._alias;
             ban.payload = queryBan;
 
@@ -171,11 +171,11 @@ namespace InfServer.Game.Commands.Mod
                 aliasTo = recipient._alias;
             }
 
-            CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-            query.aliasType = CS_Alias<Data.Database>.AliasType.transfer;
+            CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+            query.queryType = CS_ModQuery<Data.Database>.QueryType.aliastransfer;
             query.sender = player._alias;
             query.aliasTo = aliasTo;
-            query.alias = alias;
+            query.query = alias;
             //Send it!
             player._server._db.send(query);
         }
@@ -220,10 +220,10 @@ namespace InfServer.Game.Commands.Mod
                 recipient.disconnect();
 
             //Send it to the db
-            CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-            query.aliasType = CS_Alias<Data.Database>.AliasType.remove;
+            CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+            query.queryType = CS_ModQuery<Data.Database>.QueryType.aliasremove;
             query.sender = player._alias;
-            query.alias = alias;
+            query.query = alias;
             //Send it!
             player._server._db.send(query);
         }
@@ -283,11 +283,11 @@ namespace InfServer.Game.Commands.Mod
             if (recipient != null)
                 recipient.disconnect();
 
-            CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-            query.aliasType = CS_Alias<Data.Database>.AliasType.rename;
+            CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+            query.queryType = CS_ModQuery<Data.Database>.QueryType.aliasrename;
             query.sender = player._alias;
             query.aliasTo = aliasTo;
-            query.alias = alias;
+            query.query = alias;
             //Send it!
             player._server._db.send(query);
         }
@@ -356,10 +356,10 @@ namespace InfServer.Game.Commands.Mod
 
                 //Lets send it to the database
                 //Send it to the db
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.mod;
                 query.sender = player._alias;
-                query.alias = recipient._alias;
+                query.query = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -401,7 +401,7 @@ namespace InfServer.Game.Commands.Mod
 
                 player.sendMessage(0, "You have mod promoted " + payload + " to level " + level + ".");
 
-                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                if ((recipient = player._server.getPlayer(payload)) != null)
                 { //They are playing, lets update them
                     switch (level)
                     {
@@ -425,10 +425,10 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 //Lets send it off
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.mod;
                 query.sender = player._alias;
-                query.alias = payload;
+                query.query = payload;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -503,10 +503,10 @@ namespace InfServer.Game.Commands.Mod
 
                 //Lets send it to the database
                 //Send it to the db
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.mod;
                 query.sender = player._alias;
-                query.alias = recipient._alias;
+                query.query = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -547,7 +547,7 @@ namespace InfServer.Game.Commands.Mod
 
                 player.sendMessage(0, "You have mod demoted " + payload + " to level " + level + ".");
 
-                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                if ((recipient = player._server.getPlayer(payload)) != null)
                 { //They are playing, lets update them
                     switch (level)
                     {
@@ -574,10 +574,10 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 //Lets send it off
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.mod;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.mod;
                 query.sender = player._alias;
-                query.alias = payload;
+                query.query = payload;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -653,10 +653,10 @@ namespace InfServer.Game.Commands.Mod
 
                 //Lets send it to the database
                 //Send it to the db
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
                 query.sender = player._alias;
-                query.alias = recipient._alias;
+                query.query = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -699,7 +699,7 @@ namespace InfServer.Game.Commands.Mod
 
                 player.sendMessage(0, "You have dev promoted " + payload + " to level " + level + ".");
 
-                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                if ((recipient = player._server.getPlayer(payload)) != null)
                 { //They are playing, lets update them
                     switch (level)
                     {
@@ -723,10 +723,10 @@ namespace InfServer.Game.Commands.Mod
                     recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
                 }
                 //Lets send it off
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
                 query.sender = player._alias;
-                query.alias = payload;
+                query.query = payload;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -805,10 +805,10 @@ namespace InfServer.Game.Commands.Mod
 
                 //Lets send it to the database
                 //Send it to the db
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
                 query.sender = player._alias;
-                query.alias = recipient._alias;
+                query.query = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -851,7 +851,7 @@ namespace InfServer.Game.Commands.Mod
 
                 player.sendMessage(0, "You have dev demoted " + payload + " to level " + level + ".");
 
-                if ((recipient = player._arena.getPlayerByName(payload)) != null)
+                if ((recipient = player._server.getPlayer(payload)) != null)
                 { //They are playing, lets update them
                     switch (level)
                     {
@@ -878,15 +878,103 @@ namespace InfServer.Game.Commands.Mod
                     recipient.sendMessage(0, "You have been dev demoted to level " + level + ".");
                 }
                 //Lets send it off
-                CS_Alias<Data.Database> query = new CS_Alias<Data.Database>();
-                query.aliasType = CS_Alias<Data.Database>.AliasType.dev;
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
                 query.sender = player._alias;
-                query.alias = payload;
+                query.query = payload;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
                 return;
             }
+        }
+
+        /// <summary>
+        /// Forces a player to squad join a specific squad
+        /// </summary>
+        static public void squadjoin(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
+
+            if (recipient == null && String.IsNullOrWhiteSpace(payload))
+            {
+                player.sendMessage(-1, ":alias:*squadjoin squadname or *squadjoin alias:squadname");
+                return;
+            }
+
+            string[] split = payload.Split(':');
+            if (recipient == null && !payload.Contains(':'))
+            {
+                player.sendMessage(-1, ":alias:*squadjoin squadname or *squadjoin alias:squadname");
+                return;
+            }
+
+            CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+            query.queryType = CS_ModQuery<Data.Database>.QueryType.squadjoin;
+            query.sender = player._alias;
+            query.aliasTo = recipient != null ? recipient._alias : split[0];
+            query.query = recipient != null ? payload : split[1];
+            player._server._db.send(query);
+        }
+
+        /// <summary>
+        /// Transfers squad ownership to a player
+        /// </summary>
+        static public void transfersquad(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
+
+            if (recipient == null && String.IsNullOrWhiteSpace(payload))
+            {
+                player.sendMessage(-1, ":alias:*transfersquad (Note: this will transfer ownership to whatever squad he/she is already on)");
+                player.sendMessage(0, ":alias:*transfersquad <squadname> or *transfersquad aliasTo:squadname (Both for non squadded players)");
+                return;
+            }
+
+            string[] split = payload.Split(':');
+            string squadName = String.Empty;
+            if (recipient != null)
+            {
+                //We are pming them
+                //Did we try to query a squad?
+                if (!String.IsNullOrWhiteSpace(payload))
+                    squadName = payload;
+                else
+                {
+                    if (String.IsNullOrWhiteSpace(recipient._squad))
+                    {
+                        player.sendMessage(-1, "Cannot transfer squad ownership, the player is not on a squad. Use :alias:*transfersquad <squadname> instead.");
+                        return;
+                    }
+                    squadName = recipient._squad;
+                }
+                split[0] = recipient._alias;
+            }
+            else
+            {
+                //We arent pm'ing, make sure they used the right syntax
+                if (!payload.Contains(':'))
+                {
+                    player.sendMessage(0, "*transfersquad aliasTo:squadname");
+                    return;
+                }
+                squadName = split[1];
+            }
+
+            CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+            query.queryType = CS_ModQuery<Data.Database>.QueryType.squadtransfer;
+            query.sender = player._alias;
+            query.aliasTo = split[0];
+            query.query = squadName;
+            player._server._db.send(query);
         }
 
         /// <summary>
@@ -925,10 +1013,20 @@ namespace InfServer.Game.Commands.Mod
                 "::*removealias OR *removealias alias - to delete one from the account",
                 InfServer.Data.PlayerPermission.SMod, false);
 
+            yield return new HandlerDescriptor(squadjoin, "squadjoin",
+                "Forces a player to squad join a squad",
+                "::*squadjoin squadname, *squadjoin alias:squadname",
+                InfServer.Data.PlayerPermission.SMod, true);
+
             yield return new HandlerDescriptor(transferalias, "transferalias",
                 "Transfers aliases between characters",
                 "*transferalias aliasGoingTo:alias in question OR :playerGoingTo:*transferalias alias in question",
                 InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(transfersquad, "transfersquad",
+                "Transfer a squad to a player",
+                "*transfersquad aliasTo:squadname, ::*transfersquad squadname, *transfersquad aliasTo(if already joined), ::*transfersquad(if joined already)",
+                InfServer.Data.PlayerPermission.SMod, true);
 
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",

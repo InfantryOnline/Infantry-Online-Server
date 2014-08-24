@@ -151,8 +151,8 @@ namespace InfServer.Game
                             }
 
                         //For all other mods
-                        CS_Query<Data.Database> pkt = new CS_Query<Data.Database>();
-                        pkt.queryType = CS_Query<Data.Database>.QueryType.modChat;
+                        CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
+                        pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.modChat;
                         pkt.sender = from._alias;
                         pkt.payload = String.Format("&[ModChat] [{0}]> {1}", from._alias, payload);
                         //Send it!

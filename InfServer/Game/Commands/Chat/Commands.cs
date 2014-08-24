@@ -61,9 +61,9 @@ namespace InfServer.Game.Commands.Chat
             if (player._server.IsStandalone)
                 return;
 
-            CS_Query<Data.Database> query = new CS_Query<Data.Database>();
+            CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
             query.sender = player._alias;
-            query.queryType = CS_Query<Data.Database>.QueryType.accountinfo;
+            query.queryType = CS_ChatQuery<Data.Database>.QueryType.accountinfo;
             player._server._db.send(query);
         }
         #endregion
@@ -558,8 +558,8 @@ namespace InfServer.Game.Commands.Chat
             }
 
             //Pass the payload off to the database
-            CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-            query.queryType = CS_Query<Data.Database>.QueryType.deletealias;
+            CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
+            query.queryType = CS_ChatQuery<Data.Database>.QueryType.deletealias;
             query.sender = player._alias;
             query.payload = argument;
             player._server._db.send(query);
@@ -687,8 +687,8 @@ namespace InfServer.Game.Commands.Chat
             if (ematch.IsMatch(payload) && !payload.EndsWith("."))
             {
                 //Pass the payload off to the database
-                CS_Query<Data.Database> query = new CS_Query<Data.Database>();
-                query.queryType = CS_Query<Data.Database>.QueryType.emailupdate;
+                CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
+                query.queryType = CS_ChatQuery<Data.Database>.QueryType.emailupdate;
                 query.sender = player._alias;
                 query.payload = payload;
                 player._server._db.send(query);
@@ -710,8 +710,8 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            CS_Query<Data.Database> findPlayer = new CS_Query<Data.Database>();
-            findPlayer.queryType = CS_Query<Data.Database>.QueryType.find;
+            CS_ChatQuery<Data.Database> findPlayer = new CS_ChatQuery<Data.Database>();
+            findPlayer.queryType = CS_ChatQuery<Data.Database>.QueryType.find;
             findPlayer.payload = payload;
             findPlayer.sender = player._alias;
 
@@ -739,8 +739,8 @@ namespace InfServer.Game.Commands.Chat
             //Alert any mods online
             if (!player._server.IsStandalone)
             {
-                CS_Query<Data.Database> pktquery = new CS_Query<Data.Database>();
-                pktquery.queryType = CS_Query<Data.Database>.QueryType.alert;
+                CS_ChatQuery<Data.Database> pktquery = new CS_ChatQuery<Data.Database>();
+                pktquery.queryType = CS_ChatQuery<Data.Database>.QueryType.alert;
                 pktquery.sender = player._alias;
                 pktquery.payload = String.Format("&HELP:(Zone={0}, Arena={1}, Player={2}) Reason={3}", player._server.Name, player._arena._name, player._alias, payload);
                 //Send it!
@@ -807,8 +807,8 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            CS_Query<Data.Database> online = new CS_Query<Data.Database>();
-            online.queryType = CS_Query<Data.Database>.QueryType.online;
+            CS_ChatQuery<Data.Database> online = new CS_ChatQuery<Data.Database>();
+            online.queryType = CS_ChatQuery<Data.Database>.QueryType.online;
             online.sender = player._alias;
 
             player._server._db.send(online);
@@ -1534,8 +1534,8 @@ namespace InfServer.Game.Commands.Chat
             else
             {
                 //Defer query to the database
-                CS_Query<Data.Database> zonelist = new CS_Query<Data.Database>();
-                zonelist.queryType = CS_Query<Data.Database>.QueryType.zonelist;
+                CS_ChatQuery<Data.Database> zonelist = new CS_ChatQuery<Data.Database>();
+                zonelist.queryType = CS_ChatQuery<Data.Database>.QueryType.zonelist;
                 zonelist.sender = player._alias;
                 zonelist.payload = player._server.Port.ToString();
                 player._server._db.send(zonelist);

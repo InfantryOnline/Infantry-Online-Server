@@ -13,16 +13,15 @@ namespace InfServer.Logic
         /// <summary>
         /// Handles a query packet
         /// </summary>
-        static public void Handle_CS_Alias(CS_Alias<Zone> pkt, Zone zone)
+        static public void Handle_CS_ModQuery(CS_ModQuery<Zone> pkt, Zone zone)
         {
             using (InfantryDataContext db = zone._server.getContext())
             {
-                switch (pkt.aliasType)
+                switch (pkt.queryType)
                 {
-                    case CS_Alias<Zone>.AliasType.transfer:
+                    case CS_ModQuery<Zone>.QueryType.aliastransfer:
                         {
-
-                            if (pkt.alias == "" || pkt.aliasTo == "")
+                            if (String.IsNullOrEmpty(pkt.query) || String.IsNullOrEmpty(pkt.aliasTo))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -37,8 +36,8 @@ namespace InfServer.Logic
                             }
 
                             //The alias in question
-                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
-                            Data.DB.player playerA = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
+                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
+                            Data.DB.player playerA = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.query));
                             if (alias == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Can't find the alias in question, maybe its not created yet.");
@@ -92,17 +91,17 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Alias<Zone>.AliasType.remove:
+                    case CS_ModQuery<Zone>.QueryType.aliasremove:
                         {
-                            if (pkt.alias == "")
+                            if (String.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
                             }
 
                             //Lets get all account related info then delete it
-                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
-                            Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.alias));
+                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
+                            Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.query));
                             if (palias == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -148,9 +147,9 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Alias<Zone>.AliasType.rename:
+                    case CS_ModQuery<Zone>.QueryType.aliasrename:
                         {
-                            if (pkt.alias == "")
+                            if (String.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -158,7 +157,7 @@ namespace InfServer.Logic
 
                             //Get all account related info
                             Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => aTo.name.Equals(pkt.aliasTo));
-                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
+                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
                             //Player even alive?
                             if (paliasTo == null)
                             {
@@ -171,9 +170,9 @@ namespace InfServer.Logic
                             //Does the payload already exist?
                             if (alias == null)
                             {
-                                paliasTo.name = pkt.alias;
+                                paliasTo.name = pkt.query;
                                 db.SubmitChanges();
-                                zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.alias + " has been completed.");
+                                zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.query + " has been completed.");
                                 return;
                             }
 
@@ -189,23 +188,23 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            paliasTo.name = pkt.alias;
+                            paliasTo.name = pkt.query;
                             db.SubmitChanges();
 
-                            zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.alias + " has been completed.");
+                            zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.query + " has been completed.");
                         }
                         break;
 
-                    case CS_Alias<Zone>.AliasType.mod:
+                    case CS_ModQuery<Zone>.QueryType.mod:
                         {
-                            if (pkt.alias == "")
+                            if (String.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
                             }
 
                             //Lets get all account related info
-                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.alias));
+                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
                             Data.DB.account account = db.accounts.FirstOrDefault(p => p.id == palias.account1.id);
                             if (palias == null)
                             {
@@ -226,9 +225,9 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Alias<Zone>.AliasType.dev:
+                    case CS_ModQuery<Zone>.QueryType.dev:
                         {
-                            if (pkt.alias == "")
+                            if (String.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -236,7 +235,7 @@ namespace InfServer.Logic
 
                             //Lets get all account related info
                             Data.DB.player player = (from plyr in db.players
-                                        where plyr.alias1.name == pkt.alias && plyr.zone1 == zone._zone
+                                        where plyr.alias1.name == pkt.query && plyr.zone1 == zone._zone
                                         select plyr).FirstOrDefault();
                             if (player == null)
                             {
@@ -249,6 +248,84 @@ namespace InfServer.Logic
 
                             db.SubmitChanges();
                             zone._server.sendMessage(zone, pkt.sender, "Changing player " + player.alias1.name + "'s dev level to " + pkt.level + " has been completed.");
+                        }
+                        break;
+
+                    case CS_ModQuery<Zone>.QueryType.squadtransfer:
+                        {
+                            if (String.IsNullOrEmpty(pkt.aliasTo) || String.IsNullOrEmpty(pkt.query))
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
+                            }
+
+                            //Lets find the player first
+                            Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.FirstOrDefault(p => p.alias1.name.Equals(pkt.aliasTo));
+                            if (dbplayer == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the player.");
+                                return;
+                            }
+
+                            //Lets find the squad in question
+                            Data.DB.squad squad = db.squads.First(s => s.name.Equals(pkt.query) && s.zone == zone._zone.id);
+                            if (squad == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified squad.");
+                                return;
+                            }
+
+                            //Are they in a squad?
+                            if (dbplayer.squad != null)
+                            {
+                                //Is it the same squad?
+                                if (dbplayer.squad != squad.id)
+                                {
+                                    zone._server.sendMessage(zone, pkt.sender, "That player isn't on the same squad.");
+                                    return;
+                                }
+                                //Transfer
+                                dbplayer.squad1.owner = dbplayer.id;
+                            }
+                            else
+                            {
+                                dbplayer.squad = squad.id;
+                                dbplayer.squad1.owner = dbplayer.id;
+                            }
+                            zone._server.sendMessage(zone, dbplayer.alias1.name, "You have been promoted to squad captain of " + dbplayer.squad1.name);
+                            zone._server.sendMessage(zone, dbplayer.alias1.name, "Please relog to complete the process.");
+                            zone._server.sendMessage(zone, pkt.sender, "Squad transferring is complete.");
+                        }
+                        break;
+
+                    case CS_ModQuery<Zone>.QueryType.squadjoin:
+                        {
+                            if (String.IsNullOrWhiteSpace(pkt.aliasTo) || String.IsNullOrWhiteSpace(pkt.query))
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                                return;
+                            }
+
+                            //Lets find the player first
+                            Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.FirstOrDefault(p => p.alias1.name.Equals(pkt.aliasTo));
+                            if (dbplayer == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the player.");
+                                return;
+                            }
+
+                            //Lets find the squad in question
+                            Data.DB.squad squad = db.squads.FirstOrDefault(s => s.name.Equals(pkt.query) && s.zone == zone._zone.id);
+                            if (squad == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified squad.");
+                                return;
+                            }
+
+                            dbplayer.squad = squad.id;
+                            zone._server.sendMessage(zone, dbplayer.alias1.name, "You have joined " + squad.name);
+                            zone._server.sendMessage(zone, dbplayer.alias1.name, "Please relog to complete the process.");
+                            zone._server.sendMessage(zone, pkt.sender, "Squad joining completed.");
                         }
                         break;
                 }
@@ -393,7 +470,7 @@ namespace InfServer.Logic
         static public void Register()
         {
             CS_Ban<Zone>.Handlers += Handle_CS_Ban;
-            CS_Alias<Zone>.Handlers += Handle_CS_Alias;
+            CS_ModQuery<Zone>.Handlers += Handle_CS_ModQuery;
         }
     }
 }

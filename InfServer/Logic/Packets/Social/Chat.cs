@@ -246,8 +246,11 @@ namespace InfServer.Logic
                         foreach (Arena a in player._server._arenas.Values)
                             foreach (Player p in a.Players)
                             {
-                                if (p == player || p._squad != pkt.recipient || pkt.recipient == "")
-                                    //We don't message ourselves or anybody outside of specified squad
+                                if (p == player)
+                                    continue;
+                                if (String.IsNullOrWhiteSpace(pkt.recipient))
+                                    continue;
+                                if (!p._squad.Equals(pkt.recipient, StringComparison.OrdinalIgnoreCase))
                                     continue;
                                 p.sendPlayerChat(player, pkt);
                             }
