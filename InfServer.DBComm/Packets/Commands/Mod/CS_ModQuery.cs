@@ -32,7 +32,8 @@ namespace InfServer.Protocol
             aliasrename,
             squadtransfer,
             squadremove,
-            squadjoin
+            squadjoin,
+            powered
         }
 
 

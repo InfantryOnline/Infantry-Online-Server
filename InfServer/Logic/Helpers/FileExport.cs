@@ -1,26 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace InfServer.Logic
 {
     public partial class Logic_File
     {
         /// <summary>
+        /// Removes any illegal file characters from a string
+        /// </summary>
+        public static string RemoveIllegalCharacters(string str)
+        {   //Remove characters...
+            string c = str;
+            Regex regex = new Regex(@"(\/|\*|\?|\||:|<|>)", RegexOptions.None);
+            c = regex.Replace(c, @".");
+            //Trim it
+            str = c.Trim();
+            //We have our new Infantry compatible string!
+            return str;
+        }
+
+        /// <summary>
         /// Creates or opens a league stat file
         /// </summary>
-        /// <param name="fileName">Content File name</param>
-        /// <param name="create">Create?</param>
-        /// <returns>Returns the opened file</returns>
-        static public FileStream CreateStatFile(string fileName)
+        /// <returns>Returns the opened file stream</returns>
+        static public StreamWriter CreateStatFile(string fileName)
         {
-            if (!Directory.Exists(@"../Stats/"))
-                Directory.CreateDirectory(@"../Stats/");
+            string current = "Stats\\";
+            if (!Directory.Exists(current))
+                Directory.CreateDirectory(current);
 
-            string fullPath = Assets.AssetFileFactory.findAssetFile(fileName, @"../Stats/");
-            return File.Open(fullPath, fullPath == null ? FileMode.Create : FileMode.OpenOrCreate,
-                FileAccess.Write, FileShare.ReadWrite);
+            //Set file creating standard
+            fileName = RemoveIllegalCharacters(fileName);
+            if (!fileName.Contains(".txt"))
+                fileName = fileName + ".txt";
+
+            string fullPath = Assets.AssetFileFactory.findAssetFile(fileName, current);
+            if (fullPath == null)
+                //Doesnt exist
+                fullPath = Path.Combine(current, fileName);
+            return File.CreateText(fullPath);
+        }
+
+        /// <summary>
+        /// Creates or opens a league stat file in a specified directory name
+        /// </summary>
+        /// <returns>Returns the opened file stream</returns>
+        static public StreamWriter CreateStatFile(string fileName, string dirName)
+        {
+            string current = "Stats\\";
+            if (!Directory.Exists(current))
+                Directory.CreateDirectory(current);
+
+            string path = Path.Combine(current, dirName);
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            //Set file creating standard
+            fileName = RemoveIllegalCharacters(fileName);
+            if (!fileName.Contains(".txt"))
+                fileName = fileName + ".txt";
+
+            string fullpath = Assets.AssetFileFactory.findAssetFile(fileName, path);
+            if (fullpath == null)
+                //Doesnt exist
+                fullpath = Path.Combine(path, fileName);
+            Console.WriteLine(fullpath);
+            return File.CreateText(fullpath);
         }
     }
 }

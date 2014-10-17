@@ -78,7 +78,9 @@ namespace InfServer.Script.GameType_Burnt
                 if (_Arena.PlayersIngame.Count() >= Settings.MinPlayers)
                 {
                     vote();
-                }                
+                }
+                else
+                    _Arena.setTicker(1, 1, 0, "Not Enough Players");
             }
 
             switch (_GameType)

@@ -60,6 +60,7 @@ namespace InfServer.Script.GameType_TDM
         {	//Populate our variables
             _arena = invoker as Arena;
             _config = _arena._server._zoneConfig;
+            _arena.playtimeTickerIdx = 3; //Sets the global ticker index
 
             _minPlayers = _config.deathMatch.minimumPlayers;
 
@@ -114,7 +115,6 @@ namespace InfServer.Script.GameType_TDM
             if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
-                _arena.playtimeTickerIdx = 3;
                 _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
                     delegate()
                     {	//Trigger the game start
@@ -256,12 +256,8 @@ namespace InfServer.Script.GameType_TDM
             _gameWon = false;
             _victoryTeam = null;
 
-            //Are we recording stats?
-            _arena._saveStats = true;
-
             //Start a new session for players, clears the old one
             _savedPlayerStats.Clear();
-
             foreach (Player p in _arena.Players)
             {
                 PlayerStats temp = new PlayerStats();
@@ -336,7 +332,8 @@ namespace InfServer.Script.GameType_TDM
                             break;
                     }
                 }
-                _arena.setTicker(2, 0, 0, format);
+                if (!_arena.recycling)
+                    _arena.setTicker(2, 0, 0, format);
             }
         }
 

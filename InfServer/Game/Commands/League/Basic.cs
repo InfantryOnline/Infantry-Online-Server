@@ -23,11 +23,14 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "This command can only be used in non-public arenas.");
                 return;
             }
-
+            
             if (!player._server.Name.Contains("League"))
             {
-                player.sendMessage(-1, "This command can only be used in league zones.");
-                return;
+                if (!player._server.Name.Contains("TZ"))
+                {
+                    player.sendMessage(-1, "This command can only be used in league zones.");
+                    return;
+                }
             }
 
             //Lock the arena
@@ -42,7 +45,10 @@ namespace InfServer.Game.Commands.Mod
 
             //Let Everyone Know
             if (player._arena._isMatch)
-                player._arena.sendArenaMessage("A league match is starting, Please be patient while the referee sets the match up.");
+            {
+                player._arena.gameStart();
+                player._arena.sendArenaMessage("Game ON! - Good Luck");
+            }
             else
                 player._arena.sendArenaMessage("League match has ended.");
         }

@@ -247,6 +247,9 @@ namespace InfServer.Game
 			//If we have a player, kick him out
 			playerLeave(bRestoreBase);
 
+            if (this is Bots.Bot)
+                _arena._botsInArena--;
+
 			//Destroy all child vehicles too
 			foreach (Vehicle child in _childs)
 				child.destroy(bRestoreBase, bRemove);

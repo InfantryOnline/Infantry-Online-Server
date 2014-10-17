@@ -19,6 +19,13 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void recycle(Player player, Player recipient, string payload, int bong)
         {
+            //Power check
+            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+            {
+                player.sendMessage(-1, "Only mods or level 3 dev's and higher can use this command.");
+                return;
+            }
+
             int delay = 30;
 
             if (payload.Length > 0)
@@ -27,11 +34,16 @@ namespace InfServer.Game.Commands.Mod
             }
 
             player._arena.recycling = true;
-            player._arena.setTicker(0, 0, delay * 100, "Server closing in: ", player._server.recycle);
+            player._arena.setTicker(0, 0, delay * 100, "Server closing in: ", delegate()
+            {
+                player._server.recycle();
+            });
             player._arena.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
 
             //For players leaving the zone, still will recycle it on its own
             if (!player._server._recycle.ContainsKey(player._server))
+                player._server._recycle.Add(player._server, DateTime.Now.AddSeconds(delay));
+            else
                 player._server._recycle.Add(player._server, DateTime.Now.AddSeconds(delay));
 
             foreach (KeyValuePair<string, Arena> arena in player._server._arenas)

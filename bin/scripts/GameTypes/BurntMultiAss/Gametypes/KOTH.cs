@@ -171,7 +171,7 @@ namespace InfServer.Script.GameType_Burnt
         {
             if (arena.ActiveTeams.Count() > 1)
             {//Show players their crown timer using a ticker
-                arena.setTicker(1, 0, 0, delegate(Player p)
+                arena.setTicker(1, 1, 0, delegate(Player p)
                 {
                     if (_playerCrownStatus.ContainsKey(p) && _playerCrownStatus[p].crown)
                     {

@@ -179,6 +179,10 @@ namespace InfServer.Game
                 //They are, is this a dev command?
                 if (!handler.isDevCommand)
                     return;
+                //Do they have the power?
+                if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
+                    //Nope
+                    return;
             }
 
             //Command logging (ignore normal player permission commands like *help, etc)

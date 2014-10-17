@@ -307,6 +307,20 @@ namespace InfServer.Game
 			return item;
 		}
 
+        /// <summary>
+        /// Gets a list of Item Infos 
+        /// </summary>
+        public List<ItemInfo> getItems
+        {
+            get
+            {
+                if (_idToItem.Count == 0)
+                    return null;
+                else
+                    return _idToItem.Values.ToList();
+            }
+        }
+
 		/// <summary>
 		/// Gets the SkillInfo of a particular ID
 		/// </summary>		
@@ -321,8 +335,8 @@ namespace InfServer.Game
             }
 
 			return skill;
-
 		}
+
 		/// <summary>
 		/// Gets the SkillInfo of a particular name
 		/// </summary>		
@@ -354,6 +368,36 @@ namespace InfServer.Game
 
 			return veh;
 		}
+
+        /// <summary>
+        /// Gets the VehInfo of a particular name
+        /// </summary>
+        public VehInfo getVehicleByName(string name)
+        {
+            string arg = name.ToLower();
+            foreach(VehInfo vehicles in _idToVehicle.Values)
+            {
+                if (vehicles.Name.Equals(arg))
+                    return vehicles;
+            }
+
+            Log.write(TLog.Warning, "Unable to get vehicle by name: {0}", name);
+            return null;
+        }
+
+        /// <summary>
+        /// Gets a list of VehInfo's 
+        /// </summary>
+        public List<VehInfo> getVehicleInfos
+        {
+            get
+            {
+                if (_idToVehicle.Count == 0)
+                    return null;
+                else
+                    return _idToVehicle.Values.ToList();
+            }
+        }
 
 		/// <summary>
 		/// Gets the LioInfo of a particular ID

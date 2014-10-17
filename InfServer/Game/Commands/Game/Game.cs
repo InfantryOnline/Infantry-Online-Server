@@ -41,6 +41,15 @@ namespace InfServer.Game.Commands.Mod
             player._arena.gameReset();
         }
 
+        /// <summary>
+        /// Starts a game
+        /// </summary>
+        static public void startgame(Player player, Player recipient, string payload, int bong)
+        {
+            player._arena.gameReset();
+            player._arena.gameStart();
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -58,6 +67,10 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(reset, "reset",
                 "Resets the current game.",
                 "*reset", InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(startgame, "startgame",
+                "Starts a new game.",
+                "*startgame", InfServer.Data.PlayerPermission.ArenaMod, true);
 		}
 	}
 }

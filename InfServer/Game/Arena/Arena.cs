@@ -951,7 +951,7 @@ namespace InfServer.Game
         /// </summary>
         public bool IsGranted(Player player)
         {
-            if (IsPrivate)
+            if (!_bIsPublic)
                 if (IsOwner(player) || player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
                     return true;
             return false;

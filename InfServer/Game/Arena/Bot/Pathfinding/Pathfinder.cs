@@ -194,8 +194,13 @@ namespace InfServer.Bots
 						searchContext = 0;
 					}
 
-					if (isBlocked(pathHandleClr2, start) || isBlocked(pathHandleClr2, end))
-						searchContext = createSearchContext(pathHandleClr0, start, end);
+                    if (isBlocked(pathHandleClr2, start) || isBlocked(pathHandleClr2, end))
+                    {
+                        if (pathHandleClr0 != 0)
+                            searchContext = createSearchContext(pathHandleClr0, start, end);
+                        else
+                            Log.write(TLog.Warning, "PathFinder - pathHandleclr0 cannot be found.");
+                    }
 				}
 			}
 			catch (Exception e)

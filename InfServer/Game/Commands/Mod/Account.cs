@@ -135,7 +135,7 @@ namespace InfServer.Game.Commands.Mod
 
             //Are we pm'ing someone?
             if (recipient == null)
-            {
+            {   //Nope
                 if (!payload.Contains(':'))
                 {
                     player.sendMessage(-1, "Syntax: *transferalias aliasGoingTo:alias in question");
@@ -146,7 +146,12 @@ namespace InfServer.Game.Commands.Mod
                 aliasTo = param[0];
                 if ((recipient = player._arena.getPlayerByName(param[1])) != null
                     || (recipient = player._server.getPlayer(param[1])) != null)
+                {
                     alias = recipient._alias;
+                    //The alias is playing, dc them
+                    recipient.sendMessage(-1, "You are being forced a dc to transfer this alias.");
+                    recipient.disconnect();
+                }
                 else
                     alias = param[1];
             }
@@ -165,6 +170,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     alias = online._alias;
                     online.sendMessage(-1, "You are being forced a dc to transfer the alias.");
+                    online.disconnect();
                 }
                 else
                     alias = payload;
@@ -978,6 +984,37 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Returns a list of players currently powered
+        /// </summary>
+        static public void powered(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrEmpty(payload) || payload.ToLower().Contains("list"))
+            {
+                player.sendMessage(0, "&Currently Powered Players:");
+
+                SortedList<string, Player> granted = new SortedList<string, Player>();
+                //First get granted players, then cycle through mods/dev's
+                foreach (Player p in player._arena.Players)
+                {
+                    if (p._permissionTemp >= Data.PlayerPermission.ArenaMod)
+                        granted.Add(p._alias, p);
+                }
+
+                foreach (string str in granted.Keys)
+                    player.sendMessage(0, String.Format("*{0} (granted)", str));
+
+                //They just want to see a list of admins
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.powered;
+                query.sender = player._alias;
+                query.query = "list";
+                query.level = (int)player.PermissionLevelLocal;
+                player._server._db.send(query);
+                return;
+            }
+        }
+
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ModCommand)]
@@ -1002,6 +1039,11 @@ namespace InfServer.Game.Commands.Mod
                 "Takes dev powers away, default level is player level",
                 "*devremove alias:level(optional) or ::*devremove level(optional) - Note: devremove them in the zone you want",
                 InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(powered, "powered",
+                "Shows a list of currently powered players.",
+                "*powered",
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(renamealias, "renamealias",
                 "Rename's the current players alias",

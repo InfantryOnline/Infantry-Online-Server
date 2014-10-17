@@ -172,7 +172,8 @@ namespace InfServer.Script.GameType_Burnt
                             break;
                     }
                 }
-                arena.setTicker(2, 0, 0, format);
+                if (!arena.recycling)
+                    arena.setTicker(2, 0, 0, format);
             }
         }
 

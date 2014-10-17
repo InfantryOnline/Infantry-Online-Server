@@ -132,6 +132,9 @@ namespace InfServer.Game.Commands.Mod
             foreach (Player p in player._arena.Players)
                 p._gotBallID = 999;
 
+            //Update clients
+            Ball.Remove_Ball(ball);
+
             //Remove it from arena
             player._arena._balls.Remove(ball);
 
@@ -274,6 +277,55 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Finds an item within the zone
+        /// </summary>
+        static public void findItem(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Syntax: *finditem [itemID or item Name]");
+                return;
+            }
+
+            if (Helpers.IsNumeric(payload))
+            {
+                int Itemid = Convert.ToInt32(payload);
+
+                //Obtain the vehicle indicated
+                Assets.ItemInfo item = player._server._assets.getItemByID(Convert.ToInt32(Itemid));
+                if (item == null)
+                {
+                    player.sendMessage(-1, "That item doesn't exist.");
+                    return;
+                }
+
+                player.sendMessage(0, String.Format("[{0}] {1}", item.id, item.name));
+            }
+            else
+            {
+                List<Assets.ItemInfo> items = player._server._assets.getItems;
+                if (items == null)
+                {
+                    player.sendMessage(-1, "That item doesn't exist.");
+                    return;
+                }
+
+                int count = 0;
+                payload = payload.ToLower();
+                foreach (Assets.ItemInfo item in items)
+                {
+                    if (item.name.ToLower().Contains(payload))
+                    {
+                        player.sendMessage(0, String.Format("[{0}] {1}", item.id, item.name));
+                        count++;
+                    }
+                }
+                if (count == 0)
+                    player.sendMessage(-1, "That item doesn't exist.");
+            }
+        }
+
+        /// <summary>
         /// Sends a global message to every zone connected to current database
         /// </summary>
         static public void global(Player player, Player recipient, string payload, int bong)
@@ -313,13 +365,13 @@ namespace InfServer.Game.Commands.Mod
         static public void grant(Player player, Player recipient, string payload, int bong)
         {
             //Sanity checks
-            if (!player._arena.IsPrivate)
+            if (!player._arena.IsPrivate && player.PermissionLevel < Data.PlayerPermission.Mod)
             {
                 player.sendMessage(-1, "This is not a private arena.");
                 return;
             }
 
-            if (!player._arena.IsGranted(player))
+            if (!player._arena.IsGranted(player) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod)
             {
                 player.sendMessage(-1, "You are not granted in this arena.");
                 return;
@@ -335,7 +387,18 @@ namespace InfServer.Game.Commands.Mod
 
                 if (player._arena.IsGranted(recipient))
                 {
-                    player.sendMessage(-1, "He/she is already granted.");
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                    {
+                        player.sendMessage(-1, "You cannot remove this players power.");
+                        return;
+                    }
+
+                    if (player._arena._owner.Contains(recipient._alias))
+                        player._arena._owner.Remove(recipient._alias);
+
+                    recipient._permissionTemp = Data.PlayerPermission.Normal;
+                    recipient.sendMessage(0, "You have been removed from arena privileges.");
+                    player.sendMessage(0, "You have removed " + recipient._alias + "'s arena privileges.");
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
@@ -364,7 +427,18 @@ namespace InfServer.Game.Commands.Mod
 
                 if (player._arena.IsGranted(recipient))
                 {
-                    player.sendMessage(-1, "He/she is already granted.");
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                    {
+                        player.sendMessage(-1, "You cannot remove this players power.");
+                        return;
+                    }
+
+                    if (player._arena._owner.Contains(recipient._alias))
+                        player._arena._owner.Remove(recipient._alias);
+
+                    recipient._permissionTemp = Data.PlayerPermission.Normal;
+                    recipient.sendMessage(0, "You have been removed from arena privileges.");
+                    player.sendMessage(0, "You have removed " + recipient._alias + "'s arena privileges.");
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
@@ -372,7 +446,7 @@ namespace InfServer.Game.Commands.Mod
                 recipient.sendMessage(0, "You are now granted arena privileges.");
             }
 
-            player.sendMessage(0, "You have given " + recipient._alias.ToString() + " arena privileges.");
+            player.sendMessage(0, "You have given " + recipient._alias + " arena privileges.");
         }
 
         /// <summary>
@@ -1059,9 +1133,9 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void summon(Player player, Player recipient, string payload, int bong)
         {	//Sanity checks
-            if (recipient == null && payload != "all")
+            if (recipient == null && String.IsNullOrWhiteSpace(payload))
             {
-                player.sendMessage(-1, "Syntax: ::*summon or *summon all");
+                player.sendMessage(-1, "Syntax: ::*summon, OR *summon all, OR *summon alias, OR *summon team teamname");
                 return;
             }
 
@@ -1069,13 +1143,53 @@ namespace InfServer.Game.Commands.Mod
             {
                 //Simply warp the recipient
                 recipient.warp(player);
+                return;
             }
 
-            if (payload == "all")
+            if (payload.Equals("all", StringComparison.OrdinalIgnoreCase))
             {
                 //summon everybody
                 foreach (Player p in player._arena.PlayersIngame.ToList())
-                    p.warp(player);
+                    if (p != player)
+                        p.warp(player);
+                return;
+            }
+
+            if (payload.Contains("team"))
+            {
+                string[] split = payload.Split(' ');
+                string teamname = "";
+                if (split[0].Equals("team") && (split.Count() == 1 || String.IsNullOrWhiteSpace(split[1])))
+                {
+                    player.sendMessage(-1, "Syntax: *summon team teamname");
+                    return;
+                }
+
+                //Strip the word team out
+                teamname = payload.Remove(payload.IndexOf("team", StringComparison.OrdinalIgnoreCase), 5); //5 = team + a space
+                Team team = player._arena.getTeamByName(teamname);
+                if (team == null)
+                {
+                    player.sendMessage(-1, "That team doesn't exist.");
+                    return;
+                }
+
+                if (team._name.Equals("spec") || team._name.Equals("spectator"))
+                {
+                    player.sendMessage(-1, "Cannot summon players on a spectating team.");
+                    return;
+                }
+
+                foreach (Player p in team.ActivePlayers.ToList())
+                    if (p != player)
+                        p.warp(player);
+                return;
+            }
+
+            if ((recipient = player._arena.getPlayerByName(payload)) != null)
+            {
+                //Simply summon the player
+                recipient.warp(player);
             }
         }
 
@@ -1255,9 +1369,9 @@ namespace InfServer.Game.Commands.Mod
 
                 if (target.IsSpectator)
                 {   //Is he on a spectator team?
-                    if (!target._team.IsSpec)
-                        newTeam.addPlayer(target);
-                    else
+                    //if (!target._team.IsSpec)
+                        //newTeam.addPlayer(target);
+                    //else
                         //Unspec him
                         target.unspec(newTeam);
                 }
@@ -1325,7 +1439,7 @@ namespace InfServer.Game.Commands.Mod
             {	//We must have a payload for this
                 if (String.IsNullOrWhiteSpace(payload))
                 {
-                    player.sendMessage(-1, "Syntax: ::*warp or *warp alias, A4 or *warp 123,123");
+                    player.sendMessage(-1, "Syntax: ::*warp or *warp alias, *warp A4 (optional teamname) or *warp 123,123 (optional teamname)");
                     return;
                 }
 
@@ -1338,17 +1452,43 @@ namespace InfServer.Game.Commands.Mod
 
                 //Are we dealing with coords or exacts?
                 payload = payload.ToLower();
-
                 if (payload[0] >= 'a' && payload[0] <= 'z')
                 {
                     int x = (((int)payload[0]) - ((int)'a')) * 16 * 80;
-                    int y = Convert.ToInt32(payload.Substring(1)) * 16 * 80;
+                    int y = Convert.ToInt32(payload.Substring(1, 1)) * 16 * 80;
 
                     //We want to spawn in the coord center
                     x += 40 * 16;
                     y -= 40 * 16;
 
-                    player.warp(x, y);
+                    //Are we using a team name as well?
+                    if (payload.Contains(' '))
+                    {
+                        string syntax = (payload.Substring(payload.IndexOf(' '))).Trim();
+                        if (payload.Length > 0)
+                        {
+                            Team team;
+                            if ((team = player._arena.getTeamByName(syntax)) != null)
+                            {
+                                if (team._name.Equals("spec") || team._name.Equals("spectator"))
+                                {
+                                    player.sendMessage(-1, "Cannot summon players on a spectating team.");
+                                    return;
+                                }
+                                foreach (Player p in team.ActivePlayers.ToList())
+                                    p.warp(x, y);
+                                return;
+                            }
+                            else
+                            {
+                                player.sendMessage(-1, "That team doesn't exist.");
+                                return;
+                            }
+                        }
+                        player.warp(x, y);
+                    }
+                    else
+                        player.warp(x, y);
                 }
                 else
                 {
@@ -1360,7 +1500,47 @@ namespace InfServer.Game.Commands.Mod
 
                     string[] coords = payload.Split(',');
                     int x = Convert.ToInt32(coords[0]) * 16;
-                    int y = Convert.ToInt32(coords[1]) * 16;
+                    int y;
+                    
+                    //Are we trying to summon a team?
+                    if (coords[1].Contains(' '))
+                    {
+                        //Lets get our first number only
+                        //This is a coord, any other number after could be a potential
+                        //team name.
+                        string Y = "";
+                        foreach (char c in coords[1])
+                        {
+                            if (c == ' ')
+                                break;
+                            Y += c;
+                        }
+                        y = Convert.ToInt32(Y) * 16;
+
+                        string syntax = (coords[1].Substring(coords[1].IndexOf(' '))).Trim();
+                        if (syntax.Length > 0)
+                        {
+                            Team team;
+                            if ((team = player._arena.getTeamByName(syntax)) != null)
+                            {
+                                if (team._name.Equals("spec") || team._name.Equals("spectator"))
+                                {
+                                    player.sendMessage(-1, "Cannot summon players on a spectating team.");
+                                    return;
+                                }
+                                foreach (Player p in team.ActivePlayers.ToList())
+                                    p.warp(x, y);
+                                return;
+                            }
+                            else
+                            {
+                                player.sendMessage(-1, "That team doesn't exist.");
+                                return;
+                            }
+                        }
+                    }
+                    else
+                        y = Convert.ToInt32(coords[1]) * 16;
 
                     player.warp(x, y);
                 }
@@ -1384,6 +1564,13 @@ namespace InfServer.Game.Commands.Mod
             if (String.IsNullOrWhiteSpace(payload) || !payload.ToLower().Contains("yes"))
             {
                 player.sendMessage(-1, "Syntax: *wipe alias yes, :alias:*wipe yes, or *wipe all yes (Note: wipe all wipes anyone that played this zone)");
+                return;
+            }
+
+            //Are we high enough?
+            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+            {
+                player.sendMessage(-1, "Only mods or level 3 dev's and higher can use this command.");
                 return;
             }
 
@@ -2460,8 +2647,13 @@ namespace InfServer.Game.Commands.Mod
                 "*experience [amount] or ::*experience [amount]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
+            yield return new HandlerDescriptor(findItem, "finditem",
+                "Finds an item within our zone",
+                "*finditem [itemID or item name]",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
             yield return new HandlerDescriptor(getball, "getball",
-                "Gets a ball.","*getball",
+                "Gets a ball.", "*getball (gets ball ID 0) or *getball # (gets a specific ball ID)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);           
 
             yield return new HandlerDescriptor(gkill, "gkill",
@@ -2476,7 +2668,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(warp, "goto",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
-                ":alias:*goto or *goto alias or *goto A4 or *goto 123,123",
+                ":alias:*goto or *goto alias or *goto A4 (optional team name) or *goto 123,123 (optional team name)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(grant, "grant",
@@ -2571,7 +2763,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Summons a specified player to your location, or all players to your location.",
-                "::*summon or *summon al",
+                "::*summon, *summon alias, *summon team teamname, or *summon all",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(team, "team",
@@ -2601,7 +2793,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(warp, "warp",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
-                "::*warp or *warp A4 or *warp 123,123",
+                "::*warp, *warp alias, *warp A4 (optional team name) or *warp 123,123 (optional team name)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(watchmod, "watchmod",

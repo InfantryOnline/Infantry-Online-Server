@@ -786,7 +786,7 @@ namespace InfServer.Game
 			}
 			else
 			{
-                //Has be been locked in spec?
+                //Are we locked in spec?
                 if (from._bLocked || from._arena._bLocked)
                 {
                     from.sendMessage(-1, "You are locked in spectator mode.");
@@ -794,11 +794,15 @@ namespace InfServer.Game
                 }
 
                 //Do we have a full arena?
-				if (PlayerCount >= _server._zoneConfig.arena.playingMax
-                    && _scriptType != "GameType_SoccerBrawl") //Cheat fix for the queue system(Reversed this back so the queue system can work - Mizz)
-				{	//Yep, tell him why he can't get in
-					from.sendMessage(255, "Game is full.");
-					return;
+				if (PlayerCount >= _server._zoneConfig.arena.playingMax)
+                { 
+                    if (!_scriptType.Equals("GameType_SoccerBrawl", StringComparison.OrdinalIgnoreCase)
+                    && !_scriptType.Equals("GameType_Gravball", StringComparison.OrdinalIgnoreCase) 
+                    && !_scriptType.Equals("GameType_BasketBall", StringComparison.OrdinalIgnoreCase)) //Cheat fix for the queue system(Reversed this back so the queue system can work - Mizz)
+				    {	//Yep, tell him why he can't get in
+					    from.sendMessage(255, "Game is full.");
+					    return;
+                    }
 				}
 
 				//Is he able to unspec?
@@ -1353,7 +1357,9 @@ namespace InfServer.Game
             }
 
             //Are we able to pick these classes?
-            if (!Logic_Assets.AllowedClassCheck(from, skill, from._server._zoneConfig.arena.exitSpectatorLogic))
+            //Only want classes, attributes is checked farther down
+            if (skill.SkillId > 0 &&
+                !Logic_Assets.AllowedClassCheck(from, skill, from._server._zoneConfig.arena.exitSpectatorLogic))
             {
                 if (!String.IsNullOrWhiteSpace(from._server._zoneConfig.arena.exitSpectatorMessage))
                     //Use logic message

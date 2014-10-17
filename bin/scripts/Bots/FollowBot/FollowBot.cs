@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -46,10 +47,18 @@ namespace InfServer.Script.FollowBot
 		/// Allows the script to maintain itself
 		/// </summary>
 		public bool poll()
-		{	//Get the closest player
+		{
+            //Are we dead?
+            if (_bot.IsDead)
+            {
+                _bot.destroy(true);
+                return false;
+            }
+
+            //Get the closest player
 			Player player = getClosestPlayer();
 			
-			if (player != null)
+			if (player != null && !player.IsDead)
 			{	//Move towards him!
 				double degrees = Helpers.calculateDegreesBetweenPoints(
 					player._state.positionX, player._state.positionY, 
@@ -95,6 +104,9 @@ namespace InfServer.Script.FollowBot
 		{
 			List<Player> inTrackingRange =
 				_bot._arena.getPlayersInRange(_bot._state.positionX, _bot._state.positionY, _stalkRadius);
+
+            //Ignore dead players
+            inTrackingRange = inTrackingRange.Where(plyr => plyr.IsDead == false).ToList();
 
 			if (inTrackingRange.Count == 0)
 				return null;

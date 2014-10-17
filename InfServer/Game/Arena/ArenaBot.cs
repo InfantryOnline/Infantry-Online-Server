@@ -23,6 +23,7 @@ namespace InfServer.Game
 		///////////////////////////////////////////////////
 		protected ObjTracker<Bot> _bots;				//The vehicles belonging to the arena, indexed by id
 		private List<Bot> _condemnedBots;				//Bots to be deleted
+        public int _botsInArena;                        //How many bots currently in the arena
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -88,7 +89,7 @@ namespace InfServer.Game
 
 
 		/// <summary>
-		/// Creates and adds a new vehicle to the arena
+		/// Creates and adds a new bot vehicle to the arena
 		/// </summary>
 		public Bot newBot(Type botType, VehInfo type, Team team, Player owner, Helpers.ObjectState state, params object[] args)
 		{	//Is this bot type compatible?
@@ -100,7 +101,6 @@ namespace InfServer.Game
 
 			//Sanity checks
 			VehInfo.Car carType = type as VehInfo.Car;
-
 			if (carType == null)
 			{
 				Log.write(TLog.Error, "Bots can only be created using Car vehicles.");
@@ -117,7 +117,6 @@ namespace InfServer.Game
 			//We want to continue wrapping around the vehicleid limits
 			//looking for empty spots.
 			ushort vk;
-
 			for (vk = _lastVehicleKey; vk <= UInt16.MaxValue; ++vk)
 			{	//If we've reached the maximum, wrap around
 				if (vk == UInt16.MaxValue)
@@ -197,6 +196,7 @@ namespace InfServer.Game
 			//This uses the new ID automatically
 			_vehicles.Add(newBot);
 			_bots.Add(newBot);
+            _botsInArena++;
 
 			//Notify everyone of the new vehicle
 			Helpers.Object_Vehicles(Players, newBot);

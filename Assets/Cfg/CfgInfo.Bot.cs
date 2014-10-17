@@ -6,6 +6,7 @@ namespace Assets
     {
         public class Bot
         {
+            public int maxAmountInArena;
             public int shareRadius;
             public int sharePercent;
             public int cashKillReward;
@@ -19,6 +20,7 @@ namespace Assets
                 {
                     Parser.values = stringTree["Bot"];
 
+                    maxAmountInArena = Parser.GetInt("MaxAmountInArena");
                     shareRadius = Parser.GetInt("KillShareRadius");
                     sharePercent = Parser.GetInt("KillSharePercent");
                     cashKillReward = Parser.GetInt("KillCashReward");

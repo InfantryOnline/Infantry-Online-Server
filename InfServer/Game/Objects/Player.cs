@@ -1238,6 +1238,10 @@ namespace InfServer.Game
 				return false;
 			}
 
+            //Reset leftover variables
+            this._deathTime = 0;
+            this._lastMovement = Environment.TickCount;
+
 			//Throw ourselves onto our new team!
             team.addPlayer(this);
 

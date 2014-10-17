@@ -189,6 +189,28 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Removes a ball from the playing field
+        /// </summary>
+        static public void Remove_Ball(Ball ball)
+        {
+            ball._state.inProgress = 0;
+            SC_BallState state = new SC_BallState();
+            state.ballID = ball._id;
+
+            state.positionX = ball._state.positionX;
+            state.positionY = ball._state.positionY;
+            state.positionZ = ball._state.positionZ;
+            state.velocityX = ball._state.velocityX;
+            state.velocityY = ball._state.velocityY;
+            state.velocityZ = ball._state.velocityZ;
+            state.unk1 = -1;
+            state.TimeStamp = Environment.TickCount;
+
+            foreach (Player p in ball._arena.Players)
+                p._client.sendReliable(state);
+        }
+
+        /// <summary>
         /// Sends a ball state packet to all players in the arena
         /// </summary>
         public void Route_Ball(IEnumerable<Player> targets)

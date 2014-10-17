@@ -107,7 +107,8 @@ namespace InfServer.Script.DuelBot
             //Did we kill our victim?
             if (_victim != null && _victim.IsDead)
                 //Taunt him!
-                _bot._itemUseID = 1095;
+                if (AssetManager.Manager.getItemByID(1095) != null)
+                    _bot._itemUseID = 1095;
 
 			//Is our victim still valid?
 			if (_victim == null ||

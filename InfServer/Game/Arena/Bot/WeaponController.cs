@@ -129,11 +129,11 @@ namespace InfServer.Bots
 				_reloadTime = _primaryProjectile.reloadDelayNormal * 10;
 				_fireDelay = _primaryProjectile.fireDelay * 10;
 			}
-			else
-			{	//We can't handle this item
-				Log.write(TLog.Warning, "Weapon controller given invalid equip item {0}", item);
-				return false;
-			}
+            else
+            {	//We can't handle this item
+                Log.write(TLog.Warning, "Weapon controller given invalid equip item {0}", item);
+                return false;
+            }
 
 			bEquipped = (_primaryProjectile != null);
 

@@ -176,6 +176,7 @@ namespace InfServer.Script.GameType_Fantasy
             _config = _arena._server._zoneConfig;
 
             _minPlayers = Int32.MaxValue;
+            _arena.playtimeTickerIdx = 1; //The game timer
 
             //Headquarters stuff!
             _hqlevels = new int[] { 500, 1000, 2500, 5000, 10000, 15000, 20000, 25000, 30000, 35000 };
@@ -293,7 +294,6 @@ namespace InfServer.Script.GameType_Fantasy
         /// </summary>
         public bool poll()
         {	//Should we check game state yet?
-            //Should we check game state yet?
             int now = Environment.TickCount;
 
             //Do we have enough people to start a game of KOTH?
@@ -423,7 +423,7 @@ namespace InfServer.Script.GameType_Fantasy
             else if (_tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
-                _arena.setTicker(1, 1, 120 * 100, "Next game: ",
+                _arena.setTicker(1, 1, _config.king.startDelay * 100, "Next game: ",
                     delegate()
                     {	//Trigger the game start
                         startKOTH();
@@ -459,6 +459,9 @@ namespace InfServer.Script.GameType_Fantasy
         /// </summary>
         public void giveCrown(Player p)
         {//Give the player a crown and inform the arena
+            if (!_playerCrownStatus.ContainsKey(p))
+                _playerCrownStatus.Add(p, new PlayerCrownStatus());
+
             var v = _playerCrownStatus[p];
             v.crown = true;
             v.crownDeaths = 0;
@@ -501,6 +504,13 @@ namespace InfServer.Script.GameType_Fantasy
             _tickGameStarting = 0;
 
             _victoryTeam = null;
+
+            if (_playerCrownStatus.Count > 0)
+            {//Remove their crown and tell everyone
+                Helpers.Player_Crowns(_arena, false, _activeCrowns.Count > 0 ? _activeCrowns : _arena.Players.ToList());
+
+                _playerCrownStatus.Clear();
+            }
         }
 
         /// <summary>
@@ -694,7 +704,7 @@ namespace InfServer.Script.GameType_Fantasy
             if (_minPlayers > 0)
                 if (!_playerCrownStatus.ContainsKey(player))
                 {
-                    _playerCrownStatus[player] = new PlayerCrownStatus(false);
+                    _playerCrownStatus.Add(player, new PlayerCrownStatus(false));
                     Helpers.Player_Crowns(_arena, true, _activeCrowns, player);
                 }
         }
@@ -983,7 +993,7 @@ namespace InfServer.Script.GameType_Fantasy
                     return true;
 
                 //Handle crowns
-                if (_playerCrownStatus[victim].crown)
+                if (_playerCrownStatus.ContainsKey(victim) && _playerCrownStatus[victim].crown)
                 {   //Incr crownDeaths
                     _playerCrownStatus[victim].crownDeaths++;
 
@@ -996,20 +1006,23 @@ namespace InfServer.Script.GameType_Fantasy
                     }
                     if (_playerCrownStatus.ContainsKey(killer))
                     {
-                    if (!_playerCrownStatus[killer].crown)
-                        _playerCrownStatus[killer].crownKills++;
+                        if (!_playerCrownStatus[killer].crown)
+                            _playerCrownStatus[killer].crownKills++;
                     }
                 }
 
                 //Reset their timer
-                if (_playerCrownStatus[killer].crown)
-                    updateCrownTime(killer);
-                else if (_config.king.crownRecoverKills != 0)
-                {   //Should they get a crown?
-                    if (_playerCrownStatus[killer].crownKills >= _config.king.crownRecoverKills)
-                    {
-                        _playerCrownStatus[killer].crown = true;
-                        giveCrown(killer);
+                if (_playerCrownStatus.ContainsKey(killer))
+                {
+                    if (_playerCrownStatus[killer].crown)
+                        updateCrownTime(killer);
+                    else if (_config.king.crownRecoverKills != 0)
+                    {   //Should they get a crown?
+                        if (_playerCrownStatus[killer].crownKills >= _config.king.crownRecoverKills)
+                        {
+                            _playerCrownStatus[killer].crown = true;
+                            giveCrown(killer);
+                        }
                     }
                 }
             }

@@ -292,6 +292,7 @@ namespace InfServer.Logic
                                 dbplayer.squad = squad.id;
                                 dbplayer.squad1.owner = dbplayer.id;
                             }
+                            db.SubmitChanges();
                             zone._server.sendMessage(zone, dbplayer.alias1.name, "You have been promoted to squad captain of " + dbplayer.squad1.name);
                             zone._server.sendMessage(zone, dbplayer.alias1.name, "Please relog to complete the process.");
                             zone._server.sendMessage(zone, pkt.sender, "Squad transferring is complete.");
@@ -323,9 +324,73 @@ namespace InfServer.Logic
                             }
 
                             dbplayer.squad = squad.id;
+                            db.SubmitChanges();
                             zone._server.sendMessage(zone, dbplayer.alias1.name, "You have joined " + squad.name);
                             zone._server.sendMessage(zone, dbplayer.alias1.name, "Please relog to complete the process.");
                             zone._server.sendMessage(zone, pkt.sender, "Squad joining completed.");
+                        }
+                        break;
+
+                    case CS_ModQuery<Zone>.QueryType.powered:
+                        {
+                            if (String.IsNullOrWhiteSpace(pkt.query))
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Payload cannot be empty.");
+                                return;
+                            }
+
+                            if (pkt.query.Equals("list"))
+                            {
+                                Data.DB.player sender = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.sender) && p.zone == zone._zone.id);
+                                if (sender == null)
+                                    return;
+
+                                Console.WriteLine(sender.alias1.name);
+                                SortedDictionary<string, string> powered = new SortedDictionary<string, string>();
+                                string pAlias;
+                                foreach (Zone z in zone._server._zones)
+                                {
+                                    foreach (KeyValuePair<int, Zone.Player> Player in z._players)
+                                    {
+                                        pAlias = Player.Value.alias;
+                                        var alias = db.alias.SingleOrDefault(p => p.name.Equals(pAlias));
+                                        if (alias == null)
+                                            continue;
+                                        if (alias.name == pkt.sender)
+                                            continue;
+                                        //Are they a global mod?
+                                        if (alias.account1.permission > 0)
+                                        {
+                                            //Are they higher than us?
+                                            if (alias.account1.permission > sender.alias1.account1.permission
+                                                && alias.account1.permission > sender.permission)
+                                                continue;
+                                            powered.Add(pAlias, String.Format("*{0} - Lvl({1})", pAlias, alias.account1.permission.ToString()));
+                                        }
+                                        else
+                                        {
+                                            var player = db.zones.First(zones => zones.id == z._zone.id).players.First(p => p.alias1 == alias);
+                                            if (player != null && player.permission > 0)
+                                            {
+                                                //Are they higher than us?
+                                                if (player.permission > sender.permission
+                                                    && player.alias1.account1.permission > sender.alias1.account1.permission)
+                                                    continue;
+                                                powered.Add(pAlias, String.Format("*{0} - Lvl({1})(dev)", pAlias, player.permission.ToString()));
+                                            }
+                                        }
+                                    }
+                                }
+
+                                //Now send it!
+                                if (powered.Count > 0)
+                                {
+                                    foreach (string str in powered.Values)
+                                        zone._server.sendMessage(zone, pkt.sender, str);
+                                }
+                                else
+                                    zone._server.sendMessage(zone, pkt.sender, "Empty.");
+                            }
                         }
                         break;
                 }
