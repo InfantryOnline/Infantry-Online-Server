@@ -118,29 +118,37 @@ namespace InfServer.Script.TeamBot
             if (_teamMember != null)
             {
                 Assets.ItemInfo medkit = _weapons.First(w => w.itemType == Assets.ItemInfo.ItemType.Repair
-                            && w.name.ToLower().Contains("medikit"));
+                            && w.name.ToLower().Equals("medikit"));
                 if (medkit != null)
                 {
-                    Assets.ItemInfo.RepairItem rep = (Assets.ItemInfo.RepairItem)medkit;
-                    List<Player> healRange = _bot._arena.getPlayersInRange(_bot._state.positionX, _bot._state.positionY, 195);
+                    Assets.ItemInfo.RepairItem rep = medkit as Assets.ItemInfo.RepairItem;
+
+                    List<Player> healRange = _bot._arena.getPlayersInRange(_bot._state.positionX, _bot._state.positionY, _stalkRadius);
                     healRange = healRange.Where(p => p.IsDead == false && p._team == _bot._team).ToList();
 
+                    int repDistance = rep.repairDistance;
+                    if (repDistance < 0)
+                        repDistance = (repDistance * (-1));
                     //Check players hp on the team
                     foreach (Player p in healRange)
                     {
                         if (p._state.health < 75 && _bot._weapon.ableToFire())
                         {   //Someone's hurt, healing takes priority first!
-                            MoveTowardsPlayer(p);
+                            MoveTowardsPlayer(p, false);
 
                             //Recheck if we are close enough
-                            if (Helpers.distanceTo(_bot._state, p._state) > 195)
+                            if (!Helpers.isInRange(repDistance, p._state, _bot._state))
+                            {
+                                Console.WriteLine("Redo");
                                 //We arent, start over
                                 return false;
+                            }
 
                             //We're close enough, heal!
                             if (Environment.TickCount - _tickLastShot > (rep.fireDelay * 10))
                             {
-                                _bot._itemUseID = medkit.id;
+                                Console.WriteLine("Should fire {0}", rep.id.ToString());
+                                _bot._itemUseID = rep.id;
                                 _tickLastShot = Environment.TickCount;
                             }
                         }
@@ -148,7 +156,7 @@ namespace InfServer.Script.TeamBot
                 }
 
                 //Lets follow now
-                MoveTowardsPlayer(_teamMember);
+                MoveTowardsPlayer(_teamMember, false);
             }
 
             //Move to the closet enemy
@@ -178,9 +186,9 @@ namespace InfServer.Script.TeamBot
                         if (distanceTo > 35) //Knife range
                         {
                             Assets.ItemInfo weap1 = _weapons.First(w => w.itemType == Assets.ItemInfo.ItemType.MultiUse
-                                && w.name.ToLower().Contains("shotgun"));
+                                && w.name.ToLower().Equals("shotgun"));
                             Assets.ItemInfo weap2 = _weapons.First(w => w.itemType == Assets.ItemInfo.ItemType.Projectile
-                                && w.name.ToLower().Contains("shotgun"));
+                                && w.name.ToLower().Equals("shotgun"));
                             if (weap1 != null)
                             {
                                 //Equip and fix up our bot!
@@ -199,7 +207,7 @@ namespace InfServer.Script.TeamBot
                         else
                         {   //Knife em!
                             Assets.ItemInfo knife = _weapons.First(w => w.itemType == Assets.ItemInfo.ItemType.Projectile
-                                && w.name.ToLower().Contains("knife"));
+                                && w.name.ToLower().Equals("combat knife"));
                             if (knife != null)
                             {
                                 //Equip and fire
@@ -335,11 +343,11 @@ namespace InfServer.Script.TeamBot
         /// <summary>
         /// Moves towards an enemy or teammate
         /// </summary>
-        private void MoveTowardsPlayer(Player player)
+        private void MoveTowardsPlayer(Player player, bool attacking)
         {
             if (player == null)
             {
-                if (player._team == _bot._team)
+                if (!attacking)
                     //Pick a new team to move to
                     player = getClosetTeamMember();
                 else
@@ -363,7 +371,7 @@ namespace InfServer.Script.TeamBot
             _bot._movement.stopThrusting();
             Real distLength = distanceVector.Length;
 
-            if (distLength > 150)
+            if (distLength > 120)
                 _bot._movement.thrustForward();
             else if (distLength < 50)
                 _bot._movement.thrustBackward();

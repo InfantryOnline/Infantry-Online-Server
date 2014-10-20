@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
@@ -10,74 +10,89 @@ using InfServer.Game;
 using InfServer.Scripting;
 using InfServer.Bots;
 using InfServer.Protocol;
+using InfServer.Data;
 
 using Assets;
 
 namespace InfServer.Script.GameType_USL
 {	// Script Class
-	/// Provides the interface between the script and arena
-	///////////////////////////////////////////////////////
-	class Script_TDM : Scripts.IScript
-	{	///////////////////////////////////////////////////
-		// Member Variables
-		///////////////////////////////////////////////////
-		private Arena _arena;					//Pointer to our arena class
-		private CfgInfo _config;				//The zone config
+    /// Provides the interface between the script and arena
+    ///////////////////////////////////////////////////////
+    class Script_USL : Scripts.IScript
+    {	///////////////////////////////////////////////////
+        // Member Variables
+        ///////////////////////////////////////////////////
+        private Arena _arena;					//Pointer to our arena class
+        private CfgInfo _config;				//The zone config
+        private string FileName;                //This is set by league matches to parse the stats
 
-        private int _tickGameLastTickerUpdate;	
-		private int _lastGameCheck;				//The tick at which we last checked for game viability
-		private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
-		private int _tickGameStart;				//The tick at which the game started (0 == stopped)
+        private int _tickGameLastTickerUpdate;  //The tick at which the scoreboard was updated
+        private int _lastGameCheck;				//The tick at which we last checked for game viability
+        private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
+        private int _tickGameStart;				//The tick at which the game started (0 == stopped)
 
-		//Settings
-		private int _minPlayers;				//The minimum amount of players
+        private Team team1;                     //Used for normal gameplay and matches
+        private Team team2;                     //Used for normal gameplay and matches
+        private Team lastTeam1;                 //Records the previous team before overtime starts
+        private Team lastTeam2;                 //Records the previous team before overtime starts
+
+        //Game Settings
+        private int _minPlayers;				//The minimum amount of players
         private bool _overtime;                 //When the game goes into overtime, the stats still continue
-        private int overtimeType;               //Is this single, double or triple overtime?
+        private int overtimeType = 0;           //Is this single, double or triple overtime?
+        private int LeagueSeason = 1;           //Which league season we are in?
 
-        Dictionary<Team, TeamStats> _teamStats;
-        Dictionary<String, PlayerStats> _savedPlayerStats;
-        private bool awardMVP = false;
+        /// <summary>
+        /// Current game player stats
+        /// </summary>
+        private Dictionary<string, PlayerStat> _savedPlayerStats;
+        /// <summary>
+        /// Only used when overtime is initialized, player stats migrate here
+        /// </summary>
+        private Dictionary<string, PlayerStat> _lastSavedStats;
+        private Team victoryTeam = null;
+        DateTime startTime;
+        private bool awardMVP = false;                      //Can we award mvp at the end of game?
 
-        public class TeamStats
-        {
-            public long squadID { get; set; }
-            public int kills { get; set; }
-            public int deaths { get; set; }
-            public int points { get; set; }
-            public int rating { get; set; }
-            public bool win { get; set; }
-        }
-
-        public class PlayerStats
+        /// <summary>
+        /// Stores our player information
+        /// </summary>
+        public class PlayerStat
         {
             public Player player { get; set; }
+            public string teamname { get; set; }
+            public string alias { get; set; }
+            public string squad { get; set; }
             public int kills { get; set; }
             public int deaths { get; set; }
+            public int playSeconds { get; set; }
+            public bool hasPlayed { get; set; }
         }
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Performs script initialization
-		/// </summary>
-		public bool init(IEventObject invoker)
-		{	//Populate our variables
-			_arena = invoker as Arena;
-			_config = _arena._server._zoneConfig;
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Performs script initialization
+        /// </summary>
+        public bool init(IEventObject invoker)
+        {	//Populate our variables
+            _arena = invoker as Arena;
+            _config = _arena._server._zoneConfig;
 
+            _arena.playtimeTickerIdx = 3; //Sets the global index for our ticker
             _minPlayers = _config.deathMatch.minimumPlayers;
-            _savedPlayerStats = new Dictionary<string, PlayerStats>();
-            _teamStats = new Dictionary<Team, TeamStats>();
+            _savedPlayerStats = new Dictionary<string, PlayerStat>();
+
             _overtime = false;
             overtimeType = 0;
 
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// Allows the script to maintain itself
-		/// </summary>
+        /// <summary>
+        /// Allows the script to maintain itself
+        /// </summary>
         public bool poll()
         {	//Should we check game state yet?
             int now = Environment.TickCount;
@@ -115,57 +130,47 @@ namespace InfServer.Script.GameType_USL
             if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
             {	//Great! Get going
                 _tickGameStarting = now;
-                _arena.playtimeTickerIdx = 3;
-                _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
-                    delegate()
-                    {	//Trigger the game start
-                        _arena.gameStart();
-                    }
-                );
+
+                //If this isnt overtime, lets start a new game
+                //otherwise we'll wait till the ref starts the match using *timer
+                if (!_overtime)
+                    _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
+                        delegate()
+                        {	//Trigger the game start
+                            _arena.gameStart();
+                        }
+                    );
             }
             return true;
         }
 
-		#region Events
-		/// <summary>
-		/// Called when the game begins
-		/// </summary>
+        #region Game Events
+        /// <summary>
+        /// Called when the game begins
+        /// </summary>
         [Scripts.Event("Game.Start")]
         public bool gameStart()
         {	//We've started!
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
 
-            //Are we recording stats?
-            _arena._saveStats = _arena._isMatch;
+            team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
+            team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
 
-            //Starts a new session, clears the old ones
-            if (!_overtime)
-            {
-                _savedPlayerStats.Clear();
-                _teamStats.Clear();
-
-                _teamStats[_arena.ActiveTeams.ElementAt(0)] = new TeamStats();
-                _teamStats[_arena.ActiveTeams.ElementAt(1)] = new TeamStats();
-            }
-            Console.WriteLine(_arena.ActiveTeams.ElementAt(0)._name);
-            Console.WriteLine(_teamStats.ElementAt(0).Key._name);
-
+            _savedPlayerStats.Clear();
             foreach (Player p in _arena.Players)
             {
-                PlayerStats temp = new PlayerStats();
+                PlayerStat temp = new PlayerStat();
+                temp.teamname = p._team._name;
+                temp.alias = p._alias;
+                temp.playSeconds = 0;
+                temp.squad = p._squad;
                 temp.kills = 0;
                 temp.deaths = 0;
                 temp.player = p;
-                //Since overtime wont clear the list, reset scores
-                if (!_savedPlayerStats.ContainsKey(p._alias))
-                    _savedPlayerStats.Add(p._alias, temp);
-                else
-                    _savedPlayerStats[p._alias] = temp;
+                temp.hasPlayed = p.IsSpectator ? false : true;
 
-                if (_arena._isMatch && _teamStats.ContainsKey(p._team))
-                    if (_teamStats[p._team].squadID < 1)
-                        _teamStats[p._team].squadID = p._squadID;
+                _savedPlayerStats.Add(p._alias, temp);
             }
 
             //Let everyone know
@@ -177,6 +182,11 @@ namespace InfServer.Script.GameType_USL
                 }
             );
 
+            //Record our start time
+            if (_arena._isMatch)
+                startTime = DateTime.Now.ToLocalTime();
+
+            updateTickers();
             return true;
         }
 
@@ -185,99 +195,117 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         private void updateTickers()
         {
-            string format;
-            if (_arena.ActiveTeams.Count() > 1)
+            //Team scores
+            string format = String.Format("{0}={1} - {2}={3}", team1._name, team1._currentGameKills, team2._name, team2._currentGameKills);
+            _arena.setTicker(1, 2, 0, format);
+
+            //Personal Scores
+            _arena.setTicker(2, 1, 0, delegate(Player p)
             {
-                //Team Scores
-                format = String.Format("{0}={1} - {2}={3}",
-                    _arena.ActiveTeams.ElementAt(0)._name,
-                    _arena.ActiveTeams.ElementAt(0)._currentGameKills,
-                    _arena.ActiveTeams.ElementAt(1)._name,
-                    _arena.ActiveTeams.ElementAt(1)._currentGameKills);
-                _arena.setTicker(1, 2, 0, format);
+                //Update their ticker
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                    return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
+                        p._state.health,
+                        _savedPlayerStats[p._alias].kills,
+                        _savedPlayerStats[p._alias].deaths);
+                return "";
+            });
 
-                //Personal Scores
-                _arena.setTicker(2, 1, 0, delegate(Player p)
-                    {
-                        //Update their ticker
-                        if (_savedPlayerStats.ContainsKey(p._alias))
-                            return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
-                                p._state.health,
-                                _savedPlayerStats[p._alias].kills,
-                                _savedPlayerStats[p._alias].deaths);
-                        return "";
-                    }
-                );
+            //1st and 2nd place
+            List<Player> ranked = new List<Player>();
+            foreach (Player p in _arena.Players)
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                    ranked.Add(p);
 
-                //1st and 2nd place
-                IEnumerable<Player> ranking = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
-                int idx = 3; format = "";
-                foreach (Player rankers in ranking)
+            IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
+            int idx = 3; format = "";
+            foreach (Player rankers in ranking)
+            {
+                if (rankers == null)
+                    continue;
+
+                if (idx-- == 0)
+                    break;
+
+                switch (idx)
                 {
-                    if (rankers == null)
-                        continue;
-
-                    if (!_arena.Players.Contains(rankers))
-                        continue;
-
-                    if (idx-- == 0)
-                            break;
-
-                    switch (idx)
-                    {
-                        case 2:
-                            format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
-                              _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
-                            break;
-                        case 1:
-                            format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
-                              _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
-                            break;
-                    }
+                    case 2:
+                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
+                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
+                        break;
+                    case 1:
+                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
+                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
+                        break;
                 }
-                _arena.setTicker(2, 0, 0, format);
             }
+            if (!_arena.recycling)
+                _arena.setTicker(2, 0, 0, format);
         }
 
-		/// <summary>
-		/// Called when the game ends
-		/// </summary>
-		[Scripts.Event("Game.End")]
-		public bool gameEnd()
-		{	//Game finished, perhaps start a new one
+        /// <summary>
+        /// Called when the game ends
+        /// </summary>
+        [Scripts.Event("Game.End")]
+        public bool gameEnd()
+        {	//Game finished, perhaps start a new one
             _arena.sendArenaMessage("Game Over!");
 
-			_tickGameStart = 0;
-			_tickGameStarting = 0;
+            _tickGameStart = 0;
+            _tickGameStarting = 0;
 
             if (_arena._isMatch)
             {
-                //Who won?
-                TeamStats team1 = _teamStats.ElementAt(0).Value;
-                TeamStats team2 = _teamStats.ElementAt(1).Value;
+                foreach (Player p in _arena.PlayersIngame.ToList())
+                    p.spec();
 
-                if (team1.kills > team2.kills)
+                //Update stats only once, OT doesnt matter
+                if (!_overtime)
                 {
-                    team1.win = true;
-                    team2.win = false;
-                    _arena.sendArenaMessage(String.Format("{0} has won with a {1}-{2} victory!", 
-                        _arena.ActiveTeams.ElementAt(0)._name, 
-                        team1.kills,
-                        team2.kills));
+                    foreach (KeyValuePair<string, PlayerStat> pair in _savedPlayerStats)
+                    {
+                        if (pair.Value.hasPlayed)
+                        {
+                            if (pair.Value.player == null)
+                                continue;
+                            //Stats are migrated first due to base.gameEnd being called before this callsync
+                            pair.Value.playSeconds = pair.Value.player.StatsLastGame.playSeconds;
+                        }
+                    }
                 }
-                else if (team2.kills > team1.kills)
+
+                if (team1._currentGameKills > team2._currentGameKills)
                 {
-                    team2.win = true;
-                    team1.win = false;
+                    victoryTeam = team1;
                     _arena.sendArenaMessage(String.Format("{0} has won with a {1}-{2} victory!",
-                        _arena.ActiveTeams.ElementAt(1)._name,
-                        team2.kills,
-                        team1.kills));
+                        team1._name,
+                        team1._currentGameKills,
+                        team2._currentGameKills));
+                    foreach (Player p in _arena.Players)
+                    {
+                        if (p._squad.Contains(team1._name))
+                            p.ZoneStat1++;
+                        if (p._squad.Contains(team2._name))
+                            p.ZoneStat2++;
+                    }
+                }
+                else if (team2._currentGameKills > team1._currentGameKills)
+                {
+                    victoryTeam = team2;
+                    _arena.sendArenaMessage(String.Format("{0} has won with a {1}-{2} victory!",
+                        team2._name,
+                        team2._currentGameKills,
+                        team1._currentGameKills));
+                    foreach (Player p in _arena.Players)
+                    {
+                        if (p._squad.Contains(team2._name))
+                            p.ZoneStat1++;
+                        if (p._squad.Contains(team1._name))
+                            p.ZoneStat2++;
+                    }
                 }
                 else
                 {
-                    team1.win = false;
-                    team2.win = false;
                     if (_overtime)
                     {
                         switch (++overtimeType)
@@ -297,83 +325,59 @@ namespace InfServer.Script.GameType_USL
                                 break;
                         }
                     }
-                    _arena.sendArenaMessage("Game ended in a draw. Going into OVERTIME!!");
-                    _overtime = true;
-                    awardMVP = true;
-                    return false;
-                }
-
-                //First get our list of players saved in our player stats dictionary
-                List<Player> players = new List<Player>();
-                foreach (KeyValuePair<string, PlayerStats> str in _savedPlayerStats)
-                    if (!String.IsNullOrWhiteSpace(str.Key))
-                        players.Add(str.Value.player);
-
-                //Now loop through and save everyone's stats
-                foreach (Player p in players)
-                {
-                    int totalPoints = 0;
-                    if (_teamStats.ContainsKey(p._team))
+                    else
                     {
-                        _teamStats[p._team].squadID = p._squadID;
+                        _arena.sendArenaMessage("Game ended in a draw. Going into OVERTIME!!");
 
-                        //Win?
-                        if (_teamStats[p._team].win)
-                            p.ZoneStat1++;
-                        else
-                            p.ZoneStat2++;
+                        //Lets migrate stats
+                        lastTeam1 = new Team(_arena, _arena._server);
+                        lastTeam1._name = team1._name;
+                        lastTeam1._currentGameKills = team1._currentGameKills;
+                        lastTeam1._currentGameDeaths = team1._currentGameDeaths;
 
-                        //Count out the total points.
-                        totalPoints += (int)p.StatsCurrentGame.Points;
-
-                        //Move on...
-                        p.migrateStats();
-                        _arena._server._db.updatePlayer(p);
+                        lastTeam2 = new Team(_arena, _arena._server);
+                        lastTeam2._name = team2._name;
+                        lastTeam2._currentGameKills = team2._currentGameKills;
+                        lastTeam2._currentGameDeaths = team2._currentGameDeaths;
+                        _lastSavedStats = new Dictionary<string, PlayerStat>();
+                        foreach (KeyValuePair<string, PlayerStat> pair in _savedPlayerStats)
+                        {
+                            if (pair.Value.hasPlayed)
+                                _lastSavedStats.Add(pair.Key, pair.Value);
+                        }
                     }
 
-                    if (!p.IsSpectator)
-                        p.spec();
+                    _overtime = true;
+                    awardMVP = true;
+
+                    _arena.gameReset();
+                    return true;
                 }
 
-                CS_SquadMatch<InfServer.Data.Database>.SquadStats wStats = new CS_SquadMatch<InfServer.Data.Database>.SquadStats();
-                CS_SquadMatch<InfServer.Data.Database>.SquadStats lStats = new CS_SquadMatch<InfServer.Data.Database>.SquadStats();
-                if (team1.win)
-                {
-                    wStats.kills = team1.kills;
-                    wStats.deaths = team1.deaths;
-                    wStats.points = team1.points;
+                //Save to a file
+                ExportStats();
 
-                    lStats.kills = team2.kills;
-                    lStats.deaths = team2.deaths;
-                    lStats.points = team2.points;
-
-                    //Report it
-                    if (team1.squadID > 0)
-                        _arena._server._db.reportMatch(team1.squadID, team2.squadID, wStats, lStats);
-                }
-                else
-                {
-                    wStats.kills = team2.kills;
-                    wStats.deaths = team2.deaths;
-                    wStats.points = team2.points;
-
-                    lStats.kills = team1.kills;
-                    lStats.deaths = team1.deaths;
-                    lStats.points = team1.points;
-
-                    //Report it
-                    if (team2.squadID > 0)
-                        _arena._server._db.reportMatch(team2.squadID, team1.squadID, wStats, lStats);
-                }
-
-                //_arena.sendArenaMessage("Stats have been recorded. You may leave now.");
                 _arena._isMatch = false;
                 _overtime = false;
                 overtimeType = 0;
                 awardMVP = true;
+                _arena.gameReset();
             }
-			return true;
-		}
+            return true;
+        }
+
+        /// <summary>
+        /// Called to reset the game state
+        /// </summary>
+        [Scripts.Event("Game.Reset")]
+        public bool gameReset()
+        {	//Game reset, perhaps start a new one
+            _tickGameStart = 0;
+            _tickGameStarting = 0;
+            victoryTeam = null;
+
+            return true;
+        }
 
         /// <summary>
         /// Called when the statistical breakdown is displayed
@@ -413,53 +417,75 @@ namespace InfServer.Script.GameType_USL
             }
 
             from.sendMessage(0, "#Individual Statistics Breakdown");
-            IEnumerable<Player> rankedPlayers = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
-            idx = 3;	//Only display top three players
+            List<Player> rankers = new List<Player>();
+            foreach (Player p in _arena.Players)
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                    rankers.Add(p);
 
-            foreach (Player p in rankedPlayers)
+            idx = 3;        //Only display top three players
+            var rankedPlayerGroups = rankers.Select(player => new
             {
-                if (p == null)
-                    continue;
+                Alias = player._alias,
+                Kills = _savedPlayerStats[player._alias].kills,
+                Deaths = _savedPlayerStats[player._alias].deaths
+            })
+            .GroupBy(player => player.Kills)
+            .OrderByDescending(k => k.Key)
+            .Take(idx)
+            .Select(group => group.OrderBy(player => player.Deaths));
 
-                if (idx-- == 0)
+            foreach (var group in rankedPlayerGroups)
+            {
+                if (idx <= 0)
                     break;
 
-                string format = "!3rd (K={0} D={1}): {2}";
+                string placeWord = "";
+                string format = " (K={0} D={1}): {2}";
                 switch (idx)
                 {
+                    case 3:
+                        placeWord = "!1st";
+                        break;
                     case 2:
-                        format = "!1st (K={0} D={1}): {2}";
+                        placeWord = "!2nd";
                         break;
                     case 1:
-                        format = "!2nd (K={0} D={1}): {2}";
+                        placeWord = "!3rd";
                         break;
                 }
 
-                if (_savedPlayerStats[p._alias] != null)
-                {
-                    from.sendMessage(0, String.Format(format, _savedPlayerStats[p._alias].kills,
-                        _savedPlayerStats[p._alias].deaths, p._alias));
-                }
+                idx -= group.Count();
+                from.sendMessage(0, String.Format(placeWord + format, group.First().Kills,
+                    group.First().Deaths,
+                    String.Join(", ", group.Select(g => g.Alias))));
             }
 
-            from.sendMessage(0, "Most Deaths");
             IEnumerable<Player> specialPlayers = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
-            idx = 1; //Only display the top person
-            foreach (Player p in specialPlayers)
+            int topDeaths = _savedPlayerStats[specialPlayers.ElementAt(0)._alias].deaths, deaths = 0;
+            if (topDeaths > 0)
             {
-                if (p == null)
-                    continue;
-
-                if (idx-- == 0)
-                    break;
-
-                string format = "(D={0}): {1}";
-                if (_savedPlayerStats[p._alias] != null)
+                from.sendMessage(0, "Most Deaths");
+                int i = 0;
+                List<string> mostDeaths = new List<string>();
+                foreach (Player p in specialPlayers)
                 {
-                    from.sendMessage(0, String.Format(format,
-                        _savedPlayerStats[p._alias].deaths,
-                        p._alias));
+                    if (p == null)
+                        continue;
+
+                    if (_savedPlayerStats[p._alias] != null)
+                    {
+                        deaths = _savedPlayerStats[p._alias].deaths;
+                        if (deaths == topDeaths)
+                        {
+                            if (i++ >= 1)
+                                mostDeaths.Add(p._alias);
+                            else
+                                mostDeaths.Add(String.Format("(D={0}): {1}", deaths, p._alias));
+                        }
+                    }
                 }
+                string s = String.Join(", ", mostDeaths.ToArray());
+                from.sendMessage(0, s);
             }
 
             if (_savedPlayerStats[from._alias] != null)
@@ -469,66 +495,117 @@ namespace InfServer.Script.GameType_USL
                     _savedPlayerStats[from._alias].kills,
                     _savedPlayerStats[from._alias].deaths));
             }
-
-            return false;
+            return true;
         }
+        #endregion
 
-        public int getRating(Team team1, Team team2)
+        #region Player Events
+        /// <summary>
+        /// Triggered when one player has killed another
+        /// </summary>
+        [Scripts.Event("Player.PlayerKill")]
+        public bool playerPlayerKill(Player victim, Player killer)
         {
-            int rating = 0;
-
-
-
-            return rating;
-            
-        }
-
-		/// <summary>
-		/// Called to reset the game state
-		/// </summary>
-		[Scripts.Event("Game.Reset")]
-		public bool gameReset()
-		{	//Game reset, perhaps start a new one
-			_tickGameStart = 0;
-			_tickGameStarting = 0;
-
-			return true;
-		}
-
-		/// <summary>
-		/// Triggered when one player has killed another
-		/// </summary>
-		[Scripts.Event("Player.PlayerKill")]
-		public bool playerPlayerKill(Player victim, Player killer)
-		{
             if (_tickGameStart > 0)
             {
                 if (_savedPlayerStats.ContainsKey(killer._alias))
                     _savedPlayerStats[killer._alias].kills++;
                 if (_savedPlayerStats.ContainsKey(victim._alias))
                     _savedPlayerStats[victim._alias].deaths++;
-
-                if (_arena._isMatch)
-                {
-                    _teamStats[killer._team].kills++;
-                    _teamStats[victim._team].deaths++;
-                }
             }
-			return true;
-		}
+            return true;
+        }
 
         /// <summary>
-        /// Triggered when a player has died, by any means
+        /// Triggered when a player has spawned
         /// </summary>
-        /// <remarks>killer may be null if it wasn't a player kill</remarks>
-        [Scripts.Event("Player.Death")]
-        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
+        [Scripts.Event("Player.Spawn")]
+        public bool playerSpawn(Player player, bool death)
         {
-            if (_arena._isMatch && _overtime)
+            //We only want to trigger end game when the last team member died out
+            if (_tickGameStart > 0 && _arena._isMatch && _overtime && death)
             {
-                victim.spec();
-                _arena.sendArenaMessage(String.Format("{0} has died out.", victim._alias));
+                player.spec();
+                _arena.sendArenaMessage(String.Format("{0} has died out.", player._alias));
+
+                if (team1.ActivePlayerCount < 1 || team2.ActivePlayerCount < 1)
+                    _arena.gameEnd();
             }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when a player dies to a bot
+        /// </summary>
+        [Scripts.Event("Player.BotKill")]
+        public bool botKill(Player victim, Bot killer)
+        {
+            if (_tickGameStart > 0)
+            {
+                if (_savedPlayerStats.ContainsKey(victim._alias))
+                    _savedPlayerStats[victim._alias].deaths++;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when a bot dies to a player
+        /// </summary>
+        [Scripts.Event("Bot.Death")]
+        public bool botDeath(Bot victim, Player killer, int weaponID)
+        {
+            if (_tickGameStart > 0)
+            {
+                if (_savedPlayerStats.ContainsKey(killer._alias)
+                    && killer != null && killer._team != victim._team)
+                    _savedPlayerStats[killer._alias].kills++;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Called when the player successfully joins the game
+        /// </summary>
+        [Scripts.Event("Player.Enter")]
+        public void playerEnter(Player player)
+        {
+            //Add them to the list if not in it
+            if (!_savedPlayerStats.ContainsKey(player._alias))
+            {
+                PlayerStat temp = new PlayerStat();
+                temp.squad = player._squad;
+                temp.playSeconds = 0;
+                temp.alias = player._alias;
+                temp.deaths = 0;
+                temp.kills = 0;
+                temp.player = player;
+                _savedPlayerStats.Add(player._alias, temp);
+            }
+            _savedPlayerStats[player._alias].teamname = player._team._name;
+            _savedPlayerStats[player._alias].hasPlayed = player.IsSpectator ? false : true;
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to unspec and join the game
+        /// </summary>
+        [Scripts.Event("Player.JoinGame")]
+        public bool playerJoinGame(Player player)
+        {
+            //Add them to the list if not in it
+            if (!_savedPlayerStats.ContainsKey(player._alias))
+            {
+                PlayerStat temp = new PlayerStat();
+                temp.alias = player._alias;
+                temp.squad = player._squad;
+                temp.playSeconds = 0;
+                temp.deaths = 0;
+                temp.kills = 0;
+                temp.player = player;
+                _savedPlayerStats.Add(player._alias, temp);
+            }
+            _savedPlayerStats[player._alias].hasPlayed = true;
 
             return true;
         }
@@ -541,11 +618,41 @@ namespace InfServer.Script.GameType_USL
         {
             if (!_savedPlayerStats.ContainsKey(player._alias))
             {
-                PlayerStats temp = new PlayerStats();
+                PlayerStat temp = new PlayerStat();
+                temp.alias = player._alias;
+                temp.playSeconds = 0;
+                temp.squad = player._squad;
                 temp.deaths = 0;
                 temp.kills = 0;
                 temp.player = player;
+                temp.hasPlayed = false;
                 _savedPlayerStats.Add(player._alias, temp);
+            }
+        }
+
+        /// <summary>
+        /// Called when the player successfully leaves the game
+        /// </summary>
+        [Scripts.Event("Player.Leave")]
+        public void playerLeave(Player player)
+        {
+            if (_arena._isMatch && !_overtime)
+            {
+                if (_savedPlayerStats.ContainsKey(player._alias) && _savedPlayerStats[player._alias].hasPlayed)
+                    _savedPlayerStats[player._alias].playSeconds = _tickGameStart > 0 ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
+            }
+        }
+
+        /// <summary>
+        /// Called when a player leaves the arena
+        /// </summary>
+        [Scripts.Event("Player.LeaveArena")]
+        public void playerLeaveArena(Player player)
+        {
+            if (_arena._isMatch && !_overtime)
+            {
+                if (_savedPlayerStats.ContainsKey(player._alias) && _savedPlayerStats[player._alias].hasPlayed)
+                    _savedPlayerStats[player._alias].playSeconds = _tickGameStart > 0 ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
             }
         }
 
@@ -560,13 +667,7 @@ namespace InfServer.Script.GameType_USL
             {
                 if (String.IsNullOrWhiteSpace(payload))
                 {
-                    player.sendMessage(-1, "Syntax: *mvp alias");
-                    return false;
-                }
-
-                if (!_arena._isMatch)
-                {
-                    player.sendMessage(-1, "Can only be used during matches.");
+                    player.sendMessage(-1, "Syntax: *mvp alias OR ::*mvp");
                     return false;
                 }
 
@@ -576,13 +677,48 @@ namespace InfServer.Script.GameType_USL
                     return false;
                 }
 
-                if ((recipient = _arena.getPlayerByName(payload)) == null)
+                Player target = recipient != null ? recipient : _arena.getPlayerByName(payload);
+                _arena.sendArenaMessage("MVP award goes to......... ");
+                _arena.sendArenaMessage(recipient != null ? recipient._alias : payload);
+
+                if (target != null)
                 {
-                    player.sendMessage(-1, "Cannot find that player to mvp.");
+                    target.ZoneStat3 += 1;
+                    _arena._server._db.updatePlayer(target);
+                }
+
+                awardMVP = false;
+
+                return true;
+            }
+
+            if (command.Equals("setscore"))
+            {
+                if (String.IsNullOrEmpty(payload))
+                {
+                    player.sendMessage(-1, "Syntax: *setscore 1,2  (In order by teamname per scoreboard)");
                     return false;
                 }
-                recipient.ZoneStat3 += 1;
-                _arena.sendArenaMessage("MVP award goes to......... " + recipient._alias);
+
+                if (!payload.Contains(','))
+                {
+                    player.sendMessage(-1, "Error in syntax, missing comma seperation.");
+                    return false;
+                }
+
+                string[] args = payload.Split(',');
+                if (!Helpers.IsNumeric(args[0]) || !Helpers.IsNumeric(args[1]))
+                {
+                    player.sendMessage(-1, "Value is not numeric.");
+                    return false;
+                }
+
+                Int32.TryParse(args[0].Trim(), out team1._currentGameKills);
+                Int32.TryParse(args[1].Trim(), out team2._currentGameKills);
+
+                //Immediately notify the change
+                updateTickers();
+
                 return true;
             }
 
@@ -844,6 +980,183 @@ namespace InfServer.Script.GameType_USL
             }
             return false;
         }
-		#endregion
-	}
+        #endregion
+
+        #region Private Calls
+        private int getRating(Team team1, Team team2)
+        {
+            int rating = 0;
+
+
+
+            return rating;
+
+        }
+
+        /// <summary>
+        /// Saves all league stats to a file and website
+        /// </summary>
+        private void ExportStats()
+        {   //Sanity checks
+            if (_overtime)
+            {
+                if (_lastSavedStats.Count < 1)
+                    return;
+
+                string OT = "OT";
+                if (overtimeType > 0)
+                {
+                    switch (overtimeType)
+                    {
+                        case 1:
+                            OT = "D-OT";
+                            break;
+                        case 2:
+                            OT = "T-OT";
+                            break;
+                        case 3:
+                            OT = "Q-OT";
+                            break;
+                        default:
+                            OT = "OT++";
+                            break;
+                    }
+                }
+                //Make the file with current date and filename
+                string name1 = lastTeam1._name.Trim(' ');
+                string name2 = lastTeam2._name.Trim(' ');
+                string filename = String.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
+                StreamWriter fs = Logic_File.CreateStatFile(filename, String.Format("Season {0}", LeagueSeason.ToString()));
+
+                fs.WriteLine();
+                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
+                    lastTeam1._name, lastTeam1._currentGameKills, lastTeam1._currentGameDeaths, lastTeam1._name.Equals(victoryTeam._name) ? "Yes" : "No", OT));
+                fs.WriteLine("--------------------------------------------------------------------");
+                foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+
+                    if (!p.Value.hasPlayed)
+                        continue;
+
+                    if (p.Value.teamname.Equals(team2._name))
+                        continue;
+
+                    bool yes = true; //We were an nt
+                    if (team1._name.Contains(p.Value.squad))
+                        yes = false; //We arent an nt
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                        p.Value.alias,
+                        yes == false ? "No" : "Yes",
+                        p.Value.kills,
+                        p.Value.deaths,
+                        p.Value.playSeconds));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
+
+                fs.WriteLine();
+                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
+                    lastTeam2._name, lastTeam2._currentGameKills, lastTeam2._currentGameDeaths, lastTeam2._name.Equals(victoryTeam._name) ? "Yes" : "No", OT));
+                fs.WriteLine("--------------------------------------------------------------------");
+                foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+
+                    if (!p.Value.hasPlayed)
+                        continue;
+
+                    if (p.Value.teamname.Equals(team1._name))
+                        continue;
+
+                    bool yes = true; //We were an nt
+                    if (team2._name.Contains(p.Value.squad))
+                        yes = false; //We arent an nt
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                        p.Value.alias,
+                        yes == false ? "No" : "Yes",
+                        p.Value.kills,
+                        p.Value.deaths,
+                        p.Value.playSeconds));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
+
+                //Close it
+                fs.Close();
+
+                //Report it
+                _arena.sendArenaMessage("Stats have been backed up to a file. Please stay till ref's are done recording.", 0);
+            }
+            else
+            {
+                //Make the file with current date and filename
+                string name1 = team1._name.Trim(' ');
+                string name2 = team2._name.Trim(' ');
+                string filename = String.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
+                StreamWriter fs = Logic_File.CreateStatFile(filename, String.Format("Season {0}", LeagueSeason.ToString()));
+
+                fs.WriteLine();
+                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
+                    team1._name, team1._currentGameKills, team1._currentGameDeaths, team1 == victoryTeam ? "Yes" : "No"));
+                fs.WriteLine("--------------------------------------------------------------------");
+                foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+
+                    if (!p.Value.hasPlayed)
+                        continue;
+
+                    if (p.Value.teamname.Equals(team2._name))
+                        continue;
+
+                    bool yes = true; //We were an nt
+                    if (team1._name.Contains(p.Value.squad))
+                        yes = false; //We arent an nt
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                        p.Value.alias,
+                        yes == false ? "No" : "Yes",
+                        p.Value.kills,
+                        p.Value.deaths,
+                        p.Value.playSeconds));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
+
+                fs.WriteLine();
+                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
+                    team2._name, team2._currentGameKills, team2._currentGameDeaths, team2 == victoryTeam ? "Yes" : "No"));
+                fs.WriteLine("--------------------------------------------------------------------");
+                foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+
+                    if (!p.Value.hasPlayed)
+                        continue;
+
+                    if (p.Value.teamname.Equals(team1._name))
+                        continue;
+
+                    bool yes = true; //We were an nt
+                    if (team2._name.Contains(p.Value.squad))
+                        yes = false; //We arent an nt
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                        p.Value.alias,
+                        yes == false ? "No" : "Yes",
+                        p.Value.kills,
+                        p.Value.deaths,
+                        p.Value.playSeconds));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
+
+                //Close it
+                fs.Close();
+
+                //Report it
+                _arena.sendArenaMessage("Stats have been backed up to a file. Please stay till ref's are done recording.", 0);
+            }
+        }
+        #endregion
+    }
 }

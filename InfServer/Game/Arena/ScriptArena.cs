@@ -75,7 +75,7 @@ namespace InfServer.Game
 
         #region playerEnter
         /// <summary>
-		/// Called when a player enters the game
+		/// Called when a player successfully enters the game
         /// Note: this updates arena player counts
 		/// </summary>
 		public override void playerEnter(Player player)
@@ -94,7 +94,7 @@ namespace InfServer.Game
 
         #region playerLeave
         /// <summary>
-		/// Called when a player leaves the game
+		/// Called when a player successfully leaves the game
         /// Note: this updates arena player counts
 		/// </summary>
 		public override void playerLeave(Player player)
