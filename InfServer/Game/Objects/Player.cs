@@ -96,6 +96,7 @@ namespace InfServer.Game
 		public List<Player> _spectators;		//The players that are currently spectating us
         public List<string> _summonIgnore;      //The players that are currently summon-ignored.
         public List<string> _accountIgnore;     //The players that are currently account ignored.
+        public bool _bAllowBanner;              //Are we allowing banners to be sent to us?
 
         public int _gotBallID = 999;			//The Id of the ball
 

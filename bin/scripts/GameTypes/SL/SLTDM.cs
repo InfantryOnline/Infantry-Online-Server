@@ -42,7 +42,7 @@ namespace InfServer.Script.GameType_SLTDM
 
         //Settings
         private int _minPlayers;				//The minimum amount of players
-        private bool _gameWon = false, _showVictory = false;
+        private bool _gameWon = false;
 
         private Dictionary<String, PlayerStats> _savedPlayerStats;
         public class PlayerStats
@@ -138,12 +138,8 @@ namespace InfServer.Script.GameType_SLTDM
                     if (_tickNextVictoryNotice != 0 && now > _tickNextVictoryNotice)
                     {	//Yes! Let's give it
                         int countdown = (_config.flag.victoryHoldTime / 100) - ((now - _tickVictoryStart) / 1000);
-                        if (!_showVictory)
-                        {
-                            _showVictory = true;
-                            _arena.sendArenaMessage(String.Format("Victory for {0} in {1} seconds!",
-                                _victoryTeam._name, countdown), _config.flag.victoryWarningBong);
-                        }
+                        _arena.sendArenaMessage(String.Format("Victory for {0} in {1} seconds!",
+                            _victoryTeam._name, countdown), _config.flag.victoryWarningBong);
 
                         //Plan the next notice
                         _tickNextVictoryNotice = _tickVictoryStart;
@@ -156,7 +152,6 @@ namespace InfServer.Script.GameType_SLTDM
                         {
                             //10 second marker
                             _tickNextVictoryNotice += (_config.flag.victoryHoldTime * 10) - 10000;
-                            _showVictory = false;
                         }
                         else
                             _tickNextVictoryNotice = 0;
@@ -195,7 +190,6 @@ namespace InfServer.Script.GameType_SLTDM
                     _arena.sendArenaMessage("Victory has been aborted.", _config.flag.victoryAbortedBong);
                     _arena.setTicker(1, 0, 0, "");
                     _victoryTeam = null;
-                    _showVictory = false;
                 }
             }
         }
@@ -248,7 +242,6 @@ namespace InfServer.Script.GameType_SLTDM
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
             _gameWon = false;
-            _showVictory = false;
             _victoryTeam = null;
 
             team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
@@ -301,7 +294,6 @@ namespace InfServer.Script.GameType_SLTDM
 
             _victoryTeam = null;
             _gameWon = false;
-            _showVictory = false;
 
             return true;
         }

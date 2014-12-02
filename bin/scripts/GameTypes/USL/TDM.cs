@@ -63,8 +63,10 @@ namespace InfServer.Script.GameType_USL
             public string teamname { get; set; }
             public string alias { get; set; }
             public string squad { get; set; }
+            public long points { get; set; }
             public int kills { get; set; }
             public int deaths { get; set; }
+            public int assistPoints { get; set; }
             public int playSeconds { get; set; }
             public bool hasPlayed { get; set; }
         }
@@ -132,7 +134,7 @@ namespace InfServer.Script.GameType_USL
                 _tickGameStarting = now;
 
                 //If this isnt overtime, lets start a new game
-                //otherwise we'll wait till the ref starts the match using *timer
+                //otherwise we'll wait till the ref starts the match using *startgame
                 if (!_overtime)
                     _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
                         delegate()
@@ -157,12 +159,16 @@ namespace InfServer.Script.GameType_USL
             team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
             team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
 
+            bool isMatch = _arena._isMatch;
+
             _savedPlayerStats.Clear();
             foreach (Player p in _arena.Players)
             {
                 PlayerStat temp = new PlayerStat();
                 temp.teamname = p._team._name;
                 temp.alias = p._alias;
+                temp.points = 0;
+                temp.assistPoints = 0;
                 temp.playSeconds = 0;
                 temp.squad = p._squad;
                 temp.kills = 0;
@@ -171,6 +177,10 @@ namespace InfServer.Script.GameType_USL
                 temp.hasPlayed = p.IsSpectator ? false : true;
 
                 _savedPlayerStats.Add(p._alias, temp);
+
+                if (isMatch && !p.IsSpectator)
+                    //Lets make sure in game players arent spammed banners
+                    p._bAllowBanner = false;
             }
 
             //Let everyone know
@@ -196,7 +206,12 @@ namespace InfServer.Script.GameType_USL
         private void updateTickers()
         {
             //Team scores
-            string format = String.Format("{0}={1} - {2}={3}", team1._name, team1._currentGameKills, team2._name, team2._currentGameKills);
+            IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
+            Team A = activeTeams.ElementAt(0) != null ? activeTeams.ElementAt(0) : team1;
+            Team B = team2;
+            if (activeTeams.Count() > 1)
+                B = activeTeams.ElementAt(1) != null ? activeTeams.ElementAt(1) : team2;
+            string format = String.Format("{0}={1} - {2}={3}", A._name, A._currentGameKills, B._name, B._currentGameKills);
             _arena.setTicker(1, 2, 0, format);
 
             //Personal Scores
@@ -214,16 +229,17 @@ namespace InfServer.Script.GameType_USL
             //1st and 2nd place
             List<Player> ranked = new List<Player>();
             foreach (Player p in _arena.Players)
+            {
+                if (p == null)
+                    continue;
                 if (_savedPlayerStats.ContainsKey(p._alias))
                     ranked.Add(p);
+            }
 
             IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
             int idx = 3; format = "";
             foreach (Player rankers in ranking)
             {
-                if (rankers == null)
-                    continue;
-
                 if (idx-- == 0)
                     break;
 
@@ -321,7 +337,7 @@ namespace InfServer.Script.GameType_USL
                                 break;
                             case 4:
                             default:
-                                _arena.sendArenaMessage("Script is tired of counting, ref's take over.");
+                                _arena.sendArenaMessage("Script is tired of counting, refs take over.");
                                 break;
                         }
                     }
@@ -419,8 +435,12 @@ namespace InfServer.Script.GameType_USL
             from.sendMessage(0, "#Individual Statistics Breakdown");
             List<Player> rankers = new List<Player>();
             foreach (Player p in _arena.Players)
+            {
+                if (p == null)
+                    continue;
                 if (_savedPlayerStats.ContainsKey(p._alias))
                     rankers.Add(p);
+            }
 
             idx = 3;        //Only display top three players
             var rankedPlayerGroups = rankers.Select(player => new
@@ -576,6 +596,8 @@ namespace InfServer.Script.GameType_USL
             {
                 PlayerStat temp = new PlayerStat();
                 temp.squad = player._squad;
+                temp.assistPoints = 0;
+                temp.points = 0;
                 temp.playSeconds = 0;
                 temp.alias = player._alias;
                 temp.deaths = 0;
@@ -585,6 +607,10 @@ namespace InfServer.Script.GameType_USL
             }
             _savedPlayerStats[player._alias].teamname = player._team._name;
             _savedPlayerStats[player._alias].hasPlayed = player.IsSpectator ? false : true;
+
+            if (_arena._isMatch && !player.IsSpectator)
+                //Lets make sure to turn banner spamming off
+                player._bAllowBanner = false;
         }
 
         /// <summary>
@@ -599,6 +625,8 @@ namespace InfServer.Script.GameType_USL
                 PlayerStat temp = new PlayerStat();
                 temp.alias = player._alias;
                 temp.squad = player._squad;
+                temp.assistPoints = 0;
+                temp.points = 0;
                 temp.playSeconds = 0;
                 temp.deaths = 0;
                 temp.kills = 0;
@@ -606,6 +634,10 @@ namespace InfServer.Script.GameType_USL
                 _savedPlayerStats.Add(player._alias, temp);
             }
             _savedPlayerStats[player._alias].hasPlayed = true;
+
+            if (_arena._isMatch && !player.IsSpectator)
+                //Lets make sure to turn banner spamming off
+                player._bAllowBanner = false;
 
             return true;
         }
@@ -620,6 +652,8 @@ namespace InfServer.Script.GameType_USL
             {
                 PlayerStat temp = new PlayerStat();
                 temp.alias = player._alias;
+                temp.assistPoints = 0;
+                temp.points = 0;
                 temp.playSeconds = 0;
                 temp.squad = player._squad;
                 temp.deaths = 0;
@@ -639,7 +673,11 @@ namespace InfServer.Script.GameType_USL
             if (_arena._isMatch && !_overtime)
             {
                 if (_savedPlayerStats.ContainsKey(player._alias) && _savedPlayerStats[player._alias].hasPlayed)
+                {
                     _savedPlayerStats[player._alias].playSeconds = _tickGameStart > 0 ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
+                    _savedPlayerStats[player._alias].points = _tickGameStart > 0 ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
+                    _savedPlayerStats[player._alias].assistPoints = _tickGameStart > 0 ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                }
             }
         }
 
@@ -652,7 +690,11 @@ namespace InfServer.Script.GameType_USL
             if (_arena._isMatch && !_overtime)
             {
                 if (_savedPlayerStats.ContainsKey(player._alias) && _savedPlayerStats[player._alias].hasPlayed)
+                {
                     _savedPlayerStats[player._alias].playSeconds = _tickGameStart > 0 ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
+                    _savedPlayerStats[player._alias].points = _tickGameStart > 0 ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
+                    _savedPlayerStats[player._alias].assistPoints = _tickGameStart > 0 ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                }
             }
         }
 
@@ -679,12 +721,20 @@ namespace InfServer.Script.GameType_USL
 
                 Player target = recipient != null ? recipient : _arena.getPlayerByName(payload);
                 _arena.sendArenaMessage("MVP award goes to......... ");
-                _arena.sendArenaMessage(recipient != null ? recipient._alias : payload);
+                _arena.sendArenaMessage(target != null ? target._alias : payload);
 
                 if (target != null)
                 {
                     target.ZoneStat3 += 1;
                     _arena._server._db.updatePlayer(target);
+                }
+
+                if (!String.IsNullOrEmpty(FileName))
+                {
+                    StreamWriter fs = Logic_File.OpenStatFile(FileName, String.Format("Season {0}", LeagueSeason.ToString()));
+                    fs.WriteLine();
+                    fs.WriteLine("MVP: {0}", target != null ? target._alias : payload);
+                    fs.Close();
                 }
 
                 awardMVP = false;
@@ -1026,6 +1076,7 @@ namespace InfServer.Script.GameType_USL
                 string name1 = lastTeam1._name.Trim(' ');
                 string name2 = lastTeam2._name.Trim(' ');
                 string filename = String.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
+                FileName = filename;
                 StreamWriter fs = Logic_File.CreateStatFile(filename, String.Format("Season {0}", LeagueSeason.ToString()));
 
                 fs.WriteLine();
@@ -1082,11 +1133,31 @@ namespace InfServer.Script.GameType_USL
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
+                //Now set the format as per the export file function in the client
+                foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+
+                    if (!p.Value.hasPlayed)
+                        continue;
+
+                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0",
+                        p.Value.alias,
+                        p.Value.squad,
+                        p.Value.points,
+                        p.Value.kills,
+                        p.Value.deaths,
+                        p.Value.assistPoints,
+                        p.Value.playSeconds));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
+
                 //Close it
                 fs.Close();
 
                 //Report it
-                _arena.sendArenaMessage("Stats have been backed up to a file. Please stay till ref's are done recording.", 0);
+                _arena.sendArenaMessage("Stats have been backed up to a file. Please stay till refs are done recording.", 0);
             }
             else
             {
@@ -1094,6 +1165,7 @@ namespace InfServer.Script.GameType_USL
                 string name1 = team1._name.Trim(' ');
                 string name2 = team2._name.Trim(' ');
                 string filename = String.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
+                FileName = filename;
                 StreamWriter fs = Logic_File.CreateStatFile(filename, String.Format("Season {0}", LeagueSeason.ToString()));
 
                 fs.WriteLine();
@@ -1150,11 +1222,31 @@ namespace InfServer.Script.GameType_USL
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
+                //Now set the format as per the export file function in the client
+                foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+
+                    if (!p.Value.hasPlayed)
+                        continue;
+
+                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0",
+                        p.Value.alias,
+                        p.Value.squad,
+                        p.Value.points,
+                        p.Value.kills,
+                        p.Value.deaths,
+                        p.Value.assistPoints,
+                        p.Value.playSeconds));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
+
                 //Close it
                 fs.Close();
 
                 //Report it
-                _arena.sendArenaMessage("Stats have been backed up to a file. Please stay till ref's are done recording.", 0);
+                _arena.sendArenaMessage("Stats have been backed up to a file. Please stay till refs are done recording.", 0);
             }
         }
         #endregion

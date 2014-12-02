@@ -200,7 +200,7 @@ namespace InfServer.Game
             player._client.sendReliable(env);
 
             //Lets check his level and set watchMod
-            if (player.PermissionLevel >= Data.PlayerPermission.Sysop)
+            if (player.PermissionLevel >= Data.PlayerPermission.Mod)
                 player._watchMod = true;
 
             //Check if we can use him as a reliable player [check if mod]
@@ -300,12 +300,14 @@ namespace InfServer.Game
                     Helpers.Social_UpdateBanner(player); //Players banner
                     Helpers.Social_ArenaBanners(player._arena.Players, player); //Inform arena of his banner
                     Helpers.Social_ArenaBanners(player, this); //Get all banners in arena
+                    //Set able to receive banners
+                    player._bAllowBanner = true;
 
                     //Trigger our event for player entering arena
                     callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-                    player.sendMessage(-3, "[Notice] Welcome to Infantry, IRC support at ircd.suroot.info #infantry, which can quicky be accessed at freeinfantry.org. Enjoy your stay.");
+                    player.sendMessage(-3, "[Notice] Welcome to Infantry, IRC support at irc.synirc.net #infantry, which can quicky be accessed at freeinfantry.org. Enjoy your stay.");
 
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)

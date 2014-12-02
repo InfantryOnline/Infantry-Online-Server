@@ -183,6 +183,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
             //Are we under min players?
             if (playing < _minPlayers)
             {
+                _tickGameStarting = 0;
+
                 //Show the message
                 if (!_arena.recycling)
                     _arena.setTicker(1, 0, 0, "Not Enough Players");
@@ -248,8 +250,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             _tickGameStarting = 0;
 
             //Are we recording?
-            if (!_arena._bIsPublic)
-                _arena._saveStats = _arena._isMatch;
+            bool isMatch = _arena._isMatch;
 
             //Lets reset
             team1Goals = 0;
@@ -328,13 +329,17 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     playerStats[p] = temp;
 
                 //If league match, get squad id
-                if (_arena._isMatch && !String.IsNullOrWhiteSpace(p._squad))
+                if (isMatch && !String.IsNullOrWhiteSpace(p._squad))
                     if (!p.IsSpectator)
                     {
                         if (teamStats[p._team].squadID == p._squadID)
                             continue;
                         teamStats[p._team].squadID = p._squadID;
                     }
+
+                if (isMatch && !p.IsSpectator)
+                    //Lets make sure in game players aren't spammed banners
+                    p._bAllowBanner = false;
             }
 
             //Make each player aware of the ball

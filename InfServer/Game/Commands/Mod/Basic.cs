@@ -143,6 +143,82 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Allows a player to join a private arena
+        /// </summary>
+        static public void allow(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Syntax: *allow alias OR *allow list to see who's allowed");
+                player.sendMessage(0, "Notes: make sure you are in the arena you want and type the alias correctly(Case doesn't matter)");
+                return;
+            }
+
+            if (player._arena._bIsPublic)
+            {
+                player.sendMessage(-1, "Command is not allowed for public named arenas.");
+                return;
+            }
+
+            if (!player._arena.IsPrivate && player._developer)
+            {
+                player.sendMessage(-1, "Only mods are allowed to lock non-private arenas.");
+                return;
+            }
+
+            string toLower = payload.ToLower();
+            //Does he want a list?
+            if (toLower == "list")
+            {
+                player.sendMessage(0, "Current List of Allowed Players:");
+                if (player._arena._bAllowed.Count > 0)
+                {
+                    List<string> ordered = player._arena._bAllowed.ToList();
+                    ordered.Sort();
+                    foreach (string str in ordered)
+                        player.sendMessage(0, str);
+                }
+                else
+                    player.sendMessage(0, "Empty.");
+                return;
+            }
+
+            //Are we adding or removing?
+            if (player._arena._bAllowed.Count == 0)
+            {
+                //List is empty, just add the player
+                player._arena._bAllowed.Add(toLower);
+                player.sendMessage(0, "Player " + payload + " added.");
+                if (!player._arena._aLocked)
+                    player.sendMessage(-1, "Note: Arena lock(locks arena from outsiders) is not on. To turn it on type *arenalock.");
+                return;
+            }
+
+            if (player._arena._bAllowed.Contains(toLower))
+            {   //Remove
+                player._arena._bAllowed.Remove(toLower);
+                player.sendMessage(-3, "Player removed from the permission list.");
+            }
+            else
+            {   //Adding
+                player.sendMessage(-3, "Player added to permission list");
+                player._arena._bAllowed.Add(toLower);
+
+                //Let the person know
+                CS_Whisper<Data.Database> whisper = new CS_Whisper<Data.Database>();
+                whisper.bong = 1;
+                whisper.recipient = payload;
+                whisper.message = (String.Format("You have been given permission to enter {0}.", player._arena._name));
+                whisper.from = player._alias;
+
+                player._server._db.send(whisper);
+            }
+
+            if (!player._arena._aLocked)
+                player.sendMessage(-1, "Note: Arena lock is not on. To turn it on type *arenalock.");
+        }
+
+        /// <summary>
         /// Sends a arena/system message
         /// </summary>
         static public void arena(Player player, Player recipient, string payload, int bong)
@@ -163,6 +239,40 @@ namespace InfServer.Game.Commands.Mod
                 //Send it
                 player._arena.sendArenaMessage(format, bong);
             }
+        }
+
+        /// <summary>
+        /// Locks an arena from outsiders joining it
+        /// </summary>
+        static public void arenalock(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._arena._bIsPublic)
+            {
+                player.sendMessage(-1, "Command is not allowed for public named arenas.");
+                return;
+            }
+
+            if (!player._arena.IsPrivate && player._developer)
+            {
+                player.sendMessage(-1, "Only mods are allowed to lock non-private arenas.");
+                return;
+            }
+
+            Arena arena = player._arena;
+            foreach (Player p in player._arena.Players.ToList())
+            {
+                if (p == null || p == player)
+                    continue;
+                if (!p.IsSpectator)
+                    continue;
+                if (p._developer || p._admin || arena.IsGranted(p))
+                    continue;
+                p.sendMessage(-1, "Disconnecting due to arena being locked.");
+                p.disconnect();
+            }
+
+            player._arena._aLocked = !player._arena._aLocked;
+            player._arena.sendArenaMessage(String.Format("Arena is now {0}.", player._arena._aLocked ? "locked" : "unlocked"));
         }
 
         /// <summary>
@@ -630,7 +740,8 @@ namespace InfServer.Game.Commands.Mod
             {
                 string[] result = payload.Split(':');
                 timer = Convert.ToInt32(result.ElementAt(1));
-                player._arena.setTicker(1, 4, timer * 100, result.ElementAt(0), delegate() { player._arena.pollQuestion(player._arena, true); });
+                int index = player._arena.playtimeTickerIdx > 1 ? 1 : 2;
+                player._arena.setTicker(1, index, timer * 100, result.ElementAt(0), delegate() { player._arena.pollQuestion(player._arena, true); });
                 player._arena.sendArenaMessage(String.Format("&A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), result.ElementAt(0)));
                 player._arena.sendArenaMessage("&Type ?poll yes or ?poll no to participate");
             }
@@ -1039,7 +1150,14 @@ namespace InfServer.Game.Commands.Mod
             if (payload == "all" || (String.IsNullOrEmpty(payload) && recipient == null))
             {
                 player._arena._bLocked = !player._arena._bLocked;
-                player._arena.sendArenaMessage("Arena lock has been toggled" + (player._arena._bLocked ? " ON!" : " OFF!"));
+                player._arena.sendArenaMessage("Spec lock has been toggled" + (player._arena._bLocked ? " ON!" : " OFF!"));
+                return;
+            }
+
+            //Just incase someone meant private locking
+            if (payload.Equals("arena", StringComparison.OrdinalIgnoreCase))
+            {   //Pass it along
+                arenalock(player, recipient, payload, bong);
                 return;
             }
 
@@ -1412,6 +1530,13 @@ namespace InfServer.Game.Commands.Mod
                     {
                         int x = (((int)payload[0]) - ((int)'a')) * 16 * 80;
                         int y = Convert.ToInt32(payload.Substring(1)) * 16 * 80;
+                        try
+                        {   //Incase there are double digits
+                            y = Convert.ToInt32(payload.Substring(1, 2)) * 16 * 80;
+                        }
+                        catch
+                        {
+                        }
 
                         //We want to spawn in the coord center
                         x += 40 * 16;
@@ -1455,7 +1580,14 @@ namespace InfServer.Game.Commands.Mod
                 if (payload[0] >= 'a' && payload[0] <= 'z')
                 {
                     int x = (((int)payload[0]) - ((int)'a')) * 16 * 80;
-                    int y = Convert.ToInt32(payload.Substring(1, 1)) * 16 * 80;
+                    int y = Convert.ToInt32(payload.Substring(1)) * 16 * 80;
+                    try
+                    {   //Incase there are double digits
+                        y = Convert.ToInt32(payload.Substring(1, 2)) * 16 * 80;
+                    }
+                    catch
+                    {
+                    }
 
                     //We want to spawn in the coord center
                     x += 40 * 16;
@@ -2528,7 +2660,7 @@ namespace InfServer.Game.Commands.Mod
                 //Assume they just want to kick them out of the arena temporarily
                 recipient.sendMessage(-1, "You have been kicked out of the arena.");
                 recipient.disconnect();
-                player.sendMessage(0, String.Format("You have kicked player {0} from the arena.", recipient._alias.ToString()));
+                player.sendMessage(0, String.Format("You have kicked player {0} from the arena.", recipient._alias));
                 return;
             }
 
@@ -2613,10 +2745,20 @@ namespace InfServer.Game.Commands.Mod
                 "*addball",
                InfServer.Data.PlayerPermission.ArenaMod, true);
 
+            yield return new HandlerDescriptor(allow, "allow",
+                "Lists, Adds or Removes a player from a private arena list.",
+                "*allow list OR *allow alias",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
             yield return new HandlerDescriptor(arena, "arena",
                 "Send a arena-wide system message.",
                 "*arena message",
                InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(arenalock, "arenalock",
+                "Locks or unlocks an arena from outsiders. Note: will kick out any non powered players in spec and only mods or admins can join/stay.",
+                "*arenalock",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(auth, "auth",
                 "Log in during Stand-Alone Mode",

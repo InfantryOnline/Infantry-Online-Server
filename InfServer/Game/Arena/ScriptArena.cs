@@ -388,6 +388,45 @@ namespace InfServer.Game
 		{   //Let the script add custom info
             callsync("Game.Breakdown", false);
 
+            //Display flag victory jackpot?
+            if (_server._zoneConfig.flag.useJackpot)
+            {
+                int _jackpot = (int)Math.Pow(PlayerCount, 2);
+                sendArenaMessage("Victory Jackpot=" + _jackpot, _server._zoneConfig.flag.victoryBong);
+
+                List<Team> flagTeams = new List<Team>();
+                foreach(FlagState fs in _flags.Values)
+                    if (fs.bActive && fs.team != null)
+                        flagTeams.Add(fs.team);
+
+                foreach (Player p in Players.ToList())
+                {
+                    if (p == null)
+                        continue;
+                    if (p.IsSpectator)
+                        continue;
+
+                    //Find the base reward jackpot
+                    int personalJackpot;
+
+                    if (flagTeams.Contains(p._team))
+                        personalJackpot = _jackpot * (_server._zoneConfig.flag.winnerJackpotFixedPercent / 1000);
+                    else
+                        personalJackpot = _jackpot * (_server._zoneConfig.flag.loserJackpotFixedPercent / 1000);
+
+                    //Obtain respective rewards
+                    int cash = personalJackpot * (_server._zoneConfig.flag.cashReward / 1000);
+                    int exp = personalJackpot * (_server._zoneConfig.flag.experienceReward / 1000);
+                    int point = personalJackpot * (_server._zoneConfig.flag.pointReward / 1000);
+
+                    p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}",
+                        point, cash, exp));
+                    p.Cash += cash;
+                    p.Experience += exp;
+                    p.BonusPoints += point;
+                }
+            }
+
             //Show a breakdown for each player in the arena
             foreach (Player p in Players.ToList())
             {
@@ -1905,7 +1944,7 @@ namespace InfServer.Game
                 //NOTE: DO NOT LEAVE AN EMPTY SCRIPT MOD COMMAND, IT WILL LOG IN DB
                 //WITH ANYONE TYPING STUFF LIKE *HI
 
-                //Did someone just type *?
+                //Did someone just type *
                 if (String.IsNullOrEmpty(command))
                     return;
 

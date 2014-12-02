@@ -57,6 +57,12 @@ namespace InfServer.Logic
             if (pkt.bannerData == null)
                 return;
 
+            if (!target._bAllowBanner)
+            {
+                player.sendMessage(-1, "&Target is not allowing banners.");
+                return;
+            }
+
             SC_SendBanner banner = new SC_SendBanner();
             banner.playerID = (short)player._id;
             banner.bannerData = pkt.bannerData;

@@ -219,6 +219,7 @@ namespace InfServer.Game
                 return newArena(arenaName);
             }
 
+            //Are we banned from this arena?
             if (arena._blockedList.ContainsKey(player._alias))
             {
                 TimeSpan check = DateTime.Now - (arena._blockedList.First(v => v.Key.Equals(player._alias)).Value);
@@ -229,6 +230,23 @@ namespace InfServer.Game
                 }
                 //Lets delete him from the list
                 arena._blockedList.Remove(player._alias);
+            }
+
+            //Is this arena locked?
+            if (arena._aLocked)
+            {
+                //Are we in the list?
+                if (arena._bAllowed.Count == 0 || !arena._bAllowed.Contains(player._alias.ToLower()))
+                {   //We a zone admin?
+                    if (player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+                    {   //We a game mod?
+                        if (player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                        {
+                            player.sendMessage(-1, "Arena is locked.");
+                            return null;
+                        }
+                    }
+                }
             }
 
             //Is it full?

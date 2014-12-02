@@ -38,7 +38,6 @@ namespace InfServer.Script.GameType_Fantasy
                 count = 0;
                 max = m;
             }
-
         }
 
         /// <summary>
@@ -75,9 +74,6 @@ namespace InfServer.Script.GameType_Fantasy
                                 _arena.newBot(typeof(RangeMinion), (ushort)p.vehID, _arena.Teams.ElementAt(5), null, v._state);
                         }
             }
-
-
-
             return true;
         }
     }

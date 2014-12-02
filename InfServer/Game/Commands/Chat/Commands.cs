@@ -169,6 +169,20 @@ namespace InfServer.Game.Commands.Chat
 		}
         #endregion
 
+        #region banner
+        /// <summary>
+        /// Turns on or off receiving banners
+        /// </summary>
+        public static void banner(Player player, Player recipient, string payload, int bong)
+        {
+            player._bAllowBanner = !player._bAllowBanner;
+            if (player._bAllowBanner)
+                player.sendMessage(0, "Now accepting banners.");
+            else
+                player.sendMessage(0, "Ignoring banners.");
+        }
+        #endregion
+
         #region breakdown
         /// <summary>
         /// displays current game statistics
@@ -1565,6 +1579,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(arena, "arena",
                 "Displays all arenas availble to join",
                 "?arena");
+
+            yield return new HandlerDescriptor(banner, "banner",
+                "Toggles ignoring of banners and banner messages",
+                "?banner");
 
             yield return new HandlerDescriptor(breakdown, "breakdown",
                 "Displays current game statistics",

@@ -32,6 +32,8 @@ namespace InfServer.Game
 
         public List<string> _owner;                     //The owner's name of this arena - we use a list because we can grant players
         public Dictionary<string,DateTime> _blockedList;//Banned list for owned arenas
+        public List<string> _bAllowed;                  //When arena lock is enabled, these players are allowed
+        public bool _aLocked;                           //Is this private arena locked?
 
         public List<Ball> _balls;
 
@@ -446,6 +448,8 @@ namespace InfServer.Game
            
             _owner = new List<string>();
             _blockedList = new Dictionary<string, DateTime>();
+            _bAllowed = new List<string>();
+            _aLocked = false;
 
             _scramble = _server._zoneConfig.arena.scrambleTeams > 0 ? true : false;
 
@@ -951,9 +955,8 @@ namespace InfServer.Game
         /// </summary>
         public bool IsGranted(Player player)
         {
-            if (!_bIsPublic)
-                if (IsOwner(player) || player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
-                    return true;
+            if (IsOwner(player) || player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                return true;
             return false;
         }
 
