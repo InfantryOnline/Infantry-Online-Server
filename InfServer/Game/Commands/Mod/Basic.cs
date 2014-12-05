@@ -881,8 +881,13 @@ namespace InfServer.Game.Commands.Mod
                 {
                     //Now scramble teams
                     numTeams = player._arena.ActiveTeams.Count();
+                    IEnumerable<Team> active = player._arena.PublicTeams.Where(t => t.ActivePlayerCount > 0).ToList();
                     for (int i = 0; i < shuffledPlayers.Count; i++)
-                        player._arena.PublicTeams.ElementAt(i % numTeams).addPlayer(shuffledPlayers[i]);
+                    {
+                        Team team = active.ElementAt(i % numTeams);
+                        if (shuffledPlayers[i]._team != team)
+                            team.addPlayer(shuffledPlayers[i]);
+                    }
 
                     //Notify players of the scramble
                     player._arena.sendArenaMessage("Teams have been scrambled!");

@@ -71,6 +71,18 @@ namespace InfServer.Script.GameType_USL
             public bool hasPlayed { get; set; }
         }
 
+        /// <summary>
+        /// Public event class
+        /// </summary>
+        public enum Events
+        {
+            RedBlue,
+            GreenYellow
+        }
+
+        public int EventType;
+        public bool Event = false;                      //Are we doing any special side events?
+
         ///////////////////////////////////////////////////
         // Member Functions
         ///////////////////////////////////////////////////
@@ -160,6 +172,10 @@ namespace InfServer.Script.GameType_USL
             team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
 
             bool isMatch = _arena._isMatch;
+
+            //If we were doing an event, reset it
+            if (Event && isMatch)
+                Event = false;
 
             _savedPlayerStats.Clear();
             foreach (Player p in _arena.Players)
@@ -639,6 +655,67 @@ namespace InfServer.Script.GameType_USL
                 //Lets make sure to turn banner spamming off
                 player._bAllowBanner = false;
 
+            //Are we doing an event?
+            if (Event)
+            {
+                //Which event are we doing?
+                switch ((Events)EventType)
+                {
+                    case Events.GreenYellow:
+                        //Lets get team stuff
+                        Team green = _arena.getTeamByName("Green");
+                        Team yellow = _arena.getTeamByName("Yellow");
+
+                        //First do sanity checks
+                        if (green == null || yellow == null)
+                            break;
+
+                        //Are they the first on the teams?
+                        if (green.ActivePlayerCount == 0 || yellow.ActivePlayerCount == 0 || green.ActivePlayerCount == yellow.ActivePlayerCount)
+                        {
+                            //Great, use it
+                            if (green.ActivePlayerCount == yellow.ActivePlayerCount)
+                                player.unspec(green);
+                            else
+                                player.unspec(green.ActivePlayerCount == 0 ? green : yellow);
+                            player._lastMovement = Environment.TickCount;
+                            //We are returning false so server wont repick us
+                            return false;
+                        }
+                        //Nope, lets do some math
+                        player.unspec(green.ActivePlayerCount > yellow.ActivePlayerCount ? yellow : green);
+                        player._lastMovement = Environment.TickCount;
+                        //Returning false so server wont repick us
+                        return false;
+
+                    case Events.RedBlue:
+                        //Lets get team stuff
+                        Team red = _arena.getTeamByName("Red");
+                        Team blue = _arena.getTeamByName("Blue");
+
+                        //First do sanity checks
+                        if (red == null || blue == null)
+                            break;
+
+                        //Are they the first on the teams?
+                        if (red.ActivePlayerCount == 0 || blue.ActivePlayerCount == 0 || red.ActivePlayerCount == blue.ActivePlayerCount)
+                        {
+                            //Great, use it
+                            if (red.ActivePlayerCount == blue.ActivePlayerCount)
+                                player.unspec(red);
+                            else
+                                player.unspec(red.ActivePlayerCount == 0 ? red : blue);
+                            player._lastMovement = Environment.TickCount;
+                            //We are returning false so server wont repick us
+                            return false;
+                        }
+                        //Nope, lets do some math
+                        player.unspec(red.ActivePlayerCount > blue.ActivePlayerCount ? blue : red);
+                        player._lastMovement = Environment.TickCount;
+                        //Returning false so server wont repick us
+                        return false;
+                }
+            }
             return true;
         }
 
@@ -844,7 +921,7 @@ namespace InfServer.Script.GameType_USL
                     Int16 number;
                     if (String.IsNullOrEmpty(payload))
                     {
-                        player.sendMessage(-1, "*poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
+                        player.sendMessage(-1, "Syntax: *poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         player.sendMessage(0, "Note: there can only be 1 admin.");
                         return false;
                     }
@@ -865,7 +942,7 @@ namespace InfServer.Script.GameType_USL
                         if (level < 1 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, String.Format("Syntax: *poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             player.sendMessage(0, "Note: there can be only 1 admin level.");
                             return false;
                         }
@@ -973,7 +1050,7 @@ namespace InfServer.Script.GameType_USL
                     Int16 number;
                     if (String.IsNullOrEmpty(payload))
                     {
-                        player.sendMessage(-1, "*powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
+                        player.sendMessage(-1, "Syntax: *powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         return false;
                     }
                     if (payload.Contains(':'))
@@ -993,7 +1070,7 @@ namespace InfServer.Script.GameType_USL
                         if (level < 0 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("*powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, String.Format("Syntax: *powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             return false;
                         }
                         payload = param[0];
@@ -1026,6 +1103,47 @@ namespace InfServer.Script.GameType_USL
                     //Send it!
                     player._server._db.send(query);
                     return true;
+                }
+            }
+
+            if (command.Equals("event"))
+            {
+                var names = Enum.GetNames(typeof(Events));
+                if (String.IsNullOrEmpty(payload))
+                {
+                    //If an event is active, show what it is
+                    if (Event)
+                        player.sendMessage(0, String.Format("Current active event - {0}", Enum.GetName(typeof(Events), EventType)));
+                    string options = String.Join(", ", names);
+                    player.sendMessage(-1, String.Format("Syntax: *event <event name> - Options are {0} (use *event off to stop the event)", options));
+                    return false;
+                }
+
+                if (payload.Equals("off"))
+                {
+                    Event = false;
+                    return true;
+                }
+
+                if (!names.Contains(payload, StringComparer.OrdinalIgnoreCase))
+                {
+                    player.sendMessage(-1, "That is not a valid option.");
+                    string options = String.Join(", ", names);
+                    player.sendMessage(0, String.Format("Syntax: *event <event name> - Options are {0} (use *event off to stop the event)", options));
+                    return false;
+                }
+
+                Events eType;
+                foreach (string s in names)
+                {
+                    if (s.Equals(payload, StringComparison.OrdinalIgnoreCase))
+                        if (Enum.TryParse(s, out eType))
+                        {
+                            EventType = (int)eType;
+                            Event = true;
+                            _arena.sendArenaMessage(String.Format("Event {0} is now ON!", s));
+                            return true;
+                        }
                 }
             }
             return false;

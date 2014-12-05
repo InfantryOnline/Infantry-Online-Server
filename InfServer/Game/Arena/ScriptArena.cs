@@ -139,9 +139,13 @@ namespace InfServer.Game
         public static void scrambleTeams(Arena arena, int numTeams, bool alertArena)
         {
             List<Player> shuffledPlayers = arena.PublicPlayersInGame.OrderBy(plyr => arena._rand.Next(0, 500)).ToList();
-
+            IEnumerable<Team> active = arena.PublicTeams.Where(t => t.ActivePlayerCount > 0).ToList();
             for (int i = 0; i < shuffledPlayers.Count; i++)
-                arena.PublicTeams.ElementAt(i % numTeams).addPlayer(shuffledPlayers[i]);
+            {
+                Team team = active.ElementAt(i % numTeams);
+                if (shuffledPlayers[i]._team != team)
+                    team.addPlayer(shuffledPlayers[i]);
+            }
 
             //Notify players of the scramble
             if (alertArena)
