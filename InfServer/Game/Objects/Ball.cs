@@ -16,43 +16,49 @@ namespace InfServer.Game
     // Ball Class
     /// Represents a single ball in an arena
     ///////////////////////////////////////////////////////
-    public class Ball : CustomObject
+    public class Ball : CustomObject, ILocatable
     {	// Member variables
         ///////////////////////////////////////////////////
-        public Arena _arena;            //The arena we belong to
-        public ushort _id;              //Our unique identifier
-        public BallState _state;
-        public Player _owner;           //The person holding us
-        public Player _lastOwner;       //The person who held us last
-        public bool deadBall = false;   //Is this ball stuck/unplayabe?
+        public Arena _arena;                //The arena we belong to
+        public ushort _id;                  //Our unique identifier
+        public Helpers.ObjectState _state;	//The state of our ball
+        /// <summary>
+        /// Spawning, Picked up or Dropped(-1, 0, 1)
+        /// </summary>
+        public int ballStatus;              //Whats going on with the ball
+        public Player _owner;               //The person holding us
+        public Player _lastOwner;           //The person who held us last
+        public short ballFriction;
+        public uint tickCount;            //Given to us by the client
+        public bool deadBall = false;       //Is this ball stuck/unplayabe?
 
         ///////////////////////////////////////////////////
-        // Member Classes
+        // Member Functions
         ///////////////////////////////////////////////////
-        #region Member Classes
-        public class BallState
-        {
-            public bool bPickup { get; set; }
-            public short positionX { get; set; }
-            public short positionY { get; set; }
-            public short positionZ { get; set; }
-            public short velocityX { get; set; }
-            public short velocityY { get; set; }
-            public short velocityZ { get; set; }
-            public Player carrier { get; set; }
-            public short unk1 { get; set; }
-            /// <summary>
-            /// Spawning, picked up or dropped? (-1, 0, 1)
-            /// </summary>
-            public short ballStatus { get; set; }
-            public short unk3 { get; set; }
-            public short unk4 { get; set; }
-            public short unk5 { get; set; }
-            public short unk6 { get; set; }
-            public short unk7 { get; set; }
-            public short inProgress { get; set; }
-            public int timeStamp { get; set; }
+        #region Member Constructors
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        public Ball(Player player, short ballID)
+        {   //Populate variables
+            _id = (ushort)ballID;
+            _arena = player._arena;
+
+            _state = new Helpers.ObjectState();
         }
+
+        public Ball(short ballID, Arena arena)
+        {	//Populate variables
+            _id = (ushort)ballID;
+            _arena = arena;
+
+            _state = new Helpers.ObjectState();
+        }
+        #endregion
+
+        #region ILocatable Functions
+        public ushort getID() { return _id; }
+        public Helpers.ObjectState getState() { return _state; }
         #endregion
 
         /// <summary>
@@ -60,19 +66,19 @@ namespace InfServer.Game
         /// </summary>
         static public void Spawn_Ball(Player player, Ball ball)
         {
-            Arena _arena = player._arena;
+            Arena arena = ball._arena;
             List<Arena.RelativeObj> valid = new List<Arena.RelativeObj>();
-            List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_arena._server._zoneConfig.soccer.ballWarpGroup);
+            List<LioInfo.WarpField> warpgroup = arena._server._assets.Lios.getWarpGroupByID(arena._server._zoneConfig.soccer.ballWarpGroup);
             foreach (LioInfo.WarpField warp in warpgroup)
             {
-                if (warp.GeneralData.Name.Contains("SoccerBall"))
+                if (warp.GeneralData.Name.Contains("Ball"))
                 {
                     //Do we have the appropriate skills?
-                    if (!InfServer.Logic.Logic_Assets.SkillCheck(player, warp.WarpFieldData.SkillLogic))
+                    if (player != null && !InfServer.Logic.Logic_Assets.SkillCheck(player, warp.WarpFieldData.SkillLogic))
                         continue;
 
                     //Test for viability
-                    int playerCount = _arena.PlayerCount;
+                    int playerCount = arena.PlayerCount;
 
                     if (warp.WarpFieldData.MinPlayerCount > playerCount)
                         continue;
@@ -82,13 +88,13 @@ namespace InfServer.Game
 
                     //Specific team warp but on the wrong team
                     if (warp.WarpFieldData.WarpMode == LioInfo.WarpField.WarpMode.SpecificTeam &&
-                        player._team._id != warp.WarpFieldData.WarpModeParameter)
+                        player != null && player._team._id != warp.WarpFieldData.WarpModeParameter)
                         continue;
 
                     List<Arena.RelativeObj> spawnPoints;
                     if (warp.GeneralData.RelativeId != 0)
                     {   //Search for possible points to warp from
-                        spawnPoints = _arena.findRelativeID(warp.GeneralData.HuntFrequency, warp.GeneralData.RelativeId, player);
+                        spawnPoints = arena.findRelativeID(warp.GeneralData.HuntFrequency, warp.GeneralData.RelativeId, player);
                         if (spawnPoints == null)
                             continue;
                     }
@@ -101,7 +107,7 @@ namespace InfServer.Game
 
                     foreach (Arena.RelativeObj point in spawnPoints)
                     {   //Check player concentration
-                        playerCount = _arena.getPlayersInBox(
+                        playerCount = arena.getPlayersInBox(
                             point.posX, point.posY,
                             warp.GeneralData.Width, warp.GeneralData.Height).Count;
 
@@ -120,7 +126,7 @@ namespace InfServer.Game
                 Spawn_Ball(ball, valid[0].posX, valid[0].posY, valid[0].warp.GeneralData.Width, valid[0].warp.GeneralData.Height);
             else if (valid.Count > 1)
             {
-                Arena.RelativeObj obj = valid[_arena._rand.Next(0, valid.Count)];
+                Arena.RelativeObj obj = valid[arena._rand.Next(0, valid.Count)];
                 Spawn_Ball(ball, obj.posX, obj.posY, obj.warp.GeneralData.Width, obj.warp.GeneralData.Height);
             }
             else
@@ -136,7 +142,7 @@ namespace InfServer.Game
         static public void Spawn_Ball(Ball ball, int posX, int posY)
         {
             //Redirect
-            Spawn_Ball(ball, posX, posY, posX, posY); 
+            Spawn_Ball(ball, posX, posY, posX, posY);
         }
 
         /// <summary>
@@ -153,39 +159,27 @@ namespace InfServer.Game
             short top = (short)(x + width);
             short bottom = (short)(y + height);
 
-            ball._state.inProgress = 0;
             ball._state.positionX = (short)(((w - top) / 2) + top);
             ball._state.positionY = (short)(((h - bottom) / 2) + bottom);
-            ball._state.positionZ = 5;
+            ball._state.positionZ = 1;
             ball._state.velocityX = 0;
             ball._state.velocityY = 0;
             ball._state.velocityZ = 0;
-            ball._state.ballStatus = -1;
-            ball.deadBall = false;
+            ball.ballFriction = -1; //Client figures it out for us
+            ball.ballStatus = -1;
+            int now = Environment.TickCount;
+            ball.tickCount = (uint)now;
+            ball._state.lastUpdate = now;
+            ball._state.lastUpdateServer = now;
 
-            SC_BallState state = new SC_BallState();
-            state.positionX = ball._state.positionX;
-            state.positionY = ball._state.positionY;
-            state.positionZ = ball._state.positionZ;
-            state.velocityX = ball._state.velocityX;
-            state.velocityY = ball._state.velocityY;
-            state.velocityZ = ball._state.velocityZ;
-            state.ballStatus = ball._state.ballStatus;
-            state.unk1 = ball._state.unk1;
-            state.unk3 = ball._state.unk3;
-            state.unk4 = ball._state.unk4;
-            state.unk5 = ball._state.unk5;
-            state.unk6 = ball._state.unk6;
-            state.unk7 = ball._state.unk7;
-            state.ballID = ball._id;
-            if (ball._state.carrier != null)
-                state.playerID = (short)ball._state.carrier._id;
-            else
-                state.playerID = 0;
-            state.TimeStamp = Environment.TickCount;
+            ball._owner = null;
+            ball._lastOwner = null;
 
-            foreach (Player p in ball._arena.Players)
-                p._client.sendReliable(state);
+            //Lets update
+            ball._arena.UpdateBall(ball);
+
+            //Send it
+            Helpers.Object_Ball(ball._arena.Players, ball);
         }
 
         /// <summary>
@@ -193,73 +187,35 @@ namespace InfServer.Game
         /// </summary>
         static public void Remove_Ball(Ball ball)
         {
-            ball._state.inProgress = 0;
-            SC_BallState state = new SC_BallState();
-            state.ballID = ball._id;
+            //Remove it from our arena
+            ball._arena.LostBall(ball);
 
-            state.positionX = ball._state.positionX;
-            state.positionY = ball._state.positionY;
-            state.positionZ = ball._state.positionZ;
-            state.velocityX = ball._state.velocityX;
-            state.velocityY = ball._state.velocityY;
-            state.velocityZ = ball._state.velocityZ;
-            state.unk1 = -1;
-            state.TimeStamp = Environment.TickCount;
-
-            foreach (Player p in ball._arena.Players)
-                p._client.sendReliable(state);
+            //Send it
+            Helpers.Object_BallReset(ball._arena.Players, ball);
         }
 
         /// <summary>
-        /// Sends a ball state packet to all players in the arena
+        /// Sends a ball update to all players in the arena
         /// </summary>
-        public void Route_Ball(IEnumerable<Player> targets)
+        static public void Route_Ball(Ball ball)
         {
-            _state.inProgress = 0;
-            SC_BallState state = new SC_BallState();
-            state.positionX = _state.positionX;
-            state.positionY = _state.positionY;
-            state.positionZ = _state.positionZ;
-            state.velocityX = _state.velocityX;
-            state.velocityY = _state.velocityY;
-            state.velocityZ = _state.velocityZ;
-            state.unk1 = _state.unk1;
-            state.ballStatus = _state.ballStatus;
-            state.unk3 = _state.unk3;
-            state.unk4 = _state.unk4;
-            state.unk5 = _state.unk5;
-            state.unk6 = _state.unk6;
-            state.unk7 = _state.unk7;
-            state.ballID = _id;
+            //Update any changes
+            ball._arena.UpdateBall(ball);
 
-            if (_state.carrier != null)
-                state.playerID = (short)_state.carrier._id;
-            else
-                state.playerID = 0;
-            state.TimeStamp = Environment.TickCount;
-             
-            foreach (Player player in targets)
-                //Send it off!
-                player._client.sendReliable(state);
+            //Reroute
+            Helpers.Object_Ball(ball._arena.Players, ball);
         }
 
-        ///////////////////////////////////////////////////
-        // Member Functions
-        ///////////////////////////////////////////////////
         /// <summary>
-        /// Generic constructor
+        /// Sends a ball update to all players in the arena
         /// </summary>
-        public Ball(short ballID, Arena arena, Player player)
-        {	//Populate variables
-            _id = (ushort)ballID;
-            _arena = arena;
-            _owner = player;
-        }
-        public Ball(short ballID, Arena arena)
-        {	//Populate variables
-            _id = (ushort)ballID;
-            _arena = arena;
-            _owner = null;
+        static public void Route_Ball(IEnumerable<Player> targets, Ball ball)
+        {
+            //Update any changes
+            ball._arena.UpdateBall(ball);
+
+            //Reroute
+            Helpers.Object_Ball(targets, ball);
         }
     }
 }

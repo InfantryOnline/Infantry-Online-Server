@@ -35,8 +35,6 @@ namespace InfServer.Game
         public List<string> _bAllowed;                  //When arena lock is enabled, these players are allowed
         public bool _aLocked;                           //Is this private arena locked?
 
-        public List<Ball> _balls;
-
 		public string _name;							//The name of this arena
 
 		public Random _rand;							//Our random seed
@@ -82,6 +80,7 @@ namespace InfServer.Game
 		//Settings
 		static public int maxVehicles;					//The maximum amount of vehicles we can have active
 		static public int maxItems;						//The maximum amount of items we can have laying about
+        static public int maxBalls;                     //The maxium amount of playing balls we can have
 		
 		static public int gameCheckInterval;			//The frequency at which we check basic game state
 
@@ -437,6 +436,8 @@ namespace InfServer.Game
 			_items = new SortedDictionary<ushort, ItemDrop>();
 			_lastItemKey = 0;
 
+            _balls = new ObjTracker<Ball>();
+
 			_bots = new ObjTracker<InfServer.Bots.Bot>();
 			_condemnedBots = new List<Bots.Bot>();
 
@@ -444,8 +445,6 @@ namespace InfServer.Game
 
 			_events = new BlockingCollection<Action<Arena>>();
 
-            _balls = new List<Ball>();
-           
             _owner = new List<string>();
             _blockedList = new Dictionary<string, DateTime>();
             _bAllowed = new List<string>();
@@ -725,7 +724,7 @@ namespace InfServer.Game
                         _lastAssetCheck = now;
 
                         SC_SecurityCheck cs = new SC_SecurityCheck();
-                        cs.key = 9815; //Key we are using
+                        cs.key = 1015; //Key we are using
                         cs.unknown = 0; // Unknown, send as 0   
                         p._client.send(cs); //Send it    
                     }

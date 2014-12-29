@@ -21,16 +21,17 @@ namespace InfServer.Game
 	public partial class Arena : IChatTarget
 	{	// Member variables
 		///////////////////////////////////////////////////
-		protected Dictionary<string, Team> _teams;				//The list of teams, indexed by name
-		protected SortedDictionary<int, Team> _freqTeams;		//The list of teams, indexed by frequency
+		protected Dictionary<string, Team> _teams;			//The list of teams, indexed by name
+		protected SortedDictionary<int, Team> _freqTeams;	//The list of teams, indexed by frequency
 
-		protected ObjTracker<Vehicle> _vehicles;				//The vehicles belonging to the arena, indexed by id
-		private List<Vehicle> _condemnedVehicles;				//Vehicles to be deleted
-		private ushort _lastVehicleKey;							//The last vehicle key which was allocated
+		protected ObjTracker<Vehicle> _vehicles;			//The vehicles belonging to the arena, indexed by id
+		private List<Vehicle> _condemnedVehicles;			//Vehicles to be deleted
+		private ushort _lastVehicleKey;						//The last vehicle key which was allocated
 
 		public SortedDictionary<ushort, ItemDrop> _items;	//The items belonging to the arena, indexed by id
 		public ushort _lastItemKey;							//The last item key which was allocated
 
+        protected ObjTracker<Ball> _balls;                  //The soccer balls belonging to the arena, indexed by id
 
 		///////////////////////////////////////////////////
 		// Accessors
@@ -57,17 +58,6 @@ namespace InfServer.Game
             }
         }
 
-        /// <summary>
-        /// Returns a list of vehicles present in the arena
-        /// </summary>
-        public IEnumerable<Vehicle> Vehicles
-        {
-            get
-            {
-                return _vehicles;
-            }
-        }
-
 		/// <summary>
 		/// Returns a list of teams with active players
 		/// </summary>
@@ -79,6 +69,9 @@ namespace InfServer.Game
 			}
 		}
 
+        /// <summary>
+        /// Returns a list of desired public teams
+        /// </summary>
         public IEnumerable<Team> DesiredTeams
         {
             get
@@ -87,10 +80,32 @@ namespace InfServer.Game
             }
         }
 
+        /// <summary>
+        /// Returns a list of vehicles present in the arena
+        /// </summary>
+        public IEnumerable<Vehicle> Vehicles
+        {
+            get
+            {
+                return _vehicles;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of balls present in the arena
+        /// </summary>
+        public IEnumerable<Ball> Balls
+        {
+            get
+            {
+                return _balls;
+            }
+        }
+
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////
-		#region State
+		#region Init State
 		/// <summary>
 		/// Initializes arena details
 		/// </summary>
@@ -138,8 +153,10 @@ namespace InfServer.Game
 				_freqTeams.Add(id++, newTeam);
 			}
 		}
+        #endregion
 
-		/// <summary>
+        #region State
+        /// <summary>
 		/// Called when a new player is entering our arena
 		/// </summary>
 		public void newPlayer(Player player)
@@ -209,7 +226,7 @@ namespace InfServer.Game
    
             //Send a security check for their client asset checksum
             SC_SecurityCheck cs = new SC_SecurityCheck();
-            cs.key = 9815; //Key we are using
+            cs.key = 1015; //Key we are using
             cs.unknown = 0; // Unknown, send as 0   
             player._client.send(cs); //Send it    
 
@@ -810,6 +827,58 @@ namespace InfServer.Game
             return id;
         }
 
+        /// <summary>
+        /// Creates a new ball and adds it to our tracking list
+        /// </summary>
+        public Ball newBall(short ballID)
+        {
+            //Maxed out?
+            if (_balls.Count == Arena.maxBalls)
+                return null;
+
+            //Do we exist?
+            if (_balls.getObjByID((ushort)ballID) != null)
+                return null;
+
+            //Create our ball object
+            Ball ball = new Ball(ballID, this);
+            if (ball != null)
+            {
+                _balls.Add(ball);
+                return ball;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Handles the loss of a ball
+        /// </summary>
+        public void LostBall(Ball ball)
+        {
+            if (ball == null)
+                return;
+
+            //Let it go
+            _balls.Remove(ball);
+        }
+
+        /// <summary>
+        /// Updates spatial data for the ball
+        /// </summary>
+        public void UpdateBall(Ball ball)
+        {
+            if (ball == null)
+                return;
+
+            //Do we exist?
+            Ball b = _balls.getObjByID(ball._id);
+            if (b == null)
+                return;
+
+            //Lets update
+            _balls.updateObjState(b, b._state);
+        }
 		#endregion
 	}
 }

@@ -62,7 +62,6 @@ namespace InfServer.Protocol
             AssetChecksum = _contentReader.ReadUInt32(); //??
             Unk2 = _contentReader.ReadUInt32(); //?? Doesn't change on asset change
             Unk3 = _contentReader.ReadUInt32(); //Changes on asset change [memory]
-
         }
 
         public override void Serialize()

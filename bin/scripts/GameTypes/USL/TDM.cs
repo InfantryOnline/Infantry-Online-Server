@@ -77,7 +77,8 @@ namespace InfServer.Script.GameType_USL
         public enum Events
         {
             RedBlue,
-            GreenYellow
+            GreenYellow,
+            WhiteBlack
         }
 
         public int EventType;
@@ -119,12 +120,12 @@ namespace InfServer.Script.GameType_USL
             int playing = _arena.PlayerCount;
 
             //If game is running and we dont have enough players
-            if (_arena._bGameRunning && playing < _minPlayers)
+            if (_arena._bGameRunning && (playing < _minPlayers || (_arena.ActiveTeams.Count() == 1 && playing == _minPlayers)))
                 //Stop the game
                 _arena.gameEnd();
 
             //If were under min players, show the not enough players
-            if (playing < _minPlayers)
+            if (playing < _minPlayers || (_arena.ActiveTeams.Count() == 1 && playing == _minPlayers))
             {
                 _tickGameStarting = 0;
                 _arena.setTicker(1, 3, 0, "Not Enough Players");
@@ -714,6 +715,33 @@ namespace InfServer.Script.GameType_USL
                         player._lastMovement = Environment.TickCount;
                         //Returning false so server wont repick us
                         return false;
+
+                    case Events.WhiteBlack:
+                        //Lets get team stuff
+                        Team white = _arena.getTeamByName("White");
+                        Team black = _arena.getTeamByName("Black");
+
+                        //First do sanity checks
+                        if (white == null || black == null)
+                            break;
+
+                        //Are they the first on the teams?
+                        if (white.ActivePlayerCount == 0 || black.ActivePlayerCount == 0 || white.ActivePlayerCount == black.ActivePlayerCount)
+                        {
+                            //Great, use it
+                            if (white.ActivePlayerCount == black.ActivePlayerCount)
+                                player.unspec(white);
+                            else
+                                player.unspec(white.ActivePlayerCount == 0 ? white : black);
+                            player._lastMovement = Environment.TickCount;
+                            //We are returning false so server wont repick us
+                            return false;
+                        }
+                        //Nope, lets do some math
+                        player.unspec(white.ActivePlayerCount > black.ActivePlayerCount ? black : white);
+                        player._lastMovement = Environment.TickCount;
+                        //Returning false so server wont repick us
+                        return false;
                 }
             }
             return true;
@@ -1115,13 +1143,15 @@ namespace InfServer.Script.GameType_USL
                     if (Event)
                         player.sendMessage(0, String.Format("Current active event - {0}", Enum.GetName(typeof(Events), EventType)));
                     string options = String.Join(", ", names);
-                    player.sendMessage(-1, String.Format("Syntax: *event <event name> - Options are {0} (use *event off to stop the event)", options));
+                    player.sendMessage(-1, String.Format("Syntax: *event <event name> - Options are {0}." , options));
+                    player.sendMessage(0, "Use *event off to stop events and return to normal gameplay.");
                     return false;
                 }
 
                 if (payload.Equals("off"))
                 {
                     Event = false;
+                    player.sendMessage(0, "Events are now off.");
                     return true;
                 }
 

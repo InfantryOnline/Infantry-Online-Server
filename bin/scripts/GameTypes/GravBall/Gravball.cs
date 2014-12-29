@@ -24,35 +24,38 @@ namespace InfServer.Script.GameType_Gravball
         ///////////////////////////////////////////////////
         private Arena _arena;					//Pointer to our arena class
         private CfgInfo _config;				//The zone config
+        private CfgInfo.StartGame _startCfg;    //The zone's gameStart config
+        private CfgInfo.SoccerMvp SoccerMvp;    //The zones mvp calculations
 
-        private Team _victoryTeam;				//The team currently winning!
-        private Random _rand;
-        Team team1;
-        Team team2;
-        int gameTimerStart;                     // Tick when the game began
-        int team1Goals;
-        int team2Goals;
-        int bounces;
-        double carryTimeStart, carryTime;
-
-        Player pass;                            //Who passed it
-        Player assist;
-        Player assist2;
-        bool _overtime;                         //True if in overtime
-        Player _futureGoal;
-
-        List<Player> queue;                     //Our in queued players waiting to play
+        //Updaters
+        private int gameTimerStart;             //Tick when the game began
         private int _lastGameCheck;				//The tick at which we last checked for game viability
         private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
         private int _tickGameStart;				//The tick at which the game started (0 == stopped)
-        private int _tickGameNotEnough;         //Only used for active balls without not enough players
         private int _lastBallCheck;             //Updates our ball's in game motion
         private int _tickGameLastTickerUpdate;  //Our Queue ticker update
-        private int _lostBallInterval = 5;      //How long a ball is glitched for, default is 5 seconds
-        private int _lostBallTickerUpdate;
-        //Settings
-        private int _minPlayers;				//The minimum amount of players needed to start a game
-        private int _minPlayersToKeepScore;     //Min players need to record stats
+
+        //Game Settings
+        private int _minPlayers;                //The minimum amount of players needed to start the game
+        private int _minPlayersToKeepScore;     //Min players needed to record stats
+        private int _stuckBallInterval = 5;     //How long till we warp our ball from being stuck
+        private int _sendBallUpdate;            //When its time to send our ball update packet
+
+        //Recordings
+        private Team _victoryTeam;				//The team currently winning!
+        private List<Player> queue;             //Our in queued players waiting to play
+        private Team team1;
+        private Team team2;
+        private int team1Goals;
+        private int team2Goals;
+        private double carryTimeStart, carryTime;
+        private Player pass;                    //Who passed it
+        private Player assist;
+        private Player assist2;
+        private Player _futureGoal;
+        private bool _overtime;                 //True if in overtime
+        private int overtimeType;               //Which overtime we are in?
+
 
         //http://stackoverflow.com/questions/14672322/creating-a-point-class-c-sharp
         public class Point
@@ -99,20 +102,19 @@ namespace InfServer.Script.GameType_Gravball
         {	//Populate our variables
             _arena = invoker as Arena;
             _config = _arena._server._zoneConfig;
-            _rand = new Random();
+            SoccerMvp = _config.soccerMvp;
+            _arena.playtimeTickerIdx = 0; //Sets the global index for our timer
 
             team1 = _arena.getTeamByName(_config.teams[0].name);
             team2 = _arena.getTeamByName(_config.teams[1].name);
             team1Goals = 0;
             team2Goals = 0;
-            _minPlayers = 2;
+            overtimeType = 0;
+            _minPlayers = _config.soccer.minimumPlayers;
             _minPlayersToKeepScore = _config.arena.minimumKeepScorePublic;
-            bounces = 0;
-            if (_config.soccer.deadBallTimer > _lostBallInterval)
-                _lostBallInterval = _config.soccer.deadBallTimer;
+            _sendBallUpdate = _config.soccer.sendTime * 10;
 
             queue = new List<Player>();
-
             return true;
         }
 
@@ -130,11 +132,18 @@ namespace InfServer.Script.GameType_Gravball
             //Do we have enough players ingame?
             int playing = _arena.PlayerCount;
 
-            //If game is running and we don't have enough players
-            if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
-            {	//Stop the game!
-                _arena._bGameRunning = false;
-                _arena.setTicker(1, 0, 0, "Not Enough Players");
+            //Is the game running and do we meet min players
+            if (_arena._bGameRunning && playing < _minPlayers)
+                //Stop the game
+                _arena.gameEnd();
+
+            //Are we under min players?
+            if (playing < _minPlayers)
+            {
+                _tickGameStarting = 0;
+                //Show the message
+                if (!_arena.recycling)
+                    _arena.setTicker(1, 0, 0, "Not Enough Players");
                 _arena.gameReset();
 
                 if (queue.Count > 0)
@@ -144,49 +153,38 @@ namespace InfServer.Script.GameType_Gravball
                 }
             }
 
-           //Do we have enough players to start a game?
-            else if (!_arena._bGameRunning && _tickGameStart == 0 && _tickGameStarting == 0 && playing >= _minPlayers)
-            {	//Great! Get going
+            //Do we have enough to start a game yet?
+            if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
+            {
+                //Great, get going!
                 _tickGameStarting = now;
-                _arena.setTicker(1, 0, _config.soccer.startDelay * 100, "Next game: ",
-                    delegate()
-                    {	//Trigger the game start
-                        gameTimerStart = now;
+                if (!_arena.recycling)
+                    _arena.setTicker(1, 0, _config.soccer.startDelay * 100, "Next Game: ", delegate()
+                    {
+                        //Trigger it!
                         _arena.gameStart();
-                        _arena.setTicker(1, 0, _config.soccer.timer * 100, "Time remaining: ", delegate()
-                        {
-                            //Trigger the end of game check                            
-                            if (team1Goals == team2Goals)
-                            {
-                                _overtime = true;
-                                _arena.setTicker(1, 0, 0, "OVERTIME!!!!!!!!"); // overtime top right                                
-                                _arena.sendArenaMessage("Game is tied and going into overtime, next goal wins!");
-                            }
-                            else
-                                _arena.gameEnd();
-                        });
-                    }
-                );
+                    });
             }
 
             //Updates our balls(get it!)
-            if ((_tickGameStart > 0 && now - _tickGameStart > 11000 && now - _lastBallCheck > 100)
-                || (!_arena._bGameRunning && now - _tickGameNotEnough > 11000 && now - _lastBallCheck > 100))
+            if ((_tickGameStart > 0 || !_arena._bGameRunning) && now - _lastBallCheck > _sendBallUpdate)
             {
-                if (_arena._balls.Count() > 0)
-                    foreach (Ball ball in _arena._balls.ToList())
+                if (_arena.Balls.Count() > 0)
+                    foreach (Ball ball in _arena.Balls.ToList())
                     {
                         //This updates the ball visually
-                        ball.Route_Ball(_arena.Players);
+                        Ball.Route_Ball(_arena.Players, ball);
                         _lastBallCheck = now;
-                        _tickGameNotEnough = now;
 
-                        //Check for a dead ball(non reachable)
+                        //Check for a stuck ball(non reachable)
+                        stuckBall(ball);
+
+                        //Check for a dead ball(untouched)
                         deadBallTimer(ball);
                     }
             }
 
-            //Updates our queue
+            //Updates our scoreboard
             if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
             {
                 if (now - _tickGameLastTickerUpdate > 1000)
@@ -199,12 +197,356 @@ namespace InfServer.Script.GameType_Gravball
             return true;
         }
 
-        #region Events
+        #region Game Events
+        /// <summary>
+        /// Called when the game begins
+        /// </summary>
+        [Scripts.Event("Game.Start")]
+        public bool gameStart()
+        {	//We've started!
+            _tickGameStart = Environment.TickCount;
+            _tickGameStarting = 0;
+
+            team1Goals = 0;
+            team2Goals = 0;
+            _futureGoal = null;
+            pass = null;
+            assist = null;
+            assist2 = null;
+
+            //Clear all balls in the arena
+            foreach (Ball b in _arena.Balls.ToList())
+                Ball.Remove_Ball(b);
+
+            team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
+            team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
+
+            //Reset variables
+            foreach (Player p in _arena.Players)
+                p._gotBallID = 999; //No ball in possession
+
+            //Spawn our active balls based on our cfg
+            short ballCount = (short)_config.soccer.ballCount;
+            for (short ballID = 0; ballID < ballCount; ballID++)
+            {
+                Ball newball = _arena.newBall(ballID);
+
+                //Make everyone aware
+                Ball.Spawn_Ball(null, newball);
+            }
+
+            //Let everyone know
+            _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
+            _arena.setTicker(1, 0, _config.soccer.timer * 100, "Time Remaining: ", delegate()
+            {
+                //Trigger the end of game
+                if (team1Goals == team2Goals)
+                {
+                    if (_config.soccer.timerOvertime > 0)
+                        OverTime();
+                    else
+                    {
+                        _overtime = true;
+                        _arena.setTicker(1, 0, 0, "OVERTIME!!!!!!!");
+                        _arena.sendArenaMessage("Game is tied and going into overtime, next goal wins!");
+                    }
+                }
+                else
+                    _arena.gameEnd();
+            });
+
+            return true;
+        }
+
+        /// <summary>
+        /// Called when the game ends
+        /// </summary>
+        [Scripts.Event("Game.End")]
+        public bool gameEnd()
+        {	//Announce it!
+            _arena.sendArenaMessage("Game Over!", _config.soccer.victoryBong);
+
+            bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
+            if (team1Goals > team2Goals)
+            {
+                _victoryTeam = team1;
+                if (record)
+                {
+                    foreach (Player p in team1.ActivePlayers)
+                        //Give them a win score
+                        p.ZoneStat1 += 1;
+
+                    foreach (Player p in team2.ActivePlayers)
+                        //Give them a lose score
+                        p.ZoneStat2 += 1;
+                }
+            }
+            else if (team2Goals > team1Goals)
+            {
+                _victoryTeam = team2;
+                if (record)
+                {
+                    foreach (Player p in team2.ActivePlayers)
+                        //Give them a win score
+                        p.ZoneStat1 += 1;
+
+                    foreach (Player p in team1.ActivePlayers)
+                        //Give them a lose score
+                        p.ZoneStat2 += 1;
+                }
+            }
+
+            if (_victoryTeam == null)
+                //No one wins
+                _arena.sendArenaMessage("&Game ended in a draw. No one wins.");
+            else
+                _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
+
+            //Calculate Awards
+            int Multiplier = _arena.PlayerCount * 2;
+            foreach (Player p in _arena.Players)
+            {
+                int cash = 0;
+                int exp = 0;
+                int points = 0;
+                if (!p.IsSpectator)
+                {
+                    cash = p._team == _victoryTeam ? Multiplier * (_config.soccer.victoryCashReward / 1000) : Multiplier * (_config.soccer.loserCashReward / 1000);
+                    exp = p._team == _victoryTeam ? Multiplier * (_config.soccer.victoryExperienceReward / 1000) : Multiplier * (_config.soccer.loserExperienceReward / 1000);
+                    points = p._team == _victoryTeam ? Multiplier * (_config.soccer.victoryPointReward / 1000) : Multiplier * (_config.soccer.loserPointReward / 1000);
+
+                    Data.PlayerStats temp = p.StatsCurrentGame;
+                    int bonus = points + (100 * temp.zonestat3) + (10 * temp.zonestat6) + (5 * temp.zonestat4) + (10 * temp.zonestat11) + (20 * temp.zonestat12);
+                    points = bonus;
+                }
+
+                p.Cash += cash;
+                p.ExperienceTotal += exp;
+                p.KillPoints += points;
+                p.sendMessage(0, String.Format("!Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, exp, points));
+
+                p.syncState();
+            }
+
+            //Reset variables
+            _arena.gameReset();
+            return true;
+        }
+
+        /// <summary>
+        /// Called to reset the game state
+        /// </summary>
+        [Scripts.Event("Game.Reset")]
+        public bool gameReset()
+        {	//Game reset, perhaps start a new one
+            _tickGameStart = 0;
+            _tickGameStarting = 0;
+            team1Goals = 0;
+            team2Goals = 0;
+
+            _overtime = false;
+            overtimeType = 0;
+            _victoryTeam = null;
+            _futureGoal = null;
+            pass = null;
+            assist = null;
+            assist2 = null;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Starts overtime or continues it
+        /// </summary>
+        private void OverTime()
+        {
+            switch (overtimeType++)
+            {
+                case 0:
+                    _arena.sendArenaMessage("Game is tied and going into overtime!!!");
+                    break;
+                case 1:
+                    _arena.sendArenaMessage("Game is tied and going into double overtime!!!");
+                    break;
+                case 2:
+                    _arena.sendArenaMessage("Game is tied and going into triple overtime!!!");
+                    break;
+                case 3:
+                    _arena.sendArenaMessage("Game is tied and going into quadruple overtime, next goal wins!");
+                    break;
+            }
+            _overtime = true;
+
+            _arena.setTicker(1, 0, _config.soccer.timerOvertime * 100, "OVERTIME: ", delegate()
+            {
+                //Trigger the end of game clock
+                if (team1Goals == team2Goals)
+                {
+                    if (overtimeType >= 3)
+                        _arena.setTicker(1, 0, 0, "Overtime Game Point!");
+                    else
+                        OverTime();
+                }
+                else
+                    _arena.gameEnd();
+            });
+        }
+
+        /// <summary>
+        /// Called when game ends or player uses ?breakdown
+        /// </summary>
+        [Scripts.Event("Player.Breakdown")]
+        public bool individualBreakdown(Player from, bool bCurrent)
+        {   //Allows additional "customed" breakdown info
+            if (from == null)
+                return false;
+
+            from.sendMessage(0, "#Team Statistics Breakdown");
+            IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
+            IEnumerable<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._currentGameKills);
+            int idx = 3;	//Only display top three teams
+
+            foreach (Team t in rankedTeams)
+            {
+                if (t == null)
+                    continue;
+
+                if (idx-- == 0)
+                    break;
+
+                string format = "!3rd (K={0} D={1}): {2}";
+                switch (idx)
+                {
+                    case 2:
+                        format = "!1st (K={0} D={1}): {2}";
+                        break;
+                    case 1:
+                        format = "!2nd (K={0} D={1}): {2}";
+                        break;
+                }
+
+                from.sendMessage(0, String.Format(format,
+                    t._currentGameKills, t._currentGameDeaths,
+                    t._name));
+            }
+
+            from.sendMessage(0, "#Individual Statistics Breakdown");
+            IEnumerable<Player> rankedPlayers = _arena.Players.OrderByDescending(p => p.StatsCurrentGame.kills);
+            idx = 3;	//Only display top three players
+            foreach (Player p in rankedPlayers)
+            {
+                if (p == null)
+                    continue;
+                if (idx-- == 0)
+                    break;
+
+                //Set up the format
+                string format = "!3rd - (K={0} D={1}): {2}";
+                switch (idx)
+                {
+                    case 2:
+                        format = "!1st - (K={0} D={1}): {2}";
+                        break;
+                    case 1:
+                        format = "!2nd - (K={0} D={1}): {2}";
+                        break;
+                }
+                p.sendMessage(0, String.Format(format, p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths, p._alias));
+            }
+
+            //Lets get the top most out of all stats
+            string mvp = "", goals = "", assists = "", catches = "", steals = "", passes = "", fumbles = "", carrytime = "", saves = "", pinches = "";
+            int mvpscore = 0, goal = 0, ass = 0, catched = 0, steal = 0, pass = 0, fumble = 0, carry = 0, save = 0, pinch = 0;
+
+            Data.PlayerStats temp;
+            foreach (Player p in _arena.Players)
+            {
+                temp = p.StatsCurrentGame;
+                if (temp.zonestat3 > goal)
+                {
+                    goal = temp.zonestat3;
+                    goals = p._alias;
+                }
+
+                if (temp.zonestat4 > ass)
+                {
+                    ass = temp.zonestat4;
+                    assists = p._alias;
+                }
+
+                if (temp.zonestat5 > catched)
+                {
+                    catched = temp.zonestat5;
+                    catches = p._alias;
+                }
+
+                if (temp.zonestat6 > steal)
+                {
+                    steal = temp.zonestat6;
+                    steals = p._alias;
+                }
+
+                if (temp.zonestat7 > pass)
+                {
+                    pass = temp.zonestat7;
+                    passes = p._alias;
+                }
+
+                if (temp.zonestat8 > fumble)
+                {
+                    fumble = temp.zonestat8;
+                    fumbles = p._alias;
+                }
+
+                if (temp.zonestat9 > carry)
+                {
+                    carry = temp.zonestat9;
+                    carrytime = p._alias;
+                }
+
+                if (temp.zonestat11 > save)
+                {
+                    save = temp.zonestat11;
+                    saves = p._alias;
+                }
+
+                if (temp.zonestat12 > pinch)
+                {
+                    pinch = temp.zonestat12;
+                    pinches = p._alias;
+                }
+
+                int score = (temp.zonestat3 * SoccerMvp.goals) + (temp.zonestat4 * SoccerMvp.assists) + (temp.kills * SoccerMvp.kills) + (temp.zonestat6 * SoccerMvp.steals)
+                    + (temp.zonestat7 * SoccerMvp.passes) + (temp.deaths * SoccerMvp.deaths) + (temp.zonestat8 * SoccerMvp.fumbles) + (temp.zonestat5 * SoccerMvp.catches)
+                    + ((temp.zonestat9 / 1000) * SoccerMvp.carryTimeFactor) + (temp.zonestat11 * SoccerMvp.saves) + (temp.zonestat12 * SoccerMvp.pinches);
+                if (score > mvpscore)
+                {
+                    mvpscore = score;
+                    mvp = p._alias;
+                }
+            }
+
+            //Now display each stat
+            from.sendMessage(0, String.Format("Highest Mvp Score:    {0}({1})", String.IsNullOrWhiteSpace(mvp) ? from._alias : mvp, mvpscore));
+            from.sendMessage(0, String.Format("Most Goals:              {0}({1})", String.IsNullOrWhiteSpace(goals) ? from._alias : goals, goal));
+            from.sendMessage(0, String.Format("Most Assists:           {0}({1})", String.IsNullOrWhiteSpace(assists) ? from._alias : assists, ass));
+            from.sendMessage(0, String.Format("Most Saves:             {0}({1})", String.IsNullOrWhiteSpace(saves) ? from._alias : saves, save));
+            from.sendMessage(0, String.Format("Most Passes:            {0}({1})", String.IsNullOrWhiteSpace(passes) ? from._alias : passes, pass));
+            from.sendMessage(0, String.Format("Most Catches:          {0}({1})", String.IsNullOrWhiteSpace(catches) ? from._alias : catches, catched));
+            from.sendMessage(0, String.Format("Most Steals:             {0}({1})", String.IsNullOrWhiteSpace(steals) ? from._alias : steals, steal));
+            from.sendMessage(0, String.Format("Most Fumbles:           {0}({1})", String.IsNullOrWhiteSpace(fumbles) ? from._alias : fumbles, fumble));
+            from.sendMessage(0, String.Format("Most Carry Time:      {0}({1})", String.IsNullOrWhiteSpace(carrytime) ? from._alias : carrytime, carry));
+
+            return true;
+        }
+        #endregion
+
+        #region Ball Events
         /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
         [Scripts.Event("Player.BallDrop")]
-        public bool handleBallDrop(Player player, Ball ball)
+        public bool handleBallDrop(Player player, Ball ball, CS_BallDrop drop)
         {
             //Keep track of assists 
             if (player != null && player != assist)
@@ -218,24 +560,21 @@ namespace InfServer.Script.GameType_Gravball
             pass._team = player._team;
 
             //Keep track of carry time
+            carryTime = Environment.TickCount - carryTimeStart;
+            carryTimeStart = 0;
             if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore)
-            {
-                carryTime = Environment.TickCount - carryTimeStart;
-                carryTimeStart = 0;
-                if (_config.zoneStat.name8.Equals("Carry Time"))
-                    player.ZoneStat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
-            }
+                player.ZoneStat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
 
             //Now lets predict if this ball will hit the goal
             double xf = 0;
             double yf = 0;
             double cxi = 0;
             double cyi = 0;
-            short xi = ball._state.positionX;
-            short yi = ball._state.positionY;
+            short xi = drop.positionX;
+            short yi = drop.positionY;
 
-            short dxi = ball._state.velocityX;
-            short dyi = ball._state.velocityY;
+            short dxi = drop.velocityX;
+            short dyi = drop.velocityY;
 
             for (double i = 0; i < 4; i += 0.0025)
             {//Find our position at i time after throw
@@ -254,13 +593,11 @@ namespace InfServer.Script.GameType_Gravball
                             _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
                         {//Horizontal wall
                             dyi *= -1;
-                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked)
                         {//Vertical
                             dxi *= -1;
-                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
@@ -268,7 +605,6 @@ namespace InfServer.Script.GameType_Gravball
                             short tempx = dxi;
                             dxi = dyi;
                             dyi = tempx;
-                            bounces += 1;
                         }
                         else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked &&
                                 _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked)
@@ -276,7 +612,6 @@ namespace InfServer.Script.GameType_Gravball
                             short tempx = dxi;
                             dxi = dyi *= -1;
                             dyi = tempx *= -1;
-                            bounces += 1;
                         }
                         else
                         {//OhShit case                            
@@ -307,47 +642,187 @@ namespace InfServer.Script.GameType_Gravball
         /// </summary>
         [Scripts.Event("Player.BallPickup")]
         public bool handleBallPickup(Player player, Ball ball)
-        {   //Handle saves and pinches and creases and irons and folds
+        {
+            bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
+
+            //Handle saves and pinches and creases and irons and folds
             if (_futureGoal != null)
-            {   //It is a save or pinch
+            {
+                //It is a save or pinch
                 if (player._team == _futureGoal._team && player != _futureGoal)
-                {   //It's a pinch
+                {   //Player is on the same team, It's a pinch
                     _arena.sendArenaMessage("Goal pinched by " + player._alias);
-                    if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
-                        && _config.zoneStat.name9.Equals("Pinches")) //Game Progress
+                    if (record)
                         //Save their stat
-                        player.ZoneStat10 += 1; //Pinches
+                        player.ZoneStat12 += 1; //Pinches
                 }
                 else if (player._team != _futureGoal._team && player != _futureGoal)
-                {   //It's a save
+                {   //Player is on the opposite team, It's a save
                     _arena.sendArenaMessage("Goal saved by " + player._alias);
-                    if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
-                        && _config.zoneStat.name10.Equals("Saves"))
+                    if (record)
                         //Save their stat
                         player.ZoneStat11 += 1; //Saves
                 }
             }
 
             //Keep track of passes/fumbles/catches/steals
-            if (pass != player && _tickGameStart > 0
-                && _arena.PlayerCount >= _minPlayersToKeepScore)
+            if (pass != null && pass != player)
             {
                 if (pass._team == player._team)
                 {
                     //Completed pass, give a point to both
-                    player.ZoneStat5 += 1; //Teammate catched it
-                    pass.ZoneStat7 += 1; //Pass
+                    if (record)
+                    {
+                        player.ZoneStat5 += 1; //Teammate catched it
+                        pass.ZoneStat7 += 1; //Pass
+                    }
                 }
                 else
                 {
                     //Ball was stolen
-                    player.ZoneStat6 += 1; //Steal
-                    pass.ZoneStat8 += 1; //Fumbled the pass
+                    if (record)
+                    {
+                        player.ZoneStat6 += 1; //Steal
+                        pass.ZoneStat8 += 1; //Fumbled the pass
+                    }
                 }
+                //Reset
+                pass = null;
             }
 
             carryTimeStart = Environment.TickCount;
-            bounces = 0;
+            return true;
+        }
+
+        /// <summary>
+        /// Called when a goal is scored 
+        /// </summary>
+        [Scripts.Event("Player.Goal")]
+        public bool handlePlayerGoal(Player player, Ball ball, CS_GoalScored pkt)
+        {	//We've started!
+            //Check for saves/pinches/irons/folds/creases
+            if (_futureGoal != null && player._team != _futureGoal._team)
+            {
+                _futureGoal = null;
+                return false;
+            }
+
+            //Reset
+            _futureGoal = null;
+
+            bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
+            CfgInfo.Terrain terrain = _arena.getTerrain(pkt.positionX * 16, pkt.positionY * 16);
+            if (player._team == team1)
+                team1Goals += terrain.goalPoints;
+            else
+                team2Goals += terrain.goalPoints;
+
+            //Let everyone know
+            if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
+            {
+                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), _config.soccer.goalBong);
+                if (record)
+                    assist2.ZoneStat4 += 1; //Assists
+            }
+            else
+                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), _config.soccer.goalBong);
+            //Announce Score
+            _arena.sendArenaMessage(String.Format("SCORE:  {0}={1}  {2}={3}", team1._name, team1Goals, team2._name, team2Goals));
+
+            if (record)
+                //For normal public players, give them a goal stat
+                player.ZoneStat3 += 1;
+
+            //See if we need to end the game
+            if (!_overtime)
+            {
+                int victoryGoal = _config.soccer.victoryGoals;
+
+                //Did we win by 5 or more? (Mercy Rule)
+                if (victoryGoal < 0)
+                {
+                    if (team1Goals > (team2Goals + (-victoryGoal)))
+                        //End it
+                        _arena.gameEnd();
+                    else if (team2Goals > (team1Goals + (-victoryGoal)))
+                        //End it
+                        _arena.gameEnd();
+                }
+                //Did we hit our goal mark?
+                else if (victoryGoal > 0)
+                {
+                    if (team1Goals >= victoryGoal)
+                        //End it
+                        _arena.gameEnd();
+                    else if (team2Goals >= victoryGoal)
+                        //End it
+                        _arena.gameEnd();
+                }
+            }
+
+            //Reset scoreboard
+            updateTickers();
+
+            //Reset variables
+            pass = null;
+            assist = null;
+            assist2 = null;
+
+            //Was this score in overtime?
+            if (_overtime)
+            {   //It was, let's end it
+                _arena.gameEnd();
+                _arena.setTicker(1, 0, 0, null, null);
+            }
+
+            return true;
+        }
+        #endregion
+
+        #region Player Events
+        /// <summary>
+        /// Called after leave game(updates the arena player counts first) 
+        /// </summary>
+        [Scripts.Event("Player.Leave")]
+        public void playerLeave(Player player)
+        {
+            //Check to see if we are in the list
+            dequeue(player);
+
+            //See if another player can join
+            specInQueue();
+
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return;
+
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to spec and leave the game
+        /// </summary>
+        [Scripts.Event("Player.LeaveGame")]
+        public bool playerLeaveGame(Player player)
+        {
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return false;
+
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
+
             return true;
         }
 
@@ -362,337 +837,18 @@ namespace InfServer.Script.GameType_Gravball
 
             //Try speccing someone in
             specInQueue();
-        }
 
-        /// <summary>
-        /// Called after leave game(updates the arena player counts first) 
-        /// </summary>
-        [Scripts.Event("Player.Leave")]
-        public void playerLeave(Player player)
-        {
-            //Check to see if we are in the list
-            dequeue(player);
-
-            //See if another player can join
-            specInQueue();
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to spec and leave the game
-        /// </summary>
-        [Scripts.Event("Player.LeaveGame")]
-        public bool playerLeaveGame(Player player)
-        {
             if (player._gotBallID != 999)
             {
-                Ball ball = _arena._balls.FirstOrDefault(b => b._id == player._gotBallID);
-
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
                 player._gotBallID = 999;
-                //Initialize its ballstate
-                ball._state = new Ball.BallState();
 
-                //Assign default state
-                ball._state.positionX = player._state.positionX;
-                ball._state.positionY = player._state.positionY;
-                ball._state.positionZ = player._state.positionZ;
-                ball._state.velocityX = 0;
-                ball._state.velocityY = 0;
-                ball._state.velocityZ = 0;
-                ball._state.ballStatus = -1;
+                if (ball == null)
+                    return;
 
-                ball.Route_Ball(player._arena.Players);
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
             }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Called when a goal is scored 
-        /// </summary>
-        [Scripts.Event("Player.Goal")]
-        public bool handlePlayerGoal(Player player, CS_GoalScored pkt)
-        {	//We've started!
-            //Check for saves/pinches/irons/folds/creases
-            if (_futureGoal != null && player._team != _futureGoal._team)
-            {
-                _futureGoal = null;
-                return false;
-            }
-
-            //Reset
-            _futureGoal = null;
-            bounces = 0;
-
-            if (player._team == team1)
-                team1Goals++;
-            else
-                team2Goals++;
-
-            //Let everyone know
-            if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
-            {
-                _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name + "  assist(" + assist2._alias + ")", _config.soccer.goalBong);
-                if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
-                    && _config.zoneStat.name3.Equals("Assists"))
-                    assist2.ZoneStat4 += 1; //Assists
-            }
-            else
-                _arena.sendArenaMessage("Goal=" + player._alias + "  Team=" + player._team._name, _config.soccer.goalBong);
-
-            _arena.sendArenaMessage("SCORE:  " + team1._name + "=" + team1Goals + "  " + team2._name + "=" + team2Goals);
-
-            //Save their stat
-            if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore
-                && _config.zoneStat.name2.Equals("Goals"))
-                player.ZoneStat3 += 1; //Goals
-
-            //See if we need to end the game
-            if (!_overtime)
-            {
-                //Did we win by 5 or more
-                //Mercy Rule
-                if (team1Goals > (team2Goals + 2))
-                    _arena.gameEnd();
-                else if (team2Goals > (team1Goals + 2))
-                    _arena.gameEnd();
-            }
-
-            foreach (Player p in _arena.Players)
-            {
-                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
-                p._arena.setTicker(4, 1, 0, update); // Puts the score top left!
-            }
-
-            if (_overtime)
-            {   //If it was overtime let's end it
-                _arena.gameEnd();
-                _arena.setTicker(1, 0, 0, null, null); // overtime top right   
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Called when the game begins
-        /// </summary>
-        [Scripts.Event("Game.Start")]
-        public bool gameStart()
-        {	//We've started!
-            _tickGameStart = Environment.TickCount;
-            _tickGameStarting = 0;
-
-            team1Goals = 0;
-            team2Goals = 0;
-            _futureGoal = null;
-            bounces = 0;
-
-            //Lets clear the list
-            _arena._balls.Clear();
-
-            //Grab a new ballID
-            int ballID = 0; // First ball, should be 0!          
-            //Lets create a new ball!
-            Ball newBall = new Ball((short)ballID, _arena);
-
-            //Initialize its ballstate
-            newBall._state = new Ball.BallState();
-
-            //Assign default state
-            newBall._state.positionX = 8757;
-            newBall._state.positionY = 4824;
-            newBall._state.positionZ = 5;
-            newBall._state.velocityX = 0;
-            newBall._state.velocityY = 0;
-            newBall._state.velocityZ = 0;
-            newBall._state.ballStatus = -1;
-            newBall.deadBall = false;
-
-            //If using lio, lets try searching for a spawn point
-            List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
-            foreach (LioInfo.WarpField warp in warpgroup)
-            {
-                if (warp.GeneralData.Name.Contains("SoccerBallStart"))
-                {
-                    newBall._state.positionX = warp.GeneralData.OffsetX;
-                    newBall._state.positionY = warp.GeneralData.OffsetY;
-                    break;
-                }
-            }
-
-            //Store it.
-            _arena._balls.Add(newBall);
-
-            foreach (Player p in _arena.Players)
-            {
-                p.setVar("Hits", 0);
-                p.setEnergy(600);
-                p._gotBallID = 999;
-                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
-                p._arena.setTicker(1, 2, 0, update); // Puts the score top left!
-            }
-
-            //Make everyone aware of the ball
-            newBall.Route_Ball(_arena.Players);
-
-            //Let everyone know
-            _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Called when the game ends
-        /// </summary>
-        [Scripts.Event("Game.End")]
-        public bool gameEnd()
-        {	//Game finished, perhaps start a new one
-            bool record = _arena.PlayerCount >= _minPlayersToKeepScore;
-            if (team1Goals > team2Goals)
-            {
-                _victoryTeam = team1;
-                if (record)
-                {
-                    foreach (Player p in team1.ActivePlayers)
-                        //Give them a win score
-                        p.ZoneStat1 += 1;
-
-                    foreach (Player p in team2.ActivePlayers)
-                        //Give them a lose score
-                        p.ZoneStat2 += 1;
-                }
-            }
-            else if (team2Goals > team1Goals)
-            {
-                _victoryTeam = team2;
-                if (record)
-                {
-                    foreach (Player p in team2.ActivePlayers)
-                        //Give them a win score
-                        p.ZoneStat1 += 1;
-
-                    foreach (Player p in team1.ActivePlayers)
-                        //Give them a lose score
-                        p.ZoneStat2 += 1;
-                }
-            }
-
-            _arena.sendArenaMessage("Game Over!", _config.soccer.victoryBong);
-            if (_victoryTeam == null)
-                //No one wins
-                _arena.sendArenaMessage("&Game ended in a draw. No one wins.");
-            else
-                _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
-
-            IEnumerable<Player> rankedPlayers;
-            rankedPlayers = _arena.PlayersIngame.OrderByDescending(
-                p => (p.getVarInt("Hits").Equals(null) ? 0 : p.getVarInt("Hits")));
-
-            int idx = 3;	//Only display top three players
-            foreach (Player p in rankedPlayers)
-            {
-                if (idx-- == 0)
-                    break;
-
-                if (p.getVarInt("Hits").Equals(null))
-                    p.setVar("Hits", 0);
-
-                //Set up the format
-                string format = "!3rd - (Hits={0}): {1}";
-
-                switch (idx)
-                {
-                    case 2:
-                        format = "!1st - (Hits={0}): {1}";
-                        break;
-                    case 1:
-                        format = "!2nd - (Hits={0}): {1}";
-                        break;
-                }
-
-                _arena.sendArenaMessage(String.Format(format, p.getVarInt("Hits"), p._alias));
-            }
-
-            foreach (Player p in rankedPlayers)
-            {
-                int hits = p.getVarInt("Hits");
-                int cash = 300 * hits;
-                int experience = 200 * hits;
-                int points = 100 * hits;
-                p.Cash += cash;
-                p.KillPoints += points;
-                p.ExperienceTotal += experience;
-                p.sendMessage(0, String.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, experience, points));
-                p.resetVars();
-                p.syncState();
-                p.clearProjectiles();
-            }
-
-            //Shuffle the players up randomly into a new list
-            /*
-            if (_config.arena.scrambleTeams == 1)
-            {
-                var random = _rand;
-                Player[] shuffledPlayers = _arena.PlayersIngame.ToArray(); //Arrays ftw
-                for (int i = shuffledPlayers.Length - 1; i >= 0; i--)
-                {
-                    int swap = random.Next(i + 1);
-                    Player tmp = shuffledPlayers[i];
-                    shuffledPlayers[i] = shuffledPlayers[swap];
-                    shuffledPlayers[swap] = tmp;
-                }
-
-                //Assign the new list of players to teams
-                int j = 1;
-                foreach (Player p in shuffledPlayers)
-                {
-                    if (j <= Math.Ceiling((double)shuffledPlayers.Length / 2)) //Team 1 always get the extra player :)
-                    {
-                        if (p._team != team1) //Only change his team if he's not already on the team d00d
-                            team1.addPlayer(p);
-                    }
-                    else
-                    {
-                        if (p._team != team2)
-                            team2.addPlayer(p);
-                    }
-                    j++;
-                }
-
-                //Notify players of the scramble
-                _arena.sendArenaMessage("Teams have been scrambled!");
-            }*/
-
-            //Reset variables
-            _arena.gameReset();
-            return true;
-        }
-
-        /// <summary>
-        /// Called when the statistical breakdown is displayed
-        /// </summary>
-        [Scripts.Event("Game.Breakdown")]
-        public bool breakdown()
-        {	//Allows additional "custom" breakdown information
-
-            //Always return true;
-            return true;
-        }
-
-        /// <summary>
-        /// Called to reset the game state
-        /// </summary>
-        [Scripts.Event("Game.Reset")]
-        public bool gameReset()
-        {	//Game reset, perhaps start a new one
-            _tickGameStart = 0;
-            _tickGameStarting = 0;
-            team1Goals = 0;
-            team2Goals = 0;
-
-            _overtime = false;
-            _victoryTeam = null;
-            _futureGoal = null;
-
-            return true;
         }
 
         /// <summary>
@@ -711,9 +867,6 @@ namespace InfServer.Script.GameType_Gravball
         [Scripts.Event("Player.JoinGame")]
         public bool playerJoinGame(Player player)
         {
-            if (player.getVarInt("Hits").Equals(null))
-                player.setVar("Hits", 0);
-
             if (_arena.PlayerCount >= _config.arena.playingMax)
             {
                 //First time queuer?
@@ -732,9 +885,71 @@ namespace InfServer.Script.GameType_Gravball
         }
 
         /// <summary>
+        /// Triggered when one player has killed another
+        /// </summary>
+        [Scripts.Event("Player.PlayerKill")]
+        public bool playerPlayerKill(Player victim, Player killer)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when a player has died, by any means
+        /// </summary>
+        /// <remarks>killer may be null if it wasn't a player kill</remarks>
+        [Scripts.Event("Player.Death")]
+        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
+        {
+            if (victim._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == victim._gotBallID);
+                victim._gotBallID = 999;
+
+                if (ball == null)
+                    return true;
+
+                //Did the victim have the ball?
+                if (ball._owner == victim)
+                {
+                    ball._owner = null;
+                    ball._lastOwner = victim;
+
+                    //Do we give it to the killer?
+                    if (_config.soccer.killerCatchBall && killer != null && killType == Helpers.KillType.Player)
+                    {
+                        //Pick up the ball
+                        ball._state.positionX = killer._state.positionX;
+                        ball._state.positionY = killer._state.positionY;
+                        ball._state.positionZ = killer._state.positionZ;
+                        ball._state.velocityX = 0;
+                        ball._state.velocityY = 0;
+                        ball._state.velocityZ = 0;
+                        ball.deadBall = false;
+
+                        ball._owner = killer;
+                        killer._gotBallID = ball._id;
+
+                        //Update spatial data
+                        _arena.UpdateBall(ball);
+
+                        //Let others know
+                        Ball.Route_Ball(_arena.Players, ball);
+                        return true;
+                    }
+                }
+                //Spawn it
+                Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
+            }
+
+            return true;
+        }
+        #endregion
+
+        #region Private Update Calls
+        /// <summary>
         /// Enqueues a player to unspec when there is an opening.
         /// </summary>
-        public void enqueue(Player player)
+        private void enqueue(Player player)
         {
             if (!queue.Contains(player))
             {
@@ -748,7 +963,7 @@ namespace InfServer.Script.GameType_Gravball
         /// <summary>
         /// Dequeues a player from the queue list
         /// </summary>
-        public void dequeue(Player player)
+        private void dequeue(Player player)
         {
             if (queue.Contains(player))
             {
@@ -762,7 +977,7 @@ namespace InfServer.Script.GameType_Gravball
         }
 
         /// <summary>
-        /// Auto spec's in a player if available
+        /// Auto specs in a player if available
         /// </summary>
         private void specInQueue()
         {
@@ -808,6 +1023,9 @@ namespace InfServer.Script.GameType_Gravball
             updateTickers();
         }
 
+        /// <summary>
+        /// Updates the scoreboard
+        /// </summary>
         private void updateTickers()
         {
             _arena.setTicker(5, 1, 0, delegate(Player P)
@@ -831,66 +1049,102 @@ namespace InfServer.Script.GameType_Gravball
             });
         }
 
-        private void deadBallTimer(Ball ball)
-        {
+        /// <summary>
+        /// Checks to see if a ball is stuck in/on a wall
+        /// </summary>
+        private void stuckBall(Ball ball)
+        {   //Exist?
             if (ball == null)
                 return;
 
             short x = ball._state.positionX;
             short y = ball._state.positionY;
 
-            //Are we stuck in/on a wall?
-            LvlInfo.Tile tile = _arena._tiles[((int)(y / 16) * _arena._levelWidth) + (int)(x / 16)];
+            LvlInfo.Tile tile = _arena.getTile(x, y);
             if (tile.PhysicsVision == 1)
             {
-                //Yes, are we still moving though? (Player has us)
+                //Yes, are we still moving with a player or spawned in?
                 if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
                     return;
 
                 int now = Environment.TickCount;
-                //Lets set the timer
-                if ((now - _lostBallTickerUpdate) > (_lostBallInterval * 1000) && !ball.deadBall)
+                if (!ball.deadBall && (now - ball._state.lastUpdate) > (_stuckBallInterval * 1000))
                 {
-                    _lostBallTickerUpdate = now;
                     ball.deadBall = true;
-                    _arena.setTicker(5, 3, _lostBallInterval * 100, "Ball Respawning: ", delegate()
+                    //Update our time
+                    int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                    ball._state.lastUpdate = updateTick;
+                    ball._state.lastUpdateServer = now;
+
+                    _arena.setTicker(5, 3, _stuckBallInterval * 100, "Ball Respawning: ", delegate()
                     {
                         //Double check to see if someone used *getball
                         if (!ball.deadBall)
                             return;
 
                         //Respawn it
-                        Ball.Spawn_Ball(ball._owner != null ? ball._owner : ball._lastOwner, ball);
+                        Ball.Spawn_Ball(null, ball);
                     });
                 }
             }
         }
 
         /// <summary>
-        /// Triggered when a player has died, by any means
+        /// Checks to see if the ball hasn't been touched in awhile
         /// </summary>
-        /// <remarks>killer may be null if it wasn't a player kill</remarks>
-        [Scripts.Event("Player.Death")]
-        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
+        private void deadBallTimer(Ball ball)
         {
-            if (victim._gotBallID != 999)
+            //Are we even activated?
+            if (_config.soccer.deadBallTimer <= 0)
+                return;
+
+            //Exist?
+            if (ball == null)
+                return;
+
+            //Have we been picked up?
+            if (ball._owner != null)
+                return;
+
+            //Are we already timed to be warped out?
+            if (ball.deadBall)
+                return;
+
+            //Is this a dead ball?
+            int now = Environment.TickCount;
+            if ((now - ball._state.lastUpdate) > (_config.soccer.deadBallTimer * 1000))
             {
-                Ball ball = _arena._balls.FirstOrDefault(b => b._id == victim._gotBallID);
-                victim._gotBallID = 999;
+                //Are we still moving with a player or was spawned in?
+                if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
+                    return;
 
-                Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
+                //Update our time
+                int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                ball._state.lastUpdate = updateTick;
+                ball._state.lastUpdateServer = now;
+
+                _arena.setTicker(5, 3, _config.soccer.deadBallTimer * 100, "Ball Respawning: ", delegate()
+                {
+                    //Double check to see if someone used *getball
+                    if (ball._owner != null)
+                        return;
+
+                    //Respawn it
+                    Ball.Spawn_Ball(null, ball);
+                });
             }
-
-            return true;
         }
+        #endregion
 
+        #region Player Commands
         /// <summary>
         /// Called when a player sends a chat command
         /// </summary>
         [Scripts.Event("Player.ChatCommand")]
         public bool playerChatCommand(Player player, Player recipient, string command, string payload)
         {
-            if (command.ToLower().Equals("queue"))
+            command = (command.ToLower());
+            if (command.Equals("queue"))
             {
                 player.sendMessage(0, "Current Queue List:");
                 if (queue.Count > 0)
@@ -915,6 +1169,9 @@ namespace InfServer.Script.GameType_Gravball
         public bool playerModCommand(Player player, Player recipient, string command, string payload)
         {
             command = (command.ToLower());
+            if (command.Equals("coords"))
+                player.sendMessage(0, String.Format("{0},{1}", player._state.positionX, player._state.positionY));
+
             if (command.Equals("setscore"))
             {
                 if (String.IsNullOrEmpty(payload))
@@ -1202,19 +1459,6 @@ namespace InfServer.Script.GameType_Gravball
                 }
             }
             return false;
-        }
-
-        /// <summary>
-        /// Triggered when one player has killed another
-        /// </summary>
-        [Scripts.Event("Player.PlayerKill")]
-        public bool playerPlayerKill(Player victim, Player killer)
-        {
-            if (killer.getVarInt("Hits").Equals(null))
-                killer.setVar("Hits", 1);
-            else
-                killer.setVar("Hits", killer.getVarInt("Hits") + 1);
-            return true;
         }
         #endregion
     }

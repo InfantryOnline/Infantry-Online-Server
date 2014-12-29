@@ -46,6 +46,7 @@ namespace InfServer.Protocol
                 SendBannerTo = 0x13,
                 DamageEvent = 0x14,
 				Frames = 0x15,
+                //Unknown packet #22 = 0x16, Registry query response
                 PlayerDrop = 0x17,
                 Chat = 0x18,
                 //Unknown packet #25 = 0x19, has to do with being in the arena/zone - Note: this is a semi big packet

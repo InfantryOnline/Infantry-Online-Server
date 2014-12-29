@@ -455,32 +455,81 @@ namespace InfServer.Protocol
 		}
 
         /// <summary>
-        /// Sends a series of ball updates 
+        /// Instructs the client to reset and disable a single active ball
         /// </summary>
-        static public void Object_Ball(Player p, IEnumerable<Ball> bState)
-        {
-            //Prepare the packet
-            foreach (Ball b in bState)
+        static public void Object_BallReset(IEnumerable<Player> players, Ball bState)
+        {   //Prepare the packet
+            SC_BallState ball = new SC_BallState();
+            ball.bDisable = true;
+            ball.singleUpdate = bState;
+
+            //Send it
+            foreach (Player p in players)
             {
-                SC_BallState ball = new SC_BallState();
-                ball.ballID = b._id;
-                if (b._state.carrier != null)
-                    ball.playerID = (short)b._state.carrier._id;
-                else
-                    ball.playerID = 0;
-                ball.positionX = b._state.positionX;
-                ball.positionY = b._state.positionY;
-                ball.positionZ = b._state.positionZ;
-                ball.velocityX = b._state.velocityX;
-                ball.velocityY = b._state.velocityY;
-                ball.velocityZ = b._state.velocityZ;
-
-                //Fix this when ball packets are fixed
-                ball.unk7 = b._state.unk7;
-
-                //Send it
+                if (p._gotBallID == bState._id)
+                    p._gotBallID = 999;
                 p._client.sendReliable(ball);
             }
+        }
+
+        /// <summary>
+        /// Instructs the client to reset and disable any active balls
+        /// </summary>
+        static public void Object_BallReset(IEnumerable<Player> players, IEnumerable<Ball> bState)
+        {   //Prepare the packet
+            SC_BallState ball = new SC_BallState();
+            ball.bDisable = true;
+            ball.balls = bState;
+
+            //Send it
+            foreach (Player p in players)
+            {
+                //Update server side ball handlers
+                foreach (Ball b in bState)
+                {
+                    if (p._gotBallID == b._id)
+                        p._gotBallID = 999;
+                }
+                p._client.sendReliable(ball);
+            }
+        }
+
+        /// <summary>
+        /// Sends a ball update to a specific player
+        /// </summary>
+        static public void Object_Ball(Player player, IEnumerable<Ball> bStates)
+        {   //Prepare the packet
+            SC_BallState ball = new SC_BallState();
+            ball.balls = bStates;
+
+            //Send it
+            player._client.sendReliable(ball);
+        }
+
+        /// <summary>
+        /// Sends a ball update to active players
+        /// </summary>
+        static public void Object_Ball(IEnumerable<Player> players, Ball bState)
+        {   //Prepare the packet
+            SC_BallState ball = new SC_BallState();
+            ball.singleUpdate = bState;
+
+            //Send it
+            foreach (Player p in players)
+                p._client.sendReliable(ball);
+        }
+
+        /// <summary>
+        /// Sends a series of ball updates to active players
+        /// </summary>
+        static public void Object_Ball(IEnumerable<Player> players, IEnumerable<Ball> bStates)
+        {   //Prepare the packet
+            SC_BallState ball = new SC_BallState();
+            ball.balls = bStates;
+
+            //Send it
+            foreach (Player p in players)
+                p._client.sendReliable(ball);
         }
 	}
 }

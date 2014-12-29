@@ -34,37 +34,23 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Serialize()
         {	//Type ID
-            Write((byte)TypeID);
-
-            //Write(player._id);
-            Write((byte)ball._id); // The ID of the ball we're updating
             /*
-            Write(ball._state.velocityX);
-            Write(ball._state.velocityY);
-            Write(ball._state.velocityZ);
-            Write(ball._state.positionX); //Confirmed
-            Write(ball._state.positionY); //Confirmed
-            Write(ball._state.positionZ); //Confirmed
-            Write((short)1); //pID
+            Write((byte)((ushort)Helpers.PacketIDs.S2C.RegQuery));
+            Write(0);
+            string location = "HKEY_LOCAL_MACHINE\\SOFTWARE\\7-Zip\\Path";
+            Write(location, location.Length);
              */
-            Skip(13);
-            Write((byte)ball._state.unk1);
+            Write((byte)Helpers.PacketIDs.S2C.BallState);
             Write((byte)0);
-            Skip(5);
-            /*
-            //Write((byte)0); //unk1
-            Write((short)1); //unk2
-            Write((short)1); //unk3
-            Write((short)1); //unk4
-            //Write(Environment.TickCount); //unk5
-             */
-            /*
-            Write((byte)unk4);
-            Write((byte)unk5);
-            Write((byte)unk6);
-            unk7 = 1;
-            Write((byte)unk7);
-             */
+            Write(player._state.velocityX);
+            Write(player._state.velocityY);
+            Write(player._state.velocityZ);
+            Write((short)(player._state.positionX - 150));
+            Write(player._state.positionY);
+            Write(player._state.positionZ);
+            Write((short)-1);
+            Write((short)10);
+            Write(Environment.TickCount);
         }
 
         /// <summary>

@@ -109,7 +109,7 @@ namespace InfServer.Game.Commands.Mod
                 foreach (Player p in player._arena.Players)
                 {
                     SC_SecurityCheck cs = new SC_SecurityCheck();
-                    cs.key = 9815; //Key we are using
+                    cs.key = 1015; //Key we are using
                     cs.unknown = 0; // Unknown, send as 0   
                     p.setVar("secReq", player); //Pass the person we need to PM the info
                     p._client.send(cs); //Send it
@@ -118,7 +118,7 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 SC_SecurityCheck cs = new SC_SecurityCheck();
-                cs.key = 9815; //Key we are using
+                cs.key = 1015; //Key we are using
                 cs.unknown = 0; // Unknown, send as 0
                 recipient.setVar("secReq", player); //Pass the person we need to PM the info
                 recipient._client.send(cs); //Send it
@@ -139,19 +139,13 @@ namespace InfServer.Game.Commands.Mod
 
             recipient._client.send(discon);
             Console.WriteLine("Disconnect packet sent to {0}", recipient);
-            */
-            /*
+            
+
             SC_TestPacket test = new SC_TestPacket();
             test.player = player;
-            test.ball = player._arena._balls.SingleOrDefault(b => b._id == ((ushort)1));
+            test.ball = player._arena._balls.SingleOrDefault(b => b._id == (ushort)0);
             player._client.sendReliable(test);
              */
-
-                SC_TestPacket test = new SC_TestPacket();
-                //test.playerID = (short)player._id;
-                test.ball = player._arena._balls.SingleOrDefault(b => b._id == (ushort)1);
-                player.sendMessage(0, test.ball._id.ToString());
-                player._client.sendReliable(test);
 		}
 
         /// <summary>

@@ -22,28 +22,22 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void addball(Player player, Player recipient, string payload, int bong)
         {
-            //Grab a new ballID
-            int ballID = player._arena._balls.Count; // We don't add 1, as the first ballID is 0, so the count is always the correct next ID (1 ball = ballID of 0, = next ballID of 1)            
-
-            if (ballID > 3) //4 is max on the field, 0 id = 1 ball, 3 id = 4 balls
+            if (player._arena.Balls.Count() >= Arena.maxBalls)
             {
                 player.sendMessage(-1, "All the balls are currently in the game.");
                 return;
             }
 
             //Lets create a new ball!
-            Ball newBall = new Ball((short)ballID, player._arena);
+            int ballID = player._arena.Balls.Count(); //We use count because ball id's start at 0 so count would be always + 1
+            Ball ball = player._arena.newBall((short)ballID);
+            if (ball != null)
+            {
+                //Send it
+                Ball.Spawn_Ball(null, ball);
 
-            //Initialize its ballstate
-            newBall._state = new Ball.BallState();
-
-            //Store it.
-            player._arena._balls.Add(newBall);
-
-            //Make each player aware of the ball
-            Ball.Spawn_Ball(player, newBall);
-
-            player._arena.sendArenaMessage("Ball Added.", player._arena._server._zoneConfig.soccer.ballAddedBong);
+                player._arena.sendArenaMessage("Ball Added.", player._arena._server._zoneConfig.soccer.ballAddedBong);
+            }
         }
 
         /// <summary>
@@ -64,7 +58,7 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 ushort requestBallID = Convert.ToUInt16(payload);
-                if (requestBallID > 3 || requestBallID < 0) //4 is max on the field (0 id = 1 ball, 3 id = 4 balls)
+                if (requestBallID > Arena.maxBalls || requestBallID < 0) //5 is max on the field (0 id = 1 ball, 3 id = 4 balls)
                 {
                     player.sendMessage(-1, "Invalid getball Ball ID");
                     return;
@@ -73,20 +67,22 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Get the ball in question..
-            Ball ball = player._arena._balls.FirstOrDefault(b => b._id == askedBallId);
+            Ball ball = player._arena.Balls.SingleOrDefault(b => b._id == askedBallId);
             if (ball == null)
             {
                 player.sendMessage(-1, "Ball does not exist.");
                 return;
             }
 
-            foreach (Player p in player._arena.Players)
-                p._gotBallID = 999;
+            if (ball._lastOwner != null && (ushort)ball._lastOwner._gotBallID == ball._id)
+                ball._lastOwner._gotBallID = 999;
+
+            //Assign the ball to the player
+            ball._lastOwner = ball._owner != null ? ball._owner : null;
+            ball._owner = target;
 
             target._gotBallID = ball._id;
 
-            //Assign the ball to the player
-            ball._state.carrier = target;
             //Assign default state
             ball._state.positionX = target._state.positionX;
             ball._state.positionY = target._state.positionY;
@@ -94,12 +90,14 @@ namespace InfServer.Game.Commands.Mod
             ball._state.velocityX = 0;
             ball._state.velocityY = 0;
             ball._state.velocityZ = 0;
-            ball._state.ballStatus = 0;
+            ball.ballStatus = 0;
             ball.deadBall = false;
-            ball._owner = target;
+
+            //Update data
+            ball._arena.UpdateBall(ball);
 
             //Make each player aware of the ball
-            ball.Route_Ball(player._arena.Players);
+            Ball.Route_Ball(player._arena.Players, ball);
         }
 
         /// <summary>
@@ -113,7 +111,7 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 ushort requestBallID = Convert.ToUInt16(payload);
-                if (requestBallID > 3 || requestBallID < 0) //4 is max on the field (0 id = 1 ball, 3 id = 4 balls)
+                if (requestBallID > Arena.maxBalls || requestBallID < 0)
                 {
                     player.sendMessage(-1, "Invalid getball Ball ID");
                     return;
@@ -122,21 +120,25 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Get the ball in question..
-            Ball ball = player._arena._balls.FirstOrDefault(b => b._id == askedBallId);
+            Ball ball = player._arena.Balls.SingleOrDefault(b => b._id == askedBallId);
             if (ball == null)
             {
                 player.sendMessage(-1, "Ball does not exist.");
                 return;
             }
 
-            foreach (Player p in player._arena.Players)
-                p._gotBallID = 999;
+            //Update handlers
+            if (ball._lastOwner != null && (ushort)ball._lastOwner._gotBallID == ball._id)
+                ball._lastOwner._gotBallID = 999;
+
+            if (ball._owner != null && (ushort)ball._owner._gotBallID == ball._id)
+                ball._owner._gotBallID = 999;
+
+            ball._owner = null;
+            ball._lastOwner = null;
 
             //Update clients
             Ball.Remove_Ball(ball);
-
-            //Remove it from arena
-            player._arena._balls.Remove(ball);
 
             //Let players know
             player._arena.sendArenaMessage("Ball removed.");
@@ -258,20 +260,23 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            Arena arena = player._arena;
-            foreach (Player p in player._arena.Players.ToList())
-            {
-                if (p == null || p == player)
-                    continue;
-                if (!p.IsSpectator)
-                    continue;
-                if (p._developer || p._admin || arena.IsGranted(p))
-                    continue;
-                p.sendMessage(-1, "Disconnecting due to arena being locked.");
-                p.disconnect();
-            }
-
             player._arena._aLocked = !player._arena._aLocked;
+
+            Arena arena = player._arena;
+            if (arena._aLocked)
+            {
+                foreach (Player p in player._arena.Players.ToList())
+                {
+                    if (p == null || p == player)
+                        continue;
+                    if (!p.IsSpectator)
+                        continue;
+                    if (p._developer || p._admin || arena.IsGranted(p))
+                        continue;
+                    p.sendMessage(-1, "Disconnecting due to arena being locked.");
+                    p.disconnect();
+                }
+            }
             player._arena.sendArenaMessage(String.Format("Arena is now {0}.", player._arena._aLocked ? "locked" : "unlocked"));
         }
 

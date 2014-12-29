@@ -31,9 +31,9 @@ namespace Assets
             public int victoryBong;
             public int startDelay;
             public int playersPerBall;
-            public int killerCatchBall;
+            public bool killerCatchBall;
             public int deadBallTimer;
-            public int ignoreWalls;
+            public bool ignoreWalls;
             public int invisibleTime;
             public int pickupTime;
             public int loserPointReward;
@@ -45,7 +45,7 @@ namespace Assets
             public int floorBounceVertSpeedPercent;
             public int floorBounceHorzSpeedPercent;
             public int ballAddedBong;
-            public int showTimer;
+            public bool showTimer;
             public int catchCountDelay;
             public int timer;
             public int timerOvertime;
@@ -89,9 +89,9 @@ namespace Assets
                 victoryBong = Parser.GetInt("VictoryBong");
                 startDelay = Parser.GetInt("StartDelay");
                 playersPerBall = Parser.GetInt("PlayersPerBall");
-                killerCatchBall = Parser.GetInt("KillerCatchBall");
+                killerCatchBall = Parser.GetBool("KillerCatchBall");
                 deadBallTimer = Parser.GetInt("DeadBallTimer");
-                ignoreWalls = Parser.GetInt("IgnoreWalls");
+                ignoreWalls = Parser.GetBool("IgnoreWalls");
                 invisibleTime = Parser.GetInt("InvisibleTime");
                 pickupTime = Parser.GetInt("PickupTime");
                 loserPointReward = Parser.GetInt("LoserPointReward");
@@ -103,7 +103,7 @@ namespace Assets
                 floorBounceVertSpeedPercent = Parser.GetInt("FloorBounceVertSpeedPercent");
                 floorBounceHorzSpeedPercent = Parser.GetInt("FloorBounceHorzSpeedPercent");
                 ballAddedBong = Parser.GetInt("BallAddedBong");
-                showTimer = Parser.GetInt("ShowTimer");
+                showTimer = Parser.GetBool("ShowTimer");
                 catchCountDelay = Parser.GetInt("CatchCountDelay");
                 timer = Parser.GetInt("Timer");
                 timerOvertime = Parser.GetInt("TimerOvertime");

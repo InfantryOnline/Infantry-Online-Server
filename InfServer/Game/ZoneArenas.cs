@@ -32,6 +32,10 @@ namespace InfServer.Game
 			//Gather config settings
 			Arena.maxItems = _config["arena/maxArenaItems"].intValue;
 			Arena.maxVehicles = _config["arena/maxArenaVehicles"].intValue;
+            if (_config["arena/maxArenaBalls"] != null)
+                Arena.maxBalls = _config["arena/maxArenaBalls"].intValue;
+            else
+                Arena.maxBalls = 5;
 			Arena.gameCheckInterval = _config["arena/gameCheckInterval"].intValue;
 			Arena.routeRange = _config["arena/routing/routeRange"].intValue;
 			Arena.routeWeaponRange = _config["arena/routing/routeWeaponRange"].intValue;

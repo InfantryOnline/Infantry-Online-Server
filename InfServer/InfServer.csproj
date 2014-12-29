@@ -319,6 +319,7 @@
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdate.cs" />
     <Compile Include="Protocol\Packets\Login\SC_AssetUpdateInfo.cs" />
     <Compile Include="Protocol\Packets\Misc\CS_FileSend.cs" />
+    <Compile Include="Protocol\Packets\Misc\CS_Unknown.cs" />
     <Compile Include="Protocol\Packets\Misc\SC_TestPacket.cs" />
     <Compile Include="Protocol\Packets\Security\CS_SecurityCheck.cs" />
     <Compile Include="Protocol\Packets\Security\SC_SecurityCheck.cs" />
@@ -335,7 +336,6 @@
     <Compile Include="Protocol\Packets\Security\CS_Frames.cs" />
     <Compile Include="Protocol\Packets\Misc\SC_ConfirmFileSend.cs" />
     <Compile Include="Protocol\Packets\Security\SC_Environment.cs" />
-    <Compile Include="Protocol\Packets\Security\SC_Test.cs" />
     <Compile Include="Protocol\Packets\Social\CS_SetBanner.cs" />
     <Compile Include="Protocol\Packets\Social\SC_Banner.cs" />
     <Compile Include="Protocol\Packets\State\CS_ArenaJoin.cs" />

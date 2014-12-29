@@ -32,6 +32,10 @@ namespace InfServer.Logic
             badPrograms.Add("wireshark");
             badPrograms.Add("wireshark.exe");
             badPrograms.Add("speederxp");
+            badPrograms.Add("L. Spiro");
+            badPrograms.Add("spiro");
+            badPrograms.Add("mhs");
+            badPrograms.Add("hex editor");
             if (target == null)
             {//It was a request by the server
                 //Check the processes

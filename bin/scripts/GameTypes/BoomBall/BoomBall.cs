@@ -13,18 +13,18 @@ using InfServer.Protocol;
 
 using Assets;
 
-namespace InfServer.Script.GameType_BasketBall
+
+namespace InfServer.Script.GameType_BoomBall
 {	// Script Class
     /// Provides the interface between the script and arena
     ///////////////////////////////////////////////////////
-    class Script_BasketBall : Scripts.IScript
+    class Script_BoomBall : Scripts.IScript
     {	///////////////////////////////////////////////////
         // Member Variables
         ///////////////////////////////////////////////////
         private Arena _arena;					//Pointer to our arena class
         private CfgInfo _config;				//The zone config
-        private CfgInfo.StartGame _startCfg;    //The zone's gameStart config
-        private CfgInfo.SoccerMvp SoccerMvp;    //The zone's mvp calculations
+        private CfgInfo.SoccerMvp SoccerMvp;    //The zones mvp calculations
 
         //Updaters
         private int _lastGameCheck;				//The tick at which we last checked for game viability
@@ -34,14 +34,14 @@ namespace InfServer.Script.GameType_BasketBall
         private int _lastBallCheck;             //Updates our ball's in game motion
 
         //Game Settings
-        private int _minPlayers;				//The minimum amount of players needed to start a game
-        private int _minPlayersToKeepScore;     //Min players need to record stats
-        private int _stuckBallInterval = 5;     //How long till we warp our ball from being stuck
+        private int _minPlayers;                //The minimum amount of players needed to start the game
+        private int _minPlayersToKeepScore;     //Min players needed to record stats
         private int _sendBallUpdate;            //When its time to send a ball update packet
+        private int _stuckBallInterval = 5;     //How long a ball is glitched for(in seconds)
 
         //Recordings
-        private List<Player> queue;             //Our in queued players waiting to play
         private Team _victoryTeam;				//The team currently winning!
+        private List<Player> queue;             //Our in queued players waiting to play
         private Team team1;
         private Team team2;
         private int team1Goals;
@@ -50,10 +50,9 @@ namespace InfServer.Script.GameType_BasketBall
         private Player pass;                    //Who passed it
         private Player assist;
         private Player assist2;
-        private bool _overtime;                 //True if in overtime
-        private int overtimeType;               //Which overtime type are we in?
         private Player _futureGoal;
-
+        private bool _overtime;                 //True if in overtime
+        private int overtimeType;               //Which overtime are we in?
 
 
         //http://stackoverflow.com/questions/14672322/creating-a-point-class-c-sharp
@@ -81,15 +80,16 @@ namespace InfServer.Script.GameType_BasketBall
         }
 
         //Handle goal coords here for now
-        Point p1 = new Point(135, 1493);
-        Point p2 = new Point(240, 1493);
-        Point p3 = new Point(240, 1722);
-        Point p4 = new Point(135, 1722);
+        //BBX3 Map
+        Point p1 = new Point(841, 1252);
+        Point p2 = new Point(696, 1252);
+        Point p3 = new Point(696, 1524);
+        Point p4 = new Point(841, 1524);
 
-        Point p5 = new Point(5385, 1493);
-        Point p6 = new Point(5495, 1493);
-        Point p7 = new Point(5495, 1722);
-        Point p8 = new Point(5385, 1722);
+        Point p5 = new Point(4849, 1252);
+        Point p6 = new Point(4997, 1252);
+        Point p7 = new Point(4997, 1524);
+        Point p8 = new Point(4849, 1524);
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -102,7 +102,7 @@ namespace InfServer.Script.GameType_BasketBall
             _arena = invoker as Arena;
             _config = _arena._server._zoneConfig;
             SoccerMvp = _config.soccerMvp;
-            _arena.playtimeTickerIdx = 0; //Sets the global ticker index
+            _arena.playtimeTickerIdx = 0; //Sets the global index for our timer
 
             team1 = _arena.getTeamByName(_config.teams[0].name);
             team2 = _arena.getTeamByName(_config.teams[1].name);
@@ -126,11 +126,12 @@ namespace InfServer.Script.GameType_BasketBall
 
             if (now - _lastGameCheck <= Arena.gameCheckInterval)
                 return true;
-
             _lastGameCheck = now;
+
+            //Do we have enough players ingame?
             int playing = _arena.PlayerCount;
 
-            //Is game running and do we meet min players?
+            //Is the game running and do we meet min players
             if (_arena._bGameRunning && playing < _minPlayers)
                 //Stop the game
                 _arena.gameEnd();
@@ -139,7 +140,6 @@ namespace InfServer.Script.GameType_BasketBall
             if (playing < _minPlayers)
             {
                 _tickGameStarting = 0;
-
                 //Show the message
                 if (!_arena.recycling)
                     _arena.setTicker(1, 0, 0, "Not Enough Players");
@@ -152,14 +152,15 @@ namespace InfServer.Script.GameType_BasketBall
                 }
             }
 
-            //Do we have enough to start a game?
+            //Do we have enough to start a game yet?
             if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
-            {   //Great, Get going!
+            {
+                //Great, get going!
                 _tickGameStarting = now;
                 if (!_arena.recycling)
-                    _arena.setTicker(1, 0, _config.soccer.startDelay * 100, "Next game: ", delegate()
+                    _arena.setTicker(1, 0, _config.soccer.startDelay * 100, "Next Game: ", delegate()
                     {
-                        //Trigger it
+                        //Trigger it!
                         _arena.gameStart();
                     });
             }
@@ -168,7 +169,7 @@ namespace InfServer.Script.GameType_BasketBall
             if ((_tickGameStart > 0 || !_arena._bGameRunning) && now - _lastBallCheck > _sendBallUpdate)
             {
                 if (_arena.Balls.Count() > 0)
-                    foreach (Ball ball in _arena.Balls.ToList())
+                    foreach (Ball ball in _arena.Balls)
                     {
                         //This updates the ball visually
                         Ball.Route_Ball(_arena.Players, ball);
@@ -182,7 +183,7 @@ namespace InfServer.Script.GameType_BasketBall
                     }
             }
 
-            //Updates our scoreboard
+            //Updates our queue
             if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
             {
                 if (now - _tickGameLastTickerUpdate > 1000)
@@ -202,7 +203,8 @@ namespace InfServer.Script.GameType_BasketBall
         [Scripts.Event("Game.Start")]
         public bool gameStart()
         {	//We've started!
-            _tickGameStart = Environment.TickCount;
+            int now = Environment.TickCount;
+            _tickGameStart = now;
             _tickGameStarting = 0;
 
             team1Goals = 0;
@@ -212,38 +214,56 @@ namespace InfServer.Script.GameType_BasketBall
             assist = null;
             assist2 = null;
 
-            //Clear ball list incase of added balls
+            //Clear all balls in the arena
             foreach (Ball b in _arena.Balls.ToList())
                 Ball.Remove_Ball(b);
 
-            if (_arena.ActiveTeams.ElementAt(0) != null)
-                team1 = _arena.ActiveTeams.ElementAt(0);
-            if (_arena.ActiveTeams.Count() > 1)
-                team2 = _arena.ActiveTeams.ElementAt(1);
+            team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
+            team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
 
-            //Reset variable
+            //Reset variables
             foreach (Player p in _arena.Players)
                 p._gotBallID = 999; //No ball in possession
 
-            //Spawn our active balls based on our cfg
-            short ballCount = (short)_config.soccer.ballCount;
-            for (short ballID = 0; ballID < ballCount; ballID++)
-            {
-                Ball newball = _arena.newBall(ballID);
+            //Spawn our active balls based on cfg
+            int ballCount = _config.soccer.ballCount;
+            if (_config.soccer.playersPerBall == 0)
+            {   //Just spawn all of them
+                for (short id = 0; id < ballCount; id++)
+                {
+                    Ball newBall = _arena.newBall(id);
 
-                //Make everyone aware
-                Ball.Spawn_Ball(null, newball);
+                    //Make everyone aware of the ball
+                    Ball.Spawn_Ball(null, newBall);
+                }
             }
-
-            //Set default ticker
-            string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
-            _arena.setTicker(5, 1, 0, update);
+            else
+            {
+                if (ballCount > 0)
+                {
+                    short ID = 0;
+                    //Lets spawn the first one
+                    Ball newBall = _arena.newBall(ID);
+                    Ball.Spawn_Ball(null, newBall);
+                    //Iterate now
+                    for (int i = 0; i < _arena.PlayersIngame.Count(); i++)
+                    {
+                        if ((i % _config.soccer.playersPerBall) == 0)
+                        {
+                            Ball ball = _arena.newBall(++ID);
+                            Ball.Spawn_Ball(null, ball);
+                            if (ID == ballCount || ID == Arena.maxBalls)
+                                break;
+                        }
+                    }
+                }
+            }
 
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
-            _arena.setTicker(1, 0, _config.soccer.timer * 100, "Time remaining: ", delegate()
+            _arena.setTicker(1, 0, _config.soccer.timer * 100, "Time Remaining: ", delegate()
             {
-                //Trigger the end of game clock
+                //Trigger the end of game
                 if (team1Goals == team2Goals)
                 {
                     if (_config.soccer.timerOvertime > 0)
@@ -252,7 +272,7 @@ namespace InfServer.Script.GameType_BasketBall
                     {
                         _overtime = true;
                         _arena.setTicker(1, 0, 0, "OVERTIME!!!");
-                        _arena.sendArenaMessage("Game is tied and going into overtime, next goal wins!");
+                        _arena.sendArenaMessage("Game is tied and going into overtime! Next goal wins!!");
                     }
                 }
                 else
@@ -267,7 +287,7 @@ namespace InfServer.Script.GameType_BasketBall
         /// </summary>
         [Scripts.Event("Game.End")]
         public bool gameEnd()
-        {	//Announce it
+        {	//Announce it!
             _arena.sendArenaMessage("Game Over!", _config.soccer.victoryBong);
 
             bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
@@ -313,24 +333,27 @@ namespace InfServer.Script.GameType_BasketBall
                 int cash = 0;
                 int exp = 0;
                 int points = 0;
-
                 if (!p.IsSpectator)
                 {
                     cash = p._team == _victoryTeam ? Multiplier * (_config.soccer.victoryCashReward / 1000) : Multiplier * (_config.soccer.loserCashReward / 1000);
                     exp = p._team == _victoryTeam ? Multiplier * (_config.soccer.victoryExperienceReward / 1000) : Multiplier * (_config.soccer.loserExperienceReward / 1000);
                     points = p._team == _victoryTeam ? Multiplier * (_config.soccer.victoryPointReward / 1000) : Multiplier * (_config.soccer.loserPointReward / 1000);
+
+                    Data.PlayerStats temp = p.StatsCurrentGame;
+                    int bonus = points + (100 * temp.zonestat3) + (10 * temp.zonestat6) + (5 * temp.zonestat4) + (10 * temp.zonestat11) + (20 * temp.zonestat12);
+                    points = bonus;
                 }
+
                 p.Cash += cash;
-                p.KillPoints += points;
                 p.ExperienceTotal += exp;
-                p.sendMessage(0, String.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, exp, points));
+                p.KillPoints += points;
+                p.sendMessage(0, String.Format("!Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, exp, points));
 
                 p.syncState();
             }
 
             //Reset variables
             _arena.gameReset();
-
             return true;
         }
 
@@ -378,54 +401,6 @@ namespace InfServer.Script.GameType_BasketBall
             }
             _overtime = true;
 
-            //LETS RESET FOR A JUMP BALL-----------
-            if (_startCfg.prizeReset)
-                _arena.resetItems();
-            if (_startCfg.vehicleReset)
-                _arena.resetVehicles();
-            if (_startCfg.initialHides)
-                _arena.initialHideSpawns();
-            string startGame = _config.EventInfo.startGame;
-            foreach (Player player in _arena.Players)
-            {
-                //Reset anything else we're told to
-                if (_startCfg.clearProjectiles)
-                    player.clearProjectiles();
-
-                if (_startCfg.resetInventory && _startCfg.resetCharacter)
-                {
-                    player.resetInventory(false);
-                    player.resetSkills(true);
-                }
-                else if (_startCfg.resetCharacter)
-                    player.resetSkills(true);
-                else if (_startCfg.resetInventory)
-                    player.resetInventory(true);
-
-                //Run the event if necessary
-                if (!player.IsSpectator)
-                    Logic_Assets.RunEvent(player, startGame);
-            }
-
-            //Reset variable
-            foreach (Player p in _arena.Players)
-                p._gotBallID = 999;
-
-            //Clear ball list incase of added balls
-            foreach (Ball b in _arena.Balls.ToList())
-                Ball.Remove_Ball(b);
-
-            //Spawn our active balls based on our cfg
-            short ballCount = (short)_config.soccer.ballCount;
-            for (short ballID = 0; ballID <= ballCount; ballID++)
-            {
-                Ball newball = _arena.newBall(ballID);
-
-                //Make everyone aware
-                Ball.Spawn_Ball(null, newball);
-            }
-            //------------------------------------
-
             _arena.setTicker(1, 0, _config.soccer.timerOvertime * 100, "OVERTIME: ", delegate()
             {
                 //Trigger the end of game clock
@@ -442,11 +417,11 @@ namespace InfServer.Script.GameType_BasketBall
         }
 
         /// <summary>
-        /// Called when a game ends or a player uses ?breakdown
+        /// Called when game ends or player uses ?breakdown
         /// </summary>
         [Scripts.Event("Player.Breakdown")]
         public bool individualBreakdown(Player from, bool bCurrent)
-        {   //Allows additional customed breakdown info
+        {   //Allows additional "customed" breakdown info
             if (from == null)
                 return false;
 
@@ -504,8 +479,8 @@ namespace InfServer.Script.GameType_BasketBall
             }
 
             //Lets get the top most out of all stats
-            string mvp = "", goals = "", assists = "", catches = "", steals = "", passes = "", fumbles = "", carrytime = "", pointsscored = "", saves = "", pinches = "";
-            int mvpscore = 0, goal = 0, ass = 0, catched = 0, steal = 0, pass = 0, fumble = 0, carry = 0, pointsScored = 0, save = 0, pinch = 0;
+            string mvp = "", goals = "", assists = "", catches = "", steals = "", passes = "", fumbles = "", carrytime = "", saves = "", pinches = "";
+            int mvpscore = 0, goal = 0, ass = 0, catched = 0, steal = 0, pass = 0, fumble = 0, carry = 0, save = 0, pinch = 0;
 
             Data.PlayerStats temp;
             foreach (Player p in _arena.Players)
@@ -553,12 +528,6 @@ namespace InfServer.Script.GameType_BasketBall
                     carrytime = p._alias;
                 }
 
-                if (temp.zonestat10 > pointsScored)
-                {
-                    pointsScored = temp.zonestat10;
-                    pointsscored = p._alias;
-                }
-
                 if (temp.zonestat11 > save)
                 {
                     save = temp.zonestat11;
@@ -585,13 +554,12 @@ namespace InfServer.Script.GameType_BasketBall
             from.sendMessage(0, String.Format("Highest Mvp Score:    {0}({1})", String.IsNullOrWhiteSpace(mvp) ? from._alias : mvp, mvpscore));
             from.sendMessage(0, String.Format("Most Goals:              {0}({1})", String.IsNullOrWhiteSpace(goals) ? from._alias : goals, goal));
             from.sendMessage(0, String.Format("Most Assists:           {0}({1})", String.IsNullOrWhiteSpace(assists) ? from._alias : assists, ass));
-            //from.sendMessage(0, String.Format("Most Saves:             {0}({1})", String.IsNullOrWhiteSpace(saves) ? from._alias : saves, save));
-            //from.sendMessage(0, String.Format("Most Passes:            {0}({1})", String.IsNullOrWhiteSpace(passes) ? from._alias : passes, pass));
-            //from.sendMessage(0, String.Format("Most Catches:          {0}({1})", String.IsNullOrWhiteSpace(catches) ? from._alias : catches, catched));
-            //from.sendMessage(0, String.Format("Most Steals:             {0}({1})", String.IsNullOrWhiteSpace(steals) ? from._alias : steals, steal));
-            //from.sendMessage(0, String.Format("Most Fumbles:           {0}({1})", String.IsNullOrWhiteSpace(fumbles) ? from._alias : fumbles, fumble));
-            //from.sendMessage(0, String.Format("Most Carry Time:      {0}({1})", String.IsNullOrWhiteSpace(carrytime) ? from._alias : carrytime, carry));
-            from.sendMessage(0, String.Format("Most Points Scored:   {0}({1})", String.IsNullOrWhiteSpace(pointsscored) ? from._alias : pointsscored, pointsScored));
+            from.sendMessage(0, String.Format("Most Saves:             {0}({1})", String.IsNullOrWhiteSpace(saves) ? from._alias : saves, save));
+            from.sendMessage(0, String.Format("Most Passes:            {0}({1})", String.IsNullOrWhiteSpace(passes) ? from._alias : passes, pass));
+            from.sendMessage(0, String.Format("Most Catches:          {0}({1})", String.IsNullOrWhiteSpace(catches) ? from._alias : catches, catched));
+            from.sendMessage(0, String.Format("Most Steals:             {0}({1})", String.IsNullOrWhiteSpace(steals) ? from._alias : steals, steal));
+            from.sendMessage(0, String.Format("Most Fumbles:           {0}({1})", String.IsNullOrWhiteSpace(fumbles) ? from._alias : fumbles, fumble));
+            from.sendMessage(0, String.Format("Most Carry Time:      {0}({1})", String.IsNullOrWhiteSpace(carrytime) ? from._alias : carrytime, carry));
 
             return true;
         }
@@ -632,22 +600,10 @@ namespace InfServer.Script.GameType_BasketBall
             short dxi = drop.velocityX;
             short dyi = drop.velocityY;
 
-            double dx, dy;
-            dx = dxi;
-            dy = dyi;
-
-            for (double i = 0; i < 15; i += 0.0025)
-            {   //Find our position at i time after throw
-                //applyu friction here
-                dx -= dx * 0.001;
-
-                dy -= dy * 0.001;
-                xf = xi + (i * dx);
-                //xf = xf - (xf * (_config.soccer.defaultFriction / 100));
-                //     dyi = dyi - (dyi * (_config.soccer.defaultFriction / 100));
-
-                yf = yi + (i * dy);
-                //  yf = yf - (yf * (_config.soccer.defaultFriction / 100));
+            for (double i = 0; i < 4; i += 0.0025)
+            {//Find our position at i time after throw
+                xf = xi + (i * dxi);
+                yf = yi + (i * dyi);
                 Point ballPoint = new Point((int)xf, (int)yf);
                 //Find out if we bounce off a wall
                 try
@@ -655,8 +611,7 @@ namespace InfServer.Script.GameType_BasketBall
                     LvlInfo.Tile tile = _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)(xf / 16)];
                     double xOffset = xf;
                     double yOffset = yf;
-                    // _arena.sendArenaMessage("d " + tile.TerrainLookup);
-                    if (tile.TerrainLookup != 2 && tile.TerrainLookup != 6 && tile.Blocked)
+                    if (tile.Blocked)
                     {
                         if (_arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
                             _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
@@ -688,20 +643,18 @@ namespace InfServer.Script.GameType_BasketBall
                     }
                 }
                 catch (Exception)
-                {//we are going out of bounds of arena due to no physics and crap
+                {//we are going out of bounds of arena due to no physics and crap 
                 }
 
                 cxi = xf;
                 cyi = yf;
 
-                //Check if it is within our goal box depending on team
-                //p1->p4 are left base, p5->p8 are right base
+                //Check if it is within our goal box
                 if (isInsideSquare(p1, p2, p3, p4, ballPoint) || isInsideSquare(p5, p6, p7, p8, ballPoint))
-                {//Will be a goal
+                {   //Will be a goal
                     _futureGoal = player;
                     break;
                 }
-
                 //Not going to be a goal
                 _futureGoal = null;
             }
@@ -709,7 +662,7 @@ namespace InfServer.Script.GameType_BasketBall
         }
 
         /// <summary>
-        /// Triggered when a player has picked up the ball
+        /// Triggered when a player has dropped the ball
         /// </summary>
         [Scripts.Event("Player.BallPickup")]
         public bool handleBallPickup(Player player, Ball ball)
@@ -719,17 +672,17 @@ namespace InfServer.Script.GameType_BasketBall
             //Handle saves and pinches and creases and irons and folds
             if (_futureGoal != null)
             {
-                //Is it a save or pinch?
+                //It is a save or pinch
                 if (player._team == _futureGoal._team && player != _futureGoal)
-                {   //It's a pinch
-                    _arena.sendArenaMessage("Pinch=" + player._alias);
+                {   //Player is on the same team, It's a pinch
+                    _arena.sendArenaMessage("Goal pinched by " + player._alias);
                     if (record)
                         //Save their stat
-                        player.ZoneStat10 += 1; //Pinches
+                        player.ZoneStat12 += 1; //Pinches
                 }
                 else if (player._team != _futureGoal._team && player != _futureGoal)
-                {   //It's a save
-                    _arena.sendArenaMessage("Save=" + player._alias);
+                {   //Player is on the opposite team, It's a save
+                    _arena.sendArenaMessage("Goal saved by " + player._alias);
                     if (record)
                         //Save their stat
                         player.ZoneStat11 += 1; //Saves
@@ -741,18 +694,18 @@ namespace InfServer.Script.GameType_BasketBall
             {
                 if (pass._team == player._team)
                 {
+                    //Completed pass, give a point to both
                     if (record)
                     {
-                        //Completed pass, give a point to both
                         player.ZoneStat5 += 1; //Teammate catched it
                         pass.ZoneStat7 += 1; //Pass
                     }
                 }
                 else
                 {
+                    //Ball was stolen
                     if (record)
                     {
-                        //Ball was stolen
                         player.ZoneStat6 += 1; //Steal
                         pass.ZoneStat8 += 1; //Fumbled the pass
                     }
@@ -781,13 +734,12 @@ namespace InfServer.Script.GameType_BasketBall
             //Reset
             _futureGoal = null;
 
-            //we finna score 3 pt brap brap BURRRBAPAPAPA
             bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
-            CfgInfo.Terrain terrainNum = _arena.getTerrain(ball._state.positionX, ball._state.positionY);
+            CfgInfo.Terrain terrainID = _arena.getTerrain(pkt.positionX * 16, pkt.positionY * 16);
             if (player._team == team1)
-                team1Goals += terrainNum.goalPoints;
+                team1Goals += terrainID.goalPoints;
             else
-                team2Goals += terrainNum.goalPoints;
+                team2Goals += terrainID.goalPoints;
 
             //Let everyone know
             if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
@@ -801,14 +753,11 @@ namespace InfServer.Script.GameType_BasketBall
             //Announce Score
             _arena.sendArenaMessage(String.Format("SCORE:  {0}={1}  {2}={3}", team1._name, team1Goals, team2._name, team2Goals));
 
-            //Save their stat
             if (record)
-            {
-                player.ZoneStat3 += 1; //Goals
-                player.ZoneStat10 += terrainNum.goalPoints; //Points Scored
-            }
+                //Give them a goal stat
+                player.ZoneStat3 += 1;
 
-            //Do we need to end the game?
+            //See if we need to end the game
             if (!_overtime)
             {
                 int victoryGoal = _config.soccer.victoryGoals;
@@ -835,7 +784,7 @@ namespace InfServer.Script.GameType_BasketBall
                 }
             }
 
-            //Reset Scoreboard
+            //Reset scoreboard
             updateTickers();
 
             //Reset variables
@@ -843,53 +792,13 @@ namespace InfServer.Script.GameType_BasketBall
             assist = null;
             assist2 = null;
 
-            //Reset players back to their positions
-            foreach (Player p in _arena.Players)
-            {
-                if (!p.IsSpectator)
-                    Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.joinTeam);
+            //Was this score in overtime?
+            if (_overtime)
+            {   //It was, let's end it
+                _arena.gameEnd();
+                _arena.setTicker(1, 0, 0, null, null);
             }
 
-            if (_overtime)
-            {   //If it was overtime let's end it
-                _arena.gameEnd();
-                _arena.setTicker(1, 0, 0, null, null); // overtime top right   
-            }
-            else
-            {
-                if (_tickGameStart > 0) //Have we ended the game or is this just a goal?
-                {
-                    if (player._team == team1) //Left side
-                    {
-                        //Using lio, lets try searching for a spawn point
-                        List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
-                        foreach (LioInfo.WarpField warp in warpgroup)
-                        {
-                            if (warp.GeneralData.Name.Contains("KingsScored")) //Give it to the right side
-                            {
-                                Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
-                                //We want to return false to prevent the ball respawning in the middle
-                                return false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Using lio, lets try searching for a spawn point
-                        List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
-                        foreach (LioInfo.WarpField warp in warpgroup)
-                        {
-                            if (warp.GeneralData.Name.Contains("PiratesScored")) //Give it to the left side
-                            {
-                                Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
-                                //We want to return false to prevent spawning in the middle
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-            //Ball will auto respawn in the middle with true
             return true;
         }
         #endregion
@@ -915,7 +824,7 @@ namespace InfServer.Script.GameType_BasketBall
                 if (ball == null)
                     return;
 
-                //Spawn it.
+                //Spawn it
                 Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
             }
         }
@@ -934,7 +843,7 @@ namespace InfServer.Script.GameType_BasketBall
                 if (ball == null)
                     return false;
 
-                //Spawn it.
+                //Spawn it
                 Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
             }
 
@@ -961,7 +870,7 @@ namespace InfServer.Script.GameType_BasketBall
                 if (ball == null)
                     return;
 
-                //Spawn it.
+                //Spawn it
                 Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
             }
         }
@@ -996,6 +905,15 @@ namespace InfServer.Script.GameType_BasketBall
                 return false;
             }
 
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when one player has killed another
+        /// </summary>
+        [Scripts.Event("Player.PlayerKill")]
+        public bool playerPlayerKill(Player victim, Player killer)
+        {
             return true;
         }
 
@@ -1051,7 +969,7 @@ namespace InfServer.Script.GameType_BasketBall
         }
         #endregion
 
-        #region Private Updaters
+        #region Private Update Calls
         /// <summary>
         /// Enqueues a player to unspec when there is an opening.
         /// </summary>
@@ -1083,7 +1001,7 @@ namespace InfServer.Script.GameType_BasketBall
         }
 
         /// <summary>
-        /// Auto spec's in a player if available
+        /// Auto specs in a player if available
         /// </summary>
         private void specInQueue()
         {
@@ -1159,18 +1077,17 @@ namespace InfServer.Script.GameType_BasketBall
         /// Checks to see if a ball is stuck in/on a wall
         /// </summary>
         private void stuckBall(Ball ball)
-        {   //Exist?
+        {
             if (ball == null)
                 return;
 
             short x = ball._state.positionX;
             short y = ball._state.positionY;
 
-            int terrainNum = _arena.getTerrainID(x, y);
             LvlInfo.Tile tile = _arena.getTile(x, y);
-            if (tile.PhysicsVision == 1 || terrainNum == 10)
+            if (tile.PhysicsVision == 1)
             {
-                //Yes, are we moving with a player or have been spawned in?
+                //Yes, are we moving though? (Player has us)
                 if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
                     return;
 
@@ -1197,7 +1114,7 @@ namespace InfServer.Script.GameType_BasketBall
         }
 
         /// <summary>
-        /// Checks to see if the ball hasn't been touched in awhile
+        /// Checks to see if a ball hasnt been touched in awhile
         /// </summary>
         private void deadBallTimer(Ball ball)
         {
@@ -1213,15 +1130,14 @@ namespace InfServer.Script.GameType_BasketBall
             if (ball._owner != null)
                 return;
 
-            //Are we already timed to be warped out?
+            //Already timed to be warped?
             if (ball.deadBall)
                 return;
 
-            //Is this a dead ball?
             int now = Environment.TickCount;
             if ((now - ball._state.lastUpdate) > (_config.soccer.deadBallTimer * 1000))
             {
-                //Are we still moving with a player or was spawned in?
+                //Yes, are we still moving with the player or possibly spawned in?
                 if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
                     return;
 
@@ -1567,7 +1483,6 @@ namespace InfServer.Script.GameType_BasketBall
             }
             return false;
         }
-
         #endregion
     }
 }

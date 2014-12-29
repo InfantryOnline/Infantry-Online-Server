@@ -29,19 +29,19 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player requests to pick up a ball
         /// </summary>
-        public virtual void handleBallPickup(Player from, Ball update)
+        public virtual void handleBallPickup(Player from, CS_BallPickup update)
         {   }
 
         /// <summary>
         /// Triggered when a player requests to drop a ball
         /// </summary>
-        public virtual void handleBallDrop(Player from, Ball update)
+        public virtual void handleBallDrop(Player from, CS_BallDrop update)
         {   }
 
         /// <summary>
         /// Triggered when a player has scored a goal
         /// </summary>
-        public virtual void handlePlayerGoal(Player from, Ball update)
+        public virtual void handlePlayerGoal(Player from, CS_GoalScored pkt)
         {   }
 
 		/// <summary>

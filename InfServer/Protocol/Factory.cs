@@ -271,6 +271,10 @@ namespace InfServer.Protocol
                     packet = new CS_DamageEvent(typeID, buffer, offset, size);
                     break;
 
+                case CS_Unknown.TypeID:
+                    packet = new CS_Unknown(typeID, buffer, offset, size);
+                    break;
+
                 default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

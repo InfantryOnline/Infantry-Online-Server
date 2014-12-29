@@ -231,7 +231,18 @@ namespace Assets
                 value = value.Trim();
 
                 if (values.ContainsKey(value))
-                    return Convert.ToBoolean(Int16.Parse(values[value]));
+                {
+                    try
+                    {
+                        Int16 val = Int16.Parse(values[value]);
+                        return Convert.ToBoolean(val);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("ERROR: value in cfg string - {0}", value);
+                        return false;
+                    }
+                }
                 else
                     return false;
             }

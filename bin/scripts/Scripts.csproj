@@ -185,6 +185,7 @@
     <Compile Include="GameTypes\Basic\Basic.cs" />
     <Compile Include="GameTypes\BasketBall\Bball.cs" />
     <Compile Include="GameTypes\Blank\Blank.cs" />
+    <Compile Include="GameTypes\BoomBall\BoomBall.cs" />
     <Compile Include="GameTypes\BugHunt\BugHunt.cs" />
     <Compile Include="GameTypes\AxiCTF\CTF.cs" />
     <Compile Include="GameTypes\BurntMultiAss\Vote\VoteSystem.cs" />

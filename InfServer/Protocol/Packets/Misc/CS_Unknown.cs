@@ -8,37 +8,30 @@ using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-    /// CS_PlayerUpdate contains player statistical information for updating
+    /// CS_Unknown grabs a response from whatever packet you are looking for
     /// </summary>
-    public class CS_BallPickup : PacketBase
+    public class CS_Unknown : PacketBase
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public UInt16 ballID;
-        public Int32 tickcount;
+        public int unk1;
+        public string unk2;
+
         //Packet routing
-        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallPickup;
-        static public event Action<CS_BallPickup, Player> Handlers;
+        //Switch this to whatever packet you are trying to find
+        public const ushort TypeID = (ushort)0x30|0x31|0x32|0x33|0x34|0x35|0x37|0x38;
+        static public event Action<CS_Unknown, Player> Handlers;
 
 
         ///////////////////////////////////////////////////
         // Member Functions
         //////////////////////////////////////////////////
         /// <summary>
-        /// Creates an empty packet of the specified type. This is used
-        /// for constructing new packets for sending.
-        /// </summary>
-        public CS_BallPickup()
-            : base(TypeID)
-        {
-        }
-
-        /// <summary>
         /// Creates an instance of the dummy packet used to debug communication or 
         /// to represent unknown packets.
         /// </summary>
         /// <param name="typeID">The type of the received packet.</param>
         /// <param name="buffer">The received data.</param>
-        public CS_BallPickup(ushort typeID, byte[] buffer, int index, int count)
+        public CS_Unknown(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
         {
         }
@@ -49,17 +42,15 @@ namespace InfServer.Protocol
         public override void Route()
         {	//Call all handlers!
             if (Handlers != null)
-                Handlers(this, (_client as Client<Player>)._obj);
+                Handlers(this, ((Client<Player>)_client)._obj);
         }
 
         /// <summary>
         /// Deserializes the data present in the packet contents into data fields in the class.
         /// </summary>
         public override void Deserialize()
-        {
-            //6 bytes = max read for this
-            ballID = _contentReader.ReadUInt16();// this is 100% the ballID
-            tickcount = _contentReader.ReadInt32();
+        {	//Get the information
+            Log.write(TLog.Warning, String.Format("Found unknown cs packet {0}", (byte)TypeID));
         }
 
         /// <summary>
@@ -69,7 +60,7 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Player Ball Pickup";
+                return "Unknown Packet Testing";
             }
         }
     }

@@ -448,12 +448,50 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player requests to pick up a ball
         /// </summary>
-        public override void handleBallPickup(Player from, Ball update)
+        public override void handleBallPickup(Player from, CS_BallPickup update)
         {
-            //Forward to our script
-            if (!exists("Player.BallPickup") || (bool)callsync("Player.BallPickup", false, from, update))
+            if (from == null)
             {
+                Log.write(TLog.Warning, "handleBallPickup(): Called with null player.");
+                return;
             }
+
+            Ball ball = _balls.getObjByID(update.ballID);
+            if (ball == null)
+            {
+                Log.write(TLog.Warning, "Player {0} tried picking up an invalid ball id.", from);
+                return;
+            }
+
+            //Forward to our script
+            if (exists("Player.BallPickup") && !(bool)callsync("Player.BallPickup", false, from, ball))
+                return;
+
+            //Pick up the ball
+            ball._lastOwner = ball._owner;
+            ball._owner = from;
+
+            int now = Environment.TickCount;
+            int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+            ball._state.lastUpdate = updateTick;
+            ball._state.lastUpdateServer = now;
+
+            ball._state.positionX = from._state.positionX;
+            ball._state.positionY = from._state.positionY;
+            ball._state.positionZ = from._state.positionZ;
+            ball._state.velocityX = 0;
+            ball._state.velocityY = 0;
+            ball._state.velocityZ = 0;
+            ball.tickCount = (uint)update.tickcount;
+            ball.ballStatus = 0;
+
+            //Send ball coord updates to update spatial data
+            _balls.updateObjState(ball, ball._state);
+
+            from._gotBallID = ball._id;
+            ball.deadBall = false;
+            //Route it
+            Helpers.Object_Ball(from._arena.Players, ball);
         }
         #endregion
 
@@ -461,12 +499,51 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player requests to drop a ball
         /// </summary>
-        public override void handleBallDrop(Player from, Ball update)
+        public override void handleBallDrop(Player from, CS_BallDrop update)
         {
-            //Forward to our script
-            if (!exists("Player.BallDrop") || (bool)callsync("Player.BallDrop", false, from, update))
+            if (from == null)
             {
+                Log.write(TLog.Warning, "handleBallPickup(): Called with null player.");
+                return;
             }
+
+            Ball ball = _balls.getObjByID(update.ballID);
+            if (ball == null)
+            {
+                Log.write(TLog.Warning, "Player {0} tried dropping an invalid ball id.", from);
+                return;
+            }
+
+            //Forward to our script
+            if (exists("Player.BallDrop") && !(bool)callsync("Player.BallDrop", false, from, ball, update))
+                return;
+
+            //Drop the ball
+            ball._lastOwner = from;
+            ball._owner = null;
+
+            int now = Environment.TickCount;
+            int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+            ball._state.lastUpdate = updateTick;
+            ball._state.lastUpdateServer = now;
+
+            ball._state.positionX = update.positionX;
+            ball._state.positionY = update.positionY;
+            ball._state.positionZ = update.positionZ;
+            ball._state.velocityX = update.velocityX;
+            ball._state.velocityY = update.velocityY;
+            ball._state.velocityZ = update.velocityZ;
+            ball.tickCount = (uint)update.tickcount;
+            ball.ballFriction = update.ballFriction;
+            ball.ballStatus = 1;
+
+            //Send ball coord updates to update spatial data
+            _balls.updateObjState(ball, ball._state);
+
+            from._gotBallID = 999;
+            ball.deadBall = false;
+            //Route it
+            Helpers.Object_Ball(from._arena.Players, ball);
         }
         #endregion
 
@@ -474,19 +551,28 @@ namespace InfServer.Game
         /// <summary>
         /// Triggered when a player has scored a goal
         /// </summary>
-        public override void handlePlayerGoal(Player from, Ball update)
-        {   
-            //Forward to our script
-            if (exists("Player.Goal") && !(bool)callsync("Player.Goal", false, from, update))
+        public override void handlePlayerGoal(Player from, CS_GoalScored update)
+        {
+            if (from == null)
             {
+                Log.write(TLog.Warning, "handlePlayerGoal(): Called with null player.");
                 return;
             }
 
-            //Reset our variables then spawn a new ball
-            update._owner = null;
-            update._lastOwner = null;
-            update._state.carrier = null;
-            Ball.Spawn_Ball(from, update);
+            Ball ball = _balls.getObjByID(update.ballID);
+            if (ball == null)
+            {
+                Log.write(TLog.Warning, "Player {0} tried dropping an invalid ball id.", from);
+                return;
+            }
+
+            //Forward to our script
+            if (exists("Player.Goal") && !(bool)callsync("Player.Goal", false, from, ball, update))
+                return;
+
+            //Reset our variable then spawn a new ball
+            from._gotBallID = 999;
+            Ball.Spawn_Ball(from, ball);
         }
         #endregion
 
@@ -841,7 +927,8 @@ namespace InfServer.Game
                 { 
                     if (!_scriptType.Equals("GameType_SoccerBrawl", StringComparison.OrdinalIgnoreCase)
                     && !_scriptType.Equals("GameType_Gravball", StringComparison.OrdinalIgnoreCase) 
-                    && !_scriptType.Equals("GameType_BasketBall", StringComparison.OrdinalIgnoreCase)) //Cheat fix for the queue system(Reversed this back so the queue system can work - Mizz)
+                    && !_scriptType.Equals("GameType_BasketBall", StringComparison.OrdinalIgnoreCase)
+                    && !_scriptType.Equals("GameType_BoomBall", StringComparison.OrdinalIgnoreCase)) //Cheat fix for the queue system(Reversed this back so the queue system can work - Mizz)
 				    {	//Yep, tell him why he can't get in
 					    from.sendMessage(255, "Game is full.");
 					    return;
