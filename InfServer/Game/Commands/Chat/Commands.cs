@@ -200,7 +200,7 @@ namespace InfServer.Game.Commands.Chat
         public static void buy(Player player, Player recipient, string payload, int bong)
         {
             //Can you buy from this location?
-            if ((player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled == 1) || (player._team.IsSpec && player._server._zoneConfig.arena.spectatorStore))
+            if ((player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled) || (player._team.IsSpec && player._server._zoneConfig.arena.spectatorStore))
             {
                 char[] splitArr = { ',' };
                 string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
@@ -346,7 +346,7 @@ namespace InfServer.Game.Commands.Chat
         public static void sell(Player player, Player recipient, string payload, int bong)
         {
             //Can you sell from this location?
-            if ((player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled == 1) || (player._team.IsSpec && player._server._zoneConfig.arena.spectatorStore))
+            if ((player._arena.getTerrain(player._state.positionX, player._state.positionY).storeEnabled) || (player._team.IsSpec && player._server._zoneConfig.arena.spectatorStore))
             {
                 char[] splitArr = { ',' };
                 string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
@@ -1277,7 +1277,7 @@ namespace InfServer.Game.Commands.Chat
                 return;
 
             //Valid terrain?
-            if (player._arena.getTerrain(player._state.positionX, player._state.positionY).teamChangeEnabled != 1 && player.IsSpectator == false)
+            if (player._arena.getTerrain(player._state.positionX, player._state.positionY).teamChangeEnabled && player.IsSpectator == false)
             {
                 player.sendMessage(-1, "Can't change team from this terrain");
                 return;

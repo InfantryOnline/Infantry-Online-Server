@@ -7,18 +7,18 @@ namespace Assets
         public class Terrain
         {
             public string message;
-            public int stripShadows;
-            public int safety;
-            public int storeEnabled;
-            public int skillEnabled;
-            public int trickleKill;
-            public int teamChangeEnabled;
+            public bool stripShadows;
+            public bool safety;
+            public bool storeEnabled;
+            public bool skillEnabled;
+            public bool trickleKill;
+            public bool teamChangeEnabled;
             public int energyRate;
             public int healthRate;
             public int repairRate;
             public int prizeEnableMode;
-            public int repelVehicle;
-            public int repelWeapons;
+            public bool repelVehicle;
+            public bool repelWeapons;
             public int prizeExpire;
             public int percentOfCashReward;
             public int percentOfExperienceReward;
@@ -27,38 +27,38 @@ namespace Assets
             public int bountyAutoMax;
             public int bountyAutoRate;
             public int goalFrequency;
-            public int soccerEnabled;
+            public bool soccerEnabled;
             public int fontColor;
-            public int starfield;
+            public bool starfield;
             public int goalPoints;
             public string eventString;
-            public int deleteLiveWeapons;
+            public bool deleteLiveWeapons;
             public int prizeBountyMultiplier;
             public int flagTimerSpeed;
-            public int allowChangeArena;
-            public int allowGoToSpec;
+            public bool allowChangeArena;
+            public bool allowGoToSpec;
             public int quitDelaySecs;
             public int goToSpecDelaySecs;
             public int changeArenaDelaySecs;
-            public int allowQuitting;
+            public bool allowQuitting;
 
             public Terrain(ref Dictionary<string, Dictionary<string, string>> stringTree, int i)
             {
                 Parser.values = stringTree["Terrain" + i];
 
                 message = Parser.GetString("Message");
-                stripShadows = Parser.GetInt("StripShadows");
-                safety = Parser.GetInt("Safety");
-                storeEnabled = Parser.GetInt("StoreEnabled");
-                skillEnabled = Parser.GetInt("SkillEnabled");
-                trickleKill = Parser.GetInt("TrickleKill");
-                teamChangeEnabled = Parser.GetInt("TeamChangeEnabled");
+                stripShadows = Parser.GetBool("StripShadows");
+                safety = Parser.GetBool("Safety");
+                storeEnabled = Parser.GetBool("StoreEnabled");
+                skillEnabled = Parser.GetBool("SkillEnabled");
+                trickleKill = Parser.GetBool("TrickleKill");
+                teamChangeEnabled = Parser.GetBool("TeamChangeEnabled");
                 energyRate = Parser.GetInt("EnergyRate");
                 healthRate = Parser.GetInt("HealthRate");
                 repairRate = Parser.GetInt("RepairRate");
                 prizeEnableMode = Parser.GetInt("PrizeEnableMode");
-                repelVehicle = Parser.GetInt("RepelVehicle");
-                repelWeapons = Parser.GetInt("RepelWeapons");
+                repelVehicle = Parser.GetBool("RepelVehicle");
+                repelWeapons = Parser.GetBool("RepelWeapons");
                 prizeExpire = Parser.GetInt("PrizeExpire");
                 percentOfCashReward = Parser.GetInt("PercentOfCashReward");
                 percentOfExperienceReward = Parser.GetInt("PercentOfExperienceReward");
@@ -67,20 +67,20 @@ namespace Assets
                 bountyAutoMax = Parser.GetInt("BountyAutoMax");
                 bountyAutoRate = Parser.GetInt("BountyAutoRate");
                 goalFrequency = Parser.GetInt("GoalFrequency");
-                soccerEnabled = Parser.GetInt("SoccerEnabled");
+                soccerEnabled = Parser.GetBool("SoccerEnabled");
                 fontColor = Parser.GetInt("FontColor");
-                starfield = Parser.GetInt("Starfield");
+                starfield = Parser.GetBool("Starfield");
                 goalPoints = Parser.GetInt("GoalPoints");
                 eventString = Parser.GetString("EventString");
-                deleteLiveWeapons = Parser.GetInt("DeleteLiveWeapons");
+                deleteLiveWeapons = Parser.GetBool("DeleteLiveWeapons");
                 prizeBountyMultiplier = Parser.GetInt("PrizeBountyMultiplier");
                 flagTimerSpeed = Parser.GetInt("FlagTimerSpeed");
-                allowChangeArena = Parser.GetInt("AllowChangeArena");
-                allowGoToSpec = Parser.GetInt("AllowGoToSpec");
+                allowChangeArena = Parser.GetBool("AllowChangeArena");
+                allowGoToSpec = Parser.GetBool("AllowGoToSpec");
                 quitDelaySecs = Parser.GetInt("QuitDelaySecs");
                 goToSpecDelaySecs = Parser.GetInt("GoToSpecDelaySecs");
                 changeArenaDelaySecs = Parser.GetInt("ChangeArenaDelaySecs");
-                allowQuitting = Parser.GetInt("AllowQuitting");
+                allowQuitting = Parser.GetBool("AllowQuitting");
             }
         }
     }

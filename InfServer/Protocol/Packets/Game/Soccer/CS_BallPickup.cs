@@ -15,6 +15,7 @@ namespace InfServer.Protocol
         ///////////////////////////////////////////////////
         public UInt16 ballID;
         public Int32 tickcount;
+        public Int16 test;
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallPickup;
         static public event Action<CS_BallPickup, Player> Handlers;
@@ -58,8 +59,10 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             //6 bytes = max read for this
-            ballID = _contentReader.ReadUInt16();// this is 100% the ballID
+            ballID = _contentReader.ReadByte();// this is 100% the ballID
+            test = _contentReader.ReadByte();
             tickcount = _contentReader.ReadInt32();
+            //Log.write(TLog.Warning, "Ball = {0}, test = {1}", ballID.ToString(), test.ToString());
         }
 
         /// <summary>

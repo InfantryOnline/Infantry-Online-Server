@@ -10,8 +10,6 @@ using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Game;
 
-using MySql.Data.MySqlClient;
-
 namespace InfServer.Data
 {
     // Database Class

@@ -226,14 +226,7 @@ namespace InfServer.Script.GameType_BasketBall
                 p._gotBallID = 999; //No ball in possession
 
             //Spawn our active balls based on our cfg
-            short ballCount = (short)_config.soccer.ballCount;
-            for (short ballID = 0; ballID < ballCount; ballID++)
-            {
-                Ball newball = _arena.newBall(ballID);
-
-                //Make everyone aware
-                Ball.Spawn_Ball(null, newball);
-            }
+            SpawnBall();
 
             //Set default ticker
             string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
@@ -598,6 +591,43 @@ namespace InfServer.Script.GameType_BasketBall
         #endregion
 
         #region Ball Events
+        /// <summary>
+        /// Spawns our balls based on our cfg
+        /// Note: we will always spawn a ball even if ballcount = 0
+        /// </summary>
+        private void SpawnBall()
+        {
+            int ballCount = _config.soccer.ballCount;
+            Ball ball = null;
+
+            //Check our cfg
+            if (_config.soccer.playersPerBall == 0)
+            {   //Just spawn all of them
+                for (int id = 0; id <= ballCount; id++)
+                {
+                    ball = _arena.newBall((short)id);
+                    //Make everyone aware
+                    Ball.Spawn_Ball(null, ball);
+                }
+            }
+            else
+            {
+                int playersPerBall = _config.soccer.playersPerBall;
+                //Spawn all balls based on what our cfg wants
+                for (int id = 0; id <= _arena.PlayersIngame.Count(); id++)
+                {
+                    if ((id % playersPerBall) == 0)
+                    {
+                        ball = _arena.newBall((short)id);
+                        //Make everyone aware
+                        Ball.Spawn_Ball(null, ball);
+                        if (id == ballCount || id == Arena.maxBalls)
+                            break;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
@@ -1175,7 +1205,7 @@ namespace InfServer.Script.GameType_BasketBall
                     return;
 
                 int now = Environment.TickCount;
-                if (!ball.deadBall && (now - ball._state.lastUpdate) > (_stuckBallInterval * 1000))
+                if (!ball.deadBall && (now - ball._state.lastUpdateServer) > (_stuckBallInterval * 1000))
                 {
                     ball.deadBall = true;
                     //Update our time
@@ -1219,7 +1249,7 @@ namespace InfServer.Script.GameType_BasketBall
 
             //Is this a dead ball?
             int now = Environment.TickCount;
-            if ((now - ball._state.lastUpdate) > (_config.soccer.deadBallTimer * 1000))
+            if ((now - ball._state.lastUpdateServer) > (_config.soccer.deadBallTimer * 1000))
             {
                 //Are we still moving with a player or was spawned in?
                 if (ball._state.velocityX == 0 && ball._state.velocityY == 0)

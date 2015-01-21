@@ -883,6 +883,11 @@ namespace InfServer.Game
 					else
 						Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedByTeam);
 
+                    //Reset flags to unowned state?
+                    if (from._arena.getTerrain(from._state.positionX, from._state.positionY).safety
+                        && !_server._zoneConfig.flag.allowSafety)
+                        flagResetPlayer(from, true);
+
 					//Reset his bounty
 					from.Bounty = _server._zoneConfig.bounty.start;
                     //Update his client to reflect bty change

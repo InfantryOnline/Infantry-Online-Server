@@ -76,6 +76,7 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         public enum Events
         {
+            ThirtyK,
             RedBlue,
             GreenYellow,
             WhiteBlack
@@ -215,65 +216,6 @@ namespace InfServer.Script.GameType_USL
 
             updateTickers();
             return true;
-        }
-
-        /// <summary>
-        /// Updates our tickers
-        /// </summary>
-        private void updateTickers()
-        {
-            //Team scores
-            IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
-            Team A = activeTeams.ElementAt(0) != null ? activeTeams.ElementAt(0) : team1;
-            Team B = team2;
-            if (activeTeams.Count() > 1)
-                B = activeTeams.ElementAt(1) != null ? activeTeams.ElementAt(1) : team2;
-            string format = String.Format("{0}={1} - {2}={3}", A._name, A._currentGameKills, B._name, B._currentGameKills);
-            _arena.setTicker(1, 2, 0, format);
-
-            //Personal Scores
-            _arena.setTicker(2, 1, 0, delegate(Player p)
-            {
-                //Update their ticker
-                if (_savedPlayerStats.ContainsKey(p._alias))
-                    return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
-                        p._state.health,
-                        _savedPlayerStats[p._alias].kills,
-                        _savedPlayerStats[p._alias].deaths);
-                return "";
-            });
-
-            //1st and 2nd place
-            List<Player> ranked = new List<Player>();
-            foreach (Player p in _arena.Players)
-            {
-                if (p == null)
-                    continue;
-                if (_savedPlayerStats.ContainsKey(p._alias))
-                    ranked.Add(p);
-            }
-
-            IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
-            int idx = 3; format = "";
-            foreach (Player rankers in ranking)
-            {
-                if (idx-- == 0)
-                    break;
-
-                switch (idx)
-                {
-                    case 2:
-                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
-                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
-                        break;
-                    case 1:
-                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
-                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
-                        break;
-                }
-            }
-            if (!_arena.recycling)
-                _arena.setTicker(2, 0, 0, format);
         }
 
         /// <summary>
@@ -1169,6 +1111,12 @@ namespace InfServer.Script.GameType_USL
                     if (s.Equals(payload, StringComparison.OrdinalIgnoreCase))
                         if (Enum.TryParse(s, out eType))
                         {
+                            if (eType == Events.ThirtyK && ( (!player._developer && player.PermissionLevel < Data.PlayerPermission.Mod) 
+                                || player.PermissionLevelLocal >= Data.PlayerPermission.SMod) )
+                            {
+                                player.sendMessage(-1, "Only Mods/Zone Admins can set the 30k event.");
+                                return false;
+                            }
                             EventType = (int)eType;
                             Event = true;
                             _arena.sendArenaMessage(String.Format("Event {0} is now ON!", s));
@@ -1184,11 +1132,66 @@ namespace InfServer.Script.GameType_USL
         private int getRating(Team team1, Team team2)
         {
             int rating = 0;
-
-
-
             return rating;
+        }
 
+        /// <summary>
+        /// Updates our tickers
+        /// </summary>
+        private void updateTickers()
+        {
+            //Team scores
+            IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
+            Team A = activeTeams.ElementAt(0) != null ? activeTeams.ElementAt(0) : team1;
+            Team B = team2;
+            if (activeTeams.Count() > 1)
+                B = activeTeams.ElementAt(1) != null ? activeTeams.ElementAt(1) : team2;
+            string format = String.Format("{0}={1} - {2}={3}", A._name, A._currentGameKills, B._name, B._currentGameKills);
+            _arena.setTicker(1, 2, 0, format);
+
+            //Personal Scores
+            _arena.setTicker(2, 1, 0, delegate(Player p)
+            {
+                //Update their ticker
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                    return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
+                        p._state.health,
+                        _savedPlayerStats[p._alias].kills,
+                        _savedPlayerStats[p._alias].deaths);
+                return "";
+            });
+
+            //1st and 2nd place
+            List<Player> ranked = new List<Player>();
+            foreach (Player p in _arena.Players)
+            {
+                if (p == null)
+                    continue;
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                    ranked.Add(p);
+            }
+
+            IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
+            int idx = 3; format = "";
+            foreach (Player rankers in ranking)
+            {
+                if (idx-- == 0)
+                    break;
+
+                switch (idx)
+                {
+                    case 2:
+                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
+                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
+                        break;
+                    case 1:
+                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
+                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
+                        break;
+                }
+            }
+            if (!_arena.recycling)
+                _arena.setTicker(2, 0, 0, format);
         }
 
         /// <summary>

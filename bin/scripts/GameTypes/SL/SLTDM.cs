@@ -389,7 +389,14 @@ namespace InfServer.Script.GameType_SLTDM
 
             from.sendMessage(0, "#Individual Statistics Breakdown");
             idx = 3;        //Only display top three players
-            var rankedPlayerGroups = _arena.Players.Select(player => new 
+            List<Player> plist = new List<Player>();
+            foreach (Player p in _arena.Players)
+            {
+                if(p == null)
+                    continue;
+                plist.Add(p);
+            }
+            var rankedPlayerGroups = plist.Select(player => new 
             { 
                 Alias = player._alias, 
                 Kills = _savedPlayerStats[player._alias].kills, 

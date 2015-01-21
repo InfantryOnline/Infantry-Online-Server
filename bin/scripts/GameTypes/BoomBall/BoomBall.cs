@@ -226,38 +226,7 @@ namespace InfServer.Script.GameType_BoomBall
                 p._gotBallID = 999; //No ball in possession
 
             //Spawn our active balls based on cfg
-            int ballCount = _config.soccer.ballCount;
-            if (_config.soccer.playersPerBall == 0)
-            {   //Just spawn all of them
-                for (short id = 0; id < ballCount; id++)
-                {
-                    Ball newBall = _arena.newBall(id);
-
-                    //Make everyone aware of the ball
-                    Ball.Spawn_Ball(null, newBall);
-                }
-            }
-            else
-            {
-                if (ballCount > 0)
-                {
-                    short ID = 0;
-                    //Lets spawn the first one
-                    Ball newBall = _arena.newBall(ID);
-                    Ball.Spawn_Ball(null, newBall);
-                    //Iterate now
-                    for (int i = 0; i < _arena.PlayersIngame.Count(); i++)
-                    {
-                        if ((i % _config.soccer.playersPerBall) == 0)
-                        {
-                            Ball ball = _arena.newBall(++ID);
-                            Ball.Spawn_Ball(null, ball);
-                            if (ID == ballCount || ID == Arena.maxBalls)
-                                break;
-                        }
-                    }
-                }
-            }
+            SpawnBall();
 
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
@@ -566,6 +535,43 @@ namespace InfServer.Script.GameType_BoomBall
         #endregion
 
         #region Ball Events
+        /// <summary>
+        /// Spawns our balls based on our cfg
+        /// Note: we will always spawn a ball even if ballcount = 0
+        /// </summary>
+        private void SpawnBall()
+        {
+            int ballCount = _config.soccer.ballCount;
+            Ball ball = null;
+
+            //Check our cfg
+            if (_config.soccer.playersPerBall == 0)
+            {   //Just spawn all of them
+                for (int id = 0; id <= ballCount; id++)
+                {
+                    ball = _arena.newBall((short)id);
+                    //Make everyone aware
+                    Ball.Spawn_Ball(null, ball);
+                }
+            }
+            else
+            {
+                int playersPerBall = _config.soccer.playersPerBall;
+                //Spawn all balls based on what our cfg wants
+                for (int id = 0; id <= _arena.PlayersIngame.Count(); id++)
+                {
+                    if ((id % playersPerBall) == 0)
+                    {
+                        ball = _arena.newBall((short)id);
+                        //Make everyone aware
+                        Ball.Spawn_Ball(null, ball);
+                        if (id == ballCount || id == Arena.maxBalls)
+                            break;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
@@ -1092,7 +1098,7 @@ namespace InfServer.Script.GameType_BoomBall
                     return;
 
                 int now = Environment.TickCount;
-                if (!ball.deadBall && (now - ball._state.lastUpdate) > (_stuckBallInterval * 1000))
+                if (!ball.deadBall && (now - ball._state.lastUpdateServer) > (_stuckBallInterval * 1000))
                 {
                     ball.deadBall = true;
                     //Update our time
@@ -1135,7 +1141,7 @@ namespace InfServer.Script.GameType_BoomBall
                 return;
 
             int now = Environment.TickCount;
-            if ((now - ball._state.lastUpdate) > (_config.soccer.deadBallTimer * 1000))
+            if ((now - ball._state.lastUpdateServer) > (_config.soccer.deadBallTimer * 1000))
             {
                 //Yes, are we still moving with the player or possibly spawned in?
                 if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
@@ -1150,7 +1156,10 @@ namespace InfServer.Script.GameType_BoomBall
                 {
                     //Double check to see if someone used *getball
                     if (ball._owner != null)
+                    {
+                        Log.write(TLog.Warning, "Owner = {0}", ball._owner._alias);
                         return;
+                    }
 
                     //Respawn it
                     Ball.Spawn_Ball(null, ball);

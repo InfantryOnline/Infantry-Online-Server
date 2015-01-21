@@ -824,7 +824,6 @@ namespace InfServer.Game
             hs._tickLastSuccessAttempt = Environment.TickCount;
 
             //Announce it
-            //TODO: change to trigger message
             if (hs.Hide.HideData.HideAnnounce.Length > 0)
                 sendArenaMessage(hs.Hide.HideData.HideAnnounce);
 
@@ -1080,10 +1079,6 @@ namespace InfServer.Game
 					fs.team = fs.carrier._team;
 				}
 
-				fs.posX = player._state.positionX;
-				fs.posY = player._state.positionY;
-				Helpers.randomPositionInArea(this, fs.flag.FlagData.DropRadius, ref fs.posX, ref fs.posY);
-
 				fs.lastOperation = Environment.TickCount;				
 			}
 
@@ -1100,10 +1095,19 @@ namespace InfServer.Game
 			Helpers.Object_Flags(Players, carried);
 		}
 
+        /// <summary>
+        /// Resets all the flags the player is carrying to their original state
+        /// </summary>
+        public void flagResetPlayer(Player player)
+        {
+            //Redirect
+            flagResetPlayer(player, false);
+        }
+
 		/// <summary>
-		/// Resets all the flags the player is carrying to their original state
+		/// Resets all the flags the player is carrying to their unowned state
 		/// </summary>
-		public void flagResetPlayer(Player player)
+		public void flagResetPlayer(Player player, bool unowned)
 		{	//Get the list of relevant flag states
 			List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
 			if (carried.Count == 0)
@@ -1113,7 +1117,13 @@ namespace InfServer.Game
 			foreach (FlagState fs in carried)
 			{
 				fs.lastOperation = Environment.TickCount;
-				fs.team = fs.oldTeam;
+                if (unowned)
+                {
+                    fs.team = null;
+                    fs.oldTeam = null;
+                }
+                else
+				    fs.team = fs.oldTeam;
 				fs.carrier = null;
 
 				//Position will have been set when the player picked the flag up

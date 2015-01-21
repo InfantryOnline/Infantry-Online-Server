@@ -67,7 +67,7 @@ namespace InfServer.Logic
 
                 //Check the windows
                  foreach (string element in pkt.windows)
-                     if (badPrograms.Contains(Logic_Text.RemoveIllegalCharacters(element).ToLower()) && player._permissionStatic != Data.PlayerPermission.Sysop)
+                    if (badPrograms.Contains(Logic_Text.RemoveIllegalCharacters(element).ToLower()) && player._permissionStatic != Data.PlayerPermission.Sysop)
                     {//They have a cheat running or debugger, kick them out and inform mods
 
                         if (!player._server.IsStandalone)

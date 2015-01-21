@@ -49,7 +49,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Deserialize()
 		{
-			_contentReader.ReadInt16();
+            _contentReader.ReadInt16();
 
 			//Read in the main string
 			processes = new List<string>();

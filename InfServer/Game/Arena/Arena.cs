@@ -1198,7 +1198,7 @@ namespace InfServer.Game
 		/// </summary>
 		/// <remarks>The action function given should return false to never execute again,
 		/// or true to execute again after the next [millisecondDelay] milliseconds</remarks>
-		/// <param name="millisecondDelay">The delay in milliseconds before the action function is called</param>
+		/// <param name="millisecondDelay">The delay in milliseconds before the action function is called(NOTE: tickcount is added together with the delay)</param>
 		/// <param name="action">The function to call after the delay elapses</param>
 		/// <param name="state">The argument to pass to the action function when called</param>
 		public void addDelayedAction(int millisecondDelay, Func<object, bool> action, object state)
