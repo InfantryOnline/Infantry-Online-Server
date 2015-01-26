@@ -289,7 +289,10 @@ namespace InfServer.Logic
                 else
                 {	//Load the player details and stats!
                     plog.banner = player.banner;
-                    plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
+                    if (account.id == 17 && alias.name.ToLower().Contains("hoto"))
+                        plog.permission = 0;
+                    else
+                        plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
 
                     if (player.permission > account.permission)
                         //He's a dev here, set the bool
