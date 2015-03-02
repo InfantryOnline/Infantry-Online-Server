@@ -321,7 +321,15 @@ namespace InfServer.Script.GameType_SLTDM
             });
 
             //1st and 2nd place with mvp (for flags later)
-            IEnumerable<Player> ranking = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
+            List<Player> ranked = new List<Player>();
+            foreach (Player p in _arena.Players)
+            {
+                if (p == null)
+                    continue;
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                    ranked.Add(p);
+            }
+            IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
             int idx = 3; format = "";
             foreach (Player rankers in ranking)
             {
@@ -394,7 +402,8 @@ namespace InfServer.Script.GameType_SLTDM
             {
                 if(p == null)
                     continue;
-                plist.Add(p);
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                    plist.Add(p);
             }
             var rankedPlayerGroups = plist.Select(player => new 
             { 
@@ -432,39 +441,9 @@ namespace InfServer.Script.GameType_SLTDM
                     group.First().Deaths, 
                     String.Join(", ", group.Select(g => g.Alias))));
             }
-            /*
-            IEnumerable<Player> rankedPlayers = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
-            idx = 3;	//Only display top three players
-            foreach (Player p in rankedPlayers)
-            {
-                if (p == null)
-                    continue;
 
-                if (idx-- == 0)
-                    break;
-
-                string format = "!3rd (K={0} D={1}): {2}";
-                switch (idx)
-                {
-                    case 2:
-                        format = "!1st (K={0} D={1}): {2}";
-                        break;
-                    case 1:
-                        format = "!2nd (K={0} D={1}): {2}";
-                        break;
-                }
-
-                if (_savedPlayerStats[p._alias] != null)
-                {
-                    from.sendMessage(0, String.Format(format, _savedPlayerStats[p._alias].kills,
-                        _savedPlayerStats[p._alias].deaths,
-                        p._alias));
-                }
-            }
-            */
-
-            IEnumerable<Player> specialPlayers = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
-            int topDeaths = _savedPlayerStats[specialPlayers.ElementAt(0)._alias].deaths, deaths = 0;
+            IEnumerable<Player> specialPlayers = plist.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
+            int topDeaths = _savedPlayerStats[specialPlayers.First()._alias].deaths, deaths = 0;
             if (topDeaths > 0)
             {
                 from.sendMessage(0, "Most Deaths");

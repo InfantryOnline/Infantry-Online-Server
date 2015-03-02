@@ -34,7 +34,6 @@ namespace InfServer.Logic
 
 				reply.result = SC_Auth<Zone>.LoginResult.Failure;
 				reply.message = "Invalid zone.";
-
 				client.sendReliable(reply);
 				return;
 			}
@@ -357,6 +356,8 @@ namespace InfServer.Logic
                     plog.bSuccess = false;
                     plog.loginMessage = "Unable to create new player / alias, please try again.";
                     Log.write(TLog.Exception, "Exception adding player or alias to DB: {0}", e);
+                    zone._client.send(plog);
+                    return;
                 }
 
                 //Add them

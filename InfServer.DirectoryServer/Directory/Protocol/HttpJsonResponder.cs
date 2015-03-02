@@ -38,7 +38,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                                    {
                                        httpListener.Start();
 
-                                       while (true)
+                                       while (httpListener.IsListening)
                                        {
                                            HandleRequest(httpListener.GetContext());
                                        }

@@ -397,11 +397,12 @@ namespace InfServer.Game
             }
 
 			//Do we have any players left?
-			if (TotalPlayerCount == 0)
-				//Nope. It's closing time.
-				close();
-			else
-				//Notify everyone else of his departure
+            if (TotalPlayerCount == 0)
+                //Nope. It's closing time.
+                close();
+            else
+            {
+                //Notify everyone else of his departure
                 if (!player.IsStealth)
                     Helpers.Object_PlayerLeave(Players, player);
                 else
@@ -410,6 +411,7 @@ namespace InfServer.Game
                         if (person.PermissionLevel >= player.PermissionLevel)
                             Helpers.Object_PlayerLeave(person, player);
                 }
+            }
 		}
 
 		/// <summary>

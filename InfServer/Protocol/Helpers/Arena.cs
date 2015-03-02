@@ -49,12 +49,12 @@ namespace InfServer.Protocol
 				msg.tickerMessage = "*" + ticker.idx + ticker.message;
 				msg.timer = (uint)((ticker.timer - Environment.TickCount) / 10);
 
-				foreach (Player player in p)
+				foreach (Player player in p.ToList())
 					player._client.sendReliable(msg);
 			}
 			else
 			{
-				foreach (Player player in p)
+				foreach (Player player in p.ToList())
 				{
 					String tickerMessage = ticker.customTicker(player);
 					if (tickerMessage == null)
@@ -82,7 +82,7 @@ namespace InfServer.Protocol
 			msg.tickerMessage = tickerMessage;
 			msg.timer = (uint)timer;
 
-			foreach (Player player in p)
+			foreach (Player player in p.ToList())
 				if (player != except)
 					player._client.sendReliable(msg);
 		}
@@ -98,7 +98,7 @@ namespace InfServer.Protocol
 			msg.tickerMessage = tickerMessage;
 			msg.timer = (uint)timer;
 
-			foreach (Player player in p)
+			foreach (Player player in p.ToList())
 				if (player._team != except)
 					player._client.sendReliable(msg);
 		}

@@ -61,7 +61,7 @@ namespace InfServer.Game
 			}
 
 			/// <summary>		
-			/// Returns the list of flag objects
+			/// Returns the list of hide objects
 			/// </summary>
 			public IEnumerable<LioInfo.Hide> Hides
 			{

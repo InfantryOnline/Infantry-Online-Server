@@ -236,13 +236,13 @@ namespace InfServer.Logic
                                 if (recipient != null)
                                     recipient.sendPlayerChat(player, pkt);
                             }
-
                         }
                         break;
 
                     case Helpers.Chat_Type.Squad:
                         //Since squads are only zone-wide, we don't need to route it to the database,
                         //instead we route it to every player in every arena in the zone
+                        Log.write(pkt.recipient);
                         foreach (Arena a in player._server._arenas.Values)
                             foreach (Player p in a.Players)
                             {
@@ -251,6 +251,8 @@ namespace InfServer.Logic
                                 if (String.IsNullOrWhiteSpace(pkt.recipient))
                                     continue;
                                 if (!p._squad.Equals(pkt.recipient, StringComparison.OrdinalIgnoreCase))
+                                    continue;
+                                if (!player._squad.Equals(p._squad, StringComparison.OrdinalIgnoreCase))
                                     continue;
                                 p.sendPlayerChat(player, pkt);
                             }

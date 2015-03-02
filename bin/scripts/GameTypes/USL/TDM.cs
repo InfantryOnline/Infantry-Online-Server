@@ -40,12 +40,13 @@ namespace InfServer.Script.GameType_USL
         private int _minPlayers;				//The minimum amount of players
         private bool _overtime;                 //When the game goes into overtime, the stats still continue
         private int overtimeType = 0;           //Is this single, double or triple overtime?
-        private int LeagueSeason = 1;           //Which league season we are in?
+        private int LeagueSeason = 2;           //Which league season we are in?
 
         /// <summary>
         /// Current game player stats
         /// </summary>
         private Dictionary<string, PlayerStat> _savedPlayerStats;
+
         /// <summary>
         /// Only used when overtime is initialized, player stats migrate here
         /// </summary>
@@ -69,21 +70,36 @@ namespace InfServer.Script.GameType_USL
             public int assistPoints { get; set; }
             public int playSeconds { get; set; }
             public bool hasPlayed { get; set; }
+            public string classType { get; set; }
         }
 
+        //Special Game Events
+        public int EventType;
+        public int SpawnEventType;
+        public event Action EventOff;                   //Turns off all events when *event off is called
+        private bool Event = false;                     //Are we doing any special side events?
+        private bool SpawnEvent = false;                //Are we spawning 30k bty's?
+        private int spawnEventTimer;                    //Our midway mark to spawn 30k's
+        private int _eventTickerCheck;                  //When to poll our event timers
+        private Team A, B;                              //What teams own a 30ker
         /// <summary>
         /// Public event class
         /// </summary>
         public enum Events
         {
-            ThirtyK,
             RedBlue,
             GreenYellow,
-            WhiteBlack
+            WhiteBlack,
+            PinkPurple
         }
-
-        public int EventType;
-        public bool Event = false;                      //Are we doing any special side events?
+        /// <summary>
+        /// Spawn even class
+        /// </summary>
+        public enum SpawnEvents
+        {
+            SoloThirtyK,
+            TeamThirtyK,
+        }
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -99,7 +115,7 @@ namespace InfServer.Script.GameType_USL
             _arena.playtimeTickerIdx = 3; //Sets the global index for our ticker
             _minPlayers = _config.deathMatch.minimumPlayers;
             _savedPlayerStats = new Dictionary<string, PlayerStat>();
-
+            spawnEventTimer = 0;
             _overtime = false;
             overtimeType = 0;
 
@@ -121,12 +137,12 @@ namespace InfServer.Script.GameType_USL
             int playing = _arena.PlayerCount;
 
             //If game is running and we dont have enough players
-            if (_arena._bGameRunning && (playing < _minPlayers || (_arena.ActiveTeams.Count() == 1 && playing == _minPlayers)))
+            if (_arena._bGameRunning && playing < _minPlayers)
                 //Stop the game
                 _arena.gameEnd();
 
             //If were under min players, show the not enough players
-            if (playing < _minPlayers || (_arena.ActiveTeams.Count() == 1 && playing == _minPlayers))
+            if (playing < _minPlayers)
             {
                 _tickGameStarting = 0;
                 _arena.setTicker(1, 3, 0, "Not Enough Players");
@@ -157,6 +173,14 @@ namespace InfServer.Script.GameType_USL
                         }
                     );
             }
+
+            //Check event timers
+            if (_tickGameStart > 0 && SpawnEvent && spawnEventTimer > 0 && now - _eventTickerCheck >= 1000)
+            {
+                _eventTickerCheck = now;
+                if ((_config.deathMatch.timer % spawnEventTimer) == 0)
+                    SpawnEventItem();
+            }
             return true;
         }
 
@@ -170,14 +194,25 @@ namespace InfServer.Script.GameType_USL
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
 
-            team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
-            team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
+            //Was an event turned off?
+            if (EventOff != null)
+                //Reset teams
+                EventOff();
+            else
+            {
+                team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
+                team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
+            }
 
             bool isMatch = _arena._isMatch;
 
-            //If we were doing an event, reset it
+            //If we were doing an event and this is a match, reset it
             if (Event && isMatch)
                 Event = false;
+
+            //Are we doing any special spawned events?
+            if (Event && SpawnEvent)
+                SpawnEventItem();
 
             _savedPlayerStats.Clear();
             foreach (Player p in _arena.Players)
@@ -193,6 +228,11 @@ namespace InfServer.Script.GameType_USL
                 temp.deaths = 0;
                 temp.player = p;
                 temp.hasPlayed = p.IsSpectator ? false : true;
+                if (!p.IsSpectator)
+                {
+                    if (p._baseVehicle != null)
+                        temp.classType = p._baseVehicle._type.Name;
+                }
 
                 _savedPlayerStats.Add(p._alias, temp);
 
@@ -439,8 +479,8 @@ namespace InfServer.Script.GameType_USL
                     String.Join(", ", group.Select(g => g.Alias))));
             }
 
-            IEnumerable<Player> specialPlayers = _arena.Players.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
-            int topDeaths = _savedPlayerStats[specialPlayers.ElementAt(0)._alias].deaths, deaths = 0;
+            IEnumerable<Player> specialPlayers = rankers.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
+            int topDeaths = _savedPlayerStats[specialPlayers.First()._alias].deaths, deaths = 0;
             if (topDeaths > 0)
             {
                 from.sendMessage(0, "Most Deaths");
@@ -496,6 +536,24 @@ namespace InfServer.Script.GameType_USL
         }
 
         /// <summary>
+        /// Triggered when a player has died, by any means
+        /// </summary>
+        /// <remarks>killer may be null if it wasn't a player kill</remarks>
+        [Scripts.Event("Player.Death")]
+        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
+        {
+            if (Event && SpawnEvent && SpawnEventType == (int)SpawnEvents.TeamThirtyK 
+                && victim != null && victim._bounty >= 30000)
+            {
+                if (A != null)
+                    A = null;
+                else if (B != null)
+                    B = null;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Triggered when a player has spawned
         /// </summary>
         [Scripts.Event("Player.Spawn")]
@@ -537,8 +595,8 @@ namespace InfServer.Script.GameType_USL
         {
             if (_tickGameStart > 0)
             {
-                if (_savedPlayerStats.ContainsKey(killer._alias)
-                    && killer != null && killer._team != victim._team)
+                if (killer != null && _savedPlayerStats.ContainsKey(killer._alias)
+                    && killer._team != victim._team)
                     _savedPlayerStats[killer._alias].kills++;
             }
             return true;
@@ -566,6 +624,8 @@ namespace InfServer.Script.GameType_USL
             }
             _savedPlayerStats[player._alias].teamname = player._team._name;
             _savedPlayerStats[player._alias].hasPlayed = player.IsSpectator ? false : true;
+            if (player._baseVehicle != null)
+                _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
             if (_arena._isMatch && !player.IsSpectator)
                 //Lets make sure to turn banner spamming off
@@ -593,6 +653,8 @@ namespace InfServer.Script.GameType_USL
                 _savedPlayerStats.Add(player._alias, temp);
             }
             _savedPlayerStats[player._alias].hasPlayed = true;
+            if (player._baseVehicle != null)
+                _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
             if (_arena._isMatch && !player.IsSpectator)
                 //Lets make sure to turn banner spamming off
@@ -684,6 +746,33 @@ namespace InfServer.Script.GameType_USL
                         player._lastMovement = Environment.TickCount;
                         //Returning false so server wont repick us
                         return false;
+
+                    case Events.PinkPurple:
+                        //Lets get team stuff
+                        Team pink = _arena.getTeamByName("Pink");
+                        Team purple = _arena.getTeamByName("Purple");
+
+                        //First do sanity checks
+                        if (pink == null || purple == null)
+                            break;
+
+                        //Are they the first on the teams?
+                        if (pink.ActivePlayerCount == 0 || purple.ActivePlayerCount == 0 || pink.ActivePlayerCount == purple.ActivePlayerCount)
+                        {
+                            //Great, use it
+                            if (pink.ActivePlayerCount == purple.ActivePlayerCount)
+                                player.unspec(pink);
+                            else
+                                player.unspec(pink.ActivePlayerCount == 0 ? pink : purple);
+                            player._lastMovement = Environment.TickCount;
+                            //We are returning false so server wont repick us
+                            return false;
+                        }
+                        //Nope, lets do some math
+                        player.unspec(pink.ActivePlayerCount > purple.ActivePlayerCount ? purple : pink);
+                        player._lastMovement = Environment.TickCount;
+                        //Returning false so server wont repick us
+                        return false;
                 }
             }
             return true;
@@ -724,6 +813,8 @@ namespace InfServer.Script.GameType_USL
                     _savedPlayerStats[player._alias].playSeconds = _tickGameStart > 0 ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
                     _savedPlayerStats[player._alias].points = _tickGameStart > 0 ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
                     _savedPlayerStats[player._alias].assistPoints = _tickGameStart > 0 ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                    if (player._baseVehicle != null)
+                        _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
                 }
             }
         }
@@ -741,8 +832,51 @@ namespace InfServer.Script.GameType_USL
                     _savedPlayerStats[player._alias].playSeconds = _tickGameStart > 0 ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
                     _savedPlayerStats[player._alias].points = _tickGameStart > 0 ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
                     _savedPlayerStats[player._alias].assistPoints = _tickGameStart > 0 ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                    if (player._baseVehicle != null)
+                        _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
                 }
             }
+        }
+
+        /// <summary>
+        /// Called when someone tries to pick up an item
+        /// </summary>
+        [Scripts.Event("Player.ItemPickup")]
+        public bool playerItemPickup(Player player, Arena.ItemDrop drop, ushort quantity)
+        {
+            //Are we 30k eventing?
+            if (SpawnEvent && SpawnEventType == (int)SpawnEvents.TeamThirtyK)
+            {
+                if (drop.item.name.Equals("Bty"))
+                {
+                    foreach (Player p in player._team.ActivePlayers)
+                    {
+                        if (p._bounty < 30000)
+                            continue;
+                        //Is this player on the same team as a btyer?
+                        if ((A != null && p._team == A) || (B != null && p._team == B))
+                            //Player is, reject the pickup
+                            return false;
+                    }
+
+                    if (A == null)
+                        A = player._team;
+                    else
+                        B = player._team;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Called when a player successfully changes their class
+        /// </summary>
+        [Scripts.Event("Shop.SkillPurchase")]
+        public void playerSkillPurchase(Player player, SkillInfo skill)
+        {
+            if (_arena._isMatch && !_overtime)
+                if (_savedPlayerStats.ContainsKey(player._alias) && player._baseVehicle != null)
+                    _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
         }
 
         /// <summary>
@@ -1092,8 +1226,8 @@ namespace InfServer.Script.GameType_USL
 
                 if (payload.Equals("off"))
                 {
-                    Event = false;
-                    player.sendMessage(0, "Events are now off.");
+                    EventOff += OnEventOff;
+                    _arena.sendArenaMessage("All Events will be turned off at the end of this game.");
                     return true;
                 }
 
@@ -1111,15 +1245,99 @@ namespace InfServer.Script.GameType_USL
                     if (s.Equals(payload, StringComparison.OrdinalIgnoreCase))
                         if (Enum.TryParse(s, out eType))
                         {
-                            if (eType == Events.ThirtyK && ( (!player._developer && player.PermissionLevel < Data.PlayerPermission.Mod) 
-                                || player.PermissionLevelLocal >= Data.PlayerPermission.SMod) )
-                            {
-                                player.sendMessage(-1, "Only Mods/Zone Admins can set the 30k event.");
-                                return false;
-                            }
                             EventType = (int)eType;
-                            Event = true;
                             _arena.sendArenaMessage(String.Format("Event {0} is now ON!", s));
+
+                            Event = true;
+                            if (EventOff != null)
+                                //Still active, lets reset
+                                EventOff = null;
+                            return true;
+                        }
+                }
+            }
+
+            if (command.Equals("spawnevent"))
+            {
+                var names = Enum.GetNames(typeof(SpawnEvents));
+                if (String.IsNullOrEmpty(payload))
+                {
+                    //If an event is active, show what it is
+                    if (SpawnEvent)
+                        player.sendMessage(0, String.Format("Current active event - {0}", Enum.GetName(typeof(SpawnEvents), SpawnEventType)));
+                    string options = String.Join(", ", names);
+                    player.sendMessage(-1, String.Format("Syntax: *spawnevent <event name> - Options are {0}.", options));
+                    player.sendMessage(0, "If you want to set or disable a halfway point for 30k's, use *spawnevent timer");
+                    player.sendMessage(0, "Use *spawnevent off to stop events and return to normal gameplay.");
+                    return false;
+                }
+
+                if (payload.Equals("off"))
+                {
+                    spawnEventTimer = 0;
+                    SpawnEvent = false;
+                    _arena.sendArenaMessage("SpawnedEvents are now turned off.");
+                    return true;
+                }
+
+                if (payload.Equals("timer"))
+                {   //If this hasnt been activated, lets turn it on
+                    if (!SpawnEvent)
+                    {
+                        Random rand = new Random();
+                        int midpoint = ((_config.deathMatch.timer / 2) / 2); //Deathmatch is in milliseconds, need to convert to seconds then find halfway point
+                        spawnEventTimer = rand.Next(midpoint - 5, midpoint + 5); //Lets randomize mid point
+                        player.sendMessage(0, "Midpoint timer has been activated.");
+                        return true;
+                    }
+                    //It has, turn it off
+                    SpawnEvent = false;
+                    spawnEventTimer = 0;
+                    player.sendMessage(0, "Midpoint timer has been deactivated.");
+                    return true;
+                }
+
+                if (!names.Contains(payload, StringComparer.OrdinalIgnoreCase))
+                {
+                    player.sendMessage(-1, "That is not a valid option.");
+                    string options = String.Join(", ", names);
+                    player.sendMessage(0, String.Format("Syntax: *spawnevent <event name> - Options are {0} (use *spawnevent off to stop the event)", options));
+                    return false;
+                }
+
+                SpawnEvents eType;
+                foreach (string s in names)
+                {
+                    if (s.Equals(payload, StringComparison.OrdinalIgnoreCase))
+                        if (Enum.TryParse(s, out eType))
+                        {
+                            if (eType == SpawnEvents.SoloThirtyK || eType == SpawnEvents.TeamThirtyK)
+                            {
+                                if ((!player._developer && player.PermissionLevel < Data.PlayerPermission.Mod)
+                                || (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.SMod))
+                                {
+                                    player.sendMessage(-1, "Only Mods/Zone Admins can set the 30k event.");
+                                    return false;
+                                }
+                                if (!Event)
+                                {
+                                    player.sendMessage(-1, "You must start a mini game event first then set 30k.");
+                                    return false;
+                                }
+                            }
+                            //We dont want to set the type for spawn 30k's
+                            if (eType != SpawnEvents.SoloThirtyK && eType != SpawnEvents.TeamThirtyK)
+                            {
+                                SpawnEventType = (int)eType;
+                                _arena.sendArenaMessage(String.Format("SpawnEvent {0} is now ON!", s));
+                            }
+                            else
+                            {
+                                SpawnEventType = (int)eType;
+                                _arena.sendArenaMessage(String.Format("SpawnEvent {0} has been turned ON!", s));
+                            }
+
+                            SpawnEvent = true;
                             return true;
                         }
                 }
@@ -1142,11 +1360,11 @@ namespace InfServer.Script.GameType_USL
         {
             //Team scores
             IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
-            Team A = activeTeams.ElementAt(0) != null ? activeTeams.ElementAt(0) : team1;
-            Team B = team2;
+            Team titan = activeTeams.ElementAt(0) != null ? activeTeams.ElementAt(0) : team1;
+            Team collie = team2;
             if (activeTeams.Count() > 1)
-                B = activeTeams.ElementAt(1) != null ? activeTeams.ElementAt(1) : team2;
-            string format = String.Format("{0}={1} - {2}={3}", A._name, A._currentGameKills, B._name, B._currentGameKills);
+                collie = activeTeams.ElementAt(1) != null ? activeTeams.ElementAt(1) : team2;
+            string format = String.Format("{0}={1} - {2}={3}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills);
             _arena.setTicker(1, 2, 0, format);
 
             //Personal Scores
@@ -1192,6 +1410,128 @@ namespace InfServer.Script.GameType_USL
             }
             if (!_arena.recycling)
                 _arena.setTicker(2, 0, 0, format);
+        }
+
+        /// <summary>
+        /// Spawns anything related to our current event
+        /// </summary>
+        private void SpawnEventItem()
+        {
+            //Are we even running events?
+            if (!Event || !SpawnEvent)
+                return;
+
+            //Lets find the item first
+            Assets.ItemInfo item = _arena._server._assets.getItemByName("Bty");
+            if (item == null)
+                return;
+
+            //Find the spawn spot
+            string eventName = String.Format("{0}{1}", Enum.GetName(typeof(Events), EventType), "30k");
+            List<LioInfo.Hide> hides = _arena._server._assets.Lios.Hides.Where(s => s.GeneralData.Name.Contains(eventName)).ToList();
+            if (hides == null)
+                return;
+
+            switch ((SpawnEvents)SpawnEventType)
+            {
+                case SpawnEvents.SoloThirtyK:
+                    {
+                        //Find solo spawn points
+                        eventName = eventName + "Solo";
+                        LioInfo.Hide hide = hides.FirstOrDefault(h => h.GeneralData.Name.Contains(eventName));
+                        if (hide == null)
+                            return;
+                        //Check to see if anyone still has a bty before spawning
+                        foreach (Player p in _arena.Players)
+                        {
+                            if (p == null)
+                                continue;
+                            //Found someone, dont need to spawn it
+                            if (p._bounty >= 30000)
+                                return;
+                        }
+
+                        //Lets see if its already spawned
+                        Arena.ItemDrop drop;
+                        if (_arena._items.TryGetValue((ushort)item.id, out drop))
+                        {
+                            if (drop.quantity >= 1)
+                                return;
+                        }
+
+                        //Spawn it
+                        _arena.itemSpawn(item, (ushort)1, hide.GeneralData.OffsetX, hide.GeneralData.OffsetY, null);
+                    }
+                    break;
+
+                case SpawnEvents.TeamThirtyK:
+                    {
+                        //Find team spawn points
+                        eventName = eventName + "Team";
+                        LioInfo.Hide hideA = hides.FirstOrDefault(h => h.GeneralData.Name.Contains(eventName + "A"));
+                        LioInfo.Hide hideB = hides.FirstOrDefault(h => h.GeneralData.Name.Contains(eventName + "B"));
+                        if (hideA == null || hideB == null)
+                            return;
+                        //Check to see if both teams still have a bty before spawning
+                        int count = 0;
+                        Team temp = null;
+                        foreach (Player p in _arena.Players)
+                        {
+                            if (p == null)
+                                continue;
+                            //Found someone
+                            if (p._bounty >= 30000 && p._team != temp)
+                            {
+                                //Both teams have a btyer, dont spawn
+                                if (count == 2)
+                                    return;
+
+                                ++count;
+                                temp = p._team;
+                            }
+                        }
+
+                        //Lets see if its already spawned
+                        Arena.ItemDrop drop;
+                        if (_arena._items.TryGetValue((ushort)item.id, out drop))
+                        {
+                            if ((count == 1 && drop.quantity >= 1)
+                                || (count == 0 && drop.quantity >= 2))
+                                return;
+                        }
+
+                        //Spawn it
+                        if (A == null)
+                            _arena.itemSpawn(item, (ushort)1, hideA.GeneralData.OffsetX, hideA.GeneralData.OffsetY, null);
+                        if (B == null)
+                            _arena.itemSpawn(item, (ushort)1, hideB.GeneralData.OffsetX, hideB.GeneralData.OffsetY, null);
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Fires when event off is used and game start is called
+        /// </summary>
+        private void OnEventOff()
+        {
+            Event = false;
+            SpawnEvent = false;
+            spawnEventTimer = 0;
+            Team titan = _arena.getTeamByName(_config.teams[0].name);
+            Team collie = _arena.getTeamByName(_config.teams[1].name);
+            foreach (Player p in _arena.PlayersIngame.ToList())
+            {
+                if (p == null)
+                    continue;
+                if (p._team == team1)
+                    titan.addPlayer(p);
+                else if (p._team == team2)
+                    collie.addPlayer(p);
+            }
+            team1 = titan;
+            team2 = collie;
+            EventOff = null;
         }
 
         /// <summary>
@@ -1248,12 +1588,13 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team1._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
                         p.Value.deaths,
-                        p.Value.playSeconds));
+                        p.Value.playSeconds,
+                        p.Value.classType));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
@@ -1275,12 +1616,13 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team2._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
                         p.Value.deaths,
-                        p.Value.playSeconds));
+                        p.Value.playSeconds,
+                        p.Value.classType));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
@@ -1337,12 +1679,13 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team1._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
                         p.Value.deaths,
-                        p.Value.playSeconds));
+                        p.Value.playSeconds,
+                        p.Value.classType));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
@@ -1364,12 +1707,13 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team2._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}",
+                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
                         p.Value.deaths,
-                        p.Value.playSeconds));
+                        p.Value.playSeconds,
+                        p.Value.classType));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 

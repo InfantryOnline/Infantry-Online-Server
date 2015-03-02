@@ -3165,7 +3165,7 @@ namespace InfServer.Data.DB
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_reason", DbType="Text")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_reason", DbType="VarChar(MAX) NULL")]
 		public string reason
 		{
 			get

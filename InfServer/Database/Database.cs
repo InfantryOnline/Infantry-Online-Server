@@ -85,7 +85,6 @@ namespace InfServer.Data
                 //Reset our event
                 _syncStart.Reset();
 
-
                 //Were we successful?
                 return _bLoginSuccess;
             }
@@ -129,6 +128,17 @@ namespace InfServer.Data
         public Client.ConnectionStats getStats()
         {
             return _conn._client._stats;
+        }
+
+        /// <summary>
+        /// Retrieves our connection status to the database server
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                return _conn.IsConnected;
+            }
         }
         #endregion
 

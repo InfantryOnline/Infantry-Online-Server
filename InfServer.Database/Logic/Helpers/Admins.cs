@@ -22,7 +22,7 @@ namespace InfServer.Logic
             XmlDocument doc = new XmlDocument();
             doc.Load("admins.xml");
 
-            XmlNodeList list = doc.SelectNodes(String.Format("/admins/player[@alias='{0}']", alias));
+            XmlNodeList list = doc.SelectNodes(String.Format("/admins/player[@alias=\"{0}\"]", alias));
 
             if (list.Count > 0)
                 result = true;

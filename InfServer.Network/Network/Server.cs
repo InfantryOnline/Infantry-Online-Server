@@ -83,7 +83,20 @@ namespace InfServer.Network
 			_listenThread.IsBackground = true;
 			_listenThread.Name = "NetworkDispatch";
 			_listenThread.Start();
+            if (!_listenThread.IsAlive)
+                Log.write(TLog.Warning, "Failed to start network server operations.");
 		}
+
+        /// <summary>
+        /// Ends all network server operations
+        /// </summary>
+        public void end()
+        {
+            if (_listenThread.IsAlive)
+                _listenThread.Abort();
+            if (_sock != null)
+                _sock.Close();
+        }
 
 		/// <summary>
 		/// Handles all network server operations in a seperate thread
@@ -117,6 +130,7 @@ namespace InfServer.Network
 			catch (SocketException se)
 			{	//Failure!
 				Log.write(TLog.Exception, "Encountered an exception while listening:\r\n{0}", se.ToString());
+                _sock.Close();
 			}
 
 			// Begin handling received packets

@@ -505,6 +505,10 @@ namespace InfServer.Logic
                                         b.account == what.account1.id ||
                                         b.IPAddress == what.account1.IPAddress))
                                     {
+                                        //Does the alias match the ban name?
+                                        if (!b.name.Equals(what.name))
+                                            continue;
+
                                         //Is it the correct zone?
                                         if (b.zone != null && (b.type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != zone._zone.id))
                                             continue;

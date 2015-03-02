@@ -16,6 +16,13 @@ namespace InfServer
 				Log.write(TLog.Exception, "Unhandled exception:\r\n" + e.ExceptionObject.ToString());
 		}
 
+        //Called when the console window is closed with Ctrl+C
+        protected static void Exit(object sender, EventArgs args)
+        {
+            Log.write("Shutting down...");
+            server.end();
+        }
+
 		static void Main(string[] args)
 		{	//Initialize the logging system
 			Log.init();
@@ -25,6 +32,9 @@ namespace InfServer
 
 			//Register our catch-all exception handler
 			Thread.GetDomain().UnhandledException += onException;
+
+            //Set a handler for if we recieve Ctrl+C or Ctrl+BREAK
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(Exit);
 
 			//Create a logging client for the main server thread
 			LogClient handlerLogger = Log.createClient("ServerHandler");

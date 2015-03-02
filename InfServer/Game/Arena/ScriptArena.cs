@@ -2198,12 +2198,9 @@ namespace InfServer.Game
                                 if (vehicles.Count > 0)
                                 {
                                     foreach (Vehicle v in vehicles)
-                                    {	//Is it on the correct team?
-                                        if (v._team != player._team)
-                                        {   //Are we not on the same team temporarily?
-                                            if (v._owner != player._team)
+                                    {	//Is it on the correct team? (temporary or not)
+                                        if ((v._owner != null && v._owner != player._team) || (v._team != player._team))
                                                 continue;
-                                        }
 
                                         //Can we self heal?
                                         if (v._inhabitant == player && !item.repairSelf)
@@ -2313,7 +2310,7 @@ namespace InfServer.Game
                         if (comp != null)
                         {
                             //If the computer is on the same team
-                            if (comp._team == player._team)
+                            if ((comp._owner != null && comp._owner == player._team) || (comp._team == player._team))
                             {
                                 totalAmount++;
                                 if (comp._type.Name == compCheck.Name)
@@ -2333,7 +2330,7 @@ namespace InfServer.Game
                         if (comp != null)
                         {
                             //If the comp is on the same team
-                            if (comp._team == player._team)
+                            if ((comp._owner != null && comp._owner == player._team) || (comp._team == player._team))
                             {
                                 densityAmount++;
                                 if (comp._type.Name == compCheck.Name)
@@ -2346,27 +2343,27 @@ namespace InfServer.Game
 
             if (playerTotal >= compCheck.MaxTypeByPlayerRegardlessOfTeam && compCheck.MaxTypeByPlayerRegardlessOfTeam != -1)
             {   //Exceeds the amount per player regardless of team.
-                player.sendMessage(-1, "You have the maximum allowed computer vehicles of this type");
+                player.sendMessage(-1, "You have the maximum allowed computer vehicles of this type.");
                 return;
             }
             if (totalAmount >= compCheck.FrequencyMaxActive && compCheck.FrequencyMaxActive != -1)
             {   //Exceeds the total amount of computer vehicles for the team
-                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles");
+                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles.");
                 return;
             }
             if (totalType >= compCheck.FrequencyMaxType && compCheck.FrequencyMaxType != -1)
             {   //Exceeds the total amount of computer vehicles of this type for the team
-                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type");
+                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type.");
                 return;
             }
             if (densityAmount >= compCheck.FrequencyDensityMaxActive && compCheck.FrequencyDensityMaxActive != -1)
             {   //Exceeds the total amount of computer vehicles for the team in the area
-                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area");
+                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area.");
                 return;
             }
             if (densityType >= compCheck.FrequencyDensityMaxType && compCheck.FrequencyDensityMaxType != -1)
             {   //Exceeds the amount within the density radius for the specific type
-                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area");
+                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area.");
                 return;
             }
 

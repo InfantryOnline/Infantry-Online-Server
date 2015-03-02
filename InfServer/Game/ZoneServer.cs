@@ -32,20 +32,20 @@ namespace InfServer.Game
 		public Bots.Pathfinder _pathfinder;		//Global pathfinder
 
 		public Database _db;					//Our connection to the database
-
         public IPEndPoint _dbEP;
 
-        public uint _reliableChecksum = 0;       //Reliable checksum value for this zone
+        public uint _reliableChecksum = 0;      //Reliable checksum value for this zone
 
-		public new LogClient _logger;			//Our zone server log
+		public new LogClient _logger;           //Our zone server log
 
-		private bool _bStandalone;				//Are we in standalone mode?
+		private bool _bStandalone;              //Are we in standalone mode?
+        private int _bStandaloneMessage;        //When to send out a message
 
-        private string _name;                    //The zones name
-        private string _description;             //The zones description
-        private bool _isAdvanced;                //Is the zone normal/advanced?
-        private string _bindIP;                  //The IP the zone is binded to
-        private int _bindPort;                   //The port the zone is binded to
+        private string _name;                   //The zones name
+        private string _description;            //The zones description
+        private bool _isAdvanced;               //Is the zone normal/advanced?
+        private string _bindIP;                 //The IP the zone is binded to
+        private int _bindPort;                  //The port the zone is binded to
 
         private LogClient _dbLogger;
         public int _lastDBAttempt;
@@ -107,18 +107,6 @@ namespace InfServer.Game
 			get
 			{
 				return _bStandalone;
-			}
-
-			set
-			{
-				//TODO: Kick all players from the server, etc
-                //Disconnect everyone.
-                if (_arenas != null && _arenas.Count() > 0)
-                {
-                    foreach (var arena in _arenas)
-                        foreach (Player p in arena.Value.Players.ToList())
-                            p.disconnect();
-                }
 			}
 		}
 
@@ -203,7 +191,7 @@ namespace InfServer.Game
                         try
                         {
                             string global;
-                            if ((global = Assets.AssetFileFactory.findAssetFile("\\global.nws", _config["server/copyServerFrom"].Value)) != null)
+                            if ((global = Assets.AssetFileFactory.findAssetFile("global.nws", _config["server/copyServerFrom"].Value)) != null)
                                 System.IO.File.Copy(global, "..\\Global\\global.nws");
                         }
                         catch (System.UnauthorizedAccessException)
@@ -323,7 +311,6 @@ namespace InfServer.Game
                 _db.connect(_dbEP, true);
             }
 
-
 			//Initialize other parts of the zoneserver class
 			if (!initPlayers())
 				return false;
@@ -367,11 +354,12 @@ namespace InfServer.Game
 				handleArenas();
 		}
         
-        //Handles baseserver operation..
+        /// <summary>
+        /// Handles all base server operations
+        /// </summary>
         public void poll()
         {
             int now = Environment.TickCount;
-
             try
             {
                 if (_connections != null)
@@ -382,7 +370,6 @@ namespace InfServer.Game
                         { // Delete this entry
                             _connections.Remove(pair.Key);
                         }
-
                     }
                 }
             }
@@ -390,59 +377,65 @@ namespace InfServer.Game
             {
                 Log.write(TLog.Warning, e.ToString());
             }
+
+            //Are we on an auto-recycle timer?
+            if ((now - _recycleAttempt) > 1 && _recycle.Count > 0)
+            {
+                foreach (var zone in _recycle)
+                {
+                    //Is it not time yet?
+                    if (zone.Key == null || zone.Value.Second > DateTime.Now.Second)
+                        continue;
+
+                    //Time to recycle
+                    recycle();
+                }
+                _recycleAttempt = now;
+            }
+
             //Is it time to make another attempt at connecting to the database?
             if ((now - _lastDBAttempt) > _attemptDelay && _lastDBAttempt != 0)
             {
-                //Are we connected to the database currently? If so break out of this operation
-                if (_db._bLoginSuccess || _attemptDelay == 0)
-                {
-                    //Are we on an auto-recycle timer?
-                    if ((now - _recycleAttempt) > 1 && _recycle.Count > 0)
-                    {
-                        foreach (var zone in _recycle)
-                        {
-                            if (zone.Key == null)
-                                continue;
-                            if (zone.Value.Second > DateTime.Now.Second)
-                                continue;
-
-                            //Time to recycle
-                            recycle();
-                        }
-                        _recycleAttempt = now;
-                    }
-                    return;
-                }
-
-
-                _db = new Database(this, _config["Database"], _dbLogger);
                 _lastDBAttempt = now;
-                //Take a stab at connecting
-                if (!_db.connect(_dbEP, true))
-                {//it has failed!
-                    Log.write(TLog.Warning, "Failed database connection");
+
+                //Are we bypassing our connection attempt?
+                if (_attemptDelay == 0)
+                    return;
+
+                //Are we connected to the database currently?
+                if (!_db._bLoginSuccess || (_db._bLoginSuccess && !_db.IsConnected))
+                {
                     _bStandalone = true;
-                    //Send out some message to all of the server's players
-                    foreach (var arena in _arenas)
+                    _db._bLoginSuccess = false;
+
+                    //Take a stab at connecting
+                    _db = new Database(this, _config["database"], _dbLogger);
+                    if (!_db.connect(_dbEP, true))
                     {
-                        if (arena.Value._bActive)
-                            arena.Value.sendArenaMessage("!An attempt to establish a connection with the database has failed, The server remains in Stand Alone Mode");
+                        Log.write(TLog.Warning, "Failed database connection.");
+                        _bStandalone = true;
+
+                        //Send out a message to all of the server's players
+                        if ((now - _bStandaloneMessage) > 1800000) //30 mins
+                        {
+                            _bStandaloneMessage = now;
+                            foreach (var arena in _arenas)
+                                if (arena.Value._bActive)
+                                    arena.Value.sendArenaMessage("!An attempt to establish a connection to the database failed. Server is in Stand Alone Mode.");
+                        }
                     }
                 }
                 else
-                {//Success!
-                    //Send out some message to all of the server's players
-                    foreach (var arena in _arenas)
+                {
+                    //Send a message to all of the server's players
+                    if (_bStandalone)
                     {
-                        //Let them know to reconnect
-                        _bStandalone = false;
-                        if (arena.Value._bActive)
-                            arena.Value.sendArenaMessage("!Connection to the database has been re-established, Please relog to continue playing..");
-
-                        //Disconnect everyone.
-                        foreach (Player p in arena.Value.Players)
-                            p.disconnect();
+                        foreach (var arena in _arenas)
+                            if (arena.Value._bActive)
+                                arena.Value.sendArenaMessage("!Connection to the database has been re-established. Server is no longer in Stand Alone Mode.");
                     }
+                    _bStandalone = false;
+                    _db._bLoginSuccess = true;
                 }
             }
         }
@@ -475,6 +468,10 @@ namespace InfServer.Game
                 //Disconnect from the database gracefully..
                 _db.send(new Disconnect<Database>());
             }
+
+            //End all threads
+            _pingResponder.End();
+            base.end();
 
             //Add a little delay...
             Thread.Sleep(2000);
@@ -552,6 +549,9 @@ namespace InfServer.Game
 			private ReaderWriterLock _lock;
 			private byte[] _buffer;
 
+            /// <summary>
+            /// Constructor with socket creation
+            /// </summary>
 			public ClientPingResponder(Dictionary<ushort, Player> players)
 			{
 				_players = players;
@@ -561,13 +561,27 @@ namespace InfServer.Game
 				_buffer = new byte[4];
 			}
 
+            /// <summary>
+            /// Begins our threaded responder
+            /// </summary>
 			public void Begin(IPEndPoint listenPoint)
 			{
 				_listenThread = new Thread(Listen);
 				_listenThread.IsBackground = true;
 				_listenThread.Name = "ClientPingResponder";
 				_listenThread.Start(listenPoint);
+                if (!_listenThread.IsAlive)
+                    Log.write(TLog.Warning, "Failed to thread start the client ping responder.");
 			}
+
+            /// <summary>
+            /// Ends our thread
+            /// </summary>
+            public void End()
+            {
+                //Stop the thread
+                _listenThread.Abort();
+            }
 
 			private void Listen(Object obj)
 			{

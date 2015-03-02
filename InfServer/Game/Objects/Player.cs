@@ -301,6 +301,10 @@ namespace InfServer.Game
 		/// </summary>
 		public void disconnect()
 		{
+            //Just incase
+            if (this._arena != null)
+                leftArena();
+
 			Helpers.Player_Disconnect(this);
 			destroy();
 		}
@@ -1174,11 +1178,12 @@ namespace InfServer.Game
 		/// </summary>
 		public bool spec(Team team)
 		{
+            /* Dont need to log it, since we reset reguardless
             if (_bSpectator & _team == team)
             {
                 Log.write(TLog.Warning, "Attempted to spec player already in spec: {0}", this);
 //                return false;
-            }
+            }*/
 
             //Let's create a new spectator vehicle
 			Vehicle specVeh = _arena.newVehicle(_server._zoneConfig.arena.spectatorVehicleId);

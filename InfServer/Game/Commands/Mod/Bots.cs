@@ -43,17 +43,39 @@ namespace InfServer.Game.Commands.Mod
 				return;
 			}
 
+            //Did we type anything?
+            if (String.IsNullOrWhiteSpace(args[1]))
+            {
+                player.sendMessage(-1, "That is not a valid vehicle id.");
+                return;
+            }
+
+            //Does the vehicle exist?
+            try
+            {
+                if (player._arena._server._assets.getVehicleByID(Convert.ToUInt16(args[1].Trim())) == null)
+                {
+                    player.sendMessage(-1, "That is not a valid vehicle id.");
+                    return;
+                }
+            }
+            catch
+            {
+                player.sendMessage(-1, "That is not a valid vehicle id.");
+                return;
+            }
+
             Protocol.Helpers.ObjectState newState = new Protocol.Helpers.ObjectState();
             bool teamBot = args[0].Trim().Contains("Team");
 
-            //Are we using a specified location?
-            if (args.Count() > 2)
-            {
-                int x = player._state.positionX;
-                int y = player._state.positionY;
+            int x = player._state.positionX;
+            int y = player._state.positionY;
 
+            //Are we using a specified location?
+            if (args.Count() > 2 && !String.IsNullOrWhiteSpace(args[2]))
+            {
                 //Is this an exact coord?
-                if (args.Count() > 3)
+                if (args.Count() > 3 && !String.IsNullOrWhiteSpace(args[3]))
                 {   //Yes, parse it
                     x = Convert.ToInt32(args[2].Trim()) * 16;
                     y = Convert.ToInt32(args[3].Trim()) * 16;
@@ -61,7 +83,7 @@ namespace InfServer.Game.Commands.Mod
                 else
                 {   //No, map point
                     string coord = args[2].Trim().ToLower();
-                    if (coord[0] >= 'a' && coord[0] <= 'z')
+                    if (coord[0] >= 'a' && coord[0] <= 'z' && coord.Length > 1)
                     {
                         x = (((int)coord[0]) - ((int)'a')) * 16 * 80;
                         y = Convert.ToInt32(coord.Substring(1)) * 16 * 80;
@@ -90,8 +112,8 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                newState.positionX = player._state.positionX;
-                newState.positionY = player._state.positionY;
+                newState.positionX = (short)x;
+                newState.positionY = (short)y;
                 newState.positionZ = 0; //People could spawn them while flying and they would stay in the air
                 newState.yaw = player._state.yaw;
                 if (teamBot)

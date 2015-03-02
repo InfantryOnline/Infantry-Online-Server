@@ -405,47 +405,41 @@ namespace InfServer.Logic
             using (InfantryDataContext db = zone._server.getContext())
             {
                 Data.DB.alias dbplayer = db.alias.First(p => p.name.Equals(pkt.alias));
-                Data.DB.ban newBan = new Data.DB.ban();
-                bool found = false;
            
                 //Lets check to see if they are banned already
                 foreach (Data.DB.ban b in db.bans.Where(b => b.account == dbplayer.account1.id))
-                    if (b.type == (short)pkt.banType && b.name.Equals(dbplayer.name))
+                {
+                    //Same type?
+                    if (b.type != (short)pkt.banType)
+                        continue;
+
+                    //Zone ban?
+                    if ((short)pkt.banType == (int)Logic_Bans.Ban.BanType.ZoneBan)
                     {
-                        //It does exist, lets check and update it
-                        if ((short)pkt.banType == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != null && b.zone != zone._zone.id)
+                        if (b.zone == null)
                             continue;
-
-                        //Lets update what we need then submit
-                        if (pkt.time != 0)
-                            b.expires = b.expires.AddMinutes(pkt.time);
-                        else if (pkt.time == 0)
-                            b.expires = DateTime.Now;
-
-                        newBan.account = dbplayer.account;
-                        newBan.created = b.created;
-                        newBan.expires = b.expires;
-                        newBan.IPAddress = dbplayer.IPAddress;
-                        newBan.reason = b.reason;
-                        newBan.type = b.type;
-                        newBan.uid1 = b.uid1;
-                        newBan.uid2 = b.uid2;
-                        newBan.uid3 = b.uid3;
-                        if ((short)pkt.banType == (int)Logic_Bans.Ban.BanType.ZoneBan && b.zone != null && b.zone == zone._zone.id)
-                            newBan.zone = b.zone;
-                        db.bans.DeleteOnSubmit(b);
-                        found = true;
-                        break;
+                        if (b.zone != zone._zone.id)
+                            continue;
                     }
 
-                if (found)
-                {
-                    //Lets insert and submit
-                    db.bans.InsertOnSubmit(newBan);
+                    if (pkt.time != 0)
+                    {
+                        //Dont update old bans
+                        if (DateTime.Now > b.expires)
+                            continue;
+                        b.expires = b.expires.AddMinutes(pkt.time);
+                    }
+                    //Are we unbanning them?
+                    else if (pkt.time == 0)
+                        b.expires = DateTime.Now;
+
+                    b.reason = b.reason.ToString();
+
                     db.SubmitChanges();
                     return;
                 }
 
+                Data.DB.ban newBan = new Data.DB.ban();
                 switch (pkt.banType)
                 {
                     case CS_Ban<Zone>.BanType.zone:

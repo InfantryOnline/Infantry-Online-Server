@@ -295,7 +295,15 @@ namespace InfServer.Game
 
 		public bool Contains(T p)
 		{
-			return _idToObj.ContainsValue(p);
+            try
+            {
+                return _idToObj.ContainsValue(p);
+            }
+            catch(Exception e)
+            {
+                Log.write(TLog.Exception, e.ToString());
+                return false;
+            }
 		}
 
 		public void CopyTo(T[] array, int index)

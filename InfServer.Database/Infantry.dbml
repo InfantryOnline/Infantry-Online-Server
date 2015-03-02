@@ -128,7 +128,7 @@
       <Column Name="created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="expires" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="zone" Type="System.Int64" DbType="BigInt NULL" CanBeNull="true" />
-      <Column Name="reason" Type="System.String" DbType="Text" CanBeNull="true" />
+      <Column Name="reason" Type="System.String" DbType="VarChar(MAX) NULL" CanBeNull="true" />
       <Column Name="name" Type="System.String" DbType="VarChar(MAX) NULL" CanBeNull="true" />
     </Type>
   </Table>

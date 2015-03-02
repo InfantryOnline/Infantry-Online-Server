@@ -200,7 +200,7 @@ namespace InfServer.Game
 		{
 			get
 			{
-				return _playersIngame;
+				return _playersIngame.Where(p => p != null);
 			}
 		}
 
@@ -240,7 +240,7 @@ namespace InfServer.Game
 		{
 			get
 			{
-				return _players;
+                return _players.Where(p => p != null);
 			}
 		}
 
@@ -677,13 +677,9 @@ namespace InfServer.Game
                                 {
                                     //Do we still have a team to go back to?
                                     if (vehicle._team.ActivePlayerCount > 0)
-                                    {
                                         vehicle._owner = vehicle._team;
-                                    }
                                     else
-                                    {
                                         vehicle._owner = null;
-                                    }
                                     
                                     vehicle._tickControlEnd = 0;
                                     vehicle._tickControlTime = 0;

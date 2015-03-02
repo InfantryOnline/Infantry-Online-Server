@@ -406,7 +406,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 int Itemid = Convert.ToInt32(payload);
 
-                //Obtain the vehicle indicated
+                //Obtain the item indicated
                 Assets.ItemInfo item = player._server._assets.getItemByID(Convert.ToInt32(Itemid));
                 if (item == null)
                 {
@@ -1164,13 +1164,6 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            //Just incase someone meant private locking
-            if (payload.Equals("arena", StringComparison.OrdinalIgnoreCase))
-            {   //Pass it along
-                arenalock(player, recipient, payload, bong);
-                return;
-            }
-
             //Sanity checks
             if (recipient == null)
             {
@@ -1533,19 +1526,28 @@ namespace InfServer.Game.Commands.Mod
                     //Simply warp to the recipient
                     player.warp(recipient);
                 else
-                {	//Are we dealing with coords or exacts?
-                    payload = payload.ToLower();
-
-                    if (payload[0] >= 'a' && payload[0] <= 'z')
+                {
+                    //Did we type it correctly?
+                    if (payload.Length < 2)
                     {
+                        player.sendMessage(-1, "That is not a valid coord.");
+                        return;
+                    }
+
+                    //Are we dealing with coords or exacts?
+                    payload = payload.ToLower();
+                    if (payload[0] >= 'a' && payload[0] <= 'z')
+                    {   //Coords
                         int x = (((int)payload[0]) - ((int)'a')) * 16 * 80;
-                        int y = Convert.ToInt32(payload.Substring(1)) * 16 * 80;
+                        int y = 0;
                         try
-                        {   //Incase there are double digits
-                            y = Convert.ToInt32(payload.Substring(1, 2)) * 16 * 80;
+                        {
+                            y = Convert.ToInt32(payload.Substring(1)) * 16 * 80;
                         }
                         catch
                         {
+                            player.sendMessage(-1, "That is not a valid coord.");
+                            return;
                         }
 
                         //We want to spawn in the coord center
@@ -1562,10 +1564,18 @@ namespace InfServer.Game.Commands.Mod
                             return;
                         }
 
-                        string[] coords = payload.Split(',');
-                        int x = Convert.ToInt32(coords[0]) * 16;
-                        int y = Convert.ToInt32(coords[1]) * 16;
-
+                        string[] exacts = payload.Split(',');
+                        int x = 0;
+                        int y = 0;
+                        try
+                        {
+                            x = Convert.ToInt32(exacts[0]) * 16;
+                            y = Convert.ToInt32(exacts[1]) * 16;
+                        }
+                        catch
+                        {
+                            player.sendMessage(-1, "That is not a valid exact coordinate.");
+                        }
                         recipient.warp(x, y);
                     }
                 }
@@ -1585,18 +1595,27 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
+                //Did we type it correctly?
+                if (payload.Length < 2)
+                {
+                    player.sendMessage(-1, "That is not a valid coord.");
+                    return;
+                }
+
                 //Are we dealing with coords or exacts?
                 payload = payload.ToLower();
                 if (payload[0] >= 'a' && payload[0] <= 'z')
-                {
+                {   //Coords
                     int x = (((int)payload[0]) - ((int)'a')) * 16 * 80;
-                    int y = Convert.ToInt32(payload.Substring(1)) * 16 * 80;
+                    int y = 0;
                     try
-                    {   //Incase there are double digits
-                        y = Convert.ToInt32(payload.Substring(1, 2)) * 16 * 80;
+                    {
+                        y = Convert.ToInt32(payload.Substring(1)) * 16 * 80;
                     }
                     catch
                     {
+                        player.sendMessage(-1, "That is not a valid coord.");
+                        return;
                     }
 
                     //We want to spawn in the coord center
@@ -1640,18 +1659,18 @@ namespace InfServer.Game.Commands.Mod
                         return;
                     }
 
-                    string[] coords = payload.Split(',');
-                    int x = Convert.ToInt32(coords[0]) * 16;
+                    string[] exacts = payload.Split(',');
+                    int x = Convert.ToInt32(exacts[0]) * 16;
                     int y;
                     
                     //Are we trying to summon a team?
-                    if (coords[1].Contains(' '))
+                    if (exacts[1].Contains(' '))
                     {
                         //Lets get our first number only
                         //This is a coord, any other number after could be a potential
                         //team name.
                         string Y = "";
-                        foreach (char c in coords[1])
+                        foreach (char c in exacts[1])
                         {
                             if (c == ' ')
                                 break;
@@ -1659,7 +1678,7 @@ namespace InfServer.Game.Commands.Mod
                         }
                         y = Convert.ToInt32(Y) * 16;
 
-                        string syntax = (coords[1].Substring(coords[1].IndexOf(' '))).Trim();
+                        string syntax = (exacts[1].Substring(exacts[1].IndexOf(' '))).Trim();
                         if (syntax.Length > 0)
                         {
                             Team team;
@@ -1682,7 +1701,7 @@ namespace InfServer.Game.Commands.Mod
                         }
                     }
                     else
-                        y = Convert.ToInt32(coords[1]) * 16;
+                        y = Convert.ToInt32(exacts[1]) * 16;
 
                     player.warp(x, y);
                 }
@@ -2232,7 +2251,7 @@ namespace InfServer.Game.Commands.Mod
             //Kill all?
             if (!String.IsNullOrEmpty(payload) && payload.Equals("all", StringComparison.CurrentCultureIgnoreCase))
             {
-                foreach (Player p in player._arena.Players)
+                foreach (Player p in player._arena.Players.ToList())
                     if (p != player)
                         p.disconnect();
             }

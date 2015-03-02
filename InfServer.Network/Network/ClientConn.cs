@@ -48,13 +48,13 @@ namespace InfServer.Network
 		// Properties
 		///////////////////////////////////////////////////
 		/// <summary>
-		/// Generic constructor
+		/// Are we connected?
 		/// </summary>
 		public bool IsConnected
 		{
 			get
 			{
-				return _client != null;
+                return _udp != null && _udp.Client.Connected;
 			}
 		}
 
@@ -111,8 +111,8 @@ namespace InfServer.Network
 			_udp.Connect(targetPoint);
 
 			//Start listening for packets
+            _bOperating = true;
 			_udp.BeginReceive(onDataRecieved, null);
-			_bOperating = true;
 
 			//Restart the listen thread
 			_listenThread = new Thread(new ThreadStart(listen));

@@ -51,6 +51,12 @@ namespace InfServer.DirectoryServer.Directory
             Log.write("Connecting to database...");
             db = new SqlConnection(_connectionString);
             db.Open();
+            if (db.State != System.Data.ConnectionState.Open)
+            {
+                Log.write("Connection failed.");
+                return false;
+            }
+
             grabZones();
 
             return true;

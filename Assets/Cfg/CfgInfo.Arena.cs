@@ -23,6 +23,7 @@ namespace Assets
             public int prizeKill;
             public bool forceEvenTeams;
             public int spectatorVisualFrequency;
+            public bool turretKillShareOwner;
             public int turretCashSharePercent;
             public int turretExperienceSharePercent;
             public int turretPointsSharePercent;
@@ -87,6 +88,7 @@ namespace Assets
                 prizeKill = Parser.GetInt("PrizeKill");
                 forceEvenTeams = Parser.GetBool("ForceEvenTeams");
                 spectatorVisualFrequency = Parser.GetInt("SpectatorVisualFrequency");
+                turretKillShareOwner = Parser.GetBool("TurretKillShareOwner");
                 turretCashSharePercent = Parser.GetInt("TurretCashSharePercent");
                 turretExperienceSharePercent = Parser.GetInt("TurretExperienceSharePercent");
                 turretPointsSharePercent = Parser.GetInt("TurretPointsSharePercent");

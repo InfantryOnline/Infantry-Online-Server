@@ -44,16 +44,16 @@ namespace InfServer.Logic
 
             //Is our creator still on the same team?
             if (owner._team == comp._team)
-            {
-                owner.Kills++;
+            {   
+                //Are we sharing kills to our owner?
+                if (cfg.arena.turretKillShareOwner)
+                    owner.Kills++;
+
                 //Show the message
                 owner.triggerMessage(2, 500,
                     String.Format("Turret Kill: Kills=1 (Points={0} Exp={1} Cash={2})",
                     rewardCash, rewardExp, rewardPoints));
             }
-            //Nope, give it directly to the team
-            else if (owner._team != null)
-                owner._team._currentGameKills++;
         }
 
         /// <summary>
