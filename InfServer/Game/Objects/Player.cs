@@ -1188,7 +1188,7 @@ namespace InfServer.Game
             //Let's create a new spectator vehicle
 			Vehicle specVeh = _arena.newVehicle(_server._zoneConfig.arena.spectatorVehicleId);
 
-            //If we're currently in a vehicle, we want to desert it MIZZ123
+            //If we're currently in a vehicle, we want to desert it
             if (_occupiedVehicle != null)
                 _occupiedVehicle.playerLeave(false);
 
@@ -1544,9 +1544,6 @@ namespace InfServer.Game
             //is set up first.
             if (runEvents)
                 firstTimePlayer = true;
-
-                //Execute the first time setup events
-//                firstTimeEvents();
 
 			//Consider him loaded
 			_bDBLoaded = true;

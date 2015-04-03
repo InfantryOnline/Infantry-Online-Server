@@ -392,6 +392,42 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Finds a player currently logged in on possible aliases
+        /// </summary>
+        static public void find(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Syntax: *find [alias]");
+                return;
+            }
+
+            if (player._server.IsStandalone)
+                player.sendMessage(0, "Server is in Stand-Alone Mode. Command will only work zone wide.");
+
+            //Check to see if that player is in the zone
+            if ((recipient = player._server.getPlayer(payload)) != null)
+            {
+                player.sendMessage(0, "&Search Results:");
+                player.sendMessage(0, String.Format("*Found: {0} Zone: {1} Arena: {2}", recipient._alias, recipient._server.Name, recipient._arena._name));
+                return;
+            }
+
+            //Send it
+            if (!player._server.IsStandalone)
+            {
+                CS_ModQuery<Data.Database> find = new CS_ModQuery<Data.Database>();
+                find.queryType = CS_ModQuery<Data.Database>.QueryType.find;
+                find.sender = player._alias;
+                find.query = payload;
+
+                player._server._db.send(find);
+            }
+            else
+                player.sendMessage(0, "Cannot find the specified alias.");
+        }
+
+        /// <summary>
         /// Finds an item within the zone
         /// </summary>
         static public void findItem(Player player, Player recipient, string payload, int bong)
@@ -2818,13 +2854,19 @@ namespace InfServer.Game.Commands.Mod
                 "*experience [amount] or ::*experience [amount]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
+            yield return new HandlerDescriptor(find, "find",
+                "Searches for an alias and returns if they are possibly on another name",
+                "*find [alias]",
+                InfServer.Data.PlayerPermission.Mod, true);
+
             yield return new HandlerDescriptor(findItem, "finditem",
                 "Finds an item within our zone",
                 "*finditem [itemID or item name]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(getball, "getball",
-                "Gets a ball.", "*getball (gets ball ID 0) or *getball # (gets a specific ball ID)",
+                "Gets a ball.", 
+                "*getball (gets ball ID 0) or *getball # (gets a specific ball ID)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);           
 
             yield return new HandlerDescriptor(gkill, "gkill",

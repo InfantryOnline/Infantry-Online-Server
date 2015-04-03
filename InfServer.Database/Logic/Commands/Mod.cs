@@ -393,6 +393,33 @@ namespace InfServer.Logic
                             }
                         }
                         break;
+
+                    case CS_ModQuery<Zone>.QueryType.find:
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, "*" + pkt.query);
+                            zone._server.sendMessage(zone, pkt.sender, "&Search Results:");
+
+                            Data.DB.alias alias = db.alias.SingleOrDefault(ali => ali.name.Equals(pkt.query));
+                            if (alias == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                                return;
+                            }
+
+                            IQueryable<Data.DB.alias> foundAlias = db.alias.Where(d => (d.IPAddress.Equals(alias.IPAddress) || d.account == alias.account));
+                            foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
+                            {
+                                foreach(Data.DB.alias p in foundAlias)
+                                    if (player.Value.alias.Equals(p.name) && !String.IsNullOrWhiteSpace(player.Value.arena))
+                                    {
+                                        zone._server.sendMessage(zone, pkt.sender, String.Format("*Found: {0} Zone: {1} Arena: {2}", p.name, player.Value.zone._zone.name, player.Value.arena));
+                                        return;
+                                    }
+                            }
+
+                            zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                        }
+                        break;
                 }
             }
         }

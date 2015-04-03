@@ -23,39 +23,96 @@ namespace Assets
         public int OffsetX;
         public int OffsetY;
 
+        //Examples:
+        //  ___
+        //  | / = Red Upper Left
+        //  |/
+        //
+        //   /| = Red Lower Right
+        //  / |
+        // ----
+        private readonly List<string> physicValues = new List<string> {
+            "Clear",
+            "Red Solid","Red Upper Left","Red Upper Right","Red Lower Left","Red Lower Right",
+            "Green Solid","Green Upper Left","Green Upper Right","Green Lower Left","Green Lower Right",
+            "Yellow Solid","Yellow Upper Left","Yellow Upper Right","Yellow Lower Left","Yellow Lower Right",
+            "Orange Solid","Orange Upper Left","Orange Upper Right","Orange Lower Left","Orange Lower Right",
+            "Purple Solid","Purple Upper Left","Purple Upper Right","Purple Lower Left","Purple Lower Right",
+            "Red Move Right", "Red Move Left", "Red Move Down", "Red Move Up",
+            "Teal Solid",
+            "Blue Solid"
+        };
+
         /// <summary>
-        /// Returns the tile a position (x, y) in the level.
+        /// Returns the physic color value at postion(x, y) in the level.
+        /// </summary>
+        /// <returns>The physic color at level position (x, y)</returns>
+        public string getPhysicColorAt(int x, int y)
+        {
+            if (x / 16 >= Width || x < 0)
+                throw new ArgumentOutOfRangeException("Argument x is out of range");
+            if (y / 16 >= Height || x < 0)
+                throw new ArgumentOutOfRangeException("Argument y is out of range");
+            x /= 16;
+            y /= 16;
+            return physicValues[Tiles[y * Width + x].PhysicsVision & 0x1F];
+        }
+
+        /// <summary>
+        /// Returns the tile at position (x, y) in the level.
         /// </summary>
         /// <param name="x">x-coordinate of the tile's location</param>
         /// <param name="y">y-coordinate of the tile's location</param>
         /// <returns>The tile object at position (x, y)</returns>
         public Tile getTileAt(int x, int y)
         {
-            if(x >= Width || x < 0)
+            if(x / 16 >= Width || x < 0)
                 throw new ArgumentOutOfRangeException("Argument x is out of range");
-            if(y >= Height || y < 0)
+            if(y / 16 >= Height || y < 0)
                 throw new ArgumentOutOfRangeException("Argument y is out of range");
-
-            return Tiles[y*Height + x];
+            x /= 16;
+            y /= 16;
+            return Tiles[y*Width + x];
         }
 
         /// <summary>
-        /// Returns true if vehicle cannot traverse over tile located at (x, y).
-        /// A tile is considered to be blocking if it's low and high physics encompass
-        /// the vehicle's.
+        /// Returns true if the tile has a physic there (Not clear/color based).
         /// </summary>
-        /// <param name="x">x-coordinate of the tile's location</param>
-        /// <param name="y">y-coordinate of the tile's location</param>
-        /// <param name="vehicle">vehicle to test against tile</param>
-        /// <returns>true if tile is impassable for that vehicle; false otherwise</returns>
         public bool isTileBlocked(int x, int y)
         {
-            if (x >= Width || x < 0)
+            if (x / 16 >= Width || x < 0)
                 throw new ArgumentOutOfRangeException("Argument x is out of range");
-            if (y >= Height || y < 0)
+            if (y / 16 >= Height || y < 0)
                 throw new ArgumentOutOfRangeException("Argument y is out of range");
+            x /= 16;
+            y /= 16;
+            return Tiles[y*Width + x].Blocked;
+        }
 
-            return Tiles[y*Height + x].Blocked;
+        /// <summary>
+        /// Returns true if vehicle cannot traverse over the tile located at (x, y).
+        /// A tile is considered to be blocked if it's low and high physics encompass the vehicles.
+        /// </summary>
+        /// <param name="x">x-coordinate of the tile</param>
+        /// <param name="y">y-coordinate of the tile</param>
+        /// <returns>True if tile is impassable</returns>
+        public bool isTileBlocked(int x, int y, VehInfo vehicle)
+        {
+            if (vehicle == null)
+                return false;
+            bool blocked = isTileBlocked(x, y);
+            //Is this vehicle low enough to run under?
+            if (blocked)
+            {
+                x /= 16;
+                y /= 16;
+                int phy = Tiles[y * Width + x].Physics;
+                short low = PhysicsLow[phy];
+                short high = PhysicsHigh[phy];
+                if (vehicle.LowZ <= low || vehicle.HighZ >= high)
+                    blocked = !blocked;
+            }
+            return blocked;
         }
 
         /// <summary>
@@ -66,12 +123,13 @@ namespace Assets
         /// <returns>The vision constant at this tile.</returns>
         public int getTileVision(int x, int y)
         {
-            if (x >= Width || x < 0)
+            if (x / 16 >= Width || x < 0)
                 throw new ArgumentOutOfRangeException("Argument x is out of range");
-            if (y >= Height || y < 0)
+            if (y / 16 >= Height || y < 0)
                 throw new ArgumentOutOfRangeException("Argument y is out of range");
-
-            return Tiles[y*Height + x].Vision;
+            x /= 16;
+            y /= 16;
+            return Tiles[y*Width + x].Vision;
         }
 
         public override string ToString()
@@ -81,13 +139,15 @@ namespace Assets
 
         public string ToString(int x, int y)
         {
-            if (x >= Width || x < 0)
+            if (x / 16 >= Width || x < 0)
                 throw new ArgumentOutOfRangeException("Argument x is out of range");
-            if (y >= Height || y < 0)
+            if (y / 16 >= Height || y < 0)
                 throw new ArgumentOutOfRangeException("Argument y is out of range");
-
-            short low = PhysicsLow[y*Height + x];
-            short high = PhysicsHigh[y + Height + x];
+            x /= 16;
+            y /= 16;
+            int phy = Tiles[y * Width + x].Physics;
+            short low = PhysicsLow[phy];
+            short high = PhysicsHigh[phy];
             return this + String.Format("[Tile({0},{1}) PhysLow({2}), PhysHigh({3})]", x, y, low, high);
         }
 

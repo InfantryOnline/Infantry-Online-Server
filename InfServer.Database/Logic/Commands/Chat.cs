@@ -385,6 +385,8 @@ namespace InfServer.Logic
 
                             foreach (Zone z in zone._server._zones)
                             {
+                                if (z._players.Count() < 1)
+                                    continue;
                                 server.sendMessage(zone, pkt.sender, String.Format("~Server={0} Players={1}", z._zone.name, z._players.Count()));
                             }
                             zone._server.sendMessage(zone, pkt.sender, String.Format("Infantry (Total={0}) (Peak={1})", server._players.Count(), server.playerPeak));

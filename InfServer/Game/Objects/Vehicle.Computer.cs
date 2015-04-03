@@ -42,8 +42,6 @@ namespace InfServer.Game
 
         protected double _getHealth;                    //For health repair - sends update when reaches a whole number
         protected double _getEnergy;                    //For energy repair
-        protected double _incHealth;                    //Incrementing health repair
-        protected double _incEnergy;                    //Inc energy repair
 
 
 		///////////////////////////////////////////////////
@@ -143,6 +141,51 @@ namespace InfServer.Game
 			if (_state.health < _type.HitpointsRequiredToOperate) 
 				return false;
 
+            //Check repair rate
+            int tick = now - _tickLastUpdate;
+            if (_type.RepairRate > 0 && tick >= (_type.RepairRate * 10))
+            {
+                short check = _state.health;
+                double _incHealth = ((double)_type.RepairRate / 100);
+                double temp = _incHealth;
+                _getHealth -= ((int)temp - _incHealth);
+                if ((check + (int)_incHealth) > _state.health)
+                {
+                    //Added hp bonus every other tick
+                    if (_getHealth >= 1)
+                    {
+                        _state.health = (short)Math.Min(_type.Hitpoints, _state.health + (int)_incHealth + (int)_getHealth);
+                        _getHealth = 0;
+                    }
+                    else
+                        _state.health = (short)Math.Min(_type.Hitpoints, _state.health + (int)_incHealth);
+                }
+            }
+
+            //If below required amount of energy, don't fire
+            if (_type.ComputerEnergyMax > 0 && _state.energy < _type.ComputerEnergyMax)
+                return false;
+
+            //Check energy rate
+            if (_type.EnergyMax > 0 && _type.ComputerEnergyRate > 0 && tick >= (_type.ComputerEnergyRate * 10))
+            {
+                short check = _state.energy;
+                double _incEnergy = ((double)_type.ComputerEnergyRate / 100);
+                double temp = _incEnergy;
+                _getEnergy -= ((int)temp - _incEnergy);
+                if ((check + (int)_incEnergy) > _state.energy)
+                {
+                    //Added energy bonus every other tick
+                    if (_getEnergy >= 1)
+                    {
+                        _state.energy = (short)Math.Min(_type.EnergyMax, _state.energy + (int)_incEnergy + (int)_getEnergy);
+                        _getEnergy = 0;
+                    }
+                    else
+                        _state.energy = (short)Math.Min(_type.EnergyMax, _state.energy + (int)_incEnergy);
+                }
+            }
+
 			//Are we a peaceful vehicle?
 			if (_team._id == -1)
 				return false;
@@ -150,49 +193,7 @@ namespace InfServer.Game
 			//See if there are any valid targets within the tracking radius
 			Player target = getClosestValidTarget();
             if (target == null)
-            {
-                //Since there are no active targets, lets check repair rate
-                if (now - _tickLastUpdate >= 1000)
-                {
-                    if (_type.RepairRate > 0)
-                    {
-                        short check = _state.health;
-                        double value = (((double)_type.RepairRate) / 100);
-                        value -= (int)value;
-                        _incHealth = (_incHealth + value);
-                        _getHealth = (_getHealth + (double)_incHealth);
-                        if ((_state.health + (int)_getHealth) > check)
-                        {
-                            _state.health = (short)Math.Min(_type.Hitpoints, _state.health + (int)_getHealth);
-                            _getHealth = 0;
-                            _sendUpdate = true;
-                            //Reset incHealth
-                            if (_incHealth >= 1)
-                                _incHealth = 0;
-                        }
-                    }
-
-                    if (_type.ComputerEnergyRate > 0)
-                    {
-                        short check = _state.energy;
-                        double value = (((double)_type.ComputerEnergyRate) / 100);
-                        value -= (int)value;
-                        _incEnergy = (_incEnergy + value);
-                        _getEnergy = (_getEnergy + (double)_incEnergy);
-                        if ((_state.energy + (int)_getEnergy) > check)
-                        {
-                            _state.energy = (short)Math.Min((_type.EnergyMax == -1 ? _type.ComputerEnergyMax : _type.EnergyMax), _state.energy + (int)_getEnergy);
-                            _getEnergy = 0;
-                            _sendUpdate = true;
-                            //Reset incEnergy
-                            if (_incEnergy >= 1)
-                                _incEnergy = 0;
-                        }
-                    }
-                    _tickLastUpdate = now;
-                }
                 return false;
-            }
 
 			//Look at our target if we're allowed to rotate
             if(_tickAntiRotate < now)

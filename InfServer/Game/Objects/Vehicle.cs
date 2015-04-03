@@ -389,14 +389,9 @@ namespace InfServer.Game
 
 			if (radius <= wep.kineticDamageRadius)
 			{
-                //attacker.sendMessage(0, String.Format("Radius={0}", radius.ToString()));
 				fraction = 1 - radius / wep.kineticDamageRadius;
 				grossDamage = (wep.kineticDamageInner - wep.kineticDamageOuter) * fraction + wep.kineticDamageOuter;
 				netDamage += (grossDamage - _type.Armors[0].SelfIgnore) * (1.0d - _type.Armors[0].SelfReduction / 1000.0d);
-                //attacker.sendMessage(0, String.Format("fract={0},gross={1},kinD={2}", fraction.ToString(), grossDamage.ToString(), netDamage.ToString()));
-                //attacker.sendMessage(0, String.Format("g-selfig={0}, typeArmor={1}, final={2}", (grossDamage - _type.Armors[0].SelfIgnore).ToString(),
-                  //  (1.0d - _type.Armors[0].SelfReduction / 1000.0d).ToString(), netDamage.ToString()));
- 
 			}
 
 			if (radius <= wep.explosiveDamageRadius)

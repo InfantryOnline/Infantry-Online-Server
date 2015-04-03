@@ -26,9 +26,7 @@ namespace InfServer.Game.Commands.Chat
             if (String.IsNullOrEmpty(payload))
             {
                 //Tell him who he's currently ignoring
-                string ignoreList = "";
-                foreach (string p in player._accountIgnore)
-                    ignoreList += p + ", ";
+                string ignoreList = String.Join(", ", player._accountIgnore);
 
                 player.sendMessage(0, "&Account Ignore List");
                 if (ignoreList.Length > 0)
@@ -164,7 +162,6 @@ namespace InfServer.Game.Commands.Chat
         public static void arena(Player player, Player recipient, string payload, int bong)
 		{	//Form the list packet to send to him..
 			SC_ArenaList arenaList = new SC_ArenaList(player._server._arenas.Values, player);
-
 			player._client.sendReliable(arenaList);
 		}
         #endregion
@@ -208,7 +205,6 @@ namespace InfServer.Game.Commands.Chat
                 // parse the buy string
                 foreach (string itemAmount in items)
                 {
-
                     string[] split = itemAmount.Trim().Split(':');
                     ItemInfo item = player._server._assets.getItemByName(split[0].Trim());
 
@@ -588,13 +584,23 @@ namespace InfServer.Game.Commands.Chat
         {
             if (player.IsSpectator || player.IsDead)
                 return;
+
             char[] splitArr = { ',' };
-            string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            List<string> items = new List<string>();
+            if (payload.Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                foreach (KeyValuePair<int, Player.InventoryItem> inv in player._inventory)
+                {
+                    if (inv.Value.quantity > 0)
+                        items.Add(String.Format("{0}:{1}", inv.Value.item.name, inv.Value.quantity));
+                }
+            }
+            else
+                items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             // parse the drop string
             foreach (string itemAmount in items)
             {
-
                 string[] split = itemAmount.Trim().Split(':');
                 ItemInfo item = player._server._assets.getItemByName(split[0].Trim());
 
@@ -672,7 +678,6 @@ namespace InfServer.Game.Commands.Chat
                             player._arena.itemSpawn(item, (ushort)dropAmount, player._state.positionX, player._state.positionY, 0, (int)player._team._id, player);
                         }
                     }
-
 
                     player.sendMessage(0, String.Format("Drop Confirmed: {0} {1}", dropAmount, item.name));
                     //Remove items from inventory
@@ -980,31 +985,31 @@ namespace InfServer.Game.Commands.Chat
 		/// Displays all players which are spectating
 		/// </summary>
         public static void spec(Player player, Player recipient, string payload, int bong)
-		{
-			Player target = recipient;
-			if (recipient == null)
-				target = player;
+        {
+            Player target = recipient;
+            if (recipient == null)
+                target = player;
 
-			if (target.IsSpectator)
-				return;
+            if (target.IsSpectator)
+                return;
 
             //Remove mods from list of spectators
             List<Player> speclist = target._spectators;
             speclist.RemoveAll(s => s.PermissionLevel >= Data.PlayerPermission.Mod);
 
-			if (speclist.Count == 0)
-			{
-				player.sendMessage(0, "No spectators.");
-				return;
-			}
+            if (speclist.Count == 0)
+            {
+                player.sendMessage(0, "No spectators.");
+                return;
+            }
 
-			string result = "Spectating: ";
+            string result = "Spectating: ";
 
             foreach (Player spectator in speclist)
-				result += spectator._alias + ", ";
+                result += spectator._alias + ", ";
 
-			player.sendMessage(0, result.TrimEnd(',', ' '));
-		}
+            player.sendMessage(0, result.TrimEnd(',', ' '));
+        }
         #endregion
 
         #region squad
@@ -1606,7 +1611,7 @@ namespace InfServer.Game.Commands.Chat
 
             yield return new HandlerDescriptor(drop, "drop",
                "Drops items",
-               "?drop item1:amount1,item2:#absoluteAmount2");
+               "?drop item1:amount1,item2:#absoluteAmount2 OR ?drop all");
 
             yield return new HandlerDescriptor(email, "email",
                 "Updates email address associated with players account",

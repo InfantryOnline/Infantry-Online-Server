@@ -1726,14 +1726,15 @@ namespace InfServer.Script.GameType_USL
                     if (!p.Value.hasPlayed)
                         continue;
 
-                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0",
+                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7}",
                         p.Value.alias,
                         p.Value.squad,
                         p.Value.points,
                         p.Value.kills,
                         p.Value.deaths,
                         p.Value.assistPoints,
-                        p.Value.playSeconds));
+                        p.Value.playSeconds,
+                        p.Value.classType));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 

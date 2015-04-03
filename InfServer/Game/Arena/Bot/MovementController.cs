@@ -198,8 +198,9 @@ namespace InfServer.Bots
 			int newTileY = (int)Math.Floor(newPosition.y / 16);
 
 			LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
+            LvlInfo level = _arena._server._assets.Level;
 
-			if (tile.Blocked)
+			if (tile.Blocked && level.isTileBlocked((int)newPosition.x, (int)newPosition.y, _type))
 			{
                 bool collision = false;
 
