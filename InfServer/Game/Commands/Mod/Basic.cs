@@ -405,14 +405,6 @@ namespace InfServer.Game.Commands.Mod
             if (player._server.IsStandalone)
                 player.sendMessage(0, "Server is in Stand-Alone Mode. Command will only work zone wide.");
 
-            //Check to see if that player is in the zone
-            if ((recipient = player._server.getPlayer(payload)) != null)
-            {
-                player.sendMessage(0, "&Search Results:");
-                player.sendMessage(0, String.Format("*Found: {0} Zone: {1} Arena: {2}", recipient._alias, recipient._server.Name, recipient._arena._name));
-                return;
-            }
-
             //Send it
             if (!player._server.IsStandalone)
             {
@@ -424,7 +416,30 @@ namespace InfServer.Game.Commands.Mod
                 player._server._db.send(find);
             }
             else
-                player.sendMessage(0, "Cannot find the specified alias.");
+            {
+                Player target;
+                //Check to see if that player is in the zone
+                if ((target = player._server.getPlayer(payload)) != null)
+                {
+                    System.Net.IPEndPoint ip = target._client._ipe;
+                    player.sendMessage(0, "&Search Results:");
+                    if (ip == null)
+                    {
+                        player.sendMessage(0, String.Format("*Found: {0} [Zone: {1} - Arena: {2}]", target._alias, target._server != null ? target._server.Name : "Unknown", !String.IsNullOrWhiteSpace(target._arena._name) ? target._arena._name : "Unknown Arena"));
+                        return;
+                    }
+                    System.Net.IPEndPoint targetIP;
+                    foreach (Arena a in player._server._arenas.Values)
+                        foreach (Player p in a.Players)
+                        {
+                            targetIP = p._client._ipe;
+                            if (targetIP != null && targetIP.Address.Equals(ip.Address))
+                                player.sendMessage(0, String.Format("*Found: {0} [Zone: {1} - Arena: {2}]", p._alias, p._server != null ? p._server.Name : "Unknown", a._name));
+                        }
+                }
+                else
+                    player.sendMessage(-1, "Cannot find the specified alias.");
+            }
         }
 
         /// <summary>

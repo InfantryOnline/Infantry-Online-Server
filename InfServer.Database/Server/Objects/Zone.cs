@@ -30,6 +30,7 @@ namespace InfServer
 		{
 			public long acctid;			        //The player's account id
 			public long aliasid;		        //The player's alias id
+            public string IPAddress;            //The player's ip address
 			public long dbid;			        //The player's id in the database
 			public string alias;		        //The player's alias
             public Zone zone;                   //The zone he's in.
@@ -157,6 +158,7 @@ namespace InfServer
 
 			player.acctid = dbplayer.alias1.account1.id;
 			player.aliasid = dbplayer.alias1.id;
+            player.IPAddress = dbplayer.alias1.IPAddress;
 			player.dbid = dbplayer.id;
             player.alias = alias;
             player.permission = dbplayer.permission;

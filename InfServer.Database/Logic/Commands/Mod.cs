@@ -396,7 +396,6 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.find:
                         {
-                            zone._server.sendMessage(zone, pkt.sender, "*" + pkt.query);
                             zone._server.sendMessage(zone, pkt.sender, "&Search Results:");
 
                             Data.DB.alias alias = db.alias.SingleOrDefault(ali => ali.name.Equals(pkt.query));
@@ -406,18 +405,19 @@ namespace InfServer.Logic
                                 return;
                             }
 
+                            bool found = false;
                             IQueryable<Data.DB.alias> foundAlias = db.alias.Where(d => (d.IPAddress.Equals(alias.IPAddress) || d.account == alias.account));
                             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                             {
                                 foreach(Data.DB.alias p in foundAlias)
-                                    if (player.Value.alias.Equals(p.name) && !String.IsNullOrWhiteSpace(player.Value.arena))
+                                    if (player.Value.alias.Equals(p.name))
                                     {
-                                        zone._server.sendMessage(zone, pkt.sender, String.Format("*Found: {0} Zone: {1} Arena: {2}", p.name, player.Value.zone._zone.name, player.Value.arena));
-                                        return;
+                                        zone._server.sendMessage(zone, pkt.sender, String.Format("*Found: {0} Zone: {1} Arena: {2}", p.name, player.Value.zone._zone.name, !String.IsNullOrWhiteSpace(player.Value.arena) ? player.Value.arena : "Unknown Arena"));
+                                        found = true;
                                     }
                             }
-
-                            zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                            if (!found)
+                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
                         }
                         break;
                 }
