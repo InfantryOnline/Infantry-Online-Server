@@ -366,8 +366,8 @@ namespace InfServer.Script.GameType_SKCTF
                 (bCurrent ? from.StatsCurrentGame.kills : from.StatsLastGame.kills),
                 (bCurrent ? from.StatsCurrentGame.deaths : from.StatsLastGame.deaths)));
 
-            //return false to avoid another breakdown from showing
-            return false;
+            //return true to avoid another breakdown from showing
+            return true;
         }
 
 		/// <summary>

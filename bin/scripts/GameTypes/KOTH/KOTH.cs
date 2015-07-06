@@ -141,7 +141,6 @@ namespace InfServer.Script.GameType_KOTH
                 {//All our crowners expired at the same time
                     _arena.sendArenaMessage("There was no winner");
                     gameReset();
-                    return true;
                 }
                 return true;
             }
@@ -185,15 +184,18 @@ namespace InfServer.Script.GameType_KOTH
 
             //TODO: Move this calculation to breakdown() in ScriptArena?
             //Calculate the jackpot for each player
+            int playersInGame = _arena.PlayersIngame.Count() * 2; //Math given by cfg help info
+
+            //Are we giving it to the whole team?
             foreach (Player p in victors.AllPlayers)
             {	//Spectating? 
                 if (p.IsSpectator)
                     continue;
 
                 //Obtain the respective rewards
-                int cashReward = _config.king.cashReward;
-                int experienceReward = _config.king.experienceReward;
-                int pointReward = _config.king.pointReward;
+                int cashReward = playersInGame * _config.king.cashReward / 1000;
+                int experienceReward = playersInGame * _config.king.experienceReward / 1000;
+                int pointReward = playersInGame * _config.king.pointReward / 1000;
 
                 p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
 

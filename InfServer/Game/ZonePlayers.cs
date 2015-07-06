@@ -101,16 +101,14 @@ namespace InfServer.Game
 				_nameToPlayer[alias.ToLower()] = newPlayer;
 
                 //Lets setup the players silence list
-                if (!_playerSilenced.ContainsKey(alias))
-                    _playerSilenced.Add(alias, new Dictionary<int, DateTime>());
-                else
+                if (_playerSilenced.ContainsKey(c._ipe.Address))
                 {
                     //Lets check his current silence time
-                    int numberKey = newPlayer._server._playerSilenced[newPlayer._alias].Keys.Count;
-                    int numberValue = newPlayer._server._playerSilenced[newPlayer._alias].Values.Count;
+                    int numberKey = _playerSilenced[c._ipe.Address].Keys.Count;
+                    int numberValue = _playerSilenced[c._ipe.Address].Values.Count;
                     if (numberKey > 0)
                     {
-                        foreach (int length in newPlayer._server._playerSilenced[newPlayer._alias].Keys)
+                        foreach (int length in _playerSilenced[c._ipe.Address].Keys)
                         {
                             //Lets find the last one then set it
                             newPlayer._lengthOfSilence = length;
@@ -119,7 +117,7 @@ namespace InfServer.Game
                     }
                     if (numberValue > 0)
                     {
-                        foreach (DateTime stamp in newPlayer._server._playerSilenced[newPlayer._alias].Values)
+                        foreach (DateTime stamp in _playerSilenced[c._ipe.Address].Values)
                             newPlayer._timeOfSilence = stamp;
                     }
                 }
@@ -138,23 +136,7 @@ namespace InfServer.Game
                 Log.write(TLog.Error, "lostPlayer(): Called with null player.");
                 return;
             }
-            // find users throttling logins
-            // problem: users cannot leave zone and join the same one for 10 seconds
-            // add: message informing user to wait so their client won't hang
-            try
-            {
-                if (_connections != null && player._ipAddress != null)
-                {
-                    if (_connections.ContainsKey((IPAddress)player._ipAddress))
-                    {
-                        _connections.Remove(player._ipAddress);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Log.write(TLog.Error, e.ToString());
-            }
+
 			using (LogAssume.Assume(_logger))
 			{	//Is it present in our list?
 				if (!_players.ContainsKey(player._id))
@@ -162,29 +144,33 @@ namespace InfServer.Game
 					Log.write(TLog.Error, "Lost player '{0}' who wasn't present in the ZoneServer list.", player);
 					return;
 				}
-				
+
 				//He's gone!
 				_players.Remove(player._id);
 				_nameToPlayer.Remove(player._alias);
 
 				Log.write(TLog.Normal, "Lost player: " + player);
 	
-				//Disconnect him from the server
-				removeClient(player._client);
-
                 //Lets update the players silence list
-                if ((_playerSilenced.ContainsKey(player._alias)) && _playerSilenced[player._alias].Keys.Count > 0)
+                if (player._client._ipe.Address != null)
                 {
-                    int min = 0; DateTime time = DateTime.Now;
-                    foreach (int length in _playerSilenced[player._alias].Keys)
-                        min = length;
-                    if (_playerSilenced[player._alias].Values.Count > 0)
-                        foreach (DateTime timer in _playerSilenced[player._alias].Values)
-                            time = timer;
-                    _playerSilenced.Remove(player._alias);
-                    _playerSilenced.Add(player._alias, new Dictionary<int, DateTime>());
-                    _playerSilenced[player._alias].Add(min, time);
+                    IPAddress addy = player._client._ipe.Address;
+                    if ((_playerSilenced.ContainsKey(addy)) && _playerSilenced[addy].Keys.Count > 0)
+                    {
+                        int min = 0; DateTime time = DateTime.Now;
+                        foreach (int length in _playerSilenced[addy].Keys)
+                            min = length;
+                        if (_playerSilenced[addy].Values.Count > 0)
+                            foreach (DateTime timer in _playerSilenced[addy].Values)
+                                time = timer;
+                        _playerSilenced.Remove(addy);
+                        _playerSilenced.Add(addy, new Dictionary<int, DateTime>());
+                        _playerSilenced[addy].Add(min, time);
+                    }
                 }
+
+                //Disconnect him from the server
+                removeClient(player._client);
 
 				//Make sure his stats get updated
 				if (player._bDBLoaded && !player._server.IsStandalone)

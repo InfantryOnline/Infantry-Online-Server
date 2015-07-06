@@ -164,11 +164,23 @@ namespace InfServer.Game
 			// Prepare the player state
 			///////////////////////////////////////////////           
 
+            //Check for players already in the arena
+            foreach (Player pl in this._players.ToList())
+            {
+                if (pl._alias.Equals(player._alias))
+                {
+                    Log.write(TLog.Error, String.Format("Duplicate player found in the arena, kicking old one - {0}", pl._alias));
+                    this.playerLeave(player);
+                }
+            }
+
 			//We're entering the arena..
 			player._arena = this;            
 
 	        player.migrateStats();
 			player.resetVars();
+
+            player._ipAddress = player._client._ipe.Address;
 
 			//TODO: Check rules for whether player enters in spec
             //_server._zoneConfig.arena.startInSpectator
@@ -217,7 +229,7 @@ namespace InfServer.Game
             player._client.sendReliable(env);
 
             //Lets check his level and set watchMod
-            if (player.PermissionLevel >= Data.PlayerPermission.Mod)
+            if (player.PermissionLevel >= Data.PlayerPermission.ArenaMod)
                 player._watchMod = true;
 
             //Check if we can use him as a reliable player [check if mod]
@@ -286,7 +298,10 @@ namespace InfServer.Game
                 //Give player required privileges
                 player._arena._owner.Add(player._alias);
                 if (player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                {
                     player._permissionTemp = Data.PlayerPermission.ArenaMod;
+                    player._watchMod = true;
+                }
             }
 
             //Initialize the player's state

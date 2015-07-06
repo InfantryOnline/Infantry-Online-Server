@@ -56,7 +56,7 @@ namespace InfServer.Game
         public Dictionary<IPAddress, DateTime> _connections;
 
         public Dictionary<ZoneServer, DateTime> _recycle; //When to recycle
-        public Dictionary<string, Dictionary<int, DateTime>> _playerSilenced; //Self explanitory
+        public Dictionary<IPAddress, Dictionary<int, DateTime>> _playerSilenced; //Self explanitory
 
         /// <summary>
   	  	/// Compiled game events that have been pulled out of the zone's cfg file.
@@ -324,7 +324,7 @@ namespace InfServer.Game
             Log.write("Asset Checksum: " + _assets.checkSum());
 
             //Create a new player silenced list
-            _playerSilenced = new Dictionary<string, Dictionary<int, DateTime>>();
+            _playerSilenced = new Dictionary<IPAddress, Dictionary<int, DateTime>>();
 
             //Setup a new zoneserver recycling class
             _recycle = new Dictionary<ZoneServer, DateTime>();

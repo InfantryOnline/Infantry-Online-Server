@@ -195,38 +195,6 @@ namespace InfServer.Script.GameType_Name
                 _arena.setTicker(1, i, 0, "");
             }
 
-            //Let everyone know
-            if (_config.flag.useJackpot)
-                _jackpot = (int)Math.Pow(_arena.PlayerCount, 2);
-
-            _arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);
-
-            //TODO: Move this calculation to breakdown() in ScriptArena?
-            //Calculate the jackpot for each player
-            foreach (Player p in _arena.Players)
-            {	//Spectating? Psh.
-                if (p.IsSpectator)
-                    continue;
-                //Find the base reward
-                int personalJackpot;
-
-                if (p._team == victors)
-                    personalJackpot = _jackpot * (_config.flag.winnerJackpotFixedPercent / 1000);
-                else
-                    personalJackpot = _jackpot * (_config.flag.loserJackpotFixedPercent / 1000);
-
-                //Obtain the respective rewards
-                int cashReward = personalJackpot * (_config.flag.cashReward / 1000);
-                int experienceReward = personalJackpot * (_config.flag.experienceReward / 1000);
-                int pointReward = personalJackpot * (_config.flag.pointReward / 1000);
-
-                p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
-
-                p.Cash += cashReward;
-                p.Experience += experienceReward;
-                p.BonusPoints += pointReward;
-            }
-
             //Stop the game
             _arena.gameEnd();
         }

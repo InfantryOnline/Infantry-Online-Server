@@ -40,6 +40,8 @@ namespace InfServer.Script.GameType_SLTDM
         private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
         private int _tickGameStart;			    //The tick at which the game started (0 == stopped)
 
+        private bool isMatch;                   //If this is a league match set by a ref
+
         //Settings
         private int _minPlayers;				//The minimum amount of players
         private bool _gameWon = false;
@@ -198,36 +200,7 @@ namespace InfServer.Script.GameType_SLTDM
         /// Called when the specified team have won
         /// </summary>
         public void gameVictory(Team victors)
-        {	//Let everyone know
-            if (_arena._bIsPublic)
-            {
-                if (_config.flag.useJackpot)
-                    _jackpot = (int)Math.Pow(_arena.PlayerCount, 2);
-
-                _arena.sendArenaMessage(String.Format("Victory={0} Jackpot={1}", victors._name, _jackpot), _config.flag.victoryBong);
-
-                //TODO: Move this calculation to breakdown() in ScriptArena?
-                //Calculate the jackpot for each player
-                foreach (Player p in _arena.Players)
-                {	//Spectating? Psh.
-                    if (p.IsSpectator)
-                        continue;
-                    //Find the base reward
-                    int personalJackpot;
-
-                    if (p._team == victors)
-                        personalJackpot = _jackpot * (_config.flag.winnerJackpotFixedPercent / 1000);
-                    else
-                        personalJackpot = _jackpot * (_config.flag.loserJackpotFixedPercent / 1000);
-
-                    //Obtain the respective rewards
-                    int experienceReward = personalJackpot * (_config.flag.experienceReward / 1000);
-
-                    p.sendMessage(0, String.Format("Your Personal Reward: Experience={0}", experienceReward));
-                    p.Experience += experienceReward;
-                }
-            }
-
+        {
             //Stop the game
             _arena.gameEnd();
         }
@@ -244,8 +217,12 @@ namespace InfServer.Script.GameType_SLTDM
             _gameWon = false;
             _victoryTeam = null;
 
-            team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
+            if (_arena.ActiveTeams.Count() == 0)
+                return false;
+            team1 = _arena.ActiveTeams.Count() == 1 ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
             team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
+
+            isMatch = _arena._isMatch;
 
             //Start a new session for players, clears the old one
             _savedPlayerStats.Clear();
@@ -255,6 +232,10 @@ namespace InfServer.Script.GameType_SLTDM
                 temp.kills = 0;
                 temp.deaths = 0;
                 _savedPlayerStats.Add(p._alias, temp);
+
+                if (isMatch)
+                    if (!p.IsSpectator)
+                        p._bAllowBanner = false;
             }
 
             //Let everyone know
@@ -405,45 +386,46 @@ namespace InfServer.Script.GameType_SLTDM
                 if (_savedPlayerStats.ContainsKey(p._alias))
                     plist.Add(p);
             }
-            var rankedPlayerGroups = plist.Select(player => new 
-            { 
-                Alias = player._alias, 
-                Kills = _savedPlayerStats[player._alias].kills, 
-                Deaths = _savedPlayerStats[player._alias].deaths 
+
+            var ranking = plist.Select(player => new
+            {
+                Alias = player._alias,
+                Kills = _savedPlayerStats[player._alias].kills,
+                Deaths = _savedPlayerStats[player._alias].deaths
             })
-            .GroupBy(player => player.Kills)
+            .GroupBy(p => p.Kills)
             .OrderByDescending(k => k.Key)
             .Take(idx)
-            .Select(group => group.OrderBy(player => player.Deaths));
+            .Select(g => g.OrderBy(pl => pl.Deaths));
 
-            foreach (var group in rankedPlayerGroups)
+            foreach (var alias in ranking)
             {
-                if (idx <= 0) 
+                if (idx <= 0)
                     break;
 
-                string placeWord = "";
+                string placeword = "";
                 string format = " (K={0} D={1}): {2}";
                 switch (idx)
                 {
                     case 3:
-                        placeWord = "!1st";
+                        placeword = "!1st";
                         break;
                     case 2:
-                        placeWord = "!2nd";
+                        placeword = "!2nd";
                         break;
                     case 1:
-                        placeWord = "!3rd";
+                        placeword = "!3rd";
                         break;
                 }
 
-                idx -= group.Count();
-                from.sendMessage(0, String.Format(placeWord + format, group.First().Kills, 
-                    group.First().Deaths, 
-                    String.Join(", ", group.Select(g => g.Alias))));
+                idx -= alias.Count();
+                if (alias.First() != null)
+                    from.sendMessage(0, String.Format(placeword + format, alias.First().Kills, alias.First().Deaths,
+                        String.Join(", ", alias.Select(g => g.Alias))));
             }
 
             IEnumerable<Player> specialPlayers = plist.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
-            int topDeaths = _savedPlayerStats[specialPlayers.First()._alias].deaths, deaths = 0;
+            int topDeaths = (specialPlayers.First() != null ? _savedPlayerStats[specialPlayers.First()._alias].deaths : 0), deaths = 0;
             if (topDeaths > 0)
             {
                 from.sendMessage(0, "Most Deaths");
@@ -466,8 +448,11 @@ namespace InfServer.Script.GameType_SLTDM
                         }
                     }
                 }
-                string s = String.Join(", ", mostDeaths.ToArray());
-                from.sendMessage(0, s);
+                if (mostDeaths.Count > 0)
+                {
+                    string s = String.Join(", ", mostDeaths.ToArray());
+                    from.sendMessage(0, s);
+                }
             }
 
             if (_savedPlayerStats[from._alias] != null)

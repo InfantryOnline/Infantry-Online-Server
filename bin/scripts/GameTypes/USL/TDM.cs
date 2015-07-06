@@ -40,7 +40,7 @@ namespace InfServer.Script.GameType_USL
         private int _minPlayers;				//The minimum amount of players
         private bool _overtime;                 //When the game goes into overtime, the stats still continue
         private int overtimeType = 0;           //Is this single, double or triple overtime?
-        private int LeagueSeason = 2;           //Which league season we are in?
+        private int LeagueSeason = 3;           //Which league season we are in?
 
         /// <summary>
         /// Current game player stats
@@ -200,6 +200,8 @@ namespace InfServer.Script.GameType_USL
                 EventOff();
             else
             {
+                if (_arena.ActiveTeams.Count() == 0)
+                    return false;
                 team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
                 team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
             }
@@ -236,9 +238,20 @@ namespace InfServer.Script.GameType_USL
 
                 _savedPlayerStats.Add(p._alias, temp);
 
-                if (isMatch && !p.IsSpectator)
-                    //Lets make sure in game players arent spammed banners
-                    p._bAllowBanner = false;
+                if (isMatch)
+                {
+                    //Make sure no one has grants
+                    if (_arena.IsOwner(p))
+                    {
+                        _arena._owner.Remove(p._alias);
+                        if (!p._developer && !p._admin && p._permissionTemp > Data.PlayerPermission.Normal)
+                            p._permissionTemp = Data.PlayerPermission.Normal;
+                    }
+
+                    if (!p.IsSpectator)
+                        //Lets make sure in game players arent spammed banners
+                        p._bAllowBanner = false;
+                }
             }
 
             //Let everyone know
@@ -432,6 +445,7 @@ namespace InfServer.Script.GameType_USL
             }
 
             from.sendMessage(0, "#Individual Statistics Breakdown");
+            idx = 3;        //Only display the top 3 players
             List<Player> rankers = new List<Player>();
             foreach (Player p in _arena.Players)
             {
@@ -441,17 +455,16 @@ namespace InfServer.Script.GameType_USL
                     rankers.Add(p);
             }
 
-            idx = 3;        //Only display top three players
             var rankedPlayerGroups = rankers.Select(player => new
             {
                 Alias = player._alias,
                 Kills = _savedPlayerStats[player._alias].kills,
                 Deaths = _savedPlayerStats[player._alias].deaths
             })
-            .GroupBy(player => player.Kills)
+            .GroupBy(pl => pl.Kills)
             .OrderByDescending(k => k.Key)
             .Take(idx)
-            .Select(group => group.OrderBy(player => player.Deaths));
+            .Select(g => g.OrderBy(plyr => plyr.Deaths));
 
             foreach (var group in rankedPlayerGroups)
             {
@@ -474,13 +487,13 @@ namespace InfServer.Script.GameType_USL
                 }
 
                 idx -= group.Count();
-                from.sendMessage(0, String.Format(placeWord + format, group.First().Kills,
-                    group.First().Deaths,
-                    String.Join(", ", group.Select(g => g.Alias))));
+                if (group.First() != null)
+                    from.sendMessage(0, String.Format(placeWord + format, group.First().Kills,
+                        group.First().Deaths, String.Join(", ", group.Select(g => g.Alias))));
             }
 
             IEnumerable<Player> specialPlayers = rankers.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
-            int topDeaths = _savedPlayerStats[specialPlayers.First()._alias].deaths, deaths = 0;
+            int topDeaths = (specialPlayers.First() != null ? _savedPlayerStats[specialPlayers.First()._alias].deaths : 0), deaths = 0;
             if (topDeaths > 0)
             {
                 from.sendMessage(0, "Most Deaths");
@@ -503,8 +516,11 @@ namespace InfServer.Script.GameType_USL
                         }
                     }
                 }
-                string s = String.Join(", ", mostDeaths.ToArray());
-                from.sendMessage(0, s);
+                if (mostDeaths.Count > 0)
+                {
+                    string s = String.Join(", ", mostDeaths.ToArray());
+                    from.sendMessage(0, s);
+                }
             }
 
             if (_savedPlayerStats[from._alias] != null)
@@ -627,9 +643,15 @@ namespace InfServer.Script.GameType_USL
             if (player._baseVehicle != null)
                 _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
-            if (_arena._isMatch && !player.IsSpectator)
-                //Lets make sure to turn banner spamming off
-                player._bAllowBanner = false;
+            if (_arena._isMatch)
+            {
+                if (!player.IsSpectator)
+                    //Lets make sure to turn banner spamming off
+                    player._bAllowBanner = false;
+                if (!player._bAllowSpectator)
+                    //Make sure they are speccable
+                    player._bAllowSpectator = true;
+            }
         }
 
         /// <summary>
@@ -656,9 +678,15 @@ namespace InfServer.Script.GameType_USL
             if (player._baseVehicle != null)
                 _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
-            if (_arena._isMatch && !player.IsSpectator)
-                //Lets make sure to turn banner spamming off
-                player._bAllowBanner = false;
+            if (_arena._isMatch)
+            {
+                if (!player.IsSpectator)
+                    //Lets make sure to turn banner spamming off
+                    player._bAllowBanner = false;
+                if (!player._bAllowSpectator)
+                    //Make sure they are speccable
+                    player._bAllowSpectator = true;
+            }
 
             //Are we doing an event?
             if (Event)

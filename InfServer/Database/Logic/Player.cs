@@ -58,6 +58,9 @@ namespace InfServer.Logic
             player._squadID = pkt.squadID;
         }
 
+        /// <summary>
+        /// Handles re-routing of whisper messages to the appropriate player
+        /// </summary>
         static public void Handle_SC_Whisper(SC_Whisper<Database> pkt, Database db)
         {
             Player recipient = db._server.getPlayer(pkt.recipient);

@@ -162,9 +162,10 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (!player._arena.IsPrivate && player._developer)
+            //if (!player._arena.IsPrivate && player._developer)
+            if (player._arena._bIsPublic)
             {
-                player.sendMessage(-1, "Only mods are allowed to lock non-private arenas.");
+                player.sendMessage(-1, "Only non-public arena's are allowed to be locked.");
                 return;
             }
 
@@ -256,8 +257,11 @@ namespace InfServer.Game.Commands.Mod
 
             if (!player._arena.IsPrivate && player._developer)
             {
-                player.sendMessage(-1, "Only mods are allowed to lock non-private arenas.");
-                return;
+                if (player._arena.IsGranted(player))
+                {
+                    player.sendMessage(-1, "Only mods/refs are allowed to lock non-private arenas.");
+                    return;
+                }
             }
 
             player._arena._aLocked = !player._arena._aLocked;
@@ -531,9 +535,9 @@ namespace InfServer.Game.Commands.Mod
         static public void grant(Player player, Player recipient, string payload, int bong)
         {
             //Sanity checks
-            if (!player._arena.IsPrivate && player.PermissionLevel < Data.PlayerPermission.Mod)
+            if (player._arena._bIsPublic)
             {
-                player.sendMessage(-1, "This is not a private arena.");
+                player.sendMessage(-1, "You cannot grant in public arena's.");
                 return;
             }
 
@@ -563,12 +567,13 @@ namespace InfServer.Game.Commands.Mod
                         player._arena._owner.Remove(recipient._alias);
 
                     recipient._permissionTemp = Data.PlayerPermission.Normal;
+                    player._arena.sendArenaMessage(String.Format("{0} is no longer granted.", recipient._alias));
                     recipient.sendMessage(0, "You have been removed from arena privileges.");
-                    player.sendMessage(0, "You have removed " + recipient._alias + "'s arena privileges.");
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
                 recipient._permissionTemp = Data.PlayerPermission.ArenaMod;
+                player._arena.sendArenaMessage(String.Format("{0} is now granted.", recipient._alias));
                 recipient.sendMessage(0, "You are now granted arena privileges.");
             }
             else
@@ -603,8 +608,8 @@ namespace InfServer.Game.Commands.Mod
                         player._arena._owner.Remove(recipient._alias);
 
                     recipient._permissionTemp = Data.PlayerPermission.Normal;
+                    player._arena.sendArenaMessage(String.Format("{0} is no longer granted.", recipient._alias));
                     recipient.sendMessage(0, "You have been removed from arena privileges.");
-                    player.sendMessage(0, "You have removed " + recipient._alias + "'s arena privileges.");
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
@@ -833,14 +838,14 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
             }
-
+            /*
             if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
                 if (level < (int)Data.PlayerPermission.Mod)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
                     return;
                 }
-
+            */
             //Determine the item and quantity
             string[] args = payload.Split(':');
 
@@ -894,9 +899,9 @@ namespace InfServer.Game.Commands.Mod
             player.sendMessage(-3, "&Player Profile Information");
             player.sendMessage(0, "*" + target._alias);
             if (target == player)
-                player.sendMessage(0, "&Permission Level: " + (int)player.PermissionLevel + (player._developer ? "(Dev)" : ""));
+                player.sendMessage(0, "&Permission Level: " + (int)player.PermissionLevel + (player._developer ? "(Dev)" : player._permissionTemp == Data.PlayerPermission.ArenaMod ? "(Granted)" : ""));
             else if (player.PermissionLevel >= target.PermissionLevel)
-                player.sendMessage(0, "&Permission Level: " + (int)target.PermissionLevel + (target._developer ? "(Dev)" : ""));
+                player.sendMessage(0, "&Permission Level: " + (int)target.PermissionLevel + (target._developer ? "(Dev)" : player._permissionTemp == Data.PlayerPermission.ArenaMod ? "(Granted)" : ""));
             player.sendMessage(0, "Items");
             foreach (KeyValuePair<int, Player.InventoryItem> itm in target._inventory)
                 player.sendMessage(0, String.Format("~{0}={1}", itm.Value.item.name, itm.Value.quantity));
@@ -991,34 +996,34 @@ namespace InfServer.Game.Commands.Mod
             {
                 int min = 0;
                 DateTime time = DateTime.Now;
-                if (recipient._server._playerSilenced.ContainsKey(recipient._alias))
+                if (recipient._server._playerSilenced.ContainsKey(recipient._ipAddress))
                 {
-                    if (recipient._server._playerSilenced[recipient._alias].Keys.Count > 0)
+                    if (recipient._server._playerSilenced[recipient._ipAddress].Keys.Count > 0)
                     {
                         //Lets update his/her time
-                        foreach (int length in recipient._server._playerSilenced[recipient._alias].Keys)
+                        foreach (int length in recipient._server._playerSilenced[recipient._ipAddress].Keys)
                             min = length;
-                        foreach (DateTime timer in recipient._server._playerSilenced[recipient._alias].Values)
+                        foreach (DateTime timer in recipient._server._playerSilenced[recipient._ipAddress].Values)
                             time = timer;
 
-                        recipient._server._playerSilenced.Remove(recipient._alias);
+                        recipient._server._playerSilenced.Remove(recipient._ipAddress);
                         //Make a new one
                         min = min + minutes;
                         time = time.AddMinutes(minutes);
-                        recipient._server._playerSilenced.Add(recipient._alias, new Dictionary<int, DateTime>());
-                        recipient._server._playerSilenced[recipient._alias].Add(min, time);
+                        recipient._server._playerSilenced.Add(recipient._ipAddress, new Dictionary<int, DateTime>());
+                        recipient._server._playerSilenced[recipient._ipAddress].Add(min, time);
 
                         player.sendMessage(0, recipient._alias + " has been silenced for an additional " + minutes + " minutes.");
                         return;
                     }
                     else
-                        recipient._server._playerSilenced[recipient._alias].Add(min + minutes, time);
+                        recipient._server._playerSilenced[recipient._ipAddress].Add(min + minutes, time);
                 }
                 else
                 {
                     //No list found for player, adding it
-                    recipient._server._playerSilenced.Add(recipient._alias, new Dictionary<int, DateTime>());
-                    recipient._server._playerSilenced[recipient._alias].Add(min + minutes, time);
+                    recipient._server._playerSilenced.Add(recipient._ipAddress, new Dictionary<int, DateTime>());
+                    recipient._server._playerSilenced[recipient._ipAddress].Add(min + minutes, time);
                 }
                 recipient._lengthOfSilence = min + minutes;
                 player.sendMessage(0, recipient._alias + " has been silenced for an additional " + minutes + " minutes.");
@@ -1034,20 +1039,20 @@ namespace InfServer.Game.Commands.Mod
                 recipient._timeOfSilence = DateTime.Now;
                 recipient._lengthOfSilence = minutes;
                 //Lets add him to the zone silencer so the fucker cant avoid it by re-entering the zone
-                if (recipient._server._playerSilenced.ContainsKey(recipient._alias))
-                    recipient._server._playerSilenced[recipient._alias].Add(recipient._lengthOfSilence, DateTime.Now);
+                if (recipient._server._playerSilenced.ContainsKey(recipient._ipAddress))
+                    recipient._server._playerSilenced[recipient._ipAddress].Add(recipient._lengthOfSilence, DateTime.Now);
                 else
                 {
-                    recipient._server._playerSilenced.Add(recipient._alias, new Dictionary<int, DateTime>());
-                    recipient._server._playerSilenced[recipient._alias].Add(recipient._lengthOfSilence, DateTime.Now);
+                    recipient._server._playerSilenced.Add(recipient._ipAddress, new Dictionary<int, DateTime>());
+                    recipient._server._playerSilenced[recipient._ipAddress].Add(recipient._lengthOfSilence, DateTime.Now);
                 }
                 player.sendMessage(0, recipient._alias + " has been silenced.");
             }
             else
             {
                 recipient._lengthOfSilence = 0;
-                if (recipient._server._playerSilenced.ContainsKey(recipient._alias))
-                    recipient._server._playerSilenced.Remove(recipient._alias);
+                if (recipient._server._playerSilenced.ContainsKey(recipient._ipAddress))
+                    recipient._server._playerSilenced.Remove(recipient._ipAddress);
                 player.sendMessage(0, recipient._alias + " has been unsilenced.");
             }
         }
@@ -1069,7 +1074,7 @@ namespace InfServer.Game.Commands.Mod
                 level = (int)player.PermissionLevelLocal;
             else
                 level = (int)player.PermissionLevel;
-
+            /*
             if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase)
                 && !player._arena.IsPrivate)
                 if (level < (int)Data.PlayerPermission.Mod)
@@ -1077,7 +1082,7 @@ namespace InfServer.Game.Commands.Mod
                     player.sendMessage(-1, "You can only use it in private arena's.");
                     return;
                 }
-
+            */
             if (!payload.Contains(':'))
             {
                 player.sendMessage(-1, "Syntax error: :player:*skill id:amount");
@@ -1366,6 +1371,229 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Switches players to the opposite side
+        /// </summary>
+        static public void switchSides(Player player, Player recipient, string payload, int bong)
+        {
+            //Public arena?
+            if (player._arena._bIsPublic && player.PermissionLevel < Data.PlayerPermission.Mod)
+            {
+                player.sendMessage(-1, "This command cannot be used in public arena's.");
+                return;
+            }
+
+            //Do we have any teams to switch with?
+            if (player._arena.ActiveTeams.Count() <= 1)
+            {
+                player.sendMessage(-1, "Cannot switch sides, there needs to be 2 or more active teams to switch with.");
+                return;
+            }
+
+            //Do we have multiple teams?
+            if (player._arena.ActiveTeams.Count() > 2)
+            {
+                if (recipient == null && String.IsNullOrWhiteSpace(payload))
+                {
+                    player.sendMessage(-1, "Which team do you want to switch with?");
+                    player.sendMessage(0, "Either type the exact team name or pm the player to switch sides with.");
+                    return;
+                }
+            }
+
+            //Did we pm someone?
+            if (recipient != null)
+            {
+                //Are we trying to switch sides with the spectator team?
+                if (recipient._team.IsSpec)
+                {
+                    player.sendMessage(-1, "Cannot switch sides with the spectators.");
+                    return;
+                }
+
+                //Is it a public team?
+                if (!recipient._team.IsPublic)
+                {
+                    player.sendMessage(-1, "You can only switch sides with public teams.");
+                    return;
+                }
+
+                //Is it the same team?
+                if (recipient._team == player._team)
+                {
+                    player.sendMessage(-1, "Thats the team you are currently on.");
+                    return;
+                }
+
+                //Get each team first
+                Team teamA = player._team;
+                Team teamB = recipient._team;
+
+                //Get a list of each side first before switching
+                List<Player> sideA = player._team.AllPlayers.ToList();
+                List<Player> sideB = recipient._team.AllPlayers.ToList();
+                int count = 0;
+
+                //Check for a league zone
+                if (teamA._name.Contains("- T"))
+                {
+                    string nameA = teamA._name.Replace("- T", "- C");
+                    string nameB = teamB._name.Replace("- C", "- T");
+                    teamA = player._arena.getTeamByName(nameA);
+                    teamB = player._arena.getTeamByName(nameB);
+                }
+                else if (teamA._name.Contains("- C"))
+                {
+                    string nameA = teamA._name.Replace("- C", "- T");
+                    string nameB = teamB._name.Replace("- T", "- C");
+                    teamA = player._arena.getTeamByName(nameA);
+                    teamB = player._arena.getTeamByName(nameB);
+                }
+
+                foreach (Player p in sideA)
+                {
+                    //Team maxed out?
+                    if (teamA.MaxPlayers > 0 && count == teamA.MaxPlayers)
+                    {
+                        player.sendMessage(0, "The team is maxed out, you cannot switch anyone else.");
+                        return;
+                    }
+
+                    //Add
+                    teamA.addPlayer(p);
+
+                    //Was player just spectating?
+                    if (p.IsSpectator)
+                        //He was, dont count them
+                        continue;
+
+                    ++count;
+                }
+                count = 0;
+                foreach (Player plyr in sideB)
+                {
+                    //Team maxed out?
+                    if (teamB.MaxPlayers > 0 && count == teamB.MaxPlayers)
+                    {
+                        player.sendMessage(0, "The team is maxed out, you cannot switch anyone else.");
+                        return;
+                    }
+
+                    //Add
+                    teamB.addPlayer(plyr);
+
+                    //Was player just spectating?
+                    if (plyr.IsSpectator)
+                        //They were, dont count them
+                        continue;
+
+                    ++count;
+                }
+            }
+            else
+            {
+                if (String.IsNullOrWhiteSpace(payload))
+                {
+                    player.sendMessage(-1, "That team doesn't exist.");
+                    player.sendMessage(0, "Syntax: *switch <teamname> OR :player:*switch");
+                    return;
+                }
+
+                //Get each team first
+                Team teamA = player._team;
+                Team teamB = player._arena.getTeamByName(payload);
+
+                //Does the team exist?
+                if (teamB == null)
+                {
+                    player.sendMessage(-1, "That team doesn't exist.");
+                    player.sendMessage(0, "Syntax: *switch <teamname> OR :player:*switch");
+                    return;
+                }
+
+                //Spectator team?
+                if (teamB.IsSpec)
+                {
+                    player.sendMessage(-1, "Cannot switch sides with the spectators.");
+                    return;
+                }
+                
+                //Private team?
+                if (!teamB.IsPublic)
+                {
+                    player.sendMessage(-1, "You can only switch sides with public teams.");
+                    return;
+                }
+
+                //Same team?
+                if (teamB == player._team)
+                {
+                    player.sendMessage(-1, "Thats the team you are currently on.");
+                    return;
+                }
+
+                //Get a list of all the players on each
+                List<Player> sideA = player._team.AllPlayers.ToList();
+                List<Player> sideB = teamB.AllPlayers.ToList();
+                int count = 0;
+                //Check for a league zone
+                if (teamA._name.Contains("- T"))
+                {
+                    string nameA = teamA._name.Replace("- T", "- C");
+                    string nameB = teamB._name.Replace("- C", "- T");
+                    teamA = player._arena.getTeamByName(nameA);
+                    teamB = player._arena.getTeamByName(nameB);
+                }
+                else if (teamA._name.Contains("- C"))
+                {
+                    string nameA = teamA._name.Replace("- C", "- T");
+                    string nameB = teamB._name.Replace("- T", "- C");
+                    teamA = player._arena.getTeamByName(nameA);
+                    teamB = player._arena.getTeamByName(nameB);
+                }
+
+                foreach (Player p in sideA)
+                {
+                    //Is the team maxed out?
+                    if (teamA.MaxPlayers > 0 && count == teamA.MaxPlayers)
+                    {
+                        player.sendMessage(0, "The team is maxed out, you cannot switch anyone else.");
+                        return;
+                    }
+
+                    //Add
+                    teamA.addPlayer(p);
+
+                    //Was player just spectating?
+                    if (p.IsSpectator)
+                        //They were, dont count them
+                        continue;
+
+                    ++count;
+                }
+                count = 0;
+                foreach (Player plyr in sideB)
+                {
+                    //Team maxed out?
+                    if (teamB.MaxPlayers > 0 && count == teamB.MaxPlayers)
+                    {
+                        player.sendMessage(0, "The team is maxed out, you cannot switch anyone else.");
+                        return;
+                    }
+
+                    //Add
+                    teamB.addPlayer(plyr);
+
+                    //Was player just spectating?
+                    if (plyr.IsSpectator)
+                        //They were, dont count them
+                        continue;
+
+                    ++count;
+                }
+            }
+        }
+
+        /// <summary>
         /// Puts another player, or yourself, on a specified team
         /// </summary>
         static public void team(Player player, Player recipient, string payload, int bong)
@@ -1539,13 +1767,10 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
+                //Is he on a spectator team?
                 if (target.IsSpectator)
-                {   //Is he on a spectator team?
-                    //if (!target._team.IsSpec)
-                        //newTeam.addPlayer(target);
-                    //else
-                        //Unspec him
-                        target.unspec(newTeam);
+                {   //Unspec him
+                    target.unspec(newTeam);
                 }
                 else
                 {   //Change team
@@ -2896,12 +3121,12 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(warp, "goto",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
-                ":alias:*goto or *goto alias or *goto A4 (optional team name) or *goto 123,123 (optional team name)",
+                ":alias:*goto or *goto [alias] or *goto A4 (optional team name) or *goto 123,123 (optional team name)",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(grant, "grant",
                 "Gives arena privileges to a player",
-                ":player:*grant or *grant alias",
+                ":player:*grant or *grant [alias]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(ipban, "ipban",
@@ -2931,7 +3156,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(permit, "permit",
                 "Permits target player to enter a permission-only zone.",
-                "*permit alias",
+                "*permit [alias]",
                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(poll, "poll",
@@ -2991,7 +3216,12 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Summons a specified player to your location, or all players to your location.",
-                "::*summon, *summon alias, *summon team teamname, or *summon all",
+                "::*summon, *summon alias, *summon team [teamname], or *summon all",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(switchSides, "switch",
+                "Switches sides with another team.",
+                "::*switch or *switch [teamname]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(team, "team",
@@ -3031,7 +3261,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(wipe, "wipe",
                 "Wipes a character (or all) within the current zone",
-                "*wipe all yes, *wipe <alias> yes, :alias:*wipe yes",
+                "*wipe all yes, *wipe [alias] yes, :alias:*wipe yes",
                 InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(zone, "zone",

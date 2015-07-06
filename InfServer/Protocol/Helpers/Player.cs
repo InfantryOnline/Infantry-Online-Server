@@ -165,7 +165,12 @@ namespace InfServer.Protocol
 		/// Provides an easy means of routing chat messages between players
 		/// </summary>
 		static public void Player_RouteChat(Player p, Player from, CS_Chat chat)
-		{	//Formulate the chat notification!
+		{	
+            //We ignoring them?
+            if (p._accountIgnore.ContainsKey(from._alias) || p._accountIgnore.ContainsValue(from._ipAddress))
+                return;
+
+            //Formulate the chat notification!
 			SC_Chat schat = new SC_Chat();
 
 			schat.chatType = chat.chatType;
@@ -182,7 +187,12 @@ namespace InfServer.Protocol
         /// Provides an easy means of routing chat messages between players
         /// </summary>
         static public void Player_RouteChat(Player p, Player from, SC_Whisper<Data.Database> chat)
-        {	//Formulate the chat notification!
+        {
+            //We ignoring them?
+            if (p._accountIgnore.ContainsKey(from._alias) || p._accountIgnore.ContainsValue(from._ipAddress))
+                return;
+
+            //Formulate the chat notification!
             SC_Chat schat = new SC_Chat();
 
             schat.chatType = Chat_Type.Whisper;
@@ -195,13 +205,16 @@ namespace InfServer.Protocol
             p._client.sendReliable(schat);
         }
 
-
-
         /// <summary>
         /// Provides an easy means of routing chat messages between players
         /// </summary>
         static public void Player_RouteChat(Player p, SC_PrivateChat<Data.Database> pkt)
-        {	//Formulate the chat notification!
+        {
+            //We ignoring them?
+            if (p._accountIgnore.ContainsKey(pkt.from))
+                return;
+
+            //Formulate the chat notification!
             SC_Chat schat = new SC_Chat();
 
             schat.chatType = Chat_Type.PrivateChat;
@@ -226,9 +239,19 @@ namespace InfServer.Protocol
             schat.bong = chat.bong;
 
 			//Go!
-			foreach (Player player in target.getChatTargets())
-				if (player != from)
-					player._client.sendReliable(schat);
+            foreach (Player player in target.getChatTargets())
+            {
+                if (player == from)
+                    continue;
+                if (player._accountIgnore.Count > 0)
+                {
+                    if (player._accountIgnore.ContainsKey(from._alias))
+                        continue;
+                    if (player._accountIgnore.ContainsValue(from._ipAddress))
+                        continue;
+                }
+                player._client.sendReliable(schat);
+            }
 		}
 
 		/// <summary>

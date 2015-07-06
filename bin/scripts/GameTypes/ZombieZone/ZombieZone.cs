@@ -2696,10 +2696,7 @@ namespace InfServer.Script.GameType_ZombieZone
                 }
             }
  
-            //Show the breakdown!
-            //_arena.breakdown(true);
- 
-            //Reset all custom vars
+             //Reset all custom vars
             foreach (Player p in _arena.Players)
             {
                 if (p.IsSpectator)

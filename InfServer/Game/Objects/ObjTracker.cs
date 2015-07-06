@@ -308,7 +308,19 @@ namespace InfServer.Game
 
 		public void CopyTo(T[] array, int index)
 		{
-            _idToObj.Values.CopyTo(array, index);
+            try
+            {
+                _idToObj.Values.CopyTo(array, index);
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Warning, String.Format("{0}, (Array Length = {1}, Index = {2})", e.ToString(), array.Count(), index));
+                string ushorts = "", values = "";
+                ushorts = String.Join(",", _idToObj.Keys);
+                values = String.Join(",", _idToObj.Values);
+                Log.write(TLog.Warning, ushorts);
+                Log.write(TLog.Warning, values);
+            }
 		}
 
 		public bool Remove(T p)

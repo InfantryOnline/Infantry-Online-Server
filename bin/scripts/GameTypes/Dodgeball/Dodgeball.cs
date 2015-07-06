@@ -316,6 +316,32 @@ namespace InfServer.Script.GameType_Dodgeball
    		[Scripts.Event("Player.Breakdown")]
 		public bool individualBreakdown(Player from, bool bCurrent)
         {
+            IEnumerable<Player> rankedPlayers;
+            int idx;
+            rankedPlayers = _arena.PlayersIngame.OrderByDescending(
+                    p => p.getVarInt("Hits"));
+            idx = 3;	//Only display top three players
+
+            foreach (Player p in rankedPlayers)
+            {
+                if (idx-- == 0)
+                    break;
+
+                //Set up the format
+                string format = "!3rd - (Hits={0} Outs={1} Catches={2}): {3}";
+
+                switch (idx)
+                {
+                    case 2:
+                        format = "!1st - (Hits={0} Outs={1} Catches={2}): {3}";
+                        break;
+                    case 1:
+                        format = "!2nd - (Hits={0} Outs={1} Catches={2}): {3}";
+                        break;
+                }
+
+                from.sendMessage(0, String.Format(format, p.getVarInt("Hits"), p.getVarInt("Outs"), p.getVarInt("Catches"), p._alias));
+            }
             return true;
         }
 

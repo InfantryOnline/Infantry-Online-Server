@@ -408,13 +408,6 @@ namespace InfServer.Game
         }
 
         /// <summary>
-        /// Triggered when a player has sent chat to an enemy team
-        /// </summary>
-        public void playerEnemyTeamChat(Player from, CS_Chat chat)
-        {	//Route it to both the enemy team and our team
-        }
-
-        /// <summary>
         /// Sends an arena message to the entire arena
         /// </summary>
         public void sendArenaMessage(string message)

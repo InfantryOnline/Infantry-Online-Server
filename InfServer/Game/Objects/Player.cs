@@ -95,7 +95,7 @@ namespace InfServer.Game
 		public Player _spectating;				//The player we're currently spectating
 		public List<Player> _spectators;		//The players that are currently spectating us
         public List<string> _summonIgnore;      //The players that are currently summon-ignored.
-        public List<string> _accountIgnore;     //The players that are currently account ignored.
+        public Dictionary<string, IPAddress> _accountIgnore;     //The players that are currently account ignored.
         public bool _bAllowBanner;              //Are we allowing banners to be sent to us?
 
         public int _gotBallID = 999;			//The Id of the ball
@@ -266,7 +266,7 @@ namespace InfServer.Game
 
 			_spectators = new List<Player>();
             _summonIgnore = new List<string>();
-            _accountIgnore = new List<string>();
+            _accountIgnore = new Dictionary<string,IPAddress>();
 
             activeUtilities = new List<ItemInfo.UtilityItem>();
 

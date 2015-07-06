@@ -23,10 +23,10 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void accountignore(Player player, Player recipient, string payload, int bong)
         {
-            if (String.IsNullOrEmpty(payload))
+            if (String.IsNullOrEmpty(payload) && recipient == null)
             {
                 //Tell him who he's currently ignoring
-                string ignoreList = String.Join(", ", player._accountIgnore);
+                string ignoreList = String.Join(", ", player._accountIgnore.Keys);
 
                 player.sendMessage(0, "&Account Ignore List");
                 if (ignoreList.Length > 0)
@@ -37,15 +37,30 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            if (player._accountIgnore.Contains(payload))
+            if (recipient != null)
+                payload = recipient._alias;
+
+            if (player._accountIgnore.ContainsKey(payload))
             {
                 player._accountIgnore.Remove(payload);
                 player.sendMessage(0, "Removed '" + payload + "' from account-ignore list");
             }
             else
             {
-                player._accountIgnore.Add(payload);
+                Player target = (recipient == null ? player._server.getPlayer(payload) : recipient);
+                player._accountIgnore.Add(payload, (target != null ? target._ipAddress : null));
                 player.sendMessage(0, "Added '" + payload + "' to account-ignore list");
+
+                //Do we need to get the ip address for our player?
+                if (target == null && !player._server.IsStandalone)
+                {
+                    CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
+                    query.queryType = CS_ChatQuery<Data.Database>.QueryType.accountignore;
+                    query.sender = player._alias;
+                    query.payload = payload;
+
+                    player._server._db.send(query);
+                }
             }
         }
         #endregion
@@ -498,6 +513,9 @@ namespace InfServer.Game.Commands.Chat
         #endregion
 
         #region chat
+        /// <summary>
+        /// Adds/drops or lists a players chat and who's online
+        /// </summary>
         public static void chat(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
             if (player._server.IsStandalone)

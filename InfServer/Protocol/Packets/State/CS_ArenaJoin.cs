@@ -16,8 +16,8 @@ namespace InfServer.Protocol
 		public bool Unk1;
 		public UInt32 EXEChecksum;		//Checksum of certain critical functions in the code
 		public UInt32 AssetChecksum;	//Checksum of all the assets loaded in the client
-		public UInt16 Unk2;
-		public UInt16 Unk3;
+		public UInt16 ResoWidth;
+		public UInt16 ResoHeight;
 		public string ArenaName;
 
 		//Packet routing
@@ -61,10 +61,10 @@ namespace InfServer.Protocol
 			Unk1 = _contentReader.ReadBoolean();
 			EXEChecksum = _contentReader.ReadUInt32();
 			AssetChecksum = _contentReader.ReadUInt32();
-			Unk2 = _contentReader.ReadUInt16();
-			Unk3 = _contentReader.ReadUInt16();
+			ResoWidth = _contentReader.ReadUInt16();
+			ResoHeight = _contentReader.ReadUInt16();
 			ArenaName = ReadString(16);
-            Log.write(TLog.Normal, "AssetsCheck {0}, EXECheck {1}, Unk2 {2}, Unk3 {3}", AssetChecksum, EXEChecksum, Unk2, Unk3);
+            Log.write(TLog.Normal, "AssetsCheck {0}, EXECheck {1}, Reso Width {2}, Reso Height {3}, Unk1 {4}", AssetChecksum, EXEChecksum, ResoWidth, ResoHeight, Unk1);
 		}
 
         public override void Serialize()
@@ -73,8 +73,8 @@ namespace InfServer.Protocol
             Write(Unk1);
             Write(EXEChecksum);
             Write(AssetChecksum);
-            Write(Unk2);
-            Write(Unk3);
+            Write(ResoWidth);
+            Write(ResoHeight);
             Write(ArenaName, 16);
         }
 

@@ -59,7 +59,8 @@ namespace InfServer.Protocol
                 Chat = 14,
                 ZoneList = 15,
                 Disconnect = 17,
-                ChartResponse = 24
+                ChartResponse = 24,
+                ChatQuery = 25
             }
         }
     }

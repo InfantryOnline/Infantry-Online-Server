@@ -99,6 +99,7 @@
     <Compile Include="Packets\Commands\Chat\CS_ChartQuery.cs" />
     <Compile Include="Packets\Commands\Chat\CS_ChatQuery.cs" />
     <Compile Include="Packets\Commands\Chat\CS_Squads.cs" />
+    <Compile Include="Packets\Commands\Chat\SC_ChatQuery.cs" />
     <Compile Include="Packets\Commands\Mod\CS_ModQuery.cs" />
     <Compile Include="Packets\Commands\Mod\CS_Ban.cs" />
     <Compile Include="Packets\Login\CS_ArenaUpdate.cs" />

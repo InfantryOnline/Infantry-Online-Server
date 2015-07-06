@@ -145,8 +145,8 @@ namespace InfServer.Script.GameType_Blank
         public bool breakdown()
         {	//Allows additional "custom" breakdown information
 
-            //Always return true;
-            return true;
+            //Always return true if using custom breakdown;
+            return false;
         }
 
 		/// <summary>

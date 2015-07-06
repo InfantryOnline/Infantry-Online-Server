@@ -1,40 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using InfServer.Network;
 using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-    /// CS_Unknown grabs a response from whatever packet you are looking for
+    /// CS_PlayerDisconnect is sent by the client when a player disconnects from the zone
     /// </summary>
-    public class CS_Unknown : PacketBase
+    public class CS_PlayerDisconnected : PacketBase
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public int unk1;
-        public string unk2;
+
+        Player player = null;
 
         //Packet routing
-        //Switch this to whatever packet you are trying to find
-        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.Unknown;//0x03|0x12|0x16|0x30|0x31|0x32|0x33|0x34|0x35|0x37|0x38;
-        static public event Action<CS_Unknown, Player> Handlers;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.PlayerDisconnected;
+        static public Action<CS_PlayerDisconnected, Player> Handlers;
 
 
         ///////////////////////////////////////////////////
         // Member Functions
         //////////////////////////////////////////////////
         /// <summary>
-        /// Creates an instance of the dummy packet used to debug communication or 
-        /// to represent unknown packets.
+        /// Creates an empty packet of the specified type.
         /// </summary>
-        /// <param name="typeID">The type of the received packet.</param>
-        /// <param name="buffer">The received data.</param>
-        public CS_Unknown(ushort typeID, byte[] buffer, int index, int count)
+        public CS_PlayerDisconnected(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
-        {
-        }
+        { }
 
         /// <summary>
         /// Routes a new packet to various relevant handlers
@@ -50,7 +43,7 @@ namespace InfServer.Protocol
         /// </summary>
         public override void Deserialize()
         {	//Get the information
-            //Log.write(TLog.Warning, String.Format("Found unknown cs packet {0}", (byte)TypeID));
+            player = ((Client<Player>)_client)._obj;
         }
 
         /// <summary>
@@ -60,7 +53,7 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Unknown Packet Testing";
+                return "Player Zone Disconnected";
             }
         }
     }

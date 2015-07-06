@@ -621,8 +621,8 @@ namespace InfServer.Game
                         p._lengthOfSilence = 0;
                         p.sendMessage(-1, "You may speak now.");
 
-                        if (p._server._playerSilenced.ContainsKey(p._alias))
-                            p._server._playerSilenced.Remove(p._alias);
+                        if (p._server._playerSilenced.ContainsKey(p._ipAddress))
+                            p._server._playerSilenced.Remove(p._ipAddress);
                     }
                 }
 
@@ -877,6 +877,9 @@ namespace InfServer.Game
 			return null;
 		}
 
+        /// <summary>
+        /// Obtains a team by id
+        /// </summary>
         public Team getTeamByID(int id)
         {
             Team team;
@@ -889,6 +892,9 @@ namespace InfServer.Game
             return null;
         }
 
+        /// <summary>
+        /// Creates a team within the arena
+        /// </summary>
         public void createTeam(Team team)
         {
             _teams.Add(team._name.ToLower(), team);

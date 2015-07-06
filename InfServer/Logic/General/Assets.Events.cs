@@ -206,7 +206,16 @@ namespace InfServer.Logic
                         {	//Find the given item
                             ItemInfo item = player._server._assets.getItemByName(param.Substring(0, colIdx));
                             if (item != null)
-                                player.inventoryModify(false, item, Convert.ToInt32(param.Substring(colIdx + 1)));
+                            {
+                                try
+                                {
+                                    player.inventoryModify(false, item, Convert.ToInt32(param.Substring(colIdx + 1)));
+                                }
+                                catch
+                                {
+                                    Log.write(TLog.Warning, String.Format("Error in String: {0} in action {1}", param.Substring(colIdx + 1), action));
+                                }
+                            }
                         }
 
                         bChangedState = true;

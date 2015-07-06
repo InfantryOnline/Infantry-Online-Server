@@ -39,6 +39,13 @@ namespace InfServer.Game.Commands.Mod
             //Turn spec quiet on
             if (!player._arena._specQuiet)
                 Basic.specquiet(player, null, null, bong);
+            //Turn on allowing spectators
+            if (player._server._zoneConfig.arena.allowSpectating)
+            {
+                foreach(Player p in player._arena.Players)
+                    if (!p._bAllowSpectator)
+                        p._bAllowSpectator = true;
+            }
 
             //Toggle Stat Saving for any attached script
             player._arena._isMatch = !player._arena._isMatch;

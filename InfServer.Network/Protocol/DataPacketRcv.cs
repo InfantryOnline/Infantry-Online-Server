@@ -68,18 +68,21 @@ namespace InfServer.Protocol
             {
                 data = _contentReader.ReadBytes((int)(_content.Length - 2));
             }
-            catch
+            catch (Exception e)
             {
-                Log.write(TLog.Warning, "DataPacketRcv line 69.");
+                Log.write(TLog.Warning, String.Format("DataPacketRcv line 69. {0}", e));
             }
 
             try
             {
-                dataSize = Flip(BitConverter.ToInt32(data, 0));
+                if (data.Length <= 3)
+                    dataSize = Flip(BitConverter.ToInt16(data, 0));
+                else
+                    dataSize = Flip(BitConverter.ToInt32(data, 0));
             }
-            catch
+            catch (Exception e)
             {
-                Log.write(TLog.Warning, "DataPacketRcv line 78.");
+                Log.write(TLog.Warning, String.Format("DataPacketRcv line 78. {0} - {1}", e, data.Length));
             }
 		}
 

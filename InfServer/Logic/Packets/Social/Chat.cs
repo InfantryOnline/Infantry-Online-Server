@@ -40,7 +40,7 @@ namespace InfServer.Logic
 					command = pkt.message.Substring(1, spcIdx - 1);
 					payload = pkt.message.Substring(spcIdx + 1);
 				}
-
+                
 				//Do we have a recipient?
 				Player recipient = null;
 				if (pkt.chatType == Helpers.Chat_Type.Whisper)
@@ -126,12 +126,15 @@ namespace InfServer.Logic
                     player._bSilenced = true;
                     player._lengthOfSilence = duration;
                     player._timeOfSilence = DateTime.Now;
-                    if (player._server._playerSilenced.ContainsKey(player._alias))
-                        player._server._playerSilenced[player._alias].Add(player._lengthOfSilence, player._timeOfSilence);
+                    if (player._server._playerSilenced.ContainsKey(player._ipAddress))
+                    {
+                        if (!player._server._playerSilenced[player._ipAddress].ContainsKey(duration))
+                            player._server._playerSilenced[player._ipAddress].Add(player._lengthOfSilence, player._timeOfSilence);
+                    }
                     else
                     {
-                        player._server._playerSilenced.Add(player._alias, new Dictionary<int, DateTime>());
-                        player._server._playerSilenced[player._alias].Add(player._lengthOfSilence, player._timeOfSilence);
+                        player._server._playerSilenced.Add(player._ipAddress, new Dictionary<int, DateTime>());
+                        player._server._playerSilenced[player._ipAddress].Add(player._lengthOfSilence, player._timeOfSilence);
                     }
                     return;
                 }
@@ -193,6 +196,26 @@ namespace InfServer.Logic
                     case Helpers.Chat_Type.Team:
                         //Send it to the player's team
                         player._team.playerTeamChat(player, pkt);
+                        break;
+
+                    case Helpers.Chat_Type.EnemyTeam:
+                        //Send it to the players team and enemy's team
+                        player._team.playerTeamChat(player, pkt);
+
+                        if (!Allowed)
+                            break;
+                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                            break;
+
+                        if (!pkt.recipient.Equals(player._alias, StringComparison.OrdinalIgnoreCase))
+                        {
+                            Player recipient = player._arena.getPlayerByName(pkt.recipient);
+                            if (recipient != null)
+                            {
+                                pkt.message = String.Format("[Enemy] {0}", pkt.message);
+                                recipient._team.playerTeamChat(player, pkt);
+                            }
+                        }
                         break;
 
                     case Helpers.Chat_Type.PrivateChat:

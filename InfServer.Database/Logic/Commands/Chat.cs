@@ -55,6 +55,20 @@ namespace InfServer.Logic
                         }
                         break;
 
+                    case CS_ChatQuery<Zone>.QueryType.accountignore:
+                        {
+                            Data.DB.alias player = db.alias.SingleOrDefault(a => a.name.Equals(pkt.payload));
+                            if (player != null)
+                            {
+                                SC_ChatQuery<Zone> cQuery = new SC_ChatQuery<Zone>();
+                                cQuery.type = pkt.queryType;
+                                cQuery.sender = pkt.sender;
+                                cQuery.payload = String.Format("{0},{1}", player.name, player.IPAddress);
+                                zone._client.sendReliable(cQuery);
+                            }
+                        }
+                        break;
+
                     case CS_ChatQuery<Zone>.QueryType.whois:
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Whois Information");
@@ -1251,7 +1265,7 @@ namespace InfServer.Logic
                                         p.Value.alias, p.Value.zone._zone.name, p.Value.arena, p.Key);
                                     respond.data += "\n";
                                 }
-                                zone._client.sendReliable(respond, 1);
+                                zone._client.sendReliable(respond);
                             }
                         }
                         break;

@@ -27,8 +27,9 @@ namespace InfServer.Protocol
 			{
 				Login = 0x01,
 				SetBanner = 0x02,
-                //Unknown Packet #3 = 0x03, deals with a player leaving the zone but not switching arenas Note: doesnt have any data why?
-                //SendBanner = 0x04,
+                PlayerDisconnected = 0x03,
+                /*Unknown Packet #3 = 0x03, deals with a player leaving the zone but not switching arenas Note: doesnt have any data why?*/
+                /*Unknown = 0x04,*/
 				Shop = 0x05,
 				Explosion = 0x06,
 				ShopSkill = 0x07,
@@ -42,14 +43,14 @@ namespace InfServer.Protocol
 				PlayerUseItem = 0x0F,
                 VehiclePickup = 0x10,
 				ChartRequest = 0x11,
-                //Unknown packet #18 = 0x12, has to do with joining a zone.. contains the playerID and 3 other 00 bytes
+                /*Unknown packet #18 = 0x12, has to do with joining a zone.. contains the playerID and 3 other 00 bytes*/
                 SendBannerTo = 0x13,
                 DamageEvent = 0x14,
 				Frames = 0x15,
-                //Unknown packet #22 = 0x16, Registry query response
+                RegResponse = 0x16,
                 PlayerDrop = 0x17,
                 Chat = 0x18,
-                //Unknown packet #25 = 0x19, has to do with being in the arena/zone - Note: this is a semi big packet
+                /*Unknown packet #25 = 0x19, has to do with being in the arena/zone - Note: this is a semi big packet*/
                 BallPickup = 0x1A,
                 BallDrop = 0x1B,
 				PlayerUpdate = 0x1C,
@@ -59,24 +60,25 @@ namespace InfServer.Protocol
 				PlayerDeath = 0x21,
 				PlayerPortal = 0x22,
 				FileSend = 0x23,
-                //SendBanner = 0x24,
+                /*Unknown = 0x24,*/
 				Security = 0x25,
-                //SendBanner = 0x26,
+                /*Unknown = 0x26,*/
+                /*Unknown packet #38 = 0x26, has to do with leaving the zone but doesnt contain data, possibly a pending packet then player disconnect is sent*/
                 GoalScored = 0x27,
-                //SendBanner = 0x28,
-                //SendBanner = 0x29,
+                /*Unknown = 0x28,*/
+                Unknown = 0x29, /*possibly #41, not sure yet what it is*/
                 AllowSpectator = 0x2A,
 				RequestSpectator = 0x2B,
-                //SendBanner = 0x2C,
-                //SendBanner = 0x2D,
-                //SendBanner = 0x2E,
-                //SendBanner = 0x2F,
-                //VehiclePickup = 0x30,
-                //VehiclePickup = 0x31,
-                //VehiclePickup = 0x32,
-                //VehiclePickup = 0x33,
-                //VehiclePickup = 0x34,
-                //VehiclePickup = 0x35,
+                /*Unknown = 0x2C,*/
+                /*Unknown = 0x2D,*/
+                /*Unknown = 0x2E,*/
+                /*Unknown = 0x2F,*/
+                /*Unknown = 0x30,*/
+                /*Unknown = 0x31,*/
+                /*Unknown = 0x32,*/
+                /*Unknown = 0x33,*/
+                /*Unknown = 0x34,*/
+                /*Unknown = 0x35,*/
                 SecurityResponse = 36,
 			}
 
@@ -94,9 +96,11 @@ namespace InfServer.Protocol
 				PatchInfo = 0x07,
 				ArenaList = 0x08,
 				BallState = 0x09,
+                /*0x0A doesnt give any missing packets*/
 				BindVehicle = 0x0B,
 				ChangeTeam = 0x0C,
 				PlayerState = 0x0D,
+                /*0x0E doesnt give any missing packets*/
 				VehicleDeath = 0x0F,
 				Items = 0x10,
 				ItemDrop = 0x11,
@@ -134,10 +138,11 @@ namespace InfServer.Protocol
 				IsZoneConnected = 0x31, /*This is a packet to check if player is in the zone or not*/
 				BannerInfo = 0x32,
 				ItemReload = 0x33,
+                /*0x34 doesnt give any missing packets*/
 				PlayerSpectate = 0x35,
 				FileSend = 0x36,
 				ZoneList = 0x37,
-                /*0x38 type id packet returns a 0x44 packet*/
+                /*0x38 type id packet returns an unknown #44 packet*/
                 TestPacket = 0x38, /*Switch this around to whatever number you want to test*/
 			}
 		}

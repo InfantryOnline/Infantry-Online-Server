@@ -158,16 +158,38 @@ namespace InfServer.Game
 		/// Called when the game begins
 		/// </summary>
 		public override void gameStart()
-		{	//We're running!
+		{	
+            //Check to see if we are even allowed to start
+            if (_scriptType.Equals("GameType_USL") || _scriptType.Equals("GameType_TDM")
+                || _scriptType.Equals("GameType_SLTDM") || _scriptType.Equals("GameType_FL_TDM"))
+            {
+                if (PlayerCount < _server._zoneConfig.deathMatch.minimumPlayers)
+                    return;
+            }
+
+            if (_scriptType.Equals("GameType_KOTH"))
+            {
+                if (PlayerCount < _server._zoneConfig.king.minimumPlayers)
+                    return;
+            }
+
+            if (_scriptType.Equals("GameType_Gravball") || _scriptType.Equals("GameType_BasketBall")
+                || _scriptType.Equals("GameType_BoomBall") || _scriptType.Equals("GameType_Soccerbrawl")
+                || _scriptType.Equals("GameType_Footbrawl") || _scriptType.Equals("GameType_Hockey"))
+            {
+                if (PlayerCount < _server._zoneConfig.soccer.minimumPlayers)
+                    return;
+            }
+
+            //We're running!
 			_bGameRunning = true;
             _tickGameStarted = Environment.TickCount;
 			_tickGameEnded = 0;
 
 			//Reset the flags
             if (_scriptType != "GameType_KOTH")
-            {
                 flagReset();
-            }
+
 			//What else do we need to reset?
 			if (_startCfg.prizeReset)
 				resetItems();
@@ -341,7 +363,7 @@ namespace InfServer.Game
 			{
 				from.sendMessage(0, "#Individual Statistics Breakdown");
 
-				List<Player> rankedPlayers = _playersIngame.ToList().OrderByDescending(
+				List<Player> rankedPlayers = Players.ToList().OrderByDescending(
                     player => (bCurrent ? (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills)
                         : (player.StatsLastGame == null ? 0 : player.StatsLastGame.kills))).ToList();
 				int idx = 3;	//Only display top three players
@@ -2137,7 +2159,7 @@ namespace InfServer.Game
 							}
 							else if (item.repairDistance < 0)
 							{	//An area heal! Get all players within this area..
-								List<Player> players = getPlayersInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
+                                List<Player> players = _playersIngame.getObjsInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
 
 								//Check each player
 								foreach (Player p in players)

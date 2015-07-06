@@ -146,6 +146,16 @@ namespace InfServer.Game.Commands.Mod
             test.ball = player._arena._balls.SingleOrDefault(b => b._id == (ushort)0);
             player._client.sendReliable(test);
              */
+            
+            SC_TestPacket test = new SC_TestPacket();
+            test.player = player;
+            player._client.send(test);
+            /*
+            SC_RegQuery reg = new SC_RegQuery();
+            reg.unk = 2;
+            reg.location = "HKEY_CURRENT_USER\\SOFTWARE\\7-Zip\\Path";
+            player._client.sendReliable(reg);
+             */
 		}
 
         /// <summary>
@@ -273,8 +283,8 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(testPacket, "testpacket",
-				"Sends a test packet to the target player",
-				"::*testpacket",
+				"Sends a test packet to the target player or just sends a packet",
+				"::*testpacket, *testpacket",
 				InfServer.Data.PlayerPermission.Sysop, false);
 
 		}

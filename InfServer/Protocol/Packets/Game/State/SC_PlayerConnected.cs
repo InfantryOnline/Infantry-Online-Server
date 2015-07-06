@@ -14,7 +14,7 @@ namespace InfServer.Protocol
     public class SC_PlayerConnected : PacketBase
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public Int16 playerID;
+        public UInt16 playerID;
 
         public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.IsZoneConnected;
 
@@ -36,7 +36,7 @@ namespace InfServer.Protocol
         public override void Serialize()
         {	//Type ID
             Write((byte)TypeID);
-            //Write(playerID);
+            Write(playerID);
         }
 
         /// <summary>

@@ -16,8 +16,9 @@ namespace InfServer.Protocol
         public Player player;
         public Ball ball;
 
-        public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.BallState;
-
+        public ushort TypeID = (ushort)Helpers.PacketIDs.S2C.TestPacket;
+        public const ushort Default = (ushort)Helpers.PacketIDs.S2C.TestPacket;
+        private bool switchIDs = false;
         ///////////////////////////////////////////////////
         // Member Functions
         //////////////////////////////////////////////////
@@ -26,20 +27,29 @@ namespace InfServer.Protocol
         /// for constructing new packets for sending.
         /// </summary>
         public SC_TestPacket()
-            : base(TypeID)
+            : base(Default)
         { }
+
+        public SC_TestPacket(ushort type_ID)
+            : base(type_ID)
+        {
+            TypeID = type_ID;
+            switchIDs = !switchIDs;
+        }
 
         /// <summary>
         /// Serializes the data stored in the packet class into a byte array ready for sending.
         /// </summary>
         public override void Serialize()
         {	//Type ID
+            Write((byte)(switchIDs == true ? TypeID : Default) );
             /*
             Write((byte)((ushort)Helpers.PacketIDs.S2C.RegQuery));
             Write(0);
             string location = "HKEY_LOCAL_MACHINE\\SOFTWARE\\7-Zip\\Path";
             Write(location, location.Length);
              */
+            /*
             Write((byte)Helpers.PacketIDs.S2C.BallState);
             Write((byte)0);
             Write(player._state.velocityX);
@@ -51,6 +61,7 @@ namespace InfServer.Protocol
             Write((short)-1);
             Write((short)10);
             Write(Environment.TickCount);
+             */
         }
 
         /// <summary>
