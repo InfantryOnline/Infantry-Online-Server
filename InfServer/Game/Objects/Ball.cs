@@ -29,8 +29,15 @@ namespace InfServer.Game
         public Player _owner;               //The person holding us
         public Player _lastOwner;           //The person who held us last
         public short ballFriction;
-        public uint tickCount;            //Given to us by the client
+        public uint tickCount;              //Given to us by the client
         public bool deadBall = false;       //Is this ball stuck/unplayabe?
+
+        public enum BallStatus
+        {
+            Spawned = -1,
+            PickUp = 0,
+            Dropped = 1
+        }
 
         ///////////////////////////////////////////////////
         // Member Functions

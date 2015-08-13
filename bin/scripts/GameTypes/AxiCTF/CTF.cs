@@ -115,8 +115,6 @@ namespace InfServer.Script.GameType_AxiCTF
             {
                 foreach (Vehicle v in _arena.Vehicles)
                 {
-                    Console.WriteLine(v._type.Id);
-
                     switch (v._type.Id)
                     {
                         case 600:
@@ -468,8 +466,6 @@ namespace InfServer.Script.GameType_AxiCTF
 
             if (command.ToLower().Equals("vote"))
             {
-                Console.WriteLine(command);
-
                 if (!zonePoll.isActive)
                 {
                     return true;

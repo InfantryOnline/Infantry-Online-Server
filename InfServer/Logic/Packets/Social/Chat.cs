@@ -265,7 +265,6 @@ namespace InfServer.Logic
                     case Helpers.Chat_Type.Squad:
                         //Since squads are only zone-wide, we don't need to route it to the database,
                         //instead we route it to every player in every arena in the zone
-                        Log.write(pkt.recipient);
                         foreach (Arena a in player._server._arenas.Values)
                             foreach (Player p in a.Players)
                             {

@@ -167,8 +167,11 @@ namespace InfServer.Protocol
 		static public void Player_RouteChat(Player p, Player from, CS_Chat chat)
 		{	
             //We ignoring them?
-            if (p._accountIgnore.ContainsKey(from._alias) || p._accountIgnore.ContainsValue(from._ipAddress))
-                return;
+            if (from != null)
+            {
+                if (p._accountIgnore.ContainsKey(from._alias) || p._accountIgnore.ContainsValue(from._ipAddress))
+                    return;
+            }
 
             //Formulate the chat notification!
 			SC_Chat schat = new SC_Chat();
@@ -189,8 +192,11 @@ namespace InfServer.Protocol
         static public void Player_RouteChat(Player p, Player from, SC_Whisper<Data.Database> chat)
         {
             //We ignoring them?
-            if (p._accountIgnore.ContainsKey(from._alias) || p._accountIgnore.ContainsValue(from._ipAddress))
-                return;
+            if (from != null)
+            {
+                if (p._accountIgnore.ContainsKey(from._alias) || p._accountIgnore.ContainsValue(from._ipAddress))
+                    return;
+            }
 
             //Formulate the chat notification!
             SC_Chat schat = new SC_Chat();
@@ -211,7 +217,7 @@ namespace InfServer.Protocol
         static public void Player_RouteChat(Player p, SC_PrivateChat<Data.Database> pkt)
         {
             //We ignoring them?
-            if (p._accountIgnore.ContainsKey(pkt.from))
+            if (!String.IsNullOrWhiteSpace(pkt.from) && p._accountIgnore.ContainsKey(pkt.from))
                 return;
 
             //Formulate the chat notification!
@@ -243,7 +249,7 @@ namespace InfServer.Protocol
             {
                 if (player == from)
                     continue;
-                if (player._accountIgnore.Count > 0)
+                if (from != null)
                 {
                     if (player._accountIgnore.ContainsKey(from._alias))
                         continue;

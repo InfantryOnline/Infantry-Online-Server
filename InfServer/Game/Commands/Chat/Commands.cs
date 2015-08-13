@@ -616,6 +616,15 @@ namespace InfServer.Game.Commands.Chat
             else
                 items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries).ToList();
 
+            //Check for flag games
+            List<Arena.FlagState> flags = new List<Arena.FlagState>();
+            foreach (Arena.FlagState fs in player._arena._flags.Values)
+            {
+                if (Helpers.isInRange(player._server._zoneConfig.flag.prizeDistance,
+                    player._state.positionX, player._state.positionY, fs.posX, fs.posY))
+                    flags.Add(fs);
+            }
+
             // parse the drop string
             foreach (string itemAmount in items)
             {
@@ -670,10 +679,22 @@ namespace InfServer.Game.Commands.Chat
                 //Item does not exist in their inventory
                 if (ii == null)
                 {
-                    player.sendMessage(-1, String.Format("You do not have any ({0}) to drop", item.name));
+                    player.sendMessage(-1, String.Format("You do not have any ({0}) to drop.", item.name));
                     continue;
                 }
                 
+                //Check if we are near any flags
+                bool near = false;
+                foreach (Arena.FlagState fs in flags)
+                {
+                    //Are we within range of a flag?
+                    if (Helpers.isInRange(player._server._zoneConfig.flag.prizeDistance,
+                        player._state.positionX, player._state.positionY, fs.posX, fs.posY))
+                        near = true;
+                }
+                if (near)
+                    continue;
+
                 //If the drop amount exceeds the amount in the inventory assign it to the amount in inventory
                 if (ii.quantity < dropAmount)
                 {

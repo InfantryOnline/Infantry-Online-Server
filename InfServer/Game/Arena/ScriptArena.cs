@@ -82,6 +82,7 @@ namespace InfServer.Game
 		{
             if (player != null)
             {
+                //Update player count first
                 base.playerEnter(player);
 
                 //Pass it to the script environment
@@ -101,6 +102,7 @@ namespace InfServer.Game
 		{
             if (player != null)
             {
+                //Update player count first
                 base.playerLeave(player);
 
                 //Pass it to the script environment
@@ -133,9 +135,6 @@ namespace InfServer.Game
         /// <summary>
         /// Scrambles teams based on cfg file
         /// </summary>
-        /// <param name="arena"></param>
-        /// <param name="numTeams"></param>
-        /// <param name="alertArena"></param>
         public static void scrambleTeams(Arena arena, int numTeams, bool alertArena)
         {
             List<Player> shuffledPlayers = arena.PublicPlayersInGame.OrderBy(plyr => arena._rand.Next(0, 500)).ToList();
@@ -417,13 +416,16 @@ namespace InfServer.Game
             //Display flag victory jackpot?
             if (_server._zoneConfig.flag.useJackpot)
             {
-                int _jackpot = (int)Math.Pow(PlayerCount, 2);
-                sendArenaMessage("Victory Jackpot=" + _jackpot, _server._zoneConfig.flag.victoryBong);
 
                 List<Team> flagTeams = new List<Team>();
-                foreach(FlagState fs in _flags.Values)
+                foreach (FlagState fs in _flags.Values)
+                {
                     if (fs.bActive && fs.team != null)
                         flagTeams.Add(fs.team);
+                }
+
+                int _jackpot = (int)Math.Pow(PlayerCount, 2);
+                sendArenaMessage("Victory Jackpot=" + _jackpot, _server._zoneConfig.flag.victoryBong);
 
                 foreach (Player p in Players.ToList())
                 {
@@ -485,6 +487,12 @@ namespace InfServer.Game
                 return;
             }
 
+            //Check to see if the ball has been dropped yet, client sends this packet
+            //really fast trying to figure out who got it. (you hear a click)
+            if (ball.ballStatus != (int)Ball.BallStatus.Spawned
+                && ball.ballStatus == (int)Ball.BallStatus.PickUp)
+                return;
+
             //Forward to our script
             if (exists("Player.BallPickup") && !(bool)callsync("Player.BallPickup", false, from, ball))
                 return;
@@ -492,6 +500,7 @@ namespace InfServer.Game
             //Pick up the ball
             ball._lastOwner = ball._owner;
             ball._owner = from;
+            Console.WriteLine("{0}, {1}", ball._lastOwner, ball._owner);
 
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
@@ -525,7 +534,7 @@ namespace InfServer.Game
         {
             if (from == null)
             {
-                Log.write(TLog.Warning, "handleBallPickup(): Called with null player.");
+                Log.write(TLog.Warning, "handleBallDrop(): Called with null player.");
                 return;
             }
 
@@ -543,6 +552,7 @@ namespace InfServer.Game
             //Drop the ball
             ball._lastOwner = from;
             ball._owner = null;
+            Console.WriteLine("Dropped: {0}, {1}", ball._lastOwner, ball._owner);
 
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
@@ -631,8 +641,8 @@ namespace InfServer.Game
 	  		    {
 	  			    if (update.quantity == drop.quantity)
 	  			    {	//Delete the drop
+                        drop.quantity = 0;
 	  				    _items.Remove(drop.id);
-	  				    drop.quantity = 0;
 	  			    }
 	  			    else
 	  				    drop.quantity = (short)(drop.quantity - update.quantity);
@@ -664,13 +674,28 @@ namespace InfServer.Game
 				return;
 			}
 
-			//Perform some sanity checks
+			//Droppable?
 			if (!item.droppable)
 				return;
+
+            //Is in range?
 			if (!Helpers.isInRange(200,
 				from._state.positionX, from._state.positionY,
 				update.positionX, update.positionY))
 				return;
+
+            //For flag games, are we near a flag?
+            if (_flags.Count > 0)
+            {
+                //Are we near the prize distance? 
+                //Note: even if set as 0, prevents drop cheating by placing items on the flag
+                foreach (FlagState fs in _flags.Values)
+                {
+                    if (Helpers.isInRange(_server._zoneConfig.flag.prizeDistance,
+                        from._state.positionX, from._state.positionY, fs.posX, fs.posY))
+                        return;
+                }
+            }
 
 			//Forward to our script
 			if (!exists("Player.ItemDrop") || (bool)callsync("Player.ItemDrop", false, from, item, update.quantity))
@@ -884,8 +909,8 @@ namespace InfServer.Game
 		public override void handlePlayerFlag(Player from, bool bPickup, bool bInPlace, LioInfo.Flag flag)
 		{	//Forward to our script
 			if (!exists("Player.FlagAction") || (bool)callsync("Player.FlagAction", false, from, bPickup, bInPlace, flag))
-			{	//Make a switch request
-				flagRequest(false, bPickup, bInPlace, from, flag);
+            {	//Make a flag request
+				flagAction(false, bPickup, bInPlace, from, flag);
 			}
 		}
         #endregion
@@ -963,15 +988,26 @@ namespace InfServer.Game
 				}
 
 				//Is he able to unspec?
-				if (!Logic_Assets.SkillCheck(from, _server._zoneConfig.arena.exitSpectatorLogic))
-				{
-                    if (!String.IsNullOrWhiteSpace(_server._zoneConfig.arena.exitSpectatorMessage))
-                        //Use logic message
-                        from.sendMessage(-1, _server._zoneConfig.arena.exitSpectatorMessage);
-                    else
-                        from.sendMessage(-1, "That is not an eligible class to play.");
-					return;
-				}
+                //Check spectator logic and check any requirements
+                foreach (Player.SkillItem skill in from._skills.Values)
+                {
+                    if (skill.skill.SkillId > 0 &&
+                        !Logic_Assets.AllowedClassCheck(from, skill.skill, from._server._zoneConfig.arena.exitSpectatorLogic))
+                    {
+                        if (!String.IsNullOrWhiteSpace(_server._zoneConfig.arena.exitSpectatorMessage))
+                            //Use logic message
+                            from.sendMessage(-1, _server._zoneConfig.arena.exitSpectatorMessage);
+                        else
+                            from.sendMessage(-1, "That is not an eligible class to play.");
+                        return;
+                    }
+
+                    if (!Logic_Assets.SkillCheck(from, skill.skill.Logic))
+                    {
+                        from.sendMessage(-1, "You do not have the requirements to play this class.");
+                        return;
+                    }
+                }
 
                 //Does he have a high p-loss or ping?
                 Client.ConnectionStats pStats = from._client._stats;
@@ -987,7 +1023,6 @@ namespace InfServer.Game
                     return;
                 }
 
-
 				//Forward to our script
                 if (exists("Player.JoinGame") && !(bool)callsync("Player.JoinGame", false, from))
                 {
@@ -996,7 +1031,6 @@ namespace InfServer.Game
 
 				//Pick a team
                 Team pick = pickAppropriateTeam(from);
-
                 if (pick != null)
                 {
                     //Great, use it
@@ -1115,6 +1149,7 @@ namespace InfServer.Game
         {	//Should we ignore this?
             if (update.bIgnored)
                 return;
+
             int now = Environment.TickCount;
             //Is it firing an item?
             if (update.itemID != 0)
@@ -1212,7 +1247,7 @@ namespace InfServer.Game
             from._state.positionX = update.positionX;
             from._state.positionY = update.positionY;
             from._state.positionZ = update.positionZ;
-
+            
             from._state.yaw = update.yaw;
             from._state.direction = (Helpers.ObjectState.Direction)update.direction;
             from._state.unk1 = update.unk1;
@@ -1586,31 +1621,118 @@ namespace InfServer.Game
 			//What sort of warp item are we dealing with?
 			switch (item.warpMode)
 			{
-				case ItemInfo.WarpItem.WarpMode.Lio:
-					//Are we warpable?
-					if (!player.ActiveVehicle._type.IsWarpable)
-						return;
+                case ItemInfo.WarpItem.WarpMode.RandomWarp:
+                    {
+                        //Are we warpable?
+                        if (!player.ActiveVehicle._type.IsWarpable)
+                            return;
 
-                    //Are we dead?
-                    if (player.IsDead)
-                        return;
+                        //Are we dead?
+                        if (player.IsDead)
+                            return;
 
-					//Forward to our script
-					if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
-						return;
+                        //Forward to our script
+                        if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
+                            return;
 
-					//A simple lio warp. Get the associated warpgroup
-					List<LioInfo.WarpField> warps = _server._assets.Lios.getWarpGroupByID(item.warpGroup);
+                        if (item.areaEffectRadius > 0)
+                        {
+                            foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
+                            {
+                                //Is he dead, on the correct team or warpable?
+                                if (!p.IsDead && p.ActiveVehicle._type.IsWarpable)
+                                {
+                                    LvlInfo level = player._server._assets.Level;
 
-					if (warps == null)
-					{
-						Log.write(TLog.Error, "Warp group '{0}' doesn't exist.", item.warpGroup);
-						break;
-					}
+                                    int x = level.OffsetX * 16;
+                                    int y = level.OffsetY * 16;
+                                    short height = player._state.positionY;
+                                    short width = player._state.positionX;
 
-					//Warp the player
-					Logic_Lio.Warp(Helpers.ResetFlags.ResetNone, player, warps);
-					break;
+                                    //Check for an available spot
+                                    //This fixes warping onto physics
+                                    int attempts = 0;
+                                    for (; attempts < 10; attempts++)
+                                    {
+                                        short px = (short)x;
+                                        short py = (short)y;
+                                        if (!player._arena.getTile(px, py).Blocked)
+                                            break;
+
+                                        Helpers.randomPositionInArea(player._arena, ref px, ref py, width, height);
+                                    }
+
+                                    //Use our first warp!
+                                    p.warp(Helpers.ResetFlags.ResetNone,
+                                        (short)-1,
+                                        (short)(x - width), (short)(y - height),
+                                        (short)(x + width), (short)(y + height),
+                                        0);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            LvlInfo level = player._server._assets.Level;
+
+                            int x = level.OffsetX * 16;
+                            int y = level.OffsetY * 16;
+                            short height = player._state.positionY;
+                            short width = player._state.positionX;
+
+                            //Check for an available spot
+                            //This fixes warping onto physics
+                            int attempts = 0;
+                            for (; attempts < 10; attempts++)
+                            {
+                                short px = (short)x;
+                                short py = (short)y;
+                                if (!player._arena.getTile(px, py).Blocked)
+                                    break;
+
+                                Helpers.randomPositionInArea(player._arena, ref px, ref py, width, height);
+                            }
+
+                            //Use our first warp!
+                            player.warp(Helpers.ResetFlags.ResetNone,
+                                (short)-1,
+                                (short)(x - width), (short)(y - height),
+                                (short)(x + width), (short)(y + height),
+                                0);
+                        }
+                    }
+                    break;
+
+                case ItemInfo.WarpItem.WarpMode.Lio:
+                    {
+                        //Are we warpable?
+                        if (!player.ActiveVehicle._type.IsWarpable)
+                            return;
+
+                        //Are we dead?
+                        if (player.IsDead)
+                            return;
+
+                        //Forward to our script
+                        if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
+                            return;
+
+                        //A simple lio warp. Get the associated warpgroup
+                        List<LioInfo.WarpField> warps = _server._assets.Lios.getWarpGroupByID(item.warpGroup);
+                        if (warps == null)
+                        {
+                            Log.write(TLog.Error, "Warp group '{0}' doesn't exist.", item.warpGroup);
+                            break;
+                        }
+
+                        //Set the id for abuse checking later
+                        player._lastWarpItemUseID = item.id;
+                        player._lastWarpItemUse = Environment.TickCount;
+
+                        //Warp the player
+                        Logic_Lio.Warp(Helpers.ResetFlags.ResetNone, player, warps);
+                    }
+                    break;
 
 				case ItemInfo.WarpItem.WarpMode.WarpTeam:
 					{	//Are we warpable?
@@ -1648,6 +1770,10 @@ namespace InfServer.Game
 						}
 						else
 							player.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
+
+                        //Set the id for abuse checking later
+                        player._lastWarpItemUseID = item.id;
+                        player._lastWarpItemUse = Environment.TickCount;
 					}
 					break;
 
@@ -1680,6 +1806,10 @@ namespace InfServer.Game
 						}
 						else
 							player.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
+
+                        //Set the id for abuse checking later
+                        player._lastWarpItemUseID = item.id;
+                        player._lastWarpItemUse = Environment.TickCount;
 					}
 					break;
 
@@ -1693,8 +1823,12 @@ namespace InfServer.Game
                         if (target._team != player._team)
                             return;
 
+                        //Is he dead?
+                        if (target.IsDead)
+                            return;
+
                         //Is he warpable?
-                        if (!target.IsDead && !target.ActiveVehicle._type.IsWarpable)
+                        if (!target.ActiveVehicle._type.IsWarpable)
                             return;
 
                         //Is the target player ignoring this player's summons?
@@ -1746,6 +1880,10 @@ namespace InfServer.Game
 						}
 						else
 							target.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
+
+                        //Set the id for abuse checking later
+                        player._lastWarpItemUseID = item.id;
+                        player._lastWarpItemUse = Environment.TickCount;
 					}
 					break;
 
@@ -1755,9 +1893,20 @@ namespace InfServer.Game
 						if (target == null)
 							return;
 
+                        //Is the target dead?
+                        if (target.IsDead)
+                            return;
+
 						//Is he warpable?
-						if (!target.IsDead && !target.ActiveVehicle._type.IsWarpable)
+						if (!target.ActiveVehicle._type.IsWarpable)
 							return;
+
+                        //Is the target player ignoring this player's summons?
+                        if (target._summonIgnore.Contains(player._alias) || target._summonIgnore.Contains("*"))
+                        {
+                            player.sendMessage(-1, "The specified player is ignoring summons.");
+                            return;
+                        }
 
 						//Forward to our script
 						if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))
@@ -1774,12 +1923,16 @@ namespace InfServer.Game
 						}
 						else
 							target.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
+
+                        //Set the id for abuse checking later
+                        player._lastWarpItemUseID = item.id;
+                        player._lastWarpItemUse = Environment.TickCount;
 					}
 					break;
 
 				case ItemInfo.WarpItem.WarpMode.Portal:
 				    {
-					//Forward it to the script for now
+					    //Forward it to the script for now
 		                if (exists("Player.WarpItem") && !(bool)callsync("Player.WarpItem", false, player, item, targetPlayerID, posX, posY))                                                  
                 		    return;
 
@@ -1787,11 +1940,15 @@ namespace InfServer.Game
 					    {
 					        foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
 					        {
-						        //Is the player dead?
-						        if (!p.IsDead)
+						        //Is the player dead and warpable?
+						        if (!p.IsDead && p.ActiveVehicle._type.IsWarpable)
 						            p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
 					        }
-					    }					    
+					    }
+
+                        //Set the id for abuse checking later
+                        player._lastWarpItemUseID = item.id;
+                        player._lastWarpItemUse = DateTime.Now.AddSeconds(item.portalTime / 100).Ticks;
 				    }
 				    break;
             }
@@ -1974,7 +2131,6 @@ namespace InfServer.Game
 				Log.write(TLog.Warning, "Player attempted to expire an item which can't be expired: {0}", itminfo.name);
 				return;
 			}
-
 			//Remove ONE item of this type... dummies!
 			player.inventoryModify(itemTypeID, -1);
 		}
@@ -2307,7 +2463,7 @@ namespace InfServer.Game
                 //Lets check ownerships first
                 if (target._owner == player._team)
                 {
-                    player.sendMessage(-1, "You already have control of this item.");
+                    player.sendMessage(-1, "You already have control of this.");
                     return;
                 }
 
@@ -2614,8 +2770,22 @@ namespace InfServer.Game
                         {
                             case VehInfo.Types.Car:
                                 VehInfo.Car type = vehicle as VehInfo.Car;
-                                if (type.Mode > 2 && type.Mode < 5)
+                                if (type.Mode != 2) //2 == Jetpack
                                 {
+                                    //If this is type 5, lets see if we really are a car by checking dependents
+                                    if (type.Mode == 5)
+                                    {
+                                        foreach (int childID in type.ChildVehicles)
+                                        {
+                                            if (childID > 0)
+                                                //Found a dependent, we are a car
+                                                break;
+
+                                            //We are not a car
+                                            return;
+                                        }
+                                    }
+
                                     killer.vehicleKills++;
                                     if (occupier != null && occupier._occupiedVehicle._type.Id == dead._type.Id)
                                         occupier.vehicleDeaths++;

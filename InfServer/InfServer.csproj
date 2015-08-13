@@ -282,6 +282,7 @@
     <Compile Include="Protocol\Packets\Game\Soccer\CS_BallDrop.cs" />
     <Compile Include="Protocol\Packets\Game\Soccer\CS_BallPickup.cs" />
     <Compile Include="Protocol\Packets\Game\Soccer\SC_BallState.cs" />
+    <Compile Include="Protocol\Packets\Game\State\CS_PlayerDisconnected.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_Flags.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_ClearProjectiles.cs" />
     <Compile Include="Protocol\Packets\Game\State\SC_LIOUpdates.cs" />
@@ -320,6 +321,7 @@
     <Compile Include="Protocol\Packets\Misc\CS_FileSend.cs" />
     <Compile Include="Protocol\Packets\Misc\CS_Unknown.cs" />
     <Compile Include="Protocol\Packets\Misc\SC_TestPacket.cs" />
+    <Compile Include="Protocol\Packets\Security\CS_RegResponse.cs" />
     <Compile Include="Protocol\Packets\Security\CS_SecurityCheck.cs" />
     <Compile Include="Protocol\Packets\Security\SC_SecurityCheck.cs" />
     <Compile Include="Protocol\Packets\Security\SC_RegQuery.cs" />

@@ -14,7 +14,7 @@ namespace InfServer.Logic
 	///////////////////////////////////////////////////////
 	class Logic_Lio
 	{	/// <summary>
-		/// Handles an item pickup request from a client
+		/// Handles a warp request from a client
 		/// </summary>
 		static public void Warp(Helpers.ResetFlags flags, Player player, IEnumerable<LioInfo.WarpField> warpGroup)
 		{	//Redirect
@@ -22,7 +22,7 @@ namespace InfServer.Logic
 		}
 
 		/// <summary>
-		/// Handles an item pickup request from a client
+		/// Handles a warp request from a client
 		/// </summary>
 		static public void Warp(Helpers.ResetFlags flags, Player player, IEnumerable<LioInfo.WarpField> warpGroup, int invulnTime)
 		{	//Search for valid warps to use

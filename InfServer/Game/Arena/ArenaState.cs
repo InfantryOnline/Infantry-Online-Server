@@ -209,6 +209,11 @@ namespace InfServer.Game
                 if (player._bIngame)
                     player.firstTimePlayer = false;
             }
+            else
+            {
+                //Reset any prized items
+                //Logic_Assets.RunEvent(player, "reset");
+            }
 
             //Create our new spam filter list
             player._msgTimeStamps = new List<DateTime>();

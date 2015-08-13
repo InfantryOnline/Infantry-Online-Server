@@ -60,7 +60,6 @@ namespace InfServer.Game
 
 			//What is the gun we're going to be shooting?			
 			int wepID = type.InventoryItems[0];
-            //_arena.sendArenaMessage("wepid: " + wepID);
 
 			if (wepID != 0)
 			{	//Find our primary weapon

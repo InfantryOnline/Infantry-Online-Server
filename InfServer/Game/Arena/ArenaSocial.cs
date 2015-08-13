@@ -239,7 +239,7 @@ namespace InfServer.Game
             {
                 //Security hole fix
                 //Lets check their level and their arena
-                if (from.PermissionLevel < Data.PlayerPermission.Mod)
+                if (from.PermissionLevel < Data.PlayerPermission.SMod)
                 {
                     if (recipient != null && !recipient._arena._name.Equals(from._arena._name))
                     {

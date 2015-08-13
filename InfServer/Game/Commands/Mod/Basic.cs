@@ -3267,7 +3267,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(zone, "zone",
                 "Send a zone-wide system message.",
                 "*zone message",
-               InfServer.Data.PlayerPermission.ArenaMod, true);
+               InfServer.Data.PlayerPermission.Mod, true);
         }
     }
 }

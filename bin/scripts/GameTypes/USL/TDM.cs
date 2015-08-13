@@ -40,7 +40,7 @@ namespace InfServer.Script.GameType_USL
         private int _minPlayers;				//The minimum amount of players
         private bool _overtime;                 //When the game goes into overtime, the stats still continue
         private int overtimeType = 0;           //Is this single, double or triple overtime?
-        private int LeagueSeason = 3;           //Which league season we are in?
+        private int LeagueSeason = 4;           //Which league season we are in?
 
         /// <summary>
         /// Current game player stats
@@ -90,7 +90,10 @@ namespace InfServer.Script.GameType_USL
             RedBlue,
             GreenYellow,
             WhiteBlack,
-            PinkPurple
+            PinkPurple,
+            GoldSilver,
+            BronzeDiamond,
+            OrangeGray
         }
         /// <summary>
         /// Spawn even class
@@ -798,6 +801,87 @@ namespace InfServer.Script.GameType_USL
                         }
                         //Nope, lets do some math
                         player.unspec(pink.ActivePlayerCount > purple.ActivePlayerCount ? purple : pink);
+                        player._lastMovement = Environment.TickCount;
+                        //Returning false so server wont repick us
+                        return false;
+
+                    case Events.GoldSilver:
+                        //Lets get team stuff
+                        Team gold = _arena.getTeamByName("Gold");
+                        Team silver = _arena.getTeamByName("Silver");
+
+                        //First do sanity checks
+                        if (gold == null || silver == null)
+                            break;
+
+                        //Are they the first on the teams?
+                        if (gold.ActivePlayerCount == 0 || silver.ActivePlayerCount == 0 || gold.ActivePlayerCount == silver.ActivePlayerCount)
+                        {
+                            //Great, use it
+                            if (gold.ActivePlayerCount == silver.ActivePlayerCount)
+                                player.unspec(gold);
+                            else
+                                player.unspec(gold.ActivePlayerCount == 0 ? gold : silver);
+                            player._lastMovement = Environment.TickCount;
+                            //We are returning false so server wont repick us
+                            return false;
+                        }
+                        //Nope, lets do some math
+                        player.unspec(gold.ActivePlayerCount > silver.ActivePlayerCount ? silver : gold);
+                        player._lastMovement = Environment.TickCount;
+                        //Returning false so server wont repick us
+                        return false;
+
+                    case Events.BronzeDiamond:
+                        //Lets get team stuff
+                        Team diamond = _arena.getTeamByName("Diamond");
+                        Team bronze = _arena.getTeamByName("Bronze");
+
+                        //First do sanity checks
+                        if (diamond == null || bronze == null)
+                            break;
+
+                        //Are they the first on the teams?
+                        if (diamond.ActivePlayerCount == 0 || bronze.ActivePlayerCount == 0 || diamond.ActivePlayerCount == bronze.ActivePlayerCount)
+                        {
+                            //Great, use it
+                            if (diamond.ActivePlayerCount == bronze.ActivePlayerCount)
+                                player.unspec(diamond);
+                            else
+                                player.unspec(diamond.ActivePlayerCount == 0 ? diamond : bronze);
+                            player._lastMovement = Environment.TickCount;
+                            //We are returning false so server wont repick us
+                            return false;
+                        }
+                        //Nope, lets do some math
+                        player.unspec(diamond.ActivePlayerCount > bronze.ActivePlayerCount ? bronze : diamond);
+                        player._lastMovement = Environment.TickCount;
+                        //Returning false so server wont repick us
+                        return false;
+
+                    case Events.OrangeGray:
+                        //Lets get team stuff
+                        Team orange = _arena.getTeamByName("Orange");
+                        Team gray = _arena.getTeamByName("Gray");
+
+                        //First do sanity checks
+                        if (orange == null || gray == null)
+                            break;
+
+                        //Are they the first on the teams?
+                        if (orange.ActivePlayerCount == 0 || gray.ActivePlayerCount == 0 || orange.ActivePlayerCount == gray.ActivePlayerCount)
+                        {
+                            //Great, use it
+                            if (orange.ActivePlayerCount == gray.ActivePlayerCount)
+                                player.unspec(orange);
+                            else
+                                player.unspec(orange.ActivePlayerCount == 0 ? orange : gray);
+                            player._lastMovement = Environment.TickCount;
+                            //We are returning false so server wont repick us
+                            return false;
+                        }
+                        //Nope, lets do some math
+                        player.unspec(orange.ActivePlayerCount > gray.ActivePlayerCount ? gray : orange);
                         player._lastMovement = Environment.TickCount;
                         //Returning false so server wont repick us
                         return false;

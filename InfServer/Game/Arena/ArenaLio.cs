@@ -953,9 +953,9 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// Attempts to allow a player to activate a flag
+		/// Attempts to allow a player to activate a flag or drop one
 		/// </summary>
-		public bool flagRequest(bool bForce, bool bPickup, bool bSuccess, Player player, LioInfo.Flag flag)
+		public bool flagAction(bool bForce, bool bPickup, bool bSuccess, Player player, LioInfo.Flag flag)
 		{	//Obtain our state
 			FlagState fs;
 
@@ -999,9 +999,10 @@ namespace InfServer.Game
             if (!Logic_Assets.SkillCheck(player, flag.FlagData.SkillLogic))
                 return false;
 
-            bool turfFlag = fs.flag.FlagData.FlagCarriable == 0;
+            //Can be carried? False = yes
+            bool carriable = fs.flag.FlagData.FlagCarriable == 0;
 			//We've done it! Update everything
-			if (bPickup && !turfFlag)
+			if (bPickup && !carriable)
 				fs.carrier = player;
 			else
 				fs.carrier = null;
@@ -1009,7 +1010,6 @@ namespace InfServer.Game
 			if (bSuccess)
 			{
 				fs.oldTeam = fs.team;
-
                 if (bPickup)
                 {
                     fs.team = (flag.FlagData.IsFlagOwnedWhenCarried ? player._team : null);
@@ -1020,7 +1020,7 @@ namespace InfServer.Game
                 else
                     fs.team = (flag.FlagData.IsFlagOwnedWhenDropped ? player._team : null);
 
-                if (!turfFlag)
+                if (!carriable)
                 {
                     fs.posX = player._state.positionX;
                     fs.posY = player._state.positionY;
@@ -1032,8 +1032,25 @@ namespace InfServer.Game
 			fs.lastOperation = Environment.TickCount;
 
 			//If we're dropping, randomize accordingly
-			if (!bPickup && fs.flag.FlagData.DropRadius != 0)
+			if (!bPickup && fs.flag.FlagData.DropRadius > 0)
 				Helpers.randomPositionInArea(this, fs.flag.FlagData.DropRadius, ref fs.posX, ref fs.posY);
+
+            //Are there items near our flag?
+            if (_server._zoneConfig.flag.prizeDistance > 0 && !bPickup)
+            {
+                ItemDrop value;
+                foreach (ItemDrop drop in getItemsInRange(fs.posX, fs.posY, _server._zoneConfig.flag.prizeDistance))
+                {
+                    if (!_items.TryGetValue(drop.id, out value))
+                        continue;
+                    //There are, delete them
+                    value.quantity = 0;
+                    _items.Remove(value.id);
+
+                    //Remove them from clients
+                    Helpers.Object_ItemDropUpdate(Players, value.id, (ushort)value.quantity);
+                }
+            }
 
 			Helpers.Object_Flags(Players, fs);
 			return true;
@@ -1055,10 +1072,10 @@ namespace InfServer.Game
 				{
 					//Kill transfer no friendly
 					case 0:
-						if (killer._team != player._team)
-							fs.carrier = killer;
-						else
-							fs.carrier = null;
+                        if (killer._team != player._team)
+                            fs.carrier = killer;
+                        else
+                            fs.carrier = null;
 						break;
 
 					//Kill transfer friendly
@@ -1066,8 +1083,10 @@ namespace InfServer.Game
 						fs.carrier = killer;
 						break;
 
-					//No kill transfers
+					//No kill transfers(Flag is dropped on death)
 					case 2:
+                        fs.posX = player._state.positionX;
+                        fs.posY = player._state.positionY;
 						fs.carrier = null;
 						break;
 				}
@@ -1112,7 +1131,7 @@ namespace InfServer.Game
 			List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
 			if (carried.Count == 0)
 				return;
-
+            Console.WriteLine("Reset called: {0}", unowned.ToString());
 			//Reset each of them
 			foreach (FlagState fs in carried)
 			{

@@ -79,6 +79,9 @@ namespace InfServer.Game
 		public int _lastItemUseID;				//The id and ticktime at which the last item
 		public int _lastItemUse;				//was fired.
 
+        public int _lastWarpItemUseID;          //The id and ticktime at which the last warp items
+        public long _lastWarpItemUse;           //was fired.
+
         public int _lastVehicleEntry;           //The tick at which the player last entered or exited a vehicle
 
         public int _lastMovement;               //The tickcount at which the player last made a movement
@@ -316,7 +319,6 @@ namespace InfServer.Game
         public void updateActiveEquip(List<ushort> equip)
         {
             activeUtilities = new List<ItemInfo.UtilityItem>();
-
             foreach (ushort utility in equip)
             {
                 activeUtilities.Add(_server._assets.getItemByID(utility) as ItemInfo.UtilityItem);
@@ -326,8 +328,6 @@ namespace InfServer.Game
         /// <summary>
         /// Checks for anti warps.
         /// </summary>
-        /// <param name="player"></param>
-        /// <returns></returns>
         public Player checkAntiWarp()
         {	//Get the list of bots in the area
             IEnumerable<Player> candidates = _arena.getPlayersInRange(_state.positionX, _state.positionY, 5000);

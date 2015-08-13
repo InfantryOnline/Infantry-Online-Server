@@ -34,7 +34,7 @@ namespace InfServer.Protocol
 		public Int16 positionZ;				//
 		public byte yaw;					//Our rotation
 		public UInt16 direction;			//The direction we're attempting to move on
-		public byte unk1;					//Unknown (flags?)
+		public byte unk1;					//Unknown (flags?) Has to do with viewing the player (in game or not)
 
 		public byte pitch;					//Pitch, for dependent vehicles
 

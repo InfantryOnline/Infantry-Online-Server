@@ -150,6 +150,8 @@ namespace InfServer.Game.Commands.Mod
             SC_TestPacket test = new SC_TestPacket();
             test.player = player;
             player._client.send(test);
+
+
             /*
             SC_RegQuery reg = new SC_RegQuery();
             reg.unk = 2;

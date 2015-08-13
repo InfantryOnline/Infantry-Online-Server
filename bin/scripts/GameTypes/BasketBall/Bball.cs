@@ -101,6 +101,7 @@ namespace InfServer.Script.GameType_BasketBall
         {	//Populate our variables
             _arena = invoker as Arena;
             _config = _arena._server._zoneConfig;
+            _startCfg = _arena._server._zoneConfig.startGame;
             SoccerMvp = _config.soccerMvp;
             _arena.playtimeTickerIdx = 0; //Sets the global ticker index
 

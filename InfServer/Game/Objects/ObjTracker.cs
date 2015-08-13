@@ -74,11 +74,18 @@ namespace InfServer.Game
 
 		public void updateObjState(T from, Helpers.ObjectState state)
 		{	//Make sure he's one of ours
-			if (!Contains(from))
-			{
-				Log.write(TLog.Warning, "Given object state update for unknown object {0}.", from);
-				return;
-			}
+            try
+            {
+                if (!Contains(from))
+                {
+                    Log.write(TLog.Warning, "Given object state update for unknown object {0}.", from);
+                    return;
+                }
+            }
+            catch(Exception e)
+            {
+                Log.write(TLog.Warning, String.Format("{0} Details = {1}, {2}", e.ToString(), _idToObj.Count(), from.getID()));
+            }
 
 			// Update the bucket if it's not correct
 			List<T> newBucket = _matrix[state.positionX / BUCKET_TICKS, state.positionY / BUCKET_TICKS];
