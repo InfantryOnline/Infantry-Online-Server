@@ -1570,6 +1570,21 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
+        #region wipeinventory
+        public static void wipeinventory(Player player, Player recipient, string payload, int bong)
+        {
+            if (payload == null || payload.ToLower() != "yes")
+            {
+                player.sendMessage(-1, "Are you sure you want to wipe your inventory? Type ?wipeinventory yes to confirm");
+                return;
+            }
+
+            player.resetInventory(true);
+            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeInvSetup);
+            player.sendMessage(0, "Your inventory has been wiped.");
+        }
+        #endregion
+
         #region zonelist
         /// <summary>
         /// Provides the user with a list of zones
@@ -1751,6 +1766,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(wipecharacter, "wipecharacter",
                 "Wipes your characters stats and sets them back to initial state",
                 "?wipecharacter");
+
+            yield return new HandlerDescriptor(wipeinventory, "wipeinventory",
+                "Wipes your inventory and sets it back to initial state",
+                "?wipeinventory");
 
             yield return new HandlerDescriptor(zonelist, "zonelist",
                 "Displays a list of zones",
