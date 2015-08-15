@@ -78,7 +78,6 @@ namespace InfServer.Logic
                 //Add him
                 if (!_chat.hasPlayer(player))
                     _chat.newPlayer(player);
-
                 
                 //Send him the updated list..
                 server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat, _chat.List()));
@@ -97,6 +96,9 @@ namespace InfServer.Logic
                         c.lostPlayer(player);
                 }
             }
+
+            // In case the player reshuffled the order of the chats, save the newly provided order.
+            player.chats = chats;
         }
 
         static public void Handle_CS_Chat(CS_PrivateChat<Zone> pkt, Zone zone)
