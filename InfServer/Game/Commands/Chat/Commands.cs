@@ -683,18 +683,6 @@ namespace InfServer.Game.Commands.Chat
                     continue;
                 }
                 
-                //Check if we are near any flags
-                bool near = false;
-                foreach (Arena.FlagState fs in flags)
-                {
-                    //Are we within range of a flag?
-                    if (Helpers.isInRange(player._server._zoneConfig.flag.prizeDistance,
-                        player._state.positionX, player._state.positionY, fs.posX, fs.posY))
-                        near = true;
-                }
-                if (near)
-                    continue;
-
                 //If the drop amount exceeds the amount in the inventory assign it to the amount in inventory
                 if (ii.quantity < dropAmount)
                 {
@@ -721,6 +709,22 @@ namespace InfServer.Game.Commands.Chat
                     player.sendMessage(0, String.Format("Drop Confirmed: {0} {1}", dropAmount, item.name));
                     //Remove items from inventory
                     player.inventoryModify(item, -dropAmount);
+
+                    //Check if we are near any flags
+                    Arena.ItemDrop drop = null;
+                    foreach (Arena.FlagState fs in flags)
+                    {
+                        //Returns an ItemDrop object if it is near the flag
+                        drop = player._arena.getItemInRange(item, fs.posX, fs.posY, player._server._zoneConfig.flag.prizeDistance);
+                        if (drop != null)
+                        {
+                            //It is, delete it
+                            drop.quantity = 0;
+                            player._arena._items.Remove(drop.id);
+                            //Remove them from clients
+                            Helpers.Object_ItemDropUpdate(player._arena.Players, drop.id, (ushort)drop.quantity);
+                        }
+                    }
                 }
             }
         }
@@ -1551,31 +1555,31 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            if (String.IsNullOrEmpty(payload))
+            if (String.IsNullOrWhiteSpace(payload) || !payload.Equals("yes", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "Are you sure you want to wipe your character? Type ?wipecharacter yes to confirm");
                 return;
             }
 
-            if (payload.ToLower() == "yes")
-            {
-                //Wiping all stats/inv etc
-                player.assignFirstTimeStats(true);
-                player.syncInventory();
-                player.syncState();
-                Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeSkillSetup);
-                Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeInvSetup);
-                player.sendMessage(0, "Your character has been wiped.");
-            }
+            //Wiping all stats/inv etc
+            player.assignFirstTimeStats(true);
+            player.syncInventory();
+            player.syncState();
+            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeSkillSetup);
+            Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeInvSetup);
+            player.sendMessage(0, "Your character has been wiped.");
         }
         #endregion
 
         #region wipeinventory
+        /// <summary>
+        /// Wipes your characters inventory
+        /// </summary>
         public static void wipeinventory(Player player, Player recipient, string payload, int bong)
         {
-            if (payload == null || payload.ToLower() != "yes")
+            if (String.IsNullOrWhiteSpace(payload) || !payload.Equals("yes", StringComparison.OrdinalIgnoreCase))
             {
-                player.sendMessage(-1, "Are you sure you want to wipe your inventory? Type ?wipeinventory yes to confirm");
+                player.sendMessage(-1, "Are you sure you want to wipe your inventory? Type wipeinventory yes to confirm");
                 return;
             }
 
@@ -1768,7 +1772,7 @@ namespace InfServer.Game.Commands.Chat
                 "?wipecharacter");
 
             yield return new HandlerDescriptor(wipeinventory, "wipeinventory",
-                "Wipes your inventory and sets it back to initial state",
+                "Wipes your characters inventory back to its initial state",
                 "?wipeinventory");
 
             yield return new HandlerDescriptor(zonelist, "zonelist",

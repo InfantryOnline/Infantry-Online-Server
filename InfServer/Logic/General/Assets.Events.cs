@@ -367,7 +367,8 @@ namespace InfServer.Logic
 
 				//Wipes the player's score
 				case "wipescore":
-					//TODO: Wipe the score
+					//TODO: check if this is right with people that know it
+                    player.WipeStats();
 					break;
 
 				//Resets the player's default vehicle

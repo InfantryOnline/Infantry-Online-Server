@@ -753,8 +753,7 @@ namespace InfServer.Game
                             if (current.pruneOdds != 1000)
                                 if (_rand.Next(0, 1000) >= current.pruneOdds)
                                    break;
-                            //testing this
-                         //   spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)it.number, pX, pY, 0, freq, p);
+
                             spawn = itemSpawn(_server._assets.getItemByID(it.value), (ushort)1, pX, pY, 0, freq, p);
                             break;
                         }

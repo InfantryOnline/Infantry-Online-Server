@@ -165,23 +165,26 @@ namespace InfServer.Game
             if (_type.ComputerEnergyMax > 0 && _state.energy < _type.ComputerEnergyMax)
                 return false;
 
-            //Check energy rate
-            if (_type.EnergyMax > 0 && _type.ComputerEnergyRate > 0 && tick >= (_type.ComputerEnergyRate * 10))
+            //Check energy rate, look at if we are being anti recharged
+            if (_tickAntiRecharge < now)
             {
-                short check = _state.energy;
-                double _incEnergy = ((double)_type.ComputerEnergyRate / 100);
-                double temp = _incEnergy;
-                _getEnergy -= ((int)temp - _incEnergy);
-                if ((check + (int)_incEnergy) > _state.energy)
+                if (_type.EnergyMax > 0 && _type.ComputerEnergyRate > 0 && tick >= (_type.ComputerEnergyRate * 10))
                 {
-                    //Added energy bonus every other tick
-                    if (_getEnergy >= 1)
+                    short check = _state.energy;
+                    double _incEnergy = ((double)_type.ComputerEnergyRate / 100);
+                    double temp = _incEnergy;
+                    _getEnergy -= ((int)temp - _incEnergy);
+                    if ((check + (int)_incEnergy) > _state.energy)
                     {
-                        _state.energy = (short)Math.Min(_type.EnergyMax, _state.energy + (int)_incEnergy + (int)_getEnergy);
-                        _getEnergy = 0;
+                        //Added energy bonus every other tick
+                        if (_getEnergy >= 1)
+                        {
+                            _state.energy = (short)Math.Min(_type.EnergyMax, _state.energy + (int)_incEnergy + (int)_getEnergy);
+                            _getEnergy = 0;
+                        }
+                        else
+                            _state.energy = (short)Math.Min(_type.EnergyMax, _state.energy + (int)_incEnergy);
                     }
-                    else
-                        _state.energy = (short)Math.Min(_type.EnergyMax, _state.energy + (int)_incEnergy);
                 }
             }
 

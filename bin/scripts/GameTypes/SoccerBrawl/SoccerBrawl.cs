@@ -123,15 +123,15 @@ namespace InfServer.Script.GameType_Soccerbrawl
         Point p8 = new Point(5385, 1722);
         */
         //For indoors arena
-        Point p1 = new Point(694, 1445);
-        Point p2 = new Point(552, 1445);
-        Point p3 = new Point(552, 1642);
-        Point p4 = new Point(694, 1642);
+        Point p1 = new Point(654, 1442);
+        Point p2 = new Point(526, 1442);
+        Point p3 = new Point(526, 1682);
+        Point p4 = new Point(654, 1682);
 
-        Point p5 = new Point(4680, 1445);
-        Point p6 = new Point(4839, 1445);
-        Point p7 = new Point(4839, 1642);
-        Point p8 = new Point(4680, 1642);
+        Point p5 = new Point(4718, 1442);
+        Point p6 = new Point(4850, 1442);
+        Point p7 = new Point(4850, 1682);
+        Point p8 = new Point(4718, 1682);
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -953,6 +953,10 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             //Reset
             futureGoal = null;
+
+	        //Check to see if they are behind the correct lines
+	        if (_arena.getTerrainID(player._state.positionX, player._state.positionY) != 0) //0 = field
+		        return false;
 
             bool record = _tickGameStarted > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             CfgInfo.Terrain terrain = _arena.getTerrain(pkt.positionX * 16, pkt.positionY * 16);

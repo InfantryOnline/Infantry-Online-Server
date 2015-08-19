@@ -75,6 +75,14 @@ namespace InfServer.Game
 			}
 		}
 
+        /// <summary>
+        /// Wipes all of the players total statistics
+        /// </summary>
+        public void WipeStats()
+        {
+            _stats = new Data.PlayerStats();
+        }
+
 		/// <summary>
 		/// The player's cash amount
 		/// </summary>

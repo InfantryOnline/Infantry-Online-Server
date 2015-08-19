@@ -61,7 +61,7 @@ namespace InfServer.Game
 
         public int _tickAntiFire;           //The time until fire has been disabled
         public int _tickAntiRotate;         //The time until rotation has been disabled
-        public int _tickAntiRecharge;       //TODO: The time until energy regen has been disabled
+        public int _tickAntiRecharge;       //The time until energy regen has been disabled
 		#endregion
 
 		#region Events

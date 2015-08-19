@@ -277,7 +277,7 @@ namespace InfServer.Network
 				}
 				catch (SocketException se)
 				{	//Store the exception and exit
-					Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}", se.ErrorCode, se.ToString());
+					Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}\r\n{2}", se.ErrorCode, se.ToString(), se.Source);
 				}
 				catch (Exception ex)
 				{	//Store the exception and exit

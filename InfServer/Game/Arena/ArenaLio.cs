@@ -90,6 +90,8 @@ namespace InfServer.Game
 
 			public short posX;				//Our position
 			public short posY;
+            public short oldPosX;           //Our previous position where we were last dropped
+            public short oldPosY;
 
 			public int lastOperation;		//The time at which the flag was last triggered
 
@@ -361,7 +363,6 @@ namespace InfServer.Game
 
             if (flagDelay != 0 && (tickUpdate - _lastFlagReward) > flagDelay)
             {
-
                 foreach (Team rewardees in ActiveTeams)
                 {
                     int cashReward = 0;
@@ -370,7 +371,6 @@ namespace InfServer.Game
 
                     foreach (FlagState fs in _flags.Values)
                     {
-                       
                         if (fs.team != rewardees)
                             continue;
 
@@ -1018,12 +1018,25 @@ namespace InfServer.Game
                         _turretGroups.Switch(fs.flag.FlagData.TurretrGroupId, player, true);
                 }
                 else
-                    fs.team = (flag.FlagData.IsFlagOwnedWhenDropped ? player._team : null);
+                {
+                    bool ownedWhenDropped = flag.FlagData.IsFlagOwnedWhenDropped;
+                    if (ownedWhenDropped)
+                    {
+                        fs.team = player._team;
+                        fs.oldTeam = fs.team;
+                    }
+                    else
+                        fs.team = null;
+
+                    //Set the old positions
+                    fs.oldPosX = player._state.positionX;
+                    fs.oldPosY = player._state.positionY;
+                }
 
                 if (!carriable)
                 {
-                    fs.posX = player._state.positionX;
-                    fs.posY = player._state.positionY;
+                    fs.posX = fs.oldPosX;
+                    fs.posY = fs.oldPosY;
                 }
 			}
 			else
@@ -1032,8 +1045,13 @@ namespace InfServer.Game
 			fs.lastOperation = Environment.TickCount;
 
 			//If we're dropping, randomize accordingly
-			if (!bPickup && fs.flag.FlagData.DropRadius > 0)
-				Helpers.randomPositionInArea(this, fs.flag.FlagData.DropRadius, ref fs.posX, ref fs.posY);
+            if (!bPickup && fs.flag.FlagData.DropRadius > 0)
+            {
+                Helpers.randomPositionInArea(this, fs.flag.FlagData.DropRadius, ref fs.posX, ref fs.posY);
+                //Reset the old positions
+                fs.oldPosX = fs.posX;
+                fs.oldPosY = fs.posY;
+            }
 
             //Are there items near our flag?
             if (_server._zoneConfig.flag.prizeDistance > 0 && !bPickup)
@@ -1091,12 +1109,9 @@ namespace InfServer.Game
 						break;
 				}
 
-				//Update the positions and teams
+				//Update the team
 				if (fs.carrier != null)
-				{
-					fs.oldTeam = fs.team;
 					fs.team = fs.carrier._team;
-				}
 
 				fs.lastOperation = Environment.TickCount;				
 			}
@@ -1131,7 +1146,7 @@ namespace InfServer.Game
 			List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
 			if (carried.Count == 0)
 				return;
-            Console.WriteLine("Reset called: {0}", unowned.ToString());
+
 			//Reset each of them
 			foreach (FlagState fs in carried)
 			{
@@ -1210,6 +1225,8 @@ namespace InfServer.Game
 
                     fs.posX = (short)(fs.flag.GeneralData.OffsetX - levelX);
                     fs.posY = (short)(fs.flag.GeneralData.OffsetY - levelY);
+                    fs.oldPosX = fs.posX;
+                    fs.oldPosY = fs.posY;
 
                     //Taken from Math.cs
                     //For random flag spawn if applicable
@@ -1238,6 +1255,8 @@ namespace InfServer.Game
                         {
                             fs.posX = (short)tmpPosX;
                             fs.posY = (short)tmpPosY;
+                            fs.oldPosX = fs.posX;
+                            fs.oldPosY = fs.posY;
                             break;
                         }
                     }

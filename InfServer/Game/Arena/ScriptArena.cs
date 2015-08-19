@@ -416,7 +416,6 @@ namespace InfServer.Game
             //Display flag victory jackpot?
             if (_server._zoneConfig.flag.useJackpot)
             {
-
                 List<Team> flagTeams = new List<Team>();
                 foreach (FlagState fs in _flags.Values)
                 {
@@ -552,7 +551,6 @@ namespace InfServer.Game
             //Drop the ball
             ball._lastOwner = from;
             ball._owner = null;
-            Console.WriteLine("Dropped: {0}, {1}", ball._lastOwner, ball._owner);
 
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
@@ -1400,6 +1398,10 @@ namespace InfServer.Game
                     {	//Handle any flags
                         flagHandleDeath(from, killer);
 
+                        //Was the killer dead? (Death nade or other)
+                        if (killer.IsDead)
+                            flagResetPlayer(killer);
+
                         //Don't reward for teamkills
                         if (from._team == killer._team)
                             Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
@@ -1416,7 +1418,6 @@ namespace InfServer.Game
 
                     return;
                 }
-
             }
 
             //Reset any flags held
