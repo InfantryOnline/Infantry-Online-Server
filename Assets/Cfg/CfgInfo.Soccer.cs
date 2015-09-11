@@ -27,6 +27,7 @@ namespace Assets
             public string catchSound;
             public string throwSound;
             public string bounceSound;
+            public int startGameBong;
             public int goalBong;
             public int victoryBong;
             public int startDelay;
@@ -85,6 +86,7 @@ namespace Assets
                 catchSound = Parser.GetString("CatchSound");
                 throwSound = Parser.GetString("ThrowSound");
                 bounceSound = Parser.GetString("BounceSound");
+                startGameBong = Parser.GetInt("StartGameBong");
                 goalBong = Parser.GetInt("GoalBong");
                 victoryBong = Parser.GetInt("VictoryBong");
                 startDelay = Parser.GetInt("StartDelay");

@@ -304,10 +304,6 @@ namespace InfServer.Game
 		/// </summary>
 		public void disconnect()
 		{
-            //Just incase
-            if (this._arena != null)
-                leftArena();
-
 			Helpers.Player_Disconnect(this);
 			destroy();
 		}

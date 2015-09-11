@@ -262,17 +262,14 @@ namespace InfServer.Game
             if (p == null)
             {
                 Log.write(TLog.Error, "isValidTarget(): Called with null player.");
-                return false;   //I dunno -X15
+                return false;
             }
 
 			// Don't fire at spectators
 			if (p.IsSpectator) return false;
 
-			// Don't fire at teammates
-            if (p._team == _team && (_owner == null || _owner == p._team)) return false;
-
-            //Don't fire at temporary teammates
-            if (_owner == p._team) return false;
+			// Don't fire at teammates (temporary or not)
+            if (p._team == _team) return false;
 
 			// Don't fire at dead people
 			if (p.IsDead) return false;
@@ -316,7 +313,7 @@ namespace InfServer.Game
             if (p == null || p._arena == null)
             {
                 Log.write(TLog.Error, "IsPlayerOccluded(): Called with null player and / or arena.");
-                return true; //True? False? I dunno -X15
+                return true;
             }
 
             //Pretty ugly way to get it done but it works perfectly. Vision tiles are all calculated seemingly fine. If you have a better way of doing it, by all means. - Super-man

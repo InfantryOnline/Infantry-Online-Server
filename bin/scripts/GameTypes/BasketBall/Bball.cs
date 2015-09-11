@@ -54,8 +54,6 @@ namespace InfServer.Script.GameType_BasketBall
         private int overtimeType;               //Which overtime type are we in?
         private Player _futureGoal;
 
-
-
         //http://stackoverflow.com/questions/14672322/creating-a-point-class-c-sharp
         public class Point
         {
@@ -171,15 +169,10 @@ namespace InfServer.Script.GameType_BasketBall
                 if (_arena.Balls.Count() > 0)
                     foreach (Ball ball in _arena.Balls.ToList())
                     {
-                        //This updates the ball visually
-                        Ball.Route_Ball(_arena.Players, ball);
                         _lastBallCheck = now;
 
                         //Check for a stuck ball(non reachable)
                         stuckBall(ball);
-
-                        //Check for a dead ball(untouched)
-                        deadBallTimer(ball);
                     }
             }
 
@@ -213,28 +206,17 @@ namespace InfServer.Script.GameType_BasketBall
             assist = null;
             assist2 = null;
 
-            //Clear ball list incase of added balls
-            foreach (Ball b in _arena.Balls.ToList())
-                Ball.Remove_Ball(b);
-
             if (_arena.ActiveTeams.ElementAt(0) != null)
                 team1 = _arena.ActiveTeams.ElementAt(0);
             if (_arena.ActiveTeams.Count() > 1)
                 team2 = _arena.ActiveTeams.ElementAt(1);
-
-            //Reset variable
-            foreach (Player p in _arena.Players)
-                p._gotBallID = 999; //No ball in possession
-
-            //Spawn our active balls based on our cfg
-            SpawnBall();
 
             //Set default ticker
             string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
             _arena.setTicker(5, 1, 0, update);
 
             //Let everyone know
-            _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
+            _arena.sendArenaMessage("Game has started!", _config.soccer.startGameBong);
             _arena.setTicker(1, 0, _config.soccer.timer * 100, "Time remaining: ", delegate()
             {
                 //Trigger the end of game clock
@@ -401,23 +383,16 @@ namespace InfServer.Script.GameType_BasketBall
                     Logic_Assets.RunEvent(player, startGame);
             }
 
-            //Reset variable
-            foreach (Player p in _arena.Players)
-                p._gotBallID = 999;
-
             //Clear ball list incase of added balls
             foreach (Ball b in _arena.Balls.ToList())
                 Ball.Remove_Ball(b);
 
-            //Spawn our active balls based on our cfg
-            short ballCount = (short)_config.soccer.ballCount;
-            for (short ballID = 0; ballID <= ballCount; ballID++)
-            {
-                Ball newball = _arena.newBall(ballID);
+            //Reset variable
+            foreach (Player p in _arena.Players)
+                p._gotBallID = 999;
 
-                //Make everyone aware
-                Ball.Spawn_Ball(null, newball);
-            }
+            //Spawn our active balls based on our cfg
+            _arena.SpawnBall();
             //------------------------------------
 
             _arena.setTicker(1, 0, _config.soccer.timerOvertime * 100, "OVERTIME: ", delegate()
@@ -592,43 +567,6 @@ namespace InfServer.Script.GameType_BasketBall
         #endregion
 
         #region Ball Events
-        /// <summary>
-        /// Spawns our balls based on our cfg
-        /// Note: we will always spawn a ball even if ballcount = 0
-        /// </summary>
-        private void SpawnBall()
-        {
-            int ballCount = _config.soccer.ballCount;
-            Ball ball = null;
-
-            //Check our cfg
-            if (_config.soccer.playersPerBall == 0)
-            {   //Just spawn all of them
-                for (int id = 0; id <= ballCount; id++)
-                {
-                    ball = _arena.newBall((short)id);
-                    //Make everyone aware
-                    Ball.Spawn_Ball(null, ball);
-                }
-            }
-            else
-            {
-                int playersPerBall = _config.soccer.playersPerBall;
-                //Spawn all balls based on what our cfg wants
-                for (int id = 0; id <= _arena.PlayersIngame.Count(); id++)
-                {
-                    if ((id % playersPerBall) == 0)
-                    {
-                        ball = _arena.newBall((short)id);
-                        //Make everyone aware
-                        Ball.Spawn_Ball(null, ball);
-                        if (id == ballCount || id == Arena.maxBalls)
-                            break;
-                    }
-                }
-            }
-        }
-
         /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
@@ -937,39 +875,6 @@ namespace InfServer.Script.GameType_BasketBall
 
             //See if another player can join
             specInQueue();
-
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return;
-
-                //Spawn it.
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
-        }
-
-        /// <summary>
-        /// Triggered when a player wants to spec and leave the game
-        /// </summary>
-        [Scripts.Event("Player.LeaveGame")]
-        public bool playerLeaveGame(Player player)
-        {
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return false;
-
-                //Spawn it.
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -983,18 +888,6 @@ namespace InfServer.Script.GameType_BasketBall
 
             //Try speccing someone in
             specInQueue();
-
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return;
-
-                //Spawn it.
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
         }
 
         /// <summary>
@@ -1025,57 +918,6 @@ namespace InfServer.Script.GameType_BasketBall
                 //Returns false so people arent joined onto a team
                 //See scriptArena handlePlayerJoin
                 return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a player has died, by any means
-        /// </summary>
-        /// <remarks>killer may be null if it wasn't a player kill</remarks>
-        [Scripts.Event("Player.Death")]
-        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
-        {
-            if (victim._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == victim._gotBallID);
-                victim._gotBallID = 999;
-
-                if (ball == null)
-                    return true;
-
-                //Did the victim have the ball?
-                if (ball._owner == victim)
-                {
-                    ball._owner = null;
-                    ball._lastOwner = victim;
-
-                    //Do we give it to the killer?
-                    if (_config.soccer.killerCatchBall && killer != null && killType == Helpers.KillType.Player)
-                    {
-                        //Pick up the ball
-                        ball._state.positionX = killer._state.positionX;
-                        ball._state.positionY = killer._state.positionY;
-                        ball._state.positionZ = killer._state.positionZ;
-                        ball._state.velocityX = 0;
-                        ball._state.velocityY = 0;
-                        ball._state.velocityZ = 0;
-                        ball.deadBall = false;
-
-                        ball._owner = killer;
-                        killer._gotBallID = ball._id;
-
-                        //Update spatial data
-                        _arena.UpdateBall(ball);
-
-                        //Let others know
-                        Ball.Route_Ball(_arena.Players, ball);
-                        return true;
-                    }
-                }
-                //Spawn it
-                Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
             }
 
             return true;
@@ -1224,52 +1066,6 @@ namespace InfServer.Script.GameType_BasketBall
                         Ball.Spawn_Ball(null, ball);
                     });
                 }
-            }
-        }
-
-        /// <summary>
-        /// Checks to see if the ball hasn't been touched in awhile
-        /// </summary>
-        private void deadBallTimer(Ball ball)
-        {
-            //Are we even activated?
-            if (_config.soccer.deadBallTimer <= 0)
-                return;
-
-            //Exist?
-            if (ball == null)
-                return;
-
-            //Have we been picked up?
-            if (ball._owner != null)
-                return;
-
-            //Are we already timed to be warped out?
-            if (ball.deadBall)
-                return;
-
-            //Is this a dead ball?
-            int now = Environment.TickCount;
-            if ((now - ball._state.lastUpdateServer) > (_config.soccer.deadBallTimer * 1000))
-            {
-                //Are we still moving with a player or was spawned in?
-                if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
-                    return;
-
-                //Update our time
-                int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
-                ball._state.lastUpdate = updateTick;
-                ball._state.lastUpdateServer = now;
-
-                _arena.setTicker(5, 3, _config.soccer.deadBallTimer * 100, "Ball Respawning: ", delegate()
-                {
-                    //Double check to see if someone used *getball
-                    if (ball._owner != null)
-                        return;
-
-                    //Respawn it
-                    Ball.Spawn_Ball(null, ball);
-                });
             }
         }
         #endregion

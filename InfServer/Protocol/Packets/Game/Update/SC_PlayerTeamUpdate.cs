@@ -95,10 +95,7 @@ namespace InfServer.Protocol
 
 				case VehInfo.Types.Computer:
 					Write(vehicle._state.health);
-                    if (vehicle._owner != null)
-                        Write(vehicle._owner._id);
-                    else
-    					Write((vehicle._team != null) ? vehicle._team._id : (short)-1);
+   					Write((vehicle._team != null) ? vehicle._team._id : (short)-1);
 					Write(vehicle._state.positionX);
 					Write(vehicle._state.positionY);
 					Write(vehicle._state.positionZ);

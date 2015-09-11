@@ -529,7 +529,7 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(0, "Wrong format typed.");
                 return;
             }
-
+            Console.WriteLine(payload);
             CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
             join.chat = payload;
             join.from = player._alias;
@@ -985,8 +985,8 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v != null && ((v._owner != null && v._owner._id == player._team._id)||(v._team != null &&
-                v._team._id == player._team._id)) && v._type.Type == VehInfo.Types.Computer);
+            IEnumerable<Vehicle> comps = player._arena.Vehicles.Where(v => v != null && v._team != null &&
+                v._team._id == player._team._id && v._type.Type == VehInfo.Types.Computer);
             IEnumerable<Vehicle> vehicles = player._arena.Vehicles.Where(v => v != null && v._team != null && v._team._id == player._team._id &&
                 v._type.Type == VehInfo.Types.Car);
 

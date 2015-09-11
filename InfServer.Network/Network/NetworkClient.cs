@@ -37,10 +37,17 @@ namespace InfServer.Network
 		/// Ceases interaction with this client, removes it from the server
 		/// </summary>
 		public virtual void destroy()
-		{	//No longer active
-			_bDestroyed = true;
+		{	//No need to do this twice
+            if (_bDestroyed)
+            {
+                //Log.write(TLog.Error, "NC. destroy() Attempted to destroy already destroyed client");
+                return;
+            }
+
+            _bDestroyed = true;
 
 			//Allow handlers to trigger
+            //NOTE: Zone Server does not register a handler for this!
 			if (Destruct != null)
 				Destruct(this);
 		}
@@ -49,7 +56,14 @@ namespace InfServer.Network
 		/// Sends a given packet to the client
 		/// </summary>
 		public virtual void send(PacketBase packet)
-		{	//First, allow the packet to serialize
+		{
+            if (_bDestroyed)
+            {
+                Log.write(TLog.Error, "NC.send() Attempted to send packet to destroyed client: {0}", this);
+                return;
+            }
+
+            //First, allow the packet to serialize
 			packet.MakeSerialized(this, _handler);
 
 			//Start sending!

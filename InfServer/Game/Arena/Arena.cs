@@ -676,11 +676,12 @@ namespace InfServer.Game
                                     (now - vehicle._tickControlTime) > (vehicle._tickControlEnd * 1000))
                                 {
                                     //Do we still have a team to go back to?
-                                    if (vehicle._team.ActivePlayerCount > 0)
-                                        vehicle._owner = vehicle._team;
+                                    if (vehicle._oldTeam != null && vehicle._oldTeam.ActivePlayerCount > 0)
+                                        vehicle._team = vehicle._oldTeam;
                                     else
-                                        vehicle._owner = null;
-                                    
+                                        vehicle._team = null;
+
+                                    vehicle.reprogrammed = false;
                                     vehicle._tickControlEnd = 0;
                                     vehicle._tickControlTime = 0;
                                 }
@@ -768,6 +769,9 @@ namespace InfServer.Game
 
 				//Handle the bots!
 				pollBots();
+
+                //Handle any arena balls
+                pollBalls();
 			}
 		}
         
@@ -1084,7 +1088,8 @@ namespace InfServer.Game
 			return objArea;
 		}
 		#endregion
-       
+
+        #region Locators
         /// <summary>
         /// Returns a specific item in the specified area
         /// </summary>
@@ -1155,9 +1160,10 @@ namespace InfServer.Game
 
             return returnDrops;
         }
+        #endregion
 
-		#region Delayed Actions
-		/// <summary>
+        #region Delayed Actions
+        /// <summary>
 		/// Registers a delayed action to be executed at a later date
 		/// </summary>
 		/// <remarks>The action function given should return false to never execute again,

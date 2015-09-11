@@ -33,8 +33,6 @@ namespace InfServer.Game
 		/// </summary>
 		private void pollBots()
 		{	//Handle each bot
-			int now = Environment.TickCount;
-
 			foreach (Bot bot in _bots.ToList())
 			{	//Does it need to send an update?
 				if (bot.poll())
@@ -224,7 +222,7 @@ namespace InfServer.Game
 					continue;
 
                 //Ignore your own team
-                if (candidate._team._name == player._team._name)
+                if (candidate._team == player._team)
                     continue;
 
 				//Is it within the distance?

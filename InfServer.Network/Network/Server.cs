@@ -138,25 +138,25 @@ namespace InfServer.Network
 			while (_bOperating)
 			{	//Read required data from the server state while using
 				//as little lock time as possible.
-				Queue<PacketBase> packets = null;
+                Queue<PacketBase> packets = new Queue<PacketBase>();
 				List<NetworkClient> activeClients;
 
 				_networkLock.AcquireWriterLock(Timeout.Infinite);
 
-				try
-				{	
-					if (_packetsWaiting)
-					{	//Take the entire queue, and substitute the current
-						//queue for a new one
-						packets = _packetQueue;
+                try
+                {
+                    if (_packetsWaiting)
+                    {	//Take the entire queue, and substitute the current
+                        //queue for a new one
+                        packets = _packetQueue;
 
-						_packetQueue = new Queue<PacketBase>();
-						_packetsWaiting = false;
-					}
+                        _packetQueue = new Queue<PacketBase>();
+                        _packetsWaiting = false;
+                    }
 
-					//Create an image of the client list
-					activeClients = _clients.Values.ToList();
-				}
+                    //Create an image of the client list
+                    activeClients = _clients.Values.ToList();
+                }
 				finally
 				{	//Release our lock
 					_networkLock.ReleaseWriterLock();
@@ -164,15 +164,17 @@ namespace InfServer.Network
 
 				if (packets != null)
 				{	//Predispatch, then handle each packet
-					foreach (PacketBase packet in packets)
-						if (packet._client.predispatchCheck(packet))
-							routePacket(packet);
+                    foreach (PacketBase packet in packets)
+                        if (packet._client.predispatchCheck(packet))
+                            routePacket(packet);
+
 				}
 
+                packets = null;
+
 				//Poll each active network client
-				foreach (NetworkClient client in activeClients)
-					if (!client._bDestroyed)
-						client.poll();
+                foreach (NetworkClient client in activeClients)
+                    client.poll();
 
                 // Sleep a bit
 			    Thread.Sleep(5);
@@ -230,6 +232,7 @@ namespace InfServer.Network
 							client._lastPacketRecv = Environment.TickCount;
 							client._ipe = ipe;
 							client._handler = this;
+                            client._clientID = id;
 
 							//Add it to our client list
 							_clients[id] = client;
@@ -241,8 +244,11 @@ namespace InfServer.Network
 						if (client == null)
 							Log.write(TLog.Inane, "Out of state packet received from {0}", _remEP);
 						//If the client is inactive, ignore
-						else if (client._bDestroyed)
-							client = null;
+                        else if (client._bDestroyed)
+                        {
+                            Log.write(TLog.Error, "Packet received from destroyed client: {0}", _remEP);
+                            client = null;
+                        }
 					}
 					finally
 					{	//Release our lock
@@ -362,16 +368,23 @@ namespace InfServer.Network
 		}
 
 		/// <summary>
-		/// Removes a client from the client list
+		/// Removes a client from the client list and destroys it
 		/// </summary>
 		public void removeClient(NetworkClient client)
 		{
+            if (client == null)
+            {
+                Log.write(TLog.Error, "removeClient called with null client");
+                return;
+            }
+
 			_networkLock.AcquireWriterLock(Timeout.Infinite);
 
 			try
-			{	//Look for the culprit and remove it
-				_clients.Remove(client._clientID);
-				client.destroy();
+			{
+                _clients.Remove(client._clientID);
+
+                client.destroy();
 			}
 			finally
 			{	//Release our lock

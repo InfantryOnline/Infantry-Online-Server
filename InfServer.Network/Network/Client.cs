@@ -300,13 +300,14 @@ namespace InfServer.Protocol
 		public override void poll()
 		{	//Sync up!
 			using (DdMonitor.Lock(_sync))
-			{	//Only time out server-side clients
+			{
 				int now = Environment.TickCount;
 
+                //Only time out server-side clients
 				if (connectionTimeout != -1 && !_bClientConn && now - base._lastPacketRecv > connectionTimeout)
 				{	//Farewell~
 					Log.write(TLog.Warning, "Client timeout: {0}", this);
-					destroy();
+					_handler.removeClient(this);
 					return;
 				}
 
@@ -352,18 +353,26 @@ namespace InfServer.Protocol
 		/// Ceases interaction with this client, removes it from the server
 		/// </summary>
 		public override void destroy()
-		{	//Sync up!
-			using (DdMonitor.Lock(_sync))
-			{	//Send out a disconnect packet
-				Disconnect discon = new Disconnect();
+        {	//No need to do this twice
+            if (_bDestroyed)
+            {
+                //Log.write(TLog.Error, "C.destroy() Attempted to destroy already destroyed client");
+                return;
+            }
+            
+            //Sync up!
+            using (DdMonitor.Lock(_sync))
+            {	//Send out a disconnect packet
+                
+                Disconnect discon = new Disconnect();
 
-				discon.connectionID = _connectionID;
-				discon.reason = Disconnect.DisconnectReason.DisconnectReasonApplication;
+                discon.connectionID = _connectionID;
+                discon.reason = Disconnect.DisconnectReason.DisconnectReasonApplication;
 
-				_packetQueue.Enqueue(discon);
+                _packetQueue.Enqueue(discon);
 
-				base.destroy();
-			}
+                base.destroy();
+            }
 		}
 		#endregion
 
@@ -603,7 +612,14 @@ namespace InfServer.Protocol
 		/// Sends a reliable packet to the client
 		/// </summary>
 		public void sendReliable(PacketBase packet, Action completionCallback, int streamID)
-		{	//Sync up!
+		{
+            if (_bDestroyed)
+            {
+                Log.write(TLog.Error, "C.sendReliable() Attempted to send packet to destroyed client: {0}", this);
+                return;
+            }
+
+            //Sync up!
 			using (DdMonitor.Lock(_sync))
 			{	//Get the relevant stream
 				Client.StreamState stream = _streams[streamID];
@@ -699,7 +715,14 @@ namespace InfServer.Protocol
 		/// Sends a given packet to the client
 		/// </summary>
 		public override void send(PacketBase packet)
-		{	//Queue the packet up
+		{
+            if (_bDestroyed)
+            {
+                Log.write(TLog.Error, "C.send() Attempted to send packet to destroyed client: {0}", this);
+                return;
+            }
+
+            //Queue the packet up
 			using (DdMonitor.Lock(_sync))
 				_packetQueue.Enqueue(packet);
 		}

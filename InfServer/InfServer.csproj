@@ -135,6 +135,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Game\Arena\ArenaBall.cs" />
     <Compile Include="Game\Arena\Bot\Bot.cs" />
     <Compile Include="Game\Arena\Bot\InfantryVehicle.cs" />
     <Compile Include="Game\Arena\Bot\Math\AxisAlignedBox.cs" />

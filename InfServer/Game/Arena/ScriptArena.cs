@@ -159,25 +159,36 @@ namespace InfServer.Game
 		public override void gameStart()
 		{	
             //Check to see if we are even allowed to start
-            if (_scriptType.Equals("GameType_USL") || _scriptType.Equals("GameType_TDM")
-                || _scriptType.Equals("GameType_SLTDM") || _scriptType.Equals("GameType_FL_TDM"))
+            if (_scriptType.Equals("GameType_USL", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_TDM", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_SLTDM", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_FL_TDM", StringComparison.OrdinalIgnoreCase))
             {
                 if (PlayerCount < _server._zoneConfig.deathMatch.minimumPlayers)
                     return;
             }
 
-            if (_scriptType.Equals("GameType_KOTH"))
+            if (_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
             {
                 if (PlayerCount < _server._zoneConfig.king.minimumPlayers)
                     return;
             }
 
-            if (_scriptType.Equals("GameType_Gravball") || _scriptType.Equals("GameType_BasketBall")
-                || _scriptType.Equals("GameType_BoomBall") || _scriptType.Equals("GameType_Soccerbrawl")
-                || _scriptType.Equals("GameType_Footbrawl") || _scriptType.Equals("GameType_Hockey"))
+            if (_scriptType.Equals("GameType_Gravball", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_BasketBall", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_BoomBall", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_Soccerbrawl", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_Footbrawl", StringComparison.OrdinalIgnoreCase)
+                || _scriptType.Equals("GameType_Hockey", StringComparison.OrdinalIgnoreCase))
             {
                 if (PlayerCount < _server._zoneConfig.soccer.minimumPlayers)
                     return;
+
+                //First remove all the balls
+                resetBalls();
+
+                //Now spawn based on our cfg
+                SpawnBall();
             }
 
             //We're running!
@@ -186,7 +197,7 @@ namespace InfServer.Game
 			_tickGameEnded = 0;
 
 			//Reset the flags
-            if (_scriptType != "GameType_KOTH")
+            if (!_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
                 flagReset();
 
 			//What else do we need to reset?
@@ -486,12 +497,18 @@ namespace InfServer.Game
                 return;
             }
 
-            //Check to see if the ball has been dropped yet, client sends this packet
-            //really fast trying to figure out who got it. (you hear a click)
+            //Has the ball been dropped yet? 
+            //NOTE: When 2 people run over the ball at the same time
+            //the client sends this packet really fast trying to figure out who got it first. (you hear a click)
+            //This gives it to the first person that touched the ball.
             if (ball.ballStatus != (int)Ball.BallStatus.Spawned
                 && ball.ballStatus == (int)Ball.BallStatus.PickUp)
                 return;
 
+            //Is the player already carrying a ball?
+            if (from._gotBallID != 999)
+                return;
+            
             //Forward to our script
             if (exists("Player.BallPickup") && !(bool)callsync("Player.BallPickup", false, from, ball))
                 return;
@@ -499,11 +516,10 @@ namespace InfServer.Game
             //Pick up the ball
             ball._lastOwner = ball._owner;
             ball._owner = from;
-            Console.WriteLine("{0}, {1}", ball._lastOwner, ball._owner);
 
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
-            ball._state.lastUpdate = updateTick;
+            ball._state.lastUpdate = update.tickcount;//updateTick;
             ball._state.lastUpdateServer = now;
 
             ball._state.positionX = from._state.positionX;
@@ -512,6 +528,7 @@ namespace InfServer.Game
             ball._state.velocityX = 0;
             ball._state.velocityY = 0;
             ball._state.velocityZ = 0;
+            ball.ballSpeed = 0;
             ball.tickCount = (uint)update.tickcount;
             ball.ballStatus = 0;
 
@@ -554,7 +571,7 @@ namespace InfServer.Game
 
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
-            ball._state.lastUpdate = updateTick;
+            ball._state.lastUpdate = update.tickcount;//updateTick;
             ball._state.lastUpdateServer = now;
 
             ball._state.positionX = update.positionX;
@@ -777,7 +794,7 @@ namespace InfServer.Game
 			VehInfo.Computer.ComputerProduct product = computerInfo.Products[produceItem];
 			
 			//Quick check to make sure it isn't blank
-			if (product.Title == "")
+			if (String.IsNullOrWhiteSpace(product.Title))
 				return;
 
             //Lets check limits
@@ -798,10 +815,10 @@ namespace InfServer.Game
                     int totalAmount = 0;
                     int totalType = 0;
                     int playerTotal = 0;
+                    int totalTempAmount = 0;
 
                     playerTotal = from._arena.Vehicles.Where(v => v != null && v._type.Id == vehInfo.Id && v._creator != null
                         && v._creator._alias == from._alias).Count();
-
 
                     //Lets set our product as a computer
                     VehInfo.Computer vehComp = vehInfo as VehInfo.Computer;
@@ -812,18 +829,18 @@ namespace InfServer.Game
                     }
 
                     IEnumerable<Vehicle> vehs = from._arena.Vehicles;
-                    int counting = 0;
-                    if (vehs != null)
+                    foreach (Vehicle ve in vehs)
                     {
-                        foreach (Vehicle ve in vehs)
+                        if (ve == null)
+                            continue;
+
+                        Computer comp = ve as Computer;
+                        if (comp != null)
                         {
-                            if (ve == null)
-                            {
-                                counting++;
-                                continue;
-                            }
-                            Computer comp = ve as Computer;
-                            if ((comp != null) && comp._team._name == from._team._name)
+                            if (comp.reprogrammed && comp._team == from._team)
+                                totalTempAmount++;
+
+                            if (!comp.reprogrammed && comp._team == from._team)
                             {
                                 totalAmount++;
                                 if (comp._type.Name == vehComp.Name)
@@ -833,46 +850,43 @@ namespace InfServer.Game
                     }
 
                     List<Vehicle> vehicles = from._arena.getVehiclesInRange(from._state.positionX, from._state.positionY, vehComp.DensityRadius);
-                    if (vehicles != null)
+                    foreach (Vehicle veh in vehicles)
                     {
-                        foreach (Vehicle veh in vehicles)
+                        Computer comp = veh as Computer;
+                        if (comp != null && !comp.reprogrammed && comp._team == from._team)
                         {
-                            Computer comp = veh as Computer;
-                            if ((comp != null) && comp._team._name == from._team._name)
-                            {
-                                densityAmount++;
-                                if (comp._type.Name == vehComp.Name)
-                                    densityType++;
-                            }
+                            densityAmount++;
+                            if (comp._type.Name == vehComp.Name)
+                                densityType++;
                         }
                     }
 
-                    if (playerTotal >= vehComp.MaxTypeByPlayerRegardlessOfTeam && vehComp.MaxTypeByPlayerRegardlessOfTeam != -1)
-                    {
+                    if (vehComp.MaxTypeByPlayerRegardlessOfTeam != -1 && playerTotal >= vehComp.MaxTypeByPlayerRegardlessOfTeam)
+                    {   //Exceeds the amount per player regardless of team.
                         from.sendMessage(-1, "Your team has the maximum allowed computer vehicles of this type.");
                         return;
                     }
 
-                    if (totalAmount >= vehComp.FrequencyMaxActive && vehComp.FrequencyMaxActive != -1)
-                    {
+                    if (vehComp.FrequencyMaxActive != -1 && (totalAmount >= vehComp.FrequencyMaxActive || totalTempAmount >= vehComp.FrequencyMaxActive))
+                    {   //Exceeds the total amount of active computer vehicles for the team
                         from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles.");
                         return;
                     }
 
-                    if (totalType >= vehComp.FrequencyMaxType && vehComp.FrequencyMaxType != -1)
-                    {
+                    if (vehComp.FrequencyMaxType != -1 && totalType >= vehComp.FrequencyMaxType)
+                    {   //Exceeds the total amount of computer vehicles of this type for the team
                         from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type.");
                         return;
                     }
 
-                    if (densityAmount >= vehComp.FrequencyDensityMaxActive && vehComp.FrequencyDensityMaxActive != -1)
-                    {
+                    if (vehComp.FrequencyDensityMaxActive != -1 && densityAmount >= vehComp.FrequencyDensityMaxActive)
+                    {   //Exceeds the total amount of computer vehicles for the team in the area
                         from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area.");
                         return;
                     }
 
-                    if (densityType >= vehComp.FrequencyDensityMaxType && vehComp.FrequencyDensityMaxType != -1)
-                    {
+                    if (vehComp.FrequencyDensityMaxType != -1 && densityType >= vehComp.FrequencyDensityMaxType)
+                    {   //Exceeds the amount within the density radius for the specific type
                         from.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area.");
                         return;
                     }
@@ -959,8 +973,11 @@ namespace InfServer.Game
 			{	//Forward to our script
 				if (!exists("Player.LeaveGame") || (bool)callsync("Player.LeaveGame", false, from))
 				{	//The player has effectively left the game
-					
+
 				}
+                //Reset any ball held
+                onLeaving(from);
+
                 from.spec();
 			}
 			else
@@ -1221,6 +1238,18 @@ namespace InfServer.Game
 
                 //Update last movement with firing, don't want to spec people in stationary turrets;
                 from._lastMovement = now;
+
+                //Check for ball handling
+                if (from._gotBallID != 999)
+                {
+                    Ball ball = _balls.getObjByID((ushort)from._gotBallID);
+                    if (ball != null)
+                    {
+                        ItemInfo.Projectile project = info as ItemInfo.Projectile;
+                        if (project != null)
+                            ball.ballSpeed = project.soccerBallSpeed;
+                    }
+                }
             }
 
 
@@ -1350,7 +1379,6 @@ namespace InfServer.Game
             from._bEnemyDeath = true;
             from._deathTime = Environment.TickCount;
 
-
             //Do we have any items to prune/drop?
             Dictionary<ItemInfo, int> pruneList = Logic_Assets.pruneItems(from);
             if (pruneList != null)
@@ -1373,7 +1401,6 @@ namespace InfServer.Game
                 if (item != null && vehicle.DropItemQuantity > 0)
                     itemSpawn(item, (ushort)vehicle.DropItemQuantity, from._state.positionX, from._state.positionY, from);
             }
-
 
             //Prompt the player death event
             if (exists("Player.Death") && !(bool)callsync("Player.Death", false, from, killer, update.type, update))
@@ -1402,6 +1429,9 @@ namespace InfServer.Game
                         if (killer.IsDead)
                             flagResetPlayer(killer);
 
+                        //Handle any ball
+                        ballHandleDeath(from, killer);
+
                         //Don't reward for teamkills
                         if (from._team == killer._team)
                             Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
@@ -1422,6 +1452,9 @@ namespace InfServer.Game
 
             //Reset any flags held
             flagResetPlayer(from);
+
+            //Reset any balls held
+            ballHandleDeath(from);
 
             //Was it a bot kill?
             if (update.type == Helpers.KillType.Player && update.killerPlayerID >= 5001)
@@ -1999,7 +2032,6 @@ namespace InfServer.Game
                 int totalType = 0;
                 int playerTotal = 0;
 
-
                 //Holy fuck this is so much shorter!
                 try
                 {
@@ -2027,9 +2059,7 @@ namespace InfServer.Game
                                 {   
                                     totalAmount++;
                                     if (comp._type.Name == newComp.Name)
-                                    {
                                         totalType++;
-                                    }                             
                                 }
                             }
                         }
@@ -2378,7 +2408,7 @@ namespace InfServer.Game
                                 {
                                     foreach (Vehicle v in vehicles)
                                     {	//Is it on the correct team? (temporary or not)
-                                        if ((v._owner != null && v._owner != player._team) || (v._team != player._team))
+                                        if (v._team != player._team)
                                                 continue;
 
                                         //Can we self heal?
@@ -2453,27 +2483,27 @@ namespace InfServer.Game
                 return;
 
             VehInfo.Computer compCheck = target._type as VehInfo.Computer;
-            int densityType = 0;
-            int densityAmount = 0;
             int totalAmount = 0;
-            int totalType = 0;
+            int totalTempAmount = 0;
             int playerTotal = 0;
 
+            //Is it going to be temporary owned?
+            bool temporary = item.controlTime > 0;
             if (compCheck != null)
             {
                 //Lets check ownerships first
-                if (target._owner == player._team)
+                if (target._team == player._team)
                 {
                     player.sendMessage(-1, "You already have control of this.");
                     return;
                 }
 
                 //Is it unowned?
-                if (target._owner == null && !Logic_Assets.SkillCheck(player, compCheck.LogicTakeOwnership))
+                if (target._team == null && !Logic_Assets.SkillCheck(player, compCheck.LogicTakeOwnership))
                     return;
 
                 //Can we steal it?
-                if (target._owner != null && !Logic_Assets.SkillCheck(player, compCheck.LogicStealOwnership))
+                if (target._team != null && !Logic_Assets.SkillCheck(player, compCheck.LogicStealOwnership))
                     return;
 
                 //Lets check team limits now
@@ -2481,68 +2511,29 @@ namespace InfServer.Game
                     v._creator._alias == player._alias).Count();
 
                 IEnumerable<Vehicle> vehs = player._arena.Vehicles;
-                if (vehs != null)
+                foreach (Vehicle veh in vehs)
                 {
-                    foreach (Vehicle veh in vehs)
+                    Computer comp = veh as Computer;
+                    if (comp != null)
                     {
-                        Computer comp = veh as Computer;
-                        if (comp != null)
-                        {
-                            //If the computer is on the same team
-                            if ((comp._owner != null && comp._owner == player._team) || (comp._team == player._team))
-                            {
-                                totalAmount++;
-                                if (comp._type.Name == compCheck.Name)
-                                    totalType++;
-                            }
-                        }
-                    }
-                }
-
-                //Get a list of vehicles in the density radius
-                List<Vehicle> vehicles = player._arena.getVehiclesInRange(player._state.positionX, player._state.positionY, compCheck.DensityRadius);
-                if (vehicles != null)
-                {
-                    foreach (Vehicle veh in vehicles)
-                    {
-                        Computer comp = veh as Computer;
-                        if (comp != null)
-                        {
-                            //If the comp is on the same team
-                            if ((comp._owner != null && comp._owner == player._team) || (comp._team == player._team))
-                            {
-                                densityAmount++;
-                                if (comp._type.Name == compCheck.Name)
-                                    densityType++;
-                            }
-                        }
+                        //If the computer is on the same team
+                        if (comp.reprogrammed && comp._team == player._team)
+                            totalTempAmount++;
+                        if (!comp.reprogrammed && comp._team == player._team)
+                            totalAmount++;
                     }
                 }
             }
 
-            if (playerTotal >= compCheck.MaxTypeByPlayerRegardlessOfTeam && compCheck.MaxTypeByPlayerRegardlessOfTeam != -1)
+            if (compCheck.MaxTypeByPlayerRegardlessOfTeam != -1 && playerTotal >= compCheck.MaxTypeByPlayerRegardlessOfTeam)
             {   //Exceeds the amount per player regardless of team.
                 player.sendMessage(-1, "You have the maximum allowed computer vehicles of this type.");
                 return;
             }
-            if (totalAmount >= compCheck.FrequencyMaxActive && compCheck.FrequencyMaxActive != -1)
+
+            if (compCheck.FrequencyMaxActive != -1 && totalTempAmount >= compCheck.FrequencyMaxActive)
             {   //Exceeds the total amount of computer vehicles for the team
                 player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles.");
-                return;
-            }
-            if (totalType >= compCheck.FrequencyMaxType && compCheck.FrequencyMaxType != -1)
-            {   //Exceeds the total amount of computer vehicles of this type for the team
-                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type.");
-                return;
-            }
-            if (densityAmount >= compCheck.FrequencyDensityMaxActive && compCheck.FrequencyDensityMaxActive != -1)
-            {   //Exceeds the total amount of computer vehicles for the team in the area
-                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles in the area.");
-                return;
-            }
-            if (densityType >= compCheck.FrequencyDensityMaxType && compCheck.FrequencyDensityMaxType != -1)
-            {   //Exceeds the amount within the density radius for the specific type
-                player.sendMessage(-1, "Your team already has the maximum allowed computer vehicles of this type in the area.");
                 return;
             }
 
@@ -2554,7 +2545,8 @@ namespace InfServer.Game
             if (!exists("Player.Control") || (bool)callsync("Player.Control", false, player, item, targetVehicle, posX, posY))
             {
                 //Lets change ownership and set the control timer
-                target._owner = player._team;
+                target._team = player._team;
+                target.reprogrammed = true;
                 target._tickControlTime = Environment.TickCount;
                 target._tickControlEnd = item.controlTime;
 

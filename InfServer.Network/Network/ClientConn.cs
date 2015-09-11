@@ -354,6 +354,15 @@ namespace InfServer.Network
 			}
 		}
 
+        /// <summary>
+		/// Removes a client from the client list and destroys it
+		/// </summary>
+        public void removeClient(NetworkClient client)
+        {
+            //Just in case I didn't catch a use, or someone uses this later
+            client.destroy();
+        }
+
 		/// <summary>
 		/// Gets our packet factory interface
 		/// </summary>

@@ -28,6 +28,7 @@ namespace InfServer.Game
         public int ballStatus;              //Whats going on with the ball
         public Player _owner;               //The person holding us
         public Player _lastOwner;           //The person who held us last
+        public int ballSpeed;               //How fast the ball was thrown/kicked
         public short ballFriction;
         public uint tickCount;              //Given to us by the client
         public bool deadBall = false;       //Is this ball stuck/unplayabe?
@@ -73,12 +74,18 @@ namespace InfServer.Game
         /// </summary>
         static public void Spawn_Ball(Player player, Ball ball)
         {
+            if (ball == null)
+            {
+                Log.write(TLog.Warning, "Spawn ball called with null ball.");
+                return;
+            }
             Arena arena = ball._arena;
             List<Arena.RelativeObj> valid = new List<Arena.RelativeObj>();
-            List<LioInfo.WarpField> warpgroup = arena._server._assets.Lios.getWarpGroupByID(arena._server._zoneConfig.soccer.ballWarpGroup);
+            int warpGroupID = arena._server._zoneConfig.soccer.ballWarpGroup;
+            List<LioInfo.WarpField> warpgroup = arena._server._assets.Lios.getWarpGroupByID(warpGroupID);
             foreach (LioInfo.WarpField warp in warpgroup)
             {
-                if (warp.GeneralData.Name.Contains("Ball"))
+                if (warp.GeneralData.Name.Contains("Ball"))//warp.WarpFieldData.WarpGroup == warpGroupID)
                 {
                     //Do we have the appropriate skills?
                     if (player != null && !InfServer.Logic.Logic_Assets.SkillCheck(player, warp.WarpFieldData.SkillLogic))

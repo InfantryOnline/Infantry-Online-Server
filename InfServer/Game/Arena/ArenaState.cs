@@ -31,8 +31,6 @@ namespace InfServer.Game
 		public SortedDictionary<ushort, ItemDrop> _items;	//The items belonging to the arena, indexed by id
 		public ushort _lastItemKey;							//The last item key which was allocated
 
-        protected ObjTracker<Ball> _balls;                  //The soccer balls belonging to the arena, indexed by id
-
 		///////////////////////////////////////////////////
 		// Accessors
 		///////////////////////////////////////////////////
@@ -88,17 +86,6 @@ namespace InfServer.Game
             get
             {
                 return _vehicles;
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of balls present in the arena
-        /// </summary>
-        public IEnumerable<Ball> Balls
-        {
-            get
-            {
-                return _balls;
             }
         }
 
@@ -377,6 +364,18 @@ namespace InfServer.Game
 			_items.Clear();
 		}
 
+        /// <summary>
+        /// Resets all balls in the arena
+        /// </summary>
+        public void resetBalls()
+        {   //Get rid of each ball
+            foreach (Player p in Players)
+                p._gotBallID = 999;
+
+            foreach (Ball ball in _balls.ToList())
+                Ball.Remove_Ball(ball);
+        }
+
 		/// <summary>
 		/// Handles the loss of a player
 		/// </summary>
@@ -385,6 +384,10 @@ namespace InfServer.Game
             //Lets record his stats
             if (player._arena._bIsPublic)
                 player.migrateStats();
+
+            //Trigger our ball spawn
+            if (player._gotBallID != 999)
+                onLeaving(player);
 
             //Sob, let him go
 			_players.Remove(player);
@@ -530,7 +533,7 @@ namespace InfServer.Game
 
 			veh._team = team;
 			veh._creator = creator;
-            veh._owner = team;
+            veh._oldTeam = creator != null ? creator._team : null;
 
 			veh._tickUnoccupied = veh._tickCreation = Environment.TickCount;
 
@@ -540,19 +543,10 @@ namespace InfServer.Game
 				veh._state.positionY = state.positionY;
 				veh._state.positionZ = state.positionZ;
 				veh._state.yaw = state.yaw;
-                //Temporary fix for computer updates rotating north by default, perm fix would be sc_vehices.cs packet fix
-                //this was causing turrets to not rotate
-              /*  switch (veh._type.Type)
-                {
-                    case VehInfo.Types.Computer:
-                        veh._state.fireAngle = state.yaw;
-                        break;
-                    case VehInfo.Types.Dependent:
-                        veh._state.fireAngle = state.yaw;
-                        break;
-                }*/
+
                 if (veh._type.Type == VehInfo.Types.Computer)
                     veh._state.fireAngle = state.yaw; //Temporary fix for computer updates rotating north by default, perm fix would be sc_vehices.cs packet fix
+
                 if (veh._type.Type == VehInfo.Types.Dependent)
                 {
                     VehInfo.Dependent dep = veh._type as VehInfo.Dependent;
@@ -846,59 +840,6 @@ namespace InfServer.Game
                 itemSpawn(item, quantity, positionX, positionY, p);
             }
             return id;
-        }
-
-        /// <summary>
-        /// Creates a new ball and adds it to our tracking list
-        /// </summary>
-        public Ball newBall(short ballID)
-        {
-            //Maxed out?
-            if (_balls.Count == Arena.maxBalls)
-                return null;
-
-            //Do we exist?
-            if (_balls.getObjByID((ushort)ballID) != null)
-                return null;
-
-            //Create our ball object
-            Ball ball = new Ball(ballID, this);
-            if (ball != null)
-            {
-                _balls.Add(ball);
-                return ball;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Handles the loss of a ball
-        /// </summary>
-        public void LostBall(Ball ball)
-        {
-            if (ball == null)
-                return;
-
-            //Let it go
-            _balls.Remove(ball);
-        }
-
-        /// <summary>
-        /// Updates spatial data for the ball
-        /// </summary>
-        public void UpdateBall(Ball ball)
-        {
-            if (ball == null)
-                return;
-
-            //Do we exist?
-            Ball b = _balls.getObjByID(ball._id);
-            if (b == null)
-                return;
-
-            //Lets update
-            _balls.updateObjState(b, b._state);
         }
 		#endregion
 	}

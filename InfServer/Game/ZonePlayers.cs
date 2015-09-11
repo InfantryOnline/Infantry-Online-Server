@@ -98,7 +98,7 @@ namespace InfServer.Game
 				Log.write(TLog.Normal, "New player: " + newPlayer);
 
 				_players[pk] = newPlayer;
-				_nameToPlayer[alias.ToLower()] = newPlayer;
+				_nameToPlayer[alias.ToUpper()] = newPlayer;
 
                 //Lets setup the players silence list
                 if (_playerSilenced.ContainsKey(c._ipe.Address))
@@ -145,12 +145,6 @@ namespace InfServer.Game
 					return;
 				}
 
-				//He's gone!
-				_players.Remove(player._id);
-				_nameToPlayer.Remove(player._alias);
-
-				Log.write(TLog.Normal, "Lost player: " + player);
-	
                 //Lets update the players silence list
                 if (player._client._ipe.Address != null)
                 {
@@ -169,9 +163,6 @@ namespace InfServer.Game
                     }
                 }
 
-                //Disconnect him from the server
-                removeClient(player._client);
-
 				//Make sure his stats get updated
 				if (player._bDBLoaded && !player._server.IsStandalone)
 					_db.updatePlayer(player);
@@ -179,6 +170,12 @@ namespace InfServer.Game
 				//We've lost him!
                 if (!player._server.IsStandalone)
 				_db.lostPlayer(player);
+
+                //He's gone!
+                _nameToPlayer.Remove(player._alias.ToUpper());
+                _players.Remove(player._id);
+
+                Log.write(TLog.Normal, "Lost player: " + player);
 			}
 		}
 
@@ -203,10 +200,7 @@ namespace InfServer.Game
 		{	//Attempt to find him
 			Player player;
 
-            if (!_nameToPlayer.ContainsKey(name.ToLower()))
-                return null;
-            else
-                player = _nameToPlayer[name.ToLower()];
+            _nameToPlayer.TryGetValue(name.ToUpper(), out player);
 
 			return player;
 		}

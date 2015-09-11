@@ -284,11 +284,9 @@ namespace InfServer.Bots
 						_tickLastUpdate = tickCount;
 						return true;
 					}
-					else
-						return false;
+    				return false;
 				}
-				else
-					return true;
+				return true;
 			}
 
 			return false;

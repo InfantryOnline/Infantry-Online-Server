@@ -69,14 +69,15 @@ namespace InfServer.Protocol
 		{	//Read in junk
 			bCreateAlias = _contentReader.ReadBoolean();
 			Version = _contentReader.ReadUInt16();
+
 			_contentReader.ReadInt32();
 
 			//Read in strings
 			Username = ReadString(32);
 			SysopPass = ReadString(32);
 			TicketID = ReadString(64);
-			
-			_contentReader.ReadInt32();
+
+            _contentReader.ReadInt32();
 
 			UID1 = _contentReader.ReadUInt32();
 			UID2 = _contentReader.ReadUInt32();
