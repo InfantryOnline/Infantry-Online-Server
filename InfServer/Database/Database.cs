@@ -62,11 +62,11 @@ namespace InfServer.Data
         {	//Assume the worst
             _syncStart.Reset();
             _bLoginSuccess = false;
-            _server._lastDBAttempt = Environment.TickCount;
 
             using (LogAssume.Assume(_logger))
             {
-                Log.write("Connecting to database server..");
+                int conID = new Random().Next();
+                Log.write("Connecting to database server ({0})..", dbPoint);
 
                 //Start our connection
                 _conn.begin(dbPoint);
@@ -74,7 +74,7 @@ namespace InfServer.Data
                 //Send our initial packet
                 CS_Initial init = new CS_Initial();
 
-                _conn._client._connectionID = init.connectionID = new Random().Next();
+                _conn._client._connectionID = init.connectionID = conID;
                 init.CRCLength = Client.crcLength;
                 init.udpMaxPacket = Client.udpMaxSize;
 
@@ -84,6 +84,8 @@ namespace InfServer.Data
 
                 //Reset our event
                 _syncStart.Reset();
+
+                _server._lastDBAttempt = Environment.TickCount;
 
                 //Were we successful?
                 return _bLoginSuccess;

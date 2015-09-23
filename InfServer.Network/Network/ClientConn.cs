@@ -91,8 +91,9 @@ namespace InfServer.Network
 				_listenThread.Abort();
 
 			//Create a new client object
-			if (_client != null)
-				_client.destroy();
+            if (_client != null)
+                _client.destroy();
+
 			_client = new Client<T>(true);
 
 			_client._obj = _obj;
@@ -139,10 +140,9 @@ namespace InfServer.Network
 				while (_bOperating)
 				{	//Read required data from the server state while using
 					//as little lock time as possible.
-					Queue<PacketBase> packets = null;
+                    Queue<PacketBase> packets = null;
 
 					_networkLock.AcquireWriterLock(Timeout.Infinite);
-
 					try
 					{
 						if (_packetsWaiting)
@@ -199,7 +199,8 @@ namespace InfServer.Network
 		/// </summary>
 		private void onClientDestroy(NetworkClient client)
 		{	//We're no longer operating
-			_listenThread.Abort();
+            if (_listenThread != null)
+                _listenThread.Abort();
 
 			_client = null;
 			_bOperating = false;
@@ -359,7 +360,6 @@ namespace InfServer.Network
 		/// </summary>
         public void removeClient(NetworkClient client)
         {
-            //Just in case I didn't catch a use, or someone uses this later
             client.destroy();
         }
 

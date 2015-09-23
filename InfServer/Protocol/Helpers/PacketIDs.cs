@@ -50,7 +50,7 @@ namespace InfServer.Protocol
                 RegResponse = 0x16,
                 PlayerDrop = 0x17,
                 Chat = 0x18,
-                /*Unknown packet #25 = 0x19, has to do with being in the arena/zone - Note: this is a semi big packet*/
+                /*Unknown packet #25 = 0x19, has to do with being in the arena/zone - Note: this is a semi big packet, maybe tick diff?*/
                 BallPickup = 0x1A,
                 BallDrop = 0x1B,
 				PlayerUpdate = 0x1C,
@@ -63,7 +63,7 @@ namespace InfServer.Protocol
                 /*Unknown = 0x24,*/
 				Security = 0x25,
                 /*Unknown = 0x26,*/
-                /*Unknown packet #38 = 0x26, has to do with leaving the zone but doesnt contain data, possibly a pending packet then player disconnect is sent*/
+                /*Unknown packet #38 = 0x26, has to do with leaving the zone but doesnt contain data, user isQuitting*/
                 GoalScored = 0x27,
                 /*Unknown = 0x28,*/
                 Unknown = 0x29, /*possibly #41, not sure yet what it is*/

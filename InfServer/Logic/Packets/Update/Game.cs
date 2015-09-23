@@ -20,7 +20,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerPickup: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -50,7 +50,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerDrop: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -80,7 +80,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerPortal: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -119,7 +119,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerProduce: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 			if (player.IsSpectator)
@@ -148,7 +148,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerSwitch: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -187,7 +187,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerFlag: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -220,7 +220,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerJoin: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -235,7 +235,7 @@ namespace InfServer.Logic
 					{	//Yes, are we currently in a specator vehicle?
 						if (player._occupiedVehicle == null)
 						{
-							Log.write(TLog.Error, "Player {0} attempting to return to baseVehicle from no occupied vehicle.", player);
+							Log.write(TLog.Error, "Handle_CS_PlayerJoin: Player {0} attempting to return to baseVehicle from no occupied vehicle.", player);
 							return;
 						}
 
@@ -266,7 +266,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_Explosion: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -290,7 +290,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_Shop: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -319,7 +319,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_ShopSkill: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -348,7 +348,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerUseItem: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -489,7 +489,7 @@ namespace InfServer.Logic
         {	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_VehiclePickup: Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -532,8 +532,7 @@ namespace InfServer.Logic
             player._arena.handleEvent(delegate(Arena arena)
             {
                 player._arena.handlePlayerDamageEvent(player, pkt);
-            }
-            );
+            });
         }
 
 		/// <summary>

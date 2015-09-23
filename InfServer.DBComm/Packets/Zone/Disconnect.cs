@@ -8,7 +8,7 @@ using InfServer.Data;
 
 namespace InfServer.Protocol
 {	/// <summary>
-	/// CS_PlayerStatsRequest contains a statistics request from the game server
+	/// Disconnect packet to the database
 	/// </summary>
 	public class Disconnect<T> : PacketBase
 		where T : IClient

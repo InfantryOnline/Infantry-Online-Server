@@ -21,7 +21,7 @@ namespace InfServer.Logic
         {   //Allow the arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_BallDrop: Player {0} sent update packet with no arena.", player);
                 return;
             }
 
@@ -44,7 +44,7 @@ namespace InfServer.Logic
         {	//Allow the player's arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_GoalScored: Player {0} sent update packet with no arena.", player);
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace InfServer.Logic
         {	//Allow the player's arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_BallPickup: Player {0} sent update packet with no arena.", player);
                 return;
             }
 

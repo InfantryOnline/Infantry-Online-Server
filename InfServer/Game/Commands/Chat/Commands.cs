@@ -529,7 +529,6 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(0, "Wrong format typed.");
                 return;
             }
-            Console.WriteLine(payload);
             CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
             join.chat = payload;
             join.from = player._alias;

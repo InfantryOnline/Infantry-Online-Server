@@ -17,8 +17,8 @@ namespace InfServer.Logic
 		{	//Has he already been initialized?
 			if (client._bInitialized)
 			{	//Make a note
-				Log.write(TLog.Warning, "Client " + client + " attempted to initialize connection twice.");
-				client._handler.removeClient(client);
+				Log.write(TLog.Error, "Client " + client + " attempted to initialize connection twice.");
+                client.destroy();
 				return;
 			}
 
@@ -56,8 +56,7 @@ namespace InfServer.Logic
 		{	//Has he already been initialized?
 			if (client._bInitialized)
 			{	//Make a note
-				Log.write(TLog.Warning, "Server attempted to initialize connection twice.");
-                //_handler.removeClient(this); ????
+				Log.write(TLog.Error, "Server attempted to initialize connection twice.");
 				return;
 			}
 
@@ -138,8 +137,8 @@ namespace InfServer.Logic
 		/// </summary>
 		static public void Handle_Disconnect(Disconnect pkt, Client client)
 		{   //Remove the client from the list
-			client._handler.removeClient(client);
-            //Log.write(TLog.Normal, "Client disconnected: " + client);
+            client.destroy();
+            Log.write(TLog.Normal, "Client '{0}' disconnected: {1}", client, pkt.reason);
 		}
 
 		/// <summary>

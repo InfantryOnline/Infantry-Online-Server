@@ -135,12 +135,15 @@ namespace InfServer.Bots
 
 				if (!calculatePath(req.startX, req.startY, req.endX, req.endY, out path))
 				{
-					req.callback(null, 0);
-					continue;
+                    req.callback(null, 0);
+                    continue;
 				}
 				
 				//Create a steerable path
-				req.callback(createSteerablePath(path), path.Length);
+                req.callback(createSteerablePath(path), path.Length);
+
+                //Required to ensure the delegate is released when the loop is idle
+                req.callback = null;
 			}
 		}
 
@@ -151,8 +154,10 @@ namespace InfServer.Bots
 		{
             if (pathingQueue.Count > 25)
             {
-                //stuff
-                Console.WriteLine("!!!! " + pathingQueue.Count);
+                Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count);
+
+                //Let them know
+                callback(null, 0);
                 return;
             }
 			PathfindReq req = new PathfindReq();

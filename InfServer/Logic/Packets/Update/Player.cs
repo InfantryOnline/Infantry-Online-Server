@@ -25,9 +25,10 @@ namespace InfServer.Logic
             //Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerUpdate: Player {0} sent update packet with no arena.", player);
 				return;
 			}
+
 			player._arena.handleEvent(delegate(Arena arena)
 				{
 					player._arena.handlePlayerUpdate(player, pkt);

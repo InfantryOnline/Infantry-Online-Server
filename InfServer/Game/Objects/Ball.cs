@@ -10,6 +10,8 @@ using InfServer.Network;
 using InfServer.Protocol;
 
 using Assets;
+using Axiom.Math;
+using Bnoerj.AI.Steering;
 
 namespace InfServer.Game
 {
@@ -30,6 +32,7 @@ namespace InfServer.Game
         public Player _lastOwner;           //The person who held us last
         public int ballSpeed;               //How fast the ball was thrown/kicked
         public short ballFriction;
+        public double ballAngle;
         public uint tickCount;              //Given to us by the client
         public bool deadBall = false;       //Is this ball stuck/unplayabe?
 

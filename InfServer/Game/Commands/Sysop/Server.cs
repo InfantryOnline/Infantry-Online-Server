@@ -28,33 +28,20 @@ namespace InfServer.Game.Commands.Mod
 
             int delay = 30;
 
-            if (payload.Length > 0)
+            if (!String.IsNullOrWhiteSpace(payload))
             {
                 delay = Int32.Parse(payload);
             }
 
-            player._arena.recycling = true;
-            player._arena.setTicker(0, 0, delay * 100, "Server closing in: ", delegate()
-            {
-                player._server.recycle();
-            });
-            player._arena.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
-
-            //For players leaving the zone, still will recycle it on its own
-            if (!player._server._recycle.ContainsKey(player._server))
-                player._server._recycle.Add(player._server, DateTime.Now.AddSeconds(delay));
-            else
-                player._server._recycle.Add(player._server, DateTime.Now.AddSeconds(delay));
-
             foreach (KeyValuePair<string, Arena> arena in player._server._arenas)
             {
-                if (arena.Value == player._arena)
-                    continue;
-
                 arena.Value.recycling = true;
                 arena.Value.sendArenaMessage(String.Format("!Server is restarting in {0} seconds. Please quit to assure stats are stored.", delay), 1);
                 arena.Value.setTicker(0, 0, delay * 100, "Server closing in: ");
             }
+
+            player._server._recycling = true;
+            player._server._recycleAttempt = (delay * 1000) + Environment.TickCount;
         }
 
         /// <summary>
@@ -130,26 +117,23 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
-            //recipient._client.destroy();
-            /*
             Disconnect discon = new Disconnect();
 
             discon.connectionID = recipient._client._connectionID;
-            discon.reason = Disconnect.DisconnectReason.DisconnectReasonOtherSideTerminated;
+            discon.reason = Disconnect.DisconnectReason.DisconnectReasonManagerDeleted;
 
             recipient._client.send(discon);
             Console.WriteLine("Disconnect packet sent to {0}", recipient);
-            
-
+            /*
             SC_TestPacket test = new SC_TestPacket();
             test.player = player;
             test.ball = player._arena._balls.SingleOrDefault(b => b._id == (ushort)0);
             player._client.sendReliable(test);
              */
             
-            SC_TestPacket test = new SC_TestPacket();
-            test.player = player;
-            player._client.send(test);
+            //SC_TestPacket test = new SC_TestPacket();
+            //test.player = player;
+            //player._client.send(test);
 
 
             /*

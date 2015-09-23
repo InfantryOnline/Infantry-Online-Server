@@ -106,13 +106,20 @@ namespace InfServer.Game
 				}
 
 				set
-				{	//As long as it's not the same team..
+                {   //As long as it's not the same team..
 					if (_team == value)
 						return;
 
 					_team = value;
 					if (TeamChange != null)
 						TeamChange(this);
+
+                    //Give a capture to the team
+                    if (_team != null)
+                        _team._currentGameScores++;
+                    //Take away one from the old team
+                    if (oldTeam != null)
+                        oldTeam._currentGameScores--;
 				}
 			}
 		}

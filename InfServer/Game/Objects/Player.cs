@@ -56,7 +56,6 @@ namespace InfServer.Game
 		public bool _bSpectator;				//Is the player in spectator mode?
         public bool _bIsStealth;                //Is the mod hidden to player lists?
         public int _level;                      //The players level
-        private bool _bCloaked;                 //Is the player cloaked?
 
         //Player shutup stuff..
         public bool _bSilenced;                 //Is the player currently silenced?
@@ -299,13 +298,26 @@ namespace InfServer.Game
 			}
 		}
 
+        /// <summary>
+        /// Disconnects the player and removes from everything
+        /// </summary>
+        public void disconnect()
+        {
+            //Redirect
+            disconnect(Disconnect.DisconnectReason.DisconnectReasonApplication);
+        }
+
 		/// <summary>
 		/// Disconnects the player and removes from everything
 		/// </summary>
-		public void disconnect()
+		public void disconnect(Disconnect.DisconnectReason reason)
 		{
-			Helpers.Player_Disconnect(this);
-			destroy();
+            destroy();
+            Helpers.Player_Disconnect(this, reason);
+
+            //Were we forced a dc? (*dc or *kill)
+            if (!_client._bDestroyed)
+                _client.destroy();
 		}
 
         /// <summary>
@@ -358,9 +370,9 @@ namespace InfServer.Game
 			}
 
             //If we're currently in a vehicle, we want to desert it
-            if (_occupiedVehicle != null)
+            //Test to see if they are spectating, a bit hackish, should be revised -X15
+            if (_occupiedVehicle != null && !IsSpectator)
                 _occupiedVehicle.playerLeave(true);
-            _occupiedVehicle = null;
 
 			//Notify our team
 			if (_team != null)
@@ -1178,7 +1190,7 @@ namespace InfServer.Game
             if (_bSpectator & _team == team)
             {
                 Log.write(TLog.Warning, "Attempted to spec player already in spec: {0}", this);
-//                return false;
+                return false;
             }*/
 
             //Let's create a new spectator vehicle

@@ -94,6 +94,7 @@ namespace InfServer.Network
         {
             if (_listenThread.IsAlive)
                 _listenThread.Abort();
+
             if (_sock != null)
                 _sock.Close();
         }
@@ -138,11 +139,10 @@ namespace InfServer.Network
 			while (_bOperating)
 			{	//Read required data from the server state while using
 				//as little lock time as possible.
-                Queue<PacketBase> packets = new Queue<PacketBase>();
+                Queue<PacketBase> packets = null;
 				List<NetworkClient> activeClients;
 
 				_networkLock.AcquireWriterLock(Timeout.Infinite);
-
                 try
                 {
                     if (_packetsWaiting)
@@ -167,10 +167,7 @@ namespace InfServer.Network
                     foreach (PacketBase packet in packets)
                         if (packet._client.predispatchCheck(packet))
                             routePacket(packet);
-
 				}
-
-                packets = null;
 
 				//Poll each active network client
                 foreach (NetworkClient client in activeClients)
@@ -229,6 +226,7 @@ namespace InfServer.Network
 						if (bNewClient)
 						{	//This client doesn't exist yet, let's create a new class
 							client = _clientTemplate.newInstance();
+                            client._logger = _logger;
 							client._lastPacketRecv = Environment.TickCount;
 							client._ipe = ipe;
 							client._handler = this;
@@ -374,17 +372,19 @@ namespace InfServer.Network
 		{
             if (client == null)
             {
-                Log.write(TLog.Error, "removeClient called with null client");
+                Log.write(TLog.Error, "Server removeClient(): called with null NetworkClient", _logger);
                 return;
             }
 
 			_networkLock.AcquireWriterLock(Timeout.Infinite);
-
 			try
 			{
                 _clients.Remove(client._clientID);
+                //No need to destroy twice
+                if (!client._bDestroyed)
+                    client.destroy();
 
-                client.destroy();
+                client = null;
 			}
 			finally
 			{	//Release our lock

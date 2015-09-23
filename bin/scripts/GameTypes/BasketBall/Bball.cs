@@ -122,7 +122,6 @@ namespace InfServer.Script.GameType_BasketBall
         public bool poll()
         {	//Should we check game state yet?
             int now = Environment.TickCount;
-
             if (now - _lastGameCheck <= Arena.gameCheckInterval)
                 return true;
 
@@ -169,6 +168,8 @@ namespace InfServer.Script.GameType_BasketBall
                 if (_arena.Balls.Count() > 0)
                     foreach (Ball ball in _arena.Balls.ToList())
                     {
+                        //This updates the ball visually
+                        //Ball.Route_Ball(_arena.Players, ball);
                         _lastBallCheck = now;
 
                         //Check for a stuck ball(non reachable)
@@ -355,6 +356,10 @@ namespace InfServer.Script.GameType_BasketBall
             _overtime = true;
 
             //LETS RESET FOR A JUMP BALL-----------
+            _futureGoal = null;
+            pass = null;
+            assist = null;
+            assist2 = null;
             if (_startCfg.prizeReset)
                 _arena.resetItems();
             if (_startCfg.vehicleReset)
@@ -408,6 +413,33 @@ namespace InfServer.Script.GameType_BasketBall
                 else
                     _arena.gameEnd();
             });
+        }
+
+        /// <summary>
+        /// Spawns the ball on the opposite side based on which team scored
+        /// </summary>
+        private void SpawnOppositeSide(Player player, Ball ball)
+        {
+            if (player._team == team1) //Left side
+            {
+                //Using lio, lets try searching for a spawn point
+                List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
+                foreach (LioInfo.WarpField warp in warpgroup)
+                {
+                    if (warp.GeneralData.Name.Contains("KingsScored")) //Give it to the right side
+                        Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
+                }
+            }
+            else
+            {
+                //Using lio, lets try searching for a spawn point
+                List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
+                foreach (LioInfo.WarpField warp in warpgroup)
+                {
+                    if (warp.GeneralData.Name.Contains("PiratesScored")) //Give it to the left side
+                        Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
+                }
+            }
         }
 
         /// <summary>
@@ -820,42 +852,24 @@ namespace InfServer.Script.GameType_BasketBall
             }
 
             if (_overtime)
-            {   //If it was overtime let's end it
-                _arena.gameEnd();
-                _arena.setTicker(1, 0, 0, null, null); // overtime top right   
+            {
+                if (_config.soccer.timerOvertime < 1 || overtimeType >= 3)
+                {
+                    //If it was overtime let's end it
+                    _arena.gameEnd();
+                    _arena.setTicker(1, 0, 0, null, null); // overtime top right
+                    return true;
+                }
+
+                SpawnOppositeSide(player, ball);
+                return false;
             }
             else
             {
                 if (_tickGameStart > 0) //Have we ended the game or is this just a goal?
                 {
-                    if (player._team == team1) //Left side
-                    {
-                        //Using lio, lets try searching for a spawn point
-                        List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
-                        foreach (LioInfo.WarpField warp in warpgroup)
-                        {
-                            if (warp.GeneralData.Name.Contains("KingsScored")) //Give it to the right side
-                            {
-                                Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
-                                //We want to return false to prevent the ball respawning in the middle
-                                return false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //Using lio, lets try searching for a spawn point
-                        List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
-                        foreach (LioInfo.WarpField warp in warpgroup)
-                        {
-                            if (warp.GeneralData.Name.Contains("PiratesScored")) //Give it to the left side
-                            {
-                                Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
-                                //We want to return false to prevent spawning in the middle
-                                return false;
-                            }
-                        }
-                    }
+                    SpawnOppositeSide(player, ball);
+                    return false;
                 }
             }
             //Ball will auto respawn in the middle with true
@@ -1129,6 +1143,8 @@ namespace InfServer.Script.GameType_BasketBall
 
                 Int32.TryParse(args[0].Trim(), out team1Goals);
                 Int32.TryParse(args[1].Trim(), out team2Goals);
+                team1._currentGameScores = team1Goals;
+                team2._currentGameScores = team2Goals;
 
                 //Immediately notify the change
                 updateTickers();

@@ -14,7 +14,9 @@ namespace InfServer.Game
     {   // Member Variables
         //////////////////////////////////////////////
         protected ObjTracker<Ball> _balls;              //The soccer balls belonging to the arena, indexed by id
-        private int _lastUpdateSent = Environment.TickCount;
+        private int _lastUpdateSent;
+        private int _lastUpdateState;
+        private int _lastDelta;
 
         // Member Functions
         //////////////////////////////////////////////
@@ -28,27 +30,50 @@ namespace InfServer.Game
                 return;
 
             int now = Environment.TickCount;
+            //Update game state?
+            if (now - _lastUpdateState <= gameCheckInterval)
+                return;
+            _lastUpdateState = now;
 
             //Do we need to send an update?
-            if (now - _lastUpdateSent < _server._zoneConfig.soccer.sendTime)
-                return;
-
-            foreach (Ball ball in _balls.ToList())
+            if ((now - _lastUpdateSent) > (_server._zoneConfig.soccer.sendTime * 10))
             {
-                if (ball.ballStatus == (int)Ball.BallStatus.PickUp)
-                    continue;
+                foreach (Ball ball in _balls.ToList())
+                {
+                    //Lets visually update
+                    Ball.Route_Ball(Players, ball);
+                    _lastUpdateSent = now;
 
-                //Lets visually update
-                Ball.Route_Ball(Players, ball);
+                    //Check for an unreachable ball
+                    stuckBall(ball, now);
 
-                //Check for an unreachable ball
-                stuckBall(ball, now);
-
-                //Check for a dead ball(untouched)
-                deadBall(ball, now);
+                    //Check for a dead ball(untouched)
+                    deadBall(ball, now);
+                }
             }
 
-            _lastUpdateSent = now;
+            //Do we need to update our state?
+            int delta = now - _lastDelta;
+            if (delta < 0)
+                return;
+
+            _lastDelta = now;
+
+            //foreach(Ball ball in _balls)
+                //UpdateState(ball, delta);
+        }
+
+        /// <summary>
+        /// Updates our balls states
+        /// </summary>
+        private void UpdateState(Ball ball, double delta)
+        {
+            /*
+            if (Environment.TickCount - _debug > 8000)
+            {
+                Console.WriteLine("Test {0},{1}", newPosition.x, newPosition.y);
+                _debug = Environment.TickCount;
+            }*/
         }
 
         /// <summary>
@@ -73,6 +98,8 @@ namespace InfServer.Game
                 {
                     ball.deadBall = true;
                     //Update our time
+                    int updateTick = ((Environment.TickCount >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                    ball._state.lastUpdate = updateTick;
                     ball._state.lastUpdateServer = tick;
 
                     setTicker(5, 3, 500, "Ball Respawning: ", delegate()
@@ -115,6 +142,8 @@ namespace InfServer.Game
                     return;
 
                 //Update our tick
+                int updateTick = ((Environment.TickCount >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                ball._state.lastUpdate = updateTick;
                 ball._state.lastUpdateServer = tick;
 
                 setTicker(5, 3, deadballTimer * 100, "Ball Respawning: ", delegate()
@@ -301,7 +330,7 @@ namespace InfServer.Game
         {   //Player?
             if (player == null)
             {
-                Log.write(TLog.Warning, "onLeaving(): Called with null player.");
+                Log.write(TLog.Warning, "Ball.onLeaving(): Called with null player.");
                 return;
             }
 

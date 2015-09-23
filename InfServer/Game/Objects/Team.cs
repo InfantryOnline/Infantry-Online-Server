@@ -34,13 +34,14 @@ namespace InfServer.Game
         public bool _isPrivate;					//Is this a private team?
 
         public int _currentGameKills;			//The amount of kills for the team this game
-        public int _currentGameDeaths;			//The amoutn of deaths for the team this game
+        public int _currentGameDeaths;			//The amount of deaths for the team this game
+        public int _currentGameScores;          //The amount of scores (goals or flags) for the team this game
 
         public CfgInfo.TeamInfo _info;		    //The team-specific info
         public Dictionary<int, TeamInventoryItem> _tInventory;	//Our current inventory
 
         //Events
-        public event Action<Team> Empty;	//Called when an team runs out of players and is empty
+        public event Action<Team> Empty;	//Called when a team runs out of players and is empty
 
         public int _relativeVehicle;
 
@@ -168,6 +169,7 @@ namespace InfServer.Game
 
             _currentGameKills = 0;
             _currentGameDeaths = 0;
+            _currentGameScores = 0;
         }
 
         #region State
@@ -187,7 +189,7 @@ namespace InfServer.Game
         {	//Sanity checks
             if (player._bIngame && player._team == this)
             {
-                Log.write(TLog.Warning, "Attempted to add player to his own team. {0}", player);
+                //Log.write(TLog.Warning, "Attempted to add player to his own team. {0}", player);
                 return;
             }
 
@@ -222,8 +224,11 @@ namespace InfServer.Game
             }
         }
 
+        /// <summary>
+        /// Adds the given player to the team and notifies others
+        /// </summary>
         public void addPlayer(Player player)
-        {
+        {   //Reroute
             addPlayer(player, false);
         }
 

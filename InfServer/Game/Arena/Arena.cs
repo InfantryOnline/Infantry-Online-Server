@@ -45,7 +45,7 @@ namespace InfServer.Game
 		public Dictionary<int, TickerInfo> _tickers;	//The tickers!
         public int playtimeTickerIdx = 0;               //Our playing time ticker index
 		public bool _bGameRunning;						//Is the game running?
-        public bool recycling = false;                  //Are we recycling an active zone?
+        public bool recycling;                          //Are we recycling an active arena?
         public int _tickGameStarted;					//The tick at which our game started
 		public int _tickGameEnded;						//The tick at which our game ended
         public bool _bLocked;
@@ -273,8 +273,15 @@ namespace InfServer.Game
 		/// <remarks>The position given should be in map ticks.</remarks>
 		public CfgInfo.Terrain getTerrain(int x, int y)
 		{	//Get the terrain type of the tile
-			x /= 16;
-			y /= 16;
+            try
+            {
+                x /= 16;
+                y /= 16;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Log.write(TLog.Exception, "Index out of range getting terrain: X '{0}', Y '{1}'", x, y);
+            }
 
 			LvlInfo.Tile tile = _tiles[(y * _levelWidth) + x];
 
@@ -449,6 +456,7 @@ namespace InfServer.Game
             _blockedList = new Dictionary<string, DateTime>();
             _bAllowed = new List<string>();
             _aLocked = false;
+            recycling = _server._recycling;
 
             _scramble = _server._zoneConfig.arena.scrambleTeams > 0 ? true : false;
 
@@ -489,7 +497,7 @@ namespace InfServer.Game
 		}
 
 		/// <summary>
-		/// Allows the arena to keep it's game state up-to-date
+		/// Allows the arena to keep it's game state up-to-datew
 		/// </summary>
 		public virtual void poll()
 		{	//Make sure we're synced

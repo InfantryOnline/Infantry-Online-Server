@@ -712,20 +712,20 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 playerStats[player]._currentGame.zonestat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
 
             //Now lets predict if this ball will hit the goal
-            /*
-            List<LvlInfo.Tile> tiles;
+            //List<LvlInfo.Tile> tiles;
             if (drop.velocityX > 0) //Moving right
             {
                 Distance = Helpers.distanceTo(goalCenterRight.X, goalCenterRight.Y, drop.positionX, drop.positionY);
-                tiles = Helpers.calcBresenhems(_arena, (short)goalCenterRight.X, (short)goalCenterRight.Y, drop.positionX, drop.positionY);
+                //tiles = Helpers.calcBresenhems(_arena, (short)goalCenterRight.X, (short)goalCenterRight.Y, drop.positionX, drop.positionY);
             }
             else //Moving left
             {
                 Distance = Helpers.distanceTo(goalCenterLeft.X, goalCenterLeft.Y, drop.positionX, drop.positionY);
-                tiles = Helpers.calcBresenhems(_arena, (short)goalCenterLeft.X, (short)goalCenterLeft.Y, drop.positionX, drop.positionY);
+                //tiles = Helpers.calcBresenhems(_arena, (short)goalCenterLeft.X, (short)goalCenterLeft.Y, drop.positionX, drop.positionY);
             }
 
             //Get the tiles using our line segment
+            /*
             Console.WriteLine("Distance={0}", Distance);
             Console.WriteLine("Point={0},{1}", goalCenterRight.X, goalCenterRight.Y);
             int last = tiles.Count();
@@ -736,7 +736,11 @@ namespace InfServer.Script.GameType_Soccerbrawl
             }
             */
             plyrX = (int)drop.positionX; plyrY = (int)drop.positionY;
-
+            double speed = (ball.ballSpeed / 1000);
+            double math = (double)drop.positionX + (((double)drop.velocityX / 10.0d) * speed - 10.0d);
+            int final = (int)Math.Round(math);
+            Console.WriteLine("Final = {0}", final);
+            
             double xf = 0;
             double yf = 0;
             double cxi = 0;

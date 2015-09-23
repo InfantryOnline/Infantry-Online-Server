@@ -70,16 +70,12 @@ namespace InfServer.Logic
 
                 //New chat
                 if (_chat == null)
-                {
-                    Log.write(TLog.Normal, "Opened chat: '{0}'", chat);
                     _chat = new Chat(server, chat);
-                }
 
                 //Add him
                 if (!_chat.hasPlayer(player))
                     _chat.newPlayer(player);
 
-                
                 //Send him the updated list..
                 server.sendMessage(zone, pkt.from, String.Format("{0}: {1}", chat, _chat.List()));
             }

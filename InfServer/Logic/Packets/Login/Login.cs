@@ -82,7 +82,7 @@ namespace InfServer.Logic
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
                 return;
             }
-            
+
             Player newPlayer = server.newPlayer(client, alias);
 
 			//If it failed for some reason, present a failure message
@@ -96,7 +96,6 @@ namespace InfServer.Logic
             newPlayer._UID1 = pkt.UID1;
             newPlayer._UID2 = pkt.UID2;
             newPlayer._UID3 = pkt.UID3;    
-
 
 			//Are we in standalone mode?
 			if (server.IsStandalone)

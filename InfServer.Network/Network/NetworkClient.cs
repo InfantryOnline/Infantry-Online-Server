@@ -11,6 +11,8 @@ namespace InfServer.Network
 	public abstract class NetworkClient
 	{	// Member variables
 		///////////////////////////////////////////////////
+        public LogClient _logger;                       //The logger we're writing to
+
 		public IPacketHandler _handler;					//The packet handler we belong to
 		public bool _bDestroyed;						//Is the connection in use anymore?
 
@@ -40,16 +42,19 @@ namespace InfServer.Network
 		{	//No need to do this twice
             if (_bDestroyed)
             {
-                //Log.write(TLog.Error, "NC. destroy() Attempted to destroy already destroyed client");
+                Log.write(TLog.Warning, "Attempted to destroy already destroyed NetworkClient: {0}", _logger, _ipe);
                 return;
             }
 
             _bDestroyed = true;
 
 			//Allow handlers to trigger
-            //NOTE: Zone Server does not register a handler for this!
-			if (Destruct != null)
-				Destruct(this);
+            //NOTE: Server clients only use destruct
+            if (Destruct != null)
+                Destruct(this);
+
+            //Finally, lets close this networkClient
+            _handler.removeClient(this);
 		}
 
 		/// <summary>
@@ -59,7 +64,7 @@ namespace InfServer.Network
 		{
             if (_bDestroyed)
             {
-                Log.write(TLog.Error, "NC.send() Attempted to send packet to destroyed client: {0}", this);
+                Log.write(TLog.Error, "Attempted to send packet to destroyed NetworkClient: {0}", _logger, this);
                 return;
             }
 

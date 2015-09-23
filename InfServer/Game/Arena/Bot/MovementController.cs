@@ -23,9 +23,6 @@ namespace InfServer.Bots
 		protected Arena _arena;                         //The arena we're in
 		public bool bEnabled;							//Are we able to accept movement commands?
 
-		//Hardcode the terrain for now until we get access to the map info!
-		private int _terrainType = 0;
-		
 		//Our internal representation of position/velocity/direction
 		//These are vectors using float precision
 		private Vector2 _position;
@@ -113,8 +110,7 @@ namespace InfServer.Bots
 			else
 				_tickMovementFrozenUntil = 0;
 	
-			//Get our speed values for our current terrain
-            SpeedValues stats = _type.TerrainSpeeds[_terrainType];
+            //TODO: Somehow update the roll settings per terrain
 
 			//Apply our rotation
             if (_isRotatingLeft)

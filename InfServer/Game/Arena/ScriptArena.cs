@@ -65,7 +65,7 @@ namespace InfServer.Game
 		public override void poll()
 		{	//Process the base state
 			base.poll();
-			
+
 			//Poll all scripts!
 			foreach (Scripts.IScript script in _scripts)
 				script.poll();
@@ -249,6 +249,7 @@ namespace InfServer.Game
             {
                 t._currentGameKills = 0;
                 t._currentGameDeaths = 0;
+                t._currentGameScores = 0;
             }
 			
 			//Pass it to the script environment
@@ -383,6 +384,9 @@ namespace InfServer.Game
                     if (bCurrent ? p.StatsCurrentGame == null : p.StatsLastGame == null)
                         continue;
 
+                    if (p == null)
+                        continue;
+
                     if (idx-- == 0)
                         break;
 
@@ -425,7 +429,7 @@ namespace InfServer.Game
             callsync("Game.Breakdown", false);
 
             //Display flag victory jackpot?
-            if (_server._zoneConfig.flag.useJackpot)
+            if (_flags.Count() > 0 && _server._zoneConfig.flag.useJackpot)
             {
                 List<Team> flagTeams = new List<Team>();
                 foreach (FlagState fs in _flags.Values)
@@ -519,7 +523,7 @@ namespace InfServer.Game
 
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
-            ball._state.lastUpdate = update.tickcount;//updateTick;
+            ball._state.lastUpdate = updateTick;
             ball._state.lastUpdateServer = now;
 
             ball._state.positionX = from._state.positionX;
@@ -571,7 +575,7 @@ namespace InfServer.Game
 
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
-            ball._state.lastUpdate = update.tickcount;//updateTick;
+            ball._state.lastUpdate = updateTick;
             ball._state.lastUpdateServer = now;
 
             ball._state.positionX = update.positionX;
@@ -583,7 +587,6 @@ namespace InfServer.Game
             ball.tickCount = (uint)update.tickcount;
             ball.ballFriction = update.ballFriction;
             ball.ballStatus = 1;
-
             //Send ball coord updates to update spatial data
             _balls.updateObjState(ball, ball._state);
 
@@ -619,6 +622,7 @@ namespace InfServer.Game
 
             //Reset our variable then spawn a new ball
             from._gotBallID = 999;
+            //Spatial data is updated at the same time
             Ball.Spawn_Ball(from, ball);
         }
         #endregion
@@ -1247,7 +1251,10 @@ namespace InfServer.Game
                     {
                         ItemInfo.Projectile project = info as ItemInfo.Projectile;
                         if (project != null)
+                        {
                             ball.ballSpeed = project.soccerBallSpeed;
+                            ball.ballAngle = _rand.Next(project.lowFireAngle, project.highFireAngle);
+                        }
                     }
                 }
             }

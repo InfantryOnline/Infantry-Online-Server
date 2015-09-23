@@ -93,8 +93,6 @@ namespace InfServer
                     Log.write(TLog.Error, "Attempted to remove chat '{0}' not present in chats list.", _name);
                     return;
                 }
-
-                Log.write(TLog.Normal, "Closed chat: '{0}'", _name);
             }
         }
 
