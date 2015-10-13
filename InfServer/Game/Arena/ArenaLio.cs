@@ -14,47 +14,47 @@ using Assets;
 
 namespace InfServer.Game
 {
-	// Arena Class
-	/// Represents a single arena in the server
-	///////////////////////////////////////////////////////
-	public partial class Arena
-	{	// Member variables
-		///////////////////////////////////////////////////
-		public Dictionary<int, SwitchState> _switches;
+    // Arena Class
+    /// Represents a single arena in the server
+    ///////////////////////////////////////////////////////
+    public partial class Arena
+    {	// Member variables
+        ///////////////////////////////////////////////////
+        public Dictionary<int, SwitchState> _switches;
         public Dictionary<int, DoorState> _doors;
-		public Dictionary<int, FlagState> _flags;
+        public Dictionary<int, FlagState> _flags;
         public int _lastFlagReward;
-		public List<HideState> _hides;
+        public List<HideState> _hides;
         public TurretGroupMan _turretGroups;
 
-		///////////////////////////////////////////////////
-		// Member Classes
-		///////////////////////////////////////////////////
-		#region Member Classes
-		/// <summary>
-		/// Represents the state of a hide object
-		/// </summary>
-		public class HideState
-		{
-			public LioInfo.Hide Hide;				//Our hide information
+        ///////////////////////////////////////////////////
+        // Member Classes
+        ///////////////////////////////////////////////////
+        #region Member Classes
+        /// <summary>
+        /// Represents the state of a hide object
+        /// </summary>
+        public class HideState
+        {
+            public LioInfo.Hide Hide;				//Our hide information
 
-			public int _tickLastAttempt;			//The time we last attempted to hide
-			public int _tickLastSuccessAttempt;		//The last time we successfully attempted to hide (0 == N/A)
+            public int _tickLastAttempt;			//The time we last attempted to hide
+            public int _tickLastSuccessAttempt;		//The last time we successfully attempted to hide (0 == N/A)
 
             public Dictionary<int, SwitchState> switchLink;          //Who owns us
-		}
+        }
 
-		/// <summary>
-		/// Represents the state of a lio switch item
-		/// </summary>
-		public class SwitchState
-		{
-			public LioInfo.Switch Switch;	//Our switch information
+        /// <summary>
+        /// Represents the state of a lio switch item
+        /// </summary>
+        public class SwitchState
+        {
+            public LioInfo.Switch Switch;	//Our switch information
 
-			public bool bOpen;				//Is the switch open?
-			public int lastOperation;		//The time at which the switch was last triggered
-			public int closeDelay;			//Autoclose delay
-		}
+            public bool bOpen;				//Is the switch open?
+            public int lastOperation;		//The time at which the switch was last triggered
+            public int closeDelay;			//Autoclose delay
+        }
 
         /// <summary>
         /// Represents the state of a lio door
@@ -76,53 +76,46 @@ namespace InfServer.Game
         }
 
         /// <summary>
-		/// Represents the state of a lio flag
-		/// </summary>
-		public class FlagState
-		{
-			public bool bActive;			//Is the flag currently in use?
+        /// Represents the state of a lio flag
+        /// </summary>
+        public class FlagState
+        {
+            public bool bActive;			//Is the flag currently in use?
 
-			public LioInfo.Flag flag;		//Our flag definition
+            public LioInfo.Flag flag;		//Our flag definition
 
-			private Team _team;				//The team the flag currently belongs to
-			public Team oldTeam;			//The team the flag belonged to before pickup
-			public Player carrier;			//The carrier, if any
+            private Team _team;				//The team the flag currently belongs to
+            public Team oldTeam;			//The team the flag belonged to before pickup
+            public Player carrier;			//The carrier, if any
 
-			public short posX;				//Our position
-			public short posY;
+            public short posX;				//Our position
+            public short posY;
             public short oldPosX;           //Our previous position where we were last dropped
             public short oldPosY;
 
-			public int lastOperation;		//The time at which the flag was last triggered
+            public int lastOperation;		//The time at which the flag was last triggered
 
-			//We want to inform when a flag changes team
-			public event Action<FlagState> TeamChange;
+            //We want to inform when a flag changes team
+            public event Action<FlagState> TeamChange;
 
-			public Team team
-			{
-				get
-				{
-					return _team;
-				}
+            public Team team
+            {
+                get
+                {
+                    return _team;
+                }
 
-				set
-                {   //As long as it's not the same team..
-					if (_team == value)
-						return;
+                set
+                {	//As long as it's not the same team..
+                    if (_team == value)
+                        return;
 
-					_team = value;
-					if (TeamChange != null)
-						TeamChange(this);
-
-                    //Give a capture to the team
-                    if (_team != null)
-                        _team._currentGameScores++;
-                    //Take away one from the old team
-                    if (oldTeam != null)
-                        oldTeam._currentGameScores--;
-				}
-			}
-		}
+                    _team = value;
+                    if (TeamChange != null)
+                        TeamChange(this);
+                }
+            }
+        }
 
         /// <summary>
         /// Represents a relative object others can spawn from
@@ -143,12 +136,12 @@ namespace InfServer.Game
 
         public class TurretGroupMan
         {
-            public Dictionary <int, List<Tuple<LioInfo.Hide, Computer>>> turrets;
+            public Dictionary<int, List<Tuple<LioInfo.Hide, Computer>>> turrets;
             public TurretGroupMan()
             {
                 turrets = new Dictionary<int, List<Tuple<LioInfo.Hide, Computer>>> { };
             }
-            
+
             //Add a vehicle when it spawns
             public void Add(LioInfo.Hide hide, Computer veh)
             {
@@ -166,7 +159,7 @@ namespace InfServer.Game
                 bool anySwitched = false;
                 foreach (var turret in turrets[turretGroup])
                 {
-                    if (bOpen && turret.Item1.HideData.TurretInverseState == 0 )
+                    if (bOpen && turret.Item1.HideData.TurretInverseState == 0)
                     {   //Normal acting turret
                         if (turret.Item1.HideData.TurretSwitchedFrequency == -2)
                         {   //Set to player's freq
@@ -223,17 +216,17 @@ namespace InfServer.Game
                     turrets[goodGravy].Remove(res);
             }
         }
-		#endregion
+        #endregion
 
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Initializes arena details
-		/// </summary>
-		private void initLio()
-		{
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Initializes arena details
+        /// </summary>
+        private void initLio()
+        {
             //Lets set our door states
             IEnumerable<LioInfo.Door> doors = _server._assets.Lios.Doors;
             _doors = new Dictionary<int, DoorState>();
@@ -257,31 +250,31 @@ namespace InfServer.Game
                 _doors[d.GeneralData.Id] = dd;
             }
 
-			//Initialize our list of flag states
-			IEnumerable<LioInfo.Flag> flags = _server._assets.Lios.Flags;
-			_flags = new Dictionary<int, FlagState>();
+            //Initialize our list of flag states
+            IEnumerable<LioInfo.Flag> flags = _server._assets.Lios.Flags;
+            _flags = new Dictionary<int, FlagState>();
 
-			foreach (LioInfo.Flag flag in flags)
-			{	//Create a state for this flag
-				FlagState fs = new FlagState();
+            foreach (LioInfo.Flag flag in flags)
+            {	//Create a state for this flag
+                FlagState fs = new FlagState();
 
-				fs.flag = flag;
+                fs.flag = flag;
 
-				_flags[flag.GeneralData.Id] = fs;
-			}
+                _flags[flag.GeneralData.Id] = fs;
+            }
 
-			//Initialize our list of hide states
-			_hides = new List<HideState>();
+            //Initialize our list of hide states
+            _hides = new List<HideState>();
             _turretGroups = new TurretGroupMan();
-			foreach (LioInfo.Hide hide in _server._assets.Lios.Hides)
-			{	//Create our state
-				HideState hs = new HideState();
+            foreach (LioInfo.Hide hide in _server._assets.Lios.Hides)
+            {	//Create our state
+                HideState hs = new HideState();
 
-				hs.Hide = hide;
+                hs.Hide = hide;
                 hs.switchLink = new Dictionary<int, SwitchState>();
 
-				_hides.Add(hs);
-			}
+                _hides.Add(hs);
+            }
 
             //Initialize our list of switch states
             IEnumerable<LioInfo.Switch> switches = _server._assets.Lios.Switches;
@@ -358,14 +351,14 @@ namespace InfServer.Game
                     }
                 }
             }
-		}
+        }
 
-		/// <summary>
-		/// Keeps the lio state up-to-date
-		/// </summary>
-		private void pollLio()
-		{	//Look after our switches
-			int tickUpdate = Environment.TickCount;
+        /// <summary>
+        /// Keeps the lio state up-to-date
+        /// </summary>
+        private void pollLio()
+        {	//Look after our switches
+            int tickUpdate = Environment.TickCount;
             int flagDelay = _server._zoneConfig.flag.periodicRewardDelay * 1000;
 
             if (flagDelay != 0 && (tickUpdate - _lastFlagReward) > flagDelay)
@@ -427,12 +420,12 @@ namespace InfServer.Game
                 _lastFlagReward = Environment.TickCount;
             }
 
-			foreach (SwitchState ss in _switches.Values)
-			{	//Does it require autoclosing?
-				if (ss.bOpen && ss.closeDelay != 0 &&
-					(tickUpdate - ss.lastOperation > ss.closeDelay))
-				{	//Set and update!
-					ss.bOpen = false;
+            foreach (SwitchState ss in _switches.Values)
+            {	//Does it require autoclosing?
+                if (ss.bOpen && ss.closeDelay != 0 &&
+                    (tickUpdate - ss.lastOperation > ss.closeDelay))
+                {	//Set and update!
+                    ss.bOpen = false;
                     if (ss.Switch.SwitchData.Switch == 0)
                     {
                         //Lets update the map tiles for each door in our list
@@ -445,22 +438,22 @@ namespace InfServer.Game
                         _turretGroups.Switch(ss.Switch.SwitchData.SwitchLioId, null, false);
                     //Lets update clients
                     Helpers.Object_LIOs(Players, ss);
-				}
-			}
+                }
+            }
 
-			//Look after our hides if the game is running
-			if (_bGameRunning || !_server._zoneConfig.startGame.initialHides)
-			{
-				foreach (HideState hs in _hides)
-				{	//Time to reattempt?
-					if (hs._tickLastSuccessAttempt != 0 && tickUpdate - hs._tickLastSuccessAttempt > (hs.Hide.HideData.SucceedDelay * 100))
-						//Yes! Do it
-						hideSpawn(hs, 1, false);
-					else if (tickUpdate - hs._tickLastAttempt > (hs.Hide.HideData.AttemptDelay * 100))
-						hideSpawn(hs, 1, false);
-				}
-			}
-		}
+            //Look after our hides if the game is running
+            if (_bGameRunning || !_server._zoneConfig.startGame.initialHides)
+            {
+                foreach (HideState hs in _hides)
+                {	//Time to reattempt?
+                    if (hs._tickLastSuccessAttempt != 0 && tickUpdate - hs._tickLastSuccessAttempt > (hs.Hide.HideData.SucceedDelay * 100))
+                        //Yes! Do it
+                        hideSpawn(hs, 1, false);
+                    else if (tickUpdate - hs._tickLastAttempt > (hs.Hide.HideData.AttemptDelay * 100))
+                        hideSpawn(hs, 1, false);
+                }
+            }
+        }
 
         /// <summary>
         /// Updates the map tiles based on doors.
@@ -503,17 +496,17 @@ namespace InfServer.Game
             dd.Opened = isBlocked;
         }
 
-		/// <summary>
-		/// Performs all the initial hide spawns
-		/// </summary>
-		public void initialHideSpawns()
-		{	//For each hide..
-			foreach (HideState hs in _hides)
-			{	//Spawn it the requested amount of times
-				if (hs.Hide.HideData.InitialCount != 0)
-					hideSpawn(hs, hs.Hide.HideData.InitialCount, true);
-			}
-		}
+        /// <summary>
+        /// Performs all the initial hide spawns
+        /// </summary>
+        public void initialHideSpawns()
+        {	//For each hide..
+            foreach (HideState hs in _hides)
+            {	//Spawn it the requested amount of times
+                if (hs.Hide.HideData.InitialCount != 0)
+                    hideSpawn(hs, hs.Hide.HideData.InitialCount, true);
+            }
+        }
 
         //I need to build a list of relative IDs
         //This list reflects computers, flags, and the active vehicle of players (and bots by extension)
@@ -524,7 +517,7 @@ namespace InfServer.Game
             try
             {
                 possibilities.AddRange(from v in Vehicles //_vehicles
-                                       where ( (v._type.Type == VehInfo.Types.Computer
+                                       where ((v._type.Type == VehInfo.Types.Computer
                                            || (v._type.Type == VehInfo.Types.Car && v._inhabitant != null && v._inhabitant.ActiveVehicle == v))
                                            //|| (v._type.Type == VehInfo.Types.Dependent && v._inhabitant != null)) //this can probably be taken out
                                            && v.relativeID == relID)
@@ -583,10 +576,10 @@ namespace InfServer.Game
             {
                 if (hs.Hide.HideData.MinPlayerDistance != 0 &&
                     getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
-				    continue;
+                    continue;
                 if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
-				    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
-				    continue;
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
+                    continue;
 
                 if (hs.Hide.HideData.MaxTypeInArea != -1)
                 {   //Check for the amount of similiar objects
@@ -618,7 +611,7 @@ namespace InfServer.Game
                 short pY = 0;
                 int attempts = 0;
                 int clumpQuantity = (hs.Hide.HideData.ClumpQuantity == 0 ? 1 : hs.Hide.HideData.ClumpQuantity);
-                for(; attempts < 10; attempts++)
+                for (; attempts < 10; attempts++)
                 {
                     pX = sp.posX;
                     pY = sp.posY;
@@ -632,7 +625,7 @@ namespace InfServer.Game
 
                     //Is it blocked?
                     if (getTile(pX, pY).Blocked)
-                    	//Try again
+                        //Try again
                         continue;
 
                     itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, pX, pY, hs.Hide.HideData.RelativeId, hs.Hide.HideData.AssignFrequency, null);
@@ -643,7 +636,7 @@ namespace InfServer.Game
                         attempts -= 5;
                         continue;
                     }
-                    
+
 
                     break;
                 }
@@ -658,13 +651,13 @@ namespace InfServer.Game
         private bool hideVehicle(HideState hs, List<RelativeObj> spawnPoints, VehInfo vehicle, List<Vehicle> sameVehicles, Team team)
         {
             foreach (RelativeObj sp in spawnPoints)
-            {   
+            {
                 if (hs.Hide.HideData.MinPlayerDistance != 0 &&
                     getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
-				    continue;
+                    continue;
                 if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
-				    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
-				    continue;
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
+                    continue;
 
                 if (hs.Hide.HideData.MaxTypeInArea != -1)
                 {   //Check for the amount of similiar vehicles
@@ -731,24 +724,24 @@ namespace InfServer.Game
             return false;
         }
 
-		/// <summary>
-		/// Attempts to trigger a hide spawn
-		/// </summary>
-		private bool hideSpawn(HideState hs, int spawns, bool initialHide)
-		{   //Mark out last attempt
-			hs._tickLastAttempt = Environment.TickCount;
-			hs._tickLastSuccessAttempt = 0;
+        /// <summary>
+        /// Attempts to trigger a hide spawn
+        /// </summary>
+        private bool hideSpawn(HideState hs, int spawns, bool initialHide)
+        {   //Mark out last attempt
+            hs._tickLastAttempt = Environment.TickCount;
+            hs._tickLastSuccessAttempt = 0;
 
             //Probability = 0 means only run on the initial hide
             if (!initialHide && hs.Hide.HideData.Probability == 0)
                 return false;
 
-			//Do we have enough players in the game?
-			int players = PlayerCount;
-			if (players > hs.Hide.HideData.MaxPlayers)
-				return false;
-			if (players < hs.Hide.HideData.MinPlayers)
-				return false;
+            //Do we have enough players in the game?
+            int players = PlayerCount;
+            if (players > hs.Hide.HideData.MaxPlayers)
+                return false;
+            if (players < hs.Hide.HideData.MinPlayers)
+                return false;
 
             List<RelativeObj> spawnPoints;
             if (hs.Hide.GeneralData.RelativeId == 0)
@@ -759,7 +752,7 @@ namespace InfServer.Game
                     0) };
             }
             else
-            { 
+            {
                 spawnPoints = findRelativeID(hs.Hide.GeneralData.HuntFrequency, hs.Hide.GeneralData.RelativeId, null);
                 if (spawnPoints == null || spawnPoints.Count == 0)
                     return false;
@@ -777,7 +770,7 @@ namespace InfServer.Game
                 }
 
                 //Filter list before sending to hideItem()
-                List<ItemDrop> sameItems = new List<ItemDrop>{};
+                List<ItemDrop> sameItems = new List<ItemDrop> { };
                 foreach (ItemDrop drop in _items.Values)
                 {
                     if (drop.item == item)
@@ -804,7 +797,7 @@ namespace InfServer.Game
                 }
 
                 //Find same vehicles
-                List<Vehicle> sameVehicles = new List<Vehicle>{};
+                List<Vehicle> sameVehicles = new List<Vehicle> { };
                 foreach (Vehicle veh in _vehicles.ToList())
                 {
                     if (veh._type == vehicle)
@@ -835,13 +828,13 @@ namespace InfServer.Game
                 sendArenaMessage(hs.Hide.HideData.HideAnnounce);
 
             return true;
-		}
+        }
 
-		/// <summary>
-		/// Attempts to allow a player to activate a switch
-		/// </summary>
-		public bool switchRequest(bool bForce, bool bOpen, Player player, LioInfo.Switch swi)
-		{
+        /// <summary>
+        /// Attempts to allow a player to activate a switch
+        /// </summary>
+        public bool switchRequest(bool bForce, bool bOpen, Player player, LioInfo.Switch swi)
+        {
             int levelX = _server._assets.Level.OffsetX * 16;
             int levelY = _server._assets.Level.OffsetY * 16;
 
@@ -851,63 +844,63 @@ namespace InfServer.Game
                 swi.GeneralData.OffsetX - levelX, swi.GeneralData.OffsetY - levelY))
                 return false;
 
-			//Obtain our state
-			SwitchState ss;
+            //Obtain our state
+            SwitchState ss;
 
-			if (!_switches.TryGetValue(swi.GeneralData.Id, out ss))
-			{
-				Log.write(TLog.Error, "Unable to find switch state for switch {0}.", swi);
-				return false;
-			}
+            if (!_switches.TryGetValue(swi.GeneralData.Id, out ss))
+            {
+                Log.write(TLog.Error, "Unable to find switch state for switch {0}.", swi);
+                return false;
+            }
 
-			//Is it an opposite state request?
+            //Is it an opposite state request?
             if ((bOpen && ss.bOpen) || (!bOpen && !ss.bOpen))
                 return false;
 
-			//Has there been enough time since the last operation?
+            //Has there been enough time since the last operation?
             if (!bForce && Environment.TickCount - ss.lastOperation < (swi.SwitchData.SwitchDelay * 10))
                 return false;
 
-			//Gather relevant information
-			ItemInfo.Ammo ammo = _server._assets.getItemByID(swi.SwitchData.AmmoId) as ItemInfo.Ammo;
-			Player.InventoryItem ii = (ammo == null) ? null : player.getInventory(ammo);
+            //Gather relevant information
+            ItemInfo.Ammo ammo = _server._assets.getItemByID(swi.SwitchData.AmmoId) as ItemInfo.Ammo;
+            Player.InventoryItem ii = (ammo == null) ? null : player.getInventory(ammo);
 
-			//Do we satisfy any conditions?
-			bool bAmmoPass = (ammo == null) || (swi.SwitchData.UseAmmoAmount > ii.quantity);
-			bool bTeamPass = (swi.SwitchData.Frequency == -1 || swi.SwitchData.Frequency == player._team._id);
-			bool bLogicPass = Logic.Logic_Assets.SkillCheck(player, swi.SwitchData.SkillLogic);
-			bool bValid = false;
+            //Do we satisfy any conditions?
+            bool bAmmoPass = (ammo == null) || (swi.SwitchData.UseAmmoAmount > ii.quantity);
+            bool bTeamPass = (swi.SwitchData.Frequency == -1 || swi.SwitchData.Frequency == player._team._id);
+            bool bLogicPass = Logic.Logic_Assets.SkillCheck(player, swi.SwitchData.SkillLogic);
+            bool bValid = false;
 
-			if (bForce)
-				bValid = true;
-			else if (!bTeamPass)
-			{	//Test for ignore conditions
-				if (bAmmoPass && swi.SwitchData.AmmoOverridesFrequency)
-				{
-					if (!bLogicPass && swi.SwitchData.AmmoOverridesLogic)
-						bValid = true;
-					else if (bLogicPass)
-						bValid = true;
-				}
-				else if (bLogicPass && swi.SwitchData.LogicOverridesFrequency && (bAmmoPass || swi.SwitchData.LogicOverridesAmmo))
-					bValid = true;
-			}
-			else
-			{	//Test for ignore conditions
-				if (!bAmmoPass)
-				{
-					if (bLogicPass && (swi.SwitchData.FrequencyOverridesAmmo || swi.SwitchData.LogicOverridesAmmo))
-						bValid = true;
-					else if (!bLogicPass && (swi.SwitchData.FrequencyOverridesLogic && swi.SwitchData.FrequencyOverridesAmmo))
-						bValid = true;
-				}
-				else if (bLogicPass)
-					bValid = true;
-				else if (swi.SwitchData.AmmoOverridesLogic || swi.SwitchData.FrequencyOverridesLogic)
-					bValid = true;
-			}
+            if (bForce)
+                bValid = true;
+            else if (!bTeamPass)
+            {	//Test for ignore conditions
+                if (bAmmoPass && swi.SwitchData.AmmoOverridesFrequency)
+                {
+                    if (!bLogicPass && swi.SwitchData.AmmoOverridesLogic)
+                        bValid = true;
+                    else if (bLogicPass)
+                        bValid = true;
+                }
+                else if (bLogicPass && swi.SwitchData.LogicOverridesFrequency && (bAmmoPass || swi.SwitchData.LogicOverridesAmmo))
+                    bValid = true;
+            }
+            else
+            {	//Test for ignore conditions
+                if (!bAmmoPass)
+                {
+                    if (bLogicPass && (swi.SwitchData.FrequencyOverridesAmmo || swi.SwitchData.LogicOverridesAmmo))
+                        bValid = true;
+                    else if (!bLogicPass && (swi.SwitchData.FrequencyOverridesLogic && swi.SwitchData.FrequencyOverridesAmmo))
+                        bValid = true;
+                }
+                else if (bLogicPass)
+                    bValid = true;
+                else if (swi.SwitchData.AmmoOverridesLogic || swi.SwitchData.FrequencyOverridesLogic)
+                    bValid = true;
+            }
 
-			//Are we qualified?
+            //Are we qualified?
             if (!bValid)
                 return false;
 
@@ -956,67 +949,67 @@ namespace InfServer.Game
             }
             //Update all players
             Helpers.Object_LIOs(Players, ss);
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// Attempts to allow a player to activate a flag or drop one
-		/// </summary>
-		public bool flagAction(bool bForce, bool bPickup, bool bSuccess, Player player, LioInfo.Flag flag)
-		{	//Obtain our state
-			FlagState fs;
+        /// <summary>
+        /// Attempts to allow a player to activate a flag or drop one
+        /// </summary>
+        public bool flagAction(bool bForce, bool bPickup, bool bSuccess, Player player, LioInfo.Flag flag)
+        {	//Obtain our state
+            FlagState fs;
 
-			if (!_flags.TryGetValue(flag.GeneralData.Id, out fs))
-			{
-				Log.write(TLog.Error, "Unable to find flag state for flag {0}.", flag);
-				return false;
-			}
+            if (!_flags.TryGetValue(flag.GeneralData.Id, out fs))
+            {
+                Log.write(TLog.Error, "Unable to find flag state for flag {0}.", flag);
+                return false;
+            }
 
-			//If it isn't active, ignore it
-			if (!bForce && !fs.bActive)
-				return false;
+            //If it isn't active, ignore it
+            if (!bForce && !fs.bActive)
+                return false;
 
-			//Are we close enough?
+            //Are we close enough?
             if (!bForce && bPickup && !Helpers.isInRange(100,
                 player._state.positionX, player._state.positionY,
                 fs.posX, fs.posY))
                 return false;
 
-			//If the player is dead..
-			if (player.IsDead)
-			{	//If he wants to drop, then fail the attempt (resetted flags)
-				if (!bPickup)
-					bSuccess = false;
-				else
-				{	//Otherwise, he's a dirty cheater
-					Log.write(TLog.Warning, "Player {0} attempted to activate a flag while dead.", player);
-					return false;
-				}
-			}
+            //If the player is dead..
+            if (player.IsDead)
+            {	//If he wants to drop, then fail the attempt (resetted flags)
+                if (!bPickup)
+                    bSuccess = false;
+                else
+                {	//Otherwise, he's a dirty cheater
+                    Log.write(TLog.Warning, "Player {0} attempted to activate a flag while dead.", player);
+                    return false;
+                }
+            }
 
-			//Is the player already carrying?
-			if (fs.carrier == player && bPickup)
-				return false;
+            //Is the player already carrying?
+            if (fs.carrier == player && bPickup)
+                return false;
 
-			//Has there been enough time since the last operation?
-			if (!bForce && Environment.TickCount - fs.lastOperation < (flag.FlagData.PickupDelay * 10))
-				return false;
+            //Has there been enough time since the last operation?
+            if (!bForce && Environment.TickCount - fs.lastOperation < (flag.FlagData.PickupDelay * 10))
+                return false;
 
-			//Do we have the skill to use this flag?
+            //Do we have the skill to use this flag?
             if (!Logic_Assets.SkillCheck(player, flag.FlagData.SkillLogic))
                 return false;
 
             //Can be carried? False = yes
             bool carriable = fs.flag.FlagData.FlagCarriable == 0;
-			//We've done it! Update everything
-			if (bPickup && !carriable)
-				fs.carrier = player;
-			else
-				fs.carrier = null;
+            //We've done it! Update everything
+            if (bPickup && !carriable)
+                fs.carrier = player;
+            else
+                fs.carrier = null;
 
-			if (bSuccess)
-			{
-				fs.oldTeam = fs.team;
+            if (bSuccess)
+            {
+                fs.oldTeam = fs.team;
                 if (bPickup)
                 {
                     fs.team = (flag.FlagData.IsFlagOwnedWhenCarried ? player._team : null);
@@ -1045,13 +1038,13 @@ namespace InfServer.Game
                     fs.posX = fs.oldPosX;
                     fs.posY = fs.oldPosY;
                 }
-			}
-			else
-				fs.team = fs.oldTeam;
+            }
+            else
+                fs.team = fs.oldTeam;
 
-			fs.lastOperation = Environment.TickCount;
+            fs.lastOperation = Environment.TickCount;
 
-			//If we're dropping, randomize accordingly
+            //If we're dropping, randomize accordingly
             if (!bPickup && fs.flag.FlagData.DropRadius > 0)
             {
                 Helpers.randomPositionInArea(this, fs.flag.FlagData.DropRadius, ref fs.posX, ref fs.posY);
@@ -1077,51 +1070,51 @@ namespace InfServer.Game
                 }
             }
 
-			Helpers.Object_Flags(Players, fs);
-			return true;
-		}
+            Helpers.Object_Flags(Players, fs);
+            return true;
+        }
 
-		/// <summary>
-		/// Resets all the flags the player is carrying to their original state
-		/// </summary>
-		public void flagHandleDeath(Player player, Player killer)
-		{	//Get the list of relevant flag states
-			List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
-			if (carried.Count == 0)
-				return;
+        /// <summary>
+        /// Resets all the flags the player is carrying to their original state
+        /// </summary>
+        public void flagHandleDeath(Player player, Player killer)
+        {	//Get the list of relevant flag states
+            List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
+            if (carried.Count == 0)
+                return;
 
-			//Reset each of them
-			foreach (FlagState fs in carried)
-			{	//What do we do with them?
-				switch (fs.flag.FlagData.TransferMode)
-				{
-					//Kill transfer no friendly
-					case 0:
+            //Reset each of them
+            foreach (FlagState fs in carried)
+            {	//What do we do with them?
+                switch (fs.flag.FlagData.TransferMode)
+                {
+                    //Kill transfer no friendly
+                    case 0:
                         if (killer._team != player._team)
                             fs.carrier = killer;
                         else
                             fs.carrier = null;
-						break;
+                        break;
 
-					//Kill transfer friendly
-					case 1:
-						fs.carrier = killer;
-						break;
+                    //Kill transfer friendly
+                    case 1:
+                        fs.carrier = killer;
+                        break;
 
-					//No kill transfers(Flag is dropped on death)
-					case 2:
+                    //No kill transfers(Flag is dropped on death)
+                    case 2:
                         fs.posX = player._state.positionX;
                         fs.posY = player._state.positionY;
-						fs.carrier = null;
-						break;
-				}
+                        fs.carrier = null;
+                        break;
+                }
 
-				//Update the team
-				if (fs.carrier != null)
-					fs.team = fs.carrier._team;
+                //Update the team
+                if (fs.carrier != null)
+                    fs.team = fs.carrier._team;
 
-				fs.lastOperation = Environment.TickCount;				
-			}
+                fs.lastOperation = Environment.TickCount;
+            }
 
             //Do we notify players?
             if (_server._zoneConfig.flag.announceTransfers)
@@ -1132,9 +1125,9 @@ namespace InfServer.Game
                     triggerMessage(1, 500, player._alias + " lost " + carried.Count + " flags to " + killer._alias);
             }
 
-			//Update
-			Helpers.Object_Flags(Players, carried);
-		}
+            //Update
+            Helpers.Object_Flags(Players, carried);
+        }
 
         /// <summary>
         /// Resets all the flags the player is carrying to their original state
@@ -1145,82 +1138,82 @@ namespace InfServer.Game
             flagResetPlayer(player, false);
         }
 
-		/// <summary>
-		/// Resets all the flags the player is carrying to their unowned state
-		/// </summary>
-		public void flagResetPlayer(Player player, bool unowned)
-		{	//Get the list of relevant flag states
-			List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
-			if (carried.Count == 0)
-				return;
+        /// <summary>
+        /// Resets all the flags the player is carrying to their unowned state
+        /// </summary>
+        public void flagResetPlayer(Player player, bool unowned)
+        {	//Get the list of relevant flag states
+            List<FlagState> carried = _flags.Values.Where(flag => flag.carrier == player).ToList();
+            if (carried.Count == 0)
+                return;
 
-			//Reset each of them
-			foreach (FlagState fs in carried)
-			{
-				fs.lastOperation = Environment.TickCount;
+            //Reset each of them
+            foreach (FlagState fs in carried)
+            {
+                fs.lastOperation = Environment.TickCount;
                 if (unowned)
                 {
                     fs.team = null;
                     fs.oldTeam = null;
                 }
                 else
-				    fs.team = fs.oldTeam;
-				fs.carrier = null;
+                    fs.team = fs.oldTeam;
+                fs.carrier = null;
 
-				//Position will have been set when the player picked the flag up
-			}
+                //Position will have been set when the player picked the flag up
+            }
 
-			//Update
-			Helpers.Object_Flags(Players, carried);
-		}
+            //Update
+            Helpers.Object_Flags(Players, carried);
+        }
 
-		/// <summary>
-		/// Removes all flags from the arena
-		/// </summary>
-		public void flagReset()
-		{	//For each flag
-			foreach (FlagState fs in _flags.Values)
-			{	//Gone!
-				fs.oldTeam = null;
-				fs.team = null;
+        /// <summary>
+        /// Removes all flags from the arena
+        /// </summary>
+        public void flagReset()
+        {	//For each flag
+            foreach (FlagState fs in _flags.Values)
+            {	//Gone!
+                fs.oldTeam = null;
+                fs.team = null;
 
-				fs.bActive = false;
-				fs.carrier = null;
-				fs.lastOperation = 0;
-			}
+                fs.bActive = false;
+                fs.carrier = null;
+                fs.lastOperation = 0;
+            }
 
-			Helpers.Object_FlagsReset(Players);
-		}
+            Helpers.Object_FlagsReset(Players);
+        }
 
-		/// <summary>
-		/// Spawns all the qualified flags in the arena
-		/// </summary>
-		public void flagSpawn()
-		{   //Set offsets
+        /// <summary>
+        /// Spawns all the qualified flags in the arena
+        /// </summary>
+        public void flagSpawn()
+        {   //Set offsets
             int levelX = _server._assets.Level.OffsetX * 16;
             int levelY = _server._assets.Level.OffsetY * 16;
 
             //For each flag type..
-			foreach (FlagState fs in _flags.Values)
-			{	//Should we spawn it?
-				bool bActive = true;
+            foreach (FlagState fs in _flags.Values)
+            {	//Should we spawn it?
+                bool bActive = true;
 
-				if (PlayerCount < fs.flag.FlagData.MinPlayerCount)
-					continue;
-				if (PlayerCount > fs.flag.FlagData.MaxPlayerCount)
-					continue;
+                if (PlayerCount < fs.flag.FlagData.MinPlayerCount)
+                    continue;
+                if (PlayerCount > fs.flag.FlagData.MaxPlayerCount)
+                    continue;
 
-				//Check probability
-				if (fs.flag.FlagData.OddsOfAppearance == 0)
-					continue;
-				else if (fs.flag.FlagData.OddsOfAppearance != 1000)
-				{	//Test it
-					if (_rand.Next(0, 1000) >= fs.flag.FlagData.OddsOfAppearance)
-						continue;
-				}
+                //Check probability
+                if (fs.flag.FlagData.OddsOfAppearance == 0)
+                    continue;
+                else if (fs.flag.FlagData.OddsOfAppearance != 1000)
+                {	//Test it
+                    if (_rand.Next(0, 1000) >= fs.flag.FlagData.OddsOfAppearance)
+                        continue;
+                }
 
-				//Give it some valid coordinates
-				int attempts = 0;
+                //Give it some valid coordinates
+                int attempts = 0;
                 do
                 {   //Make sure we're not doing this infinitely
                     if (attempts++ > 200)
@@ -1267,7 +1260,7 @@ namespace InfServer.Game
                             break;
                         }
                     }
-                        
+
                     //Check the terrain settings
                     if (getTerrain(fs.posX, fs.posY).flagTimerSpeed == 0)
                         continue;
@@ -1275,12 +1268,12 @@ namespace InfServer.Game
                 }
                 while (getTile(fs.posX, fs.posY).Blocked);
 
-				fs.team = null;
-				fs.carrier = null;
-				fs.bActive = bActive;
-			}
+                fs.team = null;
+                fs.carrier = null;
+                fs.bActive = bActive;
+            }
 
-			Helpers.Object_Flags(Players, _flags.Values);
-		}
-	}
+            Helpers.Object_Flags(Players, _flags.Values);
+        }
+    }
 }

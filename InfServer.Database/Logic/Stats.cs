@@ -9,15 +9,15 @@ using InfServer.Data;
 
 namespace InfServer.Logic
 {	// Logic_Stats Class
-	/// Handles statistics functionality
-	///////////////////////////////////////////////////////
-	class Logic_Stats
-	{
-		/// <summary>
-		/// Writes a scorechart element to a memory stream
-		/// </summary>
-		static private void writeElementToBuffer(Data.DB.stats stat, MemoryStream stream)
-		{
+    /// Handles statistics functionality
+    ///////////////////////////////////////////////////////
+    class Logic_Stats
+    {
+        /// <summary>
+        /// Writes a scorechart element to a memory stream
+        /// </summary>
+        static private void writeElementToBuffer(Data.DB.stats stat, MemoryStream stream)
+        {
             try
             {
                 Data.DB.player player = stat.players.Single(s => s.stats1.id == stat.id);
@@ -67,51 +67,51 @@ namespace InfServer.Logic
                 bw.Write(stat.zonestat11);
                 bw.Write(stat.zonestat12);
             }
-            
-           catch (Exception e)
-           {
+
+            catch (Exception e)
+            {
                 Log.write(TLog.Warning, "WriteElementToBuffer stat.id " + stat.id + ":" + e);
-           }
-		}
+            }
+        }
 
-		/// <summary>
-		/// Handles a player stat request
-		/// </summary>
-		static public void Handle_CS_PlayerStatsRequest(CS_PlayerStatsRequest<Zone> pkt, Zone zone)
-		{	//Attempt to find the player in question
-			Zone.Player player = zone.getPlayer(pkt.player.id);
-			if (player == null)
-			{	//Make a note
-				Log.write(TLog.Warning, "Ignoring player stats request for #{0}, not present in zone mirror.", pkt.player.id);
-				return;
-			}
+        /// <summary>
+        /// Handles a player stat request
+        /// </summary>
+        static public void Handle_CS_PlayerStatsRequest(CS_PlayerStatsRequest<Zone> pkt, Zone zone)
+        {	//Attempt to find the player in question
+            Zone.Player player = zone.getPlayer(pkt.player.id);
+            if (player == null)
+            {	//Make a note
+                Log.write(TLog.Warning, "Ignoring player stats request for #{0}, not present in zone mirror.", pkt.player.id);
+                return;
+            }
 
-			using (InfantryDataContext db = zone._server.getContext())
-			{	//What sort of request are we dealing with?
-				switch (pkt.type)
-				{
-					case CS_PlayerStatsRequest<Zone>.ChartType.ScoreLifetime:
-						{	//Get the top100 stats sorted by points
-							var stats = (from st in db.stats
-										 where st.zone1 == zone._zone
-										 orderby st.assistPoints + st.bonusPoints + st.killPoints descending
-										 select st).Take(100);
+            using (InfantryDataContext db = zone._server.getContext())
+            {	//What sort of request are we dealing with?
+                switch (pkt.type)
+                {
+                    case CS_PlayerStatsRequest<Zone>.ChartType.ScoreLifetime:
+                        {	//Get the top100 stats sorted by points
+                            var stats = (from st in db.stats
+                                         where st.zone1 == zone._zone
+                                         orderby st.assistPoints + st.bonusPoints + st.killPoints descending
+                                         select st).Take(100);
 
-							MemoryStream stream = new MemoryStream();
+                            MemoryStream stream = new MemoryStream();
                             foreach (Data.DB.stats lifetime in stats)
                                 if (lifetime != null)
                                     writeElementToBuffer(lifetime, stream);
-                            
-							SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
 
-							response.player = pkt.player;
-							response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreLifetime;
-							response.columns = "Top100 Lifetime Score,Name,Squad";
-							response.data = stream.ToArray();
+                            SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
 
-							zone._client.sendReliable(response, 1);
-						}
-						break;
+                            response.player = pkt.player;
+                            response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreLifetime;
+                            response.columns = "Top100 Lifetime Score,Name,Squad";
+                            response.data = stream.ToArray();
+
+                            zone._client.sendReliable(response, 1);
+                        }
+                        break;
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreDaily:
                         {
@@ -208,15 +208,15 @@ namespace InfServer.Logic
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreWeekly:
                         {
                             DateTime now = DateTime.Today;
-                            if ( ((int)now.DayOfWeek) > 0)
+                            if (((int)now.DayOfWeek) > 0)
                                 now = now.AddDays(-((int)now.DayOfWeek));
 
                             //Get the top100 stats sorted by points
                             //For this week
                             var weekly = (from wt in db.statsWeeklies
-                                         where wt.zone1 == zone._zone && wt.date >= now
-                                         orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
-                                         select wt).Take(100);
+                                          where wt.zone1 == zone._zone && wt.date >= now
+                                          orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
+                                          select wt).Take(100);
 
                             //Are they requesting a specific date?
                             if (pkt.options != "")
@@ -227,9 +227,9 @@ namespace InfServer.Logic
                                     DateTime today = now;
                                     now = now.AddDays(-7);
                                     weekly = (from wt in db.statsWeeklies
-                                             where wt.zone1 == zone._zone && wt.date >= now && wt.date < today
-                                             orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
-                                             select wt).Take(100);
+                                              where wt.zone1 == zone._zone && wt.date >= now && wt.date < today
+                                              orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
+                                              select wt).Take(100);
                                 }
                                 else //Specific date
                                 {
@@ -247,9 +247,9 @@ namespace InfServer.Logic
                                     DateTime add = now.AddDays(7);
 
                                     weekly = (from wt in db.statsWeeklies
-                                             where wt.zone1 == zone._zone && wt.date >= now && wt.date < add
-                                             orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
-                                             select wt).Take(100);
+                                              where wt.zone1 == zone._zone && wt.date >= now && wt.date < add
+                                              orderby wt.assistPoints + wt.bonusPoints + wt.killPoints descending
+                                              select wt).Take(100);
                                 }
                             }
 
@@ -308,9 +308,9 @@ namespace InfServer.Logic
                             //Get the top100 stats sorted by points
                             //For this month
                             var monthly = (from mt in db.statsMonthlies
-                                         where mt.zone1 == zone._zone && mt.date >= now
-                                         orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
-                                         select mt).Take(100);
+                                           where mt.zone1 == zone._zone && mt.date >= now
+                                           orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
+                                           select mt).Take(100);
 
                             //Are they requesting a specific date?
                             if (pkt.options != "")
@@ -321,9 +321,9 @@ namespace InfServer.Logic
                                     DateTime today = now;
                                     now = now.AddMonths(-1);
                                     monthly = (from mt in db.statsMonthlies
-                                              where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
-                                              orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
-                                              select mt).Take(100);
+                                               where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
+                                               orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
+                                               select mt).Take(100);
                                 }
                                 else //Specific date
                                 {
@@ -343,9 +343,9 @@ namespace InfServer.Logic
                                     DateTime add = now.AddMonths(1);
 
                                     monthly = (from mt in db.statsMonthlies
-                                              where mt.zone1 == zone._zone && mt.date >= now && mt.date < add
-                                              orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
-                                              select mt).Take(100);
+                                               where mt.zone1 == zone._zone && mt.date >= now && mt.date < add
+                                               orderby mt.assistPoints + mt.bonusPoints + mt.killPoints descending
+                                               select mt).Take(100);
                                 }
                             }
 
@@ -403,9 +403,9 @@ namespace InfServer.Logic
 
                             //Get the top100 stats sorted by points
                             var yearly = (from yt in db.statsYearlies
-                                         where yt.zone1 == zone._zone && yt.date >= now
-                                         orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
-                                         select yt).Take(100);
+                                          where yt.zone1 == zone._zone && yt.date >= now
+                                          orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
+                                          select yt).Take(100);
 
                             //Are they requesting a specific date?
                             if (pkt.options != "")
@@ -415,9 +415,9 @@ namespace InfServer.Logic
                                 {
                                     now = now.AddYears(-1);
                                     yearly = (from yt in db.statsYearlies
-                                               where yt.zone1 == zone._zone && yt.date >= now
-                                               orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
-                                               select yt).Take(100);
+                                              where yt.zone1 == zone._zone && yt.date >= now
+                                              orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
+                                              select yt).Take(100);
                                 }
                                 else //Specific date
                                 {
@@ -435,9 +435,9 @@ namespace InfServer.Logic
                                     DateTime add = now.AddYears(1);
 
                                     yearly = (from yt in db.statsYearlies
-                                               where yt.zone1 == zone._zone && yt.date >= now && yt.date <= add
-                                               orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
-                                               select yt).Take(100);
+                                              where yt.zone1 == zone._zone && yt.date >= now && yt.date <= add
+                                              orderby yt.assistPoints + yt.bonusPoints + yt.killPoints descending
+                                              select yt).Take(100);
                                 }
                             }
 
@@ -501,9 +501,9 @@ namespace InfServer.Logic
 
                             DateTime today = DateTime.Today;
                             var daily = (from dt in db.statsDailies
-                                     where dt.zone1 == zone._zone && dt.date >= now && dt.date < today
-                                     orderby dt.date descending
-                                     select dt);
+                                         where dt.zone1 == zone._zone && dt.date >= now && dt.date < today
+                                         orderby dt.date descending
+                                         select dt);
 
                             MemoryStream stream = new MemoryStream();
                             try
@@ -566,9 +566,9 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var weekly = (from wt in db.statsWeeklies
-                                      where wt.zone1 == zone._zone && wt.date >= now && wt.date < today
-                                      orderby wt.date descending
-                                      select wt);
+                                          where wt.zone1 == zone._zone && wt.date >= now && wt.date < today
+                                          orderby wt.date descending
+                                          select wt);
 
                             MemoryStream stream = new MemoryStream();
                             try
@@ -631,9 +631,9 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var monthly = (from mt in db.statsMonthlies
-                                       where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
-                                       orderby mt.date descending
-                                       select mt);
+                                           where mt.zone1 == zone._zone && mt.date >= now && mt.date < today
+                                           orderby mt.date descending
+                                           select mt);
 
                             MemoryStream stream = new MemoryStream();
                             try
@@ -696,9 +696,9 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var yearly = (from yt in db.statsYearlies
-                                       where yt.zone1 == zone._zone && yt.date >= now && yt.date < today
-                                       orderby yt.date descending
-                                       select yt);
+                                          where yt.zone1 == zone._zone && yt.date >= now && yt.date < today
+                                          orderby yt.date descending
+                                          select yt);
 
                             MemoryStream stream = new MemoryStream();
                             try
@@ -745,34 +745,34 @@ namespace InfServer.Logic
                             zone._client.sendReliable(response, 1);
                         }
                         break;
-				}
-			}
-		}
+                }
+            }
+        }
 
         /// <summary>
         /// Handles a player's update stat request
         /// </summary>
         static public void Handle_CS_StatsUpdate(CS_StatsUpdate<Zone> pkt, Zone zone)
-		{
-			//Find player
-			Zone.Player player = zone.getPlayer(pkt.player.id);
-			if (player == null)
-			{
-				Log.write(TLog.Warning, "Ignoring stat update for id {0}, not present in zone mirror.", pkt.player.id);
-				return;
-			}
-			
-			using (InfantryDataContext db = zone._server.getContext())
-			{
-				//Get player entry
-				Data.DB.player dbplayer = db.players.SingleOrDefault(p => p.id == player.dbid);
-				if (dbplayer == null)
-				{
-					Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in database.", player.alias);
-					return;
-				}
-				
-				DateTime today = DateTime.Today;
+        {
+            //Find player
+            Zone.Player player = zone.getPlayer(pkt.player.id);
+            if (player == null)
+            {
+                Log.write(TLog.Warning, "Ignoring stat update for id {0}, not present in zone mirror.", pkt.player.id);
+                return;
+            }
+
+            using (InfantryDataContext db = zone._server.getContext())
+            {
+                //Get player entry
+                Data.DB.player dbplayer = db.players.SingleOrDefault(p => p.id == player.dbid);
+                if (dbplayer == null)
+                {
+                    Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in database.", player.alias);
+                    return;
+                }
+
+                DateTime today = DateTime.Today;
                 switch (pkt.scoreType)
                 {
                     case CS_StatsUpdate<Zone>.ScoreType.ScoreDaily:
@@ -867,12 +867,12 @@ namespace InfServer.Logic
                         }
                         break;
                 }
-			}
-		}
+            }
+        }
 
         /// <summary>
-		/// Handles a player update request
-		/// </summary>
+        /// Handles a player update request
+        /// </summary>
         static public void Handle_CS_SquadMatch(CS_SquadMatch<Zone> pkt, Zone zone)
         {
             using (InfantryDataContext db = zone._server.getContext())
@@ -916,15 +916,15 @@ namespace InfServer.Logic
             }
         }
 
-		/// <summary>
-		/// Registers all handlers
-		/// </summary>
-		[RegistryFunc]
-		static public void Register()
-		{
-			CS_PlayerStatsRequest<Zone>.Handlers += Handle_CS_PlayerStatsRequest;
+        /// <summary>
+        /// Registers all handlers
+        /// </summary>
+        [RegistryFunc]
+        static public void Register()
+        {
+            CS_PlayerStatsRequest<Zone>.Handlers += Handle_CS_PlayerStatsRequest;
             CS_StatsUpdate<Zone>.Handlers += Handle_CS_StatsUpdate;
             CS_SquadMatch<Zone>.Handlers += Handle_CS_SquadMatch;
-		}
-	}
+        }
+    }
 }

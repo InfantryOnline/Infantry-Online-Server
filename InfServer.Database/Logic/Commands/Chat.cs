@@ -145,7 +145,7 @@ namespace InfServer.Logic
                             {
                                 //Alias Wildcard Lookup
                                 string trimmed = pkt.payload.Replace('*', '%');
-                                aliases = from w in db.alias 
+                                aliases = from w in db.alias
                                           where System.Data.Linq.SqlClient.SqlMethods.Like(w.name, trimmed)
                                           select w;
                             }
@@ -455,9 +455,10 @@ namespace InfServer.Logic
                             }
                             else
                             {
-                                sort = (from hist in db.histories 
-                                        orderby hist.id 
-                                        descending select hist).ToList();
+                                sort = (from hist in db.histories
+                                        orderby hist.id
+                                        descending
+                                        select hist).ToList();
                             }
 
                             //NOTE: refactor this by some sort of page system,
@@ -480,7 +481,7 @@ namespace InfServer.Logic
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.global:
-                        foreach(Zone z in zone._server._zones)
+                        foreach (Zone z in zone._server._zones)
                             z._server.sendMessage(z, "*", pkt.payload);
                         break;
 
@@ -531,7 +532,7 @@ namespace InfServer.Logic
 
                                         //Find all bans for each alias
                                         if (b.type > (int)Logic_Bans.Ban.BanType.None)
-                                        {   
+                                        {
                                             expires = b.expires;
                                             type = (Logic_Bans.Ban.BanType)b.type;
                                             created = b.created;
@@ -600,7 +601,7 @@ namespace InfServer.Logic
                                 return;
 
                             string pAlias;
-                            foreach(Zone z in zone._server._zones)
+                            foreach (Zone z in zone._server._zones)
                                 foreach (KeyValuePair<int, Zone.Player> Player in z._players)
                                 {
                                     pAlias = Player.Value.alias;
@@ -701,7 +702,7 @@ namespace InfServer.Logic
 
                             recipientPlayer.skills = null;
                             recipientPlayer.inventory = null;
-                            
+
                             //Change all stats to zero
                             stat = recipientPlayer.stats1;
 
@@ -1225,7 +1226,7 @@ namespace InfServer.Logic
                             List<string> chats = new List<string>();
                             bool update = false;
                             //Check chats
-                            foreach(Zone z in zone._server._zones)
+                            foreach (Zone z in zone._server._zones)
                                 foreach (KeyValuePair<int, Zone.Player> player in z._players)
                                 {
                                     if (player.Value == null)
@@ -1272,7 +1273,7 @@ namespace InfServer.Logic
                 }
             }
         }
-        
+
         /// <summary>
         /// Registers all handlers
         /// </summary>

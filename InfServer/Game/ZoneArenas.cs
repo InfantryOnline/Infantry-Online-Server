@@ -11,79 +11,79 @@ using InfServer.Protocol;
 
 namespace InfServer.Game
 {
-	// ZoneServer Class
-	/// Represents the entire server state
-	///////////////////////////////////////////////////////
-	public partial class ZoneServer : Server
-	{	// Member variables
-		///////////////////////////////////////////////////
-		public Dictionary<string, Arena> _arenas;			//The arenas present in the zone, sorted by name
+    // ZoneServer Class
+    /// Represents the entire server state
+    ///////////////////////////////////////////////////////
+    public partial class ZoneServer : Server
+    {	// Member variables
+        ///////////////////////////////////////////////////
+        public Dictionary<string, Arena> _arenas;			//The arenas present in the zone, sorted by name
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Performs arena-related initialization
-		/// </summary>
-		public bool initArenas()
-		{	//Initialize variables
-			_arenas = new Dictionary<string, Arena>(StringComparer.OrdinalIgnoreCase);
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Performs arena-related initialization
+        /// </summary>
+        public bool initArenas()
+        {	//Initialize variables
+            _arenas = new Dictionary<string, Arena>(StringComparer.OrdinalIgnoreCase);
 
-			//Gather config settings
-			Arena.maxItems = _config["arena/maxArenaItems"].intValue;
-			Arena.maxVehicles = _config["arena/maxArenaVehicles"].intValue;
+            //Gather config settings
+            Arena.maxItems = _config["arena/maxArenaItems"].intValue;
+            Arena.maxVehicles = _config["arena/maxArenaVehicles"].intValue;
             if (_config["arena"].GetNamedChildrenCount("maxArenaBalls") > 0) //Exists
                 Arena.maxBalls = _config["arena/maxArenaBalls"].intValue;
             else
                 Arena.maxBalls = 5;
-			Arena.gameCheckInterval = _config["arena/gameCheckInterval"].intValue;
-			Arena.routeRange = _config["arena/routing/routeRange"].intValue;
-			Arena.routeWeaponRange = _config["arena/routing/routeWeaponRange"].intValue;
-			Arena.routeRadarRange = _config["arena/routing/routeRadarRange"].intValue;
-			Arena.routeRadarRangeFactor = _config["arena/routing/routeRadarRangeFactor"].intValue;
-			Arena.routeRadarRangeFar = _config["arena/routing/routeRadarRangeFar"].intValue;
-			Arena.routeRadarRangeFarFactor = _config["arena/routing/routeRadarRangeFarFactor"].intValue;
+            Arena.gameCheckInterval = _config["arena/gameCheckInterval"].intValue;
+            Arena.routeRange = _config["arena/routing/routeRange"].intValue;
+            Arena.routeWeaponRange = _config["arena/routing/routeWeaponRange"].intValue;
+            Arena.routeRadarRange = _config["arena/routing/routeRadarRange"].intValue;
+            Arena.routeRadarRangeFactor = _config["arena/routing/routeRadarRangeFactor"].intValue;
+            Arena.routeRadarRangeFar = _config["arena/routing/routeRadarRangeFar"].intValue;
+            Arena.routeRadarRangeFarFactor = _config["arena/routing/routeRadarRangeFarFactor"].intValue;
 
-			if (Arena.maxVehicles > UInt16.MaxValue - ZoneServer.maxPlayers)
-			{	//Complain
-				Log.write(TLog.Error, "Invalid maxVehicles setting; cannot exceed {0}", UInt16.MaxValue - ZoneServer.maxPlayers);
-				return false;
-			}
+            if (Arena.maxVehicles > UInt16.MaxValue - ZoneServer.maxPlayers)
+            {	//Complain
+                Log.write(TLog.Error, "Invalid maxVehicles setting; cannot exceed {0}", UInt16.MaxValue - ZoneServer.maxPlayers);
+                return false;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// Looks after the gamestate of all arenas
-		/// </summary>
-		private void handleArenas()
-		{	//Get an image of the arena list
-			int lastArenaUpdate = Environment.TickCount;
-			List<Arena> arenas = new List<Arena>(_arenas.Values);
+        /// <summary>
+        /// Looks after the gamestate of all arenas
+        /// </summary>
+        private void handleArenas()
+        {	//Get an image of the arena list
+            int lastArenaUpdate = Environment.TickCount;
+            List<Arena> arenas = new List<Arena>(_arenas.Values);
 
-			while (run)
-			{	//Is it time to update our list yet?
-				if (Environment.TickCount - lastArenaUpdate > 1000)
-				{	//Grab a list of arenas
-					using (DdMonitor.Lock(_arenas))
-						arenas = new List<Arena>(_arenas.Values);
-					lastArenaUpdate = Environment.TickCount;
-				}
+            while (run)
+            {	//Is it time to update our list yet?
+                if (Environment.TickCount - lastArenaUpdate > 1000)
+                {	//Grab a list of arenas
+                    using (DdMonitor.Lock(_arenas))
+                        arenas = new List<Arena>(_arenas.Values);
+                    lastArenaUpdate = Environment.TickCount;
+                }
 
-				//Poll each arena!
-				foreach (Arena arena in arenas)
-				{
-					try
-					{
-						if (arena._bActive)
-							using (LogAssume.Assume(arena._logger))
-								arena.poll();
-					}
-					catch (Exception ex)
-					{
-						Log.write(TLog.Exception, "Exception whilst polling arena {0}:\r\n{1}", arena._name, ex);
-					}
-				}
+                //Poll each arena!
+                foreach (Arena arena in arenas)
+                {
+                    try
+                    {
+                        if (arena._bActive)
+                            using (LogAssume.Assume(arena._logger))
+                                arena.poll();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.write(TLog.Exception, "Exception whilst polling arena {0}:\r\n{1}", arena._name, ex);
+                    }
+                }
 
                 //Poll our base zoneserver
                 try
@@ -96,87 +96,87 @@ namespace InfServer.Game
                 }
 
                 // Sleep for a bit
-				Thread.Sleep(5);
-			}
-		}
+                Thread.Sleep(5);
+            }
+        }
 
-		/// <summary>
-		/// Creates a new, appropriate arena
-		/// </summary>
-		public Arena newArena(string name)
-		{	//Are we going to make a new public arena?
-			if (name == "")
-			{	//Yes, we need to find the lowest unused public name
-				int idx = 1;
+        /// <summary>
+        /// Creates a new, appropriate arena
+        /// </summary>
+        public Arena newArena(string name)
+        {	//Are we going to make a new public arena?
+            if (name == "")
+            {	//Yes, we need to find the lowest unused public name
+                int idx = 1;
 
-				while (_arenas.Keys.Contains("Public" + idx))
-					idx++;
+                while (_arenas.Keys.Contains("Public" + idx))
+                    idx++;
 
-				//Got one!
-				name = "Public" + idx;
-			}
+                //Got one!
+                name = "Public" + idx;
+            }
 
-			//Is this a registered arena name?
-			string invokerType = _config["server/gameType"].Value;
-			IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
+            //Is this a registered arena name?
+            string invokerType = _config["server/gameType"].Value;
+            IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
 
-			foreach (ConfigSetting named in namedArenas)
-			{	//Correct arena?
-				if (name.Equals(named.Value, StringComparison.OrdinalIgnoreCase))
-				{
-					invokerType = named["gameType"].Value;
-					break;
-				}
-			}
+            foreach (ConfigSetting named in namedArenas)
+            {	//Correct arena?
+                if (name.Equals(named.Value, StringComparison.OrdinalIgnoreCase))
+                {
+                    invokerType = named["gameType"].Value;
+                    break;
+                }
+            }
 
-			//Instance our gametype
-			if (!Scripting.Scripts.invokerTypeExists(invokerType))
-			{
-				Log.write(TLog.Error, "Unable to find gameType '{0}'", invokerType);
-				return null;
-			}
+            //Instance our gametype
+            if (!Scripting.Scripts.invokerTypeExists(invokerType))
+            {
+                Log.write(TLog.Error, "Unable to find gameType '{0}'", invokerType);
+                return null;
+            }
 
-			//Populate the class
-			Arena arena = new ScriptArena(this, invokerType);
+            //Populate the class
+            Arena arena = new ScriptArena(this, invokerType);
 
-			arena._bActive = true;
-			arena._name = name;
+            arena._bActive = true;
+            arena._name = name;
             if (arena._name.Length >= 6 && arena._name.Substring(0, 6).Equals("Public"))
                 arena._bIsPublic = true;
             else
                 arena._bIsPublic = false;
 
-			arena._logger = Log.createClient("a_" + name);
+            arena._logger = Log.createClient("a_" + name);
 
-			arena.Close += lostArena;
+            arena.Close += lostArena;
 
-			arena.init();
-			using (DdMonitor.Lock(_arenas))
-				_arenas.Add(name, arena);
-            
-			Log.write(TLog.Normal, "Opened arena: " + name);
+            arena.init();
+            using (DdMonitor.Lock(_arenas))
+                _arenas.Add(name, arena);
 
-			return arena;
-		}
+            Log.write(TLog.Normal, "Opened arena: " + name);
 
-		/// <summary>
-		/// Handles the loss of an arena
-		/// </summary>
-		public void lostArena(Arena arena)
-		{	//What a shame!
-			arena._bActive = false;
+            return arena;
+        }
 
-			using (DdMonitor.Lock(_arenas))
-				_arenas.Remove(arena._name);
+        /// <summary>
+        /// Handles the loss of an arena
+        /// </summary>
+        public void lostArena(Arena arena)
+        {	//What a shame!
+            arena._bActive = false;
 
-			Log.write(TLog.Normal, "Closed arena: " + arena._name);
-		}
+            using (DdMonitor.Lock(_arenas))
+                _arenas.Remove(arena._name);
 
-		/// <summary>
-		/// Finds the most suitable arena for a player to join
-		/// </summary>
-		public Arena allocatePlayer(Player player)
-		{
+            Log.write(TLog.Normal, "Closed arena: " + arena._name);
+        }
+
+        /// <summary>
+        /// Finds the most suitable arena for a player to join
+        /// </summary>
+        public Arena allocatePlayer(Player player)
+        {
             int maxPlayers = _zoneConfig.arena.maxPlayers;
             int playingDesired = _zoneConfig.arena.playingDesired;
 
@@ -188,14 +188,14 @@ namespace InfServer.Game
                         return a.Value;
                 }
             }
-            
+
             //Make a new one
             return newArena("");
-		}
+        }
 
-		/// <summary>
-		/// Determines, given a specific arena request, which arena the player should join
-		/// </summary>
+        /// <summary>
+        /// Determines, given a specific arena request, which arena the player should join
+        /// </summary>
         public Arena playerJoinArena(Player player, String arenaName)
         {
             if (player == null)
@@ -262,5 +262,5 @@ namespace InfServer.Game
 
             return arena;
         }
-	}
+    }
 }

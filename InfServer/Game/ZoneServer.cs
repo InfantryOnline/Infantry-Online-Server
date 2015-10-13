@@ -18,27 +18,27 @@ using Assets;
 namespace InfServer.Game
 {
 
-	// ZoneServer Class
-	/// Represents the entire server state
-	///////////////////////////////////////////////////////
-	public partial class ZoneServer : Server
-	{	// Member variables
-		///////////////////////////////////////////////////
+    // ZoneServer Class
+    /// Represents the entire server state
+    ///////////////////////////////////////////////////////
+    public partial class ZoneServer : Server
+    {	// Member variables
+        ///////////////////////////////////////////////////
         public bool run = true;
-		public ConfigSetting _config;			//Our server config
-		public CfgInfo _zoneConfig;				//The zone-specific configuration file
+        public ConfigSetting _config;			//Our server config
+        public CfgInfo _zoneConfig;				//The zone-specific configuration file
 
-		public AssetManager _assets;
-		public Bots.Pathfinder _pathfinder;		//Global pathfinder
+        public AssetManager _assets;
+        public Bots.Pathfinder _pathfinder;		//Global pathfinder
 
-		public Database _db;					//Our connection to the database
+        public Database _db;					//Our connection to the database
         public IPEndPoint _dbEP;
 
         public uint _reliableChecksum = 0;      //Reliable checksum value for this zone
 
-		public new LogClient _logger;           //Our zone server log
+        public new LogClient _logger;           //Our zone server log
 
-		private bool _bStandalone;              //Are we in standalone mode?
+        private bool _bStandalone;              //Are we in standalone mode?
         private int _bStandaloneMessage;        //When to send out a message
 
         private string _name;                   //The zones name
@@ -53,15 +53,15 @@ namespace InfServer.Game
         public int _recycleAttempt;
         public bool _recycling;
 
-	    private ClientPingResponder _pingResponder;
+        private ClientPingResponder _pingResponder;
         public Dictionary<IPAddress, DateTime> _connections;
 
         public Dictionary<IPAddress, Dictionary<int, DateTime>> _playerSilenced; //Self explanitory
 
         /// <summary>
-  	  	/// Compiled game events that have been pulled out of the zone's cfg file.
-  	  	/// </summary>
-  	  	public Dictionary<string, GameEvent> GameEvents;
+        /// Compiled game events that have been pulled out of the zone's cfg file.
+        /// </summary>
+        public Dictionary<string, GameEvent> GameEvents;
 
         ///////////////////////////////////////////////////
         // Accessors
@@ -99,16 +99,16 @@ namespace InfServer.Game
             }
         }
 
-		/// <summary>
-		/// Indicates whether the server is in standalone (no database) mode
-		/// </summary>
-		public bool IsStandalone
-		{
-			get
-			{
-				return _bStandalone;
-			}
-		}
+        /// <summary>
+        /// Indicates whether the server is in standalone (no database) mode
+        /// </summary>
+        public bool IsStandalone
+        {
+            get
+            {
+                return _bStandalone;
+            }
+        }
 
         /// <summary>
         /// Gets the current IP this instance of the zoneserver is running on
@@ -132,32 +132,32 @@ namespace InfServer.Game
             }
         }
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Generic constructor
-		/// </summary>
-		public ZoneServer()
-			: base(new PacketFactory(), new Client<Player>(false))
-		{
-			_config = ConfigSetting.Blank;
-		}
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        public ZoneServer()
+            : base(new PacketFactory(), new Client<Player>(false))
+        {
+            _config = ConfigSetting.Blank;
+        }
 
-		/// <summary>
-		/// Allows the server to preload all assets.
-		/// </summary>
-		public bool init()
-		{	// Load configuration
-			///////////////////////////////////////////////
-			//Load our server config
+        /// <summary>
+        /// Allows the server to preload all assets.
+        /// </summary>
+        public bool init()
+        {	// Load configuration
+            ///////////////////////////////////////////////
+            //Load our server config
             _connections = new Dictionary<IPAddress, DateTime>();
             Log.write(TLog.Normal, "Loading Server Configuration");
-			_config = new Xmlconfig("server.xml", false).Settings;
+            _config = new Xmlconfig("server.xml", false).Settings;
 
             string assetsPath = "assets\\";
 
-			//Load our zone config
+            //Load our zone config
             Log.write(TLog.Normal, "Loading Zone Configuration");
 
             if (!System.IO.Directory.Exists(assetsPath))
@@ -166,21 +166,21 @@ namespace InfServer.Game
                 return false;
             }
 
-			string filePath = AssetFileFactory.findAssetFile(_config["server/zoneConfig"].Value, assetsPath);
-			if (filePath == null)
-			{
-				Log.write(TLog.Error, "Unable to find config file '" + assetsPath + _config["server/zoneConfig"].Value + "'.");
-				return false;
-			}
+            string filePath = AssetFileFactory.findAssetFile(_config["server/zoneConfig"].Value, assetsPath);
+            if (filePath == null)
+            {
+                Log.write(TLog.Error, "Unable to find config file '" + assetsPath + _config["server/zoneConfig"].Value + "'.");
+                return false;
+            }
 
-			_zoneConfig = CfgInfo.Load(filePath);
+            _zoneConfig = CfgInfo.Load(filePath);
 
-			//Load assets from zone config and populate AssMan
-			try
-			{
-				_assets = new AssetManager();
+            //Load assets from zone config and populate AssMan
+            try
+            {
+                _assets = new AssetManager();
 
-				_assets.bUseBlobs = _config["server/loadBlobs"].boolValue;
+                _assets.bUseBlobs = _config["server/loadBlobs"].boolValue;
 
                 //Grab the latest global news if specified
                 if (_config["server/updateGlobalNws"].Value.Length > 0)
@@ -200,75 +200,75 @@ namespace InfServer.Game
                     }
                 }
 
-				if (!_assets.load(_zoneConfig, _config["server/zoneConfig"].Value))
-				{	//We're unable to continue
-					Log.write(TLog.Error, "Files missing, unable to continue.");
-					return false;
-				}
-			}
-			catch (System.IO.FileNotFoundException ex)
-			{	//Report and abort
-				Log.write(TLog.Error, "Unable to find file '{0}'", ex.FileName);
-				return false;
-			}
+                if (!_assets.load(_zoneConfig, _config["server/zoneConfig"].Value))
+                {	//We're unable to continue
+                    Log.write(TLog.Error, "Files missing, unable to continue.");
+                    return false;
+                }
+            }
+            catch (System.IO.FileNotFoundException ex)
+            {	//Report and abort
+                Log.write(TLog.Error, "Unable to find file '{0}'", ex.FileName);
+                return false;
+            }
 
-			//Make sure our protocol helpers are aware
-			Helpers._server = this;
+            //Make sure our protocol helpers are aware
+            Helpers._server = this;
 
-			//Load protocol config settings
-			base._bLogPackets = _config["server/logPackets"].boolValue;
-			Client.udpMaxSize = _config["protocol/udpMaxSize"].intValue;
-			Client.crcLength = _config["protocol/crcLength"].intValue;
-			if (Client.crcLength > 4)
-			{
-				Log.write(TLog.Error, "Invalid protocol/crcLength, must be less than 4.");
-				return false;
-			}
+            //Load protocol config settings
+            base._bLogPackets = _config["server/logPackets"].boolValue;
+            Client.udpMaxSize = _config["protocol/udpMaxSize"].intValue;
+            Client.crcLength = _config["protocol/crcLength"].intValue;
+            if (Client.crcLength > 4)
+            {
+                Log.write(TLog.Error, "Invalid protocol/crcLength, must be less than 4.");
+                return false;
+            }
 
-			Client.connectionTimeout = _config["protocol/connectionTimeout"].intValue;
-			Client.bLogUnknowns = _config["protocol/logUnknownPackets"].boolValue;
+            Client.connectionTimeout = _config["protocol/connectionTimeout"].intValue;
+            Client.bLogUnknowns = _config["protocol/logUnknownPackets"].boolValue;
 
-			ClientConn<Database>.clientPingFreq = _config["protocol/clientPingFreq"].intValue;
+            ClientConn<Database>.clientPingFreq = _config["protocol/clientPingFreq"].intValue;
 
 
-			// Load scripts
-			///////////////////////////////////////////////
-			Log.write("Loading scripts..");
+            // Load scripts
+            ///////////////////////////////////////////////
+            Log.write("Loading scripts..");
 
-			//Obtain the bot and operation types
-			ConfigSetting scriptConfig = new Xmlconfig("scripts.xml", false).Settings;
-			IList<ConfigSetting> scripts = scriptConfig["scripts"].GetNamedChildren("type");
+            //Obtain the bot and operation types
+            ConfigSetting scriptConfig = new Xmlconfig("scripts.xml", false).Settings;
+            IList<ConfigSetting> scripts = scriptConfig["scripts"].GetNamedChildren("type");
 
-			//Load the bot types
-			List<Scripting.InvokerType> scriptingBotTypes = new List<Scripting.InvokerType>();
+            //Load the bot types
+            List<Scripting.InvokerType> scriptingBotTypes = new List<Scripting.InvokerType>();
 
-			foreach (ConfigSetting cs in scripts)
-			{	//Convert the config entry to a bottype structure
-				scriptingBotTypes.Add(
-					new Scripting.InvokerType(
-							cs.Value,
-							cs["inheritDefaultScripts"].boolValue,
-							cs["scriptDir"].Value)
-				);
-			}
+            foreach (ConfigSetting cs in scripts)
+            {	//Convert the config entry to a bottype structure
+                scriptingBotTypes.Add(
+                    new Scripting.InvokerType(
+                            cs.Value,
+                            cs["inheritDefaultScripts"].boolValue,
+                            cs["scriptDir"].Value)
+                );
+            }
 
-			//Load them into the scripting engine
-			Scripting.Scripts.loadBotTypes(scriptingBotTypes); 
+            //Load them into the scripting engine
+            Scripting.Scripts.loadBotTypes(scriptingBotTypes);
 
-			try
-			{	//Loads!
-				bool bSuccess = Scripting.Scripts.compileScripts();
-				if (!bSuccess)
-				{	//Failed. Exit
-					Log.write(TLog.Error, "Unable to load scripts.");
-					return false;
-				}
-			}
-			catch (Exception ex)
-			{	//Error while compiling
-				Log.write(TLog.Exception, "Exception while compiling scripts:\n" + ex.ToString());
-				return false;
-			}
+            try
+            {	//Loads!
+                bool bSuccess = Scripting.Scripts.compileScripts();
+                if (!bSuccess)
+                {	//Failed. Exit
+                    Log.write(TLog.Error, "Unable to load scripts.");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {	//Error while compiling
+                Log.write(TLog.Exception, "Exception while compiling scripts:\n" + ex.ToString());
+                return false;
+            }
 
             if (_config["server/pathFindingEnabled"].boolValue)
             {
@@ -292,9 +292,9 @@ namespace InfServer.Game
 
             Log.write("");
             Log.write("Server started..");
-			// Connect to the database
-			///////////////////////////////////////////////
-			//Attempt to connect to our database
+            // Connect to the database
+            ///////////////////////////////////////////////
+            //Attempt to connect to our database
 
             //Are we connecting at all?
             if (_attemptDelay == 0)
@@ -313,15 +313,15 @@ namespace InfServer.Game
                 _db.connect(_dbEP, true);
             }
 
-			//Initialize other parts of the zoneserver class
-			if (!initPlayers())
-				return false;
-			if (!initArenas())
-				return false;
+            //Initialize other parts of the zoneserver class
+            if (!initPlayers())
+                return false;
+            if (!initArenas())
+                return false;
 
             // Create the ping/player count responder
             //////////////////////////////////////////////
-		    _pingResponder = new ClientPingResponder(_players);
+            _pingResponder = new ClientPingResponder(_players);
 
             Log.write("Asset Checksum: " + _assets.checkSum());
 
@@ -330,28 +330,28 @@ namespace InfServer.Game
 
             //InitializeGameEventsDictionary();
 
-			return true;
-		}
+            return true;
+        }
 
-		/// <summary>
-		/// Begins all server processes, and starts accepting clients.
-		/// </summary>
-		public void begin()
-		{	//Start up the network
-			_logger = Log.createClient("Zone");
-			base._logger = Log.createClient("Network");
+        /// <summary>
+        /// Begins all server processes, and starts accepting clients.
+        /// </summary>
+        public void begin()
+        {	//Start up the network
+            _logger = Log.createClient("Zone");
+            base._logger = Log.createClient("Network");
 
-			IPEndPoint listenPoint = new IPEndPoint(
+            IPEndPoint listenPoint = new IPEndPoint(
                 IPAddress.Parse("0.0.0.0"), _bindPort);
-			base.begin(listenPoint);
+            base.begin(listenPoint);
 
             _pingResponder.Begin(new IPEndPoint(IPAddress.Parse("0.0.0.0"), _bindPort + 1));
 
-			//Start handling our arenas;
-			using (LogAssume.Assume(_logger))
-				handleArenas();
-		}
-        
+            //Start handling our arenas;
+            using (LogAssume.Assume(_logger))
+                handleArenas();
+        }
+
         /// <summary>
         /// Handles all base server operations
         /// </summary>
@@ -485,76 +485,76 @@ namespace InfServer.Game
         }
 
         private void InitializeGameEventsDictionary()
- 	  	{
-	  	  	var e = _zoneConfig.EventInfo;
- 	  	  	GameEvents = new Dictionary<string, GameEvent>();
+        {
+            var e = _zoneConfig.EventInfo;
+            GameEvents = new Dictionary<string, GameEvent>();
             //
- 	  	  	// Compile the event strings into game events/actions.
- 	  	  	//
- 	  	  	
- 	  	  	GameEvents["jointeam"] = EventsActionsFactory.CreateGameEventFromString(e.joinTeam);
- 	  	  	GameEvents["exitspectatormode"] = EventsActionsFactory.CreateGameEventFromString(e.exitSpectatorMode);
- 	  	  	GameEvents["endgame"] = EventsActionsFactory.CreateGameEventFromString(e.endGame);
- 	  	  	GameEvents["soongame"] = EventsActionsFactory.CreateGameEventFromString(e.soonGame);
- 	  	  	GameEvents["manualjointeam"] = EventsActionsFactory.CreateGameEventFromString(e.manualJoinTeam);
- 	  	  	GameEvents["startgame"] = EventsActionsFactory.CreateGameEventFromString(e.startGame);
- 	  	  	GameEvents["sysopwipe"] = EventsActionsFactory.CreateGameEventFromString(e.sysopWipe);
- 	  	  	GameEvents["selfwipe"] = EventsActionsFactory.CreateGameEventFromString(e.selfWipe);
- 	  	  	GameEvents["killedteam"] = EventsActionsFactory.CreateGameEventFromString(e.killedTeam);
- 	  	  	GameEvents["killedenemy"] = EventsActionsFactory.CreateGameEventFromString(e.killedEnemy);
- 	  	  	GameEvents["killedbyteam"] = EventsActionsFactory.CreateGameEventFromString(e.killedByTeam);
- 	  	  	GameEvents["killedbyenemy"] = EventsActionsFactory.CreateGameEventFromString(e.killedByEnemy);
- 	  	  	GameEvents["firsttimeinvsetup"] = EventsActionsFactory.CreateGameEventFromString(e.firstTimeInvSetup);
- 	  	  	GameEvents["firsttimeskillsetup"] = EventsActionsFactory.CreateGameEventFromString(e.firstTimeSkillSetup);
- 	  	  	GameEvents["hold1"] = EventsActionsFactory.CreateGameEventFromString(e.hold1);
- 	  	  	GameEvents["hold2"] = EventsActionsFactory.CreateGameEventFromString(e.hold2);
- 	  	  	GameEvents["hold3"] = EventsActionsFactory.CreateGameEventFromString(e.hold3);
- 	  	  	GameEvents["hold4"] = EventsActionsFactory.CreateGameEventFromString(e.hold4);
- 	  	  	GameEvents["enterspawnnoscore"] = EventsActionsFactory.CreateGameEventFromString(e.enterSpawnNoScore);
- 	  	  	GameEvents["changedefaultvehicle"] = EventsActionsFactory.CreateGameEventFromString(e.changeDefaultVehicle);
-  	  	}
+            // Compile the event strings into game events/actions.
+            //
 
-		///////////////////////////////////////////////////
-		// Member Classes
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Responds to ping and player count requests made by the client. Runs on the port
-		/// above the zone server.
-		/// </summary>
-		private class ClientPingResponder
-		{
-			private Dictionary<ushort, Player> _players;
-			private Thread _listenThread;
-			private Socket _socket;
-			private Dictionary<EndPoint, Int32> _clients;
-			private Boolean _isOperating;
-			private ReaderWriterLock _lock;
-			private byte[] _buffer;
+            GameEvents["jointeam"] = EventsActionsFactory.CreateGameEventFromString(e.joinTeam);
+            GameEvents["exitspectatormode"] = EventsActionsFactory.CreateGameEventFromString(e.exitSpectatorMode);
+            GameEvents["endgame"] = EventsActionsFactory.CreateGameEventFromString(e.endGame);
+            GameEvents["soongame"] = EventsActionsFactory.CreateGameEventFromString(e.soonGame);
+            GameEvents["manualjointeam"] = EventsActionsFactory.CreateGameEventFromString(e.manualJoinTeam);
+            GameEvents["startgame"] = EventsActionsFactory.CreateGameEventFromString(e.startGame);
+            GameEvents["sysopwipe"] = EventsActionsFactory.CreateGameEventFromString(e.sysopWipe);
+            GameEvents["selfwipe"] = EventsActionsFactory.CreateGameEventFromString(e.selfWipe);
+            GameEvents["killedteam"] = EventsActionsFactory.CreateGameEventFromString(e.killedTeam);
+            GameEvents["killedenemy"] = EventsActionsFactory.CreateGameEventFromString(e.killedEnemy);
+            GameEvents["killedbyteam"] = EventsActionsFactory.CreateGameEventFromString(e.killedByTeam);
+            GameEvents["killedbyenemy"] = EventsActionsFactory.CreateGameEventFromString(e.killedByEnemy);
+            GameEvents["firsttimeinvsetup"] = EventsActionsFactory.CreateGameEventFromString(e.firstTimeInvSetup);
+            GameEvents["firsttimeskillsetup"] = EventsActionsFactory.CreateGameEventFromString(e.firstTimeSkillSetup);
+            GameEvents["hold1"] = EventsActionsFactory.CreateGameEventFromString(e.hold1);
+            GameEvents["hold2"] = EventsActionsFactory.CreateGameEventFromString(e.hold2);
+            GameEvents["hold3"] = EventsActionsFactory.CreateGameEventFromString(e.hold3);
+            GameEvents["hold4"] = EventsActionsFactory.CreateGameEventFromString(e.hold4);
+            GameEvents["enterspawnnoscore"] = EventsActionsFactory.CreateGameEventFromString(e.enterSpawnNoScore);
+            GameEvents["changedefaultvehicle"] = EventsActionsFactory.CreateGameEventFromString(e.changeDefaultVehicle);
+        }
+
+        ///////////////////////////////////////////////////
+        // Member Classes
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Responds to ping and player count requests made by the client. Runs on the port
+        /// above the zone server.
+        /// </summary>
+        private class ClientPingResponder
+        {
+            private Dictionary<ushort, Player> _players;
+            private Thread _listenThread;
+            private Socket _socket;
+            private Dictionary<EndPoint, Int32> _clients;
+            private Boolean _isOperating;
+            private ReaderWriterLock _lock;
+            private byte[] _buffer;
 
             /// <summary>
             /// Constructor with socket creation
             /// </summary>
-			public ClientPingResponder(Dictionary<ushort, Player> players)
-			{
-				_players = players;
-				_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-				_clients = new Dictionary<EndPoint, Int32>();
-				_lock = new ReaderWriterLock();
-				_buffer = new byte[4];
-			}
+            public ClientPingResponder(Dictionary<ushort, Player> players)
+            {
+                _players = players;
+                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                _clients = new Dictionary<EndPoint, Int32>();
+                _lock = new ReaderWriterLock();
+                _buffer = new byte[4];
+            }
 
             /// <summary>
             /// Begins our threaded responder
             /// </summary>
-			public void Begin(IPEndPoint listenPoint)
-			{
-				_listenThread = new Thread(Listen);
-				_listenThread.IsBackground = true;
-				_listenThread.Name = "ClientPingResponder";
-				_listenThread.Start(listenPoint);
+            public void Begin(IPEndPoint listenPoint)
+            {
+                _listenThread = new Thread(Listen);
+                _listenThread.IsBackground = true;
+                _listenThread.Name = "ClientPingResponder";
+                _listenThread.Start(listenPoint);
                 if (!_listenThread.IsAlive)
                     Log.write(TLog.Warning, "Failed to thread start the client ping responder.");
-			}
+            }
 
             /// <summary>
             /// Ends our thread
@@ -565,73 +565,73 @@ namespace InfServer.Game
                 _listenThread.Abort();
             }
 
-			private void Listen(Object obj)
-			{
-				var listenPoint = (IPEndPoint)obj;
-				EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+            private void Listen(Object obj)
+            {
+                var listenPoint = (IPEndPoint)obj;
+                EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
-				//Prevent useless connection reset exceptions
-				uint IOC_IN = 0x80000000;
-				uint IOC_VENDOR = 0x18000000;
-				uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
-				_socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+                //Prevent useless connection reset exceptions
+                uint IOC_IN = 0x80000000;
+                uint IOC_VENDOR = 0x18000000;
+                uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+                _socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
 
-				_socket.Bind(listenPoint);
-				_socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEP, OnRequestReceived, null);
+                _socket.Bind(listenPoint);
+                _socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEP, OnRequestReceived, null);
 
-				_isOperating = true;
+                _isOperating = true;
 
-				// Do we have clients to service?
-				while (_isOperating)
-				{
-					Dictionary<EndPoint, Int32> queue = null;
-					_lock.AcquireWriterLock(Timeout.Infinite);
+                // Do we have clients to service?
+                while (_isOperating)
+                {
+                    Dictionary<EndPoint, Int32> queue = null;
+                    _lock.AcquireWriterLock(Timeout.Infinite);
 
-					// Swap the queue
-					try
-					{
-						queue = _clients;
-						_clients = new Dictionary<EndPoint, Int32>();
-					}
-					finally
-					{
-						_lock.ReleaseWriterLock();
-					}
+                    // Swap the queue
+                    try
+                    {
+                        queue = _clients;
+                        _clients = new Dictionary<EndPoint, Int32>();
+                    }
+                    finally
+                    {
+                        _lock.ReleaseWriterLock();
+                    }
 
-					if (queue != null && queue.Count != 0)
-					{
-						// May not be synchronized, but that's okay, the client requests often.
-						byte[] playerCount = BitConverter.GetBytes(_players.Count);
+                    if (queue != null && queue.Count != 0)
+                    {
+                        // May not be synchronized, but that's okay, the client requests often.
+                        byte[] playerCount = BitConverter.GetBytes(_players.Count);
 
-						foreach (var entry in queue)
-						{
-							// TODO: Refactor this into something cultured
-							EndPoint client = entry.Key;
-							byte[] token = BitConverter.GetBytes(entry.Value);
+                        foreach (var entry in queue)
+                        {
+                            // TODO: Refactor this into something cultured
+                            EndPoint client = entry.Key;
+                            byte[] token = BitConverter.GetBytes(entry.Value);
 
-							byte[] buffer = new[]
+                            byte[] buffer = new[]
                                                 {
                                                     playerCount[0], playerCount[1], playerCount[2], playerCount[3], 
                                                     token[0], token[1], token[2], token[3]
                                                 };
 
-							_socket.SendTo(buffer, client);
-						}
-					}
+                            _socket.SendTo(buffer, client);
+                        }
+                    }
 
-					Thread.Sleep(10);
-				}
-			}
+                    Thread.Sleep(10);
+                }
+            }
 
-			private void OnRequestReceived(IAsyncResult result)
-			{
-				if (!result.IsCompleted)
-				{
-					// Continue anyways? Let's do it!
+            private void OnRequestReceived(IAsyncResult result)
+            {
+                if (!result.IsCompleted)
+                {
+                    // Continue anyways? Let's do it!
                     //return;
-				}
+                }
 
-				EndPoint remoteEp = new IPEndPoint(IPAddress.Any, 0);
+                EndPoint remoteEp = new IPEndPoint(IPAddress.Any, 0);
                 int read = 4;
                 try
                 {
@@ -643,27 +643,27 @@ namespace InfServer.Game
                     Log.write("Malformed packet from client: " + remoteEp.ToString() + " (possible attempt to crash the zone)");
                 }
 
-				if (read != 4)
-				{
-					// Malformed packet, lets continue anyways and log the scums IP
+                if (read != 4)
+                {
+                    // Malformed packet, lets continue anyways and log the scums IP
                     Log.write("Malformed packet from client: " + remoteEp.ToString() + " (possible attempt to crash the zone)");
-				}
+                }
 
-				_lock.AcquireWriterLock(Timeout.Infinite);
+                _lock.AcquireWriterLock(Timeout.Infinite);
 
-				try
-				{
-					Int32 token = BitConverter.ToInt32(_buffer, 0);
-					_clients[remoteEp] = token;
-				}
-				finally
-				{
-					_lock.ReleaseWriterLock();
-				}
-                
-				remoteEp = new IPEndPoint(IPAddress.Any, 0);
-				_socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEp, OnRequestReceived, null);
-			}
-		}
-	}
+                try
+                {
+                    Int32 token = BitConverter.ToInt32(_buffer, 0);
+                    _clients[remoteEp] = token;
+                }
+                finally
+                {
+                    _lock.ReleaseWriterLock();
+                }
+
+                remoteEp = new IPEndPoint(IPAddress.Any, 0);
+                _socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEp, OnRequestReceived, null);
+            }
+        }
+    }
 }

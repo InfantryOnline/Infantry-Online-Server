@@ -5,9 +5,9 @@ using System.Threading;
 
 namespace InfServer
 {
-	class Program
-	{
-		static Game.ZoneServer server;
+    class Program
+    {
+        static Game.ZoneServer server;
 
         /// <summary>
         /// Recycles our gameserver...
@@ -55,58 +55,58 @@ namespace InfServer
             server.shutdown();
         }
 
-		/// <summary>
-		/// Makes a note of all unhandled exceptions
-		/// </summary>
-		public static void onException(object o, UnhandledExceptionEventArgs e)
-		{	//Talk about the exception
-			using (LogAssume.Assume(server._logger))
-				Log.write(TLog.Exception, "Unhandled exception:\r\n" + e.ExceptionObject.ToString());
-		}
+        /// <summary>
+        /// Makes a note of all unhandled exceptions
+        /// </summary>
+        public static void onException(object o, UnhandledExceptionEventArgs e)
+        {	//Talk about the exception
+            using (LogAssume.Assume(server._logger))
+                Log.write(TLog.Exception, "Unhandled exception:\r\n" + e.ExceptionObject.ToString());
+        }
 
-		static void Main(string[] args)
-		{
+        static void Main(string[] args)
+        {
             Console.WriteLine("Initializing logger..");
 
             //Initialize the logging system
-			if (!Log.init())
-			{	//Abort..
-				Console.WriteLine("Logger initialization failed, exiting..");
-				Thread.Sleep(10000);
-				return;
-			}
+            if (!Log.init())
+            {	//Abort..
+                Console.WriteLine("Logger initialization failed, exiting..");
+                Thread.Sleep(10000);
+                return;
+            }
 
-			DdMonitor.bNoSync = false;
-			DdMonitor.bEnabled = false;
-			DdMonitor.DefaultTimeout = -1;
+            DdMonitor.bNoSync = false;
+            DdMonitor.bEnabled = false;
+            DdMonitor.DefaultTimeout = -1;
 
-			//Register our catch-all exception handler
-			Thread.GetDomain().UnhandledException += onException;
+            //Register our catch-all exception handler
+            Thread.GetDomain().UnhandledException += onException;
 
-			//Create a logging client for the main server thread
-			LogClient handlerLogger = Log.createClient("ServerHandler");
-			Log.assume(handlerLogger);
+            //Create a logging client for the main server thread
+            LogClient handlerLogger = Log.createClient("ServerHandler");
+            Log.assume(handlerLogger);
 
             //Set a handler for if we recieve Ctrl+C or Ctrl+BREAK
             Console.CancelKeyPress += new ConsoleCancelEventHandler(Exit);
 
-			//Allow functions to pre-register
-			Logic.Registrar.register();
+            //Allow functions to pre-register
+            Logic.Registrar.register();
 
-			//Create our zone server
-			server = new InfServer.Game.ZoneServer();
+            //Create our zone server
+            server = new InfServer.Game.ZoneServer();
 
-			//Initialize everything..
+            //Initialize everything..
             Log.write("Initializing server..");
-			if (!server.init())
-			{
-				Log.write(TLog.Error, "ZoneServer initialization failed, exiting..");
-				Thread.Sleep(10000);
-				return;
-			}
+            if (!server.init())
+            {
+                Log.write(TLog.Error, "ZoneServer initialization failed, exiting..");
+                Thread.Sleep(10000);
+                return;
+            }
 
-			//Good to go!
-			server.begin();
-		}
-	}
+            //Good to go!
+            server.begin();
+        }
+    }
 }

@@ -260,18 +260,18 @@ namespace InfServer.Protocol
             }
 		}
 
-        /// <summary>
-        /// Notifies a player that he's been disconnected with a specified reason
-        /// </summary>
-        static public void Player_Disconnect(Player p, Disconnect.DisconnectReason reason)
-        {
-            Disconnect discon = new Disconnect();
+		/// <summary>
+		/// Notifies a player that he's been disconnected
+		/// </summary>
+		static public void Player_Disconnect(Player p)
+		{	//Formulate our message!
+			Disconnect discon = new Disconnect();
 
-            discon.connectionID = p._client._connectionID;
-            discon.reason = reason;
+			discon.connectionID = p._client._connectionID;
+			discon.reason = Disconnect.DisconnectReason.DisconnectReasonApplication;
 
-            p._client.send(discon);
-        }
+			p._client.send(discon);
+		}
 
 		/// <summary>
 		/// Notifies a player that the shop request has been processed

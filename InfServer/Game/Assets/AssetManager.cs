@@ -285,7 +285,7 @@ namespace InfServer.Game
 
             if (!_idToItem.TryGetValue(id, out item))
             {
-                Log.write(TLog.Inane, "Unable to get item by ID: {0}", id);
+                Log.write(TLog.Warning, "Unable to get item by ID: {0}", id);
                 return null;
             }
 

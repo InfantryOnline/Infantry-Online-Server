@@ -117,23 +117,26 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void testPacket(Player player, Player recipient, string payload, int bong)
 		{
+            //recipient._client.destroy();
+            /*
             Disconnect discon = new Disconnect();
 
             discon.connectionID = recipient._client._connectionID;
-            discon.reason = Disconnect.DisconnectReason.DisconnectReasonManagerDeleted;
+            discon.reason = Disconnect.DisconnectReason.DisconnectReasonOtherSideTerminated;
 
             recipient._client.send(discon);
             Console.WriteLine("Disconnect packet sent to {0}", recipient);
-            /*
+            
+
             SC_TestPacket test = new SC_TestPacket();
             test.player = player;
             test.ball = player._arena._balls.SingleOrDefault(b => b._id == (ushort)0);
             player._client.sendReliable(test);
              */
             
-            //SC_TestPacket test = new SC_TestPacket();
-            //test.player = player;
-            //player._client.send(test);
+            SC_TestPacket test = new SC_TestPacket();
+            test.player = player;
+            player._client.send(test);
 
 
             /*

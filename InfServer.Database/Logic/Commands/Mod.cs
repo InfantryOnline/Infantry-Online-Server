@@ -235,8 +235,8 @@ namespace InfServer.Logic
 
                             //Lets get all account related info
                             Data.DB.player player = (from plyr in db.players
-                                        where plyr.alias1.name == pkt.query && plyr.zone1 == zone._zone
-                                        select plyr).FirstOrDefault();
+                                                     where plyr.alias1.name == pkt.query && plyr.zone1 == zone._zone
+                                                     select plyr).FirstOrDefault();
                             if (player == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -409,7 +409,7 @@ namespace InfServer.Logic
                             IQueryable<Data.DB.alias> foundAlias = db.alias.Where(d => (d.IPAddress.Equals(alias.IPAddress) || d.account == alias.account));
                             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                             {
-                                foreach(Data.DB.alias p in foundAlias)
+                                foreach (Data.DB.alias p in foundAlias)
                                     if (player.Value.alias.Equals(p.name))
                                     {
                                         zone._server.sendMessage(zone, pkt.sender, String.Format("*Found: {0} Zone: {1} Arena: {2}", p.name, player.Value.zone._zone.name, !String.IsNullOrWhiteSpace(player.Value.arena) ? player.Value.arena : "Unknown Arena"));
@@ -423,7 +423,7 @@ namespace InfServer.Logic
                 }
             }
         }
-                        
+
         /// <summary>
         /// Handles a query packet
         /// </summary>
@@ -432,7 +432,7 @@ namespace InfServer.Logic
             using (InfantryDataContext db = zone._server.getContext())
             {
                 Data.DB.alias dbplayer = db.alias.First(p => p.name.Equals(pkt.alias));
-           
+
                 //Lets check to see if they are banned already
                 foreach (Data.DB.ban b in db.bans.Where(b => b.account == dbplayer.account1.id))
                 {
@@ -547,7 +547,7 @@ namespace InfServer.Logic
                 db.SubmitChanges();
             }
         }
-                 
+
 
         /// <summary>
         /// Registers all handlers

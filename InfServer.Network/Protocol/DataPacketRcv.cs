@@ -70,8 +70,7 @@ namespace InfServer.Protocol
             }
             catch (Exception e)
             {
-                Log.write(TLog.Warning, "DataPacketRcv line 69. {0}", e);
-                //Log.write(TLog.Warning, "{0}", this.Dump);
+                Log.write(TLog.Warning, String.Format("DataPacketRcv line 69. {0}", e));
             }
 
             try
@@ -83,8 +82,7 @@ namespace InfServer.Protocol
             }
             catch (Exception e)
             {
-                Log.write(TLog.Warning, "DataPacketRcv line 78; Length: '{0}'. {1}", data.Length, e);
-                //Log.write(TLog.Warning, "{0}", this.Dump);
+                Log.write(TLog.Warning, String.Format("DataPacketRcv line 78. {0} - {1}", e, data.Length));
             }
 		}
 

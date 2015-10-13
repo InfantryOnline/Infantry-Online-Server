@@ -9,63 +9,63 @@ using System.Globalization;
 
 namespace InfServer.Logic
 {	// Logic_Login Class
-	/// Handles everything related to the zone server's login
-	///////////////////////////////////////////////////////
-	class Logic_Login
-	{	
-		/// <summary>
-		/// Handles the zone login request packet 
-		/// </summary>
-		static public void Handle_CS_Auth(CS_Auth<Zone> pkt, Client<Zone> client)
-		{	//Note the login request
-			Log.write(TLog.Normal, "Login request from ({0}): {1} / {2}", client._ipe, pkt.zoneID, pkt.password);
+    /// Handles everything related to the zone server's login
+    ///////////////////////////////////////////////////////
+    class Logic_Login
+    {
+        /// <summary>
+        /// Handles the zone login request packet 
+        /// </summary>
+        static public void Handle_CS_Auth(CS_Auth<Zone> pkt, Client<Zone> client)
+        {	//Note the login request
+            Log.write(TLog.Normal, "Login request from ({0}): {1} / {2}", client._ipe, pkt.zoneID, pkt.password);
 
-			//Attempt to find the associated zone
-			DBServer server = client._handler as DBServer;
-			Data.DB.zone dbZone;
+            //Attempt to find the associated zone
+            DBServer server = client._handler as DBServer;
+            Data.DB.zone dbZone;
 
-			using (InfantryDataContext db = server.getContext())
-				dbZone = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
-			
-			//Does the zone exist?
-			if (dbZone == null)
-			{	//Reply with failure
-				SC_Auth<Zone> reply = new SC_Auth<Zone>();
+            using (InfantryDataContext db = server.getContext())
+                dbZone = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
 
-				reply.result = SC_Auth<Zone>.LoginResult.Failure;
-				reply.message = "Invalid zone.";
-				client.sendReliable(reply);
-				return;
-			}
+            //Does the zone exist?
+            if (dbZone == null)
+            {	//Reply with failure
+                SC_Auth<Zone> reply = new SC_Auth<Zone>();
 
-			//Are the passwords a match?
-			if (dbZone.password != pkt.password)
-			{	//Oh dear.
-				SC_Auth<Zone> reply = new SC_Auth<Zone>();
-				reply.result = SC_Auth<Zone>.LoginResult.BadCredentials;
-				client.sendReliable(reply);
-				return;
-			}
+                reply.result = SC_Auth<Zone>.LoginResult.Failure;
+                reply.message = "Invalid zone.";
+                client.sendReliable(reply);
+                return;
+            }
 
-			//Great! Escalate our client object to a zone
-			Zone zone = new Zone(client, server, dbZone);
-			client._obj = zone;
+            //Are the passwords a match?
+            if (dbZone.password != pkt.password)
+            {	//Oh dear.
+                SC_Auth<Zone> reply = new SC_Auth<Zone>();
+                reply.result = SC_Auth<Zone>.LoginResult.BadCredentials;
+                client.sendReliable(reply);
+                return;
+            }
 
-			server._zones.Add(zone);
+            //Great! Escalate our client object to a zone
+            Zone zone = new Zone(client, server, dbZone);
+            client._obj = zone;
+
+            server._zones.Add(zone);
 
             //Called on connection close / timeout
             zone._client.Destruct += delegate(NetworkClient nc)
-			{
+            {
                 zone.destroy();
-			};
+            };
 
-			//Success!
-			SC_Auth<Zone> success = new SC_Auth<Zone>();
-            
-			success.result = SC_Auth<Zone>.LoginResult.Success;
-		    success.message = dbZone.notice;
+            //Success!
+            SC_Auth<Zone> success = new SC_Auth<Zone>();
 
-			client.sendReliable(success);
+            success.result = SC_Auth<Zone>.LoginResult.Success;
+            success.message = dbZone.notice;
+
+            client.sendReliable(success);
 
             using (InfantryDataContext db = zone._server.getContext())
             {
@@ -82,12 +82,12 @@ namespace InfServer.Logic
                 zoneentry.active = 1;
                 db.SubmitChanges();
             }
-			Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
-		}
+            Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
+        }
 
-		/// <summary>
-		/// Handles the zone login request packet 
-		/// </summary>
+        /// <summary>
+        /// Handles the zone login request packet 
+        /// </summary>
         static public void Handle_CS_PlayerLogin(CS_PlayerLogin<Zone> pkt, Zone zone)
         {	//Make a note
             Log.write(TLog.Inane, "Player login request for '{0}' on '{1}'", pkt.alias, zone);
@@ -386,11 +386,11 @@ namespace InfServer.Logic
             }
         }
 
-		/// <summary>
-		/// Handles a player leave notification 
-		/// </summary>
-		static public void Handle_CS_PlayerLeave(CS_PlayerLeave<Zone> pkt, Zone zone)
-		{	//He's gone!
+        /// <summary>
+        /// Handles a player leave notification 
+        /// </summary>
+        static public void Handle_CS_PlayerLeave(CS_PlayerLeave<Zone> pkt, Zone zone)
+        {	//He's gone!
             if (zone == null)
             {
                 Log.write(TLog.Error, "Handle_CS_PlayerLeave(): Called with null zone.");
@@ -412,7 +412,7 @@ namespace InfServer.Logic
             zone.lostPlayer(pkt.player.id);
 
             Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.name);
-            
+
             // Update their playtime
             using (InfantryDataContext db = zone._server.getContext())
             {
@@ -428,11 +428,11 @@ namespace InfServer.Logic
                     db.SubmitChanges();
                 }
             }
-		}
+        }
 
         /// <summary>
-		/// Handles a graceful zone disconnect
-		/// </summary>
+        /// Handles a graceful zone disconnect
+        /// </summary>
         static public void Handle_Disconnect(Disconnect<Zone> pkt, Zone zone)
         {
             Log.write("{0} disconnected gracefully", zone._zone.name);
@@ -441,16 +441,16 @@ namespace InfServer.Logic
             zone._client.destroy();
         }
 
-		/// <summary>
-		/// Registers all handlers
-		/// </summary>
-		[RegistryFunc]
-		static public void Register()
-		{
-			CS_Auth<Zone>.Handlers += Handle_CS_Auth;
-			CS_PlayerLogin<Zone>.Handlers += Handle_CS_PlayerLogin;
-			CS_PlayerLeave<Zone>.Handlers += Handle_CS_PlayerLeave;
+        /// <summary>
+        /// Registers all handlers
+        /// </summary>
+        [RegistryFunc]
+        static public void Register()
+        {
+            CS_Auth<Zone>.Handlers += Handle_CS_Auth;
+            CS_PlayerLogin<Zone>.Handlers += Handle_CS_PlayerLogin;
+            CS_PlayerLeave<Zone>.Handlers += Handle_CS_PlayerLeave;
             Disconnect<Zone>.Handlers += Handle_Disconnect;
-		}
-	}
+        }
+    }
 }

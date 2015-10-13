@@ -82,7 +82,7 @@ namespace InfServer.Logic
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
                 return;
             }
-
+            
             Player newPlayer = server.newPlayer(client, alias);
 
 			//If it failed for some reason, present a failure message

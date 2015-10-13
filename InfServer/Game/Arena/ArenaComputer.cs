@@ -352,9 +352,9 @@ namespace InfServer.Game
                     case VehInfo.Types.Computer:
                         {
                             //Lets destroy the vehicle being morphed
-                      //      Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
-                     //       if (ve != null)
-                      //          ve.destroy(true);
+                            //      Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                            //       if (ve != null)
+                            //          ve.destroy(true);
 
                             //Spawn new vehicle
                             Vehicle vehicle = newVehicle(vehInfo, client._team, client, client._state);
@@ -369,9 +369,9 @@ namespace InfServer.Game
                             Vehicle vehicle = newVehicle(vehInfo, client._team, client, client._state);
 
                             //Lets destroy the morphing vehicle
-                   //         Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
-                   //         if (ve != null)
-                   //             ve.destroy(true);
+                            //         Vehicle ve = client._arena._vehicles.getObjByID(computer._id);
+                            //         if (ve != null)
+                            //             ve.destroy(true);
 
                             //Place him in the vehicle!
                             return client.enterVehicle(vehicle);

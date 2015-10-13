@@ -175,10 +175,10 @@ namespace InfServer.Game.Commands.Chat
         /// Presents the player with a list of arenas available to join
         /// </summary>
         public static void arena(Player player, Player recipient, string payload, int bong)
-		{	//Form the list packet to send to him..
-			SC_ArenaList arenaList = new SC_ArenaList(player._server._arenas.Values, player);
-			player._client.sendReliable(arenaList);
-		}
+        {	//Form the list packet to send to him..
+            SC_ArenaList arenaList = new SC_ArenaList(player._server._arenas.Values, player);
+            player._client.sendReliable(arenaList);
+        }
         #endregion
 
         #region banner
@@ -280,7 +280,7 @@ namespace InfServer.Game.Commands.Chat
                         continue;
                     }
 
-                   //Check limits
+                    //Check limits
                     if (item.maxAllowed != 0)
                     {
                         int constraint = Math.Abs(item.maxAllowed) - ((ii == null) ? (ushort)0 : ii.quantity);
@@ -438,7 +438,7 @@ namespace InfServer.Game.Commands.Chat
                         {
                             if (!player._skills.Keys.Contains(sk.skill.SkillId))
                                 continue;
-                            getCost = (Math.Pow(player._skills[sk.skill.SkillId].quantity, attributeCountPower) * skill.Price) * (attributeSellPercent / 100);                            
+                            getCost = (Math.Pow(player._skills[sk.skill.SkillId].quantity, attributeCountPower) * skill.Price) * (attributeSellPercent / 100);
                             soldPrice = (soldPrice + (int)getCost);
                             player.Experience += (int)getCost;
                             if (sk.quantity > 0)
@@ -529,6 +529,7 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(0, "Wrong format typed.");
                 return;
             }
+
             CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
             join.chat = payload;
             join.from = player._alias;
@@ -670,9 +671,10 @@ namespace InfServer.Game.Commands.Chat
                 Player.InventoryItem ii = player.getInventory(item);
 
                 //Make sure item can be dropped
-                if (!item.droppable) { 
-                    player.sendMessage(-1, "You cannot drop that item."); 
-                    continue; 
+                if (!item.droppable)
+                {
+                    player.sendMessage(-1, "You cannot drop that item.");
+                    continue;
                 }
 
                 //Item does not exist in their inventory
@@ -681,7 +683,7 @@ namespace InfServer.Game.Commands.Chat
                     player.sendMessage(-1, String.Format("You do not have any ({0}) to drop.", item.name));
                     continue;
                 }
-                
+
                 //If the drop amount exceeds the amount in the inventory assign it to the amount in inventory
                 if (ii.quantity < dropAmount)
                 {
@@ -738,7 +740,7 @@ namespace InfServer.Game.Commands.Chat
             if (player._server.IsStandalone)
                 return;
 
-            if (payload=="")
+            if (payload == "")
             {
                 player.sendMessage(-1, "Invalid syntax. Use ?email newemail");
                 return;
@@ -974,8 +976,8 @@ namespace InfServer.Game.Commands.Chat
 
         #region structures
         /// <summary>
-		/// Displays all structures and vehicles belonging to a team.
-		/// </summary>
+        /// Displays all structures and vehicles belonging to a team.
+        /// </summary>
         public static void structures(Player player, Player recipient, string payload, int bong)
         {
             if (player.IsSpectator)
@@ -1024,8 +1026,8 @@ namespace InfServer.Game.Commands.Chat
 
         #region spec
         /// <summary>
-		/// Displays all players which are spectating
-		/// </summary>
+        /// Displays all players which are spectating
+        /// </summary>
         public static void spec(Player player, Player recipient, string payload, int bong)
         {
             Player target = recipient;
@@ -1534,7 +1536,7 @@ namespace InfServer.Game.Commands.Chat
                 player.sendMessage(-1, "You don't own this team");
                 return;
             }
-            
+
             //Success, change it.
             player._team._password = payload;
             player.sendMessage(0, "Password sucessfully changed");

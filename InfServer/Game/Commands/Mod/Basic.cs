@@ -505,7 +505,7 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "And say what?");
                 return;
             }
-            
+
             if (player._server.IsStandalone)
             {
                 player.sendMessage(-1, "Server is currently in stand-alone mode.");
@@ -584,7 +584,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if ((recipient = player._arena.getPlayerByName(payload.ToLower() )) == null)
+                if ((recipient = player._arena.getPlayerByName(payload.ToLower())) == null)
                 {
                     player.sendMessage(-1, "That player doesn't exist.");
                     return;
@@ -769,10 +769,10 @@ namespace InfServer.Game.Commands.Mod
         /// Starts an arena poll for any question asked
         ///</summary>
         public static void poll(Player player, Player recipient, string payload, int bong)
-		{
-			//Check for a running poll
-			if (player._arena._poll != null && player._arena._poll.start)
-			{
+        {
+            //Check for a running poll
+            if (player._arena._poll != null && player._arena._poll.start)
+            {
                 if (payload == "cancel")
                 {
                     player._arena.pollQuestion(player._arena, false);
@@ -784,17 +784,17 @@ namespace InfServer.Game.Commands.Mod
                     player._arena.pollQuestion(player._arena, true);
                     return;
                 }
-				player.sendMessage(-1, "There is a poll in progress, you must wait till its finished to start a new one.");
-				return;
-			}
-			else
-			{
-				if (String.IsNullOrEmpty(payload))
-				{
-					player.sendMessage(-1, "Syntax: *poll <Question>(Optional <time> - Note: to use time seperate the question with : I.E ?poll Like me?:60");
-					return;
-				}
-			}
+                player.sendMessage(-1, "There is a poll in progress, you must wait till its finished to start a new one.");
+                return;
+            }
+            else
+            {
+                if (String.IsNullOrEmpty(payload))
+                {
+                    player.sendMessage(-1, "Syntax: *poll <Question>(Optional <time> - Note: to use time seperate the question with : I.E ?poll Like me?:60");
+                    return;
+                }
+            }
             player._arena._poll = new Arena.PollSettings();
             int timer = 0;
             if (payload.Contains(':'))
@@ -812,8 +812,8 @@ namespace InfServer.Game.Commands.Mod
                 player._arena.sendArenaMessage(String.Format("&A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), payload));
             }
 
-			player._arena._poll.start = true;
-		}
+            player._arena._poll.start = true;
+        }
 
         /// <summary>
         /// Spawns an item on the ground or in a player's inventory
@@ -1140,7 +1140,7 @@ namespace InfServer.Game.Commands.Mod
         {	//Shove him in spec!
             Player target = (recipient == null) ? player : recipient;
             //if (recipient != null && player != recipient && (int)player.PermissionLevel <= (int)recipient.PermissionLevel)
-                //return;
+            //return;
             if (payload.ToLower() == "all")
             {
                 foreach (Player p in player._arena.PlayersIngame.ToList())
@@ -1516,7 +1516,7 @@ namespace InfServer.Game.Commands.Mod
                     player.sendMessage(-1, "Cannot switch sides with the spectators.");
                     return;
                 }
-                
+
                 //Private team?
                 if (!teamB.IsPublic)
                 {
@@ -1938,7 +1938,7 @@ namespace InfServer.Game.Commands.Mod
                     string[] exacts = payload.Split(',');
                     int x = Convert.ToInt32(exacts[0]) * 16;
                     int y;
-                    
+
                     //Are we trying to summon a team?
                     if (exacts[1].Contains(' '))
                     {
@@ -2122,12 +2122,12 @@ namespace InfServer.Game.Commands.Mod
                 else
                     format = String.Format("[Zone] {0}", format);
                 //Send it to all
-                foreach(Arena arena in player._server._arenas.Values)
+                foreach (Arena arena in player._server._arenas.Values)
                     if (arena != null)
                         arena.sendArenaMessage(format, bong);
             }
         }
- 
+
         ////////////////////////////////////////////////////////////////////////////////////////
         /////////////////////////Below are Banning Commands/////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////////////
@@ -3105,9 +3105,9 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(getball, "getball",
-                "Gets a ball.", 
+                "Gets a ball.",
                 "*getball (gets ball ID 0) or *getball # (gets a specific ball ID)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);           
+                InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(gkill, "gkill",
                 "Globally bans a player from the entire server",

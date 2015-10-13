@@ -12,42 +12,42 @@ using InfServer.Data;
 
 namespace InfServer
 {
-	// DBServer Class
-	/// Represents the database server state
-	///////////////////////////////////////////////////////
-	public partial class DBServer : Server
-	{	// Member variables
-		///////////////////////////////////////////////////
-		public ConfigSetting _config;			                        //Our server config
-		public new LogClient _logger;			                        //Our zone server log
+    // DBServer Class
+    /// Represents the database server state
+    ///////////////////////////////////////////////////////
+    public partial class DBServer : Server
+    {	// Member variables
+        ///////////////////////////////////////////////////
+        public ConfigSetting _config;			                        //Our server config
+        public new LogClient _logger;			                        //Our zone server log
         public SortedDictionary<string, Chat> _chats;
         public Dictionary<string, Zone.Player> _players;                //A list of every connected player
         public int playerPeak;
 
-		public List<Zone> _zones;				                        //The zones currently connected
+        public List<Zone> _zones;				                        //The zones currently connected
 
         public List<KeyValuePair<int, int>> _squadInvites;              //Our history of squad invites pair<squadid, playerid>
 
-		private string _connectionString;		                        //The connectionstring to our database
+        private string _connectionString;		                        //The connectionstring to our database
 
-		static public bool bAllowMulticlienting;                        //Should we allow players to join multiple times under the same account?
+        static public bool bAllowMulticlienting;                        //Should we allow players to join multiple times under the same account?
 
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Generic constructor
-		/// </summary>
-		public DBServer()
-			: base(new C2SPacketFactory<Zone>(), new Client<Zone>(false))
-		{
-			_config = ConfigSetting.Blank;
-			_zones = new List<Zone>();
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        public DBServer()
+            : base(new C2SPacketFactory<Zone>(), new Client<Zone>(false))
+        {
+            _config = ConfigSetting.Blank;
+            _zones = new List<Zone>();
             _chats = new SortedDictionary<string, Chat>();
             _players = new Dictionary<string, Zone.Player>();
             _squadInvites = new List<KeyValuePair<int, int>>();
-		}
+        }
 
         public bool newPlayer(Zone.Player player)
         {
@@ -164,69 +164,69 @@ namespace InfServer
             }
         }
 
-		/// <summary>
-		/// Allows the server to preload all assets.
-		/// </summary>
-		public bool init()
-		{	//Load our server config
-			Log.write(TLog.Normal, "Loading Server Configuration");
-			_config = new Xmlconfig("server.xml", false).Settings;
+        /// <summary>
+        /// Allows the server to preload all assets.
+        /// </summary>
+        public bool init()
+        {	//Load our server config
+            Log.write(TLog.Normal, "Loading Server Configuration");
+            _config = new Xmlconfig("server.xml", false).Settings;
 
-			//Load protocol config settings
-			Client.udpMaxSize = _config["protocol/udpMaxSize"].intValue;
-			Client.crcLength = _config["protocol/crcLength"].intValue;
-			if (Client.crcLength > 4)
-			{
-				Log.write(TLog.Error, "Invalid protocol/crcLength, must be less than 4.");
-				return false;
-			}
+            //Load protocol config settings
+            Client.udpMaxSize = _config["protocol/udpMaxSize"].intValue;
+            Client.crcLength = _config["protocol/crcLength"].intValue;
+            if (Client.crcLength > 4)
+            {
+                Log.write(TLog.Error, "Invalid protocol/crcLength, must be less than 4.");
+                return false;
+            }
 
-			Client.connectionTimeout = _config["protocol/connectionTimeout"].intValue;
+            Client.connectionTimeout = _config["protocol/connectionTimeout"].intValue;
 
-			bAllowMulticlienting = _config["allowMulticlienting"].boolValue;
+            bAllowMulticlienting = _config["allowMulticlienting"].boolValue;
 
-			//Attempt to connect to our database
-			_connectionString = _config["database/connectionString"].Value;
+            //Attempt to connect to our database
+            _connectionString = _config["database/connectionString"].Value;
 
-			//Does the database exist?
-			using (InfantryDataContext db = getContext())
-			{
-				if (!db.DatabaseExists())
-				{	//Create a new one
-					Log.write(TLog.Warning, "Database layout doesn't exist, creating..");
+            //Does the database exist?
+            using (InfantryDataContext db = getContext())
+            {
+                if (!db.DatabaseExists())
+                {	//Create a new one
+                    Log.write(TLog.Warning, "Database layout doesn't exist, creating..");
 
-					db.CreateDatabase();
-				}
-			}
+                    db.CreateDatabase();
+                }
+            }
 
-			//We're good!
-			Log.write("Connected to database.");
-			return true;
-		}
+            //We're good!
+            Log.write("Connected to database.");
+            return true;
+        }
 
-		/// <summary>
-		/// Begins all server processes, and starts accepting clients.
-		/// </summary>
-		public void begin()
-		{	//Start up the network
-			_logger = Log.createClient("DBServer");
-			base._logger = Log.createClient("Network");
+        /// <summary>
+        /// Begins all server processes, and starts accepting clients.
+        /// </summary>
+        public void begin()
+        {	//Start up the network
+            _logger = Log.createClient("DBServer");
+            base._logger = Log.createClient("Network");
 
-			IPEndPoint listenPoint = new IPEndPoint(
-				IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue);
-			base.begin(listenPoint);
+            IPEndPoint listenPoint = new IPEndPoint(
+                IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue);
+            base.begin(listenPoint);
             Log.write("Server started, now listening..");
 
-			while (true)
-				Thread.Sleep(10);
-		}
+            while (true)
+                Thread.Sleep(10);
+        }
 
-		/// <summary>
-		/// Creates a new data context to connect to the database
-		/// </summary>
-		public InfantryDataContext getContext()
-		{
-			return new InfantryDataContext(_connectionString);
-		}
-	}
+        /// <summary>
+        /// Creates a new data context to connect to the database
+        /// </summary>
+        public InfantryDataContext getContext()
+        {
+            return new InfantryDataContext(_connectionString);
+        }
+    }
 }

@@ -8,14 +8,14 @@ using InfServer.Game;
 
 namespace InfServer.Logic
 {	// Logic_PlayerUpdate Class
-	/// Deals with handling all player-related updates
-	///////////////////////////////////////////////////////
-	class Logic_PlayerUpdate
-	{	/// <summary>
-		/// Handles all player update packets received from clients
-		/// </summary>
-		static public void Handle_CS_PlayerUpdate(CS_PlayerUpdate pkt, Player player)
-		{
+    /// Deals with handling all player-related updates
+    ///////////////////////////////////////////////////////
+    class Logic_PlayerUpdate
+    {	/// <summary>
+        /// Handles all player update packets received from clients
+        /// </summary>
+        static public void Handle_CS_PlayerUpdate(CS_PlayerUpdate pkt, Player player)
+        {
             if (player == null)
             {
                 Log.write(TLog.Error, "Handle_CS_PlayerUpdate(): Called with null player.");
@@ -23,23 +23,23 @@ namespace InfServer.Logic
             }
 
             //Allow the player's arena to handle it
-			if (player._arena == null)
-			{
+            if (player._arena == null)
+            {
                 Log.write(TLog.Error, "Handle_CS_PlayerUpdate(): Player {0} sent update packet with no arena.", player);
-				return;
-			}
-			player._arena.handleEvent(delegate(Arena arena)
-				{
-					player._arena.handlePlayerUpdate(player, pkt);
-				}
-			);
-		}
+                return;
+            }
+            player._arena.handleEvent(delegate(Arena arena)
+                {
+                    player._arena.handlePlayerUpdate(player, pkt);
+                }
+            );
+        }
 
-		/// <summary>
-		/// Handles the declaration of death from a client
-		/// </summary>
-		static public void Handle_CS_PlayerDeath(CS_VehicleDeath pkt, Player player)
-		{
+        /// <summary>
+        /// Handles the declaration of death from a client
+        /// </summary>
+        static public void Handle_CS_PlayerDeath(CS_VehicleDeath pkt, Player player)
+        {
             if (player == null)
             {
                 Log.write(TLog.Error, "Handle_CS_PlayerDeath(): Called with null player.");
@@ -47,27 +47,27 @@ namespace InfServer.Logic
             }
 
             //Allow the player's arena to handle it
-			if (player._arena == null)
-			{
+            if (player._arena == null)
+            {
                 Log.write(TLog.Error, "Handle_CS_PlayerDeath(): Player {0} sent death packet with no arena.", player);
-				return;
-			}
+                return;
+            }
 
-			player._arena.handleEvent(delegate(Arena arena)
-				{
-					player._arena.handlePlayerDeath(player, pkt);
-				}
-			);
-		}
+            player._arena.handleEvent(delegate(Arena arena)
+                {
+                    player._arena.handlePlayerDeath(player, pkt);
+                }
+            );
+        }
 
-		/// <summary>
-		/// Registers all handlers
-		/// </summary>
-		[Logic.RegistryFunc]
-		static public void Register()
-		{
-			CS_PlayerUpdate.Handlers += Handle_CS_PlayerUpdate;
-			CS_VehicleDeath.Handlers += Handle_CS_PlayerDeath;
-		}
-	}
+        /// <summary>
+        /// Registers all handlers
+        /// </summary>
+        [Logic.RegistryFunc]
+        static public void Register()
+        {
+            CS_PlayerUpdate.Handlers += Handle_CS_PlayerUpdate;
+            CS_VehicleDeath.Handlers += Handle_CS_PlayerDeath;
+        }
+    }
 }
