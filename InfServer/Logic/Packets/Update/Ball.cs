@@ -21,13 +21,13 @@ namespace InfServer.Logic
         {   //Allow the arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Handle_CS_BallDrop: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_BallDrop(): Player {0} sent update packet with no arena.", player);
                 return;
             }
 
             if (player.IsSpectator)
             {
-                Log.write(TLog.Warning, "Player {0} attempted to drop a ball from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_BallDrop(): Player {0} attempted to drop a ball from spec.", player);
                 return;
             }
 
@@ -44,13 +44,13 @@ namespace InfServer.Logic
         {	//Allow the player's arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Handle_CS_GoalScored: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_GoalScored(): Player {0} sent update packet with no arena.", player);
                 return;
             }
 
             if (player.IsSpectator)
             {
-                Log.write(TLog.Warning, "Player {0} attempted to score a goal from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_GoalScored(): Player {0} attempted to score a goal from spec.", player);
                 return;
             }
 
@@ -68,19 +68,19 @@ namespace InfServer.Logic
         {	//Allow the player's arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Handle_CS_BallPickup: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_BallPickup(): Player {0} sent update packet with no arena.", player);
                 return;
             }
 
             if (player.IsSpectator)
             {
-                Log.write(TLog.Warning, "Player {0} attempted to pick up a ball from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_BallPickup(): Player {0} attempted to pick up a ball from spec.", player);
                 return;
             }
 
             if (player.IsDead)
             {
-                Log.write(TLog.Warning, "Player {0} attempted to pick up a ball while dead.", player);
+                Log.write(TLog.Warning, "Handle_CS_BallPickup(): Player {0} attempted to pick up a ball while dead.", player);
                 return;
             }
 

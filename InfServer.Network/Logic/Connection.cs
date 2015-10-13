@@ -18,7 +18,7 @@ namespace InfServer.Logic
 			if (client._bInitialized)
 			{	//Make a note
 				Log.write(TLog.Error, "Client " + client + " attempted to initialize connection twice.");
-                client.destroy();
+				client.destroy();
 				return;
 			}
 
@@ -133,12 +133,12 @@ namespace InfServer.Logic
 
 		/// <summary>
 		/// Handles the client's disconnection notice
-        /// NOTE: Only sent by game clients
+        /// NOTE: Only sent by player clients
 		/// </summary>
 		static public void Handle_Disconnect(Disconnect pkt, Client client)
-		{   //Remove the client from the list
+		{	//Destroy the client in question
             client.destroy();
-            Log.write(TLog.Normal, "Client '{0}' disconnected: {1}", client, pkt.reason);
+            Log.write(TLog.Normal, "Client '{0}' disconnected.", client);
 		}
 
 		/// <summary>

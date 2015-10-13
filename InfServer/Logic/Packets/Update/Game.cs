@@ -20,19 +20,19 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerPickup: Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerPickup(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to pickup items from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerPickup(): Player {0} attempted to pickup items from spec.", player);
 				return;
 			}
 
 			if (player.IsDead)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to pickup items while dead.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerPickup(): Player {0} attempted to pickup items while dead.", player);
 				return;
 			}
 
@@ -50,19 +50,19 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerDrop: Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_PlayerDrop(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to drop items from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerDrop(): Player {0} attempted to drop items from spec.", player);
 				return;
 			}
 
 			if (player.IsDead)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to drop items while dead.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerDrop(): Player {0} attempted to drop items while dead.", player);
 				return;
 			}
 
@@ -80,19 +80,19 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerPortal: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_PlayerPortal(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to use a portal from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerPortal(): Player {0} attempted to use a portal from spec.", player);
 				return;
 			}
 
 			if (player.IsDead)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to use a portal while dead.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerPortal(): Player {0} attempted to use a portal while dead.", player);
 				return;
 			}
 
@@ -101,7 +101,7 @@ namespace InfServer.Logic
 
 			//If it doesn't exist, nevermind
 			if (portal == null)
-				Log.write(TLog.Warning, "Player {0} attempted to use portal which doesn't exist.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerPortal(): Player {0} attempted to use portal which doesn't exist.", player);
 			else
 			{
 				player._arena.handleEvent(delegate(Arena arena)
@@ -119,17 +119,17 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerProduce: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_PlayerProduce(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to produce item ({0}) from spec.", player, pkt.produceItem);
+                Log.write(TLog.Warning, "Handle_CS_PlayerProduce(): Player {0} attempted to produce item ({0}) from spec.", player, pkt.produceItem);
 				return;
 			}
 			if (player.IsDead)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to produce item ({0}) while dead.", player, pkt.produceItem);
+                Log.write(TLog.Warning, "Handle_CS_PlayerProduce(): Player {0} attempted to produce item ({0}) while dead.", player, pkt.produceItem);
 				return;
 			}
 
@@ -148,19 +148,19 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerSwitch: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_PlayerSwitch(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to activate a switch from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerSwitch(): Player {0} attempted to activate a switch from spec.", player);
 				return;
 			}
 
 			if (player.IsDead)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to activate a switch while dead.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerSwitch(): Player {0} attempted to activate a switch while dead.", player);
 				return;
 			}
 
@@ -169,7 +169,7 @@ namespace InfServer.Logic
 
 			//If it doesn't exist, nevermind
 			if (sw == null)
-				Log.write(TLog.Warning, "Player {0} attempted to use switch which doesn't exist.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerSwitch(): Player {0} attempted to use switch which doesn't exist.", player);
 			else
 			{
 				player._arena.handleEvent(delegate(Arena arena)
@@ -187,13 +187,13 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerFlag: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_PlayerFlag(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to activate a flag from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerFlag(): Player {0} attempted to activate a flag from spec.", player);
 				return;
 			}
 
@@ -202,7 +202,7 @@ namespace InfServer.Logic
 
 			//If it doesn't exist, nevermind
 			if (flag == null)
-				Log.write(TLog.Warning, "Player {0} attempted to use flag which doesn't exist.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerFlag(): Player {0} attempted to use flag which doesn't exist.", player);
 			else
 			{
 				player._arena.handleEvent(delegate(Arena arena)
@@ -220,7 +220,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerJoin: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_PlayerJoin(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -235,7 +235,7 @@ namespace InfServer.Logic
 					{	//Yes, are we currently in a specator vehicle?
 						if (player._occupiedVehicle == null)
 						{
-							Log.write(TLog.Error, "Handle_CS_PlayerJoin: Player {0} attempting to return to baseVehicle from no occupied vehicle.", player);
+                            Log.write(TLog.Error, "Handle_CS_PlayerJoin(): Player {0} attempting to return to baseVehicle from no occupied vehicle.", player);
 							return;
 						}
 
@@ -266,13 +266,13 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_Explosion: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_Explosion(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to trigger an explosion from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_Explosion(): Player {0} attempted to trigger an explosion from spec.", player);
 				return;
 			}
 
@@ -290,7 +290,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_Shop: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_Shop(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -298,7 +298,7 @@ namespace InfServer.Logic
 			ItemInfo item = player._server._assets.getItemByID(pkt.itemID);
 			if (item == null)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to buy non-existent item from store.", player);
+                Log.write(TLog.Warning, "Handle_CS_Shop(): Player {0} attempted to buy non-existent item from store.", player);
 				return;
 			}
 
@@ -319,7 +319,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_ShopSkill: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_ShopSkill(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -327,7 +327,7 @@ namespace InfServer.Logic
 			SkillInfo skill = player._server._assets.getSkillByID(pkt.skillID);
 			if (skill == null)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to buy non-existent skill from store.", player);
+                Log.write(TLog.Warning, "Handle_CS_ShopSkill(): Player {0} attempted to buy non-existent skill from store.", player);
 				return;
 			}
 
@@ -348,7 +348,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_PlayerUseItem: Player {0} sent update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_PlayerUseItem(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
@@ -356,27 +356,27 @@ namespace InfServer.Logic
             ItemInfo item = player._server._assets.getItemByID(pkt.itemID);
             if (item == null)
             {
-                Log.write(TLog.Warning, "Player {0} attempted to use non-existent item.", player);
+                Log.write(TLog.Warning, "Handle_CS_PlayerUseItem(): Player {0} attempted to use non-existent item.", player);
                 return;
             }
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to use item from spec '{1}'.", player, item.name);
+                Log.write(TLog.Warning, "Handle_CS_PlayerUseItem(): Player {0} attempted to use item from spec '{1}'.", player, item.name);
 				return;
 			}
 
 			//Check the player isn't lying about his coordinates
 			if (!Helpers.isInRange(200, player._state.positionX, player._state.positionY, pkt.posX, pkt.posY))
 			{
-				Log.write(TLog.Warning, "Player {0} coordinate mismatch on item '{1}'.", player, item.name);
+                Log.write(TLog.Warning, "Handle_CS_PlayerUseItem(): Player {0} coordinate mismatch on item '{1}'.", player, item.name);
 				return;
 			}
 
 			//Are we able to use it?
             if (!Logic_Assets.SkillCheck(player, item.skillLogic))
             {
-                Log.write(TLog.Security, "Player {0} failed skill check to use item '{1}'.", player, item.name);
+                Log.write(TLog.Security, "Handle_CS_PlayerUseItem(): Player {0} failed skill check to use item '{1}'.", player, item.name);
                 return;
             }
 
@@ -417,7 +417,7 @@ namespace InfServer.Logic
         {   //Allow the player's arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Player {0} sent allow spectator request packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_AllowSpectator(): Player {0} sent allow spectator request packet with no arena.", player);
                 return;
             }
 
@@ -447,13 +447,13 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent spectator request packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_RequestSpectator(): Player {0} sent spectator request packet with no arena.", player);
 				return;
 			}
 
 			if (!player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to spectate a player while not in spec.", player);
+				Log.write(TLog.Warning, "Handle_CS_RequestSpectator(): Player {0} attempted to spectate a player while not in spec.", player);
 				return;
 			}
 
@@ -471,7 +471,7 @@ namespace InfServer.Logic
 		{	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Player {0} sent item expired packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_ItemExpired(): Player {0} sent item expired packet with no arena.", player);
 				return;
 			}
 
@@ -489,19 +489,19 @@ namespace InfServer.Logic
         {	//Allow the player's arena to handle it
 			if (player._arena == null)
 			{
-				Log.write(TLog.Error, "Handle_CS_VehiclePickup: Player {0} sent update packet with no arena.", player);
+				Log.write(TLog.Error, "Handle_CS_VehiclePickup(): Player {0} sent update packet with no arena.", player);
 				return;
 			}
 
 			if (player.IsSpectator)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to pickup vehicle items from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_VehiclePickup(): Player {0} attempted to pickup vehicle items from spec.", player);
 				return;
 			}
 
 			if (player.IsDead)
 			{
-				Log.write(TLog.Warning, "Player {0} attempted to pickup vehicle items while dead.", player);
+                Log.write(TLog.Warning, "Handle_CS_VehiclePickup(): Player {0} attempted to pickup vehicle items while dead.", player);
 				return;
 			}
             
@@ -519,20 +519,21 @@ namespace InfServer.Logic
         {	//Allow the player's arena to handle it
             if (player._arena == null)
             {
-                Log.write(TLog.Error, "Player {0} sent damage event update packet with no arena.", player);
+                Log.write(TLog.Error, "Handle_CS_DamageEvent(): Player {0} sent damage event update packet with no arena.", player);
                 return;
             }
 
             if (player.IsSpectator)
             {
-                Log.write(TLog.Warning, "Player {0} attempted to trigger a damage event from spec.", player);
+                Log.write(TLog.Warning, "Handle_CS_DamageEvent(): Player {0} attempted to trigger a damage event from spec.", player);
                 return;
             }
 
             player._arena.handleEvent(delegate(Arena arena)
             {
                 player._arena.handlePlayerDamageEvent(player, pkt);
-            });
+            }
+            );
         }
 
 		/// <summary>

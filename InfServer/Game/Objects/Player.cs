@@ -298,26 +298,13 @@ namespace InfServer.Game
 			}
 		}
 
-        /// <summary>
-        /// Disconnects the player and removes from everything
-        /// </summary>
-        public void disconnect()
-        {
-            //Redirect
-            disconnect(Disconnect.DisconnectReason.DisconnectReasonApplication);
-        }
-
 		/// <summary>
 		/// Disconnects the player and removes from everything
 		/// </summary>
-		public void disconnect(Disconnect.DisconnectReason reason)
+		public void disconnect()
 		{
-            destroy();
-            Helpers.Player_Disconnect(this, reason);
-
-            //Were we forced a dc? (*dc or *kill)
-            if (!_client._bDestroyed)
-                _client.destroy();
+			Helpers.Player_Disconnect(this);
+			destroy();
 		}
 
         /// <summary>
@@ -370,9 +357,12 @@ namespace InfServer.Game
 			}
 
             //If we're currently in a vehicle, we want to desert it
-            //Test to see if they are spectating, a bit hackish, should be revised -X15
-            if (_occupiedVehicle != null && !IsSpectator)
+            if (_occupiedVehicle != null)
                 _occupiedVehicle.playerLeave(true);
+
+            //Destroy our spec vehicle
+            if (ActiveVehicle != null)
+                ActiveVehicle.destroy(true);
 
 			//Notify our team
 			if (_team != null)

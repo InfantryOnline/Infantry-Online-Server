@@ -65,7 +65,7 @@ namespace InfServer.Game
 		public override void poll()
 		{	//Process the base state
 			base.poll();
-
+			
 			//Poll all scripts!
 			foreach (Scripts.IScript script in _scripts)
 				script.poll();
@@ -183,12 +183,6 @@ namespace InfServer.Game
             {
                 if (PlayerCount < _server._zoneConfig.soccer.minimumPlayers)
                     return;
-
-                //First remove all the balls
-                resetBalls();
-
-                //Now spawn based on our cfg
-                SpawnBall();
             }
 
             //We're running!
@@ -197,7 +191,7 @@ namespace InfServer.Game
 			_tickGameEnded = 0;
 
 			//Reset the flags
-            if (!_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
+            if (_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
                 flagReset();
 
 			//What else do we need to reset?
@@ -249,7 +243,6 @@ namespace InfServer.Game
             {
                 t._currentGameKills = 0;
                 t._currentGameDeaths = 0;
-                t._currentGameScores = 0;
             }
 			
 			//Pass it to the script environment
@@ -384,9 +377,6 @@ namespace InfServer.Game
                     if (bCurrent ? p.StatsCurrentGame == null : p.StatsLastGame == null)
                         continue;
 
-                    if (p == null)
-                        continue;
-
                     if (idx-- == 0)
                         break;
 
@@ -429,7 +419,7 @@ namespace InfServer.Game
             callsync("Game.Breakdown", false);
 
             //Display flag victory jackpot?
-            if (_flags.Count() > 0 && _server._zoneConfig.flag.useJackpot)
+            if (_server._zoneConfig.flag.useJackpot)
             {
                 List<Team> flagTeams = new List<Team>();
                 foreach (FlagState fs in _flags.Values)
@@ -509,10 +499,10 @@ namespace InfServer.Game
                 && ball.ballStatus == (int)Ball.BallStatus.PickUp)
                 return;
 
-            //Is the player already carrying a ball?
+            //Is this player already carrying a ball?
             if (from._gotBallID != 999)
                 return;
-            
+
             //Forward to our script
             if (exists("Player.BallPickup") && !(bool)callsync("Player.BallPickup", false, from, ball))
                 return;
@@ -587,6 +577,7 @@ namespace InfServer.Game
             ball.tickCount = (uint)update.tickcount;
             ball.ballFriction = update.ballFriction;
             ball.ballStatus = 1;
+
             //Send ball coord updates to update spatial data
             _balls.updateObjState(ball, ball._state);
 
@@ -622,7 +613,6 @@ namespace InfServer.Game
 
             //Reset our variable then spawn a new ball
             from._gotBallID = 999;
-            //Spatial data is updated at the same time
             Ball.Spawn_Ball(from, ball);
         }
         #endregion
@@ -841,10 +831,9 @@ namespace InfServer.Game
                         Computer comp = ve as Computer;
                         if (comp != null)
                         {
-                            if (comp.reprogrammed && comp._team == from._team)
+                            if (comp._reprogrammed && comp._team == from._team)
                                 totalTempAmount++;
-
-                            if (!comp.reprogrammed && comp._team == from._team)
+                            if (!comp._reprogrammed && comp._team == from._team)
                             {
                                 totalAmount++;
                                 if (comp._type.Name == vehComp.Name)
@@ -857,7 +846,7 @@ namespace InfServer.Game
                     foreach (Vehicle veh in vehicles)
                     {
                         Computer comp = veh as Computer;
-                        if (comp != null && !comp.reprogrammed && comp._team == from._team)
+                        if (comp != null && !comp._reprogrammed && comp._team == from._team)
                         {
                             densityAmount++;
                             if (comp._type.Name == vehComp.Name)
@@ -977,11 +966,8 @@ namespace InfServer.Game
 			{	//Forward to our script
 				if (!exists("Player.LeaveGame") || (bool)callsync("Player.LeaveGame", false, from))
 				{	//The player has effectively left the game
-
+					
 				}
-                //Reset any ball held
-                onLeaving(from);
-
                 from.spec();
 			}
 			else
@@ -1251,10 +1237,7 @@ namespace InfServer.Game
                     {
                         ItemInfo.Projectile project = info as ItemInfo.Projectile;
                         if (project != null)
-                        {
                             ball.ballSpeed = project.soccerBallSpeed;
-                            ball.ballAngle = _rand.Next(project.lowFireAngle, project.highFireAngle);
-                        }
                     }
                 }
             }
@@ -1436,9 +1419,6 @@ namespace InfServer.Game
                         if (killer.IsDead)
                             flagResetPlayer(killer);
 
-                        //Handle any ball
-                        ballHandleDeath(from, killer);
-
                         //Don't reward for teamkills
                         if (from._team == killer._team)
                             Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
@@ -1459,9 +1439,6 @@ namespace InfServer.Game
 
             //Reset any flags held
             flagResetPlayer(from);
-
-            //Reset any balls held
-            ballHandleDeath(from);
 
             //Was it a bot kill?
             if (update.type == Helpers.KillType.Player && update.killerPlayerID >= 5001)
@@ -2054,41 +2031,33 @@ namespace InfServer.Game
                 if (newComp != null)
                 {   //Get a list of the vehicles in the arena
                     IEnumerable<Vehicle> vehs = player._arena.Vehicles;
-
-                    if (vehs != null)
+                    foreach (Vehicle veh in vehs)
                     {
-                        foreach (Vehicle veh in vehs)
-                        {
-                            Computer comp = veh as Computer;
-                            if (comp != null)
-                            {   //If the computer is on the same team as the one the player is trying to add increment the counter
-                                if (comp._team._name == player._team._name)
-                                {   
-                                    totalAmount++;
-                                    if (comp._type.Name == newComp.Name)
-                                        totalType++;
-                                }
+                        Computer comp = veh as Computer;
+                        if (comp != null)
+                        {   //If the computer is on the same team as the one the player is trying to add increment the counter
+                            if (comp._team == player._team)
+                            {
+                                totalAmount++;
+                                if (comp._type.Name == newComp.Name)
+                                    totalType++;
                             }
                         }
                     }
 
                     //Get a list of vehicles in the computer's density radius                 
                     List<Vehicle> vehicles = player._arena.getVehiclesInRange(player._state.positionX, player._state.positionY, newComp.DensityRadius);
-
-                    if (vehicles != null)
-                    {
-                        foreach (Vehicle veh in vehicles)
-                        {   //Iterate through the list checking for computers
-                            Computer comp = veh as Computer;
-                            if (comp != null)
-                            {   //If the computer is on the same team as the one the player is trying to add increment the counter
-                                if (comp._team._name == player._team._name)  
-                                {
-                                    densityAmount++;                                
-                                    if (comp._type.Name == newComp.Name)
-                                    {   //If the computer is of the same type and on the same team as the one the player is trying to add increment other counter
-                                        densityType++;
-                                    }
+                    foreach (Vehicle veh in vehicles)
+                    {   //Iterate through the list checking for computers
+                        Computer comp = veh as Computer;
+                        if (comp != null)
+                        {   //If the computer is on the same team as the one the player is trying to add increment the counter
+                            if (comp._team == player._team)
+                            {
+                                densityAmount++;
+                                if (comp._type.Name == newComp.Name)
+                                {   //If the computer is of the same type and on the same team as the one the player is trying to add increment other counter
+                                    densityType++;
                                 }
                             }
                         }
@@ -2406,51 +2375,48 @@ namespace InfServer.Game
                                     (target as Computer)._sendUpdate = true;
                                 }
 							}
-							else if (item.repairDistance < 0)
-							{	//An area heal! Get all vehicles within this area..
-								List<Vehicle> vehicles = _vehicles.getObjsInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
+                            else if (item.repairDistance < 0)
+                            {	//An area heal! Get all vehicles within this area..
+                                List<Vehicle> vehicles = _vehicles.getObjsInRange(player._state.positionX, player._state.positionY, -item.repairDistance);
 
-								//Check each vehicle
-                                if (vehicles.Count > 0)
-                                {
-                                    foreach (Vehicle v in vehicles)
-                                    {	//Is it on the correct team? (temporary or not)
-                                        if (v._team != player._team)
-                                                continue;
+                                //Check each vehicle
+                                foreach (Vehicle v in vehicles)
+                                {	//Is it on the correct team? (temporary or not)
+                                    if (v._team != player._team)
+                                        continue;
 
+                                    //Can we self heal?
+                                    if (v._inhabitant == player && !item.repairSelf)
+                                        continue;
+
+                                    //Repair our main!
+                                    v.heal(player, item);
+
+                                    //Heal our childs
+                                    foreach (Vehicle child in v._childs)
+                                    {
                                         //Can we self heal?
-                                        if (v._inhabitant == player && !item.repairSelf)
+                                        if (child._inhabitant == player && !item.repairSelf)
                                             continue;
 
-                                        //Repair our main!
-                                        v.heal(player, item);
+                                        child.heal(player, item);
+                                    }
 
-                                        //Heal our childs
-                                        foreach (Vehicle child in v._childs)
-                                        {
-                                            //Can we self heal?
-                                            if (child._inhabitant == player && !item.repairSelf)
-                                                continue;
-
-                                            child.heal(player, item);
-                                        }
-
-                                        //TODO: A bit hackish, should probably standardize this or improve computer updates
-                                        if (v is Computer)
-                                        {
-                                            //Computer health is server controlled
-                                            v._state.health = (short)Math.Min(v._type.Hitpoints, (int)(v._state.health + (percentage * v._state.health) + repairAmount));
-                                            (v as Computer)._sendUpdate = true;
-                                        }
+                                    //TODO: A bit hackish, should probably standardize this or improve computer updates
+                                    if (v is Computer)
+                                    {
+                                        //Computer health is server controlled
+                                        v._state.health = (short)Math.Min(v._type.Hitpoints, (int)(v._state.health + (percentage * v._state.health) + repairAmount));
+                                        (v as Computer)._sendUpdate = true;
                                     }
                                 }
-							}
-							else
-							{	//A self heal! Sure you can!
+                            }
+                            else
+                            {	//A self heal! Sure you can!
                                 Vehicle target = _vehicles.getObjByID(targetVehicle);
                                 if (target != null)
                                     target.heal(player, item);
-							}
+                            }
 						}
 						break;
 				}
@@ -2494,8 +2460,6 @@ namespace InfServer.Game
             int totalTempAmount = 0;
             int playerTotal = 0;
 
-            //Is it going to be temporary owned?
-            bool temporary = item.controlTime > 0;
             if (compCheck != null)
             {
                 //Lets check ownerships first
@@ -2524,9 +2488,9 @@ namespace InfServer.Game
                     if (comp != null)
                     {
                         //If the computer is on the same team
-                        if (comp.reprogrammed && comp._team == player._team)
+                        if (comp._reprogrammed && comp._team == player._team)
                             totalTempAmount++;
-                        if (!comp.reprogrammed && comp._team == player._team)
+                        if (!comp._reprogrammed && comp._team == player._team)
                             totalAmount++;
                     }
                 }
@@ -2553,7 +2517,7 @@ namespace InfServer.Game
             {
                 //Lets change ownership and set the control timer
                 target._team = player._team;
-                target.reprogrammed = true;
+                target._reprogrammed = true;
                 target._tickControlTime = Environment.TickCount;
                 target._tickControlEnd = item.controlTime;
 

@@ -11,10 +11,9 @@ namespace InfServer.Network
 	public abstract class NetworkClient
 	{	// Member variables
 		///////////////////////////////////////////////////
-        public LogClient _logger;                       //The logger we're writing to
-
 		public IPacketHandler _handler;					//The packet handler we belong to
 		public bool _bDestroyed;						//Is the connection in use anymore?
+        public bool _playerConn;                        //Are we a player client connection?
 
 		//Credentials
 		public Int64 _clientID;							//The ID of the client (IP | (Source Port << 32))
@@ -22,7 +21,9 @@ namespace InfServer.Network
 
 		//Connection stats
 		public int _lastPacketRecv;						//The time at which we last received a packet from this client
-
+        /// <summary>
+        /// Calls onClientDistroy
+        /// </summary>
 		public event Action<NetworkClient> Destruct;	//Called when the client is being destroyed and connection severed
 
 
@@ -39,36 +40,23 @@ namespace InfServer.Network
 		/// Ceases interaction with this client, removes it from the server
 		/// </summary>
 		public virtual void destroy()
-		{	//No need to do this twice
-            if (_bDestroyed)
-            {
-                Log.write(TLog.Warning, "Attempted to destroy already destroyed NetworkClient: {0}", _logger, _ipe);
-                return;
-            }
-
-            _bDestroyed = true;
+		{	//No longer active
+			_bDestroyed = true;
 
 			//Allow handlers to trigger
-            //NOTE: Server clients only use destruct
             if (Destruct != null)
                 Destruct(this);
 
-            //Finally, lets close this networkClient
-            _handler.removeClient(this);
+            //Make sure we are taken out of the server's list
+            if (_handler != null)
+                _handler.removeClient(this);
 		}
 
 		/// <summary>
 		/// Sends a given packet to the client
 		/// </summary>
 		public virtual void send(PacketBase packet)
-		{
-            if (_bDestroyed)
-            {
-                Log.write(TLog.Error, "Attempted to send packet to destroyed NetworkClient: {0}", _logger, this);
-                return;
-            }
-
-            //First, allow the packet to serialize
+		{	//First, allow the packet to serialize
 			packet.MakeSerialized(this, _handler);
 
 			//Start sending!

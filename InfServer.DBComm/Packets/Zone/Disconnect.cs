@@ -8,7 +8,7 @@ using InfServer.Data;
 
 namespace InfServer.Protocol
 {	/// <summary>
-	/// Disconnect packet to the database
+	/// Disconnection packet used between server connections
 	/// </summary>
 	public class Disconnect<T> : PacketBase
 		where T : IClient

@@ -215,7 +215,8 @@ namespace InfServer
 			IPEndPoint listenPoint = new IPEndPoint(
 				IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue);
 			base.begin(listenPoint);
-			
+            Log.write("Server started, now listening..");
+
 			while (true)
 				Thread.Sleep(10);
 		}

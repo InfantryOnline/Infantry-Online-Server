@@ -10,8 +10,6 @@ using InfServer.Network;
 using InfServer.Protocol;
 
 using Assets;
-using Axiom.Math;
-using Bnoerj.AI.Steering;
 
 namespace InfServer.Game
 {
@@ -32,7 +30,6 @@ namespace InfServer.Game
         public Player _lastOwner;           //The person who held us last
         public int ballSpeed;               //How fast the ball was thrown/kicked
         public short ballFriction;
-        public double ballAngle;
         public uint tickCount;              //Given to us by the client
         public bool deadBall = false;       //Is this ball stuck/unplayabe?
 
@@ -82,10 +79,11 @@ namespace InfServer.Game
                 Log.write(TLog.Warning, "Spawn ball called with null ball.");
                 return;
             }
+
             Arena arena = ball._arena;
             List<Arena.RelativeObj> valid = new List<Arena.RelativeObj>();
             int warpGroupID = arena._server._zoneConfig.soccer.ballWarpGroup;
-            List<LioInfo.WarpField> warpgroup = arena._server._assets.Lios.getWarpGroupByID(warpGroupID);
+            List < LioInfo.WarpField > warpgroup = arena._server._assets.Lios.getWarpGroupByID(warpGroupID);
             foreach (LioInfo.WarpField warp in warpgroup)
             {
                 if (warp.GeneralData.Name.Contains("Ball"))//warp.WarpFieldData.WarpGroup == warpGroupID)

@@ -19,16 +19,10 @@ namespace InfServer.Game
 	{	// Member variables
 		///////////////////////////////////////////////////
 		private Dictionary<ushort, Player> _players;		//The players in our zone, indexed by id
-
-        //TODO: Get rid of this stupid thing!
-		private Dictionary<string, Player> _nameToPlayer;	//Player name lookup
-
 		public ushort _lastPlayerKey;						//The last player key to be allocated
 
 		//Settings
 		static public int maxPlayers;
-
-
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -39,7 +33,6 @@ namespace InfServer.Game
 		public bool initPlayers()
 		{	//Initialize
 			_players = new Dictionary<ushort, Player>();
-			_nameToPlayer = new Dictionary<string, Player>();
 			_lastPlayerKey = 1;			//We don't want to be giving players an id of 0
 
 			//Load some settings
@@ -88,6 +81,7 @@ namespace InfServer.Game
 
 				c._obj = newPlayer;
 				newPlayer._client = c;
+                newPlayer._client._playerConn = true;
 
 				newPlayer._id = pk;
 				newPlayer._magic = _rand.Next();
@@ -98,7 +92,6 @@ namespace InfServer.Game
 				Log.write(TLog.Normal, "New player: " + newPlayer);
 
 				_players[pk] = newPlayer;
-				_nameToPlayer[alias.ToLower()] = newPlayer;
 
                 //Lets setup the players silence list
                 if (_playerSilenced.ContainsKey(c._ipe.Address))
@@ -162,10 +155,14 @@ namespace InfServer.Game
                         _playerSilenced[addy].Add(min, time);
                     }
                 }
-                //Lets update the db
-                if (!player._server.IsStandalone)
+
+                //He's gone!
+                _players.Remove(player._id);
+                Log.write(TLog.Normal, "Lost player: " + player);
+
+				//Make sure his stats get updated
+                if (!IsStandalone)
                 {
-                    //Make sure his stats get updated
                     if (player._bDBLoaded)
                         _db.updatePlayer(player);
 
@@ -173,11 +170,8 @@ namespace InfServer.Game
                     _db.lostPlayer(player);
                 }
 
-                //He's gone!
-                _nameToPlayer.Remove(player._alias.ToLower());
-                _players.Remove(player._id);
-
-                Log.write(TLog.Normal, "Lost player: " + player);
+                //Set a destroy timer. This prevents lingering clients from not fully disconnecting
+                player._client._tickDestroy = Environment.TickCount;
 			}
 		}
 
@@ -199,14 +193,22 @@ namespace InfServer.Game
 		/// Obtains the player associated with a given name 
 		/// </summary>
 		public Player getPlayer(string name)
-		{   //Attempt to find him
+		{	//Attempt to find him
             if (String.IsNullOrWhiteSpace(name))
                 return null;
-			Player player = null;
 
-            _nameToPlayer.TryGetValue(name.ToLower(), out player);
+            foreach (Player p in _players.Values.ToList())
+            {
+                if (p == null)
+                {   //Make a note
+                    Log.write(TLog.Error, "ZonePlayers(): found null player in _players");
+                    continue;
+                }
 
-			return player;
+                if (String.Equals(name, p._alias, StringComparison.OrdinalIgnoreCase))
+                    return p;
+            }
+			return null;
 		}
 	}
 }

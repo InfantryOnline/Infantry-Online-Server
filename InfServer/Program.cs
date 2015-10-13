@@ -52,7 +52,6 @@ namespace InfServer
             //We'll handle this
             args.Cancel = true;
 
-            Log.write("{0} recieved.", args.SpecialKey);
             server.shutdown();
         }
 
@@ -98,6 +97,7 @@ namespace InfServer
 			server = new InfServer.Game.ZoneServer();
 
 			//Initialize everything..
+            Log.write("Initializing server..");
 			if (!server.init())
 			{
 				Log.write(TLog.Error, "ZoneServer initialization failed, exiting..");
@@ -106,8 +106,6 @@ namespace InfServer
 			}
 
 			//Good to go!
-			Log.write("");
-			Log.write("Starting server..");
 			server.begin();
 		}
 	}

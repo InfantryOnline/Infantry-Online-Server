@@ -95,7 +95,7 @@ namespace InfServer.Logic
 
             newPlayer._UID1 = pkt.UID1;
             newPlayer._UID2 = pkt.UID2;
-            newPlayer._UID3 = pkt.UID3;    
+            newPlayer._UID3 = pkt.UID3;
 
 			//Are we in standalone mode?
 			if (server.IsStandalone)

@@ -156,7 +156,7 @@ namespace InfServer.Game
             {
                 if (pl._alias.Equals(player._alias))
                 {
-                    Log.write(TLog.Error, String.Format("Duplicate player found in the arena, kicking old one - {0}", pl._alias));
+                    Log.write(TLog.Warning, String.Format("Duplicate player found in the arena, kicking old one - {0}", pl._alias));
                     this.playerLeave(player);
                 }
             }
@@ -427,7 +427,9 @@ namespace InfServer.Game
             {
                 //Notify everyone else of his departure
                 if (!player.IsStealth)
+                {
                     Helpers.Object_PlayerLeave(Players, player);
+                }
                 else
                 {
                     foreach (Player person in Players.ToList())
@@ -552,7 +554,6 @@ namespace InfServer.Game
                     VehInfo.Dependent dep = veh._type as VehInfo.Dependent;
                     veh._state.pitch = (byte)(dep.ChildElevationLowAngle > 0 ? dep.ChildElevationLowAngle : 0);
                 }
-	                        
 			}
 
 			veh.assignDefaultState();

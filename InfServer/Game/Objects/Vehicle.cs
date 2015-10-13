@@ -29,7 +29,7 @@ namespace InfServer.Game
 		public Team _team;					//The team we belong to
 		public Player _creator;				//The player which created us
         public Team _oldTeam;               //Our original owners
-        public bool reprogrammed;           //Did this vehicle get reprogrammed?
+        public bool _reprogrammed;          //Did this vehicle get reprogrammed?
 
 		public List<Vehicle> _childs;		//Our child vehicles
 		public Vehicle _parent;				//Our parent vehicle, if we're a dependent vehicle
@@ -311,8 +311,8 @@ namespace InfServer.Game
 		/// </summary>
 		public void playerLeave(bool bRestoreBase)
 		{	//Do we even have an inhabitant?
-			if (_inhabitant == null)
-				return;
+            if (_inhabitant == null)
+                return;
 
 			if (bRestoreBase)
 			{	//We want to ignore new updates until we
@@ -336,7 +336,6 @@ namespace InfServer.Game
             testForUnoccupied();
 
 			Helpers.Object_VehicleBind(_arena.Players, this, null);
-
 		}       
 
 		/// <summary>

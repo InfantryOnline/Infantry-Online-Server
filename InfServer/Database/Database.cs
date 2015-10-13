@@ -65,7 +65,6 @@ namespace InfServer.Data
 
             using (LogAssume.Assume(_logger))
             {
-                int conID = new Random().Next();
                 Log.write("Connecting to database server ({0})..", dbPoint);
 
                 //Start our connection
@@ -74,7 +73,7 @@ namespace InfServer.Data
                 //Send our initial packet
                 CS_Initial init = new CS_Initial();
 
-                _conn._client._connectionID = init.connectionID = conID;
+                _conn._client._connectionID = init.connectionID = new Random().Next();
                 init.CRCLength = Client.crcLength;
                 init.udpMaxPacket = Client.udpMaxSize;
 

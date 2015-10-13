@@ -94,7 +94,6 @@ namespace InfServer.Network
         {
             if (_listenThread.IsAlive)
                 _listenThread.Abort();
-
             if (_sock != null)
                 _sock.Close();
         }
@@ -139,24 +138,25 @@ namespace InfServer.Network
 			while (_bOperating)
 			{	//Read required data from the server state while using
 				//as little lock time as possible.
-                Queue<PacketBase> packets = null;
+				Queue<PacketBase> packets = null;
 				List<NetworkClient> activeClients;
 
 				_networkLock.AcquireWriterLock(Timeout.Infinite);
-                try
-                {
-                    if (_packetsWaiting)
-                    {	//Take the entire queue, and substitute the current
-                        //queue for a new one
-                        packets = _packetQueue;
 
-                        _packetQueue = new Queue<PacketBase>();
-                        _packetsWaiting = false;
-                    }
+				try
+				{	
+					if (_packetsWaiting)
+					{	//Take the entire queue, and substitute the current
+						//queue for a new one
+						packets = _packetQueue;
 
-                    //Create an image of the client list
-                    activeClients = _clients.Values.ToList();
-                }
+						_packetQueue = new Queue<PacketBase>();
+						_packetsWaiting = false;
+					}
+
+					//Create an image of the client list
+					activeClients = _clients.Values.ToList();
+				}
 				finally
 				{	//Release our lock
 					_networkLock.ReleaseWriterLock();
@@ -164,14 +164,15 @@ namespace InfServer.Network
 
 				if (packets != null)
 				{	//Predispatch, then handle each packet
-                    foreach (PacketBase packet in packets)
-                        if (packet._client.predispatchCheck(packet))
-                            routePacket(packet);
+					foreach (PacketBase packet in packets)
+						if (packet._client.predispatchCheck(packet))
+							routePacket(packet);
 				}
 
 				//Poll each active network client
-                foreach (NetworkClient client in activeClients)
-                    client.poll();
+				foreach (NetworkClient client in activeClients)
+					if (!client._bDestroyed)
+						client.poll();
 
                 // Sleep a bit
 			    Thread.Sleep(5);
@@ -226,7 +227,6 @@ namespace InfServer.Network
 						if (bNewClient)
 						{	//This client doesn't exist yet, let's create a new class
 							client = _clientTemplate.newInstance();
-                            client._logger = _logger;
 							client._lastPacketRecv = Environment.TickCount;
 							client._ipe = ipe;
 							client._handler = this;
@@ -244,7 +244,9 @@ namespace InfServer.Network
 						//If the client is inactive, ignore
                         else if (client._bDestroyed)
                         {
-                            Log.write(TLog.Error, "Packet received from destroyed client: {0}", _remEP);
+                            //Look for the culprit and remove it
+                            if (_clients.ContainsKey(client._clientID))
+                                _clients.Remove(client._clientID);
                             client = null;
                         }
 					}
@@ -366,25 +368,25 @@ namespace InfServer.Network
 		}
 
 		/// <summary>
-		/// Removes a client from the client list and destroys it
+		/// Removes a client from the client list
 		/// </summary>
 		public void removeClient(NetworkClient client)
 		{
             if (client == null)
             {
-                Log.write(TLog.Error, "Server removeClient(): called with null NetworkClient", _logger);
+                Log.write(TLog.Error, "Server(): removeClient called with null client");
                 return;
             }
 
 			_networkLock.AcquireWriterLock(Timeout.Infinite);
 			try
 			{
-                _clients.Remove(client._clientID);
-                //No need to destroy twice
+                //No need to call this twice
                 if (!client._bDestroyed)
                     client.destroy();
 
-                client = null;
+                //Look for the culprit and remove it
+                _clients.Remove(client._clientID);
 			}
 			finally
 			{	//Release our lock

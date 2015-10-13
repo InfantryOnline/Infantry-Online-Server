@@ -22,8 +22,8 @@ namespace InfServer.Network
 		void handlePacket(PacketBase packet, NetworkClient client);
 
         /// <summary>
-		/// Removes a client from the client list and destroys it
-		/// </summary>
+        /// Removes a client from the client list and destroys it
+        /// </summary>
         void removeClient(NetworkClient client);
 
 		/// <summary>

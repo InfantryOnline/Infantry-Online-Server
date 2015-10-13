@@ -103,6 +103,7 @@ namespace InfServer.Logic
                 zone._client.send(plog);
                 return;
             }
+
             //Are they using the launcher?
             if (String.IsNullOrWhiteSpace(pkt.ticketid))
             {	//They're trying to trick us, jim!
@@ -112,6 +113,7 @@ namespace InfServer.Logic
                 zone._client.send(plog);
                 return;
             }
+
             if (pkt.ticketid.Contains(':'))
             {   //They're using the old, outdated launcher
                 plog.bSuccess = false;
@@ -263,7 +265,6 @@ namespace InfServer.Logic
 
                 if (player == null)
                 {	//We need to create another!
-                    Log.write(TLog.Normal, "Player doesn't exist, creating another structure");
                     player = new InfServer.Data.DB.player();
 
                     player.squad1 = null;

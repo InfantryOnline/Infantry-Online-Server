@@ -87,8 +87,8 @@ namespace InfServer.Network
 			_targetPoint = targetPoint;
 
 			//Close our current listener thread
-			if (_listenThread != null)
-				_listenThread.Abort();
+            if (_listenThread != null)
+                _listenThread.Abort();
 
 			//Create a new client object
             if (_client != null)
@@ -100,12 +100,12 @@ namespace InfServer.Network
 			_client._handler = this;
 			_client._ipe = targetPoint;
 			_client._lastPacketRecv = Environment.TickCount;
-
 			_client.Destruct += onClientDestroy;
 
 			//Ready our udp client
 			if (_udp != null)
 				_udp.Close();
+
 			_udp = new UdpClient();
 			_udp.DontFragment = true;
 
@@ -140,9 +140,10 @@ namespace InfServer.Network
 				while (_bOperating)
 				{	//Read required data from the server state while using
 					//as little lock time as possible.
-                    Queue<PacketBase> packets = null;
+					Queue<PacketBase> packets = null;
 
 					_networkLock.AcquireWriterLock(Timeout.Infinite);
+
 					try
 					{
 						if (_packetsWaiting)
@@ -200,7 +201,7 @@ namespace InfServer.Network
 		private void onClientDestroy(NetworkClient client)
 		{	//We're no longer operating
             if (_listenThread != null)
-                _listenThread.Abort();
+			    _listenThread.Abort();
 
 			_client = null;
 			_bOperating = false;
@@ -269,7 +270,7 @@ namespace InfServer.Network
 				{	//Store the exception and exit
                     if (se.ErrorCode == 10054)
                     {
-                        Log.write(TLog.Warning, "Connection to database refused");
+                        Log.write(TLog.Warning, "Connection to database refused.");
                     }
                     else
                     {
@@ -356,11 +357,12 @@ namespace InfServer.Network
 		}
 
         /// <summary>
-		/// Removes a client from the client list and destroys it
-		/// </summary>
+        /// Removes a client from our server list
+        /// NOTE: This isnt used for server to server connections
+        /// </summary>
         public void removeClient(NetworkClient client)
         {
-            client.destroy();
+            //dont need to do anything
         }
 
 		/// <summary>

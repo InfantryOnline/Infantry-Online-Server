@@ -9,6 +9,9 @@ namespace InfServer.Logic
 {
     class Logic_Chats
     {
+        /// <summary>
+        /// Handles a packet being sent directly from a player's client or using ?chat command
+        /// </summary>
         static public void Handle_CS_JoinChat(CS_JoinChat<Zone> pkt, Zone zone)
         {
             DBServer server = zone._server;
