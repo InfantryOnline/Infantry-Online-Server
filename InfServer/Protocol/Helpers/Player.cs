@@ -260,6 +260,38 @@ namespace InfServer.Protocol
             }
 		}
 
+        static public void Player_RouteChatRaw(IChatTarget target, String from, string message, byte bong, Chat_Type chatType)
+        {
+            SC_Chat schat = new SC_Chat();
+
+            schat.chatType = chatType;
+
+            schat.from = from;
+            schat.message = message;
+            schat.bong = bong;
+
+            //Go!
+            foreach (Player player in target.getChatTargets())
+            {
+                player._client.sendReliable(schat);
+            }
+        }
+
+        static public void Player_RouteChatRaw(Player p, string from, string message, byte bong)
+        {
+            //Formulate the chat notification!
+            SC_Chat schat = new SC_Chat();
+
+            schat.chatType = Chat_Type.Whisper;
+
+            schat.from = from;
+            schat.message = message;
+            schat.bong = bong;
+
+            //Go!
+            p._client.sendReliable(schat);
+        }
+
 		/// <summary>
 		/// Notifies a player that he's been disconnected
 		/// </summary>

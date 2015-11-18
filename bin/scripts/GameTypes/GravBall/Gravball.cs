@@ -38,6 +38,8 @@ namespace InfServer.Script.GameType_Gravball
         //Game Settings
         private int _minPlayers;                //The minimum amount of players needed to start the game
         private int _minPlayersToKeepScore;     //Min players needed to record stats
+        private int _stuckBallInterval = 5;     //How long till we warp our ball from being stuck
+        private int _sendBallUpdate;            //When its time to send our ball update packet
 
         //Recordings
         private Team _victoryTeam;				//The team currently winning!
@@ -110,6 +112,7 @@ namespace InfServer.Script.GameType_Gravball
             overtimeType = 0;
             _minPlayers = _config.soccer.minimumPlayers;
             _minPlayersToKeepScore = _config.arena.minimumKeepScorePublic;
+            _sendBallUpdate = _config.soccer.sendTime * 10;
 
             queue = new List<Player>();
             return true;
@@ -163,6 +166,24 @@ namespace InfServer.Script.GameType_Gravball
                     });
             }
 
+            //Updates our balls(get it!)
+            if ((_tickGameStart > 0 || !_arena._bGameRunning) && now - _lastBallCheck > _sendBallUpdate)
+            {
+                if (_arena.Balls.Count() > 0)
+                    foreach (Ball ball in _arena.Balls.ToList())
+                    {
+                        //This updates the ball visually
+                        Ball.Route_Ball(_arena.Players, ball);
+                        _lastBallCheck = now;
+
+                        //Check for a stuck ball(non reachable)
+                        stuckBall(ball);
+
+                        //Check for a dead ball(untouched)
+                        deadBallTimer(ball);
+                    }
+            }
+
             //Updates our scoreboard
             if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
             {
@@ -193,8 +214,19 @@ namespace InfServer.Script.GameType_Gravball
             assist = null;
             assist2 = null;
 
+            //Clear all balls in the arena
+            foreach (Ball b in _arena.Balls.ToList())
+                Ball.Remove_Ball(b);
+
             team1 = _arena.ActiveTeams.ElementAt(0) != null ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
             team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
+
+            //Reset variables
+            foreach (Player p in _arena.Players)
+                p._gotBallID = 999; //No ball in possession
+
+            //Spawn our active balls based on our cfg
+            SpawnBall();
 
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
@@ -504,6 +536,43 @@ namespace InfServer.Script.GameType_Gravball
 
         #region Ball Events
         /// <summary>
+        /// Spawns our balls based on our cfg
+        /// Note: we will always spawn a ball even if ballcount = 0
+        /// </summary>
+        private void SpawnBall()
+        {
+            int ballCount = _config.soccer.ballCount;
+            Ball ball = null;
+
+            //Check our cfg
+            if (_config.soccer.playersPerBall == 0)
+            {   //Just spawn all of them
+                for (int id = 0; id <= ballCount; id++)
+                {
+                    ball = _arena.newBall((short)id);
+                    //Make everyone aware
+                    Ball.Spawn_Ball(null, ball);
+                }
+            }
+            else
+            {
+                int playersPerBall = _config.soccer.playersPerBall;
+                //Spawn all balls based on what our cfg wants
+                for (int id = 0; id <= _arena.PlayersIngame.Count(); id++)
+                {
+                    if ((id % playersPerBall) == 0)
+                    {
+                        ball = _arena.newBall((short)id);
+                        //Make everyone aware
+                        Ball.Spawn_Ball(null, ball);
+                        if (id == ballCount || id == Arena.maxBalls)
+                            break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
         [Scripts.Event("Player.BallDrop")]
@@ -752,6 +821,39 @@ namespace InfServer.Script.GameType_Gravball
 
             //See if another player can join
             specInQueue();
+
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return;
+
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to spec and leave the game
+        /// </summary>
+        [Scripts.Event("Player.LeaveGame")]
+        public bool playerLeaveGame(Player player)
+        {
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return false;
+
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -765,6 +867,18 @@ namespace InfServer.Script.GameType_Gravball
 
             //Try speccing someone in
             specInQueue();
+
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return;
+
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
         }
 
         /// <summary>
@@ -806,6 +920,57 @@ namespace InfServer.Script.GameType_Gravball
         [Scripts.Event("Player.PlayerKill")]
         public bool playerPlayerKill(Player victim, Player killer)
         {
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when a player has died, by any means
+        /// </summary>
+        /// <remarks>killer may be null if it wasn't a player kill</remarks>
+        [Scripts.Event("Player.Death")]
+        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
+        {
+            if (victim._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == victim._gotBallID);
+                victim._gotBallID = 999;
+
+                if (ball == null)
+                    return true;
+
+                //Did the victim have the ball?
+                if (ball._owner == victim)
+                {
+                    ball._owner = null;
+                    ball._lastOwner = victim;
+
+                    //Do we give it to the killer?
+                    if (_config.soccer.killerCatchBall && killer != null && killType == Helpers.KillType.Player)
+                    {
+                        //Pick up the ball
+                        ball._state.positionX = killer._state.positionX;
+                        ball._state.positionY = killer._state.positionY;
+                        ball._state.positionZ = killer._state.positionZ;
+                        ball._state.velocityX = 0;
+                        ball._state.velocityY = 0;
+                        ball._state.velocityZ = 0;
+                        ball.deadBall = false;
+
+                        ball._owner = killer;
+                        killer._gotBallID = ball._id;
+
+                        //Update spatial data
+                        _arena.UpdateBall(ball);
+
+                        //Let others know
+                        Ball.Route_Ball(_arena.Players, ball);
+                        return true;
+                    }
+                }
+                //Spawn it
+                Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
+            }
+
             return true;
         }
         #endregion
@@ -912,6 +1077,92 @@ namespace InfServer.Script.GameType_Gravball
                 }
                 return "";
             });
+        }
+
+        /// <summary>
+        /// Checks to see if a ball is stuck in/on a wall
+        /// </summary>
+        private void stuckBall(Ball ball)
+        {   //Exist?
+            if (ball == null)
+                return;
+
+            short x = ball._state.positionX;
+            short y = ball._state.positionY;
+
+            LvlInfo.Tile tile = _arena.getTile(x, y);
+            if (tile.PhysicsVision == 1)
+            {
+                //Yes, are we still moving with a player or spawned in?
+                if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
+                    return;
+
+                int now = Environment.TickCount;
+                if (!ball.deadBall && (now - ball._state.lastUpdateServer) > (_stuckBallInterval * 1000))
+                {
+                    ball.deadBall = true;
+                    //Update our time
+                    int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                    ball._state.lastUpdate = updateTick;
+                    ball._state.lastUpdateServer = now;
+
+                    _arena.setTicker(5, 3, _stuckBallInterval * 100, "Ball Respawning: ", delegate()
+                    {
+                        //Double check to see if someone used *getball
+                        if (!ball.deadBall)
+                            return;
+
+                        //Respawn it
+                        Ball.Spawn_Ball(null, ball);
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if the ball hasn't been touched in awhile
+        /// </summary>
+        private void deadBallTimer(Ball ball)
+        {
+            //Are we even activated?
+            if (_config.soccer.deadBallTimer <= 0)
+                return;
+
+            //Exist?
+            if (ball == null)
+                return;
+
+            //Have we been picked up?
+            if (ball._owner != null)
+                return;
+
+            //Are we already timed to be warped out?
+            if (ball.deadBall)
+                return;
+
+            //Is this a dead ball?
+            int now = Environment.TickCount;
+            if ((now - ball._state.lastUpdateServer) > (_config.soccer.deadBallTimer * 1000))
+            {
+                //Are we still moving with a player or was spawned in?
+                if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
+                    return;
+
+                //Update our time
+                int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                ball._state.lastUpdate = updateTick;
+                ball._state.lastUpdateServer = now;
+
+                _arena.setTicker(5, 3, _config.soccer.deadBallTimer * 100, "Ball Respawning: ", delegate()
+                {
+                    //Double check to see if someone used *getball
+                    if (ball._owner != null)
+                        return;
+
+                    //Respawn it
+                    Ball.Spawn_Ball(null, ball);
+                });
+            }
         }
         #endregion
 

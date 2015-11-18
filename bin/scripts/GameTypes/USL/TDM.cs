@@ -40,7 +40,7 @@ namespace InfServer.Script.GameType_USL
         private int _minPlayers;				//The minimum amount of players
         private bool _overtime;                 //When the game goes into overtime, the stats still continue
         private int overtimeType = 0;           //Is this single, double or triple overtime?
-        private int LeagueSeason = 4;           //Which league season we are in?
+        private int LeagueSeason = 5;           //Which league season we are in?
 
         /// <summary>
         /// Current game player stats
@@ -89,11 +89,11 @@ namespace InfServer.Script.GameType_USL
         {
             RedBlue,
             GreenYellow,
-            WhiteBlack,
+            WhiteBlack/*,
             PinkPurple,
             GoldSilver,
             BronzeDiamond,
-            OrangeGray
+            OrangeGray*/
         }
         /// <summary>
         /// Spawn even class
@@ -450,7 +450,7 @@ namespace InfServer.Script.GameType_USL
             from.sendMessage(0, "#Individual Statistics Breakdown");
             idx = 3;        //Only display the top 3 players
             List<Player> rankers = new List<Player>();
-            foreach (Player p in _arena.Players)
+            foreach (Player p in _arena.Players.ToList())
             {
                 if (p == null)
                     continue;
@@ -777,7 +777,7 @@ namespace InfServer.Script.GameType_USL
                         player._lastMovement = Environment.TickCount;
                         //Returning false so server wont repick us
                         return false;
-
+                        /*
                     case Events.PinkPurple:
                         //Lets get team stuff
                         Team pink = _arena.getTeamByName("Pink");
@@ -884,7 +884,7 @@ namespace InfServer.Script.GameType_USL
                         player.unspec(orange.ActivePlayerCount > gray.ActivePlayerCount ? gray : orange);
                         player._lastMovement = Environment.TickCount;
                         //Returning false so server wont repick us
-                        return false;
+                        return false; */
                 }
             }
             return true;
@@ -910,6 +910,10 @@ namespace InfServer.Script.GameType_USL
                 temp.hasPlayed = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
+
+            //Lets reset our current game
+            if (_savedPlayerStats[player._alias].player.StatsCurrentGame != null)
+                player.StatsCurrentGame = _savedPlayerStats[player._alias].player.StatsCurrentGame;
         }
 
         /// <summary>

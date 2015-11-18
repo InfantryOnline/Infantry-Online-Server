@@ -205,7 +205,7 @@ namespace InfServer.Game
                 initialHideSpawns();
 
             //Respawn the flags
-            if (_scriptType != "GameType_KOTH")
+            if (!_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
                 flagSpawn();
 
             //Handle the start for all players
@@ -419,7 +419,7 @@ namespace InfServer.Game
             callsync("Game.Breakdown", false);
 
             //Display flag victory jackpot?
-            if (_server._zoneConfig.flag.useJackpot)
+            if (_flags.Count() > 0 && _server._zoneConfig.flag.useJackpot)
             {
                 List<Team> flagTeams = new List<Team>();
                 foreach (FlagState fs in _flags.Values)

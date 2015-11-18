@@ -212,7 +212,6 @@
     <Compile Include="GameTypes\FantasyZone\Objects\Recipe.cs" />
     <Compile Include="GameTypes\FantasyZone\Objects\Vendor.cs" />
     <Compile Include="GameTypes\GravBall\Gravball.cs" />
-    <Compile Include="GameTypes\Hockey\Hockey.cs" />
     <Compile Include="GameTypes\HQ\Headquarters.cs" />
     <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />
     <Compile Include="GameTypes\Frontlines\TDM.cs" />

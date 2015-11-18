@@ -144,16 +144,17 @@ namespace InfServer.Logic
 
 			// Get player's total Points - prefixed by '#' in the skill string for >= comparison
 			long points = player.Points;
-			
+
 			// First, we kill all spaces (if any), then replace all the junk with proper boolean values.				
 			// Then Calculate boolean values for all the shit in the expression.
             // Returns "1" or "0" for each value 
 			String booleanString = paramRegex.Replace(skillString.TrimStart('&'), delegate(Match m)
 			{
 				bool val;
-
 				String prefix = m.Groups[1].Value;
 				int numVal = int.Parse(m.Groups[2].Value);
+                bool startsWith = m.Groups[0].Value.StartsWith("!");
+
 				if (prefix == "%")
 				{ // ClassId
 					val = (classId == numVal) ? true : false;
@@ -177,7 +178,10 @@ namespace InfServer.Logic
                         val = (player._skills[attrID].quantity >= attrVal) ? true : false;
                         player.syncState();
                     }
-                    else { val = false; }
+                    else 
+                    { 
+                        val = false;
+                    }
                 }
 				else
 				{ // No prefix, skill ID

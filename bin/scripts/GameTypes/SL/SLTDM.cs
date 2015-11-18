@@ -49,6 +49,7 @@ namespace InfServer.Script.GameType_SLTDM
         private Dictionary<String, PlayerStats> _savedPlayerStats;
         public class PlayerStats
         {
+            public Player player { get; set; }
             public int kills { get; set; }
             public int deaths { get; set; }
         }
@@ -229,6 +230,7 @@ namespace InfServer.Script.GameType_SLTDM
             foreach (Player p in _arena.Players)
             {
                 PlayerStats temp = new PlayerStats();
+                temp.player = p;
                 temp.kills = 0;
                 temp.deaths = 0;
                 _savedPlayerStats.Add(p._alias, temp);
@@ -379,7 +381,7 @@ namespace InfServer.Script.GameType_SLTDM
             from.sendMessage(0, "#Individual Statistics Breakdown");
             idx = 3;        //Only display top three players
             List<Player> plist = new List<Player>();
-            foreach (Player p in _arena.Players)
+            foreach (Player p in _arena.Players.ToList())
             {
                 if(p == null)
                     continue;
@@ -479,6 +481,10 @@ namespace InfServer.Script.GameType_SLTDM
                 temp.kills = 0;
                 _savedPlayerStats.Add(player._alias, temp);
             }
+
+            //Lets reset our current game
+            if (_savedPlayerStats[player._alias].player.StatsCurrentGame != null)
+                player.StatsCurrentGame = _savedPlayerStats[player._alias].player.StatsCurrentGame;
         }
 
         /// <summary>

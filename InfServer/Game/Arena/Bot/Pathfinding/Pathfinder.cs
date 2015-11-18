@@ -141,6 +141,9 @@ namespace InfServer.Bots
 				
 				//Create a steerable path
 				req.callback(createSteerablePath(path), path.Length);
+
+                //Required to ensure the delegate is released when the loop is idle
+                req.callback = null;
 			}
 		}
 
@@ -151,8 +154,10 @@ namespace InfServer.Bots
 		{
             if (pathingQueue.Count > 25)
             {
-                //stuff
-                Console.WriteLine("!!!! " + pathingQueue.Count);
+                Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count);
+
+                //Let them know
+                callback(null, 0);
                 return;
             }
 			PathfindReq req = new PathfindReq();

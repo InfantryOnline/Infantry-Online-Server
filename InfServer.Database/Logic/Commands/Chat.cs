@@ -77,7 +77,7 @@ namespace InfServer.Logic
                             //Query for an IP?
                             System.Net.IPAddress ip;
                             long accountID;
-                            IQueryable<Data.DB.alias> aliases;
+                            IQueryable<Data.DB.alias> aliases = null;
 
                             //Are we using wildcards?
                             if (!pkt.payload.Contains('*'))
@@ -95,7 +95,7 @@ namespace InfServer.Logic
                                     aliases = db.alias.Where(a => a.account.Equals(who.account));
                                 }
 
-                                if (aliases.Count() > 0)
+                                if (aliases != null)
                                 {
                                     zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                     //Loop and display
@@ -150,7 +150,7 @@ namespace InfServer.Logic
                                           select w;
                             }
 
-                            if (aliases.Count() > 0)
+                            if (aliases != null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                 //Loop and display
@@ -498,7 +498,7 @@ namespace InfServer.Logic
 
                             System.Net.IPAddress ipaddress;
                             long accountID;
-                            IQueryable<Data.DB.alias> aliases;
+                            IQueryable<Data.DB.alias> aliases = null;
 
                             //Check for an ip lookup first
                             if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
@@ -514,7 +514,7 @@ namespace InfServer.Logic
                             }
 
                             zone._server.sendMessage(zone, pkt.sender, "Current Bans for player");
-                            if (aliases.Count() > 0)
+                            if (aliases != null)
                             {
                                 foreach (Data.DB.alias what in aliases)
                                 {

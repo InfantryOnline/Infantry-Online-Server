@@ -196,6 +196,15 @@ namespace InfServer.Logic
                     case Helpers.Chat_Type.Team:
                         //Send it to the player's team
                         player._team.playerTeamChat(player, pkt);
+
+                        if (player.IsSpectator)
+                        {
+                            player._server.ircClient.SendMessage(
+                                    Meebey.SmartIrc4net.SendType.Message,
+                                    player._arena.IrcName,
+                                    String.Format("[{0}][S]: {1}", player._alias, pkt.message));
+                        }
+
                         break;
 
                     case Helpers.Chat_Type.EnemyTeam:
@@ -230,7 +239,21 @@ namespace InfServer.Logic
                         break;
 
                     case Helpers.Chat_Type.Whisper:
-                        {	//Find our recipient
+                        {	
+                            // Redirect to IRC.
+                            if (pkt.recipient.StartsWith("[IRC]"))
+                            {
+                                var ircName = pkt.recipient.Replace("[IRC]", "");
+
+                                player._server.ircClient.SendMessage(
+                                    Meebey.SmartIrc4net.SendType.Message,
+                                    ircName,
+                                    String.Format("[{0}]: {1}", player._alias, pkt.message));
+
+                                break;
+                            }
+                            
+                            //Find our recipient
                             Player recipient = player._server.getPlayer(pkt.recipient);
 
                             //For league and spec quiet toggles

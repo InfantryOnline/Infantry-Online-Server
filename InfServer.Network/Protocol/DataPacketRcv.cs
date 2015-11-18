@@ -82,7 +82,7 @@ namespace InfServer.Protocol
             }
             catch (Exception e)
             {
-                Log.write(TLog.Warning, String.Format("DataPacketRcv line 78. {0} - {1}", e, data.Length));
+                Log.write(TLog.Warning, String.Format("DataPacketRcv line 78. {0} - data.Length = {1}, content.Length = {2}", e, data.Length, _content.Length));
             }
 		}
 

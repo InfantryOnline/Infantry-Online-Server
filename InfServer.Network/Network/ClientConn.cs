@@ -108,6 +108,7 @@ namespace InfServer.Network
 
             _udp = new UdpClient();
             _udp.DontFragment = true;
+            _udp.Ttl = 255;
 
             _udp.Connect(targetPoint);
 

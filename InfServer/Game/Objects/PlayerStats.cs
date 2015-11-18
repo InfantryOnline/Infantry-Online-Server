@@ -54,13 +54,19 @@ namespace InfServer.Game
         }
 
         /// <summary>
-        /// Returns the player's statistics for the current game
+        /// Returns or sets the player's statistics for the current game
+        /// NOTE: We only set our current game if it hasnt ended yet
         /// </summary>
         public Data.PlayerStats StatsCurrentGame
         {
             get
             {
                 return _statsGame;
+            }
+            set
+            {
+                if (_statsGame != null)
+                    _statsGame = value;
             }
         }
 

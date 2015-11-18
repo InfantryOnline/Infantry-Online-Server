@@ -37,6 +37,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
         //Game Settings
         private int _minPlayers;                //How many players to start the game
         private int _minPlayersToKeepScore;     //How many players needed to save stats
+        private int _stuckBallInterval = 5;     //How long a ball is glitched before respawning
+        private int _sendBallUpdate;            //When its time to send an update packet
         private int LeagueSeason = 22;          //Which season are we in?
 
         //Recordings
@@ -131,11 +133,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
         Point p7 = new Point(4850, 1682);
         Point p8 = new Point(4718, 1682);
 
-        //Debug
-        int plyrX, plyrY;
-        Point goalCenterLeft, goalCenterRight;
-        double Distance;
-
         ///////////////////////////////////////////////////
         // Member Functions
         ///////////////////////////////////////////////////
@@ -156,13 +153,12 @@ namespace InfServer.Script.GameType_Soccerbrawl
             overtimeType = 0;
             _minPlayers = _config.soccer.minimumPlayers;
             _minPlayersToKeepScore = _config.arena.minimumKeepScorePublic;
+            _sendBallUpdate = _config.soccer.sendTime * 10;
 
             queue = new List<Player>();
             teamStats = new Dictionary<Team, TeamStats>();
             playerStats = new Dictionary<Player, PlayerStats>();
 
-            goalCenterLeft = new Point((p1.X + p4.X) / 2, (p1.Y + p4.Y) / 2);
-            goalCenterRight = new Point((p5.X + p8.X) / 2, (p5.Y + p8.Y) / 2);
             return true;
         }
 
@@ -213,6 +209,24 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     });
             }
 
+            //Updates our balls(get it!)
+            if ((_tickGameStarted > 0 || !_arena._bGameRunning) && now - _lastBallCheck > _sendBallUpdate)
+            {
+                if (_arena.Balls.Count() > 0)
+                    foreach (Ball ball in _arena.Balls.ToList())
+                    {
+                        //This updates the ball visually
+                        Ball.Route_Ball(_arena.Players, ball);
+                        _lastBallCheck = now;
+
+                        //Check for a stuck ball(unreachable)
+                        stuckBall(ball);
+
+                        //Check for a dead ball(untouched)
+                        deadBallTimer(ball);
+                    }
+            }
+
             //Updates our scoreboard
             if (_tickGameStarted > 0 && now - _arena._tickGameStarted > 2000)
             {
@@ -254,6 +268,10 @@ namespace InfServer.Script.GameType_Soccerbrawl
             playerStats.Clear();
             teamStats.Clear();
 
+            //Clear ball list incase of added balls
+            foreach (Ball b in _arena.Balls.ToList())
+                Ball.Remove_Ball(b);
+
             team1 = _arena.ActiveTeams.ElementAt(0);
             teamStats.Add(team1, new TeamStats());
 
@@ -263,6 +281,9 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 teamStats.Add(team2, new TeamStats());
             }
 
+            //Spawn our active balls based on our cfg
+            SpawnBall();
+
             //Set default ticker
             string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
             _arena.setTicker(5, 1, 0, update);
@@ -270,6 +291,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             //Reset variables
             foreach (Player p in _arena.Players)
             {
+                p._gotBallID = 999; //No ball in posession
                 PlayerStats temp = new PlayerStats();
                 temp._currentGame = new Data.PlayerStats();
                 temp._hasPlayed = !p.IsSpectator ? true : false;
@@ -294,7 +316,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             }
 
             //Let everyone know
-            _arena.sendArenaMessage("Game has started!", _config.soccer.startGameBong);
+            _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
             _arena.setTicker(1, 0, _config.soccer.timer * 100, "Time remaining: ", delegate()
             {
                 //Trigger the end of game clock
@@ -685,6 +707,43 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
         #region Ball Events
         /// <summary>
+        /// Spawns our balls based on our cfg
+        /// Note: we will always spawn a ball even if ballcount = 0
+        /// </summary>
+        private void SpawnBall()
+        {
+            int ballCount = _config.soccer.ballCount;
+            Ball ball = null;
+
+            //Check our cfg
+            if (_config.soccer.playersPerBall == 0)
+            {   //Just spawn all of them
+                for (int id = 0; id <= ballCount; id++)
+                {
+                    ball = _arena.newBall((short)id);
+                    //Make everyone aware
+                    Ball.Spawn_Ball(null, ball);
+                }
+            }
+            else
+            {
+                int playersPerBall = _config.soccer.playersPerBall;
+                //Spawn all balls based on what our cfg wants
+                for (int id = 0; id <= _arena.PlayersIngame.Count(); id++)
+                {
+                    if ((id % playersPerBall) == 0)
+                    {
+                        ball = _arena.newBall((short)id);
+                        //Make everyone aware
+                        Ball.Spawn_Ball(null, ball);
+                        if (id == ballCount || id == Arena.maxBalls)
+                            break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Triggered when a player has dropped the ball
         /// </summary>
         [Scripts.Event("Player.BallDrop")]
@@ -712,35 +771,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 playerStats[player]._currentGame.zonestat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
 
             //Now lets predict if this ball will hit the goal
-            //List<LvlInfo.Tile> tiles;
-            if (drop.velocityX > 0) //Moving right
-            {
-                Distance = Helpers.distanceTo(goalCenterRight.X, goalCenterRight.Y, drop.positionX, drop.positionY);
-                //tiles = Helpers.calcBresenhems(_arena, (short)goalCenterRight.X, (short)goalCenterRight.Y, drop.positionX, drop.positionY);
-            }
-            else //Moving left
-            {
-                Distance = Helpers.distanceTo(goalCenterLeft.X, goalCenterLeft.Y, drop.positionX, drop.positionY);
-                //tiles = Helpers.calcBresenhems(_arena, (short)goalCenterLeft.X, (short)goalCenterLeft.Y, drop.positionX, drop.positionY);
-            }
-
-            //Get the tiles using our line segment
-            /*
-            Console.WriteLine("Distance={0}", Distance);
-            Console.WriteLine("Point={0},{1}", goalCenterRight.X, goalCenterRight.Y);
-            int last = tiles.Count();
-            foreach (LvlInfo.Tile t in tiles)
-            {
-                if (--last <= 10)
-                    Console.WriteLine("Found goaltile = {0}", t.TerrainLookup);
-            }
-            */
-            plyrX = (int)drop.positionX; plyrY = (int)drop.positionY;
-            double speed = (ball.ballSpeed / 1000);
-            double math = (double)drop.positionX + (((double)drop.velocityX / 10.0d) * speed - 10.0d);
-            int final = (int)Math.Round(math);
-            Console.WriteLine("Final = {0}", final);
-            
             double xf = 0;
             double yf = 0;
             double cxi = 0;
@@ -759,11 +789,14 @@ namespace InfServer.Script.GameType_Soccerbrawl
             {   //Find our position at i time after throw
                 //applyu friction here
                 dx -= dx * 0.001;
+
                 dy -= dy * 0.001;
-
                 xf = xi + (i * dx);
-                yf = yi + (i * dy);
+                //xf = xf - (xf * (_config.soccer.defaultFriction / 100));
+                //     dyi = dyi - (dyi * (_config.soccer.defaultFriction / 100));
 
+                yf = yi + (i * dy);
+                //  yf = yf - (yf * (_config.soccer.defaultFriction / 100));
                 Point ballPoint = new Point((int)xf, (int)yf);
                 //Find out if we bounce off a wall
                 try
@@ -815,7 +848,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 if (isInsideSquare(p1, p2, p3, p4, ballPoint) || isInsideSquare(p5, p6, p7, p8, ballPoint))
                 {//Will be a goal
                     futureGoal = player;
-                    Console.WriteLine("ballPoint = {0},{1}", ballPoint.X.ToString(), ballPoint.Y.ToString());
                     break;
                 }
 
@@ -830,11 +862,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
         /// </summary>
         [Scripts.Event("Player.BallPickup")]
         public bool handleBallPickup(Player player, Ball ball)
-        {/*
-            double distance = Helpers.distanceTo(plyrX, plyrY, player._state.positionX, player._state.positionY);
-            Console.WriteLine("Distance = {0}", distance.ToString());
-            Console.WriteLine("Player Coords = {0},{1}", player._state.positionX, player._state.positionY);
-            */
+        {
             bool record = _tickGameStarted > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             if (futureGoal != null)
             {
@@ -927,8 +955,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
             futureGoal = null;
 
 	        //Check to see if they are behind the correct lines
-            if (_arena.getTerrainID(ball._state.positionX, ball._state.positionY) != 0) //0 = field
-                return false;
+	        if (_arena.getTerrainID(player._state.positionX, player._state.positionY) != 0) //0 = field
+		        return false;
 
             bool record = _tickGameStarted > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             CfgInfo.Terrain terrain = _arena.getTerrain(pkt.positionX * 16, pkt.positionY * 16);
@@ -1039,6 +1067,38 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             //See if anyone can play
             specInQueue();
+
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return;
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to spec and leave the game
+        /// </summary>
+        [Scripts.Event("Player.LeaveGame")]
+        public bool playerLeaveGame(Player player)
+        {
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return true;
+
+                //Spawn ball
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -1052,6 +1112,17 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             //Try speccing someone in
             specInQueue();
+
+            if (player._gotBallID != 999)
+            {
+                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
+                player._gotBallID = 999;
+
+                if (ball == null)
+                    return;
+                //Spawn it
+                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
+            }
         }
 
         /// <summary>
@@ -1160,7 +1231,35 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
                     if (playerStats.ContainsKey(killer))
                         playerStats[killer]._currentGame.zonestat12 += 1; //Forced Fumble
+
+                    ball._owner = null;
+                    ball._lastOwner = victim;
+
+                    //Do we give it to the killer?
+                    if (_config.soccer.killerCatchBall && killer != null && killType == Helpers.KillType.Player)
+                    {
+                        //Pick up the ball
+                        ball._state.positionX = killer._state.positionX;
+                        ball._state.positionY = killer._state.positionY;
+                        ball._state.positionZ = killer._state.positionZ;
+                        ball._state.velocityX = 0;
+                        ball._state.velocityY = 0;
+                        ball._state.velocityZ = 0;
+                        ball.deadBall = false;
+
+                        ball._owner = killer;
+                        killer._gotBallID = ball._id;
+
+                        //Update spatial data
+                        _arena.UpdateBall(ball);
+
+                        //Let others know
+                        Ball.Route_Ball(_arena.Players, ball);
+                        return true;
+                    }
                 }
+                //Spawn it
+                Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
             }
 
             return true;
@@ -1630,6 +1729,93 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 return "";
             });
         }
+
+        /// <summary>
+        /// Checks to see if a ball is stuck in/on a wall
+        /// </summary>
+        private void stuckBall(Ball ball)
+        {   //Exist?
+            if (ball == null)
+                return;
+
+            short x = ball._state.positionX;
+            short y = ball._state.positionY;
+
+            //Are we stuck in/on a wall?
+            LvlInfo.Tile tile = _arena.getTile(x, y);
+            if (tile.PhysicsVision == 1)
+            {
+                //Yes, are we still moving with a player or have been spawned in?
+                if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
+                    return;
+
+                int now = Environment.TickCount;
+                if (!ball.deadBall && (now - ball._state.lastUpdateServer) > (_stuckBallInterval * 1000))
+                {
+                    ball.deadBall = true;
+                    //Update our time
+                    int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                    ball._state.lastUpdate = updateTick;
+                    ball._state.lastUpdateServer = now;
+
+                    _arena.setTicker(5, 3, _stuckBallInterval * 100, "Ball Respawning: ", delegate()
+                    {
+                        //Double check to see if someone used *getball
+                        if (!ball.deadBall)
+                            return;
+
+                        //Respawn it
+                        Ball.Spawn_Ball(null, ball);
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if the ball hasn't been touched in awhile
+        /// </summary>
+        private void deadBallTimer(Ball ball)
+        {
+            //Are we even activated?
+            if (_config.soccer.deadBallTimer <= 0)
+                return;
+
+            //Exist?
+            if (ball == null)
+                return;
+
+            //Have we been picked up?
+            if (ball._owner != null)
+                return;
+
+            //Are we already timed to be warped out?
+            if (ball.deadBall)
+                return;
+
+            //Is this a dead ball?
+            int now = Environment.TickCount;
+            if ((now - ball._state.lastUpdateServer) > (_config.soccer.deadBallTimer * 1000))
+            {
+                //Are we still moving with a player or was spawned in?
+                if (ball._state.velocityX == 0 && ball._state.velocityY == 0)
+                    return;
+
+                //Update our time
+                int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                ball._state.lastUpdate = updateTick;
+                ball._state.lastUpdateServer = now;
+
+                _arena.setTicker(5, 3, _config.soccer.deadBallTimer * 100, "Ball Respawning: ", delegate()
+                {
+                    //Double check to see if someone used *getball
+                    if (ball._owner != null)
+                        return;
+
+                    //Respawn it
+                    Ball.Spawn_Ball(null, ball);
+                });
+            }
+        }
         #endregion
 
         #region Stat Exporter
@@ -1680,8 +1866,37 @@ namespace InfServer.Script.GameType_Soccerbrawl
             //Close it
             fs.Close();
 
-            //Let everyone know
-            _arena.sendArenaMessage("!Squad Match has been recorded to the database.");
+            CS_SquadMatch<Data.Database>.SquadStats win = new CS_SquadMatch<Data.Database>.SquadStats();
+            CS_SquadMatch<Data.Database>.SquadStats lose = new CS_SquadMatch<Data.Database>.SquadStats();
+            if (teamStats.ContainsKey(victoryTeam))
+            {
+                if (teamStats[victoryTeam]._win)
+                {
+                    win.kills = teamStats[victoryTeam]._kills;
+                    win.deaths = teamStats[victoryTeam]._deaths;
+                    win.points = teamStats[victoryTeam]._goals;
+
+                    if (victoryTeam != team1)
+                    {
+                        lose.kills = teamStats[team1]._kills;
+                        lose.deaths = teamStats[team1]._deaths;
+                        lose.points = teamStats[team1]._goals;
+                        //Report it
+                        _arena._server._db.reportMatch(teamStats[victoryTeam].squadID, teamStats[team1].squadID, win, lose);
+                    }
+                    else
+                    {
+                        lose.kills = teamStats[team2]._kills;
+                        lose.deaths = teamStats[team2]._deaths;
+                        lose.points = teamStats[team2]._goals;
+                        //Report it
+                        _arena._server._db.reportMatch(teamStats[victoryTeam].squadID, teamStats[team2].squadID, win, lose);
+                    }
+
+                    //Let everyone know
+                    _arena.sendArenaMessage("!Squad Match has been recorded to the database.");
+                }
+            }
         }
         #endregion
     }

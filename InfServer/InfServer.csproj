@@ -373,6 +373,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\svn\trunk\Libs\smartirc4net-1.0\SmartIrc4net.csproj">
+      <Project>{91D3003B-7E65-4EAF-8EE1-DA43832E7A9C}</Project>
+      <Name>SmartIrc4net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Assets\Assets.csproj">
       <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
       <Name>Assets</Name>
