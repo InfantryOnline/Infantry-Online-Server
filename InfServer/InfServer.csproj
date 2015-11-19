@@ -373,10 +373,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\svn\trunk\Libs\smartirc4net-1.0\SmartIrc4net.csproj">
-      <Project>{91D3003B-7E65-4EAF-8EE1-DA43832E7A9C}</Project>
-      <Name>SmartIrc4net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Assets\Assets.csproj">
       <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
       <Name>Assets</Name>
@@ -388,6 +384,10 @@
     <ProjectReference Include="..\InfServer.Network\InfServer.Network.csproj">
       <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
       <Name>InfServer.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Libs\smartirc4net-1.0\SmartIrc4net.csproj">
+      <Project>{91d3003b-7e65-4eaf-8ee1-da43832e7a9c}</Project>
+      <Name>SmartIrc4net</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
