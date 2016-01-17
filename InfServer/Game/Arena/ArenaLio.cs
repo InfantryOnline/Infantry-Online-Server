@@ -134,15 +134,23 @@ namespace InfServer.Game
             }
         }
 
+        /// <summary>
+        /// Represents a group of turrets
+        /// </summary>
         public class TurretGroupMan
         {
             public Dictionary<int, List<Tuple<LioInfo.Hide, Computer>>> turrets;
+            /// <summary>
+            /// Generic Constructor
+            /// </summary>
             public TurretGroupMan()
             {
                 turrets = new Dictionary<int, List<Tuple<LioInfo.Hide, Computer>>> { };
             }
 
-            //Add a vehicle when it spawns
+            /// <summary>
+            /// Add a vehicle when it spawns
+            /// </summary>
             public void Add(LioInfo.Hide hide, Computer veh)
             {
                 if (!turrets.ContainsKey(hide.HideData.HideTurretGroup))
@@ -150,7 +158,9 @@ namespace InfServer.Game
                 turrets[hide.HideData.HideTurretGroup].Add(Tuple.Create(hide, veh));
             }
 
-            //Switch all turrets in a group
+            /// <summary>
+            /// Switches all turrets in a group
+            /// </summary>
             public bool Switch(int turretGroup, Player player, bool bOpen)
             {
                 if (!turrets.ContainsKey(turretGroup))
@@ -190,6 +200,9 @@ namespace InfServer.Game
                 return anySwitched;
             }
 
+            /// <summary>
+            /// Switches all turrets in each group
+            /// </summary>
             public void Switch(int[] turretGroups, Player player, bool bOpen)
             {
                 foreach (int tg in turretGroups)
@@ -198,7 +211,9 @@ namespace InfServer.Game
                 }
             }
 
-            //Remove a turret because it died
+            /// <summary>
+            /// Removes a turret because it died
+            /// </summary>
             public void Remove(Computer veh)
             {
                 Tuple<LioInfo.Hide, Computer> res = null;
@@ -953,6 +968,38 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Gets a flag with the given name
+        /// </summary>
+        public FlagState getFlag(string name)
+        {
+            if (_flags == null || _flags.Count() == 0)
+                return null;
+
+            foreach (FlagState fs in _flags.Values)
+            {
+                if (String.Equals(name, fs.flag.GeneralData.Name.Trim('\"'), StringComparison.OrdinalIgnoreCase))
+                    return fs;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets a flag with the given id
+        /// </summary>
+        public FlagState getFlag(int id)
+        {
+            if (_flags == null || _flags.Count() == 0)
+                return null;
+
+            FlagState fs;
+            if (_flags.TryGetValue(id, out fs))
+                return fs;
+
+            return null;
+        }
+
+        /// <summary>
         /// Attempts to allow a player to activate a flag or drop one
         /// </summary>
         public bool flagAction(bool bForce, bool bPickup, bool bSuccess, Player player, LioInfo.Flag flag)
@@ -1186,94 +1233,101 @@ namespace InfServer.Game
         }
 
         /// <summary>
-        /// Spawns all the qualified flags in the arena
+        /// Spawns each flag in the list
         /// </summary>
         public void flagSpawn()
+        {
+            //For each flag type..
+            foreach (FlagState fs in _flags.Values)
+                //Redirect
+                flagSpawn(fs);
+        }
+
+        /// <summary>
+        /// Spawns a specific flag
+        /// </summary>
+        public void flagSpawn(FlagState fs)
         {   //Set offsets
             int levelX = _server._assets.Level.OffsetX * 16;
             int levelY = _server._assets.Level.OffsetY * 16;
 
-            //For each flag type..
-            foreach (FlagState fs in _flags.Values)
-            {	//Should we spawn it?
-                bool bActive = true;
+            //Should we spawn it?
+            bool bActive = true;
+            if (PlayerCount < fs.flag.FlagData.MinPlayerCount)
+                return;
+            if (PlayerCount > fs.flag.FlagData.MaxPlayerCount)
+                return;
 
-                if (PlayerCount < fs.flag.FlagData.MinPlayerCount)
-                    continue;
-                if (PlayerCount > fs.flag.FlagData.MaxPlayerCount)
-                    continue;
-
-                //Check probability
-                if (fs.flag.FlagData.OddsOfAppearance == 0)
-                    continue;
-                else if (fs.flag.FlagData.OddsOfAppearance != 1000)
-                {	//Test it
-                    if (_rand.Next(0, 1000) >= fs.flag.FlagData.OddsOfAppearance)
-                        continue;
-                }
-
-                //Give it some valid coordinates
-                int attempts = 0;
-                do
-                {   //Make sure we're not doing this infinitely
-                    if (attempts++ > 200)
-                    {
-                        Log.write(TLog.Error, "Unable to satisfy flag spawn for '{0}'.", fs.flag);
-                        bActive = false;
-                        break;
-                    }
-
-                    fs.posX = (short)(fs.flag.GeneralData.OffsetX - levelX);
-                    fs.posY = (short)(fs.flag.GeneralData.OffsetY - levelY);
-                    fs.oldPosX = fs.posX;
-                    fs.oldPosY = fs.posY;
-
-                    //Taken from Math.cs
-                    //For random flag spawn if applicable
-                    int lowerX = fs.posX - ((short)fs.flag.GeneralData.Width / 2);
-                    int higherX = fs.posX + ((short)fs.flag.GeneralData.Width / 2);
-                    int lowerY = fs.posY - ((short)fs.flag.GeneralData.Height / 2);
-                    int higherY = fs.posY + ((short)fs.flag.GeneralData.Height / 2);
-
-                    //Clamp within the map coordinates
-                    int mapWidth = (this._server._assets.Level.Width - 1) * 16;
-                    int mapHeight = (this._server._assets.Level.Height - 1) * 16;
-
-                    lowerX = Math.Min(Math.Max(0, lowerX), mapWidth);
-                    higherX = Math.Min(Math.Max(0, higherX), mapWidth);
-                    lowerY = Math.Min(Math.Max(0, lowerY), mapHeight);
-                    higherY = Math.Min(Math.Max(0, higherY), mapHeight);
-
-                    //Randomly generate some coordinates!
-                    int tmpPosX = ((short)this._rand.Next(lowerX, higherX));
-                    int tmpPosY = ((short)this._rand.Next(lowerY, higherY));
-
-                    //Check for allowable terrain drops
-                    for (int terrain = 0; terrain < 15; terrain++)
-                    {
-                        if (getTerrainID(tmpPosX, tmpPosY) == terrain && fs.flag.FlagData.FlagDroppableTerrains[terrain] == 1)
-                        {
-                            fs.posX = (short)tmpPosX;
-                            fs.posY = (short)tmpPosY;
-                            fs.oldPosX = fs.posX;
-                            fs.oldPosY = fs.posY;
-                            break;
-                        }
-                    }
-
-                    //Check the terrain settings
-                    if (getTerrain(fs.posX, fs.posY).flagTimerSpeed == 0)
-                        continue;
-
-                }
-                while (getTile(fs.posX, fs.posY).Blocked);
-
-                fs.team = null;
-                fs.carrier = null;
-                fs.bActive = bActive;
+            //Check probability
+            if (fs.flag.FlagData.OddsOfAppearance == 0)
+                return;
+            else if (fs.flag.FlagData.OddsOfAppearance != 1000)
+            {	//Test it
+                if (_rand.Next(0, 1000) >= fs.flag.FlagData.OddsOfAppearance)
+                    return;
             }
 
-            Helpers.Object_Flags(Players, _flags.Values);
+            //Give it some valid coordinates
+            int attempts = 0;
+            do
+            {   //Make sure we're not doing this infinitely
+                if (attempts++ > 200)
+                {
+                    Log.write(TLog.Error, "Unable to satisfy flag spawn for '{0}'.", fs.flag);
+                    bActive = false;
+                    break;
+                }
+
+                fs.posX = (short)(fs.flag.GeneralData.OffsetX - levelX);
+                fs.posY = (short)(fs.flag.GeneralData.OffsetY - levelY);
+                fs.oldPosX = fs.posX;
+                fs.oldPosY = fs.posY;
+
+                //Taken from Math.cs
+                //For random flag spawn if applicable
+                int lowerX = fs.posX - ((short)fs.flag.GeneralData.Width / 2);
+                int higherX = fs.posX + ((short)fs.flag.GeneralData.Width / 2);
+                int lowerY = fs.posY - ((short)fs.flag.GeneralData.Height / 2);
+                int higherY = fs.posY + ((short)fs.flag.GeneralData.Height / 2);
+
+                //Clamp within the map coordinates
+                int mapWidth = (this._server._assets.Level.Width - 1) * 16;
+                int mapHeight = (this._server._assets.Level.Height - 1) * 16;
+
+                lowerX = Math.Min(Math.Max(0, lowerX), mapWidth);
+                higherX = Math.Min(Math.Max(0, higherX), mapWidth);
+                lowerY = Math.Min(Math.Max(0, lowerY), mapHeight);
+                higherY = Math.Min(Math.Max(0, higherY), mapHeight);
+
+                //Randomly generate some coordinates!
+                int tmpPosX = ((short)this._rand.Next(lowerX, higherX));
+                int tmpPosY = ((short)this._rand.Next(lowerY, higherY));
+
+                //Check for allowable terrain drops
+                for (int terrain = 0; terrain < 15; terrain++)
+                {
+                    if (getTerrainID(tmpPosX, tmpPosY) == terrain && fs.flag.FlagData.FlagDroppableTerrains[terrain] == 1)
+                    {
+                        fs.posX = (short)tmpPosX;
+                        fs.posY = (short)tmpPosY;
+                        fs.oldPosX = fs.posX;
+                        fs.oldPosY = fs.posY;
+                        break;
+                    }
+                }
+
+                //Check the terrain settings
+                if (getTerrain(fs.posX, fs.posY).flagTimerSpeed == 0)
+                    continue;
+
+            }
+            while (getTile(fs.posX, fs.posY).Blocked);
+
+            fs.team = null;
+            fs.carrier = null;
+            fs.bActive = bActive;
+
+            Helpers.Object_Flags(Players, fs);
         }
     }
 }

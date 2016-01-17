@@ -119,5 +119,22 @@ namespace InfServer.Logic
                 fullpath = Path.Combine(path, fileName);
             return (fullpath == null ? File.CreateText(fullpath) : File.AppendText(fullpath));
         }
+
+        /// <summary>
+        /// Gets the current season directory
+        /// </summary>
+        static public string GetSeasonDirectory()
+        {
+            string current = "Stats\\";
+            if (!Directory.Exists(current))
+                return Path.Combine(current, "Season 1");
+
+            //Lets see which we find
+            if (Directory.GetDirectories(current) == null)
+                return Path.Combine(current, "Season 1");
+
+            string[] directories = Directory.GetDirectories(current);
+            return Path.Combine(current, directories[(directories.Length - 1)]); //Gets the last element in the array
+        }
     }
 }

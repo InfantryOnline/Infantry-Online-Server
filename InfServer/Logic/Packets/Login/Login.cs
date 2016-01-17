@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using InfServer.Game;
@@ -80,6 +81,13 @@ namespace InfServer.Logic
             if (server._config["server/permitMode"].boolValue && !Logic_Permit.checkPermit(alias))
             {
                 Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone is in permission only mode.");
+                return;
+            }
+
+            if (server._clients.Values.Count(x => x._ipe.Address.ToString() == client._ipe.Address.ToString()) > 3)
+            {
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Too many connections from same IP.");
+                Log.write(TLog.Error, "Too many concurrent connections from IP Address {0}", client._ipe.Address);
                 return;
             }
             

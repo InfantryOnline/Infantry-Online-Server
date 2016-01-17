@@ -52,6 +52,7 @@ namespace InfServer.Script.GameType_SLTDM
             public Player player { get; set; }
             public int kills { get; set; }
             public int deaths { get; set; }
+            public bool hasPlayed { get; set; }
         }
 
         ///////////////////////////////////////////////////
@@ -233,11 +234,15 @@ namespace InfServer.Script.GameType_SLTDM
                 temp.player = p;
                 temp.kills = 0;
                 temp.deaths = 0;
+                temp.hasPlayed = false;
                 _savedPlayerStats.Add(p._alias, temp);
 
                 if (isMatch)
                     if (!p.IsSpectator)
+                    {
                         p._bAllowBanner = false;
+                        temp.hasPlayed = true;
+                    }
             }
 
             //Let everyone know
@@ -309,10 +314,10 @@ namespace InfServer.Script.GameType_SLTDM
             {
                 if (p == null)
                     continue;
-                if (_savedPlayerStats.ContainsKey(p._alias))
+                if (_savedPlayerStats.ContainsKey(p._alias) && _savedPlayerStats[p._alias].hasPlayed)
                     ranked.Add(p);
             }
-            IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
+            IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills).OrderBy(player => _savedPlayerStats[player._alias].deaths);
             int idx = 3; format = "";
             foreach (Player rankers in ranking)
             {
@@ -385,61 +390,64 @@ namespace InfServer.Script.GameType_SLTDM
             {
                 if(p == null)
                     continue;
-                if (_savedPlayerStats.ContainsKey(p._alias))
+                if (_savedPlayerStats.ContainsKey(p._alias) && _savedPlayerStats[p._alias].hasPlayed)
                     plist.Add(p);
             }
 
-            var ranking = plist.Select(player => new
+            if (plist.Count > 0)
             {
-                Alias = player._alias,
-                Kills = _savedPlayerStats[player._alias].kills,
-                Deaths = _savedPlayerStats[player._alias].deaths
-            })
-            .GroupBy(p => p.Kills)
-            .OrderByDescending(k => k.Key)
-            .Take(idx)
-            .Select(g => g.OrderBy(pl => pl.Deaths));
-
-            foreach (var alias in ranking)
-            {
-                if (idx <= 0)
-                    break;
-
-                string placeword = "";
-                string format = " (K={0} D={1}): {2}";
-                switch (idx)
+                var ranking = plist.Select(player => new
                 {
-                    case 3:
-                        placeword = "!1st";
+                    Alias = player._alias,
+                    Kills = _savedPlayerStats[player._alias].kills,
+                    Deaths = _savedPlayerStats[player._alias].deaths
+                })
+                .GroupBy(p => p.Kills)
+                .OrderByDescending(k => k.Key)
+                .Take(idx)
+                .Select(g => g.OrderBy(pl => pl.Deaths));
+
+                foreach (var alias in ranking)
+                {
+                    if (idx <= 0)
                         break;
-                    case 2:
-                        placeword = "!2nd";
-                        break;
-                    case 1:
-                        placeword = "!3rd";
-                        break;
+
+                    string placeword = "";
+                    string format = " (K={0} D={1}): {2}";
+                    switch (idx)
+                    {
+                        case 3:
+                            placeword = "!1st";
+                            break;
+                        case 2:
+                            placeword = "!2nd";
+                            break;
+                        case 1:
+                            placeword = "!3rd";
+                            break;
+                    }
+
+                    idx -= alias.Count();
+                    if (alias.First() != null)
+                        from.sendMessage(0, String.Format(placeword + format, alias.First().Kills, alias.First().Deaths,
+                            String.Join(", ", alias.Select(g => g.Alias))));
                 }
 
-                idx -= alias.Count();
-                if (alias.First() != null)
-                    from.sendMessage(0, String.Format(placeword + format, alias.First().Kills, alias.First().Deaths,
-                        String.Join(", ", alias.Select(g => g.Alias))));
-            }
-
-            IEnumerable<Player> specialPlayers = plist.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
-            int topDeaths = (specialPlayers.First() != null ? _savedPlayerStats[specialPlayers.First()._alias].deaths : 0), deaths = 0;
-            if (topDeaths > 0)
-            {
-                from.sendMessage(0, "Most Deaths");
-                int i = 0;
-                List<string> mostDeaths = new List<string>();
-                foreach (Player p in specialPlayers)
+                IEnumerable<Player> specialPlayers = plist.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
+                int topDeaths = (specialPlayers.First() != null ? _savedPlayerStats[specialPlayers.First()._alias].deaths : 0), deaths = 0;
+                if (topDeaths > 0)
                 {
-                    if (p == null)
-                        continue;
-
-                    if (_savedPlayerStats[p._alias] != null)
+                    from.sendMessage(0, "Most Deaths");
+                    int i = 0;
+                    List<string> mostDeaths = new List<string>();
+                    foreach (Player p in specialPlayers)
                     {
+                        if (p == null || !_savedPlayerStats.ContainsKey(p._alias))
+                            continue;
+
+                        if (!_savedPlayerStats[p._alias].hasPlayed)
+                            continue;
+
                         deaths = _savedPlayerStats[p._alias].deaths;
                         if (deaths == topDeaths)
                         {
@@ -449,11 +457,11 @@ namespace InfServer.Script.GameType_SLTDM
                                 mostDeaths.Add(String.Format("(D={0}): {1}", deaths, p._alias));
                         }
                     }
-                }
-                if (mostDeaths.Count > 0)
-                {
-                    string s = String.Join(", ", mostDeaths.ToArray());
-                    from.sendMessage(0, s);
+                    if (mostDeaths.Count > 0)
+                    {
+                        string s = String.Join(", ", mostDeaths.ToArray());
+                        from.sendMessage(0, s);
+                    }
                 }
             }
 
@@ -477,14 +485,60 @@ namespace InfServer.Script.GameType_SLTDM
             if (!_savedPlayerStats.ContainsKey(player._alias))
             {
                 PlayerStats temp = new PlayerStats();
+                temp.player = player;
                 temp.deaths = 0;
                 temp.kills = 0;
+                temp.hasPlayed = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
 
             //Lets reset our current game
             if (_savedPlayerStats[player._alias].player.StatsCurrentGame != null)
                 player.StatsCurrentGame = _savedPlayerStats[player._alias].player.StatsCurrentGame;
+        }
+
+        /// <summary>
+        /// Called when the player successfully joins the game
+        /// </summary>
+        [Scripts.Event("Player.Enter")]
+        public void playerEnter(Player player)
+        {
+            //Add them to the list if not in it
+            if (!_savedPlayerStats.ContainsKey(player._alias))
+            {
+                PlayerStats temp = new PlayerStats();
+                temp.player = player;
+                temp.deaths = 0;
+                temp.kills = 0;
+                temp.hasPlayed = false;
+                _savedPlayerStats.Add(player._alias, temp);
+            }
+            _savedPlayerStats[player._alias].hasPlayed = true;
+            if (isMatch)
+                player._bAllowBanner = false;
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to unspec and join the game
+        /// </summary>
+        [Scripts.Event("Player.JoinGame")]
+        public bool playerJoinGame(Player player)
+        {
+            //Add them to the list
+            if (!_savedPlayerStats.ContainsKey(player._alias))
+            {
+                PlayerStats temp = new PlayerStats();
+                temp.player = player;
+                temp.deaths = 0;
+                temp.kills = 0;
+                temp.hasPlayed = true;
+                _savedPlayerStats.Add(player._alias, temp);
+            }
+            _savedPlayerStats[player._alias].hasPlayed = true;
+            if (isMatch)
+                player._bAllowBanner = false;
+
+            return true;
         }
 
         /// <summary>

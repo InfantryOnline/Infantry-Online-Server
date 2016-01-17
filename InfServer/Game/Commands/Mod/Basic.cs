@@ -396,6 +396,145 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Spawns a flag to a specified position
+        /// </summary>
+        static public void flagSpawn(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.Equals("all", StringComparer.OrdinalIgnoreCase))
+            {
+                player._arena.flagSpawn();
+                player.sendMessage(0, "All possible flags have been spawned.");
+                return;
+            }
+
+            if (String.IsNullOrWhiteSpace(payload))
+            {
+                player.sendMessage(-1, "What flag(s) do you want to spawn?");
+                player.sendMessage(0, "Syntax: *flagspawn <all/specific flag>");
+                player.sendMessage(0, "Syntax: *flagspawn <specific flag>, <location or default>");
+                player.sendMessage(0, "NOTE: flags can be looked up by name or lio id.");
+                return;
+            }
+
+            //Are we spawning all the flags?
+            if (String.Equals(payload, "all"))
+            {
+                player._arena.flagSpawn();
+                player.sendMessage(0, "All active flags have been spawned.");
+                return;
+            }
+
+            if (!payload.Contains(':'))
+            {
+                player.sendMessage(-1, "Error in command, missing a colon seperation between flag and location.");
+                return;
+            }
+
+            string[] split = payload.Split(':');
+            if (String.IsNullOrWhiteSpace(split[1]))
+            {
+                player.sendMessage(-1, "Flag location cannot be blank. Please choose either default, exact coords or sector location.");
+                return;
+            }
+
+            Arena.FlagState fs;
+            int id = -1;
+            //Are they using an id?
+            if (Int32.TryParse(split[0], out id))
+            {   //Yep
+                fs = player._arena.getFlag(id);
+                if (fs == null)
+                {
+                    player.sendMessage(-1, "Cannot find that specific flag id.");
+                    return;
+                }
+            }
+            else
+            {
+                //Nope, must be a name
+                fs = player._arena.getFlag(split[0].Trim());
+                if (fs == null)
+                {
+                    player.sendMessage(-1, "Cannot find that specific flag.");
+                    return;
+                }
+            }
+
+            //Spawning at default location?
+            string coords = split[1].ToLower();
+            if (String.Equals(coords, "default"))
+            {
+                player._arena.flagSpawn(fs);
+                player.sendMessage(0, String.Format("Flag {0} has been spawned at its default location.", fs.flag.GeneralData.Name));
+                return;
+            }
+
+            //Are we dealing with coords or exacts?
+            int x = 0, y = 0;
+            if (coords[0] >= 'a' && coords[0] <= 'z')
+            {   //Coords
+                x = (((int)coords[0]) - ((int)'a')) * 16 * 80;
+                try
+                {
+                    y = Convert.ToInt32(coords.Substring(1)) * 16 * 80; //Bypass the letter to get numbers
+                }
+                catch
+                {
+                    player.sendMessage(-1, "That is not a valid coord.");
+                    return;
+                }
+
+                //We want to spawn it in the coords center
+                x += 40 * 16;
+                y -= 40 * 16;
+
+                if (player._arena.getTile(x, y).Blocked)
+                {
+                    player.sendMessage(-1, "Cannot spawn flag on that location.");
+                    return;
+                }
+                fs.posX = (short)x;
+                fs.posY = (short)y;
+                fs.bActive = true;
+                Helpers.Object_Flags(player._arena.Players, fs);
+
+                player.sendMessage(0, String.Format("Flag {0} has been spawned at {1}.", fs.flag.GeneralData.Name, coords));
+                return;
+            }
+
+            //Exacts
+            if (!coords.Contains(','))
+            {
+                player.sendMessage(-1, "Error in location, no comma used between exact coords.");
+                return;
+            }
+
+            string[] exacts = coords.Split(',');
+            try
+            {
+                x = Convert.ToInt32(exacts[0]) * 16;
+                y = Convert.ToInt32(exacts[1]) * 16;
+            }
+            catch
+            {
+                player.sendMessage(-1, "That is not a valid exact coord.");
+                return;
+            }
+
+            if (player._arena.getTile(x, y).Blocked)
+            {
+                player.sendMessage(-1, "Cannot spawn flag on that location.");
+                return;
+            }
+            fs.posX = (short)x;
+            fs.posY = (short)y;
+            fs.bActive = true;
+            Helpers.Object_Flags(player._arena.Players, fs);
+
+            player.sendMessage(0, String.Format("Flag {0} has been spawned at {1}.", fs.flag.GeneralData.Name, coords));
+        }
+
+        /// <summary>
         /// Finds a player currently logged in on possible aliases
         /// </summary>
         static public void find(Player player, Player recipient, string payload, int bong)
@@ -3092,6 +3231,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(experience, "experience",
                 "Prizes specified amount of experience to target player",
                 "*experience [amount] or ::*experience [amount]",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(flagSpawn, "flagspawn",
+                "Spawns all or a specific flag at either default location, exact, or coordinate",
+                "*flagspawn <all|id|name>:<default|coord|exacts>",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(find, "find",

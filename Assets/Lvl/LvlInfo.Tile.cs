@@ -29,6 +29,9 @@ namespace Assets
             public int Vision
 			{ get { return PhysicsVision >> 5; } }
 
+            /// <summary>
+            /// Gets the terrain id # based on the cfg "terrain" section
+            /// </summary>
 			public int TerrainLookup
 			{ get { return (Unknown0 & 0x7F); } }
         }

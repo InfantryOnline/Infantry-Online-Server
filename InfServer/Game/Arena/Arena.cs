@@ -502,11 +502,11 @@ namespace InfServer.Game
 
                 //Are we due a minor poll update?
                 int now = Environment.TickCount;
-                bool bMinor = (now - _tickLastMinorPoll) > 1000;
+                bool bMinor = (now - _tickLastMinorPoll) >= 1000;
                 if (bMinor)
                     _tickLastMinorPoll = now;
 
-                bool bDBSync = (now - _tickLastDatabaseSync) > 60000; //Every 60 seconds
+                bool bDBSync = (now - _tickLastDatabaseSync) >= 60000; //Every 60 seconds
                 if (bDBSync)
                     _tickLastDatabaseSync = now;
 

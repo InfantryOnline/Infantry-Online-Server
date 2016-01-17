@@ -238,8 +238,10 @@
     <Compile Include="GameTypes\TDM\TDM.cs" />
     <Compile Include="GameTypes\CTF\CTF_OvD\OvD.cs" />
     <Compile Include="GameTypes\CTF\CTF.cs" />
+    <Compile Include="GameTypes\USL\Events\GamePlay.cs" />
     <Compile Include="GameTypes\USL\Rating.cs" />
-    <Compile Include="GameTypes\USL\TDM.cs" />
+    <Compile Include="GameTypes\USL\Settings\Settings.cs" />
+    <Compile Include="GameTypes\USL\USLMain.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\ChopperEnding.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\CombatBot.cs" />
     <Compile Include="GameTypes\ZombieZone\Bots\DualZombieBot.cs" />

@@ -256,10 +256,9 @@ namespace InfServer.Game
                     break;
 
                 case "?players":
-
                     if (arena != null)
                     {
-                        var players = String.Join(", ", arena.Players.Select(x => x._alias).OrderBy(y => y));
+                        var players = String.Join(", ", arena.Players.Select(x => (x.IsSpectator ? x._alias + "[S]" : x._alias)).OrderBy(y => y));
 
                         ircClient.SendMessage(SendType.Message, e.Data.Channel, players);
                     }
@@ -267,14 +266,12 @@ namespace InfServer.Game
                     break;
 
                 case "?arenas":
-
                     var arenas = String.Join(", ", _arenas.Select(x => String.Format("{0}({1})", x.Value._name, x.Value.IrcName)));
 
                     if (arenas.Length > 0)
                     {
                         ircClient.SendMessage(SendType.Message, e.Data.Channel, arenas);
                     }
-                    
 
                     break;
             }
