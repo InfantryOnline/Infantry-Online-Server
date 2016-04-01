@@ -41,7 +41,8 @@ namespace InfServer.Protocol
                 ChatCommand = 21,
                 StatsUpdate = 22,
                 ArenaUpdate = 23,
-                ChartQuery = 24
+                ChartQuery = 24,
+                PlayerBannerAnimated = 25
             }
 
             ///<summary>

@@ -52,11 +52,132 @@ namespace InfServer.Script.GameType_USL
             public int playSeconds { get; set; }
             public bool hasPlayed { get; set; }
             public string classType { get; set; }
+
+            //Kill stats
+            public ItemInfo.Projectile lastUsedWep { get; set; }
+            public int lastUsedWepKillCount { get; set; }
+            public long lastUsedWepTick { get; set; }
+            public int lastKillerCount { get; set; }
+
+            //Medic stats
+            public int potentialHealthHealed { get; set; }
         }
         #endregion
 
         #region Misc Gameplay Pointers
         private Team BountyA, BountyB;
+        private Player lastKiller;
+        
+        /// <summary>
+        /// Resets the last killer object
+        /// </summary>
+        public void ResetKiller(Player killer)
+        {
+            lastKiller = killer;
+        }
+
+        /// <summary>
+        /// Resets the weapon ticker to default (Time Expired)
+        /// </summary>
+        public void ResetWeaponTicker(Player target)
+        {
+            if (_savedPlayerStats.ContainsKey(target._alias))
+            {
+                _savedPlayerStats[target._alias].lastUsedWep = null;
+                _savedPlayerStats[target._alias].lastUsedWepKillCount = 0;
+                _savedPlayerStats[target._alias].lastUsedWepTick = -1;
+            }
+        }
+
+        /// <summary>
+        /// Updates the killer and their counter
+        /// </summary>
+        public void UpdateKiller(Player killer)
+        {
+            if (_savedPlayerStats.ContainsKey(killer._alias))
+            {
+                _savedPlayerStats[killer._alias].lastKillerCount++;
+                switch(_savedPlayerStats[killer._alias].lastKillerCount)
+                {
+                    case 6:
+                        _arena.sendArenaMessage(String.Format("{0} is on fire!", killer._alias), 18);
+                        break;
+                    case 8:
+                        _arena.sendArenaMessage(String.Format("Someone kill {0}!", killer._alias), 19);
+                        break;
+                }
+            }
+
+            //Is this first blood?
+            if (lastKiller == null)
+            {
+                //It is, lets make the sound
+                _arena.sendArenaMessage(String.Format("{0} has drawn first blood.", killer._alias), 13);
+            }
+            lastKiller = killer;
+        }
+
+        /// <summary>
+        /// Updates the victim's kill streaks
+        /// </summary>
+        public void UpdateDeath(Player victim, Player killer)
+        {
+            if (_savedPlayerStats.ContainsKey(victim._alias))
+            {
+                if (_savedPlayerStats[victim._alias].lastKillerCount >= 6)
+                {
+                    _arena.sendArenaMessage(String.Format("{0}", killer != null ? killer._alias + " has ended " + victim._alias + "'s kill streak." :
+                        victim._alias + "'s kill streak has ended."), 9);
+                }
+                _savedPlayerStats[victim._alias].lastKillerCount = 0;
+                //_savedPlayerStats[victim._alias].lastUsedWep = null;
+                //_savedPlayerStats[victim._alias].lastUsedWepKillCount = 0;
+                //_savedPlayerStats[victim._alias].lastUsedWepTick = -1;
+            }
+        }
+
+        /// <summary>
+        /// Updates the last fired weapon and the ticker
+        /// </summary>
+        public void UpdateWeapon(Player from, ItemInfo.Projectile usedWep)
+        {
+            if (_savedPlayerStats.ContainsKey(from._alias))
+            {
+                _savedPlayerStats[from._alias].lastUsedWep = usedWep;
+                //500 = Alive time for the schrapnel after main weap explosion
+                _savedPlayerStats[from._alias].lastUsedWepTick = DateTime.Now.AddTicks(500).Ticks;
+            }
+        }
+
+        /// <summary>
+        /// Updates the last weapon kill counter
+        /// </summary>
+        public void UpdateWeaponKill(Player from)
+        {
+            if (_savedPlayerStats.ContainsKey(from._alias))
+            {
+                if (_savedPlayerStats[from._alias].lastUsedWep == null)
+                    return;
+                _savedPlayerStats[from._alias].lastUsedWepKillCount++;
+                ItemInfo.Projectile lastUsedWep = _savedPlayerStats[from._alias].lastUsedWep;
+                switch (_savedPlayerStats[from._alias].lastUsedWepKillCount)
+                {
+                    case 2:
+                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 14);
+                        break;
+                    case 3:
+                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill.", from._alias, lastUsedWep.name), 15);
+                        break;
+                    case 4:
+                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 16);
+                        break;
+                    case 5:
+                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 17);
+                        break;
+                }
+            }
+        }
+
         /// <summary>
         /// Gets our current filename
         /// </summary>
@@ -76,43 +197,43 @@ namespace InfServer.Script.GameType_USL
             {
                 switch ((EventTypes)e)
                 {
-                    case EventTypes.REDBLUE:
+                    case EventTypes.RedBlue:
                         check1 = _arena.getTeamByName("Red");
                         check2 = _arena.getTeamByName("Blue");
                         if (GetEventTypes(check1, check2) == true)
                             types.Add(Enum.GetName(typeof(EventTypes), e));
                         break;
-                    case EventTypes.WHITEBLACK:
+                    case EventTypes.WhiteBlack:
                         check1 = _arena.getTeamByName("White");
                         check2 = _arena.getTeamByName("Black");
                         if (GetEventTypes(check1, check2) == true)
                             types.Add(Enum.GetName(typeof(EventTypes), e));
                         break;
-                    case EventTypes.PINKPURPLE:
+                    case EventTypes.PinkPurple:
                         check1 = _arena.getTeamByName("Pink");
                         check2 = _arena.getTeamByName("Purple");
                         if (GetEventTypes(check1, check2) == true)
                             types.Add(Enum.GetName(typeof(EventTypes), e));
                         break;
-                    case EventTypes.ORANGEGRAY:
+                    case EventTypes.OrangeGray:
                         check1 = _arena.getTeamByName("Orange");
                         check2 = _arena.getTeamByName("Gray");
                         if (GetEventTypes(check1, check2) == true)
                             types.Add(Enum.GetName(typeof(EventTypes), e));
                         break;
-                    case EventTypes.GREENYELLOW:
+                    case EventTypes.GreenYellow:
                         check1 = _arena.getTeamByName("Green");
                         check2 = _arena.getTeamByName("Yellow");
                         if (GetEventTypes(check1, check2) == true)
                             types.Add(Enum.GetName(typeof(EventTypes), e));
                         break;
-                    case EventTypes.GOLDSILVER:
+                    case EventTypes.GoldSilver:
                         check1 = _arena.getTeamByName("Gold");
                         check2 = _arena.getTeamByName("Silver");
                         if (GetEventTypes(check1, check2) == true)
                             types.Add(Enum.GetName(typeof(EventTypes), e));
                         break;
-                    case EventTypes.BRONZEDIAMOND:
+                    case EventTypes.BronzeDiamond:
                         check1 = _arena.getTeamByName("Bronze");
                         check2 = _arena.getTeamByName("Diamond");
                         if (GetEventTypes(check1, check2) == true)
@@ -180,9 +301,9 @@ namespace InfServer.Script.GameType_USL
             _config = _arena._server._zoneConfig;
 
             //Lets see what season we are in (Match related)
-            if (!Int32.TryParse(Logic_File.GetSeasonDirectory(), out LeagueSeason))
+            string season = Logic_File.GetSeasonDirectory();
+            if (!Int32.TryParse(season.Substring(season.Length - 1, 1), out LeagueSeason))
                 LeagueSeason = 1;
-
             //Lets generate our list of available events
             CurrentEventTypes = GetEventTypes();
         }
@@ -198,6 +319,7 @@ namespace InfServer.Script.GameType_USL
                 return false;
 
             bool isMatch = _arena._isMatch;
+            ResetKiller(null);
 
             _savedPlayerStats.Clear();
             foreach (Player p in _arena.Players)
@@ -218,6 +340,12 @@ namespace InfServer.Script.GameType_USL
                     if (p._baseVehicle != null)
                         temp.classType = p._baseVehicle._type.Name;
                 }
+
+                temp.lastKillerCount = 0;
+                temp.lastUsedWep = null;
+                temp.lastUsedWepKillCount = 0;
+                temp.lastUsedWepTick = -1;
+                temp.potentialHealthHealed = 0;
                 _savedPlayerStats.Add(p._alias, temp);
             }
 
@@ -238,7 +366,7 @@ namespace InfServer.Script.GameType_USL
                 }
             );
 
-            updateTickers();
+            UpdateTickers();
             return true;
         }
 
@@ -287,7 +415,7 @@ namespace InfServer.Script.GameType_USL
         {	//Allows additional "custom" breakdown information
             from.sendMessage(0, "#Team Statistics Breakdown");
 
-            IEnumerable<Team> activeTeams = _arena.ActiveTeams.OrderByDescending(entry => entry._currentGameKills).ToList();
+            IEnumerable<Team> activeTeams = _arena.Teams.OrderByDescending(entry => entry._currentGameKills).ToList();
             int idx = 3;	//Only display top three teams
             foreach (Team t in activeTeams)
             {
@@ -393,6 +521,36 @@ namespace InfServer.Script.GameType_USL
                         from.sendMessage(0, s);
                     }
                 }
+
+                IEnumerable<Player> Healed = rankers.Where(player => _savedPlayerStats[player._alias].potentialHealthHealed > 0);
+                if (Healed.Count() > 0)
+                {
+                    IEnumerable<Player> mostHealed = Healed.OrderByDescending(player => _savedPlayerStats[player._alias].potentialHealthHealed);
+                    idx = 3;
+                    from.sendMessage(0, "&Most HP Healed");
+                    foreach(Player p in mostHealed)
+                    {
+                        if (p == null) continue;
+                        if (_savedPlayerStats[p._alias] != null)
+                        {
+                            if (idx-- <= 0)
+                                break;
+
+                            string placeWord = "&3rd";
+                            string format = " (HP Total={0}): {1}";
+                            switch (idx)
+                            {
+                                case 2:
+                                    placeWord = "&1st";
+                                    break;
+                                case 1:
+                                    placeWord = "&2nd";
+                                    break;
+                            }
+                            from.sendMessage(0, String.Format(placeWord + format, _savedPlayerStats[p._alias].potentialHealthHealed, p._alias));
+                        }
+                    }
+                }
             }
 
             if (_savedPlayerStats[from._alias] != null)
@@ -405,14 +563,56 @@ namespace InfServer.Script.GameType_USL
         }
 
         /// <summary>
+        /// Triggered when a player caused a weapon explosion
+        /// </summary>
+        public void playerPlayerExplosion(Player from, ItemInfo.Projectile usedWep)
+        {
+            if (usedWep.name.Contains("LAW") || usedWep.name.Contains("Hand Grenade")
+                || usedWep.name.Contains("Grenade Launcher") || usedWep.name.Contains("Incendiary Grenade")
+                || usedWep.name.Contains("Demo Charge"))
+                UpdateWeapon(from, usedWep);
+        }
+
+        /// <summary>
+        /// Triggered when a player tries to heal
+        /// </summary>
+        public void PlayerRepair(Player from, ItemInfo.RepairItem item)
+        {
+            if (!_savedPlayerStats.ContainsKey(from._alias))
+                return;
+            if (item.repairType == 0 && item.repairDistance < 0)
+            {   //Get all players near
+                List<Player> players = _arena.getPlayersInRange(from._state.positionX, from._state.positionY, -item.repairDistance);
+                int totalHealth = 0;
+                foreach (Player p in players)
+                {
+                    if (p == null || p == from || p._state.health >= 100 || p._state.health <= 0)
+                        continue;
+                    totalHealth += (p._baseVehicle._type.Hitpoints - p._state.health);
+                }
+                _savedPlayerStats[from._alias].potentialHealthHealed += totalHealth;
+            }
+        }
+
+        /// <summary>
         /// Triggered when one player has killed another
         /// </summary>
         public void playerPlayerKill(Player victim, Player killer)
-        {
+        {   //Update our kill streak
+            UpdateKiller(killer);
+
             if (_savedPlayerStats.ContainsKey(killer._alias))
+            {
                 _savedPlayerStats[killer._alias].kills++;
+                long wepTick = _savedPlayerStats[killer._alias].lastUsedWepTick;
+                if (wepTick != -1)
+                    UpdateWeaponKill(killer);
+            }
             if (_savedPlayerStats.ContainsKey(victim._alias))
                 _savedPlayerStats[victim._alias].deaths++;
+
+            if (killer != null && victim != null && victim._bounty >= 300)
+                _arena.sendArenaMessage(String.Format("{0} has ended {1}'s bounty.", killer._alias, victim._alias), 8);
         }
 
         /// <summary>
@@ -420,7 +620,9 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         /// <remarks>killer may be null if it wasn't a player kill</remarks>
         public void playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
-        {
+        {   //Update our kill streak
+            UpdateDeath(victim, killer);
+
             //Spawn event even activated?
             if (!SpawnEvent)
                 return;
@@ -508,7 +710,7 @@ namespace InfServer.Script.GameType_USL
             if (player._baseVehicle != null)
                 _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
-            if (_gameType == GameTypes.LEAGUEMATCH)
+            if (_gameType == GameTypes.LEAGUEMATCH || _gameType == GameTypes.LEAGUEOVERTIME)
             {
                 if (!player.IsSpectator)
                     //Lets make sure to turn banner spamming off
@@ -542,7 +744,7 @@ namespace InfServer.Script.GameType_USL
             if (player._baseVehicle != null)
                 _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
-            if (_gameType == GameTypes.LEAGUEMATCH)
+            if (_gameType == GameTypes.LEAGUEMATCH || _gameType == GameTypes.LEAGUEOVERTIME)
             {
                 if (!player.IsSpectator)
                     //Lets make sure to turn banner spamming off
@@ -555,9 +757,9 @@ namespace InfServer.Script.GameType_USL
             //Are we doing an event?
             if (Events)
             {   //Which event are we doing?
-                switch ((EventTypes)_gameType)
+                switch ((EventTypes)_eventType)
                 {
-                    case EventTypes.GREENYELLOW:
+                    case EventTypes.GreenYellow:
                         //Lets get team stuff
                         Team green = _arena.getTeamByName("Green");
                         Team yellow = _arena.getTeamByName("Yellow");
@@ -575,7 +777,7 @@ namespace InfServer.Script.GameType_USL
                         //Returning false so the server doesnt repick us
                         return false;
 
-                    case EventTypes.REDBLUE:
+                    case EventTypes.RedBlue:
                         //Lets get team stuff
                         Team red = _arena.getTeamByName("Red");
                         Team blue = _arena.getTeamByName("Blue");
@@ -593,7 +795,7 @@ namespace InfServer.Script.GameType_USL
                         //We are returning false so server wont repick us
                         return false;
 
-                    case EventTypes.WHITEBLACK:
+                    case EventTypes.WhiteBlack:
                         //Lets get team stuff
                         Team white = _arena.getTeamByName("White");
                         Team black = _arena.getTeamByName("Black");
@@ -611,7 +813,7 @@ namespace InfServer.Script.GameType_USL
                         //We are returning false so server wont repick us
                         return false;
 
-                    case EventTypes.PINKPURPLE:
+                    case EventTypes.PinkPurple:
                         //Lets get team stuff
                         Team pink = _arena.getTeamByName("Pink");
                         Team purple = _arena.getTeamByName("Purple");
@@ -629,7 +831,7 @@ namespace InfServer.Script.GameType_USL
                         //We are returning false so server wont repick us
                         return false;
 
-                    case EventTypes.GOLDSILVER:
+                    case EventTypes.GoldSilver:
                         //Lets get team stuff
                         Team gold = _arena.getTeamByName("Gold");
                         Team silver = _arena.getTeamByName("Silver");
@@ -647,7 +849,7 @@ namespace InfServer.Script.GameType_USL
                         //We are returning false so server wont repick us
                         return false;
 
-                    case EventTypes.BRONZEDIAMOND:
+                    case EventTypes.BronzeDiamond:
                         //Lets get team stuff
                         Team diamond = _arena.getTeamByName("Diamond");
                         Team bronze = _arena.getTeamByName("Bronze");
@@ -665,7 +867,7 @@ namespace InfServer.Script.GameType_USL
                         //We are returning false so server wont repick us
                         return false;
 
-                    case EventTypes.ORANGEGRAY:
+                    case EventTypes.OrangeGray:
                         //Lets get team stuff
                         Team orange = _arena.getTeamByName("Orange");
                         Team gray = _arena.getTeamByName("Gray");
@@ -721,9 +923,9 @@ namespace InfServer.Script.GameType_USL
             {
                 if (_savedPlayerStats.ContainsKey(player._alias) && _savedPlayerStats[player._alias].hasPlayed)
                 {
-                    _savedPlayerStats[player._alias].playSeconds = gameStarted ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
-                    _savedPlayerStats[player._alias].points = gameStarted ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
-                    _savedPlayerStats[player._alias].assistPoints = gameStarted ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                    _savedPlayerStats[player._alias].playSeconds += gameStarted ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
+                    _savedPlayerStats[player._alias].points += gameStarted ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
+                    _savedPlayerStats[player._alias].assistPoints += gameStarted ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
                     if (player._baseVehicle != null)
                         _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
                 }
@@ -793,19 +995,26 @@ namespace InfServer.Script.GameType_USL
         }
         #endregion
 
-        #region Private Calls
+        #region Updation Calls
         /// <summary>
-        /// Updates our tickers
+        /// Updates our players kill streak timer
         /// </summary>
-        public void UpdateTickers()
+        public void UpdateKillStreaks()
         {
-            updateTickers();
+            foreach(PlayerStat p in _savedPlayerStats.Values)
+            {
+                if (p.lastUsedWepTick == -1)
+                    continue;
+
+                if (Environment.TickCount - p.lastUsedWepTick <= 0)
+                    ResetWeaponTicker(p.player);
+            }
         }
 
         /// <summary>
         /// Updates our tickers
         /// </summary>
-        private void updateTickers()
+        public void UpdateTickers()
         {
             //Team scores
             IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
@@ -866,7 +1075,9 @@ namespace InfServer.Script.GameType_USL
             if (!_arena.recycling)
                 _arena.setTicker(2, 0, 0, format);
         }
+        #endregion
 
+        #region Private Calls
         /// <summary>
         /// Gets the arena ready for our match
         /// </summary>
@@ -1164,9 +1375,23 @@ namespace InfServer.Script.GameType_USL
                         p.Value.playSeconds,
                         p.Value.classType));
                 }
-                fs.WriteLine("--------------------------------------------------------------------");
 
+                fs.WriteLine("---------------------------Medics-----------------------------------");
+                foreach(KeyValuePair<string, PlayerStat> p in _lastSavedStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+                    if (!p.Value.hasPlayed)
+                        continue;
+                    if (p.Value.teamname.Equals(team2._name))
+                        continue;
+                    if (p.Value.potentialHealthHealed <= 0)
+                        continue;
+                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
                 fs.WriteLine();
+
                 fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
                     lastTeam2._name, lastTeam2._currentGameKills, lastTeam2._currentGameDeaths, lastTeam2._name.Equals(victoryTeam._name) ? "Yes" : "No", OT));
                 fs.WriteLine("--------------------------------------------------------------------");
@@ -1191,6 +1416,20 @@ namespace InfServer.Script.GameType_USL
                         p.Value.deaths,
                         p.Value.playSeconds,
                         p.Value.classType));
+                }
+
+                fs.WriteLine("---------------------------Medics-----------------------------------");
+                foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+                    if (!p.Value.hasPlayed)
+                        continue;
+                    if (p.Value.teamname.Equals(team1._name))
+                        continue;
+                    if (p.Value.potentialHealthHealed <= 0)
+                        continue;
+                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
@@ -1255,9 +1494,23 @@ namespace InfServer.Script.GameType_USL
                         p.Value.playSeconds,
                         p.Value.classType));
                 }
-                fs.WriteLine("--------------------------------------------------------------------");
 
+                fs.WriteLine("---------------------------Medics-----------------------------------");
+                foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+                    if (!p.Value.hasPlayed)
+                        continue;
+                    if (p.Value.teamname.Equals(team2._name))
+                        continue;
+                    if (p.Value.potentialHealthHealed <= 0)
+                        continue;
+                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
+                }
+                fs.WriteLine("--------------------------------------------------------------------");
                 fs.WriteLine();
+
                 fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
                     team2._name, team2._currentGameKills, team2._currentGameDeaths, team2 == victoryTeam ? "Yes" : "No"));
                 fs.WriteLine("--------------------------------------------------------------------");
@@ -1282,6 +1535,20 @@ namespace InfServer.Script.GameType_USL
                         p.Value.deaths,
                         p.Value.playSeconds,
                         p.Value.classType));
+                }
+
+                fs.WriteLine("---------------------------Medics-----------------------------------");
+                foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
+                {
+                    if (String.IsNullOrWhiteSpace(p.Key))
+                        continue;
+                    if (!p.Value.hasPlayed)
+                        continue;
+                    if (p.Value.teamname.Equals(team1._name))
+                        continue;
+                    if (p.Value.potentialHealthHealed <= 0)
+                        continue;
+                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 

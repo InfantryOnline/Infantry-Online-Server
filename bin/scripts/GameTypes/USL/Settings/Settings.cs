@@ -30,13 +30,13 @@ namespace InfServer.Script.GameType_USL
 
         public enum EventTypes
         {
-            REDBLUE,
-            GREENYELLOW,
-            WHITEBLACK,
-            PINKPURPLE,
-            GOLDSILVER,
-            BRONZEDIAMOND,
-            ORANGEGRAY
+            RedBlue,
+            GreenYellow,
+            WhiteBlack,
+            PinkPurple,
+            GoldSilver,
+            BronzeDiamond,
+            OrangeGray
         }
 
         public enum SpawnEventTypes

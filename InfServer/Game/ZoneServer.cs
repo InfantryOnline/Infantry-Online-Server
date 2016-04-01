@@ -351,8 +351,9 @@ namespace InfServer.Game
                             if ((global = Assets.AssetFileFactory.findAssetFile("global.nws", _config["server/copyServerFrom"].Value)) != null)
                                 System.IO.File.Copy(global, "..\\Global\\global.nws");
                         }
-                        catch (System.UnauthorizedAccessException)
+                        catch (Exception e)
                         {
+                            Log.write(TLog.Warning, e.ToString());
                         }
                     }
                 }

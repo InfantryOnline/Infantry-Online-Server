@@ -1266,13 +1266,6 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
-        /// Spawns a flag to a specified position
-        /// </summary>
-        static public void spawnFlag(Player player, Player recipient, string payload, int bong)
-        {
-        }
-
-        /// <summary>
         /// Puts a player into spectator mode
         /// </summary>
         static public void spec(Player player, Player recipient, string payload, int bong)

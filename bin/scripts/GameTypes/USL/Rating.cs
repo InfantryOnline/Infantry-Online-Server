@@ -7,9 +7,6 @@ namespace InfServer.Script.GameType_USL
 {
     public class EloRating
     {
-        public double Point1 { get; set; }
-        public double Point2 { get; set; }
-
         public double FinalResult1 { get; set; }
         public double FinalResult2 { get; set; }
 
@@ -40,7 +37,7 @@ namespace InfServer.Script.GameType_USL
                     FinalResult2 = CurrentRating2 + E;
                 }
             }
-            else
+            else //Draw
             {
                 if (CurrentRating1 == CurrentRating2)
                 {
@@ -63,8 +60,8 @@ namespace InfServer.Script.GameType_USL
                     }
                 }
             }
-            Point1 = FinalResult1 - CurrentRating1;
-            Point2 = FinalResult2 - CurrentRating2;
+            FinalResult1 = (FinalResult1 - CurrentRating1);
+            FinalResult2 = (FinalResult2 - CurrentRating2);
 
         }
     }

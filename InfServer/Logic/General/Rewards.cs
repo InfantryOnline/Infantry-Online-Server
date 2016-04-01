@@ -54,6 +54,9 @@ namespace InfServer.Logic
                     String.Format("Turret Kill: Kills=1 (Points={0} Exp={1} Cash={2})",
                     rewardCash, rewardExp, rewardPoints));
             }
+
+            //Route to the rest of the arena
+            Helpers.Player_RouteKill(victim._arena.Players, update, victim, rewardCash, rewardPoints, 0, rewardExp);
         }
 
         /// <summary>
@@ -104,9 +107,7 @@ namespace InfServer.Logic
                 pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.bot.sharePercent);
             }
 
-
-
-            //Sent reward notices to our lucky witnesses
+            //Send reward notices to our lucky witnesses
             List<int> sentTo = new List<int>();
             foreach (Player p in sharedRewards)
             {
@@ -132,13 +133,20 @@ namespace InfServer.Logic
             //Route the kill to the rest of the arena
             foreach (Player p in victim._arena.Players)
             {	//As long as we haven't already declared it, send
+                if (p == null)
+                    continue;
+
                 if (p == killer)
                     continue;
 
                 if (sentTo.Contains(p._id))
                     continue;
 
-                //p.triggerMessage(5, 500, String.Format("{0} killed by {1}", victim._type.Name, killer._alias));
+                //Let them know
+                p.triggerMessage(1, 500,
+                    String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
+                    victim._type.Name, killer._alias,
+                    killerCash, killerExp, killerPoints));
             }
         }
 		
@@ -345,7 +353,6 @@ namespace InfServer.Logic
             //Route the kill to the rest of the arena
             foreach (Player p in victim._arena.Players.ToList())
             {	//As long as we haven't already declared it, send
-
                 if (p == null)
                     continue;
 

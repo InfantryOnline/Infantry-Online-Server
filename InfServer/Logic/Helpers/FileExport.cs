@@ -134,7 +134,7 @@ namespace InfServer.Logic
                 return Path.Combine(current, "Season 1");
 
             string[] directories = Directory.GetDirectories(current);
-            return Path.Combine(current, directories[(directories.Length - 1)]); //Gets the last element in the array
+            return directories[(directories.Length - 1)]; //Gets the last element in the array
         }
     }
 }

@@ -321,7 +321,7 @@ namespace InfServer.Script.GameType_Burnt
                 {
                     if (recipient == null)
                     {
-                        return true;
+                        return false;
                     }
                     else
                     {
@@ -329,6 +329,12 @@ namespace InfServer.Script.GameType_Burnt
                     }
                     return true;
                 }
+            }
+
+            if (command.ToLower().Equals("crown"))
+            {
+                _KOTH.PlayerChatCommand(player, recipient, payload);
+                return true;
             }
 
             if (command.ToLower().Equals("game"))

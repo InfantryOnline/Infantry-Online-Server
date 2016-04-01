@@ -30,8 +30,10 @@ namespace InfServer.Script.GameType_USL
         private int _tickGameStarted;       //Tick at which the game actually started (0 == stopped)
         private int _lastTickerUpdate;      //Tick at which the scoreboard was last updated
         private int _tickVotingStarted;     //Tick at which players started voting
+        private int _lastKillStreakUpdate;  //Tick at which a players kill streak started
 
         //Misc variables
+        private int _tickStartDelay;
         private int _minPlayers;            //Do we have the # of min players to start a game?
         private Dictionary<string, List<int>> _eventVoting;
         private int _votingTime;            //Our voting countdown timer
@@ -101,6 +103,13 @@ namespace InfServer.Script.GameType_USL
                 }
             }
 
+            //Update our kill streak check
+            if (now - _lastKillStreakUpdate >= 500)
+            {
+                _gamePlay.UpdateKillStreaks();
+                _lastKillStreakUpdate = now;
+            }
+
             //Do we have enough to start a game?
             if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
             {   //Great! Get GOING!
@@ -128,13 +137,16 @@ namespace InfServer.Script.GameType_USL
                     _tickVotingStarted = now;
                     _votingTime--;
 
-                    var voteByName = _eventVoting.Select(x => String.Format("{0}({1})", x.Key, x.Value.Count));
-                    _arena.setTicker(0, 0, 0,
-                        delegate(Player p)
-                        {
-                            return "Event Votes: " + String.Join(", ", voteByName) + " | Voting Time Left: " + _votingTime;
-                        }
-                    );
+                    if (_eventVoting.Count > 0)
+                    {
+                        var voteByName = _eventVoting.Select(x => String.Format("{0}({1})", x.Key, x.Value.Count));
+                        _arena.setTicker(0, 0, 0,
+                            delegate(Player p)
+                            {
+                                return "Event Votes: " + String.Join(", ", voteByName) + " | Voting Time Left: " + _votingTime;
+                            }
+                        );
+                    }
                 }
 
                 //Lets reset and complete
@@ -173,10 +185,6 @@ namespace InfServer.Script.GameType_USL
         {   //Game finished, perhaps start a new one?
             _arena.sendArenaMessage("Game Over!");
 
-            //Can we do events?
-            if (AllowEvents)
-                _arena.sendArenaMessage("Type ?event to change the current mini-map while the countdown is under way.");
-
             _tickGameStarted = 0;
             _tickGameStarting = 0;
             _votingEnded = false;
@@ -203,14 +211,32 @@ namespace InfServer.Script.GameType_USL
         [Scripts.Event("Player.Breakdown")]
         public bool individualBreakdown(Player from, bool bCurrent)
         {
-            if (_tickGameStarted > 0)
-                _gamePlay.individualBreakdown(from, bCurrent);
-
+            _gamePlay.individualBreakdown(from, bCurrent);
             return true;
         }
         #endregion
 
         #region Player Events
+        /// <summary>
+        /// Triggered when an explosion happens from a projectile a player fired
+        /// </summary>
+        [Scripts.Event("Player.Explosion")]
+        public bool playerExplosion(Player from, ItemInfo.Projectile usedWep, short posX, short posY, short posZ)
+        {
+            _gamePlay.playerPlayerExplosion(from, usedWep);
+            return true;
+        }
+
+        /// <summary>
+        /// Triggers when a repair item is used
+        /// </summary>
+        [Scripts.Event("Player.Repair")]
+        public bool playerPlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 target, short posX, short posY)
+        {
+            _gamePlay.PlayerRepair(player, item);
+            return true;
+        }
+
         /// <summary>
         /// Triggered when one player has killed another
         /// </summary>
@@ -334,7 +360,11 @@ namespace InfServer.Script.GameType_USL
         public bool playerChatCommand(Player player, Player recipient, string command, string payload)
         {
             command = command.Trim().ToLower();
-
+            if (command == "elo")
+            {
+                EloRating rating = new EloRating(1500.0d, 1500.0d, 37, 33);
+                player.sendMessage(0, String.Format("{0},{1}", rating.FinalResult1, rating.FinalResult2));
+            }
             if (command == "event")
             {
                 if (!AllowEvents)
@@ -343,7 +373,6 @@ namespace InfServer.Script.GameType_USL
                     return false;
                 }
 
-                //var names = Enum.GetNames(typeof(Settings.EventTypes));
                 var names = _gamePlay.CurrentEventTypes;
                 if (names.Count == 0)
                 {
@@ -371,7 +400,8 @@ namespace InfServer.Script.GameType_USL
                     return false;
                 }
 
-                if (player.IsSpectator)
+                //Dont allow spectators to vote when voting has started
+                if (player.IsSpectator && _tickVotingStarted > 0)
                 {
                     player.sendMessage(-1, "Spectators are not allowed to vote.");
                     return false;
@@ -425,6 +455,7 @@ namespace InfServer.Script.GameType_USL
         /// <summary>
         /// Called when a player sends a mod command
         /// </summary>
+        [Scripts.Event("Player.ModCommand")]
         public bool playerModCommand(Player player, Player recipient, string command, string payload)
         {
             command = (command.ToLower());
@@ -756,7 +787,6 @@ namespace InfServer.Script.GameType_USL
 
             if (command.Equals("event"))
             {
-                //var names = Enum.GetNames(typeof(Settings.EventTypes));
                 var names = _gamePlay.CurrentEventTypes;
                 if (names.Count == 0)
                 {
@@ -912,7 +942,6 @@ namespace InfServer.Script.GameType_USL
             if (!AllowEvents)
                 return;
 
-            //var names = Enum.GetNames(typeof(Settings.EventTypes));
             var names = _gamePlay.CurrentEventTypes;
             if (names.Count == 0)
                 return;
@@ -929,13 +958,31 @@ namespace InfServer.Script.GameType_USL
         /// Completes our voting process and shows the results
         /// </summary>
         private void CompleteVoting()
-        {
+        {   //Dont switch if no one voted
+            if (_eventVoting.Count == 0)
+                return;
+
+            //Do we have enough players voting? 35%
+            int inGameCount = _arena.PlayersIngame.Count();
+            int votes = 0;
+            foreach(KeyValuePair<string, List<int>> voting in _eventVoting)
+            {
+                votes += voting.Value.Count;
+            }
+
+            if (votes < Math.Round(inGameCount * 0.35f))
+            {
+                _arena.sendArenaMessage("Not enough players voted. Continuing same event.");
+                return;
+            }
+
             var winningEvent = _eventVoting.OrderByDescending(x => x.Value).FirstOrDefault();
             _arena.sendArenaMessage(String.Format("Voting over! Winning event is {0} with {1} vote(s). Switching teams...", winningEvent.Key, winningEvent.Value));
 
             _gamePlay._eventType = (Settings.EventTypes)Enum.Parse(typeof(Settings.EventTypes), winningEvent.Key);
 
             _gamePlay._gameType = Settings.GameTypes.EVENT;
+            _gamePlay.Events = true;
             _gamePlay.Voting = true;
             _votingEnded = true;
             _eventVoting.Clear();
@@ -951,6 +998,7 @@ namespace InfServer.Script.GameType_USL
             _gamePlay.Events = false;
             _gamePlay.SpawnEvent = false;
             _gamePlay.SpawnTimer = 0;
+            _tickVotingStarted = 0;
             EventOff -= null;
 
             //If this is an arena match, just return
@@ -966,6 +1014,7 @@ namespace InfServer.Script.GameType_USL
                 if (shuffledPlayers[i]._team != team)
                     team.addPlayer(shuffledPlayers[i]);
             }
+            _gamePlay._gameType = Settings.GameTypes.TDM;
         }
 
         /// <summary>
@@ -977,7 +1026,7 @@ namespace InfServer.Script.GameType_USL
             {
                 switch ((Settings.EventTypes)_gamePlay._eventType)
                 {
-                    case Settings.EventTypes.REDBLUE:
+                    case Settings.EventTypes.RedBlue:
                         Team red = _arena.getTeamByName("Red");
                         Team blue = _arena.getTeamByName("Blue");
 
@@ -997,7 +1046,7 @@ namespace InfServer.Script.GameType_USL
                         }
                         break;
 
-                    case Settings.EventTypes.GREENYELLOW:
+                    case Settings.EventTypes.GreenYellow:
                         Team green = _arena.getTeamByName("Green");
                         Team yellow = _arena.getTeamByName("Yellow");
 
@@ -1017,7 +1066,7 @@ namespace InfServer.Script.GameType_USL
                         }
                         break;
 
-                    case Settings.EventTypes.WHITEBLACK:
+                    case Settings.EventTypes.WhiteBlack:
                         Team white = _arena.getTeamByName("White");
                         Team black = _arena.getTeamByName("Black");
 
@@ -1037,7 +1086,7 @@ namespace InfServer.Script.GameType_USL
                         }
                         break;
 
-                    case Settings.EventTypes.PINKPURPLE:
+                    case Settings.EventTypes.PinkPurple:
                         Team pink = _arena.getTeamByName("Pink");
                         Team purple = _arena.getTeamByName("Purple");
 
@@ -1057,7 +1106,7 @@ namespace InfServer.Script.GameType_USL
                         }
                         break;
 
-                    case Settings.EventTypes.GOLDSILVER:
+                    case Settings.EventTypes.GoldSilver:
                         Team gold = _arena.getTeamByName("Gold");
                         Team silver = _arena.getTeamByName("Silver");
 
@@ -1077,7 +1126,7 @@ namespace InfServer.Script.GameType_USL
                         }
                         break;
 
-                    case Settings.EventTypes.BRONZEDIAMOND:
+                    case Settings.EventTypes.BronzeDiamond:
                         Team bronze = _arena.getTeamByName("Bronze");
                         Team diamond = _arena.getTeamByName("Diamond");
 
@@ -1097,7 +1146,7 @@ namespace InfServer.Script.GameType_USL
                         }
                         break;
 
-                    case Settings.EventTypes.ORANGEGRAY:
+                    case Settings.EventTypes.OrangeGray:
                         Team orange = _arena.getTeamByName("Orange");
                         Team gray = _arena.getTeamByName("Gray");
 

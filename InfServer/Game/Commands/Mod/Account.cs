@@ -32,6 +32,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             string queryBan;
+            bool wildcard = false;
 
             //Create a new query packet.
             CS_ChatQuery<Data.Database> query = new CS_ChatQuery<Data.Database>();
@@ -63,6 +64,7 @@ namespace InfServer.Game.Commands.Mod
                 else
                 {   //Nope, check wildcard lookups
                     //Since db is reversed sides on wildcard lookups, lets snap it correctly for us
+                    wildcard = true;
                     if (payload.StartsWith("*") && !payload.EndsWith("*"))
                     {
                         payload = payload.TrimStart('*');
@@ -103,13 +105,16 @@ namespace InfServer.Game.Commands.Mod
 
             //Added - shows bans
             //Create a ban query packet
-            CS_ChatQuery<Data.Database> ban = new CS_ChatQuery<Data.Database>();
-            ban.queryType = CS_ChatQuery<Data.Database>.QueryType.ban;
-            ban.sender = player._alias;
-            ban.payload = queryBan;
+            if (wildcard == false)
+            {   //We dont need to look up bans for wildcard lookups
+                CS_ChatQuery<Data.Database> ban = new CS_ChatQuery<Data.Database>();
+                ban.queryType = CS_ChatQuery<Data.Database>.QueryType.ban;
+                ban.sender = player._alias;
+                ban.payload = queryBan;
 
-            //Send it!
-            player._server._db.send(ban);
+                //Send it!
+                player._server._db.send(ban);
+            }
         }
 
         /// <summary>

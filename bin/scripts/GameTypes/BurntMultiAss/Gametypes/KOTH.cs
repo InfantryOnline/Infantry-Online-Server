@@ -339,6 +339,7 @@ namespace InfServer.Script.GameType_Burnt
                 Helpers.Player_Crowns(arena, true, GetCrowns(), player);
             }
         }
+
         public void PlayerLeaveGame(Player player)
         {
             if (settings.GameState != GameStates.ActiveGame)
@@ -350,6 +351,26 @@ namespace InfServer.Script.GameType_Burnt
             {
                 _playerCrownStatus[player].crown = false;
                 Helpers.Player_Crowns(arena, false, GetNoCrowns());
+            }
+        }
+
+        public void PlayerChatCommand(Player player, Player recipient, string payload)
+        {
+            player.sendMessage(0, "Current Crown Info:");
+            if (!_playerCrownStatus.ContainsKey(player))
+                player.sendMessage(0, "*None.");
+            else
+            {
+                if (!_playerCrownStatus[player].crown)
+                {
+                    player.sendMessage(0, String.Format("*Current Kills: {0}", _playerCrownStatus[player].crownKills));
+                    player.sendMessage(0, String.Format("*Kills Remaining: {0}", (config.king.crownRecoverKills - _playerCrownStatus[player].crownKills)));
+                }
+                else
+                {
+                    player.sendMessage(0, String.Format("*Current Deaths: {0}", _playerCrownStatus[player].crownDeaths));
+                    player.sendMessage(0, String.Format("*Deaths Remaining: {0}", config.king.deathCount - _playerCrownStatus[player].crownDeaths));
+                }
             }
         }
 

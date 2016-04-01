@@ -234,29 +234,6 @@ namespace InfServer.Script.GameType_OGCTF
 		}
 
 		/// <summary>
-		/// Handles a player's portal request
-		/// </summary>
-		[Scripts.Event("Player.Portal")]
-		public bool playerPortal(Player player, LioInfo.Portal portal)
-		{           
-            List<Arena.FlagState> carried = _arena._flags.Values.Where(flag => flag.carrier == player).ToList();
-            
-            foreach (Arena.FlagState carry in carried)
-            {   //If the terrain number is 0-15
-
-                int terrainNum = player._arena.getTerrainID(player._state.positionX, player._state.positionY);                
-                if (terrainNum >= 0 && terrainNum <= 15)
-                {   //Check the FlagDroppableTerrains for that specific terrain id
-                    
-                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
-                        _arena.flagResetPlayer(player);
-                }
-            }
-             
-			return true;
-		}
-
-		/// <summary>
 		/// Handles a player's produce request
 		/// </summary>
 		[Scripts.Event("Player.Produce")]

@@ -107,6 +107,7 @@
     <Compile Include="Packets\Login\CS_PlayerLogin.cs" />
     <Compile Include="Packets\Login\SC_Auth.cs" />
     <Compile Include="Packets\Login\SC_PlayerLogin.cs" />
+    <Compile Include="Packets\Player\CS_PlayerBannerAnimated.cs" />
     <Compile Include="Packets\Social\Chats\SC_LeaveChat.cs" />
     <Compile Include="Packets\Social\Chats\CS_LeaveChat.cs" />
     <Compile Include="Packets\Social\CS_ChatCommand.cs" />

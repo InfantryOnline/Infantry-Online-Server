@@ -739,7 +739,22 @@ namespace InfServer.Game
 
             //Forward to our script
             if (!exists("Player.Portal") || (bool)callsync("Player.Portal", false, from, portal))
-            {	//Do some warpage
+            {
+                //Is this a flag game?
+                if (_flags.Count() > 0)
+                {
+                    List<Arena.FlagState> carried = _flags.Values.Where(flag => flag.carrier == from).ToList();
+                    foreach (Arena.FlagState carry in carried)
+                    {
+                        int terrainNum = getTerrainID(from._state.positionX, from._state.positionY);
+                        //Are we allowed on this terrain?
+                        if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
+                            //Nope, reset them
+                            flagResetPlayer(from);
+                    }
+                }
+
+                //Do some warpage
                 Logic_Lio.Warp(Helpers.ResetFlags.ResetNone, from, warp);
             }
         }
@@ -1125,7 +1140,6 @@ namespace InfServer.Game
             }
 
             ItemInfo.Projectile usedWep = Helpers._server._assets.getItemByID(update.explosionID) as ItemInfo.Projectile;
-
             if (usedWep == null)
             {	//All things that explode should be projectiles. But just in case...
                 Log.write(TLog.Warning, "Player {0} fired unsupported weapon id {0}", from, update.explosionID);
@@ -1452,7 +1466,7 @@ namespace InfServer.Game
                 {	//Update stats
                     //from.Deaths++;
 
-                    //Yes. Spoof it
+                    //Spoof first then route only. Bots dont need rewards
                     update.type = Helpers.KillType.Computer;
                     Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
                 }
@@ -1473,9 +1487,8 @@ namespace InfServer.Game
                     {	//Update stats
                         from.Deaths++;
 
-                        //Route and give rewards
+                        //Route and give rewards to owner
                         Logic_Rewards.calculateTurretKillRewards(from, cvehicle, update);
-                        Helpers.Player_RouteKill(Players, update, from, 0, 0, 0, 0);
                     }
                 }
                 else
@@ -2274,12 +2287,13 @@ namespace InfServer.Game
         /// Triggered when a player attempts to repair/heal
         /// </summary>
         public override void handlePlayerRepair(Player player, ItemInfo.RepairItem item, UInt16 targetVehicle, short posX, short posY)
-        {	// Forward it to our script
-            if (!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, targetVehicle, posX, posY))
-            {	//Does the player have appropriate ammo?
-                if (item.useAmmoID != 0 && !player.inventoryModify(false, item.useAmmoID, -item.ammoUsedPerShot))
-                    return;
+        {   //Does the player have appropriate ammo?
+            if (item.useAmmoID != 0 && !player.inventoryModify(false, item.useAmmoID, -item.ammoUsedPerShot))
+                return;
 
+            // Forward it to our script
+            if (!exists("Player.Repair") || (bool)callsync("Player.Repair", false, player, item, targetVehicle, posX, posY))
+            {	
                 //New formula
                 float percentage = (float)item.repairPercentage / 100;
 
@@ -2703,6 +2717,15 @@ namespace InfServer.Game
             //Forward it to our script
             if (!exists("Vehicle.Creation") || (bool)callsync("Vehicle.Creation", false, created, team, creator))
             {
+                //Was this a warp point?
+                if (created != null && creator != null && created._type.Type == VehInfo.Types.Computer)
+                {
+                    if (created._type.Name.ToLower().Contains("warp point"))
+                    {
+                        //Add this to the list
+                        creator.warpCreations.Add(created._id);
+                    }
+                }
             }
         }
         #endregion
@@ -2719,6 +2742,12 @@ namespace InfServer.Game
 
                 //Innate Drop items?
                 VehInfo vehicle = _server._assets.getVehicleByID(dead._type.Id);
+                if (vehicle == null)
+                {
+                    Log.write(TLog.Warning, "HandleVehicleDeath: Cannot find vehicle {0}({1}).", dead._type.Name, dead._type.Id);
+                    return;
+                }
+
                 if (vehicle.DropItemId != 0)
                 {
                     ItemInfo item = _server._assets.getItemByID(vehicle.DropItemId);
@@ -2729,46 +2758,67 @@ namespace InfServer.Game
                 //Update vehicle kills and deaths stat
                 if (killer != null && dead._team != killer._team)
                 {
-                    if (vehicle != null)
-                        switch (vehicle.Type)
+                    if (vehicle.Type == VehInfo.Types.Car)
+                    {
+                        VehInfo.Car type = vehicle as VehInfo.Car;
+                        if (type.Mode != 2) //2 == Jetpack
                         {
-                            case VehInfo.Types.Car:
-                                VehInfo.Car type = vehicle as VehInfo.Car;
-                                if (type.Mode != 2) //2 == Jetpack
+                            //If this is a type 5, lets see if we really are a car by checking dependants
+                            if (type.Mode == 5)
+                            {
+                                bool foundchild = false;
+                                foreach (int childID in type.ChildVehicles)
                                 {
-                                    //If this is type 5, lets see if we really are a car by checking dependents
-                                    if (type.Mode == 5)
+                                    if (childID > 0)
                                     {
-                                        foreach (int childID in type.ChildVehicles)
-                                        {
-                                            if (childID > 0)
-                                                //Found a dependent, we are a car
-                                                break;
-
-                                            //We are not a car
-                                            return;
-                                        }
-                                    }
-
-                                    killer.vehicleKills++;
-                                    if (occupier != null && occupier._occupiedVehicle._type.Id == dead._type.Id)
-                                        occupier.vehicleDeaths++;
-
-                                    //Are we sharing sibling kills?
-                                    if (killer._occupiedVehicle != null && killer._occupiedVehicle._type.SiblingKillsShared > 0)
-                                    {
-                                        List<Player> sharedKills = killer._arena.getPlayersInRange(killer._state.positionX, killer._state.positionY, 50);
-                                        foreach (Player shared in sharedKills)
-                                        {
-                                            if (shared == killer)
-                                                continue;
-                                            if (shared._occupiedVehicle != null)
-                                                shared.vehicleKills++;
-                                        }
+                                        //Found a dependant, we are a car
+                                        foundchild = true;
+                                        break;
                                     }
                                 }
-                                break;
+                                if (!foundchild)
+                                    //Not a car
+                                    return;
+                            }
+
+                            killer.vehicleKills++;
+                            if (occupier != null && occupier._occupiedVehicle._type.Id == dead._type.Id)
+                                occupier.vehicleDeaths++;
+
+                            //Are we sharing sibling kills?
+                            if (killer._occupiedVehicle != null && killer._occupiedVehicle._type.SiblingKillsShared > 0)
+                            {
+                                List<Player> sharedKills = killer._arena.getPlayersInRange(killer._state.positionX, killer._state.positionY, 50);
+                                foreach (Player shared in sharedKills)
+                                {
+                                    if (shared == killer)
+                                        continue;
+                                    if (shared._occupiedVehicle != null)
+                                        shared.vehicleKills++;
+                                }
+                            }
                         }
+                    }
+                }
+
+                //Was this a warp point?
+                if (dead._type.Type == VehInfo.Types.Computer)
+                {
+                    if (dead._creator != null && dead._creator.warpCreations.Contains(dead._id))
+                    {
+                        foreach(Player p in Players)
+                        {
+                            if (p == null)
+                                continue;
+
+                            if (p == dead._creator)
+                                p.triggerMessage(5, 500, String.Format("{0} killed by {1} at {2}", dead._type.Name, killer._alias, dead._state.letterCoord()));
+                            else
+                                p.triggerMessage(5, 500, String.Format("{0} lost a {1} at {2}!", dead._team._name, dead._type.Name, dead._state.letterCoord()));
+                        }
+                        //Remove it from the list
+                        dead._creator.warpCreations.Remove(dead._id);
+                    }
                 }
             }
         }
@@ -2784,7 +2834,7 @@ namespace InfServer.Game
             {	//Route the death to the arena
                 Helpers.Vehicle_RouteDeath(Players, killer, dead, null);
                 if (killer != null && dead._team != killer._team)
-                {//Don't allow rewards for teamkills 
+                {//Don't allow rewards for team kills
                     Logic_Rewards.calculateBotKillRewards(dead, killer);
                 }
             }

@@ -411,7 +411,7 @@ namespace InfServer.Script.GameType_BasketBall
 
             //Spawn our active balls based on our cfg
             short ballCount = (short)_config.soccer.ballCount;
-            for (short ballID = 0; ballID <= ballCount; ballID++)
+            for (short ballID = 0; ballID < ballCount; ballID++)
             {
                 Ball newball = _arena.newBall(ballID);
 

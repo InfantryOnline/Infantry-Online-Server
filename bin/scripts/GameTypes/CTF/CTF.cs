@@ -34,11 +34,135 @@ namespace InfServer.Script.GameType_CTF
         private int _lastGameCheck;				//The tick at which we last checked for game viability
         private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
         private int _tickGameStart;				//The tick at which the game started (0 == stopped)
-        private int _tickLastTickerUpdate;       //The tick at which we update our tickers
+        private int _tickLastTickerUpdate;      //The tick at which we update our tickers
+        private int _lastKillStreakUpdate;      //Tick at which a players kill streak started
+
         //Settings
         private int _minPlayers;				//The minimum amount of players
-
         private bool _gameWon = false;
+
+        //Recordings
+        /// <summary>
+        /// Stores our player streak information
+        /// </summary>
+        private class PlayerStreak
+        {
+            public Player player { get; set; }
+            public ItemInfo.Projectile lastUsedWeap { get; set; }
+            public int lastUsedWepKillCount { get; set; }
+            public long lastUsedWepTick { get; set; }
+            public int lastKillerCount { get; set; }
+        }
+
+        private Dictionary<string, PlayerStreak> _killStreaks;
+        private Player lastKiller;
+
+        //Updaters
+        /// <summary>
+        /// Updates the last killer
+        /// </summary>
+        private void ResetKiller(Player killer)
+        {
+            lastKiller = killer;
+        }
+
+        /// <summary>
+        /// Resets the weapon ticker to default (Time Expired)
+        /// </summary>
+        private void ResetWeaponTicker(Player target)
+        {
+            if (_killStreaks.ContainsKey(target._alias))
+            {
+                _killStreaks[target._alias].lastUsedWeap = null;
+                _killStreaks[target._alias].lastUsedWepKillCount = 0;
+                _killStreaks[target._alias].lastUsedWepTick = -1;
+            }
+        }
+
+        /// <summary>
+        /// Updates the killer and their kill counter
+        /// </summary>
+        private void UpdateKiller(Player killer)
+        {
+            if (_killStreaks.ContainsKey(killer._alias))
+            {
+                _killStreaks[killer._alias].lastKillerCount++;
+                switch(_killStreaks[killer._alias].lastKillerCount)
+                {
+                    case 6:
+                        _arena.sendArenaMessage(String.Format("{0} is on fire!", killer._alias), 8);
+                        break;
+                    case 8:
+                        _arena.sendArenaMessage(String.Format("Someone kill {0}!", killer._alias), 9);
+                        break;
+                }
+            }
+            //Is this first blood?
+            if (lastKiller == null)
+            {
+                //It is, lets make the sound
+                _arena.sendArenaMessage(String.Format("{0} has drawn first blood.", killer._alias), 7);
+            }
+            lastKiller = killer;
+        }
+
+        /// <summary>
+        /// Updates the victim's kill streak and notifies the public
+        /// </summary>
+        private void UpdateDeath(Player victim, Player killer)
+        {
+            if (_killStreaks.ContainsKey(victim._alias))
+            {
+                if (_killStreaks[victim._alias].lastKillerCount >= 6)
+                {
+                    _arena.sendArenaMessage(String.Format("{0}", killer != null ? killer._alias + " has ended " + victim._alias + "'s kill streak." :
+                        victim._alias + "'s kill streak has ended."), 6);
+                }
+                _killStreaks[victim._alias].lastKillerCount = 0;
+            }
+        }
+
+        /// <summary>
+        /// Updates the last fired weapon and its ticker
+        /// </summary>
+        private void UpdateWeapon(Player from, ItemInfo.Projectile usedWep)
+        {
+            if (_killStreaks.ContainsKey(from._alias))
+            {
+                _killStreaks[from._alias].lastUsedWeap = usedWep;
+                //TODO: Set alive times
+            }
+        }
+
+        /// <summary>
+        /// Updates the last weapon used and kill count then announcing it to the public
+        /// </summary>
+        private void UpdateWeaponKill(Player from)
+        {
+            if (_killStreaks.ContainsKey(from._alias))
+            {
+                if (_killStreaks[from._alias].lastUsedWeap == null)
+                    return;
+
+                _killStreaks[from._alias].lastUsedWepKillCount++;
+                ItemInfo.Projectile lastUsedWep = _killStreaks[from._alias].lastUsedWeap;
+                switch (_killStreaks[from._alias].lastUsedWepKillCount)
+                {
+                    case 2:
+                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 14);
+                        break;
+                    case 3:
+                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill!", from._alias, lastUsedWep.name), 15);
+                        break;
+                    case 4:
+                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 16);
+                        break;
+                    case 5:
+                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 17);
+                        break;
+                }
+            }
+        }
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -50,8 +174,8 @@ namespace InfServer.Script.GameType_CTF
         {	//Populate our variables
             _arena = invoker as Arena;
             _config = _arena._server._zoneConfig;
-
             _minPlayers = Int32.MaxValue;
+            _killStreaks = new Dictionary<string, PlayerStreak>();
 
             foreach (Arena.FlagState fs in _arena._flags.Values)
             {	//Determine the minimum number of players
@@ -92,6 +216,13 @@ namespace InfServer.Script.GameType_CTF
             {
                 _tickGameStarting = 0;
                 _arena.setTicker(4, 1, 0, "Not Enough Players");
+            }
+
+            //Update our kill streak check
+            if (now - _lastKillStreakUpdate >= 500)
+            {
+                UpdateKillStreaks();
+                _lastKillStreakUpdate = now;
             }
 
             //Do we have enough players to start a game?
@@ -250,6 +381,21 @@ namespace InfServer.Script.GameType_CTF
         }
 
         /// <summary>
+        /// Updates our players kill streak timer
+        /// </summary>
+        private void UpdateKillStreaks()
+        {
+            foreach (PlayerStreak p in _killStreaks.Values)
+            {
+                if (p.lastUsedWepTick == -1)
+                    continue;
+
+                if (Environment.TickCount - p.lastUsedWepTick <= 0)
+                    ResetWeaponTicker(p.player);
+            }
+        }
+
+        /// <summary>
         /// Called when the game begins
         /// </summary>
         [Scripts.Event("Game.Start")]
@@ -260,8 +406,23 @@ namespace InfServer.Script.GameType_CTF
             _tickVictoryStart = 0;
             _victoryNotice = 0;
 
+            ResetKiller(null);
+            _killStreaks.Clear();
+
+            foreach(Player p in _arena.Players)
+            {
+                PlayerStreak temp = new PlayerStreak();
+                temp.player = p;
+                temp.lastKillerCount = 0;
+                temp.lastUsedWeap = null;
+                temp.lastUsedWepKillCount = 0;
+                temp.lastUsedWepTick = -1;
+                _killStreaks.Add(p._alias, temp);
+            }
+
             //Let everyone know
             _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
+            updateTickers();
 
             //Signal that a game has not been won yet
             _gameWon = false;
@@ -316,25 +477,61 @@ namespace InfServer.Script.GameType_CTF
 
         #region Player Events
         /// <summary>
-        /// Handles a player's portal request
+        /// Triggered when an explosion happens from a projectile a player fired
         /// </summary>
-        [Scripts.Event("Player.Portal")]
-        public bool playerPortal(Player player, LioInfo.Portal portal)
+        [Scripts.Event("Player.Explosion")]
+        public bool playerExplosion(Player from, ItemInfo.Projectile usedWep, short posX, short posY, short posZ)
         {
-            List<Arena.FlagState> carried = _arena._flags.Values.Where(flag => flag.carrier == player).ToList();
+            //TODO: Get a list of main weapons then have it update
+            //UpdateWeapon(from, usedWep);
+            return true;
+        }
 
-            foreach (Arena.FlagState carry in carried)
-            {   //If the terrain number is 0-15
+        /// <summary>
+        /// Triggered when one player has killed another
+        /// </summary>
+        [Scripts.Event("Player.PlayerKill")]
+        public bool playerPlayerKill(Player victim, Player killer)
+        {
+            //Update our kill streak
+            UpdateKiller(killer);
 
-                int terrainNum = player._arena.getTerrainID(player._state.positionX, player._state.positionY);
-                if (terrainNum >= 0 && terrainNum <= 15)
-                {   //Check the FlagDroppableTerrains for that specific terrain id
-
-                    if (carry.flag.FlagData.FlagDroppableTerrains[terrainNum] == 0)
-                        _arena.flagResetPlayer(player);
-                }
+            if (_killStreaks.ContainsKey(victim._alias))
+            {
+                long wepTick = _killStreaks[victim._alias].lastUsedWepTick;
+                if (wepTick != -1)
+                    UpdateWeaponKill(killer);
             }
+            if (killer != null && victim != null && victim._bounty >= 300)
+                _arena.sendArenaMessage(String.Format("{0} has ended {1}'s bounty.", killer._alias, victim._alias), 5);
+            return true;
+        }
 
+        /// <summary>
+        /// Triggered when a player has died, by any means
+        /// </summary>
+        /// <remarks>killer may be null if it wasn't a player kill</remarks>
+        [Scripts.Event("Player.Death")]
+        public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
+        {
+            //Update our kill counter
+            UpdateDeath(victim, killer);
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when a vehicle dies
+        /// </summary>
+        [Scripts.Event("Vehicle.Death")]
+        public bool vehicleDeath(Vehicle dead, Player killer)
+        {
+            // For this gametype, warp point destruction will send an arena message
+            // Only trigger for vehicles with these IDs
+            List<int> warpPointIDs = new List<int> { 403, 404, 413, 414, 416, 417 };
+            if (warpPointIDs.Contains(dead._type.Id))
+            {
+                _arena.sendArenaMessage(dead._team._name + " lost a " + dead._type.Name + " at " + dead._state.letterCoord() + "!", 1);
+            }
             return true;
         }
 

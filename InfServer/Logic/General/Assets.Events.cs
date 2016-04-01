@@ -346,16 +346,38 @@ namespace InfServer.Logic
                 //Wipes the player's inventory
                 case "wipeinv":
                     if (param != "")
-                    {   //Erase all of a specified item
-                        int id;
-                        if (!Int32.TryParse(param, out id))
+                    {
+                        //Check for a quantity
+                        if (param.Contains(':'))
                         {
-                            ItemInfo item = player._server._assets.getItemByName(param);
-                            if (item == null)
-                                return false;
-                            id = item.id;
+                            int colIdx = param.IndexOf(':');
+                            //Find the given item
+                            ItemInfo item = player._server._assets.getItemByName(param.Substring(0, colIdx));
+                            if (item != null)
+                            {
+                                try
+                                {
+                                    player.inventoryModify(false, item, Convert.ToInt32(param.Substring(colIdx + 1)));
+                                }
+                                catch
+                                {
+                                    Log.write(TLog.Warning, String.Format("Error in String: {0} in action {1}", param.Substring(colIdx + 1), action));
+                                }
+                            }
                         }
-                        player.removeAllItemFromInventory(true, id);
+                        else
+                        {
+                            //Erase all of a specified item
+                            int id;
+                            if (!Int32.TryParse(param, out id))
+                            {
+                                ItemInfo item = player._server._assets.getItemByName(param);
+                                if (item == null)
+                                    return false;
+                                id = item.id;
+                            }
+                            player.removeAllItemFromInventory(true, id);
+                        }
                     }
                     else
                     {   //Erase whole inventory

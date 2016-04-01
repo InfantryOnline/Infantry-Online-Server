@@ -91,6 +91,8 @@ namespace InfServer.Game
         //Player arena ban stuff
         public DateTime _timeOfBlock;           //When he/she was banned from arena
         public int _lengthOfBlock;              //How long the block is
+
+        public List<int> warpCreations;     //What warp points we created
         #endregion
 
         #region Player state
@@ -277,6 +279,8 @@ namespace InfServer.Game
             _statsSession = new Data.PlayerStats();
             _statsGame = new Data.PlayerStats();
             _statsLastGame = new Data.PlayerStats();
+
+            warpCreations = new List<int>();
         }
 
         #region State
