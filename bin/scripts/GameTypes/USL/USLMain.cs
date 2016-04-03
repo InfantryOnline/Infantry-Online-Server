@@ -977,7 +977,7 @@ namespace InfServer.Script.GameType_USL
             }
 
             var winningEvent = _eventVoting.OrderByDescending(x => x.Value).FirstOrDefault();
-            _arena.sendArenaMessage(String.Format("Voting over! Winning event is {0} with {1} vote(s). Switching teams...", winningEvent.Key, winningEvent.Value));
+            _arena.sendArenaMessage(String.Format("Voting over! Winning event is {0} with {1} vote(s). Switching teams...", winningEvent.Key, winningEvent.Value.Count));
 
             _gamePlay._eventType = (Settings.EventTypes)Enum.Parse(typeof(Settings.EventTypes), winningEvent.Key);
 

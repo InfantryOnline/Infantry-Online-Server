@@ -56,6 +56,12 @@ namespace InfServer.Script.GameType_CTF
 
         private Dictionary<string, PlayerStreak> _killStreaks;
         private Player lastKiller;
+        private Dictionary<string, int> _explosives;
+        private string[] explosives = { "Frag Grenade", "WP Grenade", "EMP Grenade", "Kuchler RG 249", "Maklov RG 2", "Titan Arms RG 2mv", "AP Mine",
+                                        "Plasma Mine", "Grapeshot Mine", "RPG", "Micro Missle Launcher", "Recoilless Rifle", "Kuchler PC v2",
+                                        "Maklov XVI PC2000" };
+        //Note: these corrispond with the weapons above in order
+        private int[] explosiveAliveTimes = {250, 250, 250, 500, 500, 500, 500, 100, 250, 500, 500, 500, 450, 450};
 
         //Updaters
         /// <summary>
@@ -125,12 +131,12 @@ namespace InfServer.Script.GameType_CTF
         /// <summary>
         /// Updates the last fired weapon and its ticker
         /// </summary>
-        private void UpdateWeapon(Player from, ItemInfo.Projectile usedWep)
+        private void UpdateWeapon(Player from, ItemInfo.Projectile usedWep, int aliveTime)
         {
             if (_killStreaks.ContainsKey(from._alias))
             {
                 _killStreaks[from._alias].lastUsedWeap = usedWep;
-                //TODO: Set alive times
+                _killStreaks[from._alias].lastUsedWepTick = aliveTime;
             }
         }
 
@@ -149,16 +155,16 @@ namespace InfServer.Script.GameType_CTF
                 switch (_killStreaks[from._alias].lastUsedWepKillCount)
                 {
                     case 2:
-                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 14);
+                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 17);
                         break;
                     case 3:
-                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill!", from._alias, lastUsedWep.name), 15);
+                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill!", from._alias, lastUsedWep.name), 18);
                         break;
                     case 4:
-                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 16);
+                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 19);
                         break;
                     case 5:
-                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 17);
+                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 20);
                         break;
                 }
             }
@@ -176,6 +182,13 @@ namespace InfServer.Script.GameType_CTF
             _config = _arena._server._zoneConfig;
             _minPlayers = Int32.MaxValue;
             _killStreaks = new Dictionary<string, PlayerStreak>();
+            _explosives = new Dictionary<string, int>();
+
+            for (int i = 0; i < explosives.Length; i++)
+            {
+                _explosives.Add(explosives[i], explosiveAliveTimes[i]);
+                i++;
+            }
 
             foreach (Arena.FlagState fs in _arena._flags.Values)
             {	//Determine the minimum number of players
@@ -219,7 +232,7 @@ namespace InfServer.Script.GameType_CTF
             }
 
             //Update our kill streak check
-            if (now - _lastKillStreakUpdate >= 500)
+            if (now - _lastKillStreakUpdate >= 100)
             {
                 UpdateKillStreaks();
                 _lastKillStreakUpdate = now;
@@ -482,8 +495,11 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Player.Explosion")]
         public bool playerExplosion(Player from, ItemInfo.Projectile usedWep, short posX, short posY, short posZ)
         {
-            //TODO: Get a list of main weapons then have it update
-            //UpdateWeapon(from, usedWep);
+            if (_killStreaks.ContainsKey(from._alias))
+            {
+                if (_explosives.ContainsKey(usedWep.name))
+                    UpdateWeapon(from, usedWep, _explosives[usedWep.name]);
+            }
             return true;
         }
 
@@ -525,13 +541,6 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Vehicle.Death")]
         public bool vehicleDeath(Vehicle dead, Player killer)
         {
-            // For this gametype, warp point destruction will send an arena message
-            // Only trigger for vehicles with these IDs
-            List<int> warpPointIDs = new List<int> { 403, 404, 413, 414, 416, 417 };
-            if (warpPointIDs.Contains(dead._type.Id))
-            {
-                _arena.sendArenaMessage(dead._team._name + " lost a " + dead._type.Name + " at " + dead._state.letterCoord() + "!", 1);
-            }
             return true;
         }
 

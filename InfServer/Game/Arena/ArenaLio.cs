@@ -590,10 +590,10 @@ namespace InfServer.Game
             foreach (RelativeObj sp in spawnPoints)
             {
                 if (hs.Hide.HideData.MinPlayerDistance != 0 &&
-                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance, true).Count > 0)
                     continue;
                 if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
-                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance, true).Count == 0)
                     continue;
 
                 if (hs.Hide.HideData.MaxTypeInArea != -1)
@@ -668,10 +668,10 @@ namespace InfServer.Game
             foreach (RelativeObj sp in spawnPoints)
             {
                 if (hs.Hide.HideData.MinPlayerDistance != 0 &&
-                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance).Count > 0)
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance, true).Count > 0)
                     continue;
                 if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
-                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance).Count == 0)
+                    getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance, true).Count == 0)
                     continue;
 
                 if (hs.Hide.HideData.MaxTypeInArea != -1)

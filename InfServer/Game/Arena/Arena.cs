@@ -795,6 +795,18 @@ namespace InfServer.Game
             return _playersIngame.getObjsInRange(posX, posY, range);
         }
 
+        public List<Player> getPlayersInRange(int posX, int posY, int range, bool notDead)
+        {
+            List<Player> players = new List<Player>();
+            foreach(Player p in _playersIngame.getObjsInRange(posX, posY, range))
+            {
+                if (p == null || p.IsDead)
+                    continue;
+                players.Add(p);
+            }
+            return players;
+        }
+
         public List<Player> getPlayersInBox(int posX, int posY, int width, int height)
         {
             //Extrapolate

@@ -367,7 +367,9 @@ namespace InfServer.Game
             {
                 from.sendMessage(0, "#Individual Statistics Breakdown");
 
-                List<Player> rankedPlayers = Players.ToList().OrderByDescending(
+                List<Player> rankedPlayers = Players.ToList().OrderBy(player => 
+                    (bCurrent ? (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.deaths)
+                        : (player.StatsLastGame == null ? 0 : player.StatsLastGame.deaths))).OrderByDescending(
                     player => (bCurrent ? (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills)
                         : (player.StatsLastGame == null ? 0 : player.StatsLastGame.kills))).ToList();
                 int idx = 3;	//Only display top three players
@@ -2717,15 +2719,6 @@ namespace InfServer.Game
             //Forward it to our script
             if (!exists("Vehicle.Creation") || (bool)callsync("Vehicle.Creation", false, created, team, creator))
             {
-                //Was this a warp point?
-                if (created != null && creator != null && created._type.Type == VehInfo.Types.Computer)
-                {
-                    if (created._type.Name.ToLower().Contains("warp point"))
-                    {
-                        //Add this to the list
-                        creator.warpCreations.Add(created._id);
-                    }
-                }
             }
         }
         #endregion
@@ -2804,20 +2797,19 @@ namespace InfServer.Game
                 //Was this a warp point?
                 if (dead._type.Type == VehInfo.Types.Computer)
                 {
-                    if (dead._creator != null && dead._creator.warpCreations.Contains(dead._id))
+                    string name = dead._type.Name.ToLower();
+                    if (name.Contains("warp point"))
                     {
                         foreach(Player p in Players)
                         {
-                            if (p == null)
+                            if (p == null || p == killer)
                                 continue;
 
-                            if (p == dead._creator)
+                            if (p == dead._creator && dead._creator != null)
                                 p.triggerMessage(5, 500, String.Format("{0} killed by {1} at {2}", dead._type.Name, killer._alias, dead._state.letterCoord()));
                             else
                                 p.triggerMessage(5, 500, String.Format("{0} lost a {1} at {2}!", dead._team._name, dead._type.Name, dead._state.letterCoord()));
                         }
-                        //Remove it from the list
-                        dead._creator.warpCreations.Remove(dead._id);
                     }
                 }
             }

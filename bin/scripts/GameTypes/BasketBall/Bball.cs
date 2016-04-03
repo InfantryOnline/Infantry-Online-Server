@@ -53,8 +53,9 @@ namespace InfServer.Script.GameType_BasketBall
         private bool _overtime;                 //True if in overtime
         private int overtimeType;               //Which overtime type are we in?
         private Player _futureGoal;
-
-
+        private bool possible2 = false;
+        private bool possible3 = false;
+        private Dictionary<string, PlayerStreak> _killStreaks;
 
         //http://stackoverflow.com/questions/14672322/creating-a-point-class-c-sharp
         public class Point
@@ -81,15 +82,113 @@ namespace InfServer.Script.GameType_BasketBall
         }
 
         //Handle goal coords here for now
-        Point p1 = new Point(135, 1493);
-        Point p2 = new Point(240, 1493);
-        Point p3 = new Point(240, 1722);
-        Point p4 = new Point(135, 1722);
+        Point p1 = new Point(580, 1188);
+        Point p2 = new Point(632, 1140);
+        Point p3 = new Point(680, 1188);
+        Point p4 = new Point(632, 1240);
 
-        Point p5 = new Point(5385, 1493);
-        Point p6 = new Point(5495, 1493);
-        Point p7 = new Point(5495, 1722);
-        Point p8 = new Point(5385, 1722);
+        Point p5 = new Point(3472, 1188);
+        Point p6 = new Point(3412, 1140);
+        Point p7 = new Point(3472, 1188);
+        Point p8 = new Point(3412, 1240);
+
+        Point centerLeft = new Point(630, 1190);
+        Point centerRight = new Point(3442, 1190);
+
+        private class PlayerStreak
+        {
+            public int kills { get; set; }
+            public int shotsMade { get; set; }
+        }
+
+        //Updaters
+        private void ResetStreak(Player p)
+        {
+            UpdateKillStreak(p, true, false);
+        }
+
+        private void UpdateKillStreak(Player p, bool dead, bool kill)
+        {
+            if (_killStreaks.ContainsKey(p._alias))
+            {
+                //Did we die, if so reset
+                if (dead)
+                {
+                    _killStreaks[p._alias].kills = 0;
+                    _killStreaks[p._alias].shotsMade = 0;
+                }
+                else
+                {
+                    if (kill)
+                    {
+                        _killStreaks[p._alias].kills++;
+                        switch (_killStreaks[p._alias].kills)
+                        {
+                            case 5:
+                                _arena.sendArenaMessage(String.Format("{0} is on a kill streak.", p._alias), 2);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        _killStreaks[p._alias].shotsMade++;
+                        switch(_killStreaks[p._alias].shotsMade)
+                        {
+                            case 3:
+                                _arena.sendArenaMessage(String.Format("3 in a row for {0}.", p._alias), 9);
+                                break;
+                            case 5:
+                                //TODO: Make this sound delay by adding it to a queue and poll
+                                _arena.sendArenaMessage(String.Format("Someone block {0}!", p._alias), 10);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+
+        //Sound Players
+        private void Play2Ptr(Player p)
+        {
+            switch(_arena._rand.Next(1, 5))
+            {
+                case 1:
+                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 4);
+                    break;
+                case 2:
+                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 5);
+                    break;
+                case 3:
+                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 8);
+                    break;
+                case 4:
+                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 11);
+                    break;
+                case 5:
+                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 12);
+                    break;
+            }
+        }
+
+        private void Play3Ptr(Player p)
+        {
+            /* TODO: GET MORE SOUNDS
+            switch (_arena._rand.Next(1, 4))
+            {
+                case 1:
+                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 4);
+                    break;
+                case 2:
+                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 5);
+                    break;
+                case 3:
+                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 9);
+                    break;
+                case 4:
+                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 11);
+                    break;
+            }*/
+        }
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -114,6 +213,7 @@ namespace InfServer.Script.GameType_BasketBall
             _minPlayersToKeepScore = _config.arena.minimumKeepScorePublic;
             _sendBallUpdate = _config.soccer.sendTime * 10;
 
+            _killStreaks = new Dictionary<string, PlayerStreak>();
             queue = new List<Player>();
             return true;
         }
@@ -212,6 +312,7 @@ namespace InfServer.Script.GameType_BasketBall
             pass = null;
             assist = null;
             assist2 = null;
+            _killStreaks.Clear();
 
             //Clear ball list incase of added balls
             foreach (Ball b in _arena.Balls.ToList())
@@ -222,9 +323,15 @@ namespace InfServer.Script.GameType_BasketBall
             if (_arena.ActiveTeams.Count() > 1)
                 team2 = _arena.ActiveTeams.ElementAt(1);
 
-            //Reset variable
+            //Reset variables
             foreach (Player p in _arena.Players)
+            {
                 p._gotBallID = 999; //No ball in possession
+                PlayerStreak temp = new PlayerStreak();
+                temp.kills = 0;
+                temp.shotsMade = 0;
+                _killStreaks.Add(p._alias, temp);
+            }
 
             //Spawn our active balls based on our cfg
             SpawnBall();
@@ -346,6 +453,7 @@ namespace InfServer.Script.GameType_BasketBall
             pass = null;
             assist = null;
             assist2 = null;
+            _killStreaks.Clear();
 
             return true;
         }
@@ -646,6 +754,9 @@ namespace InfServer.Script.GameType_BasketBall
             pass = player;
             pass._team = player._team;
 
+            possible2 = false;
+            possible3 = false;
+
             //Keep track of carry time
             carryTime = Environment.TickCount - carryTimeStart;
             carryTimeStart = 0;
@@ -730,12 +841,25 @@ namespace InfServer.Script.GameType_BasketBall
                 if (isInsideSquare(p1, p2, p3, p4, ballPoint) || isInsideSquare(p5, p6, p7, p8, ballPoint))
                 {//Will be a goal
                     _futureGoal = player;
+                    //Check location
+                    CfgInfo.Terrain terrainNum = _arena.getTerrain(drop.positionX, drop.positionY);
+                    if (terrainNum.goalPoints >= 3)
+                        possible3 = true;
+                    Point position = drop.positionX <= 800 ? centerLeft : centerRight;
+                    if (terrainNum.goalPoints == 2 && Helpers.isInRange(235, drop.positionX, drop.positionY, position.X, position.Y))
+                        possible2 = true;
+
+                    if (possible2)
+                        _arena.sendArenaMessage(String.Format("{0}'s going in!", player._alias));
+                    else if (possible3 && _arena._rand.Next(1, 2) == 2)
+                        _arena.sendArenaMessage("Here's the shot!", 7);
                     break;
                 }
 
                 //Not going to be a goal
                 _futureGoal = null;
             }
+
             return true;
         }
 
@@ -760,7 +884,10 @@ namespace InfServer.Script.GameType_BasketBall
                 }
                 else if (player._team != _futureGoal._team && player != _futureGoal)
                 {   //It's a save
-                    _arena.sendArenaMessage("Save=" + player._alias);
+                    if ((_arena._rand.Next(1, 4)) == 2) //25 percent chance
+                        _arena.sendArenaMessage("Save=" + player._alias, 3);
+                    else
+                        _arena.sendArenaMessage("Save=" + player._alias);
                     if (record)
                         //Save their stat
                         player.ZoneStat11 += 1; //Saves
@@ -812,7 +939,21 @@ namespace InfServer.Script.GameType_BasketBall
             //Reset
             _futureGoal = null;
 
-            //we finna score 3 pt brap brap BURRRBAPAPAPA
+            if (possible2)
+            {
+                if (_arena._rand.Next(1, 3) == 2)
+                    Play2Ptr(player);
+                possible2 = false;
+            }
+
+            if (possible3)
+            {
+                if (_arena._rand.Next(1, 3) == 3)
+                    Play3Ptr(player);
+                possible3 = false;
+            }
+
+            //we finna score 3 or 2 pt brap brap BURRRBAPAPAPA
             bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             CfgInfo.Terrain terrainNum = _arena.getTerrain(ball._state.positionX, ball._state.positionY);
             if (player._team == team1)
@@ -823,14 +964,25 @@ namespace InfServer.Script.GameType_BasketBall
             //Let everyone know
             if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
             {
-                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), _config.soccer.goalBong);
+                if (terrainNum.goalPoints >= 3)
+                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), 27);
+                else
+                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), _config.soccer.goalBong);
                 if (record)
                     assist2.ZoneStat4 += 1; //Assists
             }
             else
-                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), _config.soccer.goalBong);
+            {
+                if (terrainNum.goalPoints >= 3)
+                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), 27);
+                else
+                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), _config.soccer.goalBong);
+            }
             //Announce Score
             _arena.sendArenaMessage(String.Format("SCORE:  {0}={1}  {2}={3}", team1._name, team1Goals, team2._name, team2Goals));
+
+            //Update their streak
+            UpdateKillStreak(player, false, false);
 
             //Save their stat
             if (record)
@@ -1027,6 +1179,15 @@ namespace InfServer.Script.GameType_BasketBall
                 return false;
             }
 
+            if (!_killStreaks.ContainsKey(player._alias))
+            {
+                PlayerStreak temp = new PlayerStreak();
+                temp.kills = 0;
+                temp.shotsMade = 0;
+                _killStreaks.Add(player._alias, temp);
+            }
+            //Reset their streak
+            ResetStreak(player);
             return true;
         }
 
@@ -1077,6 +1238,28 @@ namespace InfServer.Script.GameType_BasketBall
                 //Spawn it
                 Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
             }
+
+            if (killer != null && victim != null)
+            {
+                if (_killStreaks.ContainsKey(victim._alias) && (_killStreaks[victim._alias].kills >= 5 || _killStreaks[victim._alias].shotsMade >= 3))
+                {
+                    bool shots = _killStreaks[victim._alias].shotsMade >= 3 ? true : false;
+                    int bong = _arena._rand.Next(1,2);
+                    _arena.sendArenaMessage(String.Format("{0} has ended {1}'s {2} streak.", killer._alias, victim._alias, shots == true ? "scoring" : "kill"), bong);
+                }
+            }
+            ResetStreak(victim);
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered when one player has killed another
+        /// </summary>
+        [Scripts.Event("Player.PlayerKill")]
+        public bool playerPlayerKill(Player victim, Player killer)
+        {
+            if (killer != null)
+                UpdateKillStreak(killer, false, true);
 
             return true;
         }
