@@ -51,6 +51,7 @@ namespace InfServer.Protocol
 			Flag,
 			Prize,
 			Explosion,
+            Test,
 		}
 
 		///////////////////////////////////////////////////
@@ -111,7 +112,7 @@ namespace InfServer.Protocol
 				player._client.sendReliable(not);
 		}
 
-		/// <summary>
+        /// <summary>
 		/// Sets a player's team
 		/// </summary>
 		static public void Player_SetTeam(IEnumerable<Player> players, Player p, Team t)
