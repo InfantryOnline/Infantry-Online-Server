@@ -19,6 +19,7 @@ namespace InfServer.Game
 
 		private List<AssetInfo> _assetList;
 		private List<string> _bloList;
+        private string _bloListFileName;
 
         public uint _totalChecksum;
 		
@@ -153,7 +154,11 @@ namespace InfServer.Game
 
             //For debugging
             _bloList.Sort();
-            System.IO.File.WriteAllLines(Environment.CurrentDirectory + "/bloList_" + configFilename + ".txt", _bloList);
+            _bloListFileName = "bloList_" + configFilename + ".txt";
+            System.IO.File.WriteAllLines(string.Format("{0}/{1}", Environment.CurrentDirectory, _bloListFileName), _bloList);
+
+            //Update our asset server
+            sendDataToDirectory();
 
 			//Initialize our lio data
 			Lios = new Lio(this);
@@ -424,8 +429,41 @@ namespace InfServer.Game
 		    AssetInfo newAsset = new AssetInfo(abstractAsset.Filename, abstractAsset.Checksum);
 
             if (_assetList.Contains(newAsset) == false)
-			_assetList.Add(newAsset);
+			    _assetList.Add(newAsset);
 		}
+
+        /// <summary>
+        /// Updates our directory server with blo info
+        /// </summary>
+        private void sendDataToDirectory()
+        {
+            System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)System.Net.WebRequest.Create("http://infdir1.aaerox.com/directory");
+            byte[] bytes = Encoding.UTF8.GetBytes(string.Format("{0}/{1}", Environment.CurrentDirectory, _bloListFileName));
+            webRequest.Method = "PUT";
+            webRequest.ContentType = "application/json";
+            webRequest.ContentLength = bytes.Length;
+            try
+            {
+                webRequest.GetRequestStream().Write(bytes, 0, bytes.Length);
+            }
+            catch(Exception e)
+            {
+                Log.write(TLog.Exception, string.Format("Data To Directory Server: {0}", e.ToString()));
+            }
+
+            try
+            {
+                using (System.IO.StreamReader reader = new System.IO.StreamReader(webRequest.GetResponse().GetResponseStream()))
+                {
+                    reader.ReadToEnd();
+                    reader.Close();
+                }
+            }
+            catch(Exception e)
+            { 
+                Log.write(TLog.Exception, string.Format("Data To Directory Server: {0}", e.ToString()));
+            }
+        }
 
 		/// <summary>
 		/// Gets the loaded asset list to send to a client
@@ -434,6 +472,5 @@ namespace InfServer.Game
 		{
 			return _assetList;
 		}
-
 	}
 }

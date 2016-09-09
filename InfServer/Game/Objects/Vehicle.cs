@@ -302,6 +302,7 @@ namespace InfServer.Game
 
             //Reset his movement timer
             player._lastMovement = Environment.TickCount;
+            player._maxTimeCalled = false;
 
             return true;
         }

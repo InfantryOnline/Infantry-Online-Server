@@ -48,7 +48,9 @@ namespace InfServer.Script.GameType_USL
             public long points { get; set; }
             public int kills { get; set; }
             public int deaths { get; set; }
+            public int killPoints { get; set; }
             public int assistPoints { get; set; }
+            public int bonusPoints { get; set; }
             public int playSeconds { get; set; }
             public bool hasPlayed { get; set; }
             public string classType { get; set; }
@@ -100,10 +102,16 @@ namespace InfServer.Script.GameType_USL
                 switch(_savedPlayerStats[killer._alias].lastKillerCount)
                 {
                     case 6:
-                        _arena.sendArenaMessage(String.Format("{0} is on fire!", killer._alias), 18);
+                        _arena.sendArenaMessage(String.Format("{0} is on fire!", killer._alias), 17);
                         break;
                     case 8:
-                        _arena.sendArenaMessage(String.Format("Someone kill {0}!", killer._alias), 19);
+                        _arena.sendArenaMessage(String.Format("Someone kill {0}!", killer._alias), 18);
+                        break;
+                    case 10:
+                        _arena.sendArenaMessage(String.Format("{0} is dominating!", killer._alias), 19);
+                        break;
+                    case 12:
+                        _arena.sendArenaMessage(String.Format("DEATH TO {0}!", killer._alias), 30);
                         break;
                 }
             }
@@ -112,7 +120,7 @@ namespace InfServer.Script.GameType_USL
             if (lastKiller == null)
             {
                 //It is, lets make the sound
-                _arena.sendArenaMessage(String.Format("{0} has drawn first blood.", killer._alias), 13);
+                _arena.sendArenaMessage(String.Format("{0} has drawn first blood.", killer._alias), 9);
             }
             lastKiller = killer;
         }
@@ -127,7 +135,7 @@ namespace InfServer.Script.GameType_USL
                 if (_savedPlayerStats[victim._alias].lastKillerCount >= 6)
                 {
                     _arena.sendArenaMessage(String.Format("{0}", killer != null ? killer._alias + " has ended " + victim._alias + "'s kill streak." :
-                        victim._alias + "'s kill streak has ended."), 9);
+                        victim._alias + "'s kill streak has ended."), 7);
                 }
                 _savedPlayerStats[victim._alias].lastKillerCount = 0;
                 //_savedPlayerStats[victim._alias].lastUsedWep = null;
@@ -160,19 +168,22 @@ namespace InfServer.Script.GameType_USL
                     return;
                 _savedPlayerStats[from._alias].lastUsedWepKillCount++;
                 ItemInfo.Projectile lastUsedWep = _savedPlayerStats[from._alias].lastUsedWep;
+                if (lastUsedWep.name.Contains("Combat Knife"))
+                    _arena.sendArenaMessage(String.Format("{0} is throwing out the knives.", from._alias), 6);
+
                 switch (_savedPlayerStats[from._alias].lastUsedWepKillCount)
                 {
                     case 2:
-                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 14);
+                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 13);
                         break;
                     case 3:
-                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill.", from._alias, lastUsedWep.name), 15);
+                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill.", from._alias, lastUsedWep.name), 14);
                         break;
                     case 4:
-                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 16);
+                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 15);
                         break;
                     case 5:
-                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 17);
+                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 16);
                         break;
                 }
             }
@@ -329,6 +340,8 @@ namespace InfServer.Script.GameType_USL
                 temp.alias = p._alias;
                 temp.points = 0;
                 temp.assistPoints = 0;
+                temp.bonusPoints = 0;
+                temp.killPoints = 0;
                 temp.playSeconds = 0;
                 temp.squad = p._squad;
                 temp.kills = 0;
@@ -378,10 +391,7 @@ namespace InfServer.Script.GameType_USL
             switch (_gameType)
             {
                 case GameTypes.LEAGUEMATCH:
-                    //Show the match results
-                    MatchEnd();
-
-                    //Update stats only once
+                    //Make sure to get an accurate playing time
                     foreach (KeyValuePair<string, PlayerStat> pair in _savedPlayerStats)
                     {   //Did they play or exist?
                         if (!pair.Value.hasPlayed || pair.Value.player == null)
@@ -389,6 +399,9 @@ namespace InfServer.Script.GameType_USL
                         //Stats are migrated first due to game.end being called before our script callsync
                         pair.Value.playSeconds = pair.Value.player.StatsLastGame.playSeconds;
                     }
+
+                    //Show the match results
+                    MatchEnd();
                     break;
 
                 case GameTypes.LEAGUEOVERTIME:
@@ -569,7 +582,7 @@ namespace InfServer.Script.GameType_USL
         {
             if (usedWep.name.Contains("LAW") || usedWep.name.Contains("Hand Grenade")
                 || usedWep.name.Contains("Grenade Launcher") || usedWep.name.Contains("Incendiary Grenade")
-                || usedWep.name.Contains("Demo Charge"))
+                || usedWep.name.Contains("Demo Charge") || usedWep.name.Contains("Combat Knife"))
                 UpdateWeapon(from, usedWep);
         }
 
@@ -591,6 +604,9 @@ namespace InfServer.Script.GameType_USL
                     totalHealth += (p._baseVehicle._type.Hitpoints - p._state.health);
                 }
                 _savedPlayerStats[from._alias].potentialHealthHealed += totalHealth;
+
+                if (_gameType == GameTypes.LEAGUEMATCH)
+                    from.ZoneStat4 += totalHealth;
             }
         }
 
@@ -697,6 +713,8 @@ namespace InfServer.Script.GameType_USL
                 PlayerStat temp = new PlayerStat();
                 temp.squad = player._squad;
                 temp.assistPoints = 0;
+                temp.bonusPoints = 0;
+                temp.killPoints = 0;
                 temp.points = 0;
                 temp.playSeconds = 0;
                 temp.alias = player._alias;
@@ -733,6 +751,8 @@ namespace InfServer.Script.GameType_USL
                 temp.alias = player._alias;
                 temp.squad = player._squad;
                 temp.assistPoints = 0;
+                temp.bonusPoints = 0;
+                temp.killPoints = 0;
                 temp.points = 0;
                 temp.playSeconds = 0;
                 temp.deaths = 0;
@@ -774,6 +794,7 @@ namespace InfServer.Script.GameType_USL
                         else
                             player.unspec(yellow);
                         player._lastMovement = Environment.TickCount;
+                        player._maxTimeCalled = false;
                         //Returning false so the server doesnt repick us
                         return false;
 
@@ -792,6 +813,7 @@ namespace InfServer.Script.GameType_USL
                         else
                             player.unspec(blue);
                         player._lastMovement = Environment.TickCount;
+                        player._maxTimeCalled = false;
                         //We are returning false so server wont repick us
                         return false;
 
@@ -810,6 +832,7 @@ namespace InfServer.Script.GameType_USL
                         else
                             player.unspec(black);
                         player._lastMovement = Environment.TickCount;
+                        player._maxTimeCalled = false;
                         //We are returning false so server wont repick us
                         return false;
 
@@ -828,6 +851,7 @@ namespace InfServer.Script.GameType_USL
                         else
                             player.unspec(purple);
                         player._lastMovement = Environment.TickCount;
+                        player._maxTimeCalled = false;
                         //We are returning false so server wont repick us
                         return false;
 
@@ -846,6 +870,7 @@ namespace InfServer.Script.GameType_USL
                         else
                             player.unspec(silver);
                         player._lastMovement = Environment.TickCount;
+                        player._maxTimeCalled = false;
                         //We are returning false so server wont repick us
                         return false;
 
@@ -864,6 +889,7 @@ namespace InfServer.Script.GameType_USL
                         else
                             player.unspec(bronze);
                         player._lastMovement = Environment.TickCount;
+                        player._maxTimeCalled = false;
                         //We are returning false so server wont repick us
                         return false;
 
@@ -882,6 +908,7 @@ namespace InfServer.Script.GameType_USL
                         else
                             player.unspec(gray);
                         player._lastMovement = Environment.TickCount;
+                        player._maxTimeCalled = false;
                         //We are returning false so server wont repick us
                         return false;
                 }
@@ -894,11 +921,24 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         public void playerEnterArena(Player player)
         {
-            if (!_savedPlayerStats.ContainsKey(player._alias))
+            //Lets reset our current game
+            if (_savedPlayerStats.ContainsKey(player._alias))
+            {
+                PlayerStat stat = _savedPlayerStats[player._alias];
+                player.StatsCurrentGame.assistPoints = stat.assistPoints;
+                player.StatsCurrentGame.bonusPoints = stat.bonusPoints;
+                player.StatsCurrentGame.killPoints = stat.killPoints;
+                player.StatsCurrentGame.deaths = stat.deaths;
+                player.StatsCurrentGame.kills = stat.kills;
+                player.StatsCurrentGame.playSeconds = stat.playSeconds;
+            }
+            else
             {
                 PlayerStat temp = new PlayerStat();
                 temp.alias = player._alias;
                 temp.assistPoints = 0;
+                temp.killPoints = 0;
+                temp.bonusPoints = 0;
                 temp.points = 0;
                 temp.playSeconds = 0;
                 temp.squad = player._squad;
@@ -908,10 +948,6 @@ namespace InfServer.Script.GameType_USL
                 temp.hasPlayed = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
-
-            //Lets reset our current game
-            if (_savedPlayerStats[player._alias].player.StatsCurrentGame != null)
-                player.StatsCurrentGame = _savedPlayerStats[player._alias].player.StatsCurrentGame;
         }
 
         /// <summary>
@@ -923,9 +959,11 @@ namespace InfServer.Script.GameType_USL
             {
                 if (_savedPlayerStats.ContainsKey(player._alias) && _savedPlayerStats[player._alias].hasPlayed)
                 {
-                    _savedPlayerStats[player._alias].playSeconds += gameStarted ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
-                    _savedPlayerStats[player._alias].points += gameStarted ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
-                    _savedPlayerStats[player._alias].assistPoints += gameStarted ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                    _savedPlayerStats[player._alias].playSeconds = gameStarted ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
+                    _savedPlayerStats[player._alias].points = gameStarted ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
+                    _savedPlayerStats[player._alias].assistPoints = gameStarted ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                    _savedPlayerStats[player._alias].killPoints = gameStarted ? player.StatsCurrentGame.killPoints : player.StatsLastGame != null ? player.StatsLastGame.killPoints : 0;
+                    _savedPlayerStats[player._alias].bonusPoints = gameStarted ? player.StatsCurrentGame.bonusPoints : player.StatsLastGame != null ? player.StatsLastGame.bonusPoints : 0;
                     if (player._baseVehicle != null)
                         _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
                 }
@@ -949,6 +987,8 @@ namespace InfServer.Script.GameType_USL
                     _savedPlayerStats[player._alias].playSeconds = gameStarted ? player.StatsCurrentGame.playSeconds : player.StatsLastGame != null ? player.StatsLastGame.playSeconds : 0;
                     _savedPlayerStats[player._alias].points = gameStarted ? player.StatsCurrentGame.Points : player.StatsLastGame != null ? player.StatsLastGame.Points : 0;
                     _savedPlayerStats[player._alias].assistPoints = gameStarted ? player.StatsCurrentGame.assistPoints : player.StatsLastGame != null ? player.StatsLastGame.assistPoints : 0;
+                    _savedPlayerStats[player._alias].killPoints = gameStarted ? player.StatsCurrentGame.killPoints : player.StatsLastGame != null ? player.StatsLastGame.killPoints : 0;
+                    _savedPlayerStats[player._alias].bonusPoints = gameStarted ? player.StatsCurrentGame.bonusPoints : player.StatsLastGame != null ? player.StatsLastGame.bonusPoints : 0;
                     if (player._baseVehicle != null)
                         _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
                 }
@@ -1105,9 +1145,12 @@ namespace InfServer.Script.GameType_USL
                     p._bAllowBanner = false;
             }
 
-            //Record our start time
-            startTime = DateTime.Now.ToLocalTime();
-            _gameType = GameTypes.LEAGUEMATCH;
+            //Record our start time if this is our initial start time
+            if (_gameType != GameTypes.LEAGUEOVERTIME)
+            {
+                startTime = DateTime.Now.ToLocalTime();
+                _gameType = GameTypes.LEAGUEMATCH;
+            }
         }
 
         /// <summary>
@@ -1442,14 +1485,16 @@ namespace InfServer.Script.GameType_USL
                     if (!p.Value.hasPlayed)
                         continue;
 
-                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0",
+                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7},{8}",
                         p.Value.alias,
                         p.Value.squad,
                         p.Value.points,
                         p.Value.kills,
                         p.Value.deaths,
                         p.Value.assistPoints,
-                        p.Value.playSeconds));
+                        p.Value.playSeconds,
+                        p.Value.classType,
+                        (p.Value.potentialHealthHealed <= 0 ? 0 : p.Value.potentialHealthHealed)));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
@@ -1561,7 +1606,7 @@ namespace InfServer.Script.GameType_USL
                     if (!p.Value.hasPlayed)
                         continue;
 
-                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7}",
+                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7},{8}",
                         p.Value.alias,
                         p.Value.squad,
                         p.Value.points,
@@ -1569,7 +1614,8 @@ namespace InfServer.Script.GameType_USL
                         p.Value.deaths,
                         p.Value.assistPoints,
                         p.Value.playSeconds,
-                        p.Value.classType));
+                        p.Value.classType,
+                        (p.Value.potentialHealthHealed <= 0 ? 0 : p.Value.potentialHealthHealed)));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 

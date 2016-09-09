@@ -156,7 +156,10 @@ namespace InfServer.Script.GameType_FL_TDM
 
             foreach (Arena.FlagState fs in _arena._flags.Values)
                 if (fs.bActive && fs.team != victoryTeam)
+                {
                     victoryTeam = null;
+                    break;
+                }
 
             if (victoryTeam != null)
             {	//Yes! Victory for them!
@@ -254,6 +257,7 @@ namespace InfServer.Script.GameType_FL_TDM
             _tickVictoryStart = 0;
             _tickNextVictoryNotice = 0;
             _victoryNotice = 0;
+            _gameWon = false;
             _victoryTeam = null;
 
             return true;

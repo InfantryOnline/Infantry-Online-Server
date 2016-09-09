@@ -84,7 +84,7 @@ namespace InfServer
             Thread.GetDomain().UnhandledException += onException;
 
             //Create a logging client for the main server thread
-            LogClient handlerLogger = Log.createClient("ServerHandler");
+            LogClient handlerLogger = Log.createClient("ZoneServerHandler");
             Log.assume(handlerLogger);
 
             //Set a handler for if we recieve Ctrl+C or Ctrl+BREAK

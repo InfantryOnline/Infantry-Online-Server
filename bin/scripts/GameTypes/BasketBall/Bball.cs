@@ -38,9 +38,9 @@ namespace InfServer.Script.GameType_BasketBall
         private int _minPlayersToKeepScore;     //Min players need to record stats
         private int _stuckBallInterval = 5;     //How long till we warp our ball from being stuck
         private int _sendBallUpdate;            //When its time to send a ball update packet
+        private List<Player> queue;             //Our in queued players waiting to play
 
         //Recordings
-        private List<Player> queue;             //Our in queued players waiting to play
         private Team _victoryTeam;				//The team currently winning!
         private Team team1;
         private Team team2;
@@ -55,7 +55,8 @@ namespace InfServer.Script.GameType_BasketBall
         private Player _futureGoal;
         private bool possible2 = false;
         private bool possible3 = false;
-        private Dictionary<string, PlayerStreak> _killStreaks;
+        private bool recording = false;         //Are we recording stats?
+        private Dictionary<string, PlayerStreak> _Streaks;
 
         //http://stackoverflow.com/questions/14672322/creating-a-point-class-c-sharp
         public class Point
@@ -102,27 +103,31 @@ namespace InfServer.Script.GameType_BasketBall
         }
 
         //Updaters
+        #region Updaters
         private void ResetStreak(Player p)
         {
-            UpdateKillStreak(p, true, false);
+            UpdateStreak(p, true, false);
         }
 
-        private void UpdateKillStreak(Player p, bool dead, bool kill)
+        /// <summary>
+        /// Updates our streaks (checks, scores)
+        /// </summary>
+        private void UpdateStreak(Player p, bool dead, bool kill)
         {
-            if (_killStreaks.ContainsKey(p._alias))
+            if (_Streaks.ContainsKey(p._alias))
             {
                 //Did we die, if so reset
                 if (dead)
                 {
-                    _killStreaks[p._alias].kills = 0;
-                    _killStreaks[p._alias].shotsMade = 0;
+                    _Streaks[p._alias].kills = 0;
+                    _Streaks[p._alias].shotsMade = 0;
                 }
                 else
                 {
                     if (kill)
                     {
-                        _killStreaks[p._alias].kills++;
-                        switch (_killStreaks[p._alias].kills)
+                        _Streaks[p._alias].kills++;
+                        switch (_Streaks[p._alias].kills)
                         {
                             case 5:
                                 _arena.sendArenaMessage(String.Format("{0} is on a kill streak.", p._alias), 2);
@@ -131,32 +136,79 @@ namespace InfServer.Script.GameType_BasketBall
                     }
                     else
                     {
-                        _killStreaks[p._alias].shotsMade++;
-                        switch(_killStreaks[p._alias].shotsMade)
-                        {
-                            case 3:
-                                _arena.sendArenaMessage(String.Format("3 in a row for {0}.", p._alias), 9);
-                                break;
-                            case 5:
-                                //TODO: Make this sound delay by adding it to a queue and poll
-                                _arena.sendArenaMessage(String.Format("Someone block {0}!", p._alias), 10);
-                                break;
-                        }
+                        _Streaks[p._alias].shotsMade++;
                     }
                 }
             }
         }
 
-        //Sound Players
-        private void Play2Ptr(Player p)
+        /// <summary>
+        /// Did we get an assist in this goal?
+        /// </summary>
+        private void CheckForAssists(Player player)
         {
+            //Check for assists
+            if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
+            {
+                //Are we playing a normal goal sound?
+                if (!possible2 && !possible3) //Yes
+                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), _config.soccer.goalBong);
+                else //No
+                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias));
+                if (recording)
+                    assist2.ZoneStat4 += 1; //Assists
+                return;
+            }
+            //Are we playing a normal goal sound
+            if (!possible2 && !possible3) //Yes
+                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), _config.soccer.goalBong);
+            else
+                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name));
+            return;
+        }
+        #endregion
+
+        #region Sound Players
+        /// <summary>
+        /// Is this player heating up or on fire?
+        /// </summary>
+        private bool HeatingUpOrOnFire(Player p)
+        {
+            if (_Streaks.ContainsKey(p._alias))
+            {
+                //Lets play the sound
+                switch (_Streaks[p._alias].shotsMade)
+                {
+                    case 3:
+                        _arena.sendArenaMessage(String.Format("3 in a row for {0}.", p._alias), 9);
+                        //We want to fake this is a 3 so normal goal sounds doesnt play
+                        possible3 = true;
+                        return true;
+                    case 5:
+                        _arena.sendArenaMessage(String.Format("Someone block {0}!", p._alias), 10);
+                        //We want to fake this is a 3 so normal goal sounds doesnt play
+                        possible3 = true;
+                        return true;
+                }
+            }
+
+            return false;
+        }
+        /// <summary>
+        /// Plays a 2 point custom sound
+        /// </summary>
+        private void Play2Ptr(Player p)
+        {   //If we are heating up, just play that sound
+            if (HeatingUpOrOnFire(p))
+                return;
+
             switch(_arena._rand.Next(1, 5))
             {
                 case 1:
                     _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 4);
                     break;
                 case 2:
-                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 5);
+                    _arena.sendArenaMessage(String.Format("What a lay up by {0}.", p._alias), 5);
                     break;
                 case 3:
                     _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 8);
@@ -170,9 +222,16 @@ namespace InfServer.Script.GameType_BasketBall
             }
         }
 
+        /// <summary>
+        /// Plays a 3 point custom sound
+        /// </summary>
         private void Play3Ptr(Player p)
-        {
-            /* TODO: GET MORE SOUNDS
+        {   //If we are heating up, just play that sound
+            if (HeatingUpOrOnFire(p))
+                return;
+
+            _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 27);
+            /* TODO: Get more sounds
             switch (_arena._rand.Next(1, 4))
             {
                 case 1:
@@ -190,6 +249,43 @@ namespace InfServer.Script.GameType_BasketBall
             }*/
         }
 
+        /// <summary>
+        /// Triggers a sound player
+        /// </summary>
+        private void PlayGoalSound(Player player, int points)
+        {
+            //For TWO!
+            if (points < 3)
+            {	
+                //Was this a possible dunk or lay up?
+                if (possible2)
+                {   //It was, play a sound
+                    Play2Ptr(player);
+
+                    //Check for assists
+                    CheckForAssists(player);
+                }
+                else//Play normal goal sounds 
+                {
+                    //Are they heating up?
+                    HeatingUpOrOnFire(player);
+
+                    //Check for assists
+                    CheckForAssists(player);
+                }
+                possible2 = false;
+            }
+            else //FOR THREE!
+            {
+                Play3Ptr(player);
+
+                //Check for assists
+                CheckForAssists(player);
+                possible3 = false;
+            }
+        }
+        #endregion
+
         ///////////////////////////////////////////////////
         // Member Functions
         ///////////////////////////////////////////////////
@@ -204,8 +300,8 @@ namespace InfServer.Script.GameType_BasketBall
             SoccerMvp = _config.soccerMvp;
             _arena.playtimeTickerIdx = 0; //Sets the global ticker index
 
-            team1 = _arena.getTeamByName(_config.teams[0].name);
-            team2 = _arena.getTeamByName(_config.teams[1].name);
+            team1 = _arena.getTeamByID(0);
+            team2 = _arena.getTeamByID(1);
             team1Goals = 0;
             team2Goals = 0;
             overtimeType = 0;
@@ -213,7 +309,7 @@ namespace InfServer.Script.GameType_BasketBall
             _minPlayersToKeepScore = _config.arena.minimumKeepScorePublic;
             _sendBallUpdate = _config.soccer.sendTime * 10;
 
-            _killStreaks = new Dictionary<string, PlayerStreak>();
+            _Streaks = new Dictionary<string, PlayerStreak>();
             queue = new List<Player>();
             return true;
         }
@@ -312,7 +408,7 @@ namespace InfServer.Script.GameType_BasketBall
             pass = null;
             assist = null;
             assist2 = null;
-            _killStreaks.Clear();
+            _Streaks.Clear();
 
             //Clear ball list incase of added balls
             foreach (Ball b in _arena.Balls.ToList())
@@ -330,7 +426,7 @@ namespace InfServer.Script.GameType_BasketBall
                 PlayerStreak temp = new PlayerStreak();
                 temp.kills = 0;
                 temp.shotsMade = 0;
-                _killStreaks.Add(p._alias, temp);
+                _Streaks.Add(p._alias, temp);
             }
 
             //Spawn our active balls based on our cfg
@@ -360,6 +456,8 @@ namespace InfServer.Script.GameType_BasketBall
                     _arena.gameEnd();
             });
 
+            //We have enough to record?
+            recording = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             return true;
         }
 
@@ -371,11 +469,10 @@ namespace InfServer.Script.GameType_BasketBall
         {	//Announce it
             _arena.sendArenaMessage("Game Over!", _config.soccer.victoryBong);
 
-            bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             if (team1Goals > team2Goals)
             {
                 _victoryTeam = team1;
-                if (record)
+                if (recording)
                 {
                     foreach (Player p in team1.ActivePlayers)
                         //Give them a win score
@@ -389,7 +486,7 @@ namespace InfServer.Script.GameType_BasketBall
             else if (team2Goals > team1Goals)
             {
                 _victoryTeam = team2;
-                if (record)
+                if (recording)
                 {
                     foreach (Player p in team2.ActivePlayers)
                         //Give them a win score
@@ -431,7 +528,6 @@ namespace InfServer.Script.GameType_BasketBall
 
             //Reset variables
             _arena.gameReset();
-
             return true;
         }
 
@@ -453,7 +549,8 @@ namespace InfServer.Script.GameType_BasketBall
             pass = null;
             assist = null;
             assist2 = null;
-            _killStreaks.Clear();
+            recording = false;
+            _Streaks.Clear();
 
             return true;
         }
@@ -773,7 +870,7 @@ namespace InfServer.Script.GameType_BasketBall
 
             short dxi = drop.velocityX;
             short dyi = drop.velocityY;
-
+            //Console.WriteLine(String.Format("velocity = {0},{1},{2}", drop.velocityX, drop.velocityY, drop.velocityZ));
             double dx, dy;
             dx = dxi;
             dy = dyi;
@@ -846,7 +943,7 @@ namespace InfServer.Script.GameType_BasketBall
                     if (terrainNum.goalPoints >= 3)
                         possible3 = true;
                     Point position = drop.positionX <= 800 ? centerLeft : centerRight;
-                    if (terrainNum.goalPoints == 2 && Helpers.isInRange(235, drop.positionX, drop.positionY, position.X, position.Y))
+                    if (terrainNum.goalPoints <= 2 && Helpers.isInRange(235, drop.positionX, drop.positionY, position.X, position.Y))
                         possible2 = true;
 
                     if (possible2)
@@ -869,8 +966,6 @@ namespace InfServer.Script.GameType_BasketBall
         [Scripts.Event("Player.BallPickup")]
         public bool handleBallPickup(Player player, Ball ball)
         {
-            bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
-
             //Handle saves and pinches and creases and irons and folds
             if (_futureGoal != null)
             {
@@ -878,7 +973,7 @@ namespace InfServer.Script.GameType_BasketBall
                 if (player._team == _futureGoal._team && player != _futureGoal)
                 {   //It's a pinch
                     _arena.sendArenaMessage("Pinch=" + player._alias);
-                    if (record)
+                    if (recording)
                         //Save their stat
                         player.ZoneStat10 += 1; //Pinches
                 }
@@ -888,7 +983,7 @@ namespace InfServer.Script.GameType_BasketBall
                         _arena.sendArenaMessage("Save=" + player._alias, 3);
                     else
                         _arena.sendArenaMessage("Save=" + player._alias);
-                    if (record)
+                    if (recording)
                         //Save their stat
                         player.ZoneStat11 += 1; //Saves
                 }
@@ -899,7 +994,7 @@ namespace InfServer.Script.GameType_BasketBall
             {
                 if (pass._team == player._team)
                 {
-                    if (record)
+                    if (recording)
                     {
                         //Completed pass, give a point to both
                         player.ZoneStat5 += 1; //Teammate catched it
@@ -908,7 +1003,7 @@ namespace InfServer.Script.GameType_BasketBall
                 }
                 else
                 {
-                    if (record)
+                    if (recording)
                     {
                         //Ball was stolen
                         player.ZoneStat6 += 1; //Steal
@@ -939,53 +1034,24 @@ namespace InfServer.Script.GameType_BasketBall
             //Reset
             _futureGoal = null;
 
-            if (possible2)
-            {
-                if (_arena._rand.Next(1, 3) == 2)
-                    Play2Ptr(player);
-                possible2 = false;
-            }
+            //Update their streak
+            UpdateStreak(player, false, false);
 
-            if (possible3)
-            {
-                if (_arena._rand.Next(1, 3) == 3)
-                    Play3Ptr(player);
-                possible3 = false;
-            }
-
-            //we finna score 3 or 2 pt brap brap BURRRBAPAPAPA
-            bool record = _tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
+            //Give them points
             CfgInfo.Terrain terrainNum = _arena.getTerrain(ball._state.positionX, ball._state.positionY);
-            if (player._team == team1)
+            if (player._team == _arena.getTeamByID(0))
                 team1Goals += terrainNum.goalPoints;
             else
                 team2Goals += terrainNum.goalPoints;
 
-            //Let everyone know
-            if (assist != null && assist2 != null && assist2 != player && assist2._team == player._team)
-            {
-                if (terrainNum.goalPoints >= 3)
-                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), 27);
-                else
-                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), _config.soccer.goalBong);
-                if (record)
-                    assist2.ZoneStat4 += 1; //Assists
-            }
-            else
-            {
-                if (terrainNum.goalPoints >= 3)
-                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), 27);
-                else
-                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), _config.soccer.goalBong);
-            }
+            //Play a sound
+            PlayGoalSound(player, terrainNum.goalPoints);
+
             //Announce Score
             _arena.sendArenaMessage(String.Format("SCORE:  {0}={1}  {2}={3}", team1._name, team1Goals, team2._name, team2Goals));
 
-            //Update their streak
-            UpdateKillStreak(player, false, false);
-
             //Save their stat
-            if (record)
+            if (recording)
             {
                 player.ZoneStat3 += 1; //Goals
                 player.ZoneStat10 += terrainNum.goalPoints; //Points Scored
@@ -1034,40 +1100,41 @@ namespace InfServer.Script.GameType_BasketBall
             }
 
             if (_overtime)
-            {   //If it was overtime let's end it
-                _arena.gameEnd();
-                _arena.setTicker(1, 0, 0, null, null); // overtime top right   
-            }
-            else
             {
-                if (_tickGameStart > 0) //Have we ended the game or is this just a goal?
+                if (_config.soccer.timerOvertime <= 0 || overtimeType >= 3)
+                {   //If it was overtime let's end it
+                    _arena.gameEnd();
+                    _arena.setTicker(1, 0, 0, null, null); // overtime top right   
+                }
+            }
+
+            if (_tickGameStart > 0) //Have we ended the game or is this just a goal?
+            {
+                if (player._team == _arena.getTeamByID(0)) //Left side
                 {
-                    if (player._team == team1) //Left side
+                    //Using lio, lets try searching for a spawn point
+                    List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
+                    foreach (LioInfo.WarpField warp in warpgroup)
                     {
-                        //Using lio, lets try searching for a spawn point
-                        List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
-                        foreach (LioInfo.WarpField warp in warpgroup)
+                        if (warp.GeneralData.Name.Contains("KingsScored")) //Give it to the right side
                         {
-                            if (warp.GeneralData.Name.Contains("KingsScored")) //Give it to the right side
-                            {
-                                Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
-                                //We want to return false to prevent the ball respawning in the middle
-                                return false;
-                            }
+                            Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
+                            //We want to return false to prevent the ball respawning in the middle
+                            return false;
                         }
                     }
-                    else
+                }
+                else
+                {
+                    //Using lio, lets try searching for a spawn point
+                    List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
+                    foreach (LioInfo.WarpField warp in warpgroup)
                     {
-                        //Using lio, lets try searching for a spawn point
-                        List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(_config.soccer.ballWarpGroup);
-                        foreach (LioInfo.WarpField warp in warpgroup)
+                        if (warp.GeneralData.Name.Contains("PiratesScored")) //Give it to the left side
                         {
-                            if (warp.GeneralData.Name.Contains("PiratesScored")) //Give it to the left side
-                            {
-                                Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
-                                //We want to return false to prevent spawning in the middle
-                                return false;
-                            }
+                            Ball.Spawn_Ball(ball, warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
+                            //We want to return false to prevent spawning in the middle
+                            return false;
                         }
                     }
                 }
@@ -1179,12 +1246,12 @@ namespace InfServer.Script.GameType_BasketBall
                 return false;
             }
 
-            if (!_killStreaks.ContainsKey(player._alias))
+            if (!_Streaks.ContainsKey(player._alias))
             {
                 PlayerStreak temp = new PlayerStreak();
                 temp.kills = 0;
                 temp.shotsMade = 0;
-                _killStreaks.Add(player._alias, temp);
+                _Streaks.Add(player._alias, temp);
             }
             //Reset their streak
             ResetStreak(player);
@@ -1241,9 +1308,9 @@ namespace InfServer.Script.GameType_BasketBall
 
             if (killer != null && victim != null)
             {
-                if (_killStreaks.ContainsKey(victim._alias) && (_killStreaks[victim._alias].kills >= 5 || _killStreaks[victim._alias].shotsMade >= 3))
+                if (_Streaks.ContainsKey(victim._alias) && (_Streaks[victim._alias].kills >= 5 || _Streaks[victim._alias].shotsMade >= 3))
                 {
-                    bool shots = _killStreaks[victim._alias].shotsMade >= 3 ? true : false;
+                    bool shots = _Streaks[victim._alias].shotsMade >= 3 ? true : false;
                     int bong = _arena._rand.Next(1,2);
                     _arena.sendArenaMessage(String.Format("{0} has ended {1}'s {2} streak.", killer._alias, victim._alias, shots == true ? "scoring" : "kill"), bong);
                 }
@@ -1259,7 +1326,7 @@ namespace InfServer.Script.GameType_BasketBall
         public bool playerPlayerKill(Player victim, Player killer)
         {
             if (killer != null)
-                UpdateKillStreak(killer, false, true);
+                UpdateStreak(killer, false, true);
 
             return true;
         }

@@ -1304,9 +1304,10 @@ namespace InfServer.Game
                 int tmpPosY = ((short)this._rand.Next(lowerY, higherY));
 
                 //Check for allowable terrain drops
+                int terrainID = getTerrainID(tmpPosX, tmpPosY);
                 for (int terrain = 0; terrain < 15; terrain++)
                 {
-                    if (getTerrainID(tmpPosX, tmpPosY) == terrain && fs.flag.FlagData.FlagDroppableTerrains[terrain] == 1)
+                    if (terrainID == terrain && fs.flag.FlagData.FlagDroppableTerrains[terrain] == 1)
                     {
                         fs.posX = (short)tmpPosX;
                         fs.posY = (short)tmpPosY;

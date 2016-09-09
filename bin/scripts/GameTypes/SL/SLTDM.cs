@@ -52,6 +52,7 @@ namespace InfServer.Script.GameType_SLTDM
             public Player player { get; set; }
             public int kills { get; set; }
             public int deaths { get; set; }
+            public bool subbedIn { get; set; }
             public bool hasPlayed { get; set; }
         }
 
@@ -152,7 +153,7 @@ namespace InfServer.Script.GameType_SLTDM
                         if (_victoryNotice == 1 && countdown >= 30)
                             //Default 2/3 time
                             _tickNextVictoryNotice += (_config.flag.victoryHoldTime / 3) * 10;
-                        else if (_victoryNotice == 2 || (_victoryNotice == 1 && countdown < 30))
+                        else if (_victoryNotice == 2 || (_victoryNotice == 1 && countdown >= 20))
                         {
                             //10 second marker
                             _tickNextVictoryNotice += (_config.flag.victoryHoldTime * 10) - 10000;
@@ -176,7 +177,10 @@ namespace InfServer.Script.GameType_SLTDM
 
             foreach (Arena.FlagState fs in _arena._flags.Values)
                 if (fs.bActive && fs.team != victoryTeam)
+                {
                     victoryTeam = null;
+                    break;
+                }
 
             if (victoryTeam != null)
             {	//Yes! Victory for them!
@@ -235,14 +239,14 @@ namespace InfServer.Script.GameType_SLTDM
                 temp.kills = 0;
                 temp.deaths = 0;
                 temp.hasPlayed = false;
+                temp.subbedIn = false;
                 _savedPlayerStats.Add(p._alias, temp);
 
-                if (isMatch)
-                    if (!p.IsSpectator)
-                    {
-                        p._bAllowBanner = false;
-                        temp.hasPlayed = true;
-                    }
+                if (!p.IsSpectator)
+                {
+                    p._bAllowBanner = false;
+                    temp.hasPlayed = true;
+                }
             }
 
             //Let everyone know
@@ -489,6 +493,7 @@ namespace InfServer.Script.GameType_SLTDM
                 temp.deaths = 0;
                 temp.kills = 0;
                 temp.hasPlayed = false;
+                temp.subbedIn = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
 
@@ -516,6 +521,10 @@ namespace InfServer.Script.GameType_SLTDM
             _savedPlayerStats[player._alias].hasPlayed = true;
             if (isMatch)
                 player._bAllowBanner = false;
+
+            //If the game has started, they only get 1 life
+            if (_tickGameStart > 0)
+                _savedPlayerStats[player._alias].subbedIn = true;
         }
 
         /// <summary>
@@ -538,6 +547,10 @@ namespace InfServer.Script.GameType_SLTDM
             if (isMatch)
                 player._bAllowBanner = false;
 
+            //If the game has started, they only get 1 life
+            if (_tickGameStart > 0)
+                _savedPlayerStats[player._alias].subbedIn = true;
+
             return true;
         }
 
@@ -547,13 +560,10 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Player.PlayerKill")]
         public bool playerPlayerKill(Player victim, Player killer)
         {
-            if (_tickGameStart > 0)
-            {
-                if (_savedPlayerStats.ContainsKey(killer._alias))
-                    _savedPlayerStats[killer._alias].kills++;
-                if (_savedPlayerStats.ContainsKey(victim._alias))
-                    _savedPlayerStats[victim._alias].deaths++;
-            }
+            if (_savedPlayerStats.ContainsKey(killer._alias))
+                _savedPlayerStats[killer._alias].kills++;
+            if (_savedPlayerStats.ContainsKey(victim._alias))
+                _savedPlayerStats[victim._alias].deaths++;
             return true;
         }
 
@@ -566,7 +576,8 @@ namespace InfServer.Script.GameType_SLTDM
             //We only want to trigger end game when the last team member died out
             if (_tickGameStart > 0 && death)
             {
-                if (_savedPlayerStats[player._alias] != null && _savedPlayerStats[player._alias].deaths >= 3)
+                if (_savedPlayerStats[player._alias] != null 
+                    && (_savedPlayerStats[player._alias].deaths >= 3 || _savedPlayerStats[player._alias].subbedIn))
                 {
                     player.spec();
                     _arena.sendArenaMessage(String.Format("{0} has died out.", player._alias));

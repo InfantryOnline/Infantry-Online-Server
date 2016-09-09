@@ -20,6 +20,7 @@ namespace InfServer.Bots
 	public class Pathfinder
 	{	// Member variables
 		///////////////////////////////////////////////////
+        private LogClient _logger;
 		private LvlInfo lvlInfo;
 		private int pathHandleClr2;
 		private int pathHandleClr0;
@@ -66,8 +67,10 @@ namespace InfServer.Bots
 		/// <summary>
 		/// Generic Constructor
 		/// </summary>
-		public Pathfinder(ZoneServer server)
+		public Pathfinder(ZoneServer server, LogClient logger)
 		{
+            _logger = logger;
+
 			lvlInfo = server._assets.Level;
 			pathingQueue = new BlockingCollection<PathfindReq>();
 
@@ -118,6 +121,8 @@ namespace InfServer.Bots
 		/// </summary>
 		public void beginThread()
 		{
+            Log.assume(_logger);
+
 			pathingThread = new Thread(pathfinder);
 			pathingThread.IsBackground = true;
 			pathingThread.Name = "Pathfinding";

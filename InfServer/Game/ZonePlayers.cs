@@ -89,7 +89,7 @@ namespace InfServer.Game
                 newPlayer._alias = alias;
                 newPlayer._server = this;
 
-                Log.write(TLog.Normal, "New player: " + newPlayer);
+                Log.write(TLog.Normal, "New player: {0} ({1})", newPlayer, newPlayer._client._ipe);
 
                 _players[pk] = newPlayer;
 
@@ -158,7 +158,7 @@ namespace InfServer.Game
 
                 //He's gone!
                 _players.Remove(player._id);
-                Log.write(TLog.Normal, "Lost player: " + player);
+                Log.write(TLog.Normal, "Lost player: {0} ({1})", player, player._client._ipe);
 
                 //Make sure his stats get updated
                 if (!IsStandalone)

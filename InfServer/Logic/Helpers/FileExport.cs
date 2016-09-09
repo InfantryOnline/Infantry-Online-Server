@@ -127,11 +127,16 @@ namespace InfServer.Logic
         {
             string current = "Stats\\";
             if (!Directory.Exists(current))
-                return Path.Combine(current, "Season 1");
+                Directory.CreateDirectory(current);
 
-            //Lets see which we find
+            //Lets see which season we find
             if (Directory.GetDirectories(current) == null)
-                return Path.Combine(current, "Season 1");
+            {
+                //No season start, create the first folder
+                string season = "Season 1";
+                Directory.CreateDirectory(Path.Combine(current, season));
+                return Path.Combine(current, season);
+            }
 
             string[] directories = Directory.GetDirectories(current);
             return directories[(directories.Length - 1)]; //Gets the last element in the array

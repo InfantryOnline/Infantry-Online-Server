@@ -46,7 +46,6 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             return byteZoneChunk;
         }
 
-
         public void PollServerForPlayers()
         {
             var endpoint = new IPEndPoint(new IPAddress(BitConverter.GetBytes(Address)), Port + 1);
@@ -60,7 +59,6 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             }
             catch(Exception)
             {
-                //Log.write(e.ToString());
                 udpClient.Close();
                 udpClient.Client.Dispose();
             }

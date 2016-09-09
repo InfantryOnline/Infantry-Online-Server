@@ -63,7 +63,7 @@ namespace InfServer.Script.GameType_CTF
         //Note: these corrispond with the weapons above in order
         private int[] explosiveAliveTimes = {250, 250, 250, 500, 500, 500, 500, 100, 250, 500, 500, 500, 450, 450};
 
-        //Updaters
+        #region Updaters
         /// <summary>
         /// Updates the last killer
         /// </summary>
@@ -136,7 +136,7 @@ namespace InfServer.Script.GameType_CTF
             if (_killStreaks.ContainsKey(from._alias))
             {
                 _killStreaks[from._alias].lastUsedWeap = usedWep;
-                _killStreaks[from._alias].lastUsedWepTick = aliveTime;
+                _killStreaks[from._alias].lastUsedWepTick = DateTime.Now.AddTicks(aliveTime).Ticks;
             }
         }
 
@@ -169,6 +169,7 @@ namespace InfServer.Script.GameType_CTF
                 }
             }
         }
+        #endregion
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -307,7 +308,10 @@ namespace InfServer.Script.GameType_CTF
 
             foreach (Arena.FlagState fs in _arena._flags.Values)
                 if (fs.bActive && fs.team != victoryTeam)
+                {
                     victoryTeam = null;
+                    break;
+                }
 
             if (victoryTeam != null)
             {	//Yes! Victory for them!
@@ -339,73 +343,6 @@ namespace InfServer.Script.GameType_CTF
 
             //Stop the game
             _arena.gameEnd();
-        }
-
-        /// <summary>
-        /// Updates the players score
-        /// </summary>
-        private void updateTickers()
-        {
-            int kills = 0;
-            int deaths = 0;
-            string format = "";
-
-            //1st and 2nd place
-            List<Player> ranked = new List<Player>();
-            foreach (Player p in _arena.Players)
-            {
-                if (p == null)
-                    continue;
-                if (p.StatsCurrentGame == null)
-                    continue;
-                ranked.Add(p);
-            }
-            //Order by placed kills
-            IEnumerable<Player> ranking = ranked.OrderByDescending(player => player.StatsCurrentGame.kills);
-            int idx = 3;
-            foreach (Player rankers in ranking)
-            {
-                if (idx-- == 0)
-                    break;
-                Data.PlayerStats current = rankers.StatsCurrentGame;
-                switch (idx)
-                {
-                    case 2:
-                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias, current.kills, current.deaths);
-                        break;
-                    case 1:
-                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias, current.kills, current.deaths));
-                        break;
-                }
-            }
-            _arena.setTicker(0, 2, 0, format);
-
-            //Personal scores
-            _arena.setTicker(2, 3, 0, delegate(Player p)
-            {
-                if (p.StatsCurrentGame != null)
-                {
-                    kills = p.StatsCurrentGame.kills;
-                    deaths = p.StatsCurrentGame.deaths;
-                }
-                //Update their ticker
-                return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}", p._state.health, kills, deaths);
-            });
-        }
-
-        /// <summary>
-        /// Updates our players kill streak timer
-        /// </summary>
-        private void UpdateKillStreaks()
-        {
-            foreach (PlayerStreak p in _killStreaks.Values)
-            {
-                if (p.lastUsedWepTick == -1)
-                    continue;
-
-                if (Environment.TickCount - p.lastUsedWepTick <= 0)
-                    ResetWeaponTicker(p.player);
-            }
         }
 
         /// <summary>
@@ -541,6 +478,64 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Vehicle.Death")]
         public bool vehicleDeath(Vehicle dead, Player killer)
         {
+            return true;
+        }
+
+        /// <summary>
+        /// Called when the player successfully joins the game
+        /// </summary>
+        [Scripts.Event("Player.Enter")]
+        public void playerEnter(Player player)
+        {
+            //Add them to the list if its not in it
+            if (!_killStreaks.ContainsKey(player._alias))
+            {
+                PlayerStreak temp = new PlayerStreak();
+                temp.lastKillerCount = 0;
+                temp.lastUsedWeap = null;
+                temp.lastUsedWepKillCount = 0;
+                temp.lastUsedWepTick = -1;
+                temp.player = player;
+                _killStreaks.Add(player._alias, temp);
+            }
+        }
+
+        /// <summary>
+        /// Called when a player enters the arena
+        /// </summary>
+        [Scripts.Event("Player.EnterArena")]
+        public void playerEnterArena(Player player)
+        {
+            //Add them to the list if its not in it
+            if (!_killStreaks.ContainsKey(player._alias))
+            {
+                PlayerStreak temp = new PlayerStreak();
+                temp.lastKillerCount = 0;
+                temp.lastUsedWeap = null;
+                temp.lastUsedWepKillCount = 0;
+                temp.lastUsedWepTick = -1;
+                temp.player = player;
+                _killStreaks.Add(player._alias, temp);
+            }
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to unspec and join the game
+        /// </summary>
+        [Scripts.Event("Player.JoinGame")]
+        public bool playerJoinGame(Player player)
+        {
+            //Add them to the list if its not in it
+            if (!_killStreaks.ContainsKey(player._alias))
+            {
+                PlayerStreak temp = new PlayerStreak();
+                temp.lastKillerCount = 0;
+                temp.lastUsedWeap = null;
+                temp.lastUsedWepKillCount = 0;
+                temp.lastUsedWepTick = -1;
+                temp.player = player;
+                _killStreaks.Add(player._alias, temp);
+            }
             return true;
         }
 
@@ -808,6 +803,75 @@ namespace InfServer.Script.GameType_CTF
                 }
             }
             return false;
+        }
+        #endregion
+
+        #region Private Calls
+        /// <summary>
+        /// Updates the players score
+        /// </summary>
+        private void updateTickers()
+        {
+            int kills = 0;
+            int deaths = 0;
+            string format = "";
+
+            //1st and 2nd place
+            List<Player> ranked = new List<Player>();
+            foreach (Player p in _arena.Players)
+            {
+                if (p == null)
+                    continue;
+                if (p.StatsCurrentGame == null)
+                    continue;
+                ranked.Add(p);
+            }
+            //Order by placed kills
+            IEnumerable<Player> ranking = ranked.OrderByDescending(player => player.StatsCurrentGame.kills);
+            int idx = 3;
+            foreach (Player rankers in ranking)
+            {
+                if (idx-- == 0)
+                    break;
+                Data.PlayerStats current = rankers.StatsCurrentGame;
+                switch (idx)
+                {
+                    case 2:
+                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias, current.kills, current.deaths);
+                        break;
+                    case 1:
+                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias, current.kills, current.deaths));
+                        break;
+                }
+            }
+            _arena.setTicker(0, 2, 0, format);
+
+            //Personal scores
+            _arena.setTicker(2, 3, 0, delegate(Player p)
+            {
+                if (p.StatsCurrentGame != null)
+                {
+                    kills = p.StatsCurrentGame.kills;
+                    deaths = p.StatsCurrentGame.deaths;
+                }
+                //Update their ticker
+                return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}", p._state.health, kills, deaths);
+            });
+        }
+
+        /// <summary>
+        /// Updates our players kill streak timer
+        /// </summary>
+        private void UpdateKillStreaks()
+        {
+            foreach (PlayerStreak p in _killStreaks.Values)
+            {
+                if (p.lastUsedWepTick == -1)
+                    continue;
+
+                if (Environment.TickCount - p.lastUsedWepTick <= 0)
+                    ResetWeaponTicker(p.player);
+            }
         }
         #endregion
     }

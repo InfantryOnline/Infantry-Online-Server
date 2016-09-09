@@ -64,6 +64,7 @@ namespace InfServer.Script.GameType_USL
             if (!_arena._bIsPublic)
                 _gamePlay.Voting = false;
 
+            
             return true;
         }
 
@@ -1168,6 +1169,36 @@ namespace InfServer.Script.GameType_USL
                 }
             }
         }
+
+        /// <summary>
+        /// Downloads our rules from the usl site
+        /// </summary>
+        private void GetUslRules(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return;
+
+            System.Net.WebClient webclient = new System.Net.WebClient();
+            webclient.DownloadDataCompleted += ParseRules;
+
+            try
+            {
+                webclient.DownloadDataAsync(new Uri(url));
+                webclient.Dispose();
+            }
+            catch
+            { }
+        }
+
+        /// <summary>
+        /// Called only when downloading our rule file via webclient
+        /// </summary>
+        private void ParseRules(object sender, System.Net.DownloadDataCompletedEventArgs e)
+        {
+            var data = e.Result;
+            File.WriteAllBytes("/assets/mslrules.txt", data);
+        }
+
         #endregion
     }
 }

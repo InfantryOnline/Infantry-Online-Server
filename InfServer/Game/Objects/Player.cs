@@ -84,6 +84,7 @@ namespace InfServer.Game
         public int _lastVehicleEntry;           //The tick at which the player last entered or exited a vehicle
 
         public int _lastMovement;               //The tickcount at which the player last made a movement
+        public bool _maxTimeCalled;             //Has this player gone inactive
         public uint _assetCS;
 
         public bool suspendCalled = false;      //Has suspended stats already been called?
@@ -277,6 +278,7 @@ namespace InfServer.Game
             _statsSession = new Data.PlayerStats();
             _statsGame = new Data.PlayerStats();
             _statsLastGame = new Data.PlayerStats();
+            _maxTimeCalled = false;
         }
 
         #region State
@@ -1245,6 +1247,7 @@ namespace InfServer.Game
             //Reset leftover variables
             this._deathTime = 0;
             this._lastMovement = Environment.TickCount;
+            this._maxTimeCalled = false;
 
             //Throw ourselves onto our new team!
             team.addPlayer(this);
@@ -1323,6 +1326,8 @@ namespace InfServer.Game
         {	//Approximate the player's new position
             _state.positionX = (short)(((topX - bottomX) / 2) + bottomX);
             _state.positionY = (short)(((topY - bottomY) / 2) + bottomY);
+            _lastMovement = Environment.TickCount;
+            _maxTimeCalled = false;
 
             //Prepare our packet
             SC_PlayerWarp warp = new SC_PlayerWarp();

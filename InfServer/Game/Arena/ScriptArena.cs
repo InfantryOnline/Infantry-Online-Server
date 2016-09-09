@@ -1058,6 +1058,7 @@ namespace InfServer.Game
                     //Great, use it
                     from.unspec(pick);
                     from._lastMovement = Environment.TickCount;
+                    from._maxTimeCalled = false;
                 }
                 else
                     from.sendMessage(-1, "Unable to pick a team.");
@@ -1244,6 +1245,7 @@ namespace InfServer.Game
 
                 //Update last movement with firing, don't want to spec people in stationary turrets;
                 from._lastMovement = now;
+                from._maxTimeCalled = false;
 
                 //Check for ball handling
                 if (from._gotBallID != 999)
@@ -1275,8 +1277,10 @@ namespace InfServer.Game
 
             //Update the lastmovement tick if his position state has changed
             if (from._state.positionX != update.positionX | from._state.positionY != update.positionY | from._state.positionZ != update.positionZ)
+            {
                 from._lastMovement = now;
-
+                from._maxTimeCalled = false;
+            }
             from._state.positionX = update.positionX;
             from._state.positionY = update.positionY;
             from._state.positionZ = update.positionZ;

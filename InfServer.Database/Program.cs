@@ -37,7 +37,7 @@ namespace InfServer
             Console.CancelKeyPress += new ConsoleCancelEventHandler(Exit);
 
             //Create a logging client for the main server thread
-            LogClient handlerLogger = Log.createClient("ServerHandler");
+            LogClient handlerLogger = Log.createClient("DBServerHandler");
             Log.assume(handlerLogger);
 
             //Register all packet handlers

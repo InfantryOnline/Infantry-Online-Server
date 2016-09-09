@@ -13,6 +13,16 @@ namespace InfServer.DirectoryServer
                 Log.write(TLog.Exception, "Unhandled exception:\r\n" + e.ExceptionObject.ToString());
         }
 
+        //Called when the console window is closed with Ctrl+C
+        protected static void Exit(object sender, ConsoleCancelEventArgs args)
+        {
+            //We'll handle this
+            args.Cancel = true;
+
+            server.shutdown();
+            return;
+        }
+
         static void Main(string[] args)
         {
             //Initialize the logging system
@@ -22,6 +32,9 @@ namespace InfServer.DirectoryServer
                 Thread.Sleep(10000);
                 return;
             }
+
+            //Set a handler for if we recieve Ctrl+C or Ctrl+BREAK
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(Exit);
 
             DdMonitor.bNoSync = false;
             DdMonitor.bEnabled = true;

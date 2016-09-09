@@ -538,6 +538,7 @@ namespace InfServer.Game
                         player._deathTime = 0;
                         //Reset lastMovement to prevent being specced too early for inactivity
                         player._lastMovement = now;
+                        player._maxTimeCalled = false;
                         handlePlayerSpawn(player, true);
                     }
 
@@ -549,14 +550,17 @@ namespace InfServer.Game
                         player.sendMessage(-1, "You have been sent to spectator mode for being inactive.");
                     }
 
-                    //Check maxTimeAllowed inactivity
-                    if (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed > 0)
-                    {
-                        int maxTime = (player._arena.getTerrain(player._state.positionX, player._state.positionY).maxTimeAllowed * 1000);
+                    //Check terrain triggers
+                    t = getTerrain(player._state.positionX, player._state.positionY);
 
+                    //Check maxTimeAllowed inactivity
+                    if (t.maxTimeAllowed > 0)
+                    {
+                        int maxTime = (t.maxTimeAllowed * 1000);
                         //Send message at half of max time
-                        if ((now - player._lastMovement) >= ((maxTime / 2) - 10) && (now - player._lastMovement) <= ((maxTime / 2) + 10))
+                        if ((now - player._lastMovement) >= (maxTime / 2) && !player._maxTimeCalled)
                         {
+                            player._maxTimeCalled = true;
                             string format = "WARNING! Staying in this location for another {0} seconds will send you to spectator mode.";
                             player.sendMessage(-1, String.Format(format, ((maxTime / 2) / 1000)));
                         }
@@ -566,21 +570,6 @@ namespace InfServer.Game
                             player.spec();
                             player.sendMessage(-1, "You have been sent to spectator mode due to inactivity.");
                         }
-                    }
-
-
-                    //Update play seconds
-                    if (bMinor)
-                        player.PlaySeconds++;
-
-                    if (tickTerrainBty)
-                    {
-                        t = getTerrain(player._state.positionX, player._state.positionY);
-
-                        if (t.bountyAutoRate < 1 || player._bounty >= t.bountyAutoMax)
-                            continue;
-                        // bountyAutoRate: 33 = 33% chance to give a bty.. 400 = give 4 bty
-                        player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
                     }
 
                     //Check tick diff every 10 secs
@@ -600,6 +589,19 @@ namespace InfServer.Game
                         {
                             player.spec();
                             player.sendMessage(-1, "You have been sent to spectator mode for high ping.");
+                        }
+                    }
+
+                    //Update play seconds
+                    if (bMinor)
+                        player.PlaySeconds++;
+
+                    if (tickTerrainBty)
+                    {
+                        if (t.bountyAutoRate > 0 && player._bounty < t.bountyAutoMax)
+                        {
+                            // bountyAutoRate: 33 = 33% chance to give a bty.. 400 = give 4 bty
+                            player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
                         }
                     }
                 }
@@ -800,7 +802,9 @@ namespace InfServer.Game
             List<Player> players = new List<Player>();
             foreach(Player p in _playersIngame.getObjsInRange(posX, posY, range))
             {
-                if (p == null || p.IsDead)
+                if (p == null)
+                    continue;
+                if (notDead && p.IsDead)
                     continue;
                 players.Add(p);
             }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
 using System.Timers;
-using DirectoryServer.Directory.Protocol;
+
+using InfServer.DirectoryServer.Directory.Assets;
+using InfServer.DirectoryServer.Directory.Logic;
 using InfServer.DirectoryServer.Directory.Protocol;
 using InfServer.DirectoryServer.Directory.Protocol.Helpers;
 using InfServer.Network;
@@ -19,20 +21,34 @@ namespace InfServer.DirectoryServer.Directory
 
         public ConfigSetting _config;
         public new LogClient _logger;
+
         public ZoneStream ZoneStream;
         public List<Zone> Zones { get { return ZoneStream.Zones; } }
 
-        private SqlConnection db;
-
-        private HttpJsonResponder httpJsonResponder;
         public Boolean _json;
         public String _jsonURI;
 
+        public List<string> AssetManifestList;
+
+        private SqlConnection db;
+        private HttpJsonResponder httpJsonResponder;
+        private AssetManager manager;
+        private int zoneUpdateTick = Environment.TickCount;
+        private Timer timer;
+
+        /// <summary>
+        /// Generic Constructor
+        /// </summary>
         public DirectoryServer() : base(new Factory(), new DirectoryClient())
         {
             _config = ConfigSetting.Blank;
+            manager = new AssetManager(this);
+            AssetManifestList = new List<string>();
         }
 
+        /// <summary>
+        /// Initializes our Directory Server, returns false if it fails
+        /// </summary>
         public bool Init()
         {
             Log.write(TLog.Normal, "Loading Server Configuration");
@@ -58,10 +74,35 @@ namespace InfServer.DirectoryServer.Directory
             }
 
             grabZones();
-
             return true;
         }
 
+        /// <summary>
+        /// Shuts down our directory server safely
+        /// </summary>
+        public void shutdown()
+        {
+            Log.write("Shutting down...");
+            System.Threading.Thread.Sleep(1000);
+
+            if (db.State != System.Data.ConnectionState.Closed)
+            {
+                db.Close();
+                db.Dispose();
+            }
+
+            if (httpJsonResponder != null)
+                httpJsonResponder.Stop();
+
+            timer.Stop();
+
+            //Shutdown!
+            base.end();
+        }
+
+        /// <summary>
+        /// Grabs a list of active zones from the database
+        /// </summary>
         public void grabZones()
         {
             var activezones = new SqlCommand("SELECT * FROM zone WHERE active=1", db);
@@ -81,33 +122,67 @@ namespace InfServer.DirectoryServer.Directory
                         Convert.ToBoolean(reader["advanced"]),
                         reader["description"].ToString()));
                 }
+                reader.Close();
             }
 
             //Done
             ZoneStream = new ZoneStream(zones);
         }
 
+        /// <summary>
+        /// Begins all server networking
+        /// </summary>
         public void Begin()
         {
-            _logger = Log.createClient("Zone");
+            _logger = Log.createClient("DirectoryServer");
             base._logger = Log.createClient("Network");
             IPEndPoint listenPoint = new IPEndPoint(IPAddress.Any, 4850);
             try
             {
                 begin(listenPoint);
             }
-            catch (System.NullReferenceException)
+            catch (System.NullReferenceException e)
             {
             }
 
             if (_json)
                 httpJsonResponder.Start();
 
-            var timer = new Timer(5000);
+            timer = new Timer(5000);
             timer.Enabled = true;
             timer.AutoReset = true;
-            timer.Elapsed += (sender, e) => Zones.ForEach(z => z.PollServerForPlayers());
+            timer.Elapsed += TimerElapsed;
             timer.Start();
         }
+
+        /// <summary>
+        /// Updates our asset list and populates any files
+        /// </summary>
+        public void UpdateAssetList(string data)
+        {
+            manager.StartListCreation(data);
+        }
+
+        /// <summary>
+        /// Sends files to a requested client
+        /// </summary>
+        public void SendRequestedFiles()
+        {
+            manager.SendFiles();
+        }
+
+        /// <summary>
+        /// Auto updates our zone list
+        /// </summary>
+        private void TimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            //Do we need to auto update our zonelist?
+            if (Environment.TickCount - zoneUpdateTick >= 10000) //10 seconds
+            {
+                zoneUpdateTick = Environment.TickCount;
+                grabZones();
+            }
+            Zones.ForEach(z => z.PollServerForPlayers());
+        }
     }
-}
+}7

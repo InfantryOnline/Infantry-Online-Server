@@ -34,7 +34,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         /// </summary>
         public void Start()
         {
-            var t = new Thread(_ =>
+            _listenerThread = new Thread(_ =>
                                    {
                                        httpListener.Start();
 
@@ -44,9 +44,20 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                                        }
                                    });
 
-            t.Start();
+            _listenerThread.Start();
         }
 
+        /// <summary>
+        /// Stops our listener thread
+        /// </summary>
+        public void Stop()
+        {
+            if (_listenerThread.IsAlive)
+            {
+                httpListener.Close();
+                _listenerThread.Abort();
+            }
+        }
 
         #region Private Implementation and Helpers
 
@@ -55,7 +66,6 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         /// </summary>
         private void InitializeListener()
         {
-            //prefixes.ToList().ForEach(p => httpListener.Prefixes.Add(p));
             httpListener.Prefixes.Add(directoryServer._jsonURI);
         }
 
@@ -72,7 +82,10 @@ namespace InfServer.DirectoryServer.Directory.Protocol
             {
                 case "GET":
                     byte[] responseString;
-                    if (request.Url.LocalPath.Contains("notz"))
+                    //Asset fetcher is requesting an update
+                    if (request.Url.LocalPath.Contains("assetRequest"))
+                        responseString = Encoding.UTF8.GetBytes("Works!");
+                    else if (request.Url.LocalPath.Contains("notz"))
                         responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones where !zone.Title.Contains("I:TZ") select new { zone.Title, zone.PlayerCount }));
                     else
                         responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { zone.Title, zone.PlayerCount }));
@@ -80,12 +93,35 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                     response.OutputStream.Write(responseString, 0, responseString.Length);
                     response.OutputStream.Close();
                     break;
+
+                case "PUT":
+                    //Is the zone server providing us data?
+                    if (!request.HasEntityBody)
+                    {
+                        response.StatusCode = 400;
+                        response.OutputStream.Close();
+                    }
+
+                    string stringData = new System.IO.StreamReader(request.InputStream).ReadToEnd();
+                    if (string.IsNullOrWhiteSpace(stringData))
+                    {
+                        response.StatusCode = 400;
+                        response.OutputStream.Close();
+                    }
+
+                    //Done!
+                    response.StatusCode = 201;
+                    response.OutputStream.Close();
+
+                    //Update
+                    directoryServer.UpdateAssetList(stringData);
+                    break;
             }
         }
 
         private readonly HttpListener httpListener;
-
         private readonly DirectoryServer directoryServer;
+        private Thread _listenerThread;
 
         #endregion
     }

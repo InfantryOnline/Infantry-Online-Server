@@ -349,12 +349,25 @@ namespace InfServer.Game
                         {
                             string global;
                             if ((global = Assets.AssetFileFactory.findAssetFile("global.nws", _config["server/copyServerFrom"].Value)) != null)
+                            {
+                                //We first must delete before copying over
+                                if (System.IO.File.Exists("..\\Global\\global.nws"))
+                                    System.IO.File.Delete("..\\Global\\global.nws");
+
                                 System.IO.File.Copy(global, "..\\Global\\global.nws");
+                            }
                         }
                         catch (Exception e)
                         {
                             Log.write(TLog.Warning, e.ToString());
                         }
+                    }
+                    else
+                    {
+                        //Copy over
+                        if (System.IO.File.Exists(_config["server/copyServerFrom"].Value + "/global.nws"))
+                            System.IO.File.Delete(_config["server/copyServerFrom"].Value + "/global.nws");
+                        System.IO.File.Copy("..\\Global\\global.nws", _config["server/copyServerFrom"].Value + "/global.nws");
                     }
                 }
 
@@ -431,7 +444,8 @@ namespace InfServer.Game
             if (_config["server/pathFindingEnabled"].boolValue)
             {
                 Log.write("Initializing pathfinder..");
-                _pathfinder = new Bots.Pathfinder(this);
+                LogClient log = Log.createClient("Pathfinder");
+                _pathfinder = new Bots.Pathfinder(this, log);
                 _pathfinder.beginThread();
             }
             else
@@ -526,7 +540,7 @@ namespace InfServer.Game
         /// </summary>
         public void begin()
         {	//Start up the network
-            _logger = Log.createClient("Zone");
+            _logger = Log.createClient("ZoneServer");
             base._logger = Log.createClient("Network");
 
             IPEndPoint listenPoint = new IPEndPoint(
@@ -677,9 +691,12 @@ namespace InfServer.Game
             //cleanup
             cleanup();
 
+            //Shut off our irc connection
+            if (ircClient.IsConnected)
+                ircClient.Disconnect();
+
             //Shutdown!
             InfServer.Program.Stop();
-            ircClient.Disconnect();
         }
 
         private void InitializeGameEventsDictionary()
@@ -721,6 +738,7 @@ namespace InfServer.Game
         /// </summary>
         private class ClientPingResponder
         {
+            private LogClient _pingLogger;
             private Dictionary<ushort, Player> _players;
             private Thread _listenThread;
             private Socket _socket;
@@ -734,6 +752,7 @@ namespace InfServer.Game
             /// </summary>
             public ClientPingResponder(Dictionary<ushort, Player> players)
             {
+                _pingLogger = Log.createClient("PingResponder");
                 _players = players;
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 _clients = new Dictionary<EndPoint, Int32>();
@@ -746,6 +765,8 @@ namespace InfServer.Game
             /// </summary>
             public void Begin(IPEndPoint listenPoint)
             {
+                Log.assume(_pingLogger);
+
                 _listenThread = new Thread(Listen);
                 _listenThread.IsBackground = true;
                 _listenThread.Name = "ClientPingResponder";
@@ -759,8 +780,8 @@ namespace InfServer.Game
             /// </summary>
             public void End()
             {
-                //Stop the thread
-                _listenThread.Abort();
+                if (_listenThread.IsAlive)
+                    _listenThread.Abort();
             }
 
             private void Listen(Object obj)
@@ -851,8 +872,7 @@ namespace InfServer.Game
 
                 try
                 {
-                    Int32 token = BitConverter.ToInt32(_buffer, 0);
-                    _clients[remoteEp] = token;
+                    _clients[remoteEp] = BitConverter.ToInt32(_buffer, 0);
                 }
                 finally
                 {

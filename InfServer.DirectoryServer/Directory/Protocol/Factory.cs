@@ -1,7 +1,7 @@
 ﻿using InfServer.DirectoryServer.Directory.Protocol.Packets;
 using InfServer.Network;
 
-namespace DirectoryServer.Directory.Protocol
+namespace InfServer.DirectoryServer.Directory.Protocol
 {
     public class Factory : IPacketFactory
     {

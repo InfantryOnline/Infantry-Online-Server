@@ -22,6 +22,12 @@ namespace InfServer.Logic
                 return;
             }
 
+            if (player._arena == null)
+            {
+                Log.write(TLog.Error, "Handle_CS_Chat(): Called with null arena.");
+                return;
+            }
+
             //Ignore blank messages
             if (pkt.message == "")
 				return;
