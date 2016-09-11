@@ -224,6 +224,7 @@
     <Compile Include="Game\Objects\Vehicle.Computer.cs" />
     <Compile Include="Game\Objects\Vehicle.cs" />
     <Compile Include="Game\ZoneArenas.cs" />
+    <Compile Include="Game\ZoneIRC.cs" />
     <Compile Include="Game\ZonePlayers.cs" />
     <Compile Include="Game\ZoneServer.cs" />
     <Compile Include="Logic\Events\Actions.cs" />

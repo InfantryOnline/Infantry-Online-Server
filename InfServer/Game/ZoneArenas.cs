@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 
 using InfServer.Network;
-using InfServer.Protocol;
-using Meebey.SmartIrc4net;
 
 namespace InfServer.Game
 {
