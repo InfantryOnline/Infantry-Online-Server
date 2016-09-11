@@ -164,11 +164,11 @@ namespace InfServer.DirectoryServer.Directory
         }
 
         /// <summary>
-        /// Sends files to a requested client
+        /// Gets a file for a client and returns it in bytes
         /// </summary>
-        public void SendRequestedFiles()
+        public byte[] GetRequestedFile(string assetName)
         {
-            manager.SendFiles();
+            return manager.GetFile(assetName);
         }
 
         /// <summary>
@@ -185,4 +185,4 @@ namespace InfServer.DirectoryServer.Directory
             Zones.ForEach(z => z.PollServerForPlayers());
         }
     }
-}7
+}

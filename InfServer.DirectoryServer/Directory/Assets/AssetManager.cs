@@ -118,11 +118,25 @@ namespace InfServer.DirectoryServer.Directory.Assets
         }
 
         /// <summary>
-        /// Sends files to a client thats requested them
+        /// Gets a requested file for a client and returns in bytes
         /// </summary>
-        public void SendFiles()
+        public byte[] GetFile(string assetName)
         {
+            if (string.IsNullOrEmpty(assetName))
+                return null;
 
+            string asset = AssetHandler.findAssetFile(assetName, AssetDirectory);
+            if (asset != null)
+            {
+                IO.FileStream fileStream = IO.File.OpenRead(asset);
+                byte[] bytes = new byte[fileStream.Length];
+                fileStream.Read(bytes, 0, bytes.Length);
+                fileStream.Close();
+
+                return bytes;
+            }
+
+            return null;
         }
 
         private DirectoryServer directoryServer;

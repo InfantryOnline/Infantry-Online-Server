@@ -84,7 +84,27 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                     byte[] responseString;
                     //Asset fetcher is requesting an update
                     if (request.Url.LocalPath.Contains("assetRequest"))
-                        responseString = Encoding.UTF8.GetBytes("Works!");
+                    {
+                        try
+                        {
+                            string localPath = request.Url.LocalPath;
+                            int index = localPath.LastIndexOf("/");
+                            responseString = (directoryServer.GetRequestedFile(localPath.Substring(index + 1)));
+                            if (responseString == null)
+                            {
+                                response.StatusCode = 404;
+                                response.OutputStream.Close();
+                                break;
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            Log.write(TLog.Warning, e.ToString());
+                            response.StatusCode = 404;
+                            response.OutputStream.Close();
+                            break;
+                        }
+                    }
                     else if (request.Url.LocalPath.Contains("notz"))
                         responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones where !zone.Title.Contains("I:TZ") select new { zone.Title, zone.PlayerCount }));
                     else
