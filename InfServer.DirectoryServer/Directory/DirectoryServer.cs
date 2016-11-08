@@ -112,15 +112,17 @@ namespace InfServer.DirectoryServer.Directory
             {
                 if (!reader.HasRows)
                     Log.write(TLog.Warning, "Found no active zones to load");
-                
-                while (reader.Read())
+                else
                 {
-                    IPAddress ipadd = IPAddress.Parse(reader["ip"].ToString());
-                    zones.Add(new Zone(ipadd.GetAddressBytes(),
-                        Convert.ToUInt16(reader["port"]),
-                        reader["name"].ToString(),
-                        Convert.ToBoolean(reader["advanced"]),
-                        reader["description"].ToString()));
+                    while (reader.Read())
+                    {
+                        IPAddress ipadd = IPAddress.Parse(reader["ip"].ToString());
+                        zones.Add(new Zone(ipadd.GetAddressBytes(),
+                            Convert.ToUInt16(reader["port"]),
+                            reader["name"].ToString(),
+                            Convert.ToBoolean(reader["advanced"]),
+                            reader["description"].ToString()));
+                    }
                 }
                 reader.Close();
             }
@@ -177,7 +179,7 @@ namespace InfServer.DirectoryServer.Directory
         private void TimerElapsed(object sender, ElapsedEventArgs e)
         {
             //Do we need to auto update our zonelist?
-            if (Environment.TickCount - zoneUpdateTick >= 10000) //10 seconds
+            if (Environment.TickCount - zoneUpdateTick >= 5000) //5 seconds + timer elapsed = 10 sec intervals
             {
                 zoneUpdateTick = Environment.TickCount;
                 grabZones();

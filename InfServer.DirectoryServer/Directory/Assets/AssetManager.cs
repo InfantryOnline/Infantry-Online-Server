@@ -95,12 +95,19 @@ namespace InfServer.DirectoryServer.Directory.Assets
 
                 if (filePath != null)
                 {
-                    string path = IO.Path.Combine(AssetDirectory, file);
-                    //Lets copy it over
-                    if (IO.File.Exists(path))
-                        IO.File.Delete(path);
+                    try
+                    {
+                        string path = IO.Path.Combine(AssetDirectory, file);
+                        //Lets copy it over
+                        if (IO.File.Exists(path))
+                            IO.File.Delete(path);
 
-                    IO.File.Copy(filePath, path);
+                        IO.File.Copy(filePath, path);
+                    }
+                    catch(Exception e)
+                    {
+                        Log.write(TLog.Warning, e.ToString());
+                    }
                 }
             }
         }

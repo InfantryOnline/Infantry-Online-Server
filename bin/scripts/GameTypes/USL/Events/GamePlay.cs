@@ -138,9 +138,6 @@ namespace InfServer.Script.GameType_USL
                         victim._alias + "'s kill streak has ended."), 7);
                 }
                 _savedPlayerStats[victim._alias].lastKillerCount = 0;
-                //_savedPlayerStats[victim._alias].lastUsedWep = null;
-                //_savedPlayerStats[victim._alias].lastUsedWepKillCount = 0;
-                //_savedPlayerStats[victim._alias].lastUsedWepTick = -1;
             }
         }
 
@@ -164,10 +161,11 @@ namespace InfServer.Script.GameType_USL
         {
             if (_savedPlayerStats.ContainsKey(from._alias))
             {
-                if (_savedPlayerStats[from._alias].lastUsedWep == null)
-                    return;
                 _savedPlayerStats[from._alias].lastUsedWepKillCount++;
                 ItemInfo.Projectile lastUsedWep = _savedPlayerStats[from._alias].lastUsedWep;
+                if (lastUsedWep == null)
+                    return;
+
                 if (lastUsedWep.name.Contains("Combat Knife"))
                     _arena.sendArenaMessage(String.Format("{0} is throwing out the knives.", from._alias), 6);
 

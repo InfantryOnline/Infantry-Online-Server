@@ -33,7 +33,10 @@ namespace InfServer.Game
             try
             {
                 ircClient.Connect("irc.synirc.net", 6667);
-                Log.write(TLog.Normal, "Irc Client Connected.");
+                if (ircClient.IsConnected)
+                    Log.write(TLog.Normal, "Irc Client Connected.");
+                else
+                    Log.write(TLog.Normal, "Cannot connect to the IRC server.");
             }
             catch (ConnectionException e)
             {
@@ -45,6 +48,12 @@ namespace InfServer.Game
                 IrcName = String.Join("", (from c in _name where !Char.IsWhiteSpace(c) && Char.IsLetterOrDigit(c) select c).ToArray());
                 ircClient.Login(IrcName, IrcName + " Bot");
                 ircClient.RfcJoin("#infantry");
+                if (ircClient.IsJoined("#infantry"))
+                    Log.write(TLog.Normal, "Irc Client joined successfully.");
+            }
+            catch(ConnectionException e)
+            {
+                Log.write(TLog.Warning, "Could not join irc channel.", e.Message);
             }
             catch (Exception e)
             {

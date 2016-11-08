@@ -881,8 +881,8 @@ namespace InfServer.Script.GameType_USL
                     if (_gamePlay.SpawnTimer == 0)
                     {
                         Random rand = new Random();
-                        int midpoint = ((_config.deathMatch.timer / 2) / 2); //Deathmatch is in milliseconds, need to convert to seconds then find halfway point
-                        _gamePlay.SpawnTimer = rand.Next(midpoint - 5, midpoint + 5); //Lets randomize mid point
+                        int midpoint = ((_config.deathMatch.timer / 60) / 2); //Deathmatch is in seconds, need to convert to minutes then find halfway point
+                        _gamePlay.SpawnTimer = rand.Next(midpoint - 1, midpoint + 1); //Lets randomize mid point
                         player.sendMessage(0, "Midpoint timer has been activated.");
                         return true;
                     }

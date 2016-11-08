@@ -20,7 +20,7 @@ namespace InfServer.Logic
         {
             try
             {
-                Data.DB.player player = stat.players.Single(s => s.stats1.id == stat.id);
+                Data.DB.player player = stat.players.SingleOrDefault(s => s.stats1.id == stat.id);
                 if (player == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "No player found for stat ID {0}.", stat.id);
@@ -29,11 +29,9 @@ namespace InfServer.Logic
 
                 BinaryWriter bw = new BinaryWriter(stream);
 
-                //bw.Write(stat.players[0].alias1.name.ToCharArray());
                 bw.Write(player.alias1.name.ToCharArray());
                 bw.Write((byte)0);
 
-                //Data.DB.squad squad = stat.players[0].squad1;
                 Data.DB.squad squad = player.squad1;
                 string squadname = "";
                 if (squad != null)

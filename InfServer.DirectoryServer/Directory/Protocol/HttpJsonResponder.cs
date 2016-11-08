@@ -54,7 +54,8 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         {
             if (_listenerThread.IsAlive)
             {
-                httpListener.Close();
+                if (httpListener != null)
+                    httpListener.Close();
                 _listenerThread.Abort();
             }
         }

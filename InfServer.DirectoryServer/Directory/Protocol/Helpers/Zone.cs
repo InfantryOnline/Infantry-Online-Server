@@ -15,6 +15,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             Title = title.Substring(0, Math.Min(31, title.Length)); // Title is at max 32 chars
             IsAdvanced = isAdvanced;
             Description = description;
+            PlayerCount = 0;
         }
 
         public byte[] ToBytes()
@@ -60,7 +61,8 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             catch(Exception)
             {
                 udpClient.Close();
-                udpClient.Client.Dispose();
+                if (udpClient.Client != null)
+                    udpClient.Client.Dispose();
             }
         }
 
@@ -80,7 +82,8 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
                 PlayerCount = BitConverter.ToInt32(receiveBytes, 0);
 
                 data.Client.Close();
-                data.Client.Client.Dispose();
+                if (data.Client.Client != null)
+                    data.Client.Client.Dispose();
             }
             catch (Exception)
             {
