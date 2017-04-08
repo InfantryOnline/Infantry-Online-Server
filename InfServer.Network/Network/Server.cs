@@ -114,6 +114,7 @@ namespace InfServer.Network
                 _remEP = new IPEndPoint(IPAddress.Any, 0);
 
                 _sock.DontFragment = true;
+                _sock.Ttl = 255;
 
                 //Prevent useless connection reset exceptions
                 uint IOC_IN = 0x80000000;
@@ -283,7 +284,7 @@ namespace InfServer.Network
                 }
                 catch (SocketException se)
                 {	//Store the exception and exit
-                    Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}\r\n{2}", se.ErrorCode, se.ToString(), se.Source);
+                    Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}\r\n{2} ({3})", se.ErrorCode, se.ToString(), se.Source, _remEP.ToString());
                 }
                 catch (Exception ex)
                 {	//Store the exception and exit
@@ -300,7 +301,7 @@ namespace InfServer.Network
                 }
                 catch (SocketException se)
                 {	//Store the exception and exit
-                    Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}", se.ErrorCode, se.ToString());
+                    Log.write(TLog.Exception, "Socket exception[{0}]:\r\n{1}\r\n{2} ({3})", se.ErrorCode, se.ToString(), se.Source, _remEP.ToString());
                 }
             }
         }

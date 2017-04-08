@@ -23,6 +23,7 @@ namespace InfServer.Script.GameType_USL
 
         #region Stat Recording
         private string FileName;
+        private List<Team> activeTeams = null;
         private Team lastTeam1, lastTeam2;  //Records the previous team before overtime starts(We get team stats from this since ot is not recorded)
         public Team victoryTeam = null;
         DateTime startTime;
@@ -403,9 +404,6 @@ namespace InfServer.Script.GameType_USL
                     break;
 
                 case GameTypes.LEAGUEOVERTIME:
-                    //Increase our count
-                    OvertimeCount++;
-
                     //Show results
                     MatchEnd();
                     break;
@@ -1149,6 +1147,10 @@ namespace InfServer.Script.GameType_USL
                 startTime = DateTime.Now.ToLocalTime();
                 _gameType = GameTypes.LEAGUEMATCH;
             }
+            else
+                OvertimeCount++;
+
+            activeTeams = _arena.ActiveTeams.Where(e => e.ActivePlayerCount > 0).ToList();
         }
 
         /// <summary>
@@ -1156,7 +1158,9 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         private void MatchEnd()
         {
-            List<Team> activeTeams = _arena.ActiveTeams.OrderByDescending(entry => entry._currentGameKills).ToList();
+            if (activeTeams == null || activeTeams.Count == 0)
+                activeTeams = _arena.ActiveTeams.OrderByDescending(entry => entry._currentGameKills).ToList();
+
             Team team2 = activeTeams.Count > 1 ? activeTeams.ElementAt(1) : null;
             Team team1 = activeTeams.Count > 0 ? activeTeams.ElementAt(0) : null;
 
@@ -1166,8 +1170,8 @@ namespace InfServer.Script.GameType_USL
 
             switch (activeTeams.Count)
             {
-                case 0: //No teams, just return
-                    return;
+                case 0: //No teams, just break
+                    break;
                 case 1:
                     //Only one team? Just show whatever results we have
                     int idx = 2;

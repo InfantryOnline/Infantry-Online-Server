@@ -1438,6 +1438,96 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Substitutes one player for another
+        /// </summary>
+        static public void substitute(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Syntax: either *sub aliasComingOut:aliasGoingIn or :aliasComingOut:*sub aliasGoingIn");
+                return;
+            }
+
+            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            {
+                player.sendMessage(-1, "This command can only be used in non-public arenas.");
+                return;
+            }
+
+            Team team1;
+            Team team2;
+
+            //First check if we are pm'ing someone
+            if (recipient != null)
+            {
+                Player target;
+                if ((target = player._arena.getPlayerByName(payload)) == null)
+                {
+                    player.sendMessage(-1, "That player isn't here.");
+                    return;
+                }
+
+                team1 = recipient._team;
+                team2 = target._team;
+
+                //Is he on a spectator team?
+                if (target.IsSpectator)
+                {   //Unspec him
+                    target.unspec(team1);
+                    recipient.spec();
+                }
+                else
+                {   //Change team
+                    team1.addPlayer(target);
+                    team2.addPlayer(recipient);
+                }
+
+                string formatted = String.Format("{0} has been substituted for {1}.", target._alias, recipient._alias);
+                player._arena.sendArenaMessage(formatted, bong);
+                return;
+            }
+
+            //We aren't
+            if (!payload.Contains(':'))
+            {
+                player.sendMessage(-1, "Syntax: *sub aliasComingOut:aliasGoingIn");
+                return;
+            }
+
+            string[] param = payload.Split(':');
+            Player comingOut, goingIn;
+            if ((comingOut = player._arena.getPlayerByName(param[0])) == null)
+            {
+                player.sendMessage(-1, "That alias coming out doesn't exist in the arena.");
+                return;
+            }
+
+            if ((goingIn = player._arena.getPlayerByName(param[1])) == null)
+            {
+                player.sendMessage(-1, "That alias going in doesn't exist in the arena.");
+                return;
+            }
+
+            team1 = comingOut._team;
+            team2 = goingIn._team;
+
+            //Is he on a spectator team?
+            if (goingIn.IsSpectator)
+            {   //Unspec him
+                goingIn.unspec(team1);
+                comingOut.spec();
+            }
+            else
+            {   //Change team
+                team1.addPlayer(goingIn);
+                team2.addPlayer(comingOut);
+            }
+
+            string format = String.Format("{0} has been substituted for {1}.", goingIn._alias, comingOut._alias);
+            player._arena.sendArenaMessage(format, bong);
+        }
+
+        /// <summary>
         /// Summons the specified player to yourself
         /// </summary>
         static public void summon(Player player, Player recipient, string payload, int bong)
@@ -3350,6 +3440,11 @@ namespace InfServer.Game.Commands.Mod
                 "Toggles stealth mode, mods become invisible to arena's",
                 "*stealth",
                 InfServer.Data.PlayerPermission.Mod, false);
+
+            yield return new HandlerDescriptor(substitute, "sub",
+                "Substitutes one player for another.",
+                "*sub aliasComingOut:aliasGoingIn or :aliasComingOut:*sub aliasGoingIn",
+                InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Summons a specified player to your location, or all players to your location.",

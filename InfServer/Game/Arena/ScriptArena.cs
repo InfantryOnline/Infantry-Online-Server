@@ -514,7 +514,7 @@ namespace InfServer.Game
             ball._owner = from;
 
             int now = Environment.TickCount;
-            int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+            int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdate & 0xFFFF);
             ball._state.lastUpdate = updateTick;
             ball._state.lastUpdateServer = now;
 
@@ -566,7 +566,7 @@ namespace InfServer.Game
             ball._owner = null;
 
             int now = Environment.TickCount;
-            int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+            int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdate & 0xFFFF);
             ball._state.lastUpdate = updateTick;
             ball._state.lastUpdateServer = now;
 

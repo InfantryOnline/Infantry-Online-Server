@@ -139,6 +139,7 @@ namespace InfServer.Logic
             }
 
             string[] directories = Directory.GetDirectories(current);
+            Array.Sort(directories, (a, b) => int.Parse(Regex.Replace(a, "[^0-9]", "")) - int.Parse(Regex.Replace(b, "[^0-9]", "")));
             return directories[(directories.Length - 1)]; //Gets the last element in the array
         }
     }

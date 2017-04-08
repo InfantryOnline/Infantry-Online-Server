@@ -36,11 +36,19 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         {
             _listenerThread = new Thread(_ =>
                                    {
+                                       httpListener.IgnoreWriteExceptions = true;
                                        httpListener.Start();
 
                                        while (httpListener.IsListening)
                                        {
-                                           HandleRequest(httpListener.GetContext());
+                                           try
+                                           {
+                                               HandleRequest(httpListener.GetContext());
+                                           }
+                                           catch(Exception e)
+                                           {
+                                               Log.write(TLog.Exception, e.ToString());
+                                           }
                                        }
                                    });
 
@@ -111,6 +119,8 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                     else
                         responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { zone.Title, zone.PlayerCount }));
                     response.ContentLength64 = responseString.Length;
+                    response.AppendHeader("Access-Control-Allow-Origin", "*");
+                    response.AppendHeader("Access-Control-Allow-Methods", "POST, GET");
                     response.OutputStream.Write(responseString, 0, responseString.Length);
                     response.OutputStream.Close();
                     break;

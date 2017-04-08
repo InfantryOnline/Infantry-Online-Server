@@ -112,6 +112,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
         //Handle goal coords here for now
         //Default for big sbl map
         /*
+        
         Point p1 = new Point(135, 1493);
         Point p2 = new Point(240, 1493);
         Point p3 = new Point(240, 1722);
@@ -132,6 +133,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
         Point p6 = new Point(4850, 1442);
         Point p7 = new Point(4850, 1682);
         Point p8 = new Point(4718, 1682);
+
+        Point BallSpawnPoint = null;
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -159,6 +162,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             teamStats = new Dictionary<Team, TeamStats>();
             playerStats = new Dictionary<Player, PlayerStats>();
 
+            BallSpawnPoint = getSpawnPoint();
             return true;
         }
 
@@ -780,6 +784,16 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             short dxi = drop.velocityX;
             short dyi = drop.velocityY;
+
+            //player.sendMessage(0, string.Format("Pos = {0}, {1} Vel = {2}, {3}", xi.ToString(), yi.ToString(), dxi.ToString(), dyi.ToString()));
+            //player.sendMessage(0, string.Format("Pos mod = {0}, {1}", ((int)(xi + dxi)).ToString(), ((int)(yi + dyi)).ToString()));
+            if (possibleGoal(new Point(xi, yi), new Point(dxi, dyi), ball._state.lastUpdate))
+            {
+                //player.sendMessage(0, "Works");
+                futureGoal = player;
+            }
+            else
+                futureGoal = null;
 
             double dx, dy;
             dx = dxi;
@@ -1754,7 +1768,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 {
                     ball.deadBall = true;
                     //Update our time
-                    int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                    int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdate & 0xFFFF);
                     ball._state.lastUpdate = updateTick;
                     ball._state.lastUpdateServer = now;
 
@@ -1801,7 +1815,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     return;
 
                 //Update our time
-                int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdateServer & 0xFFFF);
+                int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdate & 0xFFFF);
                 ball._state.lastUpdate = updateTick;
                 ball._state.lastUpdateServer = now;
 
@@ -1815,6 +1829,62 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     Ball.Spawn_Ball(null, ball);
                 });
             }
+        }
+        #endregion
+
+        #region Private Accessors
+        /// <summary>
+        /// Gets the middle of the map for calculation later
+        /// </summary>
+        private Point getSpawnPoint()
+        {
+            //Try ball spawn points first
+            int warpGroupID = _arena._server._zoneConfig.soccer.ballWarpGroup;
+            List<LioInfo.WarpField> warpgroup = _arena._server._assets.Lios.getWarpGroupByID(warpGroupID);
+            foreach (LioInfo.WarpField warp in warpgroup)
+            {
+                if (warp.GeneralData.Name.Contains("Ball"))//warp.WarpFieldData.WarpGroup == warpGroupID)
+                {
+                    if (warp.GeneralData.OffsetX >= _arena._levelWidth || warp.GeneralData.OffsetX <= 0
+                        || warp.GeneralData.OffsetY >= _arena._levelHeight || warp.GeneralData.OffsetY <= 0)
+                        continue;
+
+                    return new Point(warp.GeneralData.OffsetX, warp.GeneralData.OffsetY);
+                }
+            }
+
+            //If that fails, get the middle of the map instead
+            return new Point(_arena._levelWidth / 2, _arena._levelHeight / 2);
+        }
+
+        /// <summary>
+        /// Will this ball drop be a goal
+        /// </summary>
+        private bool possibleGoal(Point ball, Point velocity, int tickCount)
+        {
+            if (BallSpawnPoint == null)
+                return false;
+            short posX = (short)(ball.X + velocity.X);
+            short posY = (short)(ball.Y + velocity.Y);
+
+            //Will it go past the middle of the map?
+            if (velocity.X <= 0 && BallSpawnPoint.X >= posX) //Direction is left
+                return false;
+
+            if (velocity.X > 0 && posX <= BallSpawnPoint.X) //Direction is right
+                return false;
+
+            List<LvlInfo.Tile> tiles = Helpers.calcBresenhems(_arena, (short)ball.X, (short)ball.Y, posX, posY);
+            for (int i = 0; i <= tiles.Count - 1; i++)
+            {
+                CfgInfo.Terrain terrain = _arena._server._zoneConfig.terrains[_arena._server._assets.Level.TerrainLookup[tiles[i].TerrainLookup]];
+                if ((_arena.getTeamByID(0)._relativeVehicle == terrain.goalFrequency 
+                    || _arena.getTeamByID(1)._relativeVehicle == terrain.goalFrequency) && terrain.goalPoints == 1)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         #endregion
 

@@ -183,13 +183,24 @@ namespace InfServer
 		/// <param name="name">
 		/// An alphanumerical string with the name of the nodes to look for
 		/// </param>
-		public bool Exists(String name)
-		{
-			foreach (Char c in name)
-				if (!Char.IsLetterOrDigit(c))
-					throw new Exception("Name MUST be alphanumerical!");
-			return (node.SelectNodes(name).Count > 0);
-		}
+        public bool Exists(string name)
+        {
+            //Are we looking for a full path?
+            if (name.Contains("/"))
+            {
+                string[] split = name.Split('/');
+                if (node.SelectNodes(split[0]).Count <= 0)
+                    return false;
+
+                return (node[split[0]].SelectNodes(split[1]).Count > 0);
+            }
+
+            foreach (char c in name)
+                if (!char.IsLetterOrDigit(c))
+                    throw new Exception("Name MUST be alphanumerical!");
+
+            return (node.SelectNodes(name).Count > 0);
+        }
 
 		/// <summary>
 		/// Adds a child node to the xml tree

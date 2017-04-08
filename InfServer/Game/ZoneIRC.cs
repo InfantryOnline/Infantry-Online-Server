@@ -16,6 +16,10 @@ namespace InfServer.Game
         public string IrcName;
         public bool IrcSayToggled;
 
+        private string defaultAddress = "irc.synirc.net";
+        private int defaultPort = 6667;
+        private string defaultChannel = "#infantry";
+
         /// <summary>
         /// Initializes our irc client
         /// </summary>
@@ -29,10 +33,15 @@ namespace InfServer.Game
             ircClient.OnQueryMessage += new IrcEventHandler(OnQueryMessage);
             ircClient.OnError += new ErrorEventHandler(OnError);
             ircClient.OnRawMessage += new IrcEventHandler(OnRawMessage);
+            //ircClient.OnJoin += new JoinEventHandler(OnJoin);
 
             try
             {
-                ircClient.Connect("irc.synirc.net", 6667);
+                if (_config.Exists("irc/address") && _config.Exists("irc/port"))
+                    ircClient.Connect(_config["irc/address"].Value, _config["irc/port"].intValue);
+                else
+                    ircClient.Connect(defaultAddress, defaultPort);
+
                 if (ircClient.IsConnected)
                     Log.write(TLog.Normal, "Irc Client Connected.");
                 else
@@ -47,8 +56,17 @@ namespace InfServer.Game
             {
                 IrcName = String.Join("", (from c in _name where !Char.IsWhiteSpace(c) && Char.IsLetterOrDigit(c) select c).ToArray());
                 ircClient.Login(IrcName, IrcName + " Bot");
-                ircClient.RfcJoin("#infantry");
-                if (ircClient.IsJoined("#infantry"))
+
+                string channel = defaultChannel;
+                if (_config.Exists("irc/channel"))
+                {
+                    ircClient.RfcJoin(_config["irc/channel"].Value);
+                    channel = _config["irc/channel"].Value;
+                }
+                else
+                    ircClient.RfcJoin(defaultChannel);
+
+                if (ircClient.IsJoined(channel))
                     Log.write(TLog.Normal, "Irc Client joined successfully.");
             }
             catch(ConnectionException e)
@@ -147,7 +165,7 @@ namespace InfServer.Game
         {
             var arena = _arenas.FirstOrDefault(x => x.Value.IrcName == e.Data.Channel).Value;
 
-            if (e.Data.Message.StartsWith("'"))
+            if (e.Data.Message.StartsWith("'") || e.Data.MessageArray[0] == "?sayspec")
             {
                 var firstSpecPlayer = arena.Players.FirstOrDefault(x => x.IsSpectator);
 
@@ -203,6 +221,17 @@ namespace InfServer.Game
                         ircClient.SendMessage(SendType.Message, e.Data.Channel, arenas);
                     }
                     break;
+
+                case "!pop":
+                    int pop = 0;
+                    foreach (var arena_ in _arenas)
+                        pop += arena_.Value.TotalPlayerCount;
+
+                    if (pop > 0)
+                    {
+                        ircClient.SendMessage(SendType.Message, e.Data.Channel, string.Format("Current Pop: {0}", pop));
+                    }
+                    break;
             }
         }
 
@@ -221,6 +250,20 @@ namespace InfServer.Game
         public void OnRawMessage(object sender, IrcEventArgs e)
         {
 
+        }
+
+        /// <summary>
+        /// Sends a list of commands once someone joins the channel
+        /// </summary>
+        public void OnJoin(object sender, JoinEventArgs e)
+        {
+            string[] helpMsg = {"?arenas - Gets a list of any active arenas in each active zone bot\r\n",
+                             "?players - Gets a list of players within the active arena\r\n",
+                             "?say - Sends a message within the active arena to the public\r\n",
+                             "?sayspec or ' - Sends a message within the active arena to only spectators\r\n",
+                             "?saytoggle - Toggles automatic chat on or off within the active arena"};
+            foreach(string msg in helpMsg)
+                ircClient.SendMessage(SendType.Message, e.Data.Channel, msg);
         }
 
     }

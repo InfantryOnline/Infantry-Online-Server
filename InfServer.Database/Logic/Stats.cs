@@ -16,7 +16,7 @@ namespace InfServer.Logic
         /// <summary>
         /// Writes a scorechart element to a memory stream
         /// </summary>
-        static private void writeElementToBuffer(Data.DB.stats stat, MemoryStream stream)
+        static private bool writeElementToBuffer(Data.DB.stats stat, MemoryStream stream)
         {
             try
             {
@@ -24,7 +24,7 @@ namespace InfServer.Logic
                 if (player == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "No player found for stat ID {0}.", stat.id);
-                    return;
+                    return false;
                 }
 
                 BinaryWriter bw = new BinaryWriter(stream);
@@ -69,7 +69,10 @@ namespace InfServer.Logic
             catch (Exception e)
             {
                 Log.write(TLog.Warning, "WriteElementToBuffer stat.id " + stat.id + ":" + e);
+                return false;
             }
+
+            return true;
         }
 
         /// <summary>
@@ -97,8 +100,8 @@ namespace InfServer.Logic
 
                             MemoryStream stream = new MemoryStream();
                             foreach (Data.DB.stats lifetime in stats)
-                                if (lifetime != null)
-                                    writeElementToBuffer(lifetime, stream);
+                                if (lifetime != null && writeElementToBuffer(lifetime, stream) == false)
+                                    continue;
 
                             SC_PlayerStatsResponse<Zone> response = new SC_PlayerStatsResponse<Zone>();
 

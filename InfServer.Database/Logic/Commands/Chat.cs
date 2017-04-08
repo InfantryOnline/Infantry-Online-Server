@@ -844,6 +844,12 @@ namespace InfServer.Logic
                                 return;
                             }
 
+                            if (string.IsNullOrWhiteSpace(pkt.payload) || !pkt.payload.Contains(':'))
+                            {
+                                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadinvite [add/remove]:[playername]:[squadname]");
+                                return;
+                            }
+
                             //We dont want to use the clean payload since players have crazy names!
                             string[] sInvite = pkt.payload.Split(':');
                             if (sInvite.Count() != 3)
@@ -1126,6 +1132,12 @@ namespace InfServer.Logic
 
                     case CS_Squads<Zone>.QueryType.invitesreponse:
                         {
+                            if (string.IsNullOrWhiteSpace(cleanPayload) || !cleanPayload.Contains(':'))
+                            {
+                                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadIresponse [accept/reject]:[squadname]");
+                                return;
+                            }
+
                             //Response to a squad invitation
                             string[] sResponse = cleanPayload.Split(':');
                             //Sanity checks
