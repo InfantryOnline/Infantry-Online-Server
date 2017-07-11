@@ -35,6 +35,7 @@ namespace InfServer.DirectoryServer
 
             //Set a handler for if we recieve Ctrl+C or Ctrl+BREAK
             Console.CancelKeyPress += new ConsoleCancelEventHandler(Exit);
+            
 
             DdMonitor.bNoSync = false;
             DdMonitor.bEnabled = true;
