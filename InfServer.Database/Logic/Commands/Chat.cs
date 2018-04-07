@@ -435,48 +435,28 @@ namespace InfServer.Logic
 
                     case CS_ChatQuery<Zone>.QueryType.history:
                         {
-                            string[] name = pkt.payload.Split(':');
-                            int page = (!pkt.payload.Contains(':') ? Convert.ToInt32(name[0].Trim()) : Convert.ToInt32(name[1]));
-                            int resultsperpage = 30;
-                            bool contains = pkt.payload.Contains(':');
+                            const int resultsPerPage = 30;
+                            string[] args = pkt.payload.Split(':');
+                            string name = args[0];
+                            int page = Convert.ToInt32(args[1]);
+                            bool emptyName = String.IsNullOrWhiteSpace(name);
 
-                            zone._server.sendMessage(zone, pkt.sender, "Command History (" + page + ")");
+                            zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
 
-                            //Find all commands!
-                            Data.DB.history last = (db.histories.OrderByDescending(a => a.id)).First();
-
-                            List<Data.DB.history> sort, cmds;
-                            if (contains)
-                            {
-                                sort = (from hist in db.histories
-                                        where hist.sender.ToLower() == name[0].ToLower()
-                                        orderby hist.id descending
-                                        select hist).ToList();
-                            }
-                            else
-                            {
-                                sort = (from hist in db.histories
-                                        orderby hist.id
-                                        descending
-                                        select hist).ToList();
-                            }
-
-                            //NOTE: refactor this by some sort of page system,
-                            //fails when searching for sender because of gapped id's I.E 22391 next could be 24195
-                            //If less then 30 results, just show what we have
-                            if (last.id <= resultsperpage)
-                                cmds = sort.Where(c => c.id <= last.id).ToList();
-                            else
-                                cmds = sort.Where(c => c.id >= (last.id - (resultsperpage * (page + 1))) &&
-                                    c.id < (last.id - (resultsperpage * page))).ToList();
+                            List<Data.DB.history> commandHistory =
+                                db.histories.Where(hist => emptyName || hist.sender == name)
+                                    .OrderByDescending(hist => hist.id)
+                                    .Skip(page * resultsPerPage)
+                                    .Take(resultsPerPage)
+                                    .ToList();
 
                             //List them
-                            foreach (Data.DB.history h in cmds)
+                            foreach (Data.DB.history h in commandHistory)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
                                     Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.command));
                             }
-                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 1, *history 2, etc to navigate previous pages OR *history alias:1 *history alias:2");
+                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 2, *history 3, etc to navigate pages OR *history alias:2 *history alias:3 for aliases.");
                         }
                         break;
 

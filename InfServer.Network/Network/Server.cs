@@ -32,6 +32,7 @@ namespace InfServer.Network
 
         private Thread _listenThread;			//Thread used to dispatch packets and handle network activity
         private IPEndPoint _listenPoint;		//The endpoint to bind the server to
+        private IAsyncResult _currentAsyncResult;
 
         public Random _rand;					//Our PRNG
 
@@ -126,7 +127,7 @@ namespace InfServer.Network
                 _sock.Bind(_listenPoint);
 
                 //Begin listening for packets
-                _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, null);
+                _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, null);
             }
             catch (SocketException se)
             {	//Failure!
@@ -198,81 +199,85 @@ namespace InfServer.Network
                         return;
                     }
 
-                    //Receive the data
-                    read = _sock.EndReceiveFrom(asyn, ref _remEP);
+                    //Is it our current async? If it isnt, skip it
+                    if (asyn == _currentAsyncResult)
+                    {
+                        //Receive the data
+                        read = _sock.EndReceiveFrom(asyn, ref _remEP);
 
-                    //Read in the typeID
-                    ushort typeID = NetworkClient.getTypeID(_buffer, 0);
+                        //Read in the typeID
+                        ushort typeID = NetworkClient.getTypeID(_buffer, 0);
 
-                    //Handle the initial packet specially
-                    bool bNewClient = false;
+                        //Handle the initial packet specially
+                        bool bNewClient = false;
 
-                    //Initial && system packet?
-                    if (_buffer[0] == 0 && typeID == Protocol.CS_Initial.TypeID)
-                    {	//If we're receiving the initial packet, then the client will
-                        //want to begin a new connection state. Destroy the old one!
-                        //Protocol.CS_Initial init = packet as Protocol.CS_Initial;
-                        bNewClient = true;
-                    }
-
-                    //Attempt to find the related NetworkClient
-                    _networkLock.AcquireWriterLock(Timeout.Infinite);
-                    NetworkClient client = null;
-
-                    try
-                    {	//Form the uid for the client
-                        IPEndPoint ipe = (IPEndPoint)_remEP;
-                        Int64 id = ipe.Address.Address | (((Int64)ipe.Port) << 32);
-
-                        //Do we have a client?
-                        if (bNewClient)
-                        {	//This client doesn't exist yet, let's create a new class
-                            client = _clientTemplate.newInstance();
-                            client._lastPacketRecv = Environment.TickCount;
-                            client._ipe = ipe;
-                            client._handler = this;
-                            client._clientID = id;
-
-                            //Add it to our client list
-                            _clients[id] = client;
+                        //Initial && system packet?
+                        if (_buffer[0] == 0 && typeID == Protocol.CS_Initial.TypeID)
+                        {	//If we're receiving the initial packet, then the client will
+                            //want to begin a new connection state. Destroy the old one!
+                            //Protocol.CS_Initial init = packet as Protocol.CS_Initial;
+                            bNewClient = true;
                         }
-                        else
-                            _clients.TryGetValue(id, out client);
 
-                        //Out of sync packet?
-                        if (client == null)
-                            Log.write(TLog.Inane, "Out of state packet received from {0}", _remEP);
-                        //If the client is inactive, ignore
-                        else if (client._bDestroyed)
-                        {
-                            //Look for the culprit and remove it
-                            if (_clients.ContainsKey(client._clientID))
-                                _clients.Remove(client._clientID);
-                            client = null;
+                        //Attempt to find the related NetworkClient
+                        _networkLock.AcquireWriterLock(Timeout.Infinite);
+                        NetworkClient client = null;
+
+                        try
+                        {	//Form the uid for the client
+                            IPEndPoint ipe = (IPEndPoint)_remEP;
+                            Int64 id = ipe.Address.Address | (((Int64)ipe.Port) << 32);
+
+                            //Do we have a client?
+                            if (bNewClient)
+                            {	//This client doesn't exist yet, let's create a new class
+                                client = _clientTemplate.newInstance();
+                                client._lastPacketRecv = Environment.TickCount;
+                                client._ipe = ipe;
+                                client._handler = this;
+                                client._clientID = id;
+
+                                //Add it to our client list
+                                _clients[id] = client;
+                            }
+                            else
+                                _clients.TryGetValue(id, out client);
+
+                            //Out of sync packet?
+                            if (client == null)
+                                Log.write(TLog.Inane, "Out of state packet received from {0}", _remEP);
+                            //If the client is inactive, ignore
+                            else if (client._bDestroyed)
+                            {
+                                //Look for the culprit and remove it
+                                if (_clients.ContainsKey(client._clientID))
+                                    _clients.Remove(client._clientID);
+                                client = null;
+                            }
                         }
-                    }
-                    finally
-                    {	//Release our lock
-                        _networkLock.ReleaseWriterLock();
-                    }
+                        finally
+                        {	//Release our lock
+                            _networkLock.ReleaseWriterLock();
+                        }
 
-                    if (client != null)
-                    {	//Make sure the packet is intact
-                        int offset = 0;
-                        if (!client.checkPacket(_buffer, ref offset, ref read))
-                            //Bad packet!
-                            Log.write(TLog.Warning, "Bad packet received from {0}", client);
-                        else
-                        {	//Transplant the data into a packet class
-                            packet = _factory.createPacket(client, typeID, _buffer, offset, read);
-                            packet._client = client;
-                            packet._handler = this;
+                        if (client != null)
+                        {	//Make sure the packet is intact
+                            int offset = 0;
+                            if (!client.checkPacket(_buffer, ref offset, ref read))
+                                //Bad packet!
+                                Log.write(TLog.Warning, "Bad packet received from {0}", client);
+                            else
+                            {	//Transplant the data into a packet class
+                                packet = _factory.createPacket(client, typeID, _buffer, offset, read);
+                                packet._client = client;
+                                packet._handler = this;
 
-                            packet.Deserialize();
+                                packet.Deserialize();
 
-                            //Queue it up
-                            handlePacket(packet, client);
-                            client._lastPacketRecv = Environment.TickCount;
+                                //Queue it up
+                                handlePacket(packet, client);
+                                client._lastPacketRecv = Environment.TickCount;
+                            }
                         }
                     }
                 }
@@ -297,7 +302,7 @@ namespace InfServer.Network
 
                 try
                 {	//Wait for more data
-                    _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, null);
+                    _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, null);
                 }
                 catch (SocketException se)
                 {	//Store the exception and exit

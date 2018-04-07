@@ -40,6 +40,11 @@ namespace Assets
 
 			//Attempt to find the file in the directory structure
 			string filePath = findAssetFile(filename, "assets\\");
+            if (filePath == null)
+            {
+                filePath = findAssetFile(filename, "..\\BIN\\assets\\");
+            }
+
 			if (filePath == null)
 			{	//It's missing!
 				_missingFiles.Add(filename);

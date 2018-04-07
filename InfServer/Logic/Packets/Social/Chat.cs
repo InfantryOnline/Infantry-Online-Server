@@ -119,7 +119,7 @@ namespace InfServer.Logic
                 if (player._msgTimeStamps != null && change)
                     player._msgTimeStamps = new List<DateTime>();
 
-                //More than 4 messages in 5 seconds?
+                //More than 5 messages in 5 seconds?
                 if (player._msgTimeStamps.Count == 5)
                     //Warn him
                     player.sendMessage(-1, "WARNING! You will be auto-silenced for spamming.");
@@ -132,16 +132,9 @@ namespace InfServer.Logic
                     player._bSilenced = true;
                     player._lengthOfSilence = duration;
                     player._timeOfSilence = DateTime.Now;
-                    if (player._server._playerSilenced.ContainsKey(player._ipAddress))
-                    {
-                        if (!player._server._playerSilenced[player._ipAddress].ContainsKey(duration))
-                            player._server._playerSilenced[player._ipAddress].Add(player._lengthOfSilence, player._timeOfSilence);
-                    }
-                    else
-                    {
-                        player._server._playerSilenced.Add(player._ipAddress, new Dictionary<int, DateTime>());
-                        player._server._playerSilenced[player._ipAddress].Add(player._lengthOfSilence, player._timeOfSilence);
-                    }
+                    if (!player._arena._silencedPlayers.ContainsKey(player._alias))
+                        player._arena._silencedPlayers.Add(player._alias, duration);
+
                     return;
                 }
 
@@ -268,8 +261,10 @@ namespace InfServer.Logic
                                 if (!Allowed)
                                     break;
                                 if (player._arena._specQuiet || player._specQuiet)
+                                {
                                     if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
                                         break;
+                                }
                             }
 
                             //Are we connected to a database?

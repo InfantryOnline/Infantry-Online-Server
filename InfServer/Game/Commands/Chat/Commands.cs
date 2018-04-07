@@ -731,6 +731,153 @@ namespace InfServer.Game.Commands.Chat
         }
         #endregion
 
+        #region duelbot
+        /// <summary>
+        /// Spawns a duel bot at your location or a specified location. NOTE: Duelbots are zone based setups
+        /// </summary>
+        public static void duelbot(Player player, Player recipient, string payload, int bong)
+        {
+            if (String.IsNullOrWhiteSpace(payload))
+            {
+                player.sendMessage(-1, "Error in command: type ?duelbot options for an example");
+                return;
+            }
+
+            if (payload.Contains("options"))
+            {
+                player.sendMessage(-1, "Syntax: ?duelbot <id>");
+                player.sendMessage(0, "Optional: ?duelbot <id> [location] (Ex: ?duelbot A4 or ?duelbot 451,443)");
+                player.sendMessage(0, "To see a list of available bots, type: ?duelbot list");
+                return;
+            }
+
+            List<Assets.VehInfo> vehicles = player._server._assets.getVehicleInfos;
+            if (vehicles == null)
+            {
+                player.sendMessage(-1, "No vehicles currently exist.");
+                return;
+            }
+
+            Dictionary<int, string> CurrentBots = null;
+            foreach (Assets.VehInfo veh in vehicles)
+            {
+                if (veh.Name.ToLower().Contains("(d)") || veh.Name.ToLower().Contains("duelbot"))
+                {
+                    if (CurrentBots == null)
+                    { CurrentBots = new Dictionary<int, string>(); }
+                    CurrentBots.Add(veh.Id, veh.Name);
+                }
+            }
+
+            if (payload.Contains("list"))
+            {
+                if (CurrentBots == null)
+                {
+                    player.sendMessage(-1, "There are no dueling bots in this zone.");
+                    return;
+                }
+
+                player.sendMessage(0, "Current bot listing:");
+                foreach(KeyValuePair<int,string> bot in CurrentBots)
+                {
+                    player.sendMessage(0, string.Format("[{0}] {1}", bot.Key, bot.Value));
+                }
+                return;
+            }
+
+            if (!Scripting.Scripts.invokerTypeExists("DuelBot"))
+            {
+                player.sendMessage(-1, "Script type doesn't exist, cannot spawn a duelbot.");
+                return;
+            }
+
+            if (!player._arena._name.StartsWith("#"))
+            {
+                player.sendMessage(-1, "You can only spawn bots in private arenas.");
+                return;
+            }
+
+            if (player._server._zoneConfig.bot.maxAmountInArena > 0
+                    && player._arena._botsInArena >= player._server._zoneConfig.bot.maxAmountInArena)
+            {
+                player.sendMessage(-1, "Bot limit reached.");
+                return;
+            }
+
+            if (player._arena._botsInArena >= 20)
+            { //Arena starts lagging after 20
+                player.sendMessage(-1, "Bot limit for this command reached.");
+                return;
+            }
+
+            string[] command = payload.Split(' ');
+            int id;
+            //Is it a valid number?
+            if (!int.TryParse(command[0], out id))
+            {
+                player.sendMessage(-1, "That is not a valid bot id. Type ?duelbot list to see them.");
+                return;
+            }
+
+            //Does it exist?
+            if (!CurrentBots.ContainsKey(id))
+            {
+                player.sendMessage(-1, "That is not a valid bot id. Type ?duelbot list to see them.");
+                return;
+            }
+            //Set bot state
+            Protocol.Helpers.ObjectState newState = new Protocol.Helpers.ObjectState();
+            int x = player._state.positionX;
+            int y = player._state.positionY;
+
+            //Are they just spawning it on top of themselves?
+            if (command.Length > 1)
+            { //Nope
+                if (payload.Contains(","))
+                {
+                    //Exact coords
+                    string[] args = command[1].Split(',');
+                    if (args.Count() > 1 && !String.IsNullOrWhiteSpace(args[1]))
+                    {   //Yes, parse it
+                        x = Convert.ToInt32(args[0].Trim()) * 16;
+                        y = Convert.ToInt32(args[1].Trim()) * 16;
+                    }
+                    else
+                    {
+                        player.sendMessage(-1, "Syntax: ?duelbot <id> [location]");
+                        player.sendMessage(0, "Example: ?duelbot <id> 453,341 OR ?duelbot <id> A4");
+                        return;
+                    }
+                }
+                else
+                {   //No, map point
+                    string coord = command[1].Trim().ToLower();
+                    if (coord[0] >= 'a' && coord[0] <= 'z' && coord.Length > 1)
+                    {
+                        x = (((int)coord[0]) - ((int)'a')) * 16 * 80;
+                        y = Convert.ToInt32(coord.Substring(1)) * 16 * 80;
+
+                        //We want to spawn in the coord center
+                        x += 40 * 16;
+                        y -= 40 * 16;
+                    }
+                    else
+                    {
+                        player.sendMessage(-1, "Syntax: ?duelbot <id> [location]");
+                        player.sendMessage(0, "Example: ?duelbot <id> 453,341 OR ?duelbot <id> A4");
+                        return;
+                    }
+                }
+            }
+            //Spawn it
+            newState.positionX = (short)x;
+            newState.positionY = (short)y;
+            newState.positionZ = 0; //People could spawn them while flying and they would stay in the air
+            newState.yaw = player._state.yaw;
+            Bots.Bot newBot = player._arena.newBot(typeof(Bots.ScriptBot), (ushort)id, newState, "DuelBot");
+        }
+        #endregion
+
         #region email
         /// <summary>
         /// Updates email address associated with players account
@@ -1671,6 +1818,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(drop, "drop",
                "Drops items",
                "?drop item1:amount1,item2:#absoluteAmount2 OR ?drop all");
+
+            yield return new HandlerDescriptor(duelbot, "duelbot",
+               "Spawns a duelbot",
+               "?duelbot <id> OR ?duelbot <id> [location]");
 
             yield return new HandlerDescriptor(email, "email",
                 "Updates email address associated with players account",

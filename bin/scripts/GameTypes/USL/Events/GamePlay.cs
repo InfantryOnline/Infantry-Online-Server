@@ -20,6 +20,7 @@ namespace InfServer.Script.GameType_USL
         public SpawnEventTypes _spawnEventType;
         private Arena _arena;
         private CfgInfo _config;
+        private string _season;
 
         #region Stat Recording
         private string FileName;
@@ -311,8 +312,14 @@ namespace InfServer.Script.GameType_USL
             _config = _arena._server._zoneConfig;
 
             //Lets see what season we are in (Match related)
-            string season = Logic_File.GetSeasonDirectory();
-            if (!Int32.TryParse(season.Substring(season.Length - 1, 1), out LeagueSeason))
+            //Lets try from the usl site first then season directory if that fails
+            string season = string.Empty;
+
+            if (!GetUslSeason(@"http://www.uslzone.com/usl/view_schedule.php", out season))
+            { season = Logic_File.GetSeasonDirectory(); }
+            if (season.Contains("Season"))
+                season = (season.Split(' ')).ElementAt(1);
+            if (!Int32.TryParse(season, out LeagueSeason))
                 LeagueSeason = 1;
             //Lets generate our list of available events
             CurrentEventTypes = GetEventTypes();
@@ -512,7 +519,7 @@ namespace InfServer.Script.GameType_USL
                         if (p == null)
                             continue;
 
-                        if (_savedPlayerStats[p._alias] != null)
+                        if (_savedPlayerStats.ContainsKey(p._alias))
                         {
                             deaths = _savedPlayerStats[p._alias].deaths;
                             if (deaths == topDeaths)
@@ -562,12 +569,19 @@ namespace InfServer.Script.GameType_USL
                 }
             }
 
-            if (_savedPlayerStats[from._alias] != null)
+            //Are they on the list?
+            if (_savedPlayerStats.ContainsKey(from._alias))
             {
                 string personalFormat = "!Personal Score: (K={0} D={1})";
                 from.sendMessage(0, String.Format(personalFormat,
                     _savedPlayerStats[from._alias].kills,
                     _savedPlayerStats[from._alias].deaths));
+            }
+            //If not, give them the generic one
+            else
+            {
+                string personalFormat = "!Personal Score: (K=0 D=0)";
+                from.sendMessage(0, personalFormat);
             }
         }
 
@@ -1114,6 +1128,39 @@ namespace InfServer.Script.GameType_USL
         #endregion
 
         #region Private Calls
+        /// <summary>
+        /// Checks for the current season from the usl site and returns a string
+        /// </summary>
+        private bool GetUslSeason(string url, out string result)
+        {
+            System.Net.WebClient webclient = new System.Net.WebClient();
+            result = string.Empty;
+            try
+            {
+                byte[] data = webclient.DownloadData(new Uri(url));
+                if (data.Length <= 0)
+                { return false; }
+                else
+                {
+                    string downloadedString = Encoding.ASCII.GetString(data);
+                    string pattern = @"\b(?i:s)eason\s\d+\b";
+                    foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(downloadedString, pattern))
+                    {
+                        result = match.Value;
+                        break;
+                    }
+                }
+                webclient.Dispose();
+            }
+            catch
+            { return false; }
+
+            if (string.IsNullOrEmpty(result))
+            { return false; }
+
+            return true;
+        }
+
         /// <summary>
         /// Gets the arena ready for our match
         /// </summary>

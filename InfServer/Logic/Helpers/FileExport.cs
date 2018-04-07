@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace InfServer.Logic
@@ -41,6 +42,7 @@ namespace InfServer.Logic
             if (fullPath == null)
                 //Doesnt exist
                 fullPath = Path.Combine(current, fileName);
+
             return File.CreateText(fullPath);
         }
 
@@ -68,7 +70,7 @@ namespace InfServer.Logic
             if (fullpath == null)
                 //Doesnt exist
                 fullpath = Path.Combine(path, fileName);
-            Console.WriteLine(fullpath);
+
             return File.CreateText(fullpath);
         }
 
@@ -91,6 +93,7 @@ namespace InfServer.Logic
             if (fullPath == null)
                 //Doesnt exist
                 fullPath = Path.Combine(current, fileName);
+
             return (fullPath == null ? File.CreateText(fullPath) : File.AppendText(fullPath));
         }
 
@@ -117,6 +120,7 @@ namespace InfServer.Logic
             if (fullpath == null)
                 //Doesnt exist
                 fullpath = Path.Combine(path, fileName);
+
             return (fullpath == null ? File.CreateText(fullpath) : File.AppendText(fullpath));
         }
 
@@ -126,6 +130,7 @@ namespace InfServer.Logic
         static public string GetSeasonDirectory()
         {
             string current = "Stats\\";
+
             if (!Directory.Exists(current))
                 Directory.CreateDirectory(current);
 
@@ -140,7 +145,8 @@ namespace InfServer.Logic
 
             string[] directories = Directory.GetDirectories(current);
             Array.Sort(directories, (a, b) => int.Parse(Regex.Replace(a, "[^0-9]", "")) - int.Parse(Regex.Replace(b, "[^0-9]", "")));
-            return directories[(directories.Length - 1)]; //Gets the last element in the array
+
+            return directories.LastOrDefault(); //Gets the last element in the array
         }
     }
 }

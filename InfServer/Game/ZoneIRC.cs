@@ -165,13 +165,14 @@ namespace InfServer.Game
         {
             var arena = _arenas.FirstOrDefault(x => x.Value.IrcName == e.Data.Channel).Value;
 
-            if (e.Data.Message.StartsWith("'") || e.Data.MessageArray[0] == "?sayspec")
+            if (e.Data.Message.StartsWith("'") || e.Data.Message.StartsWith("?sayspec"))
             {
+                int startIndex = e.Data.Message.StartsWith("?sayspec") ? 8 : 1;
                 var firstSpecPlayer = arena.Players.FirstOrDefault(x => x.IsSpectator);
 
                 if (firstSpecPlayer != null)
                 {
-                    Helpers.Player_RouteChatRaw(firstSpecPlayer._team, "[IRC]" + e.Data.Nick, e.Data.Message.Substring(1), 0, Helpers.Chat_Type.Team);
+                    Helpers.Player_RouteChatRaw(firstSpecPlayer._team, "[IRC]" + e.Data.Nick, e.Data.Message.Substring(startIndex), 0, Helpers.Chat_Type.Team);
                 }
 
                 return;

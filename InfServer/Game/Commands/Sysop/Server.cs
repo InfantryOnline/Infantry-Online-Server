@@ -171,45 +171,53 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void history(Player player, Player recipient, string payload, int bong)
         {
-            int page;
-            string name = "";
+            int page = 0;
+            string name = string.Empty;
             string[] args = payload.Split(':');
-            bool IsNumeric = Regex.IsMatch(args[0], @"^[0-9]+$");
+            bool pageIsFirst = Regex.IsMatch(args[0], @"^[0-9]+$");
 
-            if (String.IsNullOrEmpty(payload))
-                page = 0;
-            else
+            if (!String.IsNullOrWhiteSpace(payload))
             {
-                //Are we just typing a page number?
-                if (IsNumeric)
+                if (pageIsFirst)
                 {
                     try
                     {
-                        page = Convert.ToInt32(payload);
+                        page = Convert.ToInt32(args[0]);
                     }
                     catch
                     {
-                        page = 0;
+                        page = 0; //Convert doesn't do negative numbers
                     }
                 }
                 else
                 {
                     //We are typing a name first
                     name = args[0].Trim();
-                    page = 0;
 
                     if (payload.Contains(':'))
-                        page = Convert.ToInt32(args[1]);
+                    {
+                        try
+                        {
+                            page = Convert.ToInt32(args[1]);
+                        }
+                        catch 
+                        {
+                            page = 0; //Convert doesn't do negative numbers
+                        }
+                    }
                 }
+            }
+
+            // convert 1-indexed human entries to 0-indexed
+            if (page > 0)
+            {
+                page--;
             }
 
             CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
             pkt.sender = player._alias;
             pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.history;
-            if (!String.IsNullOrEmpty(name))
-                pkt.payload = String.Join(":", payload, page.ToString());
-            else
-                pkt.payload = page.ToString();
+            pkt.payload = String.Join(":", name, page.ToString());
             player._server._db.send(pkt);
         }
 
@@ -254,7 +262,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(history, "history",
                 "Returns a list of mod commands used in every server",
                 "*history [page], *history [name], or *history [name]:[page]",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.Mod, false);
 
             yield return new HandlerDescriptor(log, "log",
                 "Grabs exception logs for the current zone",

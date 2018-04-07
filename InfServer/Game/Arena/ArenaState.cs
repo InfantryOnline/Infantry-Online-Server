@@ -309,6 +309,15 @@ namespace InfServer.Game
                 }
             }
 
+            //Are we zone silenced or arena silenced?
+            if (!this._server._playerSilenced.ContainsKey(player._ipAddress))
+            {   //Since we are not in the zone list, check the arena list
+                if (!this._silencedPlayers.ContainsKey(player._alias))
+                    player._bSilenced = false;
+                else
+                    player._bSilenced = true;
+            }
+
             //Initialize the player's state
             Helpers.Player_StateInit(player,
                 delegate()
@@ -344,7 +353,7 @@ namespace InfServer.Game
                     callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-                    player.sendMessage(-3, "[Notice] Welcome to Infantry, IRC support at irc.synirc.net #infantry, which can quicky be accessed at freeinfantry.org. Enjoy your stay.");
+                    player.sendMessage(-3, "[Notice] Welcome to Infantry, IRC support at irc.synirc.net #infantry, which can quicky be accessed at freeinfantry.com. Enjoy your stay.");
 
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)

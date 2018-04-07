@@ -1096,7 +1096,7 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
-        /// Toggles a players ability to use the messaging system entirely
+        /// Toggles a players ability to use the messaging system entirely in a given arena
         /// </summary>
         static public void shutup(Player player, Player recipient, string payload, int bong)
         {
@@ -1130,42 +1130,107 @@ namespace InfServer.Game.Commands.Mod
                 Log.write(TLog.Warning, e.ToString());
             }
 
-            //Are we adding on more time?
+            //Are we changing the time?
             if (recipient._bSilenced && minutes > 0)
             {
-                int min = 0;
+                if (recipient._arena._silencedPlayers.ContainsKey(recipient._alias))
+                {
+                    //Lets make a new one
+                    recipient._arena._silencedPlayers.Remove(recipient._alias);
+                    recipient._arena._silencedPlayers.Add(recipient._alias, minutes);
+                }
+                else
+                {
+                    //No list found for player, adding it
+                    recipient._arena._silencedPlayers.Add(recipient._alias, minutes);
+                }
+                recipient._lengthOfSilence = minutes;
+                player.sendMessage(0, recipient._alias + " has been silenced for " + minutes + " minutes.");
+                return;
+            }
+
+            //Toggle his ability to speak
+            recipient._bSilenced = !recipient._bSilenced;
+
+            //Notify some people
+            if (recipient._bSilenced)
+            {
+                recipient._timeOfSilence = DateTime.Now;
+                recipient._lengthOfSilence = minutes;
+                //Lets add him to the arena silence list
+                if (recipient._arena._silencedPlayers.ContainsKey(recipient._alias))
+                    recipient._arena._silencedPlayers.Add(recipient._alias, recipient._lengthOfSilence);
+                else
+                {
+                    recipient._arena._silencedPlayers.Add(recipient._alias, recipient._lengthOfSilence);
+                }
+                player.sendMessage(0, recipient._alias + " has been silenced.");
+            }
+            else
+            {
+                recipient._lengthOfSilence = 0;
+
+                if (recipient._server._playerSilenced.ContainsKey(recipient._ipAddress))
+                    recipient._server._playerSilenced.Remove(recipient._ipAddress);
+                player.sendMessage(0, recipient._alias + " has been unsilenced.");
+            }
+        }
+
+        /// <summary>
+        /// Toggles a players ability to use the messaging system entirely across a single zone
+        /// </summary>
+        static public void silence(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity checks
+            if (recipient == null)
+            {
+                player.sendMessage(-1, "Syntax: :alias:*silence");
+                return;
+            }
+
+            if (player != recipient && (int)player.PermissionLevelLocal < (int)recipient.PermissionLevel)
+            {
+                player.sendMessage(-1, "Nice try.");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Syntax: :alias:*silence timeinminutes");
+                return;
+            }
+
+            //Convert our payload into a numerical value
+            int minutes = 0;
+            try
+            {
+                minutes = Convert.ToInt32(payload);
+            }
+            catch (OverflowException e)
+            {
+                Log.write(TLog.Warning, e.ToString());
+            }
+
+            //Are we changing the time?
+            if (recipient._bSilenced && minutes > 0)
+            {
                 DateTime time = DateTime.Now;
                 if (recipient._server._playerSilenced.ContainsKey(recipient._ipAddress))
                 {
-                    if (recipient._server._playerSilenced[recipient._ipAddress].Keys.Count > 0)
-                    {
-                        //Lets update his/her time
-                        foreach (int length in recipient._server._playerSilenced[recipient._ipAddress].Keys)
-                            min = length;
-                        foreach (DateTime timer in recipient._server._playerSilenced[recipient._ipAddress].Values)
-                            time = timer;
+                    //Lets make a new one
+                    recipient._server._playerSilenced.Remove(recipient._ipAddress);
 
-                        recipient._server._playerSilenced.Remove(recipient._ipAddress);
-                        //Make a new one
-                        min = min + minutes;
-                        time = time.AddMinutes(minutes);
-                        recipient._server._playerSilenced.Add(recipient._ipAddress, new Dictionary<int, DateTime>());
-                        recipient._server._playerSilenced[recipient._ipAddress].Add(min, time);
-
-                        player.sendMessage(0, recipient._alias + " has been silenced for an additional " + minutes + " minutes.");
-                        return;
-                    }
-                    else
-                        recipient._server._playerSilenced[recipient._ipAddress].Add(min + minutes, time);
+                    recipient._server._playerSilenced.Add(recipient._ipAddress, new Dictionary<int, DateTime>());
+                    recipient._server._playerSilenced[recipient._ipAddress].Add(minutes, time);
                 }
                 else
                 {
                     //No list found for player, adding it
                     recipient._server._playerSilenced.Add(recipient._ipAddress, new Dictionary<int, DateTime>());
-                    recipient._server._playerSilenced[recipient._ipAddress].Add(min + minutes, time);
+                    recipient._server._playerSilenced[recipient._ipAddress].Add(minutes, time);
                 }
-                recipient._lengthOfSilence = min + minutes;
-                player.sendMessage(0, recipient._alias + " has been silenced for an additional " + minutes + " minutes.");
+                recipient._lengthOfSilence = minutes;
+                player.sendMessage(0, recipient._alias + " has been zone silenced for " + minutes + " minutes.");
                 return;
             }
 
@@ -1179,19 +1244,23 @@ namespace InfServer.Game.Commands.Mod
                 recipient._lengthOfSilence = minutes;
                 //Lets add him to the zone silencer so the fucker cant avoid it by re-entering the zone
                 if (recipient._server._playerSilenced.ContainsKey(recipient._ipAddress))
-                    recipient._server._playerSilenced[recipient._ipAddress].Add(recipient._lengthOfSilence, DateTime.Now);
+                    recipient._server._playerSilenced[recipient._ipAddress].Add(minutes, DateTime.Now);
                 else
                 {
                     recipient._server._playerSilenced.Add(recipient._ipAddress, new Dictionary<int, DateTime>());
-                    recipient._server._playerSilenced[recipient._ipAddress].Add(recipient._lengthOfSilence, DateTime.Now);
+                    recipient._server._playerSilenced[recipient._ipAddress].Add(minutes, DateTime.Now);
                 }
-                player.sendMessage(0, recipient._alias + " has been silenced.");
+                player.sendMessage(0, recipient._alias + " has been zone silenced.");
             }
             else
             {
                 recipient._lengthOfSilence = 0;
                 if (recipient._server._playerSilenced.ContainsKey(recipient._ipAddress))
                     recipient._server._playerSilenced.Remove(recipient._ipAddress);
+                
+                if (recipient._arena._silencedPlayers.ContainsKey(recipient._alias))
+                    recipient._arena._silencedPlayers.Remove(recipient._alias);
+
                 player.sendMessage(0, recipient._alias + " has been unsilenced.");
             }
         }
@@ -3410,6 +3479,11 @@ namespace InfServer.Game.Commands.Mod
                 "Scrambles an arena, use on/off to set the arena to scramble automatically.",
                 "::*scramble [on/off(optional)]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
+
+            yield return new HandlerDescriptor(silence, "silence",
+               "Toggles a players ability to use the messaging system entirely across the zone",
+               ":alias:*silence",
+               InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(shutup, "shutup",
                "Toggles a players ability to use the messaging system entirely",

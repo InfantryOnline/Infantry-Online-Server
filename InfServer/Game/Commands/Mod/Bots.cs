@@ -141,5 +141,5 @@ namespace InfServer.Game.Commands.Mod
 				"*spawnbot [scriptType], [vehicleID] OR *spawnbot [scriptType], [vehicleID], [location](xx,yy OR A4)", 
 				InfServer.Data.PlayerPermission.Mod, true);
 		}
-	}
+    }
 }

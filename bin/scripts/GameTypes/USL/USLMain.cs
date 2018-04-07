@@ -366,6 +366,7 @@ namespace InfServer.Script.GameType_USL
                 EloRating rating = new EloRating(1500.0d, 1500.0d, 37, 33);
                 player.sendMessage(0, String.Format("{0},{1}", rating.FinalResult1, rating.FinalResult2));
             }
+
             if (command == "event")
             {
                 if (!AllowEvents)
@@ -449,7 +450,7 @@ namespace InfServer.Script.GameType_USL
                 _eventVoting[eventName].Add(player._id);
                 player.sendMessage(0, String.Format("You have voted for event {0}.", eventName));
             }
-
+            
             return true;
         }
 
@@ -963,7 +964,7 @@ namespace InfServer.Script.GameType_USL
             if (_eventVoting.Count == 0)
                 return;
 
-            //Do we have enough players voting? 35%
+            //Do we have enough players voting? 15%
             int inGameCount = _arena.PlayersIngame.Count();
             int votes = 0;
             foreach(KeyValuePair<string, List<int>> voting in _eventVoting)
@@ -971,7 +972,7 @@ namespace InfServer.Script.GameType_USL
                 votes += voting.Value.Count;
             }
 
-            if (votes < Math.Round(inGameCount * 0.35f))
+            if (votes < Math.Round(inGameCount * 0.15f))
             {
                 _arena.sendArenaMessage("Not enough players voted. Continuing same event.");
                 return;
