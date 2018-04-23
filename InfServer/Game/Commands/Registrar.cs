@@ -21,6 +21,11 @@ namespace InfServer.Game.Commands
 		/// </summary>
 		public Dictionary<string, HandlerDescriptor> _chatCommands;
 
+        /// <summary>
+        /// A list of communication command handlers indexed by command name
+        /// </summary>
+        public Dictionary<string, HandlerDescriptor> _commCommands;
+
 		/// <summary>
 		/// Indicates whether we have registered our internal handlers yet
 		/// </summary>
@@ -102,6 +107,13 @@ namespace InfServer.Game.Commands
 				//We have 'em, add 'em
 				switch (handler.type)
 				{
+                    case HandlerType.CommCommand:
+                        {   //Add each handler
+                            foreach (HandlerDescriptor h in descriptors)
+                                _commCommands.Add(h.handlerCommand.ToLower(), h);
+                        }
+                        break;
+
 					case HandlerType.ChatCommand:
 						{	//Add each handler
 							foreach (HandlerDescriptor h in descriptors)
@@ -127,6 +139,7 @@ namespace InfServer.Game.Commands
 	{
 		ModCommand,
 		ChatCommand,
+        CommCommand,
 	}
 
 	/// <summary>

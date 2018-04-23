@@ -2207,6 +2207,18 @@ namespace InfServer.Game
         }
         #endregion
 
+        #region handlerPlayerCommCommand
+        /// <summary>
+        /// Triggered when a player sends a chat/communication command
+        /// </summary>
+        public override void handlePlayerCommCommand(Player player, Player recipient, string command, string payload)
+        {
+            if (!exists("Player.CommCommand") || (bool)callsync("Player.CommCommand", false, player, recipient, command, payload))
+            {
+            }
+        }
+        #endregion
+
         #region handlePlayerChatCommand
         /// <summary>
         /// Triggered when a player sends a chat command

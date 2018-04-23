@@ -171,6 +171,12 @@ namespace InfServer.Game
         { }
 
         /// <summary>
+        /// Called when a script chat/communication command is used.
+        /// </summary>
+        public virtual void handlePlayerCommCommand(Player player, Player recipient, string command, string payload)
+        { }
+
+        /// <summary>
         /// Called when a script chat command is used.
         /// </summary>
         public virtual void handlePlayerChatCommand(Player player, Player recipient, string command, string payload)

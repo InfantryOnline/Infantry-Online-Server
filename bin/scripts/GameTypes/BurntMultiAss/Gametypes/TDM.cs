@@ -97,6 +97,11 @@ namespace InfServer.Script.GameType_Burnt
 
         public void EndGame()
         {
+            if (winningTeam == null)
+            {
+                arena.sendArenaMessage("There was no winner.");
+                return;
+            }
             arena.sendArenaMessage(winningTeam._name + " has won the game!");
             winningTeam = null;
         }
@@ -135,7 +140,7 @@ namespace InfServer.Script.GameType_Burnt
                 }
                 else
                 {//Tie
-                    winningTeam = arena.ActiveTeams.ElementAt(1);
+                    winningTeam = null;
                     //?????
                 }
 

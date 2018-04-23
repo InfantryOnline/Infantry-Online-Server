@@ -292,6 +292,34 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Handles a typical chat/communication command received from a player
+        /// </summary>
+        public void playerCommCommand(Player from, Player recipient, string command, string payload, int bong)
+        {	//Attempt to find the appropriate handler
+            HandlerDescriptor handler;
+
+            if (!_commandRegistrar._commCommands.TryGetValue(command.ToLower(), out handler))
+            {
+                from._arena.handlePlayerCommCommand(from, recipient, command, payload);
+                return;
+            }
+
+            try
+            {	//Handle it!
+                handler.handler(from, recipient, payload, bong);
+            }
+            catch (Exception ex)
+            {
+                if (recipient != null)
+                    Log.write(TLog.Exception, "Exception while executing a communication command '{0}' from '{1}' to '{2}'.\r\nPayload: {3}\r\n{4}",
+                        command, from, recipient, payload, ex);
+                else
+                    Log.write(TLog.Exception, "Exception while executing a communication command '{0}' from '{1}'.\r\nPayload: {2}\r\n{3}",
+                        command, from, payload, ex);
+            }
+        }
+
+        /// <summary>
         /// Triggered when a player has sent chat to the entire arena
         /// </summary>
         public void playerArenaChat(Player from, CS_Chat chat)
