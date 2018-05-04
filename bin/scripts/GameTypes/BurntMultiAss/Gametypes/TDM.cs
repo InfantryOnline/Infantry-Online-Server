@@ -71,9 +71,6 @@ namespace InfServer.Script.GameType_Burnt
 
         public void StartGame()
         {
-            //Are we recording stats?
-            arena._saveStats = true;
-
             //Start a new session for players, clears the old one
             _savedPlayerStats.Clear();
 
@@ -108,8 +105,8 @@ namespace InfServer.Script.GameType_Burnt
 
         public void RestartGame()
         {
-            StartGame();
             EndGame();
+            StartGame();
         }
 
         private void UpdateTickers()
@@ -183,14 +180,14 @@ namespace InfServer.Script.GameType_Burnt
         }
 
         public void PlayerKill(Player killer, Player victim)
-        {
+        {/*
             if (settings.GameState == GameStates.ActiveGame)
             {
                 if (_savedPlayerStats.ContainsKey(killer._alias))
                     _savedPlayerStats[killer._alias].kills++;
                 if (_savedPlayerStats.ContainsKey(victim._alias))
                     _savedPlayerStats[victim._alias].deaths++;
-            }
+            }*/
         }
 
         public void PlayerEnter(Player player)

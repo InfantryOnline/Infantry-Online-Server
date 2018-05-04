@@ -215,6 +215,9 @@ namespace InfServer.Game
             if (_scramble && PlayerCount > 2)
                 scrambleTeams(this, _server._zoneConfig.arena.desiredFrequencies, true);
 
+            //Clear the arena stats
+            ClearCurrentStats();
+
             foreach (Player player in Players)
             {	//We don't want previous stats to count
                 player.clearCurrentStats();
@@ -232,6 +235,9 @@ namespace InfServer.Game
                     player.resetSkills(true);
                 else if (_startCfg.resetInventory)
                     player.resetInventory(true);
+
+                //Add them to the arena stats
+                AddArenaStat(player);
 
                 //Run the event if necessary
                 if (!player.IsSpectator)
@@ -272,8 +278,7 @@ namespace InfServer.Game
             foreach (Player player in Players)
             {
                 //Keep the player's game stats updated
-                if (player._arena._saveStats)
-                    player.migrateStats();
+                player.migrateStats();
 
                 player.syncState();
 
@@ -283,7 +288,7 @@ namespace InfServer.Game
             }
 
             //Reset any poll questions and display results
-            if (this._poll != null && this._poll.start)
+            if (_poll != null && _poll.start)
                 pollQuestion(this, true);
 
             //Pass it to the script environment
@@ -299,6 +304,7 @@ namespace InfServer.Game
         {
             //Reset the game state
             flagReset();
+
             if (_startCfg.prizeReset)
                 resetItems();
             if (_startCfg.vehicleReset)
@@ -356,7 +362,7 @@ namespace InfServer.Game
                             break;
                     }
 
-                    from.sendMessage(0, String.Format(format,
+                    from.sendMessage(0, string.Format(format,
                         t._currentGameKills, t._currentGameDeaths,
                         t._name));
                 }
@@ -394,7 +400,7 @@ namespace InfServer.Game
                             break;
                     }
 
-                    from.sendMessage(0, String.Format(format,
+                    from.sendMessage(0, string.Format(format,
                         (bCurrent ? p.StatsCurrentGame.kills : p.StatsLastGame.kills),
                         (bCurrent ? p.StatsCurrentGame.deaths : p.StatsLastGame.deaths),
                         p._alias));
@@ -404,7 +410,7 @@ namespace InfServer.Game
                 if ((bCurrent && from.StatsCurrentGame != null) || (!bCurrent && from.StatsLastGame != null))
                 {
                     string personalFormat = "@Personal Score: (K={0} D={1})";
-                    from.sendMessage(0, String.Format(personalFormat,
+                    from.sendMessage(0, string.Format(personalFormat,
                         (bCurrent ? from.StatsCurrentGame.kills : from.StatsLastGame.kills),
                         (bCurrent ? from.StatsCurrentGame.deaths : from.StatsLastGame.deaths)));
                 }

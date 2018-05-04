@@ -137,7 +137,7 @@ namespace InfServer.Game
 
             arena._bActive = true;
             arena._name = name;
-            if (arena._name.Length >= 6 && arena._name.Substring(0, 6).Equals("Public"))
+            if (arena._name.StartsWith("Public"))
                 arena._bIsPublic = true;
             else
                 arena._bIsPublic = false;

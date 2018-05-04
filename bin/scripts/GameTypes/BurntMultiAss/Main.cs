@@ -55,11 +55,11 @@ namespace InfServer.Script.GameType_Burnt
 
             _GameType = GameTypes.TDM;
 
-            _VoteSystem = new VoteSystem();
-
             foreach (string type in gametypes)
                 Settings.AllowedGameTypes.Add((GameTypes)_Settings.GetType(type));
-           
+
+            _VoteSystem = new VoteSystem();
+
             _gameCount = 0;
             return true;
         }
@@ -74,7 +74,6 @@ namespace InfServer.Script.GameType_Burnt
 
             if (_Settings.GameState == GameStates.Vote)
             {
-                //_Arena.sendArenaMessage("vote -- main");
                 if (_Arena.PlayersIngame.Count() >= Settings.MinPlayers)
                 {
                     vote();
@@ -363,7 +362,7 @@ namespace InfServer.Script.GameType_Burnt
                 }
                 else
                 {
-                    player.sendMessage(0, "You can't vote right now jerk");
+                    player.sendMessage(0, "You can't vote right now.");
                 }
                 return true;
             }

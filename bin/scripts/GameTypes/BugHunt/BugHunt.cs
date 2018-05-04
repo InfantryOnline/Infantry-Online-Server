@@ -197,7 +197,7 @@ namespace InfServer.Script.GameType_BugHunt
 
             //Scramble the teams!
             ScriptHelpers.scrambleTeams(_arena, 2, true);
-            _arena._saveStats = true;
+
 			//Spawn our flags!
 			_arena.flagSpawn();
 

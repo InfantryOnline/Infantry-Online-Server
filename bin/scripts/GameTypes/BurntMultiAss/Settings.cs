@@ -11,7 +11,7 @@ namespace InfServer.Script.GameType_Burnt
         public static bool VotingEnabled = true;
         
         public static int VotingPeriod = 40;
-        public static int MinPlayers = 4;
+        public static int MinPlayers = 2;
         public static int GamesBeforeEvent = 10;
 
         public static List<GameTypes> AllowedGameTypes = new List<GameTypes>();
@@ -25,7 +25,7 @@ namespace InfServer.Script.GameType_Burnt
         /// </summary>
         public byte GetType(string type)
         {
-            if (String.IsNullOrWhiteSpace(type))
+            if (string.IsNullOrWhiteSpace(type))
                 return (byte)GameTypes.NULL;
 
             string lower = type.ToLower();

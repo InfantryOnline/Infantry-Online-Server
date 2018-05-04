@@ -105,6 +105,10 @@ namespace InfServer.Script.GameType_Burnt
 
         public void StartGame()
         {   //Game is starting
+
+            //Reset the flags since we dont need them
+            arena.flagReset();
+
             _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
             _playerCrownStatus.Clear();
 
@@ -163,8 +167,8 @@ namespace InfServer.Script.GameType_Burnt
 
         public void ResetGame()
         {
-            StartGame();
             EndGame();
+            StartGame();
         }
 
         public void updateKOTHTickers()

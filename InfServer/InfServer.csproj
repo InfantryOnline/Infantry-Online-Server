@@ -202,6 +202,7 @@
     <Compile Include="Game\Assets\AssetManager.Lio.cs" />
     <Compile Include="Game\Assets\AssetManager.cs" />
     <Compile Include="Game\Commands\Chat\Commands.cs" />
+    <Compile Include="Game\Commands\Chat\Communication.cs" />
     <Compile Include="Game\Commands\Game\Game.cs" />
     <Compile Include="Game\Commands\League\Basic.cs" />
     <Compile Include="Game\Commands\Mod\Account.cs" />

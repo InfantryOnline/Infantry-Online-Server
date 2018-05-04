@@ -33,6 +33,8 @@ namespace InfServer.Game
 
         protected ObjTracker<Ball> _balls;                  //The soccer balls belonging to the arena, indexed by id
 
+        public Dictionary<string, PlayerStats> _currentGameStats; //Our current running game stats
+
         ///////////////////////////////////////////////////
         // Accessors
         ///////////////////////////////////////////////////
@@ -137,7 +139,11 @@ namespace InfServer.Game
             {
                 //Duplicate checking..
                 if (_teams.ContainsKey(ti.name.ToLower()))
+                {
+                    //Log it and continue
+                    Log.write(TLog.Warning, "Found a duplicated team name ({0}) in the .cfg.", ti.name);
                     continue;
+                }
 
                 //Populate the new class
                 newTeam = new Team(this, _server);
@@ -177,7 +183,7 @@ namespace InfServer.Game
             //We're entering the arena..
             player._arena = this;
 
-            player.migrateStats();
+            RecallPlayerStats(player);
             player.resetVars();
 
             player._ipAddress = player._client._ipe.Address;
@@ -283,18 +289,15 @@ namespace InfServer.Game
                 Helpers.Object_Ball(player, _balls);
 
             //Suspend his stats if it's a private arena
-            if (!_server.IsStandalone)
+            if (_bIsPublic)
             {
-                if (_bIsPublic)
-                {
-                    player.restoreStats();
-                    player.suspendCalled = false;
-                }
-                else if (!player.suspendCalled)
-                {
-                    player.suspendStats();
-                    player.suspendCalled = true;
-                }
+                player.restoreStats();
+                player.suspendCalled = false;
+            }
+            else if (!player.suspendCalled)
+            {
+                player.suspendStats();
+                player.suspendCalled = true;
             }
 
             //Is this a private arena and are we the first one?
@@ -391,10 +394,6 @@ namespace InfServer.Game
         /// </summary>
         public void lostPlayer(Player player)
         {
-            //Lets record his stats
-            if (player._arena._bIsPublic)
-                player.migrateStats();
-
             //Sob, let him go
             _players.Remove(player);
 
@@ -899,6 +898,46 @@ namespace InfServer.Game
 
             //Lets update
             _balls.updateObjState(b, b._state);
+        }
+
+        /// <summary>
+        /// Once a game begins, this will add them to the stat object
+        /// </summary>
+        public void AddArenaStat(Player p)
+        {
+            if (p == null)
+                return;
+
+            if (!_currentGameStats.ContainsKey(p._alias))
+                _currentGameStats.Add(p._alias.ToString(), new PlayerStats());
+        }
+
+        /// <summary>
+        /// If the game is still under way, it will recall the stats. If not, migrate them.
+        /// </summary>
+        public void RecallPlayerStats(Player p)
+        {
+            if (p == null)
+                return;
+
+            //If this person doesn't exist, it means the list either got cleared or 
+            //its their first time in this arena so migrate their stats.
+            if (!_currentGameStats.ContainsKey(p._alias))
+            {
+                _currentGameStats.Add(p._alias.ToString(), new PlayerStats());
+                p.migrateStats();
+                return;
+            }
+            p.StatsCurrentGame = _currentGameStats[p._alias];
+        }
+
+        /// <summary>
+        /// Clears the current stats the arena saved
+        /// </summary>
+        public void ClearCurrentStats()
+        {
+            if (_currentGameStats != null)
+                _currentGameStats.Clear();
         }
         #endregion
     }

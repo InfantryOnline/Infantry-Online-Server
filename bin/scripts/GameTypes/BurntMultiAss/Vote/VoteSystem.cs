@@ -25,6 +25,9 @@ namespace InfServer.Script.GameType_Burnt
             }
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public VoteSystem()
         {
             Voters = new List<Player>();
@@ -36,6 +39,9 @@ namespace InfServer.Script.GameType_Burnt
             }
         }
 
+        /// <summary>
+        /// Returns the winning vote
+        /// </summary>
         public GameTypes GetWinningVote()
         {
             int highCount = 0;
@@ -52,6 +58,9 @@ namespace InfServer.Script.GameType_Burnt
             return Winner;
         }
 
+        /// <summary>
+        /// Adds a vote to the vote list
+        /// </summary>
         public bool AddVote(GameTypes gameType, Player player)
         {
             if (gameType == GameTypes.NULL)
@@ -63,12 +72,14 @@ namespace InfServer.Script.GameType_Burnt
             {
                 Voters.Add(player);
                 GetVote(gameType).Count++;
-                Console.WriteLine("ADDED VOTE: " + gameType + " by player " + player._alias + " COUNT: " + GetVote(gameType).Count);
                 return true;
             }
             return false;
         }
 
+        /// <summary>
+        /// Did this person already vote?
+        /// </summary>
         private bool CanVote(Player player)
         {
             return Voters.Contains(player);

@@ -158,13 +158,6 @@ namespace InfServer.Game.Commands.Mod
 
             if (player._arena._bIsPublic)
             {
-                player.sendMessage(-1, "Command is not allowed for public named arenas.");
-                return;
-            }
-
-            //if (!player._arena.IsPrivate && player._developer)
-            if (player._arena._bIsPublic)
-            {
                 player.sendMessage(-1, "Only non-public arena's are allowed to be locked.");
                 return;
             }
@@ -1782,7 +1775,7 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
-                if (String.IsNullOrWhiteSpace(payload))
+                if (String.IsNullOrWhiteSpace(payload) && player._arena.ActiveTeams.Count() > 2)
                 {
                     player.sendMessage(-1, "That team doesn't exist.");
                     player.sendMessage(0, "Syntax: *switch <teamname> OR :player:*switch");

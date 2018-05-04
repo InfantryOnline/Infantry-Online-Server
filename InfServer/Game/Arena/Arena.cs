@@ -53,7 +53,6 @@ namespace InfServer.Game
         public bool _bLocked;
         public bool _specQuiet;                         //Arena spec chat only on/off
         public bool _isMatch;                           //For leagues
-        public bool _saveStats = true;
         public bool _scramble;                          //Scramble toggle
         public BreakdownSettings _breakdownSettings;
         private int _bountyTick;                        //Last time AutoBounty ticked
@@ -430,6 +429,8 @@ namespace InfServer.Game
             _players = new ObjTracker<Player>();
             _playersIngame = new ObjTracker<Player>();
 
+            _currentGameStats = new Dictionary<string, Data.PlayerStats>();
+
             _teams = new Dictionary<string, Team>();
             _freqTeams = new SortedDictionary<int, Team>();
             _condemnedItems = new List<ItemDrop>();
@@ -455,6 +456,7 @@ namespace InfServer.Game
             _blockedList = new Dictionary<string, DateTime>();
             _bAllowed = new List<string>();
             _aLocked = false;
+
             recycling = _server._recycling;
             _scramble = _server._zoneConfig.arena.scrambleTeams > 0 ? true : false;
 
@@ -766,11 +768,13 @@ namespace InfServer.Game
                 }
 
                 //Is it time to sync to database?
-                if (bDBSync && !_server.IsStandalone && _bIsPublic && _saveStats)
+                if (bDBSync && !_server.IsStandalone && _bIsPublic)
+                {
                     foreach (Player p in Players.ToList())
                         if (p._bDBLoaded)
                             //Update him!
                             p._server._db.updatePlayer(p);
+                }
 
                 //Look after our lio objects
                 pollLio();

@@ -124,15 +124,15 @@ namespace InfServer.Script.GameType_Soccerbrawl
         Point p8 = new Point(5385, 1722);
         */
         //For indoors arena
-        Point p1 = new Point(654, 1442);
-        Point p2 = new Point(526, 1442);
-        Point p3 = new Point(526, 1682);
+        Point p1 = new Point(654, 1440);
+        Point p2 = new Point(532, 1440);
+        Point p3 = new Point(532, 1682);
         Point p4 = new Point(654, 1682);
 
-        Point p5 = new Point(4718, 1442);
-        Point p6 = new Point(4850, 1442);
-        Point p7 = new Point(4850, 1682);
-        Point p8 = new Point(4718, 1682);
+        Point p5 = new Point(4704, 1440);
+        Point p6 = new Point(4848, 1440);
+        Point p7 = new Point(4848, 1682);
+        Point p8 = new Point(4704, 1682);
 
         Point BallSpawnPoint = null;
 
@@ -214,7 +214,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             }
 
             //Updates our balls(get it!)
-            if ((_tickGameStarted > 0 || !_arena._bGameRunning) && now - _lastBallCheck > _sendBallUpdate)
+            if ((_tickGameStarted > 0 || !_arena._bGameRunning) && now - _lastBallCheck >= _sendBallUpdate)
             {
                 if (_arena.Balls.Count() > 0)
                     foreach (Ball ball in _arena.Balls.ToList())
@@ -785,16 +785,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
             short dxi = drop.velocityX;
             short dyi = drop.velocityY;
 
-            //player.sendMessage(0, string.Format("Pos = {0}, {1} Vel = {2}, {3}", xi.ToString(), yi.ToString(), dxi.ToString(), dyi.ToString()));
-            //player.sendMessage(0, string.Format("Pos mod = {0}, {1}", ((int)(xi + dxi)).ToString(), ((int)(yi + dyi)).ToString()));
-            if (possibleGoal(new Point(xi, yi), new Point(dxi, dyi), ball._state.lastUpdate))
-            {
-                //player.sendMessage(0, "Works");
-                futureGoal = player;
-            }
-            else
-                futureGoal = null;
-
             double dx, dy;
             dx = dxi;
             dy = dyi;
@@ -881,7 +871,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             if (futureGoal != null)
             {
                 //Is it a save or pinch?
-                /* Disabled, sbl is no longer recording this
+                //Disabled, sbl is no longer recording this
                 if (player._team == futureGoal._team && player != futureGoal)
                 {   //Player is on the same team, its a Pinch
                     _arena.sendArenaMessage("Pinch=" + player._alias);
@@ -893,7 +883,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     if (playerStats.ContainsKey(player))
                         //Save their stat
                         playerStats[player]._currentGame.zonestat10 += 1; //Pinch
-                }*/
+                }
                 if (player._team != futureGoal._team && player != futureGoal)
                 {   //Player is from the opposite team, its a Save
                     _arena.sendArenaMessage("Save=" + player._alias);
@@ -968,7 +958,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             //Reset
             futureGoal = null;
 
-	        //Check to see if they are behind the correct lines
+	        //Check to see if they are behind the correct lines(crease)
 	        if (_arena.getTerrainID(player._state.positionX, player._state.positionY) != 0) //0 = field
 		        return false;
 
@@ -1868,12 +1858,21 @@ namespace InfServer.Script.GameType_Soccerbrawl
             short posY = (short)(ball.Y + velocity.Y);
 
             //Will it go past the middle of the map?
-            if (velocity.X <= 0 && BallSpawnPoint.X >= posX) //Direction is left
+            /*
+            if (velocity.X <= 0 && posX >= BallSpawnPoint.X) //Direction is left
+            {
+                Console.WriteLine(string.Format("{0},{1}, vel={2} - {3}", 
+                    posX.ToString(), posY.ToString(), velocity.X.ToString(), BallSpawnPoint.X.ToString()));
                 return false;
+            }
 
             if (velocity.X > 0 && posX <= BallSpawnPoint.X) //Direction is right
+            {
+                Console.WriteLine(string.Format("{0},{1}, vel={2} - {3}", 
+                    posX.ToString(), posY.ToString(), velocity.X.ToString(), BallSpawnPoint.X.ToString()));
                 return false;
-
+            }
+            */
             List<LvlInfo.Tile> tiles = Helpers.calcBresenhems(_arena, (short)ball.X, (short)ball.Y, posX, posY);
             for (int i = 0; i <= tiles.Count - 1; i++)
             {
@@ -1881,6 +1880,8 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 if ((_arena.getTeamByID(0)._relativeVehicle == terrain.goalFrequency 
                     || _arena.getTeamByID(1)._relativeVehicle == terrain.goalFrequency) && terrain.goalPoints == 1)
                 {
+                    Console.WriteLine(string.Format("{0},{1}, vel={2} - {3}",
+                    posX.ToString(), posY.ToString(), velocity.X.ToString(), BallSpawnPoint.X.ToString()));
                     return true;
                 }
             }
