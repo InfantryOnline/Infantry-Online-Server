@@ -109,7 +109,10 @@ namespace InfServer.Script.GameType_Burnt
             //Reset the flags since we dont need them
             arena.flagReset();
 
-            _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
+            if (_playerCrownStatus == null)
+            {
+                _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
+            }
             _playerCrownStatus.Clear();
 
             //Crown everyone
@@ -154,7 +157,7 @@ namespace InfServer.Script.GameType_Burnt
             }
             else
             {
-                arena.sendArenaMessage("No one won the game");
+                arena.sendArenaMessage("No one won the game.");
             }
 
             //Remove all crowns
@@ -171,7 +174,7 @@ namespace InfServer.Script.GameType_Burnt
             StartGame();
         }
 
-        public void updateKOTHTickers()
+        private void updateKOTHTickers()
         {
             if (arena.ActiveTeams.Count() > 1)
             {//Show players their crown timer using a ticker
@@ -179,11 +182,13 @@ namespace InfServer.Script.GameType_Burnt
                 {
                     if (_playerCrownStatus.ContainsKey(p) && _playerCrownStatus[p].crown)
                     {
-                        return String.Format("Corn Timer: {0}", (_playerCrownStatus[p].expireTime - Environment.TickCount) / 1000);
+                        //The timer has to be relative, so calculate
+                        //timer = Environment.TickCount + (_timer * 10);
+                        return string.Format("Crown Timer: {0}", (Environment.TickCount - (_playerCrownStatus[p].expireTime / 1000)));
                     }
                     else
                     {
-                        return "You have no corn";
+                        return "You have no crown.";
                     }
                 });
             }
@@ -231,7 +236,7 @@ namespace InfServer.Script.GameType_Burnt
                     continue;
                 }
 
-                if (!_playerCrownStatus[player].crown)
+                if (!_playerCrownStatus[player].crown || player.IsSpectator)
                     output.Add(player);
             }
 
@@ -272,6 +277,8 @@ namespace InfServer.Script.GameType_Burnt
 
         private void UpdateCrown(Player player)
         {
+            //The timer has to be relative, so calculate
+            //timer = Environment.TickCount + (_timer * 10);
             _playerCrownStatus[player].expireTime = Environment.TickCount + (config.king.expireTime * 1000);
         }
 
@@ -358,6 +365,20 @@ namespace InfServer.Script.GameType_Burnt
             }
         }
 
+        public void PlayerLeaveArena(Player player)
+        {
+            if (settings.GameState != GameStates.ActiveGame)
+            {
+                return;
+            }
+
+            if (_playerCrownStatus.ContainsKey(player))
+            {
+                _playerCrownStatus[player].crown = false;
+                Helpers.Player_Crowns(arena, false, GetNoCrowns());
+            }
+        }
+
         public void PlayerChatCommand(Player player, Player recipient, string payload)
         {
             player.sendMessage(0, "Current Crown Info:");
@@ -367,13 +388,13 @@ namespace InfServer.Script.GameType_Burnt
             {
                 if (!_playerCrownStatus[player].crown)
                 {
-                    player.sendMessage(0, String.Format("*Current Kills: {0}", _playerCrownStatus[player].crownKills));
-                    player.sendMessage(0, String.Format("*Kills Remaining: {0}", (config.king.crownRecoverKills - _playerCrownStatus[player].crownKills)));
+                    player.sendMessage(0, string.Format("*Current Kills: {0}", _playerCrownStatus[player].crownKills));
+                    player.sendMessage(0, string.Format("*Kills Remaining: {0}", (config.king.crownRecoverKills - _playerCrownStatus[player].crownKills)));
                 }
                 else
                 {
-                    player.sendMessage(0, String.Format("*Current Deaths: {0}", _playerCrownStatus[player].crownDeaths));
-                    player.sendMessage(0, String.Format("*Deaths Remaining: {0}", config.king.deathCount - _playerCrownStatus[player].crownDeaths));
+                    player.sendMessage(0, string.Format("*Current Deaths: {0}", _playerCrownStatus[player].crownDeaths));
+                    player.sendMessage(0, string.Format("*Deaths Remaining: {0}", config.king.deathCount - _playerCrownStatus[player].crownDeaths));
                 }
             }
         }

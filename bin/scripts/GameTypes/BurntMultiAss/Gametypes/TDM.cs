@@ -20,14 +20,6 @@ namespace InfServer.Script.GameType_Burnt
         private CfgInfo config;
         private Team winningTeam;
 
-        Dictionary<String, PlayerStats> _savedPlayerStats;
-
-        public class PlayerStats
-        {
-            public int kills { get; set; }
-            public int deaths { get; set; }
-        }
-
         public TDM(Arena arena, Settings settings)
         {
             this.arena = arena;
@@ -38,7 +30,6 @@ namespace InfServer.Script.GameType_Burnt
 
         public void Initialize()
         {
-            _savedPlayerStats = new Dictionary<string, PlayerStats>();
             settings.GameState = GameStates.Vote;
         }
 
@@ -71,17 +62,6 @@ namespace InfServer.Script.GameType_Burnt
 
         public void StartGame()
         {
-            //Start a new session for players, clears the old one
-            _savedPlayerStats.Clear();
-
-            foreach (Player p in arena.Players)
-            {
-                PlayerStats temp = new PlayerStats();
-                temp.kills = 0;
-                temp.deaths = 0;
-                _savedPlayerStats.Add(p._alias, temp);
-            }
-
             //Let everyone know
             arena.sendArenaMessage("Game has started!", 1);
             arena.setTicker(1, 3, config.deathMatch.timer * 100, "Time Left: ",
@@ -97,10 +77,12 @@ namespace InfServer.Script.GameType_Burnt
             if (winningTeam == null)
             {
                 arena.sendArenaMessage("There was no winner.");
-                return;
             }
-            arena.sendArenaMessage(winningTeam._name + " has won the game!");
-            winningTeam = null;
+            else
+            {
+                arena.sendArenaMessage(winningTeam._name + " has won the game!");
+                winningTeam = null;
+            }
         }
 
         public void RestartGame()
@@ -115,16 +97,16 @@ namespace InfServer.Script.GameType_Burnt
             {
                 return;
             }
-            string format;
+            string formatTeam;
             if (arena.ActiveTeams.Count() > 1)
             {
                 //Team scores
-                format = String.Format("{0}={1} - {2}={3}",
+                formatTeam = string.Format("{0}={1} - {2}={3}",
                     arena.ActiveTeams.ElementAt(0)._name,
                     arena.ActiveTeams.ElementAt(0)._currentGameKills,
                     arena.ActiveTeams.ElementAt(1)._name,
                     arena.ActiveTeams.ElementAt(1)._currentGameKills);
-                arena.setTicker(1, 2, 0, format);
+                arena.setTicker(1, 2, 0, formatTeam);
 
                 //Mark winner for posterity
                 if (arena.ActiveTeams.ElementAt(0)._currentGameKills > arena.ActiveTeams.ElementAt(1)._currentGameKills)
@@ -140,54 +122,64 @@ namespace InfServer.Script.GameType_Burnt
                     winningTeam = null;
                     //?????
                 }
-
-                //Personal scores
-                arena.setTicker(2, 1, 0, delegate(Player p)
-                {
-                    //Update their ticker
-                    if (_savedPlayerStats.ContainsKey(p._alias))
-                        return "Personal Score: Kills=" + _savedPlayerStats[p._alias].kills + " - Deaths=" + _savedPlayerStats[p._alias].deaths;
-
-                    return "";
-                });
-
-                //1st and 2nd place with mvp (for flags later)
-                IEnumerable<Player> ranking = arena.PlayersIngame.OrderByDescending(player => _savedPlayerStats[player._alias].kills);
-                int idx = 3; format = "";
-                foreach (Player rankers in ranking)
-                {
-                    if (!arena.Players.Contains(rankers))
-                        continue;
-
-                    if (idx-- == 0)
-                        break;
-
-                    switch (idx)
-                    {
-                        case 2:
-                            format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
-                              _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
-                            break;
-                        case 1:
-                            format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
-                              _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
-                            break;
-                    }
-                }
-                if (!arena.recycling)
-                    arena.setTicker(2, 0, 0, format);
             }
-        }
+            //Personal scores
+            arena.setTicker(2, 1, 0, delegate (Player p)
+            {
+                    //Update their ticker
+                    if (p.StatsCurrentGame == null)
+                    {
+                        return "Personal Score: Kills=0 - Deaths=0";
+                    }
+
+                    return "Personal Score: Kills=" + p.StatsCurrentGame.kills + " - Deaths=" + p.StatsCurrentGame.deaths;
+            });
+
+            //1st and 2nd place
+            int idx = 3; string format = "";
+            var ranked = arena.Players.Select(player => new
+            {
+                Alias = player._alias,
+                Kills = (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills),
+                Deaths = (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.deaths)
+            })
+            .GroupBy(pl => pl.Kills)
+            .OrderByDescending(k => k.Key)
+            .Take(idx)
+            .Select(g => g.OrderBy(plyr => plyr.Deaths));
+
+            foreach (var group in ranked)
+            {
+                if (idx <= 0)
+                    break;
+
+                string placement = "";
+                format = " (K={0} D={1}): {2}";
+                switch (idx)
+                {
+                    case 3:
+                        placement = "!1st";
+                        break;
+                    case 2:
+                        placement = "!2nd";
+                        break;
+                    case 1:
+                        placement = "!3rd";
+                        break;
+                }
+                idx -= group.Count();
+                if (group.First() != null)
+                {
+                    format = string.Format(placement + format, group.First().Kills, group.First().Deaths, string.Join(", ", group.Select(g => g.Alias)));
+                }
+            }
+            if (!arena.recycling)
+                arena.setTicker(2, 0, 0, format);
+        }        
 
         public void PlayerKill(Player killer, Player victim)
-        {/*
-            if (settings.GameState == GameStates.ActiveGame)
-            {
-                if (_savedPlayerStats.ContainsKey(killer._alias))
-                    _savedPlayerStats[killer._alias].kills++;
-                if (_savedPlayerStats.ContainsKey(victim._alias))
-                    _savedPlayerStats[victim._alias].deaths++;
-            }*/
+        {
+            //Nothing to do
         }
 
         public void PlayerEnter(Player player)
@@ -197,22 +189,18 @@ namespace InfServer.Script.GameType_Burnt
 
         public void PlayerEnterArena(Player player)
         {
-            if (settings.GameState != GameStates.ActiveGame)
-            {
-                return;
-            }
-            if (!_savedPlayerStats.ContainsKey(player._alias))
-            {
-                PlayerStats temp = new PlayerStats();
-                temp.deaths = 0;
-                temp.kills = 0;
-                _savedPlayerStats.Add(player._alias, temp);
-            }
+            //Nothing to do
         }
 
         public void PlayerLeaveGame(Player player)
         {
             //Nothing to do
         }
+
+        public void PlayerLeaveArena(Player player)
+        {
+            //Nothing to do
+        }
+
     }
 }

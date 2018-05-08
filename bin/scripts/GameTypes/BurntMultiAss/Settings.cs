@@ -73,7 +73,7 @@ namespace InfServer.Script.GameType_Burnt
     {
         ActiveGame,
         NotEnoughPlayers,
-        Init,
+        Aborted,
         TenSeconds,
         ThirtySeconds,
         SixtySeconds,

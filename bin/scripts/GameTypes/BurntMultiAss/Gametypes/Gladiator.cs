@@ -178,7 +178,17 @@ namespace InfServer.Script.GameType_Burnt
                 participants[player._team].Remove(player);
             }
         }
-                
+
+        public void PlayerLeaveArena(Player player)
+        {
+            //Check if they were part of the event
+            //If so remove them from the list of people participating in the event
+            if (participants[player._team].Contains(player))
+            {
+                participants[player._team].Remove(player);
+            }
+        }
+
         private Team findWinner()
         {
             foreach (KeyValuePair<Team, List<Player>> pair in participants.ToList())

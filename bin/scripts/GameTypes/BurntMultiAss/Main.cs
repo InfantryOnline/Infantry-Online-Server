@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-using InfServer.Logic;
 using InfServer.Game;
 using InfServer.Scripting;
-using InfServer.Bots;
-using InfServer.Protocol;
 
 using Assets;
 
@@ -29,7 +25,7 @@ namespace InfServer.Script.GameType_Burnt
         //Settings
         private GameTypes _GameType;
         private Settings _Settings;
-        private List<string> gametypes = new List<string> {"KOTH", "TDM"};
+        private List<string> gametypes = new List<string> {"KOTH", "TDM", "CTF"};
 
         //Poll Variables
         private int _lastGameCheck;
@@ -119,15 +115,15 @@ namespace InfServer.Script.GameType_Burnt
 
             if (!Settings.VotingEnabled)
             {
-                _Arena.sendArenaMessage("[Game] Voting has been disabled");
+                _Arena.sendArenaMessage("[Game] Voting has been disabled.");
             }
             else
             {
                 _VoteSystem = new VoteSystem();
 
-                string getTypes = String.Join(" & ", gametypes);
+                string getTypes = string.Join(", ", gametypes);
                 _Arena.sendArenaMessage("[Round Vote] Gametype Vote starting - Vote with ?Game <type>", 1);
-                _Arena.sendArenaMessage(String.Format("[Round Vote] Choices are: {0}", getTypes));            
+                _Arena.sendArenaMessage(string.Format("[Round Vote] Choices are: {0}", getTypes));            
             }
           
             _Settings.GameState = GameStates.PreGame;
@@ -254,7 +250,7 @@ namespace InfServer.Script.GameType_Burnt
                     _KOTH.PlayerEnterArena(player);
                     break;
                 case GameTypes.CTF:
-                    _CTF.PlayerEnterArena();
+                    _CTF.PlayerEnterArena(player);
                     break;
                 case GameTypes.GLAD:
                     _Gladiator.PlayerEnterArena(player);
@@ -277,7 +273,7 @@ namespace InfServer.Script.GameType_Burnt
                     _KOTH.PlayerEnter(player);
                     break;
                 case GameTypes.CTF:
-                    _CTF.PlayerEnter();
+                    _CTF.PlayerEnter(player);
                     break;
                 case GameTypes.GLAD:
                     _Gladiator.PlayerEnter(player);
@@ -300,10 +296,33 @@ namespace InfServer.Script.GameType_Burnt
                     _KOTH.PlayerLeaveGame(player);
                     break;
                 case GameTypes.CTF:
-                    _CTF.PlayerLeaveGame();
+                    _CTF.PlayerLeaveGame(player);
                     break;
                 case GameTypes.GLAD:
                     _Gladiator.PlayerLeaveGame(player);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Triggered when a player wants to leave the arena
+        /// </summary>
+        [Scripts.Event("Player.LeaveArena")]
+        public void playerLeaveArena(Player player)
+        {
+            switch (_GameType)
+            {
+                case GameTypes.TDM:
+                    _TDM.PlayerLeaveArena(player);
+                    break;
+                case GameTypes.KOTH:
+                    _KOTH.PlayerLeaveArena(player);
+                    break;
+                case GameTypes.CTF:
+                    _CTF.PlayerLeaveArena(player);
+                    break;
+                case GameTypes.GLAD:
+                    _Gladiator.PlayerLeaveArena(player);
                     break;
             }
         }
@@ -362,7 +381,7 @@ namespace InfServer.Script.GameType_Burnt
                 }
                 else
                 {
-                    player.sendMessage(0, "You can't vote right now.");
+                    player.sendMessage(0, "You can only vote between games.");
                 }
                 return true;
             }
@@ -371,7 +390,7 @@ namespace InfServer.Script.GameType_Burnt
             {
                 if (player.PermissionLevel >= Data.PlayerPermission.Sysop)
                 {
-                    if (String.IsNullOrEmpty(payload))
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(0, "?settings <setting> <new value>");
                         player.sendMessage(0, "Events " + _Settings.EventsEnabled);
@@ -380,7 +399,7 @@ namespace InfServer.Script.GameType_Burnt
                         player.sendMessage(0, "MinPlayers " + Settings.MinPlayers);
                         player.sendMessage(0, "GamesBeforeEvent " + Settings.GamesBeforeEvent);
                         player.sendMessage(0, "VoteTimer " + Settings.VotingPeriod);
-                        player.sendMessage(0, "GamePlay " + String.Join(", ", gametypes));
+                        player.sendMessage(0, "GamePlay " + string.Join(", ", gametypes));
                         player.sendMessage(0, "Note: for game play, type ?settings gameplay add/delete <new value>");
                         return true;
                     }
@@ -389,35 +408,35 @@ namespace InfServer.Script.GameType_Burnt
                     switch (cmd[0].ToLower())
                     {
                         case "events":
-                            Boolean.TryParse(cmd[1], out _Settings.EventsEnabled);
-                            player.sendMessage(0, String.Format("Events have been {0}.", _Settings.EventsEnabled ? "enabled" : "disabled"));
+                            bool.TryParse(cmd[1], out _Settings.EventsEnabled);
+                            player.sendMessage(0, string.Format("Events have been {0}.", _Settings.EventsEnabled ? "enabled" : "disabled"));
                             break;
                         case "voting":
-                            Boolean.TryParse(cmd[1], out Settings.VotingEnabled);
-                            player.sendMessage(0, String.Format("Voting has been {0}.", Settings.VotingEnabled ? "enabled" : "disabled"));
+                            bool.TryParse(cmd[1], out Settings.VotingEnabled);
+                            player.sendMessage(0, string.Format("Voting has been {0}.", Settings.VotingEnabled ? "enabled" : "disabled"));
                             break;
                         case "startevent":
                             player.sendMessage(0, "TODO");
                             //TODO
                             break;
                         case "minplayers":
-                            Int32.TryParse(cmd[1], out Settings.MinPlayers);
-                            player.sendMessage(0, String.Format("Minimum players are now {0}.", Settings.MinPlayers.ToString()));
+                            int.TryParse(cmd[1], out Settings.MinPlayers);
+                            player.sendMessage(0, string.Format("Minimum players are now {0}.", Settings.MinPlayers.ToString()));
                             break;
                         case "gamesbeforeevent":
-                            Int32.TryParse(cmd[1], out Settings.GamesBeforeEvent);
-                            player.sendMessage(0, String.Format("How many games before an event has been changed to {0}.", Settings.GamesBeforeEvent.ToString()));
+                            int.TryParse(cmd[1], out Settings.GamesBeforeEvent);
+                            player.sendMessage(0, string.Format("How many games before an event has been changed to {0}.", Settings.GamesBeforeEvent.ToString()));
                             break;
                         case "votetimer":
-                            Int32.TryParse(cmd[1], out Settings.VotingPeriod);
-                            player.sendMessage(0, String.Format("Voting period has been changed to {0}.", Settings.VotingPeriod.ToString()));
+                            int.TryParse(cmd[1], out Settings.VotingPeriod);
+                            player.sendMessage(0, string.Format("Voting period has been changed to {0}.", Settings.VotingPeriod.ToString()));
                             break;
                         case "gameplay":
                             {
                                 string lower = cmd[1].ToLower();
                                 if (lower.Contains("add") || lower.Contains("delete"))
                                 {
-                                    if (String.IsNullOrWhiteSpace(cmd[2]))
+                                    if (string.IsNullOrWhiteSpace(cmd[2]))
                                     {
                                         player.sendMessage(0, "Invalid payload: gameplay add/delete <new value>");
                                         break;
