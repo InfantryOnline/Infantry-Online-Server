@@ -15,6 +15,8 @@ namespace InfServer.Protocol
 	{	// Member Variables
 		///////////////////////////////////////////////////
 
+        public bool recycling;
+
 		//Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Disconnect;
         static public event Action<Disconnect<T>, T> Handlers;
@@ -58,6 +60,8 @@ namespace InfServer.Protocol
 		public override void Serialize()
 		{	//Type ID
 			Write((byte)TypeID);
+
+            Write(recycling);
 		}
 
 		/// <summary>
@@ -65,6 +69,7 @@ namespace InfServer.Protocol
 		/// </summary>
 		public override void Deserialize()
 		{
+            recycling = _contentReader.ReadBoolean();
 		}
 
 		/// <summary>

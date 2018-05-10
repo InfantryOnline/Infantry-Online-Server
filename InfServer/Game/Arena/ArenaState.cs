@@ -171,12 +171,12 @@ namespace InfServer.Game
             ///////////////////////////////////////////////           
 
             //Check for players already in the arena
-            foreach (Player pl in this._players.ToList())
+            foreach (Player pl in _players.ToList())
             {
                 if (pl._alias.Equals(player._alias))
                 {
                     Log.write(TLog.Warning, String.Format("Duplicate player found in the arena, kicking old one - {0}", pl._alias));
-                    this.playerLeave(player);
+                    pl.leftArena();
                 }
             }
 

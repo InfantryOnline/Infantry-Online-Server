@@ -731,6 +731,7 @@ namespace InfServer.Logic
                                 zone._server.sendMessage(zone, pkt.sender, Logic_Admins.listAdmins());
                         }
                         break;
+
                 }
             }
         }

@@ -104,16 +104,16 @@ namespace InfServer.Script.GameType_USL
                 switch(_savedPlayerStats[killer._alias].lastKillerCount)
                 {
                     case 6:
-                        _arena.sendArenaMessage(String.Format("{0} is on fire!", killer._alias), 17);
+                        _arena.sendArenaMessage(string.Format("{0} is on fire!", killer._alias), 17);
                         break;
                     case 8:
-                        _arena.sendArenaMessage(String.Format("Someone kill {0}!", killer._alias), 18);
+                        _arena.sendArenaMessage(string.Format("Someone kill {0}!", killer._alias), 18);
                         break;
                     case 10:
-                        _arena.sendArenaMessage(String.Format("{0} is dominating!", killer._alias), 19);
+                        _arena.sendArenaMessage(string.Format("{0} is dominating!", killer._alias), 19);
                         break;
                     case 12:
-                        _arena.sendArenaMessage(String.Format("DEATH TO {0}!", killer._alias), 30);
+                        _arena.sendArenaMessage(string.Format("DEATH TO {0}!", killer._alias), 30);
                         break;
                 }
             }
@@ -122,7 +122,7 @@ namespace InfServer.Script.GameType_USL
             if (lastKiller == null)
             {
                 //It is, lets make the sound
-                _arena.sendArenaMessage(String.Format("{0} has drawn first blood.", killer._alias), 9);
+                _arena.sendArenaMessage(string.Format("{0} has drawn first blood.", killer._alias), 9);
             }
             lastKiller = killer;
         }
@@ -136,7 +136,7 @@ namespace InfServer.Script.GameType_USL
             {
                 if (_savedPlayerStats[victim._alias].lastKillerCount >= 6)
                 {
-                    _arena.sendArenaMessage(String.Format("{0}", killer != null ? killer._alias + " has ended " + victim._alias + "'s kill streak." :
+                    _arena.sendArenaMessage(string.Format("{0}", killer != null ? killer._alias + " has ended " + victim._alias + "'s kill streak." :
                         victim._alias + "'s kill streak has ended."), 7);
                 }
                 _savedPlayerStats[victim._alias].lastKillerCount = 0;
@@ -169,21 +169,21 @@ namespace InfServer.Script.GameType_USL
                     return;
 
                 if (lastUsedWep.name.Contains("Combat Knife"))
-                    _arena.sendArenaMessage(String.Format("{0} is throwing out the knives.", from._alias), 6);
+                    _arena.sendArenaMessage(string.Format("{0} is throwing out the knives.", from._alias), 6);
 
                 switch (_savedPlayerStats[from._alias].lastUsedWepKillCount)
                 {
                     case 2:
-                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 13);
+                        _arena.sendArenaMessage(string.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 13);
                         break;
                     case 3:
-                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill.", from._alias, lastUsedWep.name), 14);
+                        _arena.sendArenaMessage(string.Format("{0} just got a triple {1} kill.", from._alias, lastUsedWep.name), 14);
                         break;
                     case 4:
-                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 15);
+                        _arena.sendArenaMessage(string.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 15);
                         break;
                     case 5:
-                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 16);
+                        _arena.sendArenaMessage(string.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 16);
                         break;
                 }
             }
@@ -452,7 +452,7 @@ namespace InfServer.Script.GameType_USL
                         break;
                 }
 
-                from.sendMessage(0, String.Format(format,
+                from.sendMessage(0, string.Format(format,
                     t._currentGameKills, t._currentGameDeaths,
                     t._name));
             }
@@ -503,8 +503,8 @@ namespace InfServer.Script.GameType_USL
 
                     idx -= group.Count();
                     if (group.First() != null)
-                        from.sendMessage(0, String.Format(placeWord + format, group.First().Kills,
-                            group.First().Deaths, String.Join(", ", group.Select(g => g.Alias))));
+                        from.sendMessage(0, string.Format(placeWord + format, group.First().Kills,
+                            group.First().Deaths, string.Join(", ", group.Select(g => g.Alias))));
                 }
 
                 IEnumerable<Player> specialPlayers = rankers.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
@@ -527,13 +527,13 @@ namespace InfServer.Script.GameType_USL
                                 if (i++ >= 1)
                                     mostDeaths.Add(p._alias);
                                 else
-                                    mostDeaths.Add(String.Format("(D={0}): {1}", deaths, p._alias));
+                                    mostDeaths.Add(string.Format("(D={0}): {1}", deaths, p._alias));
                             }
                         }
                     }
                     if (mostDeaths.Count > 0)
                     {
-                        string s = String.Join(", ", mostDeaths.ToArray());
+                        string s = string.Join(", ", mostDeaths.ToArray());
                         from.sendMessage(0, s);
                     }
                 }
@@ -563,7 +563,7 @@ namespace InfServer.Script.GameType_USL
                                     placeWord = "&2nd";
                                     break;
                             }
-                            from.sendMessage(0, String.Format(placeWord + format, _savedPlayerStats[p._alias].potentialHealthHealed, p._alias));
+                            from.sendMessage(0, string.Format(placeWord + format, _savedPlayerStats[p._alias].potentialHealthHealed, p._alias));
                         }
                     }
                 }
@@ -573,7 +573,7 @@ namespace InfServer.Script.GameType_USL
             if (_savedPlayerStats.ContainsKey(from._alias))
             {
                 string personalFormat = "!Personal Score: (K={0} D={1})";
-                from.sendMessage(0, String.Format(personalFormat,
+                from.sendMessage(0, string.Format(personalFormat,
                     _savedPlayerStats[from._alias].kills,
                     _savedPlayerStats[from._alias].deaths));
             }
@@ -638,7 +638,7 @@ namespace InfServer.Script.GameType_USL
                 _savedPlayerStats[victim._alias].deaths++;
 
             if (killer != null && victim != null && victim._bounty >= 300)
-                _arena.sendArenaMessage(String.Format("{0} has ended {1}'s bounty.", killer._alias, victim._alias), 8);
+                _arena.sendArenaMessage(string.Format("{0} has ended {1}'s bounty.", killer._alias, victim._alias), 8);
         }
 
         /// <summary>
@@ -683,7 +683,7 @@ namespace InfServer.Script.GameType_USL
                 {
                     case GameTypes.LEAGUEOVERTIME:
                         player.spec();
-                        _arena.sendArenaMessage(String.Format("{0} has died out.", player._alias));
+                        _arena.sendArenaMessage(string.Format("{0} has died out.", player._alias));
 
                         //Last to die?
                         if (_arena.ActiveTeams.Count() <= 1)
@@ -1070,13 +1070,13 @@ namespace InfServer.Script.GameType_USL
             IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
             Team titan = activeTeams.ElementAt(0) != null ? activeTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
             Team collie = activeTeams.Count() > 1 ? activeTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
-            string format = String.Format("{0}={1} - {2}={3}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills);
+            string format = string.Format("{0}={1} - {2}={3}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills);
             //We playing more events at the same time?
             if (activeTeams.Count() > 3)
             {
                 Team third = activeTeams.ElementAt(2);
                 Team fourth = activeTeams.ElementAt(3);
-                format = String.Format("{0}={1} - {2}={3} | {4}={5} - {6}={7}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills,
+                format = string.Format("{0}={1} - {2}={3} | {4}={5} - {6}={7}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills,
                     third._name, third._currentGameKills, fourth._name, fourth._currentGameKills);
             }
             _arena.setTicker(1, 2, 0, format);
@@ -1086,7 +1086,7 @@ namespace InfServer.Script.GameType_USL
             {
                 //Update their ticker
                 if (_savedPlayerStats.ContainsKey(p._alias))
-                    return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
+                    return string.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
                         p._state.health,
                         _savedPlayerStats[p._alias].kills,
                         _savedPlayerStats[p._alias].deaths);
@@ -1113,11 +1113,11 @@ namespace InfServer.Script.GameType_USL
                 switch (idx)
                 {
                     case 2:
-                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
+                        format = string.Format("1st: {0}(K={1} D={2})", rankers._alias,
                           _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
                         break;
                     case 1:
-                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
+                        format = (format + string.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
                           _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
                         break;
                 }
@@ -1234,14 +1234,14 @@ namespace InfServer.Script.GameType_USL
                                 format = "!1st (K={0} D={1}): {2}";
                                 break;
                         }
-                        _arena.sendArenaMessage(String.Format(format, t._currentGameKills, t._currentGameDeaths, t._name));
+                        _arena.sendArenaMessage(string.Format(format, t._currentGameKills, t._currentGameDeaths, t._name));
                     }
                     break;
                 case 2:
                     if (team1._currentGameKills > team2._currentGameKills)
                     {
                         victoryTeam = team1;
-                        _arena.sendArenaMessage(String.Format("{0} has won with a {1}-{2} victory!", team1._name, team1._currentGameKills, team2._currentGameKills));
+                        _arena.sendArenaMessage(string.Format("{0} has won with a {1}-{2} victory!", team1._name, team1._currentGameKills, team2._currentGameKills));
                         foreach (Player p in _arena.Players)
                         {
                             if (p._squad.Contains(team1._name))
@@ -1253,7 +1253,7 @@ namespace InfServer.Script.GameType_USL
                     else if (team2._currentGameKills > team1._currentGameKills)
                     {
                         victoryTeam = team2;
-                        _arena.sendArenaMessage(String.Format("{0} has won with a {1}-{2} victory!", team2._name, team2._currentGameKills, team1._currentGameKills));
+                        _arena.sendArenaMessage(string.Format("{0} has won with a {1}-{2} victory!", team2._name, team2._currentGameKills, team1._currentGameKills));
                         foreach (Player p in _arena.Players)
                         {
                             if (p._squad.Contains(team2._name))
@@ -1319,9 +1319,9 @@ namespace InfServer.Script.GameType_USL
             //Find the spawn spot
             string eventName;
             if (_gameType == GameTypes.TDM)
-                eventName = String.Format("{0}{1}", Enum.GetName(typeof(GameTypes), _gameType), "30k");
+                eventName = string.Format("{0}{1}", Enum.GetName(typeof(GameTypes), _gameType), "30k");
             else if (Events)
-                eventName = String.Format("{0}{1}", Enum.GetName(typeof(EventTypes), _eventType), "30k");
+                eventName = string.Format("{0}{1}", Enum.GetName(typeof(EventTypes), _eventType), "30k");
             else
                 return;
 
@@ -1437,17 +1437,17 @@ namespace InfServer.Script.GameType_USL
                 //Make the file with current date and filename
                 string name1 = lastTeam1._name.Trim(' ');
                 string name2 = lastTeam2._name.Trim(' ');
-                string filename = String.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
+                string filename = string.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
                 FileName = filename;
-                StreamWriter fs = Logic_File.CreateStatFile(filename, String.Format("Season {0}", LeagueSeason.ToString()));
+                StreamWriter fs = Logic_File.CreateStatFile(filename, string.Format("Season {0}", LeagueSeason.ToString()));
 
                 fs.WriteLine();
-                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
+                fs.WriteLine(string.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
                     lastTeam1._name, lastTeam1._currentGameKills, lastTeam1._currentGameDeaths, lastTeam1._name.Equals(victoryTeam._name) ? "Yes" : "No", OT));
                 fs.WriteLine("--------------------------------------------------------------------");
                 foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
 
                     if (!p.Value.hasPlayed)
@@ -1459,7 +1459,7 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team1._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}, Class = {5}",
+                    fs.WriteLine(string.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3} PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
@@ -1471,7 +1471,7 @@ namespace InfServer.Script.GameType_USL
                 fs.WriteLine("---------------------------Medics-----------------------------------");
                 foreach(KeyValuePair<string, PlayerStat> p in _lastSavedStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
                     if (!p.Value.hasPlayed)
                         continue;
@@ -1479,17 +1479,17 @@ namespace InfServer.Script.GameType_USL
                         continue;
                     if (p.Value.potentialHealthHealed <= 0)
                         continue;
-                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
+                    fs.WriteLine(string.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
                 fs.WriteLine();
 
-                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
+                fs.WriteLine(string.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
                     lastTeam2._name, lastTeam2._currentGameKills, lastTeam2._currentGameDeaths, lastTeam2._name.Equals(victoryTeam._name) ? "Yes" : "No", OT));
                 fs.WriteLine("--------------------------------------------------------------------");
                 foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
 
                     if (!p.Value.hasPlayed)
@@ -1501,7 +1501,7 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team2._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
+                    fs.WriteLine(string.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
@@ -1513,7 +1513,7 @@ namespace InfServer.Script.GameType_USL
                 fs.WriteLine("---------------------------Medics-----------------------------------");
                 foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
                     if (!p.Value.hasPlayed)
                         continue;
@@ -1521,20 +1521,20 @@ namespace InfServer.Script.GameType_USL
                         continue;
                     if (p.Value.potentialHealthHealed <= 0)
                         continue;
-                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
+                    fs.WriteLine(string.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
                 //Now set the format as per the export file function in the client
                 foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
 
                     if (!p.Value.hasPlayed)
                         continue;
 
-                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7},{8}",
+                    fs.WriteLine(string.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7},{8}",
                         p.Value.alias,
                         p.Value.squad,
                         p.Value.points,
@@ -1558,17 +1558,17 @@ namespace InfServer.Script.GameType_USL
                 //Make the file with current date and filename
                 string name1 = team1._name.Trim(' ');
                 string name2 = team2._name.Trim(' ');
-                string filename = String.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
+                string filename = string.Format("{0}vs{1} {2}", name1, name2, startTime.ToLocalTime().ToString());
                 FileName = filename;
-                StreamWriter fs = Logic_File.CreateStatFile(filename, String.Format("Season {0}", LeagueSeason.ToString()));
+                StreamWriter fs = Logic_File.CreateStatFile(filename, string.Format("Season {0}", LeagueSeason.ToString()));
 
                 fs.WriteLine();
-                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
+                fs.WriteLine(string.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
                     team1._name, team1._currentGameKills, team1._currentGameDeaths, team1 == victoryTeam ? "Yes" : "No"));
                 fs.WriteLine("--------------------------------------------------------------------");
                 foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
 
                     if (!p.Value.hasPlayed)
@@ -1580,7 +1580,7 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team1._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
+                    fs.WriteLine(string.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
@@ -1592,7 +1592,7 @@ namespace InfServer.Script.GameType_USL
                 fs.WriteLine("---------------------------Medics-----------------------------------");
                 foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
                     if (!p.Value.hasPlayed)
                         continue;
@@ -1600,17 +1600,17 @@ namespace InfServer.Script.GameType_USL
                         continue;
                     if (p.Value.potentialHealthHealed <= 0)
                         continue;
-                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
+                    fs.WriteLine(string.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
                 fs.WriteLine();
 
-                fs.WriteLine(String.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
+                fs.WriteLine(string.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
                     team2._name, team2._currentGameKills, team2._currentGameDeaths, team2 == victoryTeam ? "Yes" : "No"));
                 fs.WriteLine("--------------------------------------------------------------------");
                 foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
 
                     if (!p.Value.hasPlayed)
@@ -1622,7 +1622,7 @@ namespace InfServer.Script.GameType_USL
                     bool yes = true; //We were an nt
                     if (team2._name.Contains(p.Value.squad))
                         yes = false; //We arent an nt
-                    fs.WriteLine(String.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
+                    fs.WriteLine(string.Format("Name = {0}, NT? = {1}, Kills = {2}, Deaths = {3}, PlaySeconds = {4}, Class = {5}",
                         p.Value.alias,
                         yes == false ? "No" : "Yes",
                         p.Value.kills,
@@ -1634,7 +1634,7 @@ namespace InfServer.Script.GameType_USL
                 fs.WriteLine("---------------------------Medics-----------------------------------");
                 foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
                     if (!p.Value.hasPlayed)
                         continue;
@@ -1642,20 +1642,20 @@ namespace InfServer.Script.GameType_USL
                         continue;
                     if (p.Value.potentialHealthHealed <= 0)
                         continue;
-                    fs.WriteLine(String.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
+                    fs.WriteLine(string.Format("Name = {0}, Health Healed = {1}", p.Value.alias, p.Value.potentialHealthHealed));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
 
                 //Now set the format as per the export file function in the client
                 foreach (KeyValuePair<string, PlayerStat> p in _savedPlayerStats)
                 {
-                    if (String.IsNullOrWhiteSpace(p.Key))
+                    if (string.IsNullOrWhiteSpace(p.Key))
                         continue;
 
                     if (!p.Value.hasPlayed)
                         continue;
 
-                    fs.WriteLine(String.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7},{8}",
+                    fs.WriteLine(string.Format("{0},{1},{2},{3},{4},0,{5},0,{6},0,0,0,0,{7},{8}",
                         p.Value.alias,
                         p.Value.squad,
                         p.Value.points,

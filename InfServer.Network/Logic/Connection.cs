@@ -136,9 +136,11 @@ namespace InfServer.Logic
         /// NOTE: Only sent by player clients
         /// </summary>
         static public void Handle_Disconnect(Disconnect pkt, Client client)
-        {	//Destroy the client in question
-            client.destroy();
+        {
             Log.write(TLog.Normal, "Client '{0}' disconnected.", client);
+
+            //Destroy the client in question
+            client.destroy();
         }
 
         /// <summary>

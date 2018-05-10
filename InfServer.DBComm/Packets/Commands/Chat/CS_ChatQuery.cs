@@ -40,7 +40,7 @@ namespace InfServer.Protocol
             deletealias,
             wipe,
             adminlist,
-            accountignore,
+            accountignore
         }
 
 

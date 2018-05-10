@@ -49,6 +49,7 @@ namespace InfServer.Game
         public int _attemptDelay;
         public int _recycleAttempt;
         public bool _recycling;
+        public bool _shutdown;
 
         private ClientPingResponder _pingResponder;
         public Dictionary<IPAddress, DateTime> _connections;
@@ -395,48 +396,52 @@ namespace InfServer.Game
                 recycle();
             }
 
-            //Is it time to make another attempt at connecting to the database?
-            if ((now - _lastDBAttempt) > _attemptDelay && _lastDBAttempt != 0)
+            //Are we shutting down or recycling?
+            if (!_shutdown || !_recycling)
             {
-                _lastDBAttempt = now;
-
-                //Are we bypassing our connection attempt?
-                if (_attemptDelay == 0)
-                    return;
-
-                //Are we connected to the database currently?
-                if (!_db._bLoginSuccess || (_db._bLoginSuccess && !_db.IsConnected))
+                //Is it time to make another attempt at connecting to the database?
+                if (_lastDBAttempt != 0 && now - _lastDBAttempt > _attemptDelay)
                 {
-                    _bStandalone = true;
-                    _db._bLoginSuccess = false;
+                    _lastDBAttempt = now;
 
-                    //Take a stab at connecting
-                    if (!_db.connect(_dbEP, true))
+                    //Are we bypassing our connection attempt?
+                    if (_attemptDelay == 0)
+                        return;
+
+                    //Are we connected to the database currently?
+                    if (!_db._bLoginSuccess || (_db._bLoginSuccess && !_db.IsConnected))
                     {
-                        Log.write(TLog.Warning, "Failed database connection.");
                         _bStandalone = true;
+                        _db._bLoginSuccess = false;
 
-                        //Send out a message to all of the server's players
-                        if ((now - _bStandaloneMessage) > 1800000) //30 mins
+                        //Take a stab at connecting
+                        if (!_db.connect(_dbEP, true))
                         {
-                            _bStandaloneMessage = now;
-                            foreach (var arena in _arenas)
-                                if (arena.Value._bActive)
-                                    arena.Value.sendArenaMessage("!An attempt to establish a connection to the database failed. Server is in Stand Alone Mode.");
+                            Log.write(TLog.Warning, "Failed database connection.");
+                            _bStandalone = true;
+
+                            //Send out a message to all of the server's players
+                            if ((now - _bStandaloneMessage) > 1800000) //30 mins
+                            {
+                                _bStandaloneMessage = now;
+                                foreach (var arena in _arenas)
+                                    if (arena.Value._bActive)
+                                        arena.Value.sendArenaMessage("!An attempt to establish a connection to the database failed. Server is in Stand Alone Mode.");
+                            }
                         }
                     }
-                }
-                else
-                {
-                    //Send a message to all of the server's players
-                    if (_bStandalone)
+                    else
                     {
-                        foreach (var arena in _arenas)
-                            if (arena.Value._bActive)
-                                arena.Value.sendArenaMessage("!Connection to the database has been re-established. Server is no longer in Stand Alone Mode.");
+                        //Send a message to all of the server's players
+                        if (_bStandalone)
+                        {
+                            foreach (var arena in _arenas)
+                                if (arena.Value._bActive)
+                                    arena.Value.sendArenaMessage("!Connection to the database has been re-established. Server is no longer in Stand Alone Mode.");
+                        }
+                        _bStandalone = false;
+                        _db._bLoginSuccess = true;
                     }
-                    _bStandalone = false;
-                    _db._bLoginSuccess = true;
                 }
             }
 
@@ -464,13 +469,17 @@ namespace InfServer.Game
                         continue;
 
                     //Make sure his stats get updated
-                    p.destroy();
+                    p.disconnect();
                 }
             }
 
             if (!_bStandalone)
+            {
                 //Disconnect from the database gracefully..
-                _db.send(new Disconnect<Database>());
+                Disconnect<Database> dc = new Disconnect<Database>();
+                dc.recycling = _recycling;
+                _db.send(dc);
+            }
 
             //Shut off our irc connection
             if (ircClient.IsConnected)
@@ -490,23 +499,25 @@ namespace InfServer.Game
         public void recycle()
         {
             Log.write("Recycling...");
+            _recycling = true;
 
             //cleanup
             cleanup();
 
             //Restart!
-            InfServer.Program.Restart();
+            Program.Restart();
         }
 
         public void shutdown()
         {
             Log.write("Shutting down...");
+            _shutdown = true;
 
             //cleanup
             cleanup();
 
             //Shutdown!
-            InfServer.Program.Stop();
+            Program.Stop();
         }
 
         private void InitializeGameEventsDictionary()

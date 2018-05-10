@@ -67,19 +67,16 @@ namespace InfServer.Logic
 
             client.sendReliable(success);
 
-            using (InfantryDataContext db = zone._server.getContext())
+            using (InfantryDataContext db = server.getContext())
             {
                 //Update and activate the zone for our directory server
-                //TODO: Don't know why it only works like this,
-                //modifying dbZone and submitting changes doesn't reflect
-                //in the database right away
-                Data.DB.zone zoneentry = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
-                zoneentry.name = pkt.zoneName;
-                zoneentry.description = pkt.zoneDescription;
-                zoneentry.ip = pkt.zoneIP;
-                zoneentry.port = pkt.zonePort;
-                zoneentry.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
-                zoneentry.active = 1;
+                dbZone.name = pkt.zoneName;
+                dbZone.description = pkt.zoneDescription;
+                dbZone.ip = pkt.zoneIP;
+                dbZone.port = pkt.zonePort;
+                dbZone.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
+                dbZone.active = 1;
+
                 db.SubmitChanges();
             }
             Log.write("Successful login from {0} ({1})", dbZone.name, client._ipe);
@@ -437,7 +434,20 @@ namespace InfServer.Logic
         {
             Log.write("{0} disconnected gracefully", zone._zone.name);
 
-            //Close our connection, calls zone._client.Destruct
+            //If the zone isn't recycling, lets set it as inactive
+            if (!pkt.recycling)
+            {
+                using (InfantryDataContext db = zone._server.getContext())
+                {
+                    Data.DB.zone zEntry = db.zones.SingleOrDefault(z => z.id == zone._zone.id);
+                    if (zEntry != null)
+                    {
+                        zEntry.active = 0;
+                        db.SubmitChanges();
+                    }
+                }
+            }
+            //Close our connection; calls zone._client.Destruct
             zone._client.destroy();
         }
 

@@ -91,7 +91,7 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Zone server chat route";
+                return "Zone server mod command";
             }
         }
     }

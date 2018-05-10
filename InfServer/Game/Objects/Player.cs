@@ -305,7 +305,7 @@ namespace InfServer.Game
         /// </summary>
         public void disconnect()
         {
-            Helpers.Player_Disconnect(this);
+            Helpers.Player_Disconnect(this, this._server._recycling);
             destroy();
         }
 
@@ -353,10 +353,8 @@ namespace InfServer.Game
         public void leftArena()
         {	//Stop spectating
             if (_spectating != null)
-            {
                 _spectating._spectators.Remove(this);
-                _spectating = null;
-            }
+            _spectating = null;
 
             //If we're currently in a vehicle, we want to desert it
             if (_occupiedVehicle != null)
@@ -374,7 +372,6 @@ namespace InfServer.Game
             //Notify our current arena
             if (_arena != null)
                 _arena.lostPlayer(this);
-
             _arena = null;
 
             //We are no longer ingame

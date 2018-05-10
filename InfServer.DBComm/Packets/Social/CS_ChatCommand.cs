@@ -87,7 +87,7 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Zone server chat command logging";
+                return "Zone server chat command";
             }
         }
     }

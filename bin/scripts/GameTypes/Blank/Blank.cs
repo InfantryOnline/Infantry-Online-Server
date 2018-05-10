@@ -24,10 +24,6 @@ namespace InfServer.Script.GameType_Blank
 		private Arena _arena;					//Pointer to our arena class
 		private CfgInfo _config;				//The zone config
 
-	
-
-
-
 		///////////////////////////////////////////////////
 		// Member Functions
 		///////////////////////////////////////////////////
@@ -51,8 +47,6 @@ namespace InfServer.Script.GameType_Blank
 
             return true;
         }
-
-
 
 		#region Events
 	
@@ -113,8 +107,6 @@ namespace InfServer.Script.GameType_Blank
 		public bool gameEnd()
 		{	//Game finished, perhaps start a new one
 
-
-
 			return true;
 		}
 
@@ -122,7 +114,7 @@ namespace InfServer.Script.GameType_Blank
         /// Called when the statistical breakdown is displayed
         /// </summary>
         [Scripts.Event("Game.Breakdown")]
-        public bool breakdown()
+        public bool gameBreakdown()
         {	//Allows additional "custom" breakdown information
 
             //Always return true;
@@ -256,6 +248,15 @@ namespace InfServer.Script.GameType_Blank
         public bool PlayerShopSkillPurchase(Player from, SkillInfo skill)
         {
             //Return always true
+            return true;
+        }
+
+        /// <summary>
+        /// Triggered only when a special communication command is created here that isn't a server command.
+        /// </summary>
+        [Scripts.Event("Player.CommCommand")]
+        public bool playerCommCommand(Player player, Player recipient, string command, string payload)
+        {
             return true;
         }
 

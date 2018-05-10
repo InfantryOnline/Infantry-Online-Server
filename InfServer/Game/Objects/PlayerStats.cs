@@ -803,8 +803,8 @@ namespace InfServer.Game
         /// </summary>
         public void migrateStats()
         {
-            _statsLastGame = (_statsGame == null) ? new InfServer.Data.PlayerStats() : _statsGame;
-            _statsGame = new InfServer.Data.PlayerStats();
+            _statsLastGame = (_statsGame == null) ? new Data.PlayerStats() : _statsGame;
+            _statsGame = new Data.PlayerStats();
         }
 
         /// <summary>
@@ -853,7 +853,7 @@ namespace InfServer.Game
             //Retrieve his stats
             _stats = _suspStats;
             _statsSession = new Data.PlayerStats();
-            _statsGame = (_statsLastGame == null) ? new InfServer.Data.PlayerStats() : _statsLastGame;
+            _statsGame = (_statsLastGame == null) ? new Data.PlayerStats() : _statsLastGame;
             _statsLastGame = null;
 
             _inventory = _suspInventory;
@@ -870,7 +870,7 @@ namespace InfServer.Game
         /// </summary>
         public void clearCurrentStats()
         {
-            _statsGame = new InfServer.Data.PlayerStats();
+            _statsGame = new Data.PlayerStats();
         }
     }
 }

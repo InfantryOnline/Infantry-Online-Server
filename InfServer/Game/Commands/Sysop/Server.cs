@@ -222,6 +222,25 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Calls a shutdown of the current zone server
+        /// </summary>
+        static public void shutdown(Player player, Player recipient, string payload, int bong)
+        {
+            if (!player._admin)
+            {
+                player.sendMessage(-1, "Only admins can use this command.");
+                return;
+            }
+
+            player.sendMessage(0, "Shutting down...");
+            Log.write("Shutdown called by {0}.", player._alias);
+
+            //Shut it down
+            player._server.shutdown();
+            return;
+        }
+
+        /// <summary>
         /// Returns a list of admins currently powered
         /// </summary>
         static public void admins(Player player, Player recipient, string payload, int bong)
@@ -277,6 +296,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(showGif, "showgif",
                 "Sends a gif to the target player",
                 "::*showgif [gif url]",
+                InfServer.Data.PlayerPermission.Sysop, false);
+
+            yield return new HandlerDescriptor(shutdown, "shutdown",
+                "Shut downs the current zone server",
+                "*shutdown",
                 InfServer.Data.PlayerPermission.Sysop, false);
 
             yield return new HandlerDescriptor(testPacket, "testpacket",
