@@ -9,7 +9,7 @@ namespace InfServer.Script.GameType_Burnt
     {
         public bool EventsEnabled = false;
         public static bool VotingEnabled = true;
-        
+
         public static int VotingPeriod = 40;
         public static int MinPlayers = 2;
         public static int GamesBeforeEvent = 10;

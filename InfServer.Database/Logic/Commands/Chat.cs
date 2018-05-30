@@ -95,7 +95,7 @@ namespace InfServer.Logic
                                     aliases = db.alias.Where(a => a.account.Equals(who.account));
                                 }
 
-                                if (aliases != null)
+                                if (aliases != null && aliases.Count() > 0)
                                 {
                                     zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                     //Loop and display
@@ -150,7 +150,7 @@ namespace InfServer.Logic
                                           select w;
                             }
 
-                            if (aliases != null)
+                            if (aliases != null && aliases.Count() > 0)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                 //Loop and display
@@ -756,7 +756,7 @@ namespace InfServer.Logic
                             //Sanity checks
                             if (dbplayer.squad != null)
                             {   //traitor is already in a squad
-                                zone._server.sendMessage(zone, pkt.alias, "You cannot create a squad if you are already in one (" + dbplayer.squad1.name + ")");
+                                zone._server.sendMessage(zone, pkt.alias, "You cannot create a squad if you are already in one (" + dbplayer.squad1.name + ").");
                                 return;
                             }
 
@@ -770,13 +770,13 @@ namespace InfServer.Logic
                             string squadpassword = cleanPayload.Split(':').ElementAt(1);
                             if (!char.IsLetterOrDigit(squadname[0]) || squadname.Length == 0 || squadname.Length >= 32)
                             {   //invalid name
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid squad name, must start with a letter or number and be less than 32 characters long");
+                                zone._server.sendMessage(zone, pkt.alias, "Invalid squad name, must start with a letter or number and be less than 32 characters long.");
                                 return;
                             }
 
                             if (db.squads.Where(s => s.name == squadname && s.zone == zone._zone.id).Count() > 0)
                             {   //This squad already exists!
-                                zone._server.sendMessage(zone, pkt.alias, "A squad with specified name already exists");
+                                zone._server.sendMessage(zone, pkt.alias, "A squad with specified name already exists.");
                                 return;
                             }
 
@@ -808,7 +808,7 @@ namespace InfServer.Logic
                             db.SubmitChanges();
                             dbplayer.squad = newsquad.id;
 
-                            zone._server.sendMessage(zone, pkt.alias, "Successfully created squad: " + newsquad.name + ". Quit and rejoin to be able to use # to squad chat");
+                            zone._server.sendMessage(zone, pkt.alias, "Successfully created squad: " + newsquad.name + ". Quit and rejoin to be able to use # to squad chat.");
                             Log.write(TLog.Normal, "Player {0} created squad {1} in zone {2}", pkt.alias, newsquad.name, zone._zone.name);
                         }
                         break;
@@ -846,7 +846,7 @@ namespace InfServer.Logic
                             Data.DB.player invitePlayer = db.players.FirstOrDefault(p => p.alias1 == inviteAlias && p.zone == dbplayer.zone);
                             if (invitePlayer == null)
                             {   //No such player!
-                                zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias");
+                                zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias.");
                                 return;
                             }
 
@@ -887,7 +887,7 @@ namespace InfServer.Logic
 
                             if (dbplayer.squad1.owner != dbplayer.id)
                             {
-                                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may kick players");
+                                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may kick players.");
                                 return;
                             }
 
@@ -896,13 +896,13 @@ namespace InfServer.Logic
                             Data.DB.player kickPlayer = db.players.FirstOrDefault(p => p.alias1 == kickAlias && p.zone == dbplayer.zone);
                             if (kickPlayer == null)
                             {   //No such player!
-                                zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias");
+                                zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias.");
                                 return;
                             }
 
                             if (kickPlayer.squad == null || kickPlayer.squad != dbplayer.squad)
                             {   //Liar!
-                                zone._server.sendMessage(zone, pkt.alias, "You may only kick players from your own squad");
+                                zone._server.sendMessage(zone, pkt.alias, "You may only kick players from your own squad.");
                                 return;
                             }
 
@@ -914,7 +914,7 @@ namespace InfServer.Logic
 
                             //Kick him!
                             kickPlayer.squad = null;
-                            zone._server.sendMessage(zone, pkt.alias, "You have kicked " + kickPlayer.alias1.name + " from your squad");
+                            zone._server.sendMessage(zone, pkt.alias, "You have kicked " + kickPlayer.alias1.name + " from your squad.");
                             zone._server.sendMessage(zone, kickPlayer.alias1.name, "You have been kicked from squad " + dbplayer.squad1.name);
                         }
                         break;
@@ -927,7 +927,7 @@ namespace InfServer.Logic
 
                             if (dbplayer.squad1.owner != dbplayer.id)
                             {
-                                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may transfer squad ownership");
+                                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may transfer squad ownership.");
                                 return;
                             }
 
@@ -936,13 +936,13 @@ namespace InfServer.Logic
                             Data.DB.player transferPlayer = db.players.FirstOrDefault(p => p.alias1 == transferAlias && p.zone == dbplayer.zone);
                             if (transferPlayer == null || transferPlayer.squad != dbplayer.squad)
                             {   //No such player!
-                                zone._server.sendMessage(zone, pkt.alias, "No player found in your squad by that alias");
+                                zone._server.sendMessage(zone, pkt.alias, "No player found in your squad by that alias.");
                                 return;
                             }
 
                             //Transfer ownership to him
                             transferPlayer.squad1.owner = transferPlayer.id;
-                            zone._server.sendMessage(zone, pkt.alias, "You have promoted " + transferPlayer.alias1.name + " to squad captain");
+                            zone._server.sendMessage(zone, pkt.alias, "You have promoted " + transferPlayer.alias1.name + " to squad captain.");
                             zone._server.sendMessage(zone, transferPlayer.alias1.name, "You have been promoted to squad captain of " + transferPlayer.squad1.name);
                         }
                         break;
@@ -952,7 +952,7 @@ namespace InfServer.Logic
                             //Sanity checks
                             if (dbplayer.squad == null)
                             {
-                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad");
+                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
                                 return;
                             }
 
@@ -967,11 +967,11 @@ namespace InfServer.Logic
                                     db.squads.DeleteOnSubmit(dbplayer.squad1);
                                     dbplayer.squad1 = null;
                                     dbplayer.squad = null;
-                                    zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved");
+                                    zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
                                 }
                                 else
                                 {   //There are other people on the squad!
-                                    zone._server.sendMessage(zone, pkt.alias, "You can't leave a squad that you're the captain of! Either transfer ownership or kick everybody first");
+                                    zone._server.sendMessage(zone, pkt.alias, "You can't leave a squad that you're the captain of! Either transfer ownership or kick everybody first.");
                                     return;
                                 }
                             }
@@ -980,11 +980,10 @@ namespace InfServer.Logic
                                 //Leave the squad...
                                 dbplayer.squad1 = null;
                                 dbplayer.squad = null;
-                                //db.SubmitChanges();
                                 zone._server.sendMessage(zone, pkt.alias, "You have left your squad, please relog to complete the process.");
                                 //Notify his squadmates
                                 foreach (Data.DB.player sm in squadmates)
-                                    zone._server.sendMessage(zone, sm.alias1.name, pkt.alias + " has left your squad");
+                                    zone._server.sendMessage(zone, sm.alias1.name, pkt.alias + " has left your squad.");
                             }
                         }
                         break;
@@ -994,7 +993,7 @@ namespace InfServer.Logic
                             //Sanity checks
                             if (dbplayer.squad == null)
                             {
-                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad");
+                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
                                 return;
                             }
 
@@ -1072,7 +1071,7 @@ namespace InfServer.Logic
 
                             if (targetSquadList == null)
                             {   //No squad found!
-                                zone._server.sendMessage(zone, pkt.alias, "No squad found");
+                                zone._server.sendMessage(zone, pkt.alias, "No squad found.");
                                 return;
                             }
 
@@ -1092,7 +1091,7 @@ namespace InfServer.Logic
                             //Lists the players squads outstanding invitations
                             if (dbplayer.squad == null || dbplayer.squad1.owner != dbplayer.id)
                             {   //No squad found!
-                                zone._server.sendMessage(zone, pkt.alias, "You aren't the owner of a squad");
+                                zone._server.sendMessage(zone, pkt.alias, "You aren't the owner of a squad.");
                                 return;
                             }
                             zone._server.sendMessage(zone, pkt.alias, "&Outstanding Player Invitations");
@@ -1134,7 +1133,7 @@ namespace InfServer.Logic
 
                             if (responseSquad == null || !zone._server._squadInvites.Contains(responsePair))
                             {   //Either squad doesn't exist... or he's a filthy liar
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid squad invitation response");
+                                zone._server.sendMessage(zone, pkt.alias, "Invalid squad invitation response.");
                                 return;
                             }
 
@@ -1142,13 +1141,13 @@ namespace InfServer.Logic
                             {   //Acceptance! Get in there, buddy
                                 if (dbplayer.squad != null)
                                 {
-                                    zone._server.sendMessage(zone, pkt.alias, "You can't accept squad invites if you're already in a squad");
+                                    zone._server.sendMessage(zone, pkt.alias, "You can't accept squad invites if you're already in a squad.");
                                     return;
                                 }
 
                                 //Add him to the squad!
                                 dbplayer.squad = responseSquad.id;
-                                zone._server.sendMessage(zone, pkt.alias, "You've joined " + dbplayer.squad1.name + "! Quit and rejoin to be able to use # to squad chat");
+                                zone._server.sendMessage(zone, pkt.alias, "You've joined " + dbplayer.squad1.name + "! Quit and rejoin to be able to use # to squad chat.");
                                 zone._server._squadInvites.Remove(responsePair);
                             }
                             else
@@ -1173,7 +1172,7 @@ namespace InfServer.Logic
 
                             if (targetSquad == null)
                             {
-                                zone._server.sendMessage(zone, pkt.alias, "Squad not found or you are not in a squad");
+                                zone._server.sendMessage(zone, pkt.alias, "Squad not found or you are not in a squad.");
                             }
                             else
                             {
@@ -1189,7 +1188,7 @@ namespace InfServer.Logic
                                     zone._server.sendMessage(zone, pkt.alias, String.Format("&--Rating={0}", squadstats.rating));
                                 }
                                 else
-                                    zone._server.sendMessage(zone, pkt.alias, "This squad has no stats for this zone");
+                                    zone._server.sendMessage(zone, pkt.alias, "This squad has no stats for this zone.");
                             }
                         }
                         break;

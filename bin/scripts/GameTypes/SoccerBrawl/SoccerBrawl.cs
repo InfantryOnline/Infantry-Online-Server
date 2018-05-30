@@ -306,7 +306,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     playerStats[p] = temp;
 
                 //If league match, get squad id
-                if (isMatch && !String.IsNullOrWhiteSpace(p._squad))
+                if (isMatch && !string.IsNullOrWhiteSpace(p._squad))
                     if (!p.IsSpectator)
                     {
                         if (teamStats[p._team].squadID == p._squadID)
@@ -959,11 +959,11 @@ namespace InfServer.Script.GameType_Soccerbrawl
             futureGoal = null;
 
 	        //Check to see if they are behind the correct lines(crease)
-	        if (_arena.getTerrainID(player._state.positionX, player._state.positionY) != 0) //0 = field
-		        return false;
+	        //if (_arena.getTerrainID(player._state.positionX, player._state.positionY) != 0) //0 = field
+		        //return false;
 
             bool record = _tickGameStarted > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
-            CfgInfo.Terrain terrain = _arena.getTerrain(pkt.positionX * 16, pkt.positionY * 16);
+            CfgInfo.Terrain terrain = _arena.getTerrain(ball._state.positionX, ball._state.positionY);
             if (player._team == team1)
             {
                 //Give them a goal

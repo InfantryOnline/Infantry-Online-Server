@@ -305,7 +305,7 @@ namespace InfServer.Game
         /// </summary>
         public void disconnect()
         {
-            Helpers.Player_Disconnect(this, this._server._recycling);
+            //NOTE: destroy will automatically send a dc connection packet to the player
             destroy();
         }
 
@@ -353,8 +353,10 @@ namespace InfServer.Game
         public void leftArena()
         {	//Stop spectating
             if (_spectating != null)
+            {
                 _spectating._spectators.Remove(this);
-            _spectating = null;
+                _spectating = null;
+            }
 
             //If we're currently in a vehicle, we want to desert it
             if (_occupiedVehicle != null)

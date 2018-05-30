@@ -70,12 +70,14 @@ namespace InfServer.Logic
             using (InfantryDataContext db = server.getContext())
             {
                 //Update and activate the zone for our directory server
-                dbZone.name = pkt.zoneName;
-                dbZone.description = pkt.zoneDescription;
-                dbZone.ip = pkt.zoneIP;
-                dbZone.port = pkt.zonePort;
-                dbZone.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
-                dbZone.active = 1;
+                Data.DB.zone zoneentry = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
+
+                zoneentry.name = pkt.zoneName;
+                zoneentry.description = pkt.zoneDescription;
+                zoneentry.ip = pkt.zoneIP;
+                zoneentry.port = pkt.zonePort;
+                zoneentry.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
+                zoneentry.active = 1;
 
                 db.SubmitChanges();
             }
@@ -428,25 +430,35 @@ namespace InfServer.Logic
         }
 
         /// <summary>
+        /// Handles a zone update packet and updates the database
+        /// </summary>
+        static public void Handle_CS_ZoneUpdate(CS_ZoneUpdate<Zone> pkt, Zone zone)
+        {
+            using (InfantryDataContext db = zone._server.getContext())
+            {
+                Data.DB.zone zEntry = db.zones.SingleOrDefault(z => z.id == zone._zone.id);
+                if (zEntry != null)
+                {
+                    //Update the zone for our directory server
+                    zEntry.name = pkt.zoneName;
+                    zEntry.description = pkt.zoneDescription;
+                    zEntry.ip = pkt.zoneIP;
+                    zEntry.port = pkt.zonePort;
+                    zEntry.advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
+                    zEntry.active = pkt.zoneActive;
+
+                    db.SubmitChanges();
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles a graceful zone disconnect
         /// </summary>
         static public void Handle_Disconnect(Disconnect<Zone> pkt, Zone zone)
         {
             Log.write("{0} disconnected gracefully", zone._zone.name);
 
-            //If the zone isn't recycling, lets set it as inactive
-            if (!pkt.recycling)
-            {
-                using (InfantryDataContext db = zone._server.getContext())
-                {
-                    Data.DB.zone zEntry = db.zones.SingleOrDefault(z => z.id == zone._zone.id);
-                    if (zEntry != null)
-                    {
-                        zEntry.active = 0;
-                        db.SubmitChanges();
-                    }
-                }
-            }
             //Close our connection; calls zone._client.Destruct
             zone._client.destroy();
         }
@@ -460,6 +472,7 @@ namespace InfServer.Logic
             CS_Auth<Zone>.Handlers += Handle_CS_Auth;
             CS_PlayerLogin<Zone>.Handlers += Handle_CS_PlayerLogin;
             CS_PlayerLeave<Zone>.Handlers += Handle_CS_PlayerLeave;
+            CS_ZoneUpdate<Zone>.Handlers += Handle_CS_ZoneUpdate;
             Disconnect<Zone>.Handlers += Handle_Disconnect;
         }
     }

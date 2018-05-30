@@ -50,7 +50,6 @@ namespace InfServer.Script.GameType_Burnt
         private void Initialize()
         {
             _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
-            settings.GameState = GameStates.Vote;
         }
 
         public void Poll(int now)
@@ -106,7 +105,7 @@ namespace InfServer.Script.GameType_Burnt
         public void StartGame()
         {   //Game is starting
 
-            //Reset the flags since we dont need them
+            //Reset the flags since we don't need them
             arena.flagReset();
 
             if (_playerCrownStatus == null)
@@ -163,9 +162,6 @@ namespace InfServer.Script.GameType_Burnt
             //Remove all crowns
             _playerCrownStatus.Clear();
             Helpers.Player_Crowns(arena, false, arena.Players.ToList());
-
-            //End the game officially
-            settings.GameState = GameStates.PostGame;
         }
 
         public void ResetGame()
@@ -184,7 +180,7 @@ namespace InfServer.Script.GameType_Burnt
                     {
                         //The timer has to be relative, so calculate
                         //timer = Environment.TickCount + (_timer * 10);
-                        return string.Format("Crown Timer: {0}", (Environment.TickCount - (_playerCrownStatus[p].expireTime / 1000)));
+                        return string.Format("Crown Timer: {0}", ((_playerCrownStatus[p].expireTime - Environment.TickCount) / 1000));
                     }
                     else
                     {
@@ -209,7 +205,7 @@ namespace InfServer.Script.GameType_Burnt
         private List<Player> GetCrowns()
         {
             List<Player> output = new List<Player>();
-            
+
             foreach (Player player in arena.PlayersIngame)
             {
                 if (!_playerCrownStatus.ContainsKey(player))
@@ -279,7 +275,7 @@ namespace InfServer.Script.GameType_Burnt
         {
             //The timer has to be relative, so calculate
             //timer = Environment.TickCount + (_timer * 10);
-            _playerCrownStatus[player].expireTime = Environment.TickCount + (config.king.expireTime * 1000);
+            _playerCrownStatus[player].expireTime = (Environment.TickCount + (config.king.expireTime * 1000));
         }
 
         public void PlayerKill(Player killer, Player victim)

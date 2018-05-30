@@ -33,7 +33,8 @@ namespace InfServer.Script.GameType_Burnt
 
             foreach (GameTypes type in Settings.AllowedGameTypes)
             {
-                Votes.Add(new Vote(type));
+                if (Votes.Count() == 0 || Votes.Where(v => v.GameType == type).Count() == 0)
+                { Votes.Add(new Vote(type)); }
             }
         }
 

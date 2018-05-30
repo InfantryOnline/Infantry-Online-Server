@@ -1,331 +1,333 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Text.RegularExpressions;
 
-using InfServer.Logic;
 using InfServer.Game;
 using InfServer.Scripting;
-using InfServer.Bots;
-using InfServer.Protocol;
-
 
 using Assets;
 
 namespace InfServer.Script.GameType_SLTDM
-{	// Script Class
+{	/// Script Class
     /// Provides the interface between the script and arena
     ///////////////////////////////////////////////////////
-    class Script_SLTDM : Scripts.IScript
-    {	 ///////////////////////////////////////////////////
+    public class Script_SLTDM : Scripts.IScript
+    {
+        #region Member Variables
+        ///////////////////////////////////////////////////
         // Member Variables
         ///////////////////////////////////////////////////
-        private Arena _arena;				//Pointer to our arena class
-        private CfgInfo _config;				//The zone config
+        private Arena arena;				//Pointer to our arena class
+        private CfgInfo CFG;				//The zone config
+        private int LastGameCheck;          //The tick at which the gamestate was checked
+        private int PreGamePeriod;          //How long the pre game period is between games
+        private int DeathmatchTimer;
 
-        private int _jackpot;					//The game's jackpot so far
+        private Team WinningTeam;
+        private int WinningTeamTick;        //The tick at which the team grabbed all the flags
+        private int WinningTeamNotify;
+        private int VictoryHoldTime;        //How long till the game ends
+        private int MinPlayers;             //Mininimum amount of players to start a game
+        private int Jackpot;                //The game's jackpot so far
+        private bool GameWon;               //Called when someone has captured all flags
 
-        private Team _victoryTeam;				//The team currently winning!
-        private Team team1;                     //Used for normal gameplay and matches
-        private Team team2;                     //Used for normal gameplay and matches
-        private int _tickVictoryStart;			//The tick at which the victory countdown began
-        private int _tickNextVictoryNotice;		//The tick at which we will next indicate imminent victory
-        private int _victoryNotice;				//The number of victory notices we've done
+        private GameState GameStates;
+        private FlagStatus FlagMode;
 
-        private int _tickGameLastTickerUpdate;
-        private int _lastGameCheck;			    //The tick at which we last checked for game viability
-        private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
-        private int _tickGameStart;			    //The tick at which the game started (0 == stopped)
-
-        private bool isMatch;                   //If this is a league match set by a ref
-
-        //Settings
-        private int _minPlayers;				//The minimum amount of players
-        private bool _gameWon = false;
-
-        private Dictionary<String, PlayerStats> _savedPlayerStats;
+        /// <summary>
+        /// Our current in game recordings
+        /// </summary>
+        private Dictionary<string, PlayerStats> CurrentPlayerStats;
         public class PlayerStats
         {
-            public Player player { get; set; }
-            public int kills { get; set; }
-            public int deaths { get; set; }
-            public bool subbedIn { get; set; }
-            public bool hasPlayed { get; set; }
+            public int Kills;
+            public int Deaths;
+            public bool SubbedIn;
+            public bool HasPlayed;
         }
+        #endregion
 
+        #region Game Functions
         ///////////////////////////////////////////////////
-        // Member Functions
+        // Game Functions
         ///////////////////////////////////////////////////
-        /// <summary>
-        /// Performs script initialization
-        /// </summary>
         public bool init(IEventObject invoker)
-        {	//Populate our variables
-            _arena = invoker as Arena;
-            _config = _arena._server._zoneConfig;
-            _arena.playtimeTickerIdx = 3; //Sets the global ticker index
+        {
+            arena = invoker as Arena;
+            CFG = arena._server._zoneConfig;
+            arena.playtimeTickerIdx = 3; //Sets the global ticker index used for changing the timer
 
-            _minPlayers = _config.deathMatch.minimumPlayers;
+            MinPlayers = CFG.deathMatch.minimumPlayers;
+            VictoryHoldTime = CFG.flag.victoryHoldTime;
+            PreGamePeriod = CFG.deathMatch.startDelay;
+            DeathmatchTimer = CFG.deathMatch.timer;
 
-            //For flag games
-            foreach (Arena.FlagState fs in _arena._flags.Values)
-                //Register our flag change events
-                fs.TeamChange += onFlagChange;
+            CurrentPlayerStats = new Dictionary<string, PlayerStats>();
 
-            _savedPlayerStats = new Dictionary<String, PlayerStats>();
+            foreach (Arena.FlagState fs in arena._flags.Values)
+            {   //Register our flag games
+                fs.TeamChange += OnFlagChange;
+            }
 
+            GameStates = GameState.Init;
             return true;
         }
 
-        /// <summary>
-        /// Allows the script to maintain itself
-        /// </summary>
         public bool poll()
-        {	//Should we check game state yet?
+        {
             int now = Environment.TickCount;
 
-            if (now - _lastGameCheck <= Arena.gameCheckInterval)
+            if (now - LastGameCheck < Arena.gameCheckInterval)
                 return true;
-            _lastGameCheck = now;
+            LastGameCheck = now;
 
-            //Do we have enough players ingame?
-            int playing = _arena.PlayerCount;
-
-            //If game is running and we don't have enough players
-            if (_arena._bGameRunning && playing < _minPlayers)
-            {   //Stop the game!
-                _arena.gameEnd();
-            }
-
-            //If were under min players, show the not enough players
-            if (playing < _minPlayers)
+            if (GameStates == GameState.Init)
             {
-                _tickGameStarting = 0;
-                _arena.setTicker(1, 3, 0, "Not Enough Players");
+                if (arena.PlayersIngame.Count() < MinPlayers)
+                {
+                    GameStates = GameState.NotEnoughPlayers;
+                }
             }
 
-            //Update our tickers
-            if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
+            switch (GameStates)
             {
-                if (now - _tickGameLastTickerUpdate > 1500)
-                {
-                    updateTickers();
-                    _tickGameLastTickerUpdate = now;
-                }
+                case GameState.NotEnoughPlayers:
+                    arena.setTicker(1, 3, 0, "Not Enough Players");
+                    GameStates = GameState.Init;
+                    break;
+                case GameState.Transitioning:
+                    //Do nothing while we wait
+                    break;
+                case GameState.ActiveGame:
+                    Poll(now);
+                    break;
+                case GameState.Init:
+                    Initialize();
+                    break;
+                case GameState.PreGame:
+                    PreGame();
+                    break;
+                case GameState.PostGame:
+                    GameStates = GameState.Init;
+                    break;
             }
-
-            //Do we have enough players to start a game?
-            if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
-            {	//Great! Get going
-                _tickGameStarting = now;
-                _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
-                    delegate()
-                    {	//Trigger the game start
-                        _arena.gameStart();
-                    }
-                );
-            }
-
-            //Is anybody experiencing a victory?
-            if (_tickVictoryStart > 0)
-            {	//Have they won yet?
-                if (now - _tickVictoryStart > (_config.flag.victoryHoldTime * 10) && !_gameWon)
-                {
-                    //Yes! Trigger game victory
-                    _gameWon = true; // game won
-                    gameVictory(_victoryTeam);
-                }
-                else
-                {	//Do we have a victory notice to give?
-                    if (_tickNextVictoryNotice != 0 && now > _tickNextVictoryNotice)
-                    {	//Yes! Let's give it
-                        int countdown = (_config.flag.victoryHoldTime / 100) - ((now - _tickVictoryStart) / 1000);
-                        _arena.sendArenaMessage(String.Format("Victory for {0} in {1} seconds!",
-                            _victoryTeam._name, countdown), _config.flag.victoryWarningBong);
-
-                        //Plan the next notice
-                        _tickNextVictoryNotice = _tickVictoryStart;
-                        _victoryNotice++;
-
-                        if (_victoryNotice == 1 && countdown >= 30)
-                            //Default 2/3 time
-                            _tickNextVictoryNotice += (_config.flag.victoryHoldTime / 3) * 10;
-                        else if (_victoryNotice == 2 || (_victoryNotice == 1 && countdown >= 20))
-                        {
-                            //10 second marker
-                            _tickNextVictoryNotice += (_config.flag.victoryHoldTime * 10) - 10000;
-                        }
-                        else
-                            _tickNextVictoryNotice = 0;
-                    }
-                }
-            }
-
             return true;
         }
 
-        #region Game Events
         /// <summary>
         /// Called when a flag changes team
         /// </summary>
-        public void onFlagChange(Arena.FlagState flag)
-        {	//Does this team now have all the flags?
-            Team victoryTeam = flag.team;
+        public void OnFlagChange(Arena.FlagState flag)
+        {   //Does this team have all the flags?
+            Team VictoryTeam = flag.team;
 
-            foreach (Arena.FlagState fs in _arena._flags.Values)
-                if (fs.bActive && fs.team != victoryTeam)
+            foreach (Arena.FlagState fs in arena._flags.Values)
+            {
+                if (fs.bActive && fs.team != VictoryTeam)
                 {
-                    victoryTeam = null;
+                    VictoryTeam = null;
                     break;
                 }
+            }
 
-            if (victoryTeam != null)
-            {	//Yes! Victory for them!
-                _arena.setTicker(1, 0, _config.flag.victoryHoldTime, "Victory in ");
-                _tickNextVictoryNotice = _tickVictoryStart = Environment.TickCount;
-                _victoryTeam = victoryTeam;
+            if (!GameWon)
+            {
+                if (VictoryTeam != null)
+                {
+                    WinningTeamTick = (Environment.TickCount + (VictoryHoldTime * 10));
+                    WinningTeam = VictoryTeam;
+                    WinningTeamNotify = 0;
+                    FlagMode = FlagStatus.XSeconds;
+                }
+                else
+                {
+                    if (WinningTeam != null)
+                    {
+                        WinningTeam = null;
+                        WinningTeamTick = 0;
+                        FlagMode = FlagStatus.Aborted;
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Script Functions
+        ///////////////////////////////////////////////////
+        // Script Functions
+        ///////////////////////////////////////////////////
+        private void Initialize()
+        {
+            WinningTeamNotify = 0;
+            WinningTeamTick = 0;
+            WinningTeam = null;
+            GameWon = false;
+
+            GameStates = GameState.PreGame;
+        }
+
+        private void PreGame()
+        {
+            GameStates = GameState.Transitioning;
+
+            //Sit here until timer runs out
+            arena.setTicker(1, 3, PreGamePeriod * 100, "Next game: ",
+                    delegate()
+                    {	//Trigger the game start
+                        arena.gameStart();
+                    }
+            );
+        }
+
+        private void Reset()
+        {
+            //Clear any tickers that might be active first
+            arena.setTicker(4, 0, 0, "");
+            arena.setTicker(1, 3, 0, "");
+
+            //Reset
+            GameStates = GameState.Init;
+        }
+
+        private void CheckWinner(int now)
+        {
+            //See if someone is winning
+            if (WinningTeam != null)
+            {
+                //Has XSeconds been called yet?
+                if (FlagMode == FlagStatus.XSeconds)
+                { return; }
+
+                int tick = ((WinningTeamTick - now) / 1000);
+                switch (tick)
+                {
+                    case 10:
+                        FlagMode = FlagStatus.TenSeconds;
+                        break;
+                    case 30:
+                        FlagMode = FlagStatus.ThirtySeconds;
+                        break;
+                    case 60:
+                        FlagMode = FlagStatus.SixtySeconds;
+                        break;
+                    default:
+                        if (tick <= 0)
+                        {
+                            FlagMode = FlagStatus.GameDone;
+                        }
+                        break;
+                }
+            }
+        }
+
+        private void SetNotifyBypass(int countdown)
+        {   //If XSeconds matches one of these, it will bypass that call
+            //so there is no duplicated Victory message
+            switch (countdown)
+            {
+                case 10:
+                    WinningTeamNotify = 1;
+                    break;
+                case 30:
+                    WinningTeamNotify = 2;
+                    break;
+                case 60:
+                    WinningTeamNotify = 3;
+                    break;
+            }
+        }
+
+        private void Poll(int now)
+        {
+            //See if we have enough players to keep playing
+            if (arena.PlayersIngame.Count() < MinPlayers)
+            {   //We don't, lets start over from the beginning
+                Reset();
             }
             else
-            {	//Aborted?
-                if (_victoryTeam != null && !_gameWon)
-                {
-                    _tickVictoryStart = 0;
-                    _tickNextVictoryNotice = 0;
-
-                    _arena.sendArenaMessage("Victory has been aborted.", _config.flag.victoryAbortedBong);
-                    _arena.setTicker(1, 0, 0, "");
-                    _victoryTeam = null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Called when the specified team have won
-        /// </summary>
-        public void gameVictory(Team victors)
-        {
-            //Stop the game
-            _arena.gameEnd();
-        }
-
-        /// <summary>
-        /// Called when the game begins
-        /// </summary>
-        [Scripts.Event("Game.Start")]
-        public bool gameStart()
-        {
-            //We've started!
-            _tickGameStart = Environment.TickCount;
-            _tickGameStarting = 0;
-            _gameWon = false;
-            _victoryTeam = null;
-
-            if (_arena.ActiveTeams.Count() == 0)
-                return false;
-            team1 = _arena.ActiveTeams.Count() == 1 ? _arena.ActiveTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
-            team2 = _arena.ActiveTeams.Count() > 1 ? _arena.ActiveTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
-
-            isMatch = _arena._isMatch;
-
-            //Start a new session for players, clears the old one
-            _savedPlayerStats.Clear();
-            foreach (Player p in _arena.Players)
             {
-                PlayerStats temp = new PlayerStats();
-                temp.player = p;
-                temp.kills = 0;
-                temp.deaths = 0;
-                temp.hasPlayed = false;
-                temp.subbedIn = false;
-                _savedPlayerStats.Add(p._alias, temp);
-
-                if (!p.IsSpectator)
-                {
-                    p._bAllowBanner = false;
-                    temp.hasPlayed = true;
-                }
+                CheckWinner(now);
             }
 
-            //Let everyone know
-            _arena.sendArenaMessage("Game has started!", 1);
-            _arena.setTicker(1, 3, _config.deathMatch.timer * 100, "Time Left: ",
-                delegate()
-                {	//Trigger game end.
-                    _arena.gameEnd();
-                }
-            );
+            int countdown = WinningTeamTick > 0 ? ((WinningTeamTick - now) / 1000) : 0;
+            switch (FlagMode)
+            {
+                case FlagStatus.Aborted:
+                    arena.setTicker(4, 0, 0, "");
+                    arena.sendArenaMessage("Victory has been aborted.", CFG.flag.victoryAbortedBong);
+                    FlagMode = FlagStatus.None;
+                    break;
+                case FlagStatus.TenSeconds:
+                    //10 second win timer
+                    if (WinningTeamNotify == 1) //Been notified already?
+                    { break; }
+                    WinningTeamNotify = 1;
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", WinningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    FlagMode = FlagStatus.None;
+                    break;
+                case FlagStatus.ThirtySeconds:
+                    //30 second win timer
+                    if (WinningTeamNotify == 2) //Been notified already?
+                    { break; }
+                    WinningTeamNotify = 2;
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", WinningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    FlagMode = FlagStatus.None;
+                    break;
+                case FlagStatus.SixtySeconds:
+                    //60 second win timer
+                    if (WinningTeamNotify == 3) //Been notified already?
+                    { break; }
+                    WinningTeamNotify = 3;
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", WinningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    FlagMode = FlagStatus.None;
+                    break;
+                case FlagStatus.XSeconds:
+                    //Initial win timer upon capturing
+                    SetNotifyBypass(countdown); //Checks to see if xSeconds matches any other timers
+                    arena.setTicker(4, 0, CFG.flag.victoryHoldTime, "Victory in ");
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", WinningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    FlagMode = FlagStatus.None;
+                    break;
+                case FlagStatus.GameDone:
+                    //Game is done
+                    GameWon = true;
+                    arena.gameEnd();
+                    break;
+            }
 
-            return true;
+            UpdateTickers();
         }
 
-        /// <summary>
-        /// Called when the game ends
-        /// </summary>
-        [Scripts.Event("Game.End")]
-        public bool gameEnd()
-        {	//Game finished, perhaps start a new one
-            _arena.sendArenaMessage("Game Over!");
-
-            _arena.gameReset();
-            return true;
-        }
-
-        /// <summary>
-        /// Called to reset the game state
-        /// </summary>
-        [Scripts.Event("Game.Reset")]
-        public bool gameReset()
-        {    //Game reset, perhaps start a new one
-            _tickGameStart = 0;
-            _tickGameStarting = 0;
-            _tickVictoryStart = 0;
-            _tickNextVictoryNotice = 0;
-
-            _victoryTeam = null;
-            _gameWon = false;
-
-            return true;
-        }
-
-        /// <summary>
-        /// Updates our tickers
-        /// </summary>
-        public void updateTickers()
+        private void UpdateTickers()
         {
             //Team scores
-            string format = String.Format("{0}={1} - {2}={3}", team1._name, team1._currentGameKills, team2._name, team2._currentGameKills);
-            _arena.setTicker(1, 2, 0, format);
+            List<Team> ActiveTeams = arena.Teams.Where(entry => entry.ActivePlayerCount > 0).ToList();
+            Team titan = ActiveTeams.ElementAt(0) != null ? ActiveTeams.ElementAt(0) : arena.getTeamByName(CFG.teams[0].name);
+            Team collie = ActiveTeams.Count() > 1 ? ActiveTeams.ElementAt(1) : arena.getTeamByName(CFG.teams[1].name);
+
+            string format = string.Format("{0}={1} - {2}={3}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills);
+            arena.setTicker(1, 2, 0, format);
 
             //Personal scores
-            _arena.setTicker(2, 1, 0, delegate(Player p)
+            arena.setTicker(2, 1, 0, delegate(Player p)
             {
                 //Update their ticker
-                if (_savedPlayerStats.ContainsKey(p._alias))
-                    return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
+                return string.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}",
                         p._state.health,
-                        _savedPlayerStats[p._alias].kills,
-                        _savedPlayerStats[p._alias].deaths);
-
-                return "";
+                        (p.StatsCurrentGame == null ? 0 : p.StatsCurrentGame.kills),
+                        (p.StatsCurrentGame == null ? 0 : p.StatsCurrentGame.deaths));
             });
 
-            //1st and 2nd place with mvp (for flags later)
-            List<Player> ranked = new List<Player>();
-            foreach (Player p in _arena.Players)
-            {
-                if (p == null)
-                    continue;
-                if (_savedPlayerStats.ContainsKey(p._alias) && _savedPlayerStats[p._alias].hasPlayed)
-                    ranked.Add(p);
-            }
-            IEnumerable<Player> ranking = ranked.OrderByDescending(player => _savedPlayerStats[player._alias].kills).OrderBy(player => _savedPlayerStats[player._alias].deaths);
+            //1st and 2nd place
+            List<Player> ranking = arena.Players.OrderBy(player => (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.deaths)).OrderByDescending(
+                player => (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills)).ToList();
             int idx = 3; format = "";
             foreach (Player rankers in ranking)
             {
-                if (rankers == null)
+                if (rankers.StatsCurrentGame == null
+                    || !CurrentPlayerStats.ContainsKey(rankers._alias)
+                    || !CurrentPlayerStats[rankers._alias].HasPlayed)
                     continue;
 
                 if (idx-- == 0)
@@ -334,40 +336,75 @@ namespace InfServer.Script.GameType_SLTDM
                 switch (idx)
                 {
                     case 2:
-                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias,
-                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths);
+                        format = string.Format("1st: {0}(K={1} D={2})", rankers._alias,
+                          rankers.StatsCurrentGame.kills, rankers.StatsCurrentGame.deaths);
                         break;
                     case 1:
-                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
-                          _savedPlayerStats[rankers._alias].kills, _savedPlayerStats[rankers._alias].deaths));
+                        format = (format + string.Format(" 2nd: {0}(K={1} D={2})", rankers._alias,
+                          rankers.StatsCurrentGame.kills, rankers.StatsCurrentGame.deaths));
                         break;
                 }
             }
-            if (!_arena.recycling && _victoryTeam == null)
-                _arena.setTicker(2, 0, 0, format);
+            if (!arena.recycling && WinningTeam == null)
+                arena.setTicker(2, 0, 0, format);
         }
         #endregion
 
-        #region Player Events
+        #region Script Events
+        ///////////////////////////////////////////////////
+        // Script Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Called when the game begins
+        /// </summary>
+        [Scripts.Event("Game.Start")]
+        public bool gameStart()
+        {
+            GameStates = GameState.ActiveGame;
+            FlagMode = FlagStatus.None;
+
+            arena.sendArenaMessage("Game has started!");
+            arena.setTicker(1, 3, DeathmatchTimer * 100, "Time Left: ",
+                delegate()
+                {   //Trigger game end
+                    arena.gameEnd();
+                }
+            );
+            return true;
+        }
+
+        /// <summary>
+        /// Called when the game ends
+        /// </summary>
+        [Scripts.Event("Game.End")]
+        public bool gameEnd()
+        {
+            GameStates = GameState.PostGame;
+
+            //Game finished
+            arena.sendArenaMessage("Game Over!");
+
+            if (WinningTeam != null)
+            {
+                arena.sendArenaMessage(WinningTeam._name + " has won the game!");
+            }
+            WinningTeam = null;
+
+            return true;
+        }
+
         /// <summary>
         /// Called when the statistical breakdown is displayed
         /// </summary>
         [Scripts.Event("Player.Breakdown")]
         public bool breakdown(Player from, bool bCurrent)
-        {	//Allows additional "custom" breakdown information
-
-            if (from == null)
-                return false;
-
+        {
             from.sendMessage(0, "#Team Statistics Breakdown");
-            IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
+            IEnumerable<Team> activeTeams = arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
             IEnumerable<Team> rankedTeams = activeTeams.OrderByDescending(entry => entry._currentGameKills);
             int idx = 3;	//Only display top three teams
             foreach (Team t in rankedTeams)
             {
-                if (t == null)
-                    continue;
-
                 if (idx-- == 0)
                     break;
 
@@ -382,7 +419,7 @@ namespace InfServer.Script.GameType_SLTDM
                         break;
                 }
 
-                from.sendMessage(0, String.Format(format,
+                from.sendMessage(0, string.Format(format,
                     t._currentGameKills, t._currentGameDeaths,
                     t._name));
             }
@@ -390,11 +427,11 @@ namespace InfServer.Script.GameType_SLTDM
             from.sendMessage(0, "#Individual Statistics Breakdown");
             idx = 3;        //Only display top three players
             List<Player> plist = new List<Player>();
-            foreach (Player p in _arena.Players.ToList())
+            foreach (Player p in arena.Players.ToList())
             {
-                if(p == null)
+                if (p.StatsCurrentGame == null)
                     continue;
-                if (_savedPlayerStats.ContainsKey(p._alias) && _savedPlayerStats[p._alias].hasPlayed)
+                if (CurrentPlayerStats.ContainsKey(p._alias) && CurrentPlayerStats[p._alias].HasPlayed)
                     plist.Add(p);
             }
 
@@ -403,8 +440,8 @@ namespace InfServer.Script.GameType_SLTDM
                 var ranking = plist.Select(player => new
                 {
                     Alias = player._alias,
-                    Kills = _savedPlayerStats[player._alias].kills,
-                    Deaths = _savedPlayerStats[player._alias].deaths
+                    Kills = player.StatsCurrentGame.kills,
+                    Deaths = player.StatsCurrentGame.deaths
                 })
                 .GroupBy(p => p.Kills)
                 .OrderByDescending(k => k.Key)
@@ -433,12 +470,12 @@ namespace InfServer.Script.GameType_SLTDM
 
                     idx -= alias.Count();
                     if (alias.First() != null)
-                        from.sendMessage(0, String.Format(placeword + format, alias.First().Kills, alias.First().Deaths,
-                            String.Join(", ", alias.Select(g => g.Alias))));
+                        from.sendMessage(0, string.Format(placeword + format, alias.First().Kills, alias.First().Deaths,
+                            string.Join(", ", alias.Select(g => g.Alias))));
                 }
 
-                IEnumerable<Player> specialPlayers = plist.OrderByDescending(player => _savedPlayerStats[player._alias].deaths);
-                int topDeaths = (specialPlayers.First() != null ? _savedPlayerStats[specialPlayers.First()._alias].deaths : 0), deaths = 0;
+                IEnumerable<Player> specialPlayers = plist.OrderByDescending(player => player.StatsCurrentGame.deaths);
+                int topDeaths = (specialPlayers.First() != null ? specialPlayers.First().StatsCurrentGame.deaths : 0), deaths = 0;
                 if (topDeaths > 0)
                 {
                     from.sendMessage(0, "Most Deaths");
@@ -446,37 +483,30 @@ namespace InfServer.Script.GameType_SLTDM
                     List<string> mostDeaths = new List<string>();
                     foreach (Player p in specialPlayers)
                     {
-                        if (p == null || !_savedPlayerStats.ContainsKey(p._alias))
-                            continue;
-
-                        if (!_savedPlayerStats[p._alias].hasPlayed)
-                            continue;
-
-                        deaths = _savedPlayerStats[p._alias].deaths;
+                        deaths = p.StatsCurrentGame.deaths;
                         if (deaths == topDeaths)
                         {
                             if (i++ >= 1)
                                 mostDeaths.Add(p._alias);
                             else
-                                mostDeaths.Add(String.Format("(D={0}): {1}", deaths, p._alias));
+                                mostDeaths.Add(string.Format("(D={0}): {1}", deaths, p._alias));
                         }
                     }
                     if (mostDeaths.Count > 0)
                     {
-                        string s = String.Join(", ", mostDeaths.ToArray());
+                        string s = string.Join(", ", mostDeaths.ToArray());
                         from.sendMessage(0, s);
                     }
                 }
             }
 
-            if (_savedPlayerStats[from._alias] != null)
+            if (from.StatsCurrentGame != null)
             {
                 string personalFormat = "!Personal Score: (K={0} D={1})";
-                from.sendMessage(0, String.Format(personalFormat,
-                    _savedPlayerStats[from._alias].kills,
-                    _savedPlayerStats[from._alias].deaths));
+                from.sendMessage(0, string.Format(personalFormat,
+                    from.StatsCurrentGame.kills,
+                    from.StatsCurrentGame.deaths));
             }
-
             return true;
         }
 
@@ -486,45 +516,36 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Player.EnterArena")]
         public void playerEnterArena(Player player)
         {
-            if (!_savedPlayerStats.ContainsKey(player._alias))
+            if (!CurrentPlayerStats.ContainsKey(player._alias))
             {
                 PlayerStats temp = new PlayerStats();
-                temp.player = player;
-                temp.deaths = 0;
-                temp.kills = 0;
-                temp.hasPlayed = false;
-                temp.subbedIn = false;
-                _savedPlayerStats.Add(player._alias, temp);
+                temp.Deaths = 0;
+                temp.Kills = 0;
+                temp.HasPlayed = false;
+                temp.SubbedIn = false;
+                CurrentPlayerStats.Add(player._alias, temp);
             }
-
-            //Lets reset our current game
-            if (_savedPlayerStats[player._alias].player.StatsCurrentGame != null)
-                player.StatsCurrentGame = _savedPlayerStats[player._alias].player.StatsCurrentGame;
         }
 
         /// <summary>
-        /// Called when the player successfully joins the game
+        /// Called when a player enters the game
         /// </summary>
         [Scripts.Event("Player.Enter")]
         public void playerEnter(Player player)
         {
-            //Add them to the list if not in it
-            if (!_savedPlayerStats.ContainsKey(player._alias))
-            {
-                PlayerStats temp = new PlayerStats();
-                temp.player = player;
-                temp.deaths = 0;
-                temp.kills = 0;
-                temp.hasPlayed = false;
-                _savedPlayerStats.Add(player._alias, temp);
-            }
-            _savedPlayerStats[player._alias].hasPlayed = true;
-            if (isMatch)
-                player._bAllowBanner = false;
+            if (GameStates != GameState.ActiveGame)
+            { return; }
 
-            //If the game has started, they only get 1 life
-            if (_tickGameStart > 0)
-                _savedPlayerStats[player._alias].subbedIn = true;
+            if (CurrentPlayerStats.ContainsKey(player._alias))
+            {
+                CurrentPlayerStats[player._alias].HasPlayed = true;
+
+                //Since the game has already started, give them 1 life
+                CurrentPlayerStats[player._alias].SubbedIn = true;
+            }
+
+            if (arena._isMatch)
+            { player._bAllowBanner = false; }
         }
 
         /// <summary>
@@ -533,23 +554,19 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Player.JoinGame")]
         public bool playerJoinGame(Player player)
         {
-            //Add them to the list
-            if (!_savedPlayerStats.ContainsKey(player._alias))
-            {
-                PlayerStats temp = new PlayerStats();
-                temp.player = player;
-                temp.deaths = 0;
-                temp.kills = 0;
-                temp.hasPlayed = true;
-                _savedPlayerStats.Add(player._alias, temp);
-            }
-            _savedPlayerStats[player._alias].hasPlayed = true;
-            if (isMatch)
-                player._bAllowBanner = false;
+            if (GameStates != GameState.ActiveGame)
+            { return true; }
 
-            //If the game has started, they only get 1 life
-            if (_tickGameStart > 0)
-                _savedPlayerStats[player._alias].subbedIn = true;
+            if (CurrentPlayerStats.ContainsKey(player._alias))
+            {
+                CurrentPlayerStats[player._alias].HasPlayed = true;
+
+                //Since the game has already started, give them 1 life
+                CurrentPlayerStats[player._alias].SubbedIn = true;
+            }
+
+            if (arena._isMatch)
+            { player._bAllowBanner = false; }
 
             return true;
         }
@@ -560,10 +577,12 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Player.PlayerKill")]
         public bool playerPlayerKill(Player victim, Player killer)
         {
-            if (_savedPlayerStats.ContainsKey(killer._alias))
-                _savedPlayerStats[killer._alias].kills++;
-            if (_savedPlayerStats.ContainsKey(victim._alias))
-                _savedPlayerStats[victim._alias].deaths++;
+            if (CurrentPlayerStats.ContainsKey(killer._alias))
+            { CurrentPlayerStats[killer._alias].Kills++; }
+
+            if (CurrentPlayerStats.ContainsKey(victim._alias))
+            { CurrentPlayerStats[victim._alias].Deaths++; }
+
             return true;
         }
 
@@ -573,21 +592,46 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Player.Spawn")]
         public bool playerSpawn(Player player, bool death)
         {
+            if (GameStates != GameState.ActiveGame)
+            { return true; }
+
             //We only want to trigger end game when the last team member died out
-            if (_tickGameStart > 0 && death)
+            if (death)
             {
-                if (_savedPlayerStats[player._alias] != null 
-                    && (_savedPlayerStats[player._alias].deaths >= 3 || _savedPlayerStats[player._alias].subbedIn))
+                if ((player.StatsCurrentGame != null && player.StatsCurrentGame.deaths >= 3)
+                    || (CurrentPlayerStats.ContainsKey(player._alias) && CurrentPlayerStats[player._alias].SubbedIn))
                 {
                     player.spec();
-                    _arena.sendArenaMessage(String.Format("{0} has died out.", player._alias));
+                    arena.sendArenaMessage(string.Format("{0} has died out.", player._alias));
 
-                    if (team1.ActivePlayerCount < 1 || team2.ActivePlayerCount < 1)
-                        _arena.gameEnd();
+                    if (arena.ActiveTeams.Count() < 2)
+                        arena.gameEnd();
                 }
             }
             return true;
         }
+
         #endregion
+
+        private enum GameState
+        {
+            Init,
+            PreGame,
+            ActiveGame,
+            PostGame,
+            NotEnoughPlayers,
+            Transitioning,
+        }
+
+        private enum FlagStatus
+        {
+            None,
+            Aborted,
+            TenSeconds,
+            ThirtySeconds,
+            SixtySeconds,
+            XSeconds,
+            GameDone,
+        }
     }
 }

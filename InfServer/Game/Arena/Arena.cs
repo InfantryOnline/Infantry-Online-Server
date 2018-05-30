@@ -214,13 +214,7 @@ namespace InfServer.Game
         {
             get
             {
-                List<Player> pubPlayers = new List<Player>();
-                foreach (Player plyr in _playersIngame)
-                {
-                    if (!plyr._team._isPrivate)
-                        pubPlayers.Add(plyr);
-                }
-                return pubPlayers;
+                return _playersIngame.Where(plyr => !plyr._team._isPrivate);
             }
         }
 

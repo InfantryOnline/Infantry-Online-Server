@@ -18,19 +18,21 @@ namespace InfServer.Script.GameType_Burnt
         private Team winningTeam;
         private bool gameWon;
         private int winningTeamTick;
+        private int winningTeamNotify;
         private int victoryHoldTime;
 
         public CTF(Arena arena, Settings settings)
         {
             this.arena = arena;
             this.settings = settings;
+            this.CFG = arena._server._zoneConfig;
 
             minPlayers = int.MaxValue;
 
             foreach (Arena.FlagState fs in arena._flags.Values)
             {	//Determine the minimum number of players
                 if (fs.flag.FlagData.MinPlayerCount < minPlayers)
-                    minPlayers = fs.flag.FlagData.MinPlayerCount;
+                { minPlayers = fs.flag.FlagData.MinPlayerCount; }
 
                 //Register our flag change events
                 fs.TeamChange += OnFlagChange;
@@ -38,14 +40,13 @@ namespace InfServer.Script.GameType_Burnt
 
             if (minPlayers == int.MaxValue)
             {
-                minPlayers = 1;
+                minPlayers = 2;
             }
         }
 
         private void Initialize()
         {
             victoryHoldTime = CFG.flag.victoryHoldTime;
-            settings.GameState = GameStates.Vote;
         }
 
         private void OnFlagChange(Arena.FlagState flag)
@@ -53,11 +54,12 @@ namespace InfServer.Script.GameType_Burnt
             Team victory = flag.team;
 
             //Does this team now have all the flags?
-            foreach(Arena.FlagState fs in arena._flags.Values)
+            foreach (Arena.FlagState fs in arena._flags.Values)
             {
                 if (fs.bActive && fs.team != flag.team)
                 {   //Not all flags are captured yet
                     victory = null;
+                    break;
                 }
             }
 
@@ -65,8 +67,9 @@ namespace InfServer.Script.GameType_Burnt
             {
                 if (victory != null)
                 {
+                    winningTeamTick = (Environment.TickCount + (victoryHoldTime * 10));
+                    winningTeamNotify = 0;
                     winningTeam = victory;
-                    winningTeamTick = Environment.TickCount;
                     settings.CTFMode = CTFMode.XSeconds;
                 }
                 else
@@ -86,7 +89,11 @@ namespace InfServer.Script.GameType_Burnt
             //See if someone is winning
             if (winningTeam != null)
             {
-                int tick = now - winningTeamTick;
+                //Has XSeconds been called yet?
+                if (settings.CTFMode == CTFMode.XSeconds)
+                { return; }
+
+                int tick = ((winningTeamTick - now) / 1000);
                 switch (tick)
                 {
                     case 10:
@@ -108,8 +115,25 @@ namespace InfServer.Script.GameType_Burnt
             }
         }
 
+        private void SetNotifyBypass(int countdown)
+        {   //If XSeconds matches one of these, it will bypass that call
+            //so there is no duplicate Victory message
+            switch (countdown)
+            {
+                case 10:
+                    winningTeamNotify = 1;
+                    break;
+                case 30:
+                    winningTeamNotify = 2;
+                    break;
+                case 60:
+                    winningTeamNotify = 3;
+                    break;
+            }
+        }
+
         public void Poll(int now)
-        {      
+        {
             switch (settings.GameState)
             {
                 case GameStates.ActiveGame:
@@ -143,30 +167,41 @@ namespace InfServer.Script.GameType_Burnt
                 CheckWinner(now);
             }
 
-            int countdown = winningTeamTick > 0 ? (CFG.flag.victoryHoldTime / 10) - ((now - winningTeamTick) / 1000) : 0;
+            int countdown = winningTeamTick > 0 ? ((winningTeamTick - now) / 1000) : 0;
             switch (settings.CTFMode)
             {
                 case CTFMode.Aborted:
+                    arena.setTicker(4, 1, 0, "");
                     arena.sendArenaMessage("Victory has been aborted.", CFG.flag.victoryAbortedBong);
                     settings.CTFMode = CTFMode.ActiveGame;
                     break;
                 case CTFMode.TenSeconds:
                     //10 second win timer
+                    if (winningTeamNotify == 1) //Been notified already?
+                    { break; }
+                    winningTeamNotify = 1;
                     arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
                     settings.CTFMode = CTFMode.ActiveGame;
                     break;
                 case CTFMode.ThirtySeconds:
                     //30 second win timer
+                    if (winningTeamNotify == 2) //Been notified already?
+                    { break; }
+                    winningTeamNotify = 2;
                     arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
                     settings.CTFMode = CTFMode.ActiveGame;
                     break;
                 case CTFMode.SixtySeconds:
                     //60 second win timer
+                    if (winningTeamNotify == 3) //Been notified already?
+                    { break; }
+                    winningTeamNotify = 3;
                     arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
                     settings.CTFMode = CTFMode.ActiveGame;
                     break;
                 case CTFMode.XSeconds:
                     //Initial win timer upon capturing
+                    SetNotifyBypass(countdown); //Checks to see if xSeconds matches any other timers
                     arena.setTicker(4, 1, CFG.flag.victoryHoldTime, "Victory in ");
                     arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
                     settings.CTFMode = CTFMode.ActiveGame;
@@ -178,7 +213,8 @@ namespace InfServer.Script.GameType_Burnt
                     break;
                 case CTFMode.NotEnoughPlayers:
                     //Not enough players in game, update ticker
-                    arena.setTicker(1, 1, 0, "Not Enough Players");
+                    arena.setTicker(2, 1, 0, "Not Enough Players");
+                    settings.GameState = GameStates.Init;
                     break;
             }
 
@@ -187,6 +223,7 @@ namespace InfServer.Script.GameType_Burnt
 
         private void InitCTF()
         {
+            winningTeamNotify = 0;
             winningTeamTick = 0;
             winningTeam = null;
             gameWon = false;
@@ -225,7 +262,7 @@ namespace InfServer.Script.GameType_Burnt
                 player => (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills)).ToList();
             int idx = 3;
             string format = "";
-            foreach(Player p in rankedPlayers)
+            foreach (Player p in rankedPlayers)
             {
                 if (p.StatsCurrentGame == null)
                 { continue; }
@@ -234,26 +271,26 @@ namespace InfServer.Script.GameType_Burnt
                     break;
                 }
 
-                switch(idx)
+                switch (idx)
                 {
                     case 2:
-                        format = string.Format("!1st (K={0} D={1}): {2}", p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths, p._alias);
+                        format = string.Format("!1st: {0}(K={1} D={2}) ", p._alias, p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths);
                         break;
                     case 1:
-                        format = (format + string.Format("!2nd (K={0} D={1}): {2}", p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths, p._alias));
+                        format = (format + string.Format("!2nd: {0}(K={1} D={2})", p._alias, p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths));
                         break;
                 }
             }
             if (!string.IsNullOrWhiteSpace(format))
-            { arena.setTicker(0, 2, 0, format); }
+            { arena.setTicker(1, 2, 0, format); }
 
-            arena.setTicker(2, 3, 0, delegate (Player p)
+            arena.setTicker(2, 3, 0, delegate(Player p)
             {
                 if (p.StatsCurrentGame == null)
                 {
                     return "Personal Score: Kills=0 - Deaths=0";
                 }
-                return string.Format("Personal Score: Kills={0} - Deaths{1}", p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths);
+                return string.Format("Personal Score: Kills={0} - Deaths={1}", p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths);
             });
         }
 

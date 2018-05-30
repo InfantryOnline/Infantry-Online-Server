@@ -469,16 +469,28 @@ namespace InfServer.Game
                         continue;
 
                     //Make sure his stats get updated
-                    p.disconnect();
+                    //NOTE: player client destroy will auto send a dc packet
+                    p.destroy();
                 }
             }
 
             if (!_bStandalone)
             {
+                //If we are shutting down, update the zone
+                if (_shutdown)
+                {
+                    CS_ZoneUpdate<Database> update = new CS_ZoneUpdate<Database>();
+                    update.zoneName = _name;
+                    update.zoneDescription = _description;
+                    update.zoneIP = _bindIP;
+                    update.zonePort = _bindPort;
+                    update.zoneIsAdvanced = _isAdvanced;
+                    update.zoneActive = 0; //Going Inactive
+                    _db.send(update);
+                }
+
                 //Disconnect from the database gracefully..
-                Disconnect<Database> dc = new Disconnect<Database>();
-                dc.recycling = _recycling;
-                _db.send(dc);
+                _db.send(new Disconnect<Database>());
             }
 
             //Shut off our irc connection

@@ -169,17 +169,7 @@ namespace InfServer.Game
         {	///////////////////////////////////////////////
             // Prepare the player state
             ///////////////////////////////////////////////           
-
-            //Check for players already in the arena
-            foreach (Player pl in _players.ToList())
-            {
-                if (pl._alias.Equals(player._alias))
-                {
-                    Log.write(TLog.Warning, String.Format("Duplicate player found in the arena, kicking old one - {0}", pl._alias));
-                    pl.leftArena();
-                }
-            }
-
+            
             //We're entering the arena..
             player._arena = this;
 
@@ -215,11 +205,6 @@ namespace InfServer.Game
                 if (player._bIngame)
                     player.firstTimePlayer = false;
             }
-            else
-            {
-                //Reset any prized items
-                //Logic_Assets.RunEvent(player, "reset");
-            }
 
             //Create our new spam filter list
             player._msgTimeStamps = new List<DateTime>();
@@ -232,7 +217,8 @@ namespace InfServer.Game
 
             //Add him to our list of players. We want to do this now so he doesn't lose 
             //info about anything happening until then.
-            _players.Add(player);
+            if (!_players.Contains(player))
+                _players.Add(player);
 
             //Check his processes quick
             SC_Environment env = new SC_Environment();
@@ -356,11 +342,11 @@ namespace InfServer.Game
                     callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-                    player.sendMessage(-3, "[Notice] Welcome to Infantry, IRC support at irc.synirc.net #infantry, which can quicky be accessed at freeinfantry.com. Enjoy your stay.");
+                    player.sendMessage(-3, "[Notice] Welcome to Infantry! To get support simply use the discord link located on the top right of the infantry launcher. Enjoy your stay!");
 
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
-                        player.sendMessage(-3, "[Mod Notice] Prime time of your life");
+                        player.sendMessage(-3, "[Mod Notice] To see a list of commands, type *help. To specifically get info on a command type *help <command name>");
                 }
             );
         }

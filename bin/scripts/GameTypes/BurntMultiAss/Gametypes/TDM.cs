@@ -19,6 +19,7 @@ namespace InfServer.Script.GameType_Burnt
         private Settings settings;
         private CfgInfo config;
         private Team winningTeam;
+        private int minPlayers;
 
         public TDM(Arena arena, Settings settings)
         {
@@ -26,11 +27,12 @@ namespace InfServer.Script.GameType_Burnt
             this.settings = settings;
 
             config = arena._server._zoneConfig;
+            minPlayers = config.deathMatch.minimumPlayers;
         }
 
-        public void Initialize()
+        private void Initialize()
         {
-            settings.GameState = GameStates.Vote;
+
         }
 
         public void Poll(int now)
@@ -57,6 +59,11 @@ namespace InfServer.Script.GameType_Burnt
 
         private void PollGame(int now)
         {
+            if (arena.PlayersIngame.Count() < minPlayers)
+            {   //Notify
+                arena.setTicker(1, 3, 0, "Not Enough Players");
+                arena.gameEnd();
+            }
             UpdateTickers();
         }
 
@@ -124,15 +131,15 @@ namespace InfServer.Script.GameType_Burnt
                 }
             }
             //Personal scores
-            arena.setTicker(2, 1, 0, delegate (Player p)
+            arena.setTicker(2, 1, 0, delegate(Player p)
             {
-                    //Update their ticker
-                    if (p.StatsCurrentGame == null)
-                    {
-                        return "Personal Score: Kills=0 - Deaths=0";
-                    }
+                //Update their ticker
+                if (p.StatsCurrentGame == null)
+                {
+                    return "Personal Score: Kills=0 - Deaths=0";
+                }
 
-                    return "Personal Score: Kills=" + p.StatsCurrentGame.kills + " - Deaths=" + p.StatsCurrentGame.deaths;
+                return "Personal Score: Kills=" + p.StatsCurrentGame.kills + " - Deaths=" + p.StatsCurrentGame.deaths;
             });
 
             //1st and 2nd place
@@ -175,7 +182,7 @@ namespace InfServer.Script.GameType_Burnt
             }
             if (!arena.recycling)
                 arena.setTicker(2, 0, 0, format);
-        }        
+        }
 
         public void PlayerKill(Player killer, Player victim)
         {

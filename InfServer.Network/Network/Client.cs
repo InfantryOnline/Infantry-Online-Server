@@ -221,7 +221,10 @@ namespace InfServer.Protocol
             public void onCompleted()
             {
                 if (Completed != null)
+                {
                     Completed();
+                    Completed -= Completed;
+                }
             }
 
             /// <summary>
@@ -257,7 +260,10 @@ namespace InfServer.Protocol
             public void onCompleted()
             {
                 if (Completed != null)
+                {
                     Completed();
+                    Completed -= Completed;
+                }
             }
         }
         #endregion
@@ -300,7 +306,7 @@ namespace InfServer.Protocol
             using (DdMonitor.Lock(_sync))
             {	//Only time out server-side clients
                 int now = Environment.TickCount;
-
+                
                 if (connectionTimeout != -1 && !_bClientConn && now - base._lastPacketRecv > connectionTimeout)
                 {	//Farewell~
                     Log.write(TLog.Warning, "Client timeout: {0}", this);

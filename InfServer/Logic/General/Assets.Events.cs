@@ -219,7 +219,6 @@ namespace InfServer.Logic
                         }
 
                         bChangedState = true;
-                        //player.syncState();
                     }
                     break;
 
@@ -391,6 +390,7 @@ namespace InfServer.Logic
                 case "wipescore":
                     //TODO: check if this is right with people that know it
                     player.WipeStats();
+                    bChangedState = true;
                     break;
 
                 //Resets the player's default vehicle

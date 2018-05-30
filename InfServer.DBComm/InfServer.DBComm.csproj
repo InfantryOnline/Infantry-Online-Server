@@ -127,6 +127,7 @@
     <Compile Include="Packets\Stats\CS_PlayerStatsRequest.cs" />
     <Compile Include="Packets\Stats\CS_StatsUpdate.cs" />
     <Compile Include="Packets\Stats\SC_PlayerStatsResponse.cs" />
+    <Compile Include="Packets\Zone\CS_ZoneUpdate.cs" />
     <Compile Include="Packets\Zone\Disconnect.cs" />
     <Compile Include="Packets\Zone\SC_Zones.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

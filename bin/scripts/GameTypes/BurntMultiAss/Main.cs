@@ -25,7 +25,7 @@ namespace InfServer.Script.GameType_Burnt
         //Settings
         private GameTypes _GameType;
         private Settings _Settings;
-        private List<string> gametypes = new List<string> {"KOTH", "TDM", "CTF"};
+        private List<string> gametypes = new List<string> { "KOTH", "TDM", "CTF" };
 
         //Poll Variables
         private int _lastGameCheck;
@@ -47,13 +47,14 @@ namespace InfServer.Script.GameType_Burnt
             _KOTH = new KOTH(_Arena, _Settings);
             _CTF = new CTF(_Arena, _Settings);
             _TDM = new TDM(_Arena, _Settings);
-            _Gladiator = new Gladiator(_Arena, _Settings);            
+            _Gladiator = new Gladiator(_Arena, _Settings);
 
             _GameType = GameTypes.TDM;
 
             foreach (string type in gametypes)
                 Settings.AllowedGameTypes.Add((GameTypes)_Settings.GetType(type));
 
+            //Put here so allowed game types aren't doubled in the vote system
             _VoteSystem = new VoteSystem();
 
             _gameCount = 0;
@@ -68,14 +69,14 @@ namespace InfServer.Script.GameType_Burnt
                 return true;
             _lastGameCheck = now;
 
-            if (_Settings.GameState == GameStates.Vote)
+            if (_Settings.GameState == GameStates.Init)
             {
                 if (_Arena.PlayersIngame.Count() >= Settings.MinPlayers)
                 {
-                    vote();
+                    initialize(now);
                 }
                 else
-                    _Arena.setTicker(1, 1, 0, "Not Enough Players");
+                    _Arena.setTicker(2, 1, 0, "Not Enough Players");
             }
 
             switch (_GameType)
@@ -96,6 +97,17 @@ namespace InfServer.Script.GameType_Burnt
             return true;
         }
 
+        private void initialize(int now)
+        {   //Run all the initializers for each game type
+            _TDM.Poll(now);
+            _KOTH.Poll(now);
+            _Gladiator.Poll(now);
+            _CTF.Poll(now);
+
+            _Settings.GameState = GameStates.Vote;
+            vote();
+        }
+
         private void vote()
         {
             if (_Settings.EventsEnabled)
@@ -106,7 +118,7 @@ namespace InfServer.Script.GameType_Burnt
 
             if (_Settings.EventsEnabled && (_gameCount > Settings.GamesBeforeEvent))
             {
-                _Settings.GameState = GameStates.Init;
+                _Settings.GameState = GameStates.PreGame;
                 _GameType = GameTypes.GLAD;
                 _gameCount = 0;
 
@@ -123,9 +135,9 @@ namespace InfServer.Script.GameType_Burnt
 
                 string getTypes = string.Join(", ", gametypes);
                 _Arena.sendArenaMessage("[Round Vote] Gametype Vote starting - Vote with ?Game <type>", 1);
-                _Arena.sendArenaMessage(string.Format("[Round Vote] Choices are: {0}", getTypes));            
+                _Arena.sendArenaMessage(string.Format("[Round Vote] Choices are: {0}", getTypes));
             }
-          
+
             _Settings.GameState = GameStates.PreGame;
             preGame();
         }
@@ -137,7 +149,6 @@ namespace InfServer.Script.GameType_Burnt
             _Arena.setTicker(1, 1, Settings.VotingPeriod * 100, "Next game: ",
                     delegate()
                     {	//Trigger the game start
-                        _Settings.GameState = GameStates.ActiveGame;
 
                         if (!Settings.VotingEnabled)
                         {
@@ -149,7 +160,7 @@ namespace InfServer.Script.GameType_Burnt
                         {
                             _GameType = _VoteSystem.GetWinningVote();
                         }
-                        
+
                         _Arena.gameStart();
                     }
                 );
@@ -164,6 +175,8 @@ namespace InfServer.Script.GameType_Burnt
         [Scripts.Event("Game.Start")]
         public bool gameStart()
         {
+            _Settings.GameState = GameStates.ActiveGame;
+
             switch (_GameType)
             {
                 case GameTypes.CTF:
@@ -461,7 +474,7 @@ namespace InfServer.Script.GameType_Burnt
                                     player.sendMessage(0, "Invalid payload: gameplay add/delete <new value>");
                             }
                             break;
-                         default:
+                        default:
                             player.sendMessage(0, "Invalid payload");
                             break;
                     }

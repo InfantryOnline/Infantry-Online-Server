@@ -199,7 +199,8 @@ namespace InfServer.Game
             player._team = this;
 
             //Welcome him in
-            _players.Add(player);
+            if (!_players.Contains(player))
+                _players.Add(player);
 
             //Do we need to notify, or is this an initial team?
             if (player._bIngame)

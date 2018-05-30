@@ -323,6 +323,29 @@ namespace InfServer.Logic
                                 return;
                             }
 
+                            //Already squad joined somewhere?
+                            if (dbplayer.squad != null)
+                            {
+                                //Get his squad brothers! (if any...)
+                                IQueryable<Data.DB.player> squadmates = db.players.Where(p => p.squad == dbplayer.squad && p.squad != null);
+
+                                //Is he the captain?
+                                if (dbplayer.squad1.owner == dbplayer.id)
+                                {   //We might need to dissolve the team!
+                                    if (squadmates.Count() == 1)
+                                    {   //He's the only one left on the squad... dissolve it!
+                                        db.squads.DeleteOnSubmit(dbplayer.squad1);
+                                        db.SubmitChanges();
+                                        dbplayer.squad1 = null;
+                                        dbplayer.squad = null;
+                                    }
+                                    else
+                                    {   //There are other people on the squad, transfer it to someone
+                                        dbplayer.squad1.owner = squadmates.First().id;
+                                    }
+                                }
+                            }
+
                             dbplayer.squad = squad.id;
                             db.SubmitChanges();
                             zone._server.sendMessage(zone, dbplayer.alias1.name, "You have joined " + squad.name);
@@ -345,7 +368,6 @@ namespace InfServer.Logic
                                 if (sender == null)
                                     return;
 
-                                Console.WriteLine(sender.alias1.name);
                                 SortedDictionary<string, string> powered = new SortedDictionary<string, string>();
                                 string pAlias;
                                 foreach (Zone z in zone._server._zones)

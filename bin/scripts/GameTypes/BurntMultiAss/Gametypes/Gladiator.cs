@@ -21,7 +21,7 @@ namespace InfServer.Script.GameType_Burnt
 
         private int spawnX2;                //Spawn point for team 2
         private int spawnY2;
-        
+
         private Dictionary<Team, List<Player>> participants;
 
         public Gladiator(Arena arena, Settings settings)
@@ -32,13 +32,12 @@ namespace InfServer.Script.GameType_Burnt
             spawnX1 = 1;                    //Get coords from burnt
             spawnY1 = 2;
             spawnX2 = 3;
-            spawnY2 = 4;            
+            spawnY2 = 4;
         }
 
         public void Initialize()
         {
             participants = new Dictionary<Team, List<Player>>();
-            PreGame();
         }
 
         public void Poll(int now)
@@ -49,8 +48,10 @@ namespace InfServer.Script.GameType_Burnt
                     Initialize();
                     break;
                 case GameStates.Vote:
+                    //Handled in main script
                     break;
-                case GameStates.PreGame:                 
+                case GameStates.PreGame:
+                    PreGame();
                     break;
                 case GameStates.ActiveGame:
                     Poll();
@@ -76,19 +77,17 @@ namespace InfServer.Script.GameType_Burnt
 
         private void PreGame()
         {
-            settings.GameState = GameStates.PreGame;
             arena.setTicker(1, 1, Settings.VotingPeriod * 100, "Gladiator Event: ",
                     delegate()
                     {
-                        settings.GameState = GameStates.ActiveGame;
                         arena.gameStart();
                     }
             );
         }
-                
+
         public void StartGame()
         {
-            arena.sendArenaMessage("[Event] Gladiator event is now starting");
+            arena.sendArenaMessage("[Event] Gladiator event is now starting..");
 
             //Spawn everyone that is not in spec in the event room
             foreach (Player player in arena.PlayersIngame.ToList())
@@ -117,18 +116,18 @@ namespace InfServer.Script.GameType_Burnt
 
         public void EndGame()
         {
-            arena.sendArenaMessage("[Event] Gladiator event is now over");
+            arena.sendArenaMessage("[Event] Gladiator event is now over.");
 
             //Find the winner
             Team winner = findWinner();
 
             if (winner == null)
             {
-                arena.sendArenaMessage("[Event] There was no winner");
+                arena.sendArenaMessage("[Event] There was no winner.");
                 return;
             }
 
-            arena.sendArenaMessage("[Event] The winner is Team " + winner._name);     
+            arena.sendArenaMessage(string.Format("[Event] The winner is Team {0}.", winner._name));
 
             //Reward them            
         }

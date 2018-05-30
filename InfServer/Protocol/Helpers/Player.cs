@@ -294,26 +294,6 @@ namespace InfServer.Protocol
         }
 
 		/// <summary>
-		/// Notifies a player that he's been disconnected
-		/// </summary>
-		static public void Player_Disconnect(Player p, bool shutdown)
-		{	//Formulate our message!
-			Disconnect discon = new Disconnect();
-
-			discon.connectionID = p._client._connectionID;
-            if (shutdown)
-            {
-                discon.reason = Disconnect.DisconnectReason.DisconnectReasonOtherSideTerminated;
-            }
-            else
-            {
-                discon.reason = Disconnect.DisconnectReason.DisconnectReasonApplication;
-            }
-
-			p._client.send(discon);
-		}
-
-		/// <summary>
 		/// Notifies a player that the shop request has been processed
 		/// </summary>
 		static public void Player_ShopFinish(Player p)

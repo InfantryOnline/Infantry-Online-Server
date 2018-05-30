@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using InfServer.Network;
-using InfServer.Data;
 
 namespace InfServer.Protocol
 {	/// <summary>
@@ -14,8 +10,6 @@ namespace InfServer.Protocol
 		where T : IClient
 	{	// Member Variables
 		///////////////////////////////////////////////////
-
-        public bool recycling;
 
 		//Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Disconnect;
@@ -60,17 +54,13 @@ namespace InfServer.Protocol
 		public override void Serialize()
 		{	//Type ID
 			Write((byte)TypeID);
-
-            Write(recycling);
 		}
 
 		/// <summary>
 		/// Deserializes the data present in the packet contents into data fields in the class.
 		/// </summary>
-		public override void Deserialize()
-		{
-            recycling = _contentReader.ReadBoolean();
-		}
+        public override void Deserialize()
+        { }
 
 		/// <summary>
 		/// Returns a meaningful of the packet's data
