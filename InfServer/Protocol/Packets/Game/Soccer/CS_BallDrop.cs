@@ -23,7 +23,7 @@ namespace InfServer.Protocol
         public Int16 positionZ;
         public Int16 ballFriction;
         public Int32 tickcount;
-        public Boolean scored;
+        public Boolean scoring;
 
         //Packet routing
         public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.BallDrop;
@@ -68,7 +68,7 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             //22 bytes is the max read
-            scored = _contentReader.ReadBoolean();
+            scoring = _contentReader.ReadBoolean();
             ballID = _contentReader.ReadByte();
             velocityX = _contentReader.ReadInt16();
             velocityY = _contentReader.ReadInt16();

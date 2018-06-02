@@ -194,6 +194,10 @@ namespace InfServer.Game
             if (_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
                 flagReset();
 
+            //Reset the playing balls
+            if (_balls.Count() > 0)
+                resetBalls();
+
             //What else do we need to reset?
             if (_startCfg.prizeReset)
                 resetItems();
@@ -208,9 +212,6 @@ namespace InfServer.Game
             if (!_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
                 flagSpawn();
 
-            //Handle the start for all players
-            string startGame = _server._zoneConfig.EventInfo.startGame;
-
             //Scramble teams if the cfg calls for it
             if (_scramble && PlayerCount > 2)
                 scrambleTeams(this, _server._zoneConfig.arena.desiredFrequencies, true);
@@ -218,8 +219,14 @@ namespace InfServer.Game
             //Clear the arena stats
             ClearCurrentStats();
 
+            //Handle the start for all players
+            string startGame = _server._zoneConfig.EventInfo.startGame;
+
             foreach (Player player in Players)
-            {	//We don't want previous stats to count
+            {	//Reset ball handling
+                player._gotBallID = 999;
+
+                //We don't want previous stats to count
                 player.clearCurrentStats();
 
                 //Reset anything else we're told to
@@ -519,6 +526,8 @@ namespace InfServer.Game
             ball._lastOwner = ball._owner;
             ball._owner = from;
 
+            from._gotBallID = ball._id;
+
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdate & 0xFFFF);
             ball._state.lastUpdate = updateTick;
@@ -530,15 +539,14 @@ namespace InfServer.Game
             ball._state.velocityX = 0;
             ball._state.velocityY = 0;
             ball._state.velocityZ = 0;
-            ball.ballSpeed = 0;
-            ball.tickCount = (uint)update.tickcount;
+            ball.tickCount = (uint)now;
             ball.ballStatus = 0;
+
+            ball.deadBall = false;
 
             //Send ball coord updates to update spatial data
             _balls.updateObjState(ball, ball._state);
 
-            from._gotBallID = ball._id;
-            ball.deadBall = false;
             //Route it
             Helpers.Object_Ball(from._arena.Players, ball);
         }
@@ -571,6 +579,8 @@ namespace InfServer.Game
             ball._lastOwner = from;
             ball._owner = null;
 
+            from._gotBallID = 999;
+
             int now = Environment.TickCount;
             int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdate & 0xFFFF);
             ball._state.lastUpdate = updateTick;
@@ -585,12 +595,11 @@ namespace InfServer.Game
             ball.tickCount = (uint)update.tickcount;
             ball.ballFriction = update.ballFriction;
             ball.ballStatus = 1;
+            ball.deadBall = false;
 
             //Send ball coord updates to update spatial data
             _balls.updateObjState(ball, ball._state);
 
-            from._gotBallID = 999;
-            ball.deadBall = false;
             //Route it
             Helpers.Object_Ball(from._arena.Players, ball);
         }
@@ -611,7 +620,7 @@ namespace InfServer.Game
             Ball ball = _balls.getObjByID(update.ballID);
             if (ball == null)
             {
-                Log.write(TLog.Warning, "Player {0} tried dropping an invalid ball id.", from);
+                Log.write(TLog.Warning, "Player {0} tried scoring an invalid ball id.", from);
                 return;
             }
 
@@ -621,6 +630,11 @@ namespace InfServer.Game
 
             //Reset our variable then spawn a new ball
             from._gotBallID = 999;
+            if (ball._owner != null)
+                ball._owner._gotBallID = 999;
+            if (ball._lastOwner != null)
+                ball._lastOwner._gotBallID = 999;
+
             Ball.Spawn_Ball(from, ball);
         }
         #endregion
@@ -991,6 +1005,7 @@ namespace InfServer.Game
                 {	//The player has effectively left the game
 
                 }
+                from.removeBall();
                 from.spec();
             }
             else
@@ -1445,6 +1460,9 @@ namespace InfServer.Game
                         if (killer.IsDead)
                             flagResetPlayer(killer);
 
+                        //Handle any ball action
+                        ballResetPlayer(from, killer);
+
                         //Don't reward for teamkills
                         if (from._team == killer._team)
                             Logic_Assets.RunEvent(from, _server._zoneConfig.EventInfo.killedTeam);
@@ -1465,6 +1483,9 @@ namespace InfServer.Game
 
             //Reset any flags held
             flagResetPlayer(from);
+
+            //Handle any ball action
+            ballResetPlayer(from);
 
             //Was it a bot kill?
             if (update.type == Helpers.KillType.Player && update.killerPlayerID >= 5001)

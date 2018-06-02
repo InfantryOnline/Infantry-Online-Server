@@ -358,6 +358,9 @@ namespace InfServer.Game
                 _spectating = null;
             }
 
+            //Remove any possible game balls that the player was carrying
+            removeBall();
+
             //If we're currently in a vehicle, we want to desert it
             if (_occupiedVehicle != null)
                 _occupiedVehicle.playerLeave(true);
@@ -1068,6 +1071,32 @@ namespace InfServer.Game
         public void useMultiItem(ItemInfo item, short count)
         {
             Helpers.Player_UseMultiItems(this, (short)item.id, count);
+        }
+
+        /// <summary>
+        /// Removes an active ball from the player
+        /// </summary>
+        public void removeBall()
+        {
+            //Does he have a ball?
+            if (_gotBallID == 999)
+                return;
+
+            Ball ball = _arena.Balls.SingleOrDefault(b => b._id == (ushort)_gotBallID);
+            _gotBallID = 999;
+
+            if (ball == null)
+                return;
+
+            if (ball._lastOwner != null)
+                ball._lastOwner._gotBallID = 999;
+
+            ball._lastOwner = this;
+            ball._owner = null;
+            ball.ballStatus = 1;
+
+            //Update and route
+            _arena.updateBall(ball);
         }
         #endregion
 

@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
 
 using InfServer.Logic;
 using InfServer.Game;
 using InfServer.Scripting;
-using InfServer.Bots;
 using InfServer.Protocol;
 
 using Assets;
@@ -69,30 +65,6 @@ namespace InfServer.Script.GameType_BasketBall
                 Y = y; //Set the vertical location to y (The second argument)
             }
         }
-        public double triangleArea(Point A, Point B, Point C)
-        {
-            return (C.X * B.Y - B.X * C.Y) - (C.X * A.Y - A.X * C.Y) + (B.X * A.Y - A.X * B.Y);
-        }
-        public bool isInsideSquare(Point A, Point B, Point C, Point D, Point P)
-        {
-            if (triangleArea(A, B, P) > 0 || triangleArea(B, C, P) > 0 || triangleArea(C, D, P) > 0 || triangleArea(D, A, P) > 0)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        //Handle goal coords here for now
-        Point p1 = new Point(580, 1188);
-        Point p2 = new Point(632, 1140);
-        Point p3 = new Point(680, 1188);
-        Point p4 = new Point(632, 1240);
-
-        Point p5 = new Point(3472, 1188);
-        Point p6 = new Point(3412, 1140);
-        Point p7 = new Point(3472, 1188);
-        Point p8 = new Point(3412, 1240);
-
         Point centerLeft = new Point(630, 1190);
         Point centerRight = new Point(3442, 1190);
 
@@ -130,7 +102,7 @@ namespace InfServer.Script.GameType_BasketBall
                         switch (_Streaks[p._alias].kills)
                         {
                             case 5:
-                                _arena.sendArenaMessage(String.Format("{0} is on a kill streak.", p._alias), 2);
+                                _arena.sendArenaMessage(string.Format("{0} is on a kill streak.", p._alias), 2);
                                 break;
                         }
                     }
@@ -152,18 +124,18 @@ namespace InfServer.Script.GameType_BasketBall
             {
                 //Are we playing a normal goal sound?
                 if (!possible2 && !possible3) //Yes
-                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), _config.soccer.goalBong);
+                    _arena.sendArenaMessage(string.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias), _config.soccer.goalBong);
                 else //No
-                    _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias));
+                    _arena.sendArenaMessage(string.Format("Goal={0}  Team={1}  Assist({2})", player._alias, player._team._name, assist2._alias));
                 if (recording)
                     assist2.ZoneStat4 += 1; //Assists
                 return;
             }
             //Are we playing a normal goal sound
             if (!possible2 && !possible3) //Yes
-                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name), _config.soccer.goalBong);
+                _arena.sendArenaMessage(string.Format("Goal={0}  Team={1}", player._alias, player._team._name), _config.soccer.goalBong);
             else
-                _arena.sendArenaMessage(String.Format("Goal={0}  Team={1}", player._alias, player._team._name));
+                _arena.sendArenaMessage(string.Format("Goal={0}  Team={1}", player._alias, player._team._name));
             return;
         }
         #endregion
@@ -180,12 +152,12 @@ namespace InfServer.Script.GameType_BasketBall
                 switch (_Streaks[p._alias].shotsMade)
                 {
                     case 3:
-                        _arena.sendArenaMessage(String.Format("3 in a row for {0}.", p._alias), 9);
+                        _arena.sendArenaMessage(string.Format("3 in a row for {0}.", p._alias), 9);
                         //We want to fake this is a 3 so normal goal sounds doesnt play
                         possible3 = true;
                         return true;
                     case 5:
-                        _arena.sendArenaMessage(String.Format("Someone block {0}!", p._alias), 10);
+                        _arena.sendArenaMessage(string.Format("Someone block {0}!", p._alias), 10);
                         //We want to fake this is a 3 so normal goal sounds doesnt play
                         possible3 = true;
                         return true;
@@ -205,19 +177,19 @@ namespace InfServer.Script.GameType_BasketBall
             switch(_arena._rand.Next(1, 5))
             {
                 case 1:
-                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 4);
+                    _arena.sendArenaMessage(string.Format("What a dunk by {0}.", p._alias), 4);
                     break;
                 case 2:
-                    _arena.sendArenaMessage(String.Format("What a lay up by {0}.", p._alias), 5);
+                    _arena.sendArenaMessage(string.Format("What a lay up by {0}.", p._alias), 5);
                     break;
                 case 3:
-                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 8);
+                    _arena.sendArenaMessage(string.Format("What a dunk by {0}.", p._alias), 8);
                     break;
                 case 4:
-                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 11);
+                    _arena.sendArenaMessage(string.Format("What a dunk by {0}.", p._alias), 11);
                     break;
                 case 5:
-                    _arena.sendArenaMessage(String.Format("What a dunk by {0}.", p._alias), 12);
+                    _arena.sendArenaMessage(string.Format("What a dunk by {0}.", p._alias), 12);
                     break;
             }
         }
@@ -230,21 +202,21 @@ namespace InfServer.Script.GameType_BasketBall
             if (HeatingUpOrOnFire(p))
                 return;
 
-            _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 27);
+            _arena.sendArenaMessage(string.Format("What a shot by {0}.", p._alias), 27);
             /* TODO: Get more sounds
             switch (_arena._rand.Next(1, 4))
             {
                 case 1:
-                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 4);
+                    _arena.sendArenaMessage(string.Format("What a shot by {0}.", p._alias), 4);
                     break;
                 case 2:
-                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 5);
+                    _arena.sendArenaMessage(string.Format("What a shot by {0}.", p._alias), 5);
                     break;
                 case 3:
-                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 9);
+                    _arena.sendArenaMessage(string.Format("What a shot by {0}.", p._alias), 9);
                     break;
                 case 4:
-                    _arena.sendArenaMessage(String.Format("What a shot by {0}.", p._alias), 11);
+                    _arena.sendArenaMessage(string.Format("What a shot by {0}.", p._alias), 11);
                     break;
             }*/
         }
@@ -362,13 +334,13 @@ namespace InfServer.Script.GameType_BasketBall
             }
 
             //Updates our balls(get it!)
-            if ((_tickGameStart > 0 || !_arena._bGameRunning) && now - _lastBallCheck > _sendBallUpdate)
+            if (now - _lastBallCheck > _sendBallUpdate)
             {
                 if (_arena.Balls.Count() > 0)
                     foreach (Ball ball in _arena.Balls.ToList())
                     {
                         //This updates the ball visually
-                        Ball.Route_Ball(_arena.Players, ball);
+                        Ball.Route_Ball(ball);
                         _lastBallCheck = now;
 
                         //Check for a stuck ball(non reachable)
@@ -410,10 +382,6 @@ namespace InfServer.Script.GameType_BasketBall
             assist2 = null;
             _Streaks.Clear();
 
-            //Clear ball list incase of added balls
-            foreach (Ball b in _arena.Balls.ToList())
-                Ball.Remove_Ball(b);
-
             if (_arena.ActiveTeams.ElementAt(0) != null)
                 team1 = _arena.ActiveTeams.ElementAt(0);
             if (_arena.ActiveTeams.Count() > 1)
@@ -422,7 +390,6 @@ namespace InfServer.Script.GameType_BasketBall
             //Reset variables
             foreach (Player p in _arena.Players)
             {
-                p._gotBallID = 999; //No ball in possession
                 PlayerStreak temp = new PlayerStreak();
                 temp.kills = 0;
                 temp.shotsMade = 0;
@@ -433,7 +400,7 @@ namespace InfServer.Script.GameType_BasketBall
             SpawnBall();
 
             //Set default ticker
-            string update = String.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
+            string update = string.Format("{0}: {1} - {2}: {3}", team1._name, 0, team2._name, 0);
             _arena.setTicker(5, 1, 0, update);
 
             //Let everyone know
@@ -502,7 +469,7 @@ namespace InfServer.Script.GameType_BasketBall
                 //No one wins
                 _arena.sendArenaMessage("&Game ended in a draw. No one wins.");
             else
-                _arena.sendArenaMessage(String.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
+                _arena.sendArenaMessage(string.Format("&{0} are victorious with a {1}-{2} victory!", _victoryTeam._name, team1Goals, team2Goals));
 
             //Calculate Awards
             int Multiplier = _arena.PlayerCount * 2;
@@ -521,7 +488,7 @@ namespace InfServer.Script.GameType_BasketBall
                 p.Cash += cash;
                 p.KillPoints += points;
                 p.ExperienceTotal += exp;
-                p.sendMessage(0, String.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, exp, points));
+                p.sendMessage(0, string.Format("Personal Award: (Cash={0}) (Experience={1}) (Points={2})", cash, exp, points));
 
                 p.syncState();
             }
@@ -673,7 +640,7 @@ namespace InfServer.Script.GameType_BasketBall
                         break;
                 }
 
-                from.sendMessage(0, String.Format(format,
+                from.sendMessage(0, string.Format(format,
                     t._currentGameKills, t._currentGameDeaths,
                     t._name));
             }
@@ -699,7 +666,7 @@ namespace InfServer.Script.GameType_BasketBall
                         format = "!2nd - (K={0} D={1}): {2}";
                         break;
                 }
-                p.sendMessage(0, String.Format(format, p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths, p._alias));
+                p.sendMessage(0, string.Format(format, p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths, p._alias));
             }
 
             //Lets get the top most out of all stats
@@ -781,16 +748,16 @@ namespace InfServer.Script.GameType_BasketBall
             }
 
             //Now display each stat
-            from.sendMessage(0, String.Format("Highest Mvp Score:    {0}({1})", String.IsNullOrWhiteSpace(mvp) ? from._alias : mvp, mvpscore));
-            from.sendMessage(0, String.Format("Most Goals:              {0}({1})", String.IsNullOrWhiteSpace(goals) ? from._alias : goals, goal));
-            from.sendMessage(0, String.Format("Most Assists:           {0}({1})", String.IsNullOrWhiteSpace(assists) ? from._alias : assists, ass));
-            //from.sendMessage(0, String.Format("Most Saves:             {0}({1})", String.IsNullOrWhiteSpace(saves) ? from._alias : saves, save));
-            //from.sendMessage(0, String.Format("Most Passes:            {0}({1})", String.IsNullOrWhiteSpace(passes) ? from._alias : passes, pass));
-            //from.sendMessage(0, String.Format("Most Catches:          {0}({1})", String.IsNullOrWhiteSpace(catches) ? from._alias : catches, catched));
-            //from.sendMessage(0, String.Format("Most Steals:             {0}({1})", String.IsNullOrWhiteSpace(steals) ? from._alias : steals, steal));
-            //from.sendMessage(0, String.Format("Most Fumbles:           {0}({1})", String.IsNullOrWhiteSpace(fumbles) ? from._alias : fumbles, fumble));
-            //from.sendMessage(0, String.Format("Most Carry Time:      {0}({1})", String.IsNullOrWhiteSpace(carrytime) ? from._alias : carrytime, carry));
-            from.sendMessage(0, String.Format("Most Points Scored:   {0}({1})", String.IsNullOrWhiteSpace(pointsscored) ? from._alias : pointsscored, pointsScored));
+            from.sendMessage(0, string.Format("Highest Mvp Score:    {0}({1})", string.IsNullOrWhiteSpace(mvp) ? from._alias : mvp, mvpscore));
+            from.sendMessage(0, string.Format("Most Goals:              {0}({1})", string.IsNullOrWhiteSpace(goals) ? from._alias : goals, goal));
+            from.sendMessage(0, string.Format("Most Assists:           {0}({1})", string.IsNullOrWhiteSpace(assists) ? from._alias : assists, ass));
+            //from.sendMessage(0, string.Format("Most Saves:             {0}({1})", string.IsNullOrWhiteSpace(saves) ? from._alias : saves, save));
+            //from.sendMessage(0, string.Format("Most Passes:            {0}({1})", string.IsNullOrWhiteSpace(passes) ? from._alias : passes, pass));
+            //from.sendMessage(0, string.Format("Most Catches:          {0}({1})", string.IsNullOrWhiteSpace(catches) ? from._alias : catches, catched));
+            //from.sendMessage(0, string.Format("Most Steals:             {0}({1})", string.IsNullOrWhiteSpace(steals) ? from._alias : steals, steal));
+            //from.sendMessage(0, string.Format("Most Fumbles:           {0}({1})", string.IsNullOrWhiteSpace(fumbles) ? from._alias : fumbles, fumble));
+            //from.sendMessage(0, string.Format("Most Carry Time:      {0}({1})", string.IsNullOrWhiteSpace(carrytime) ? from._alias : carrytime, carry));
+            from.sendMessage(0, string.Format("Most Points Scored:   {0}({1})", string.IsNullOrWhiteSpace(pointsscored) ? from._alias : pointsscored, pointsScored));
 
             return true;
         }
@@ -860,103 +827,7 @@ namespace InfServer.Script.GameType_BasketBall
             if (_tickGameStart > 0 && _arena.PlayerCount >= _minPlayersToKeepScore)
                 player.ZoneStat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
 
-            //Now lets predict if this ball will hit the goal
-            double xf = 0;
-            double yf = 0;
-            double cxi = 0;
-            double cyi = 0;
-            short xi = drop.positionX;
-            short yi = drop.positionY;
-
-            short dxi = drop.velocityX;
-            short dyi = drop.velocityY;
-            //Console.WriteLine(String.Format("velocity = {0},{1},{2}", drop.velocityX, drop.velocityY, drop.velocityZ));
-            double dx, dy;
-            dx = dxi;
-            dy = dyi;
-
-            for (double i = 0; i < 15; i += 0.0025)
-            {   //Find our position at i time after throw
-                //applyu friction here
-                dx -= dx * 0.001;
-
-                dy -= dy * 0.001;
-                xf = xi + (i * dx);
-                //xf = xf - (xf * (_config.soccer.defaultFriction / 100));
-                //     dyi = dyi - (dyi * (_config.soccer.defaultFriction / 100));
-
-                yf = yi + (i * dy);
-                //  yf = yf - (yf * (_config.soccer.defaultFriction / 100));
-                Point ballPoint = new Point((int)xf, (int)yf);
-                //Find out if we bounce off a wall
-                try
-                {
-                    LvlInfo.Tile tile = _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)(xf / 16)];
-                    double xOffset = xf;
-                    double yOffset = yf;
-                    // _arena.sendArenaMessage("d " + tile.TerrainLookup);
-                    if (tile.TerrainLookup != 2 && tile.TerrainLookup != 6 && tile.Blocked)
-                    {
-                        if (_arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
-                            _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
-                        {//Horizontal wall
-                            dyi *= -1;
-                        }
-                        else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked &&
-                                _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked)
-                        {//Vertical
-                            dxi *= -1;
-                        }
-                        else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
-                                _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
-                        {//Positive slope 45 degree
-                            short tempx = dxi;
-                            dxi = dyi;
-                            dyi = tempx;
-                        }
-                        else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked &&
-                                _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked)
-                        {//Negative slope 45 degree
-                            short tempx = dxi;
-                            dxi = dyi *= -1;
-                            dyi = tempx *= -1;
-                        }
-                        else
-                        {//OhShit case                            
-                        }
-                    }
-                }
-                catch (Exception)
-                {//we are going out of bounds of arena due to no physics and crap
-                }
-
-                cxi = xf;
-                cyi = yf;
-
-                //Check if it is within our goal box depending on team
-                //p1->p4 are left base, p5->p8 are right base
-                if (isInsideSquare(p1, p2, p3, p4, ballPoint) || isInsideSquare(p5, p6, p7, p8, ballPoint))
-                {//Will be a goal
-                    _futureGoal = player;
-                    //Check location
-                    CfgInfo.Terrain terrainNum = _arena.getTerrain(drop.positionX, drop.positionY);
-                    if (terrainNum.goalPoints >= 3)
-                        possible3 = true;
-                    Point position = drop.positionX <= 800 ? centerLeft : centerRight;
-                    if (terrainNum.goalPoints <= 2 && Helpers.isInRange(235, drop.positionX, drop.positionY, position.X, position.Y))
-                        possible2 = true;
-
-                    if (possible2)
-                        _arena.sendArenaMessage(String.Format("{0}'s going in!", player._alias));
-                    else if (possible3 && _arena._rand.Next(1, 2) == 2)
-                        _arena.sendArenaMessage("Here's the shot!", 7);
-                    break;
-                }
-
-                //Not going to be a goal
-                _futureGoal = null;
-            }
-
+            _futureGoal = drop.scoring ? player : null; //If its a potential score, set the player otherwise set null
             return true;
         }
 
@@ -1048,7 +919,7 @@ namespace InfServer.Script.GameType_BasketBall
             PlayGoalSound(player, terrainNum.goalPoints);
 
             //Announce Score
-            _arena.sendArenaMessage(String.Format("SCORE:  {0}={1}  {2}={3}", team1._name, team1Goals, team2._name, team2Goals));
+            _arena.sendArenaMessage(string.Format("SCORE:  {0}={1}  {2}={3}", team1._name, team1Goals, team2._name, team2Goals));
 
             //Save their stat
             if (recording)
@@ -1156,18 +1027,6 @@ namespace InfServer.Script.GameType_BasketBall
 
             //See if another player can join
             specInQueue();
-
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return;
-
-                //Spawn it.
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
         }
 
         /// <summary>
@@ -1176,18 +1035,6 @@ namespace InfServer.Script.GameType_BasketBall
         [Scripts.Event("Player.LeaveGame")]
         public bool playerLeaveGame(Player player)
         {
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return false;
-
-                //Spawn it.
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
-
             return true;
         }
 
@@ -1202,18 +1049,6 @@ namespace InfServer.Script.GameType_BasketBall
 
             //Try speccing someone in
             specInQueue();
-
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return;
-
-                //Spawn it.
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
         }
 
         /// <summary>
@@ -1265,54 +1100,13 @@ namespace InfServer.Script.GameType_BasketBall
         [Scripts.Event("Player.Death")]
         public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
         {
-            if (victim._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == victim._gotBallID);
-                victim._gotBallID = 999;
-
-                if (ball == null)
-                    return true;
-
-                //Did the victim have the ball?
-                if (ball._owner == victim)
-                {
-                    ball._owner = null;
-                    ball._lastOwner = victim;
-
-                    //Do we give it to the killer?
-                    if (_config.soccer.killerCatchBall && killer != null && killType == Helpers.KillType.Player)
-                    {
-                        //Pick up the ball
-                        ball._state.positionX = killer._state.positionX;
-                        ball._state.positionY = killer._state.positionY;
-                        ball._state.positionZ = killer._state.positionZ;
-                        ball._state.velocityX = 0;
-                        ball._state.velocityY = 0;
-                        ball._state.velocityZ = 0;
-                        ball.deadBall = false;
-
-                        ball._owner = killer;
-                        killer._gotBallID = ball._id;
-
-                        //Update spatial data
-                        _arena.UpdateBall(ball);
-
-                        //Let others know
-                        Ball.Route_Ball(_arena.Players, ball);
-                        return true;
-                    }
-                }
-                //Spawn it
-                Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
-            }
-
             if (killer != null && victim != null)
             {
                 if (_Streaks.ContainsKey(victim._alias) && (_Streaks[victim._alias].kills >= 5 || _Streaks[victim._alias].shotsMade >= 3))
                 {
                     bool shots = _Streaks[victim._alias].shotsMade >= 3 ? true : false;
                     int bong = _arena._rand.Next(1,2);
-                    _arena.sendArenaMessage(String.Format("{0} has ended {1}'s {2} streak.", killer._alias, victim._alias, shots == true ? "scoring" : "kill"), bong);
+                    _arena.sendArenaMessage(string.Format("{0} has ended {1}'s {2} streak.", killer._alias, victim._alias, shots == true ? "scoring" : "kill"), bong);
                 }
             }
             ResetStreak(victim);
@@ -1343,7 +1137,7 @@ namespace InfServer.Script.GameType_BasketBall
                 queue.Add(player);
                 //Dont show us as 0 if we are first in list
                 int i = queue.IndexOf(player) + 1;
-                player.sendMessage(-1, String.Format("The game is full. (Queue={0})", i.ToString()));
+                player.sendMessage(-1, string.Format("The game is full. (Queue={0})", i.ToString()));
             }
         }
 
@@ -1405,7 +1199,7 @@ namespace InfServer.Script.GameType_BasketBall
             foreach (Player p in queue.ToList())
                 //Lets update players
                 if (i++ >= index)
-                    p.sendMessage(0, String.Format("Queue position is now {0}", i.ToString()));
+                    p.sendMessage(0, string.Format("Queue position is now {0}", i.ToString()));
 
             updateTickers();
         }
@@ -1417,7 +1211,7 @@ namespace InfServer.Script.GameType_BasketBall
         {
             _arena.setTicker(5, 1, 0, delegate(Player P)
             {
-                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
+                string update = string.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
 
                 if (P != null)
                     return update;
@@ -1430,7 +1224,7 @@ namespace InfServer.Script.GameType_BasketBall
                 {
                     //Dont show us as position 0
                     int i = queue.IndexOf(p) + 1;
-                    return String.Format("Queue Position: {0}", i.ToString());
+                    return string.Format("Queue Position: {0}", i.ToString());
                 }
                 return "";
             });
@@ -1540,7 +1334,7 @@ namespace InfServer.Script.GameType_BasketBall
                     int i = 0;
                     //Player wants to see who is waiting
                     foreach (Player P in queue)
-                        player.sendMessage(1, (String.Format("{0} - {1}", (++i).ToString(), P._alias)));
+                        player.sendMessage(1, (string.Format("{0} - {1}", (++i).ToString(), P._alias)));
                 }
                 else
                     //Nothing in the list
@@ -1558,11 +1352,11 @@ namespace InfServer.Script.GameType_BasketBall
         {
             command = (command.ToLower());
             if (command.Equals("coords"))
-                player.sendMessage(0, String.Format("{0},{1}", player._state.positionX, player._state.positionY));
+                player.sendMessage(0, string.Format("{0},{1}", player._state.positionX, player._state.positionY));
 
             if (command.Equals("setscore"))
             {
-                if (String.IsNullOrEmpty(payload))
+                if (string.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: *setscore 1,2  (In order by teamname per scoreboard)");
                     return false;
@@ -1603,7 +1397,7 @@ namespace InfServer.Script.GameType_BasketBall
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -1633,15 +1427,15 @@ namespace InfServer.Script.GameType_BasketBall
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = true;
                         recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -1660,7 +1454,7 @@ namespace InfServer.Script.GameType_BasketBall
                     //We arent
                     //Get name and possible level
                     Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "*poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         player.sendMessage(0, "Note: there can only be 1 admin.");
@@ -1683,13 +1477,13 @@ namespace InfServer.Script.GameType_BasketBall
                         if (level < 1 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, string.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             player.sendMessage(0, "Note: there can be only 1 admin level.");
                             return false;
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -1702,7 +1496,7 @@ namespace InfServer.Script.GameType_BasketBall
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
                     }
 
                     //Lets send it off
@@ -1730,7 +1524,7 @@ namespace InfServer.Script.GameType_BasketBall
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -1762,15 +1556,15 @@ namespace InfServer.Script.GameType_BasketBall
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = false;
                         recipient._permissionStatic = Data.PlayerPermission.Normal;
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -1789,7 +1583,7 @@ namespace InfServer.Script.GameType_BasketBall
                     //We arent
                     //Get name and possible level
                     Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "*powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         return false;
@@ -1811,12 +1605,12 @@ namespace InfServer.Script.GameType_BasketBall
                         if (level < 0 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("*powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, string.Format("*powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             return false;
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -1832,7 +1626,7 @@ namespace InfServer.Script.GameType_BasketBall
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been depowered to level {0}.", level));
+                        recipient.sendMessage(0, string.Format("You have been depowered to level {0}.", level));
                     }
 
                     //Lets send it off

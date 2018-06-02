@@ -187,14 +187,13 @@ namespace InfServer.Game
             ball._state.lastUpdate = now;
             ball._state.lastUpdateServer = now;
 
+            ball.deadBall = false;
+
             ball._owner = null;
             ball._lastOwner = null;
 
             //Lets update
-            ball._arena.UpdateBall(ball);
-
-            //Send it
-            Helpers.Object_Ball(ball._arena.Players, ball);
+            ball._arena.updateBall(ball);
         }
 
         /// <summary>
@@ -203,10 +202,7 @@ namespace InfServer.Game
         static public void Remove_Ball(Ball ball)
         {
             //Remove it from our arena
-            ball._arena.LostBall(ball);
-
-            //Send it
-            Helpers.Object_BallReset(ball._arena.Players, ball);
+            ball._arena.lostBall(ball);
         }
 
         /// <summary>
@@ -215,22 +211,7 @@ namespace InfServer.Game
         static public void Route_Ball(Ball ball)
         {
             //Update any changes
-            ball._arena.UpdateBall(ball);
-
-            //Reroute
-            Helpers.Object_Ball(ball._arena.Players, ball);
-        }
-
-        /// <summary>
-        /// Sends a ball update to all players in the arena
-        /// </summary>
-        static public void Route_Ball(IEnumerable<Player> targets, Ball ball)
-        {
-            //Update any changes
-            ball._arena.UpdateBall(ball);
-
-            //Reroute
-            Helpers.Object_Ball(targets, ball);
+            ball._arena.updateBall(ball);
         }
     }
 }

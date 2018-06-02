@@ -346,7 +346,7 @@ namespace InfServer.Game
 
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
-                        player.sendMessage(-3, "[Mod Notice] To see a list of commands, type *help. To specifically get info on a command type *help <command name>");
+                        player.sendMessage(-3, "$[Mod Notice] To see a list of commands, type *help. To specifically get info on a command type *help <command name>");
                 }
             );
         }
@@ -373,6 +373,15 @@ namespace InfServer.Game
 
             Helpers.Object_ItemDrops(Players, _items.Values);
             _items.Clear();
+        }
+
+        /// <summary>
+        /// Reset all active balls in the arena
+        /// </summary>
+        public void resetBalls()
+        {   //Get rid of each ball
+            foreach (Ball b in _balls.ToList())
+                lostBall(b);
         }
 
         /// <summary>
@@ -849,8 +858,9 @@ namespace InfServer.Game
             //Create our ball object
             Ball ball = new Ball(ballID, this);
             if (ball != null)
-            {
+            {   //Add it to the arena tracker
                 _balls.Add(ball);
+
                 return ball;
             }
 
@@ -860,19 +870,22 @@ namespace InfServer.Game
         /// <summary>
         /// Handles the loss of a ball
         /// </summary>
-        public void LostBall(Ball ball)
+        public void lostBall(Ball ball)
         {
             if (ball == null)
                 return;
 
             //Let it go
             _balls.Remove(ball);
+
+            //Send it
+            Helpers.Object_BallReset(Players, ball);
         }
 
         /// <summary>
         /// Updates spatial data for the ball
         /// </summary>
-        public void UpdateBall(Ball ball)
+        public void updateBall(Ball ball)
         {
             if (ball == null)
                 return;
@@ -880,10 +893,75 @@ namespace InfServer.Game
             //Do we exist?
             Ball b = _balls.getObjByID(ball._id);
             if (b == null)
+            {
+                Log.write(TLog.Warning, "Trying to update an invalid ball id.");
                 return;
+            }
 
             //Lets update
             _balls.updateObjState(b, b._state);
+
+            //Update the players
+            Helpers.Object_Ball(Players, ball);
+        }
+
+        /// <summary>
+        /// Handles the ball action when a player dies carrying it
+        /// </summary>
+        public void ballResetPlayer(Player from)
+        {
+            //Route
+            ballResetPlayer(from, null);
+        }
+
+        /// <summary>
+        /// Handles the ball action when a player dies carrying it
+        /// </summary>
+        public void ballResetPlayer(Player from, Player killer)
+        {
+            if (from == null)
+                return;
+
+            Ball ball = _balls.SingleOrDefault(b => b._owner != null && b._owner == from);
+            if (ball == null)
+                return;
+
+            //Make sure they arent carrying one now
+            from._gotBallID = 999;
+
+            //Are we giving it to the killer?
+            if (killer != null && _server._zoneConfig.soccer.killerCatchBall)
+            {
+                //Give it to the killer
+                killer._gotBallID = ball._id;
+
+                ball._lastOwner = from;
+                ball._owner = killer;
+
+                ball.ballStatus = 0; //Picked up
+
+                ball._state.positionX = killer._state.positionX;
+                ball._state.positionY = killer._state.positionY;
+                ball._state.positionZ = killer._state.positionZ;
+                ball._state.velocityX = 0;
+                ball._state.velocityY = 0;
+                ball._state.velocityZ = 0;
+                ball.deadBall = false;
+
+                int now = Environment.TickCount;
+                int updateTick = ((now >> 16) << 16) + (ball._state.lastUpdate & 0xFFFF);
+                ball._state.lastUpdate = updateTick;
+                ball._state.lastUpdateServer = now;
+
+                ball.tickCount = (uint)now;
+
+                //Route
+                updateBall(ball);
+                return;
+            }
+
+            //Just spawn it in place instead
+            Ball.Spawn_Ball(ball, from._state.positionX, from._state.positionY);
         }
 
         /// <summary>

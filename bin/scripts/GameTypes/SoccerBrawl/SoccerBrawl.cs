@@ -96,44 +96,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 Y = y; //Set the vertical location to y (The second argument)
             }
         }
-        public double triangleArea(Point A, Point B, Point C)
-        {
-            return (C.X * B.Y - B.X * C.Y) - (C.X * A.Y - A.X * C.Y) + (B.X * A.Y - A.X * B.Y);
-        }
-        public bool isInsideSquare(Point A, Point B, Point C, Point D, Point P)
-        {
-            if (triangleArea(A, B, P) > 0 || triangleArea(B, C, P) > 0 || triangleArea(C, D, P) > 0 || triangleArea(D, A, P) > 0)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        //Handle goal coords here for now
-        //Default for big sbl map
-        /*
-        
-        Point p1 = new Point(135, 1493);
-        Point p2 = new Point(240, 1493);
-        Point p3 = new Point(240, 1722);
-        Point p4 = new Point(135, 1722);
-
-        Point p5 = new Point(5385, 1493);
-        Point p6 = new Point(5495, 1493);
-        Point p7 = new Point(5495, 1722);
-        Point p8 = new Point(5385, 1722);
-        */
-        //For indoors arena
-        Point p1 = new Point(654, 1440);
-        Point p2 = new Point(532, 1440);
-        Point p3 = new Point(532, 1682);
-        Point p4 = new Point(654, 1682);
-
-        Point p5 = new Point(4704, 1440);
-        Point p6 = new Point(4848, 1440);
-        Point p7 = new Point(4848, 1682);
-        Point p8 = new Point(4704, 1682);
-
         Point BallSpawnPoint = null;
 
         ///////////////////////////////////////////////////
@@ -214,13 +176,13 @@ namespace InfServer.Script.GameType_Soccerbrawl
             }
 
             //Updates our balls(get it!)
-            if ((_tickGameStarted > 0 || !_arena._bGameRunning) && now - _lastBallCheck >= _sendBallUpdate)
+            if (now - _lastBallCheck >= _sendBallUpdate)
             {
                 if (_arena.Balls.Count() > 0)
                     foreach (Ball ball in _arena.Balls.ToList())
                     {
                         //This updates the ball visually
-                        Ball.Route_Ball(_arena.Players, ball);
+                        Ball.Route_Ball(ball);
                         _lastBallCheck = now;
 
                         //Check for a stuck ball(unreachable)
@@ -272,10 +234,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
             playerStats.Clear();
             teamStats.Clear();
 
-            //Clear ball list incase of added balls
-            foreach (Ball b in _arena.Balls.ToList())
-                Ball.Remove_Ball(b);
-
             team1 = _arena.ActiveTeams.ElementAt(0);
             teamStats.Add(team1, new TeamStats());
 
@@ -295,7 +253,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
             //Reset variables
             foreach (Player p in _arena.Players)
             {
-                p._gotBallID = 999; //No ball in posession
                 PlayerStats temp = new PlayerStats();
                 temp._currentGame = new Data.PlayerStats();
                 temp._hasPlayed = !p.IsSpectator ? true : false;
@@ -774,90 +731,9 @@ namespace InfServer.Script.GameType_Soccerbrawl
             if (playerStats.ContainsKey(player))
                 playerStats[player]._currentGame.zonestat9 += (int)TimeSpan.FromMilliseconds(carryTime).Seconds;
 
-            //Now lets predict if this ball will hit the goal
-            double xf = 0;
-            double yf = 0;
-            double cxi = 0;
-            double cyi = 0;
-            short xi = drop.positionX;
-            short yi = drop.positionY;
+            //Is this a potential goal?
+            futureGoal = drop.scoring ? player : null; //If our drop scoring is set true, set the player otherwise null for false
 
-            short dxi = drop.velocityX;
-            short dyi = drop.velocityY;
-
-            double dx, dy;
-            dx = dxi;
-            dy = dyi;
-
-            for (double i = 0; i < 15; i += 0.0025)
-            {   //Find our position at i time after throw
-                //applyu friction here
-                dx -= dx * 0.001;
-
-                dy -= dy * 0.001;
-                xf = xi + (i * dx);
-                //xf = xf - (xf * (_config.soccer.defaultFriction / 100));
-                //     dyi = dyi - (dyi * (_config.soccer.defaultFriction / 100));
-
-                yf = yi + (i * dy);
-                //  yf = yf - (yf * (_config.soccer.defaultFriction / 100));
-                Point ballPoint = new Point((int)xf, (int)yf);
-                //Find out if we bounce off a wall
-                try
-                {
-                    LvlInfo.Tile tile = _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)(xf / 16)];
-                    double xOffset = xf;
-                    double yOffset = yf;
-                    // _arena.sendArenaMessage("d " + tile.TerrainLookup);
-                    if (tile.TerrainLookup != 3 && tile.TerrainLookup != 2 && tile.Blocked)
-                    {
-                        if (_arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
-                            _arena._tiles[((int)(yf / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
-                        {//Horizontal wall
-                            dyi *= -1;
-                        }
-                        else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked &&
-                                _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)(xf / 16)].Blocked)
-                        {//Vertical
-                            dxi *= -1;
-                        }
-                        else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked &&
-                                _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked)
-                        {//Positive slope 45 degree
-                            short tempx = dxi;
-                            dxi = dyi;
-                            dyi = tempx;
-                        }
-                        else if (_arena._tiles[((int)((yf + 25) / 16) * _arena._levelWidth) + (int)((xf - 25) / 16)].Blocked &&
-                                _arena._tiles[((int)((yf - 25) / 16) * _arena._levelWidth) + (int)((xf + 25) / 16)].Blocked)
-                        {//Negative slope 45 degree
-                            short tempx = dxi;
-                            dxi = dyi *= -1;
-                            dyi = tempx *= -1;
-                        }
-                        else
-                        {//OhShit case                            
-                        }
-                    }
-                }
-                catch (Exception)
-                {//we are going out of bounds of arena due to no physics and crap
-                }
-
-                cxi = xf;
-                cyi = yf;
-
-                //Check if it is within our goal box depending on team
-                //p1->p4 are left base, p5->p8 are right base
-                if (isInsideSquare(p1, p2, p3, p4, ballPoint) || isInsideSquare(p5, p6, p7, p8, ballPoint))
-                {//Will be a goal
-                    futureGoal = player;
-                    break;
-                }
-
-                //Not going to be a goal
-                futureGoal = null;
-            }
             return true;
         }
 
@@ -867,6 +743,14 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Player.BallPickup")]
         public bool handleBallPickup(Player player, Ball ball)
         {
+            //Did we pick this ball up on goal tiles?
+            if (_arena.getTerrain(player._state.positionX, player._state.positionY).goalFrequency >= 0)
+            {   //Are we not on the same team?
+                if ((ball._owner != null && ball._owner._team != player._team) 
+                    || (ball._lastOwner != null && ball._lastOwner._team != player._team))
+                return false;
+            }
+
             bool record = _tickGameStarted > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             if (futureGoal != null)
             {
@@ -884,6 +768,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                         //Save their stat
                         playerStats[player]._currentGame.zonestat10 += 1; //Pinch
                 }
+
                 if (player._team != futureGoal._team && player != futureGoal)
                 {   //Player is from the opposite team, its a Save
                     _arena.sendArenaMessage("Save=" + player._alias);
@@ -1071,17 +956,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             //See if anyone can play
             specInQueue();
-
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return;
-                //Spawn it
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
         }
 
         /// <summary>
@@ -1090,18 +964,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
         [Scripts.Event("Player.LeaveGame")]
         public bool playerLeaveGame(Player player)
         {
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return true;
-
-                //Spawn ball
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
-
             return true;
         }
 
@@ -1116,17 +978,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             //Try speccing someone in
             specInQueue();
-
-            if (player._gotBallID != 999)
-            {
-                Ball ball = _arena.Balls.SingleOrDefault(b => b._id == player._gotBallID);
-                player._gotBallID = 999;
-
-                if (ball == null)
-                    return;
-                //Spawn it
-                Ball.Spawn_Ball(ball, player._state.positionX, player._state.positionY);
-            }
         }
 
         /// <summary>
@@ -1236,34 +1087,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     if (playerStats.ContainsKey(killer))
                         playerStats[killer]._currentGame.zonestat12 += 1; //Forced Fumble
 
-                    ball._owner = null;
-                    ball._lastOwner = victim;
-
-                    //Do we give it to the killer?
-                    if (_config.soccer.killerCatchBall && killer != null && killType == Helpers.KillType.Player)
-                    {
-                        //Pick up the ball
-                        ball._state.positionX = killer._state.positionX;
-                        ball._state.positionY = killer._state.positionY;
-                        ball._state.positionZ = killer._state.positionZ;
-                        ball._state.velocityX = 0;
-                        ball._state.velocityY = 0;
-                        ball._state.velocityZ = 0;
-                        ball.deadBall = false;
-
-                        ball._owner = killer;
-                        killer._gotBallID = ball._id;
-
-                        //Update spatial data
-                        _arena.UpdateBall(ball);
-
-                        //Let others know
-                        Ball.Route_Ball(_arena.Players, ball);
-                        return true;
-                    }
                 }
-                //Spawn it
-                Ball.Spawn_Ball(ball, victim._state.positionX, victim._state.positionY);
             }
 
             return true;
@@ -1284,7 +1108,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     int i = 0;
                     //Player wants to see who is waiting
                     foreach (Player P in queue)
-                        player.sendMessage(1, (String.Format("{0} - {1}", (++i).ToString(), P._alias)));
+                        player.sendMessage(1, (string.Format("{0} - {1}", (++i).ToString(), P._alias)));
                 }
                 else
                     //Nothing in the list
@@ -1302,11 +1126,11 @@ namespace InfServer.Script.GameType_Soccerbrawl
         {
             command = (command.ToLower());
             if (command.Equals("coords"))
-                player.sendMessage(0, String.Format("{0},{1}", player._state.positionX, player._state.positionY));
+                player.sendMessage(0, string.Format("{0},{1}", player._state.positionX, player._state.positionY));
 
             if (command.Equals("mvp") && player.PermissionLevelLocal >= Data.PlayerPermission.Mod)
             {
-                if (String.IsNullOrWhiteSpace(payload))
+                if (string.IsNullOrWhiteSpace(payload))
                 {
                     player.sendMessage(-1, "Syntax: *mvp alias");
                     return false;
@@ -1331,7 +1155,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 }
                 _arena.sendArenaMessage("MVP award goes to......... ");
                 _arena.sendArenaMessage(recipient._alias);
-                StreamWriter fs = Logic_File.CreateStatFile(FileName, String.Format("Season {0}", LeagueSeason.ToString()));
+                StreamWriter fs = Logic_File.CreateStatFile(FileName, string.Format("Season {0}", LeagueSeason.ToString()));
                 fs.WriteLine("-------------------------------------------------------------------------------------------------------------------------------------------------------------");
                 fs.WriteLine(String.Format("MVP = {0}", recipient._alias));
                 fs.Close();
@@ -1342,7 +1166,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             if (command.Equals("setscore"))
             {
-                if (String.IsNullOrEmpty(payload))
+                if (string.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: *setscore 1,2  (In order by teamname per scoreboard)");
                     return false;
@@ -1383,7 +1207,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -1413,15 +1237,15 @@ namespace InfServer.Script.GameType_Soccerbrawl
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = true;
                         recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -1440,7 +1264,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     //We arent
                     //Get name and possible level
                     Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "*poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         player.sendMessage(0, "Note: there can only be 1 admin.");
@@ -1463,13 +1287,13 @@ namespace InfServer.Script.GameType_Soccerbrawl
                         if (level < 1 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, string.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             player.sendMessage(0, "Note: there can be only 1 admin level.");
                             return false;
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -1482,7 +1306,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
                     }
 
                     //Lets send it off
@@ -1510,7 +1334,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -1542,15 +1366,15 @@ namespace InfServer.Script.GameType_Soccerbrawl
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = false;
                         recipient._permissionStatic = Data.PlayerPermission.Normal;
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -1569,7 +1393,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                     //We arent
                     //Get name and possible level
                     Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "*powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         return false;
@@ -1596,7 +1420,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -1612,7 +1436,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been depowered to level {0}.", level));
+                        recipient.sendMessage(0, string.Format("You have been depowered to level {0}.", level));
                     }
 
                     //Lets send it off
@@ -1703,7 +1527,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
             foreach (Player p in queue.ToList())
                 //Lets update players
                 if (i++ >= index)
-                    p.sendMessage(0, String.Format("Queue position is now {0}", i.ToString()));
+                    p.sendMessage(0, string.Format("Queue position is now {0}", i.ToString()));
 
             updateTickers();
         }
@@ -1715,7 +1539,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
         {
             _arena.setTicker(5, 1, 0, delegate(Player P)
             {
-                string update = String.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
+                string update = string.Format("{0}: {1} - {2}: {3}", team1._name, team1Goals, team2._name, team2Goals);
 
                 if (P != null)
                     return update;
@@ -1728,7 +1552,7 @@ namespace InfServer.Script.GameType_Soccerbrawl
                 {
                     //Dont show us as position 0
                     int i = queue.IndexOf(p) + 1;
-                    return String.Format("Queue Position: {0}", i.ToString());
+                    return string.Format("Queue Position: {0}", i.ToString());
                 }
                 return "";
             });
@@ -1845,47 +1669,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
 
             //If that fails, get the middle of the map instead
             return new Point(_arena._levelWidth / 2, _arena._levelHeight / 2);
-        }
-
-        /// <summary>
-        /// Will this ball drop be a goal
-        /// </summary>
-        private bool possibleGoal(Point ball, Point velocity, int tickCount)
-        {
-            if (BallSpawnPoint == null)
-                return false;
-            short posX = (short)(ball.X + velocity.X);
-            short posY = (short)(ball.Y + velocity.Y);
-
-            //Will it go past the middle of the map?
-            /*
-            if (velocity.X <= 0 && posX >= BallSpawnPoint.X) //Direction is left
-            {
-                Console.WriteLine(string.Format("{0},{1}, vel={2} - {3}", 
-                    posX.ToString(), posY.ToString(), velocity.X.ToString(), BallSpawnPoint.X.ToString()));
-                return false;
-            }
-
-            if (velocity.X > 0 && posX <= BallSpawnPoint.X) //Direction is right
-            {
-                Console.WriteLine(string.Format("{0},{1}, vel={2} - {3}", 
-                    posX.ToString(), posY.ToString(), velocity.X.ToString(), BallSpawnPoint.X.ToString()));
-                return false;
-            }
-            */
-            List<LvlInfo.Tile> tiles = Helpers.calcBresenhems(_arena, (short)ball.X, (short)ball.Y, posX, posY);
-            for (int i = 0; i <= tiles.Count - 1; i++)
-            {
-                CfgInfo.Terrain terrain = _arena._server._zoneConfig.terrains[_arena._server._assets.Level.TerrainLookup[tiles[i].TerrainLookup]];
-                if ((_arena.getTeamByID(0)._relativeVehicle == terrain.goalFrequency 
-                    || _arena.getTeamByID(1)._relativeVehicle == terrain.goalFrequency) && terrain.goalPoints == 1)
-                {
-                    Console.WriteLine(string.Format("{0},{1}, vel={2} - {3}",
-                    posX.ToString(), posY.ToString(), velocity.X.ToString(), BallSpawnPoint.X.ToString()));
-                    return true;
-                }
-            }
-            return false;
         }
         #endregion
 

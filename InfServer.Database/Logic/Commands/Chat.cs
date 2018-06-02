@@ -971,7 +971,23 @@ namespace InfServer.Logic
                                 }
                                 else
                                 {   //There are other people on the squad!
-                                    zone._server.sendMessage(zone, pkt.alias, "You can't leave a squad that you're the captain of! Either transfer ownership or kick everybody first.");
+                                    //Transfer ownership automatically
+                                    Data.DB.player transfer = squadmates.FirstOrDefault(p => p.squad == dbplayer.squad && p.id != dbplayer.id);
+                                    transfer.squad1.owner = transfer.id;
+
+                                    //Leave the squad...
+                                    dbplayer.squad1 = null;
+                                    dbplayer.squad = null;
+                                    zone._server.sendMessage(zone, pkt.alias, string.Format("You have left your squad while giving ownership to {0}. Please relog to complete this process.", transfer.alias1.name));
+                                    zone._server.sendMessage(zone, transfer.alias1.name, "You have been promoted to squad captain of " + transfer.squad1.name);
+
+                                    //Notify his squadmates
+                                    foreach (Data.DB.player sm in squadmates)
+                                    {
+                                        if (sm.id == dbplayer.id)
+                                            continue;
+                                        zone._server.sendMessage(zone, sm.alias1.name, pkt.alias + " has left your squad.");
+                                    }
                                     return;
                                 }
                             }
@@ -983,7 +999,11 @@ namespace InfServer.Logic
                                 zone._server.sendMessage(zone, pkt.alias, "You have left your squad, please relog to complete the process.");
                                 //Notify his squadmates
                                 foreach (Data.DB.player sm in squadmates)
+                                {
+                                    if (sm.id == dbplayer.id)
+                                        continue;
                                     zone._server.sendMessage(zone, sm.alias1.name, pkt.alias + " has left your squad.");
+                                }
                             }
                         }
                         break;
