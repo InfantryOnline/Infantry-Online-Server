@@ -55,7 +55,10 @@ namespace InfServer.Logic
             }
 
             if (pkt.bannerData == null)
+            {
+                player.sendMessage(-1, "&You don't have a banner loaded to send.");
                 return;
+            }
 
             if (!target._bAllowBanner)
             {

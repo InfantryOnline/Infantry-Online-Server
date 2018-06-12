@@ -21,7 +21,7 @@ namespace InfServer.Logic
                 {
                     case CS_ModQuery<Zone>.QueryType.aliastransfer:
                         {
-                            if (String.IsNullOrEmpty(pkt.query) || String.IsNullOrEmpty(pkt.aliasTo))
+                            if (string.IsNullOrEmpty(pkt.query) || string.IsNullOrEmpty(pkt.aliasTo))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -59,13 +59,12 @@ namespace InfServer.Logic
                             //Check for a squad
                             if (playerA.squad != null)
                             {
-                                List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == playerA.squad && plyr.squad != null));
+                                IQueryable<Data.DB.player> squadmates = db.players.Where(plyr => plyr.zone == playerA.zone && plyr.squad != null && plyr.squad == playerA.squad);
                                 if (playerA.squad1.owner == playerA.id)
                                 {
                                     if (squadmates.Count() > 1)
                                     {
-                                        Random rand = new Random();
-                                        Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                        Data.DB.player temp = squadmates.FirstOrDefault(p => p.id != playerA.id);
                                         //Since the player is the owner, lets just give it to someone else
                                         temp.squad1.owner = temp.id;
                                     }
@@ -93,7 +92,7 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.aliasremove:
                         {
-                            if (String.IsNullOrEmpty(pkt.query))
+                            if (string.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -117,14 +116,12 @@ namespace InfServer.Logic
                             //Check for a squad
                             if (player.squad != null)
                             {
-                                List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == player.squad && plyr.squad != null
-                                                                                            && plyr.zone == player.zone));
+                                IQueryable<Data.DB.player> squadmates = db.players.Where(plyr => plyr.zone == player.zone && plyr.squad != null && plyr.squad == player.squad);
                                 if (player.squad1.owner == player.id)
                                 {
                                     if (squadmates.Count() > 1)
                                     {
-                                        Random rand = new Random();
-                                        Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                        Data.DB.player temp = squadmates.FirstOrDefault(p => p.id != player.id);
                                         //Since the player is the owner, lets just give it to someone else
                                         temp.squad1.owner = temp.id;
                                     }
@@ -149,7 +146,7 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.aliasrename:
                         {
-                            if (String.IsNullOrEmpty(pkt.query))
+                            if (string.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -197,7 +194,7 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.mod:
                         {
-                            if (String.IsNullOrEmpty(pkt.query))
+                            if (string.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -227,7 +224,7 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.dev:
                         {
-                            if (String.IsNullOrEmpty(pkt.query))
+                            if (string.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -253,7 +250,7 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.squadtransfer:
                         {
-                            if (String.IsNullOrEmpty(pkt.aliasTo) || String.IsNullOrEmpty(pkt.query))
+                            if (string.IsNullOrEmpty(pkt.aliasTo) || string.IsNullOrEmpty(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -301,7 +298,7 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.squadjoin:
                         {
-                            if (String.IsNullOrWhiteSpace(pkt.aliasTo) || String.IsNullOrWhiteSpace(pkt.query))
+                            if (string.IsNullOrWhiteSpace(pkt.aliasTo) || string.IsNullOrWhiteSpace(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -327,7 +324,7 @@ namespace InfServer.Logic
                             if (dbplayer.squad != null)
                             {
                                 //Get his squad brothers! (if any...)
-                                IQueryable<Data.DB.player> squadmates = db.players.Where(p => p.squad == dbplayer.squad && p.squad != null);
+                                IQueryable<Data.DB.player> squadmates = db.players.Where(p => p.zone == dbplayer.zone && p.squad != null && p.squad == dbplayer.squad);
 
                                 //Is he the captain?
                                 if (dbplayer.squad1.owner == dbplayer.id)
@@ -341,7 +338,9 @@ namespace InfServer.Logic
                                     }
                                     else
                                     {   //There are other people on the squad, transfer it to someone
-                                        dbplayer.squad1.owner = squadmates.First().id;
+                                        Data.DB.player transferPlayer = squadmates.FirstOrDefault(p => p.id != dbplayer.id);
+                                        dbplayer.squad1.owner = transferPlayer.id;
+                                        zone._server.sendMessage(zone, transferPlayer.alias1.name, "You have been promoted to squad captain of " + transferPlayer.squad1.name);
                                     }
                                 }
                             }
@@ -356,7 +355,7 @@ namespace InfServer.Logic
 
                     case CS_ModQuery<Zone>.QueryType.powered:
                         {
-                            if (String.IsNullOrWhiteSpace(pkt.query))
+                            if (string.IsNullOrWhiteSpace(pkt.query))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Payload cannot be empty.");
                                 return;
@@ -387,7 +386,7 @@ namespace InfServer.Logic
                                             if (alias.account1.permission > sender.alias1.account1.permission
                                                 && alias.account1.permission > sender.permission)
                                                 continue;
-                                            powered.Add(pAlias, String.Format("*{0} - Lvl({1})", pAlias, alias.account1.permission.ToString()));
+                                            powered.Add(pAlias, string.Format("*{0} - Lvl({1})", pAlias, alias.account1.permission.ToString()));
                                         }
                                         else
                                         {
@@ -398,7 +397,7 @@ namespace InfServer.Logic
                                                 if (player.permission > sender.permission
                                                     && player.alias1.account1.permission > sender.alias1.account1.permission)
                                                     continue;
-                                                powered.Add(pAlias, String.Format("*{0} - Lvl({1})(dev)", pAlias, player.permission.ToString()));
+                                                powered.Add(pAlias, string.Format("*{0} - Lvl({1})(dev)", pAlias, player.permission.ToString()));
                                             }
                                         }
                                     }
@@ -434,7 +433,7 @@ namespace InfServer.Logic
                                 foreach (Data.DB.alias p in foundAlias)
                                     if (player.Value.alias.Equals(p.name))
                                     {
-                                        zone._server.sendMessage(zone, pkt.sender, String.Format("*Found: {0} Zone: {1} Arena: {2}", p.name, player.Value.zone._zone.name, !String.IsNullOrWhiteSpace(player.Value.arena) ? player.Value.arena : "Unknown Arena"));
+                                        zone._server.sendMessage(zone, pkt.sender, string.Format("*Found: {0} Zone: {1} Arena: {2}", p.name, player.Value.zone._zone.name, !String.IsNullOrWhiteSpace(player.Value.arena) ? player.Value.arena : "Unknown Arena"));
                                         found = true;
                                     }
                             }

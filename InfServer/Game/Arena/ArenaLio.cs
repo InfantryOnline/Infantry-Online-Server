@@ -854,7 +854,7 @@ namespace InfServer.Game
             int levelY = _server._assets.Level.OffsetY * 16;
 
             //Are we close enough?
-            if (!bForce && !Helpers.isInRange(100,
+            if (!bForce && !Helpers.isInRange(130,
                 player._state.positionX, player._state.positionY,
                 swi.GeneralData.OffsetX - levelX, swi.GeneralData.OffsetY - levelY))
                 return false;
@@ -975,9 +975,10 @@ namespace InfServer.Game
             if (_flags == null || _flags.Count() == 0)
                 return null;
 
+            string payload = name.ToLower();
             foreach (FlagState fs in _flags.Values)
             {
-                if (String.Equals(name, fs.flag.GeneralData.Name.Trim('\"'), StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(payload, fs.flag.GeneralData.Name.ToLower().Trim('\"'), StringComparison.OrdinalIgnoreCase))
                     return fs;
             }
 
@@ -1017,7 +1018,7 @@ namespace InfServer.Game
                 return false;
 
             //Are we close enough?
-            if (!bForce && bPickup && !Helpers.isInRange(100,
+            if (!bForce && bPickup && !Helpers.isInRange(130,
                 player._state.positionX, player._state.positionY,
                 fs.posX, fs.posY))
                 return false;
@@ -1252,7 +1253,6 @@ namespace InfServer.Game
             int levelY = _server._assets.Level.OffsetY * 16;
 
             //Should we spawn it?
-            bool bActive = true;
             if (PlayerCount < fs.flag.FlagData.MinPlayerCount)
                 return;
             if (PlayerCount > fs.flag.FlagData.MaxPlayerCount)
@@ -1266,6 +1266,9 @@ namespace InfServer.Game
                 if (_rand.Next(0, 1000) >= fs.flag.FlagData.OddsOfAppearance)
                     return;
             }
+
+            //Its passed the initial stuff, lets activate
+            bool bActive = true;
 
             //Give it some valid coordinates
             int attempts = 0;

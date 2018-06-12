@@ -39,7 +39,7 @@ namespace InfServer.Logic
                                 total += alias.timeplayed;
 
                                 //Send it
-                                zone._server.sendMessage(zone, pkt.sender, String.Format("~{0} ({1}d {2}h {3}m)", alias.name, days, hrs, mins));
+                                zone._server.sendMessage(zone, pkt.sender, string.Format("~{0} ({1}d {2}h {3}m)", alias.name, days, hrs, mins));
                             }
 
                             //Calculate total time played across all aliases.
@@ -50,7 +50,7 @@ namespace InfServer.Logic
                                 hrs = (int)totaltime.Hours;
                                 mins = (int)totaltime.Minutes;
                                 //Send it
-                                zone._server.sendMessage(zone, pkt.sender, String.Format("!Grand Total: {0}d {1}h {2}m", days, hrs, mins));
+                                zone._server.sendMessage(zone, pkt.sender, string.Format("!Grand Total: {0}d {1}h {2}m", days, hrs, mins));
                             }
                         }
                         break;
@@ -63,7 +63,7 @@ namespace InfServer.Logic
                                 SC_ChatQuery<Zone> cQuery = new SC_ChatQuery<Zone>();
                                 cQuery.type = pkt.queryType;
                                 cQuery.sender = pkt.sender;
-                                cQuery.payload = String.Format("{0},{1}", player.name, player.IPAddress);
+                                cQuery.payload = string.Format("{0},{1}", player.name, player.IPAddress);
                                 zone._client.sendReliable(cQuery);
                             }
                         }
@@ -100,7 +100,7 @@ namespace InfServer.Logic
                                     zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                     //Loop and display
                                     foreach (var alias in aliases)
-                                        zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})",
+                                        zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})",
                                             alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
                                 }
                                 else
@@ -155,7 +155,7 @@ namespace InfServer.Logic
                                 zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                 //Loop and display
                                 foreach (var alias in aliases)
-                                    zone._server.sendMessage(zone, pkt.sender, String.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})",
+                                    zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})",
                                         alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
                             }
                             else
@@ -165,7 +165,7 @@ namespace InfServer.Logic
 
                     case CS_ChatQuery<Zone>.QueryType.deletealias:
                         {
-                            if (String.IsNullOrWhiteSpace(pkt.payload))
+                            if (string.IsNullOrWhiteSpace(pkt.payload))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
                                 return;
@@ -202,14 +202,12 @@ namespace InfServer.Logic
                                 //Check for a squad
                                 if (player.squad != null)
                                 {
-                                    List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == player.squad && plyr.squad != null
-                                    && plyr.zone == player.zone));
+                                    IQueryable<Data.DB.player> squadmates = db.players.Where(plyr => plyr.zone == player.zone && plyr.squad != null && plyr.squad == player.squad);
                                     if (player.squad1.owner == player.id)
                                     {
                                         if (squadmates.Count() > 1)
                                         {
-                                            Random rand = new Random();
-                                            Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                            Data.DB.player temp = squadmates.FirstOrDefault(p => p.id != player.id);
                                             //Since the player is the owner, lets just give it to someone else
                                             temp.squad1.owner = temp.id;
                                         }
@@ -263,16 +261,15 @@ namespace InfServer.Logic
                                     //Check for a squad
                                     if (player.squad != null)
                                     {
-                                        List<Data.DB.player> squadmates = new List<Data.DB.player>(db.players.Where(plyr => plyr.squad == player.squad && plyr.squad != null
-                                        && plyr.zone == player.zone));
+                                        IQueryable<Data.DB.player> squadmates = db.players.Where(plyr => plyr.zone == player.zone && plyr.squad != null && plyr.squad == player.squad);
                                         if (player.squad1.owner == player.id)
                                         {
                                             if (squadmates.Count() > 1)
                                             {
-                                                Random rand = new Random();
-                                                Data.DB.player temp = squadmates[rand.Next(1, squadmates.Count())];
+                                                Data.DB.player temp = squadmates.FirstOrDefault(p => p.id != player.id);
                                                 //Since the player is the owner, lets just give it to someone else
                                                 temp.squad1.owner = temp.id;
+                                                zone._server.sendMessage(zone, temp.alias1.name, "You have been promoted to squad captain of " + temp.squad1.name);
                                             }
                                             else if (squadmates.Count() == 1)
                                                 //Lets delete the squad
@@ -368,21 +365,21 @@ namespace InfServer.Logic
                                             //Are we on the same squad?
                                             if (find.squad != pPlayer.squad || (find.squad == null && pPlayer.squad == null))
                                                 zone._server.sendMessage(zone, pkt.sender,
-                                                    String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                                    string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
                                                     result.Value.alias, result.Value.zone._zone.name, "Hidden"));
                                             else
                                                 zone._server.sendMessage(zone, pkt.sender,
-                                                    String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                                    string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
                                                     result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
                                         }
                                         else
                                             zone._server.sendMessage(zone, pkt.sender,
-                                                String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                                string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
                                                 result.Value.alias, result.Value.zone._zone.name, "Hidden"));
                                     }
                                     else
                                         zone._server.sendMessage(zone, pkt.sender,
-                                            String.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                            string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
                                             result.Value.alias, result.Value.zone._zone.name, result.Value.arena));
                                 }
                             }
@@ -401,9 +398,9 @@ namespace InfServer.Logic
                             {
                                 if (z._players.Count() < 1)
                                     continue;
-                                server.sendMessage(zone, pkt.sender, String.Format("~Server={0} Players={1}", z._zone.name, z._players.Count()));
+                                server.sendMessage(zone, pkt.sender, string.Format("~Server={0} Players={1}", z._zone.name, z._players.Count()));
                             }
-                            zone._server.sendMessage(zone, pkt.sender, String.Format("Infantry (Total={0}) (Peak={1})", server._players.Count(), server.playerPeak));
+                            zone._server.sendMessage(zone, pkt.sender, string.Format("Infantry (Total={0}) (Peak={1})", server._players.Count(), server.playerPeak));
                         }
                         break;
 
@@ -439,7 +436,7 @@ namespace InfServer.Logic
                             string[] args = pkt.payload.Split(':');
                             string name = args[0];
                             int page = Convert.ToInt32(args[1]);
-                            bool emptyName = String.IsNullOrWhiteSpace(name);
+                            bool emptyName = string.IsNullOrWhiteSpace(name);
 
                             zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
 
@@ -453,7 +450,7 @@ namespace InfServer.Logic
                             //List them
                             foreach (Data.DB.history h in commandHistory)
                             {
-                                zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
                                     Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.command));
                             }
                             zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 2, *history 3, etc to navigate pages OR *history alias:2 *history alias:3 for aliases.");
@@ -518,7 +515,7 @@ namespace InfServer.Logic
                                             created = b.created;
                                             reason = b.reason;
                                             found = true;
-                                            zone._server.sendMessage(zone, pkt.sender, String.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.name, type, Convert.ToString(created), Convert.ToString(expires), reason));
+                                            zone._server.sendMessage(zone, pkt.sender, string.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.name, type, Convert.ToString(created), Convert.ToString(expires), reason));
                                         }
                                     }
                                 }
@@ -551,7 +548,7 @@ namespace InfServer.Logic
                             //List them
                             foreach (Data.DB.helpcall h in helps)
                             {
-                                zone._server.sendMessage(zone, pkt.sender, String.Format("!{0} [{1}:{2}] {3}> {4}",
+                                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> {4}",
                                     Convert.ToString(h.date), h.zone, h.arena, h.sender, h.reason));
                             }
 
@@ -719,7 +716,7 @@ namespace InfServer.Logic
 
                     case CS_ChatQuery<Zone>.QueryType.adminlist:
                         {
-                            if (String.IsNullOrWhiteSpace(pkt.payload))
+                            if (string.IsNullOrWhiteSpace(pkt.payload))
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Payload cannot be empty.");
                                 return;
@@ -922,8 +919,17 @@ namespace InfServer.Logic
                     case CS_Squads<Zone>.QueryType.transfer:
                         {
                             //Sanity checks
-                            if (dbplayer.squad == null || pkt.payload == "")
+                            if (string.IsNullOrEmpty(pkt.payload))
+                            {
+                                zone._server.sendMessage(zone, pkt.alias, "Who are you transferring it to?");
                                 return;
+                            }
+
+                            if (dbplayer.squad == null)
+                            {
+                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
+                                return;
+                            }
 
                             if (dbplayer.squad1.owner != dbplayer.id)
                             {
@@ -957,13 +963,14 @@ namespace InfServer.Logic
                             }
 
                             //Get his squad brothers! (if any...)
-                            IQueryable<Data.DB.player> squadmates = db.players.Where(p => p.squad == dbplayer.squad && p.squad != null);
+                            IQueryable<Data.DB.player> squadmates = db.players.Where(p => p.zone == dbplayer.zone && p.squad != null && p.squad == dbplayer.squad);
 
                             //Is he the captain?
                             if (dbplayer.squad1.owner == dbplayer.id)
                             {   //We might need to dissolve the team!
                                 if (squadmates.Count() == 1)
-                                {   //He's the only one left on the squad... dissolve it!
+                                {
+                                    //He's the only one left on the squad... dissolve it!
                                     db.squads.DeleteOnSubmit(dbplayer.squad1);
                                     dbplayer.squad1 = null;
                                     dbplayer.squad = null;
@@ -972,7 +979,7 @@ namespace InfServer.Logic
                                 else
                                 {   //There are other people on the squad!
                                     //Transfer ownership automatically
-                                    Data.DB.player transfer = squadmates.FirstOrDefault(p => p.squad == dbplayer.squad && p.id != dbplayer.id);
+                                    Data.DB.player transfer = squadmates.FirstOrDefault(p => p.id != dbplayer.id);
                                     transfer.squad1.owner = transfer.id;
 
                                     //Leave the squad...
@@ -1018,7 +1025,7 @@ namespace InfServer.Logic
                             }
 
                             //Get his squad brothers! (if any...)
-                            IQueryable<Data.DB.player> squadmates = db.players.Where(p => p.squad == dbplayer.squad && p.squad != null);
+                            IQueryable<Data.DB.player> squadmates = db.players.Where(p => p.zone == dbplayer.zone && p.squad != null && p.squad == dbplayer.squad);
 
                             //Is he the captain?
                             if (dbplayer.squad1.owner == dbplayer.id)

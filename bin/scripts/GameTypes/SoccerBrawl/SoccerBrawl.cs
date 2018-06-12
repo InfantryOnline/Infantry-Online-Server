@@ -843,10 +843,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
             //Reset
             futureGoal = null;
 
-	        //Check to see if they are behind the correct lines(crease)
-	        //if (_arena.getTerrainID(player._state.positionX, player._state.positionY) != 0) //0 = field
-		        //return false;
-
             bool record = _tickGameStarted > 0 && _arena.PlayerCount >= _minPlayersToKeepScore;
             CfgInfo.Terrain terrain = _arena.getTerrain(ball._state.positionX, ball._state.positionY);
             if (player._team == team1)
@@ -1072,8 +1068,6 @@ namespace InfServer.Script.GameType_Soccerbrawl
             if (victim._gotBallID != 999)
             {
                 Ball ball = _arena.Balls.SingleOrDefault(b => b._id == victim._gotBallID);
-                victim._gotBallID = 999;
-
                 if (ball == null)
                     return true;
 

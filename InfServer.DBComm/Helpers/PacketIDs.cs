@@ -43,7 +43,7 @@ namespace InfServer.Protocol
                 ArenaUpdate = 23,
                 ChartQuery = 24,
                 PlayerBannerAnimated = 25,
-                ZoneUpdate = 26
+                ZoneUpdate = 26,
             }
 
             ///<summary>
@@ -62,7 +62,7 @@ namespace InfServer.Protocol
                 ZoneList = 15,
                 Disconnect = 17,
                 ChartResponse = 24,
-                ChatQuery = 25
+                ChatQuery = 25,
             }
         }
     }

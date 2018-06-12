@@ -30,7 +30,7 @@ namespace InfServer.Protocol
             ScoreDaily,
             ScoreWeekly,
             ScoreMonthly,
-            ScoreYearly
+            ScoreYearly,
         }
 
         ///////////////////////////////////////////////////

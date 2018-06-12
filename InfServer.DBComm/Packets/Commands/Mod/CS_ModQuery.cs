@@ -34,7 +34,7 @@ namespace InfServer.Protocol
             squadremove,
             squadjoin,
             powered,
-            find
+            find,
         }
 
 

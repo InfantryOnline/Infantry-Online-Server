@@ -389,27 +389,11 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void flagSpawn(Player player, Player recipient, string payload, int bong)
         {
-            if (string.Equals("all", StringComparer.OrdinalIgnoreCase))
-            {
-                player._arena.flagSpawn();
-                player.sendMessage(0, "All possible flags have been spawned.");
-                return;
-            }
-
             if (string.IsNullOrWhiteSpace(payload))
             {
                 player.sendMessage(-1, "What flag(s) do you want to spawn?");
-                player.sendMessage(0, "Syntax: *flagspawn <all/specific flag>");
-                player.sendMessage(0, "Syntax: *flagspawn <specific flag>, <location or default>");
+                player.sendMessage(0, "Syntax: *flagspawn <all or specific flag> : <location or default>");
                 player.sendMessage(0, "NOTE: flags can be looked up by name or lio id.");
-                return;
-            }
-
-            //Are we spawning all the flags?
-            if (string.Equals(payload, "all"))
-            {
-                player._arena.flagSpawn();
-                player.sendMessage(0, "All active flags have been spawned.");
                 return;
             }
 
@@ -420,32 +404,43 @@ namespace InfServer.Game.Commands.Mod
             }
 
             string[] split = payload.Split(':');
+            if (string.IsNullOrWhiteSpace(split[0]))
+            {
+                player.sendMessage(-1, "You must provide either a flag name or id first.");
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(split[1]))
             {
                 player.sendMessage(-1, "Flag location cannot be blank. Please choose either default, exact coords or sector location.");
                 return;
             }
 
-            Arena.FlagState fs;
+            Arena.FlagState fs = null;
             int id = -1;
-            //Are they using an id?
-            if (Int32.TryParse(split[0], out id))
-            {   //Yep
-                fs = player._arena.getFlag(id);
-                if (fs == null)
-                {
-                    player.sendMessage(-1, "Cannot find that specific flag id.");
-                    return;
-                }
-            }
-            else
+            bool allSpawn = split[0].Equals("all");
+
+            if (!allSpawn)
             {
-                //Nope, must be a name
-                fs = player._arena.getFlag(split[0].Trim());
-                if (fs == null)
+                //Are they using an id?
+                if (int.TryParse(split[0], out id))
+                {   //Yep
+                    fs = player._arena.getFlag(id);
+                    if (fs == null)
+                    {
+                        player.sendMessage(-1, "Cannot find that specific flag id.");
+                        return;
+                    }
+                }
+                else
                 {
-                    player.sendMessage(-1, "Cannot find that specific flag.");
-                    return;
+                    //Nope, must be a name
+                    fs = player._arena.getFlag(split[0].Trim());
+                    if (fs == null)
+                    {
+                        player.sendMessage(-1, "Cannot find that specific flag.");
+                        return;
+                    }
                 }
             }
 
@@ -453,8 +448,21 @@ namespace InfServer.Game.Commands.Mod
             string coords = split[1].ToLower();
             if (string.Equals(coords, "default"))
             {
-                player._arena.flagSpawn(fs);
-                player.sendMessage(0, string.Format("Flag {0} has been spawned at its default location.", fs.flag.GeneralData.Name));
+                if (!allSpawn)
+                {
+                    if (!fs.bActive)
+                    {
+                        player.sendMessage(-1, "Cannot spawn that specific flag because it is not active.");
+                        return;
+                    }
+                    player._arena.flagSpawn(fs);
+                    player.sendMessage(0, string.Format("Flag {0} has been spawned at its default location.", fs.flag.GeneralData.Name));
+                }
+                else
+                {
+                    player._arena.flagSpawn();
+                    player.sendMessage(0, "All active flags have been spawned at its default location.");
+                }
                 return;
             }
 
@@ -482,12 +490,30 @@ namespace InfServer.Game.Commands.Mod
                     player.sendMessage(-1, "Cannot spawn flag on that location.");
                     return;
                 }
-                fs.posX = (short)x;
-                fs.posY = (short)y;
-                fs.bActive = true;
-                Helpers.Object_Flags(player._arena.Players, fs);
 
-                player.sendMessage(0, string.Format("Flag {0} has been spawned at {1}.", fs.flag.GeneralData.Name, coords));
+                if (!allSpawn)
+                {
+                    if (!fs.bActive)
+                    {
+                        player.sendMessage(-1, "Cannot spawn that specific flag because it is not active.");
+                        return;
+                    }
+                    fs.posX = (short)x;
+                    fs.posY = (short)y;
+                    Helpers.Object_Flags(player._arena.Players, fs);
+
+                    player.sendMessage(0, string.Format("Flag {0} has been spawned at {1}.", fs.flag.GeneralData.Name, coords));
+                }
+                else
+                {
+                    foreach (Arena.FlagState f in player._arena._flags.Values)
+                    {
+                        f.posX = (short)x;
+                        f.posY = (short)y;
+                    }
+                    Helpers.Object_Flags(player._arena.Players, player._arena._flags.Values);
+                    player.sendMessage(0, string.Format("All active flags have been spawned at {0}.", coords));
+                }
                 return;
             }
 
@@ -515,12 +541,27 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Cannot spawn flag on that location.");
                 return;
             }
-            fs.posX = (short)x;
-            fs.posY = (short)y;
-            fs.bActive = true;
-            Helpers.Object_Flags(player._arena.Players, fs);
 
-            player.sendMessage(0, string.Format("Flag {0} has been spawned at {1}.", fs.flag.GeneralData.Name, coords));
+            if (!allSpawn)
+            {
+                fs.posX = (short)x;
+                fs.posY = (short)y;
+                fs.bActive = true;
+                Helpers.Object_Flags(player._arena.Players, fs);
+
+                player.sendMessage(0, string.Format("Flag {0} has been spawned at {1}.", fs.flag.GeneralData.Name, coords));
+            }
+            else
+            {
+                foreach (Arena.FlagState f in player._arena._flags.Values)
+                {
+                    f.posX = (short)x;
+                    f.posY = (short)y;
+                    f.bActive = true;
+                }
+                Helpers.Object_Flags(player._arena.Players, player._arena._flags.Values);
+                player.sendMessage(0, string.Format("All flags have been spawned at {0}.", coords));
+            }
         }
 
         /// <summary>
@@ -1518,6 +1559,12 @@ namespace InfServer.Game.Commands.Mod
             //First check if we are pm'ing someone
             if (recipient != null)
             {
+                if (recipient.IsSpectator)
+                {
+                    player.sendMessage(-1, "The player you private messaged is already in spec.");
+                    return;
+                }
+
                 Player target;
                 if ((target = player._arena.getPlayerByName(payload)) == null)
                 {
@@ -1528,11 +1575,21 @@ namespace InfServer.Game.Commands.Mod
                 team1 = recipient._team;
                 team2 = target._team;
 
-                //Is he on a spectator team?
+                //Is he/she on a spectator team?
                 if (target.IsSpectator)
-                {   //Unspec him
+                {   //Unspec them
                     target.unspec(team1);
-                    recipient.spec();
+
+                    //Was it the same team?
+                    if (team1 == team2)
+                    {   //Spec him/her then add him/her to the same team
+                        recipient.spec();
+                        team2.addPlayer(recipient);
+                    }
+                    else
+                    {
+                        recipient.spec();
+                    }
                 }
                 else
                 {   //Change team
@@ -1569,11 +1626,21 @@ namespace InfServer.Game.Commands.Mod
             team1 = comingOut._team;
             team2 = goingIn._team;
 
-            //Is he on a spectator team?
+            //Is he/she on a spectator team?
             if (goingIn.IsSpectator)
-            {   //Unspec him
+            {   //Unspec him/her
                 goingIn.unspec(team1);
-                comingOut.spec();
+
+                //Was it the same team?
+                if (team1 == team2)
+                {
+                    comingOut.spec();
+                    team2.addPlayer(comingOut);
+                }
+                else
+                {
+                    comingOut.spec();
+                }
             }
             else
             {   //Change team
@@ -1985,7 +2052,7 @@ namespace InfServer.Game.Commands.Mod
                     int minutes = 0;
                     int seconds = 0;
                     if (payload.Contains(":"))
-                    {   //Split the payload up if it contains a semi-colon
+                    {   //Split the payload up if it contains a colon
                         char[] splitArr = { ':' };
                         string[] items = payload.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
 

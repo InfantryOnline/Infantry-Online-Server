@@ -1,381 +1,373 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
+using System.Linq;
 
-using InfServer.Logic;
 using InfServer.Game;
 using InfServer.Scripting;
-using InfServer.Bots;
 using InfServer.Protocol;
 
 using Assets;
 
 namespace InfServer.Script.GameType_CTF
-{	// Script Class
-    /// Provides the interface between the script and arena
-    ///////////////////////////////////////////////////////
+{
+    //////////////////////////////////////////////////////
+    // Script class
+    // Provides the interface between the script and arena
+    //////////////////////////////////////////////////////
     class Script_CTF : Scripts.IScript
-    {	///////////////////////////////////////////////////
+    {
+        #region Member Variables
+        //////////////////////////////////////////////////
         // Member Variables
-        ///////////////////////////////////////////////////
-        private Arena _arena;					//Pointer to our arena class
-        private CfgInfo _config;				//The zone config
+        //////////////////////////////////////////////////
+        private Arena arena;
+        private CfgInfo CFG;
+        private int lastGameCheck;
 
-        private int _jackpot;					//The game's jackpot so far
+        private int minPlayers;
+        private int preGamePeriod;
 
-        private Team _victoryTeam;				//The team currently winning!
-        private int _tickVictoryStart;			//The tick at which the victory countdown began
-        private int _tickNextVictoryNotice;		//The tick at which we will next indicate imminent victory
-        private int _victoryNotice;				//The number of victory notices we've done
+        private Team winningTeam;
+        private int winningTeamTick;
+        private int winningTeamNotify;
+        private int victoryHoldTime;
+        private bool gameWon;
 
-        private int _lastGameCheck;				//The tick at which we last checked for game viability
-        private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
-        private int _tickGameStart;				//The tick at which the game started (0 == stopped)
-        private int _tickLastTickerUpdate;      //The tick at which we update our tickers
-        private int _lastKillStreakUpdate;      //Tick at which a players kill streak started
+        private GameState gameState;
+        private CTFMode flagMode;
 
-        //Settings
-        private int _minPlayers;				//The minimum amount of players
-        private bool _gameWon = false;
-
-        //Recordings
         /// <summary>
         /// Stores our player streak information
         /// </summary>
         private class PlayerStreak
         {
-            public Player player { get; set; }
             public ItemInfo.Projectile lastUsedWeap { get; set; }
             public int lastUsedWepKillCount { get; set; }
             public long lastUsedWepTick { get; set; }
             public int lastKillerCount { get; set; }
         }
 
-        private Dictionary<string, PlayerStreak> _killStreaks;
+        private Dictionary<string, PlayerStreak> killStreaks;
         private Player lastKiller;
-        private Dictionary<string, int> _explosives;
-        private string[] explosives = { "Frag Grenade", "WP Grenade", "EMP Grenade", "Kuchler RG 249", "Maklov RG 2", "Titan Arms RG 2mv", "AP Mine",
+
+        private Dictionary<string, int> explosives;
+        private string[] explosiveList = { "Frag Grenade", "WP Grenade", "EMP Grenade", "Kuchler RG 249", "Maklov RG 2", "Titan Arms RG 2mv", "AP Mine",
                                         "Plasma Mine", "Grapeshot Mine", "RPG", "Micro Missle Launcher", "Recoilless Rifle", "Kuchler PC v2",
                                         "Maklov XVI PC2000" };
         //Note: these corrispond with the weapons above in order
-        private int[] explosiveAliveTimes = {250, 250, 250, 500, 500, 500, 500, 100, 250, 500, 500, 500, 450, 450};
+        private int[] explosiveAliveTimes = { 250, 250, 250, 500, 500, 500, 500, 100, 250, 500, 500, 500, 450, 450 };
 
-        #region Updaters
-        /// <summary>
-        /// Updates the last killer
-        /// </summary>
-        private void ResetKiller(Player killer)
-        {
-            lastKiller = killer;
-        }
-
-        /// <summary>
-        /// Resets the weapon ticker to default (Time Expired)
-        /// </summary>
-        private void ResetWeaponTicker(Player target)
-        {
-            if (_killStreaks.ContainsKey(target._alias))
-            {
-                _killStreaks[target._alias].lastUsedWeap = null;
-                _killStreaks[target._alias].lastUsedWepKillCount = 0;
-                _killStreaks[target._alias].lastUsedWepTick = -1;
-            }
-        }
-
-        /// <summary>
-        /// Updates the killer and their kill counter
-        /// </summary>
-        private void UpdateKiller(Player killer)
-        {
-            if (_killStreaks.ContainsKey(killer._alias))
-            {
-                _killStreaks[killer._alias].lastKillerCount++;
-                switch(_killStreaks[killer._alias].lastKillerCount)
-                {
-                    case 6:
-                        _arena.sendArenaMessage(String.Format("{0} is on fire!", killer._alias), 8);
-                        break;
-                    case 8:
-                        _arena.sendArenaMessage(String.Format("Someone kill {0}!", killer._alias), 9);
-                        break;
-                }
-            }
-            //Is this first blood?
-            if (lastKiller == null)
-            {
-                //It is, lets make the sound
-                _arena.sendArenaMessage(String.Format("{0} has drawn first blood.", killer._alias), 7);
-            }
-            lastKiller = killer;
-        }
-
-        /// <summary>
-        /// Updates the victim's kill streak and notifies the public
-        /// </summary>
-        private void UpdateDeath(Player victim, Player killer)
-        {
-            if (_killStreaks.ContainsKey(victim._alias))
-            {
-                if (_killStreaks[victim._alias].lastKillerCount >= 6)
-                {
-                    _arena.sendArenaMessage(String.Format("{0}", killer != null ? killer._alias + " has ended " + victim._alias + "'s kill streak." :
-                        victim._alias + "'s kill streak has ended."), 6);
-                }
-                _killStreaks[victim._alias].lastKillerCount = 0;
-            }
-        }
-
-        /// <summary>
-        /// Updates the last fired weapon and its ticker
-        /// </summary>
-        private void UpdateWeapon(Player from, ItemInfo.Projectile usedWep, int aliveTime)
-        {
-            if (_killStreaks.ContainsKey(from._alias))
-            {
-                _killStreaks[from._alias].lastUsedWeap = usedWep;
-                _killStreaks[from._alias].lastUsedWepTick = DateTime.Now.AddTicks(aliveTime).Ticks;
-            }
-        }
-
-        /// <summary>
-        /// Updates the last weapon used and kill count then announcing it to the public
-        /// </summary>
-        private void UpdateWeaponKill(Player from)
-        {
-            if (_killStreaks.ContainsKey(from._alias))
-            {
-                if (_killStreaks[from._alias].lastUsedWeap == null)
-                    return;
-
-                _killStreaks[from._alias].lastUsedWepKillCount++;
-                ItemInfo.Projectile lastUsedWep = _killStreaks[from._alias].lastUsedWeap;
-                switch (_killStreaks[from._alias].lastUsedWepKillCount)
-                {
-                    case 2:
-                        _arena.sendArenaMessage(String.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 17);
-                        break;
-                    case 3:
-                        _arena.sendArenaMessage(String.Format("{0} just got a triple {1} kill!", from._alias, lastUsedWep.name), 18);
-                        break;
-                    case 4:
-                        _arena.sendArenaMessage(String.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 19);
-                        break;
-                    case 5:
-                        _arena.sendArenaMessage(String.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 20);
-                        break;
-                }
-            }
-        }
         #endregion
 
-        ///////////////////////////////////////////////////
-        // Member Functions
-        ///////////////////////////////////////////////////
+        #region Game Functions
+        //////////////////////////////////////////////////
+        // Game Functions
+        //////////////////////////////////////////////////
         /// <summary>
         /// Performs script initialization
         /// </summary>
         public bool init(IEventObject invoker)
-        {	//Populate our variables
-            _arena = invoker as Arena;
-            _config = _arena._server._zoneConfig;
-            _minPlayers = Int32.MaxValue;
-            _killStreaks = new Dictionary<string, PlayerStreak>();
-            _explosives = new Dictionary<string, int>();
+        {
+            arena = invoker as Arena;
+            CFG = arena._server._zoneConfig;
 
-            for (int i = 0; i < explosives.Length; i++)
+            minPlayers = 2;
+            victoryHoldTime = CFG.flag.victoryHoldTime;
+            preGamePeriod = CFG.flag.startDelay;
+
+            killStreaks = new Dictionary<string, PlayerStreak>();
+            explosives = new Dictionary<string, int>();
+
+            for (int i = 0; i < explosiveList.Length; i++)
             {
-                _explosives.Add(explosives[i], explosiveAliveTimes[i]);
-                i++;
+                explosives.Add(explosiveList[i], explosiveAliveTimes[i]);
             }
 
-            foreach (Arena.FlagState fs in _arena._flags.Values)
+            foreach (Arena.FlagState fs in arena._flags.Values)
             {	//Determine the minimum number of players
-                if (fs.flag.FlagData.MinPlayerCount < _minPlayers)
-                    _minPlayers = fs.flag.FlagData.MinPlayerCount;
+                if (fs.flag.FlagData.MinPlayerCount < minPlayers)
+                { minPlayers = fs.flag.FlagData.MinPlayerCount; }
 
                 //Register our flag change events
-                fs.TeamChange += onFlagChange;
+                fs.TeamChange += OnFlagChange;
             }
 
-            if (_minPlayers == Int32.MaxValue)
-                //No flags? Run blank games
-                _minPlayers = 1;
-
+            gameState = GameState.Init;
             return true;
         }
 
         /// <summary>
-        /// Allows the script to maintain itself
+        /// CTF Script poll called by our arena
         /// </summary>
         public bool poll()
-        {	//Should we check game state yet?
+        {
             int now = Environment.TickCount;
 
-            if (now - _lastGameCheck <= Arena.gameCheckInterval)
+            if (now - lastGameCheck < Arena.gameCheckInterval)
                 return true;
-            _lastGameCheck = now;
+            lastGameCheck = now;
 
-            //Do we have enough players ingame?
-            int playing = _arena.PlayerCount;
-
-            if (_arena._bGameRunning && playing < _minPlayers)
-                //Stop the game!
-                _arena.gameEnd();
-
-            //Under min players? Let them know
-            if (playing < _minPlayers)
+            if (gameState == GameState.Init)
             {
-                _tickGameStarting = 0;
-                _arena.setTicker(4, 1, 0, "Not Enough Players");
-            }
-
-            //Update our kill streak check
-            if (now - _lastKillStreakUpdate >= 100)
-            {
-                UpdateKillStreaks();
-                _lastKillStreakUpdate = now;
-            }
-
-            //Do we have enough players to start a game?
-            if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
-            {	//Great! Get going
-                _tickGameStarting = now;
-                _arena.setTicker(4, 1, _config.flag.startDelay * 100, "Next game: ",
-                    delegate()
-                    {	//Trigger the game start
-                        _arena.gameStart();
-                    }
-                );
-            }
-
-            //Update our tickers
-            if (_tickGameStart > 0 && now - _arena._tickGameStarted > 2000)
-            {
-                if (now - _tickLastTickerUpdate > 1500)
+                if (arena.PlayersIngame.Count() < minPlayers)
                 {
-                    updateTickers();
-                    _tickLastTickerUpdate = now;
+                    gameState = GameState.NotEnoughPlayers;
                 }
             }
 
-            //Is anybody experiencing a victory?
-            if (_tickVictoryStart != 0)
-            {	//Have they won yet?
-                if (now - _tickVictoryStart > (_config.flag.victoryHoldTime * 10))
-                {
-                    //Yes! Trigger game victory
-                    if (!_gameWon)
-                        gameVictory(_victoryTeam);
-                    return true;
-                }
-                else
-                {	//Do we have a victory notice to give?
-                    if (_tickNextVictoryNotice != 0 && now > _tickNextVictoryNotice)
-                    {	//Yes! Let's give it
-                        int countdown = (_config.flag.victoryHoldTime / 100) - ((now - _tickVictoryStart) / 1000);
-                        _arena.sendArenaMessage(String.Format("Victory for {0} in {1} seconds!",
-                            _victoryTeam._name, countdown), _config.flag.victoryWarningBong);
-
-                        //Plan the next notice
-                        _tickNextVictoryNotice = _tickVictoryStart;
-                        _victoryNotice++;
-
-                        if (_victoryNotice == 1 && countdown >= 30)
-                            //Default 2/3 time
-                            _tickNextVictoryNotice += (_config.flag.victoryHoldTime / 3) * 10;
-                        else if (_victoryNotice == 2 || (_victoryNotice == 1 && countdown >= 20))
-                            //10 second marker
-                            _tickNextVictoryNotice += (_config.flag.victoryHoldTime * 10) - 10000;
-                        else
-                            _tickNextVictoryNotice = 0;
-                    }
-                }
+            switch (gameState)
+            {
+                case GameState.NotEnoughPlayers:
+                    arena.setTicker(1, 3, 0, "Not Enough Players");
+                    gameState = GameState.Init;
+                    break;
+                case GameState.Transitioning:
+                    //Do nothing while we wait
+                    break;
+                case GameState.ActiveGame:
+                    PollCTF(now);
+                    break;
+                case GameState.Init:
+                    Initialize();
+                    break;
+                case GameState.PreGame:
+                    PreGame();
+                    break;
+                case GameState.PostGame:
+                    gameState = GameState.Init;
+                    break;
             }
-
             return true;
         }
 
-        #region Game Events
-        /// <summary>
-        /// Called when a flag changes team
-        /// </summary>
-        public void onFlagChange(Arena.FlagState flag)
-        {	//Does this team now have all the flags?
-            Team victoryTeam = flag.team;
+        private void OnFlagChange(Arena.FlagState flag)
+        {
+            Team victory = flag.team;
 
-            foreach (Arena.FlagState fs in _arena._flags.Values)
-                if (fs.bActive && fs.team != victoryTeam)
-                {
-                    victoryTeam = null;
+            //Does this team now have all the flags?
+            foreach (Arena.FlagState fs in arena._flags.Values)
+            {
+                if (fs.bActive && fs.team != flag.team)
+                {   //Not all flags are captured yet
+                    victory = null;
                     break;
                 }
-
-            if (victoryTeam != null)
-            {	//Yes! Victory for them!
-                _arena.setTicker(4, 1, _config.flag.victoryHoldTime, "Victory in ");
-                _tickNextVictoryNotice = _tickVictoryStart = Environment.TickCount;
-                _victoryTeam = victoryTeam;
             }
-            else
-            {	//Aborted?
-                if (_victoryTeam != null && !_gameWon)
-                {
-                    _tickVictoryStart = 0;
-                    _tickNextVictoryNotice = 0;
-                    _victoryTeam = null;
-                    _victoryNotice = 0;
 
-                    _arena.sendArenaMessage("Victory has been aborted.", _config.flag.victoryAbortedBong);
-                    _arena.setTicker(4, 1, 0, "");
+            if (!gameWon)
+            {   //All flags captured?
+                if (victory != null)
+                {   //Yep
+                    winningTeamTick = (Environment.TickCount + (victoryHoldTime * 10));
+                    winningTeamNotify = 0;
+                    winningTeam = victory;
+                    flagMode = CTFMode.XSeconds;
+                }
+                else
+                {   //Aborted?
+                    if (winningTeam != null)
+                    {   //Yep
+                        winningTeam = null;
+                        winningTeamTick = 0;
+                        flagMode = CTFMode.Aborted;
+                    }
                 }
             }
         }
 
-        /// <summary>
-        /// Called when the specified team have won
-        /// </summary>
-        public void gameVictory(Team victors)
-        {
-            _gameWon = true;
+        #endregion
 
-            //Stop the game
-            _arena.gameEnd();
+        #region Script Functions
+        ///////////////////////////////////////////////////
+        // Script Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Resets all variables and initializes a new game state
+        /// </summary>
+        private void Initialize()
+        {
+            winningTeamNotify = 0;
+            winningTeamTick = 0;
+            winningTeam = null;
+            gameWon = false;
+
+            //We are officially initialized, pregame it.
+            gameState = GameState.PreGame;
+        }
+
+        /// <summary>
+        /// Our waiting period between games
+        /// </summary>
+        private void PreGame()
+        {
+            gameState = GameState.Transitioning;
+
+            //Sit here until timer runs out
+            arena.setTicker(1, 3, preGamePeriod * 100, "Next game: ",
+                    delegate()
+                    {	//Trigger the game start
+                        arena.gameStart();
+                    }
+            );
+        }
+
+        /// <summary>
+        /// Resets our tickers and gamestate
+        /// </summary>
+        private void Reset()
+        {
+            //Clear any tickers that might be still active
+            if (gameState == GameState.Transitioning)
+            {
+                arena.setTicker(4, 3, 0, ""); //Next game
+            }
+            arena.setTicker(4, 1, 0, ""); //Victory in x:x
+
+            //Reset
+            gameState = GameState.Init;
+        }
+
+        /// <summary>
+        /// Did someone win yet? If so, set the announcement
+        /// </summary>
+        private void CheckWinner(int now)
+        {
+            //See if someone is winning
+            if (winningTeam != null)
+            {
+                //Has XSeconds been called yet?
+                if (flagMode == CTFMode.XSeconds)
+                { return; }
+
+                int tick = ((winningTeamTick - now) / 1000);
+                switch (tick)
+                {
+                    case 10:
+                        flagMode = CTFMode.TenSeconds;
+                        break;
+                    case 30:
+                        flagMode = CTFMode.ThirtySeconds;
+                        break;
+                    case 60:
+                        flagMode = CTFMode.SixtySeconds;
+                        break;
+                    default:
+                        if (tick <= 0)
+                        {
+                            flagMode = CTFMode.GameDone;
+                        }
+                        break;
+                }
+            }
+        }
+
+        private void SetNotifyBypass(int countdown)
+        {   //If XSeconds matches one of these, it will bypass that call
+            //so there is no duplicate Victory message
+            switch (countdown)
+            {
+                case 10:
+                    winningTeamNotify = 1;
+                    break;
+                case 30:
+                    winningTeamNotify = 2;
+                    break;
+                case 60:
+                    winningTeamNotify = 3;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Poll the flag state while checking for a winner
+        /// </summary>
+        private void PollCTF(int now)
+        {
+            //See if we have enough players to keep playing
+            if (arena.PlayersIngame.Count() < minPlayers)
+            {
+                Reset();
+            }
+            else
+            {
+                CheckWinner(now);
+            }
+
+            int countdown = winningTeamTick > 0 ? ((winningTeamTick - now) / 1000) : 0;
+            switch (flagMode)
+            {
+                case CTFMode.Aborted:
+                    arena.setTicker(4, 1, 0, "");
+                    arena.sendArenaMessage("Victory has been aborted.", CFG.flag.victoryAbortedBong);
+                    flagMode = CTFMode.None;
+                    break;
+                case CTFMode.TenSeconds:
+                    //10 second win timer
+                    if (winningTeamNotify == 1) //Been notified already?
+                    { break; }
+                    winningTeamNotify = 1;
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    flagMode = CTFMode.None;
+                    break;
+                case CTFMode.ThirtySeconds:
+                    //30 second win timer
+                    if (winningTeamNotify == 2) //Been notified already?
+                    { break; }
+                    winningTeamNotify = 2;
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    flagMode = CTFMode.None;
+                    break;
+                case CTFMode.SixtySeconds:
+                    //60 second win timer
+                    if (winningTeamNotify == 3) //Been notified already?
+                    { break; }
+                    winningTeamNotify = 3;
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    flagMode = CTFMode.None;
+                    break;
+                case CTFMode.XSeconds:
+                    //Initial win timer upon capturing
+                    SetNotifyBypass(countdown); //Checks to see if xSeconds matches any other timers
+                    arena.setTicker(4, 1, CFG.flag.victoryHoldTime, "Victory in ");
+                    arena.sendArenaMessage(string.Format("Victory for {0} in {1} seconds!", winningTeam._name, countdown), CFG.flag.victoryWarningBong);
+                    flagMode = CTFMode.None;
+                    break;
+                case CTFMode.GameDone:
+                    //Game is done
+                    gameWon = true;
+                    arena.gameEnd();
+                    break;
+            }
+
+            UpdateCTFTickers();
+            UpdateKillStreaks();
         }
 
         /// <summary>
         /// Called when the game begins
         /// </summary>
         [Scripts.Event("Game.Start")]
-        public bool gameStart()
-        {	//We've started!
-            _tickGameStart = Environment.TickCount;
-            _tickGameStarting = 0;
-            _tickVictoryStart = 0;
-            _victoryNotice = 0;
+        public bool StartGame()
+        {
+            gameState = GameState.ActiveGame;
+            flagMode = CTFMode.None;
 
             ResetKiller(null);
-            _killStreaks.Clear();
+            killStreaks.Clear();
 
-            foreach(Player p in _arena.Players)
+            foreach (Player p in arena.Players)
             {
                 PlayerStreak temp = new PlayerStreak();
-                temp.player = p;
                 temp.lastKillerCount = 0;
                 temp.lastUsedWeap = null;
                 temp.lastUsedWepKillCount = 0;
                 temp.lastUsedWepTick = -1;
-                _killStreaks.Add(p._alias, temp);
+                killStreaks.Add(p._alias, temp);
             }
 
             //Let everyone know
-            _arena.sendArenaMessage("Game has started!", _config.flag.resetBong);
-            updateTickers();
+            arena.sendArenaMessage("Game has started!", CFG.flag.resetBong);
 
-            //Signal that a game has not been won yet
-            _gameWon = false;
             return true;
         }
 
@@ -383,46 +375,23 @@ namespace InfServer.Script.GameType_CTF
         /// Called when the game ends
         /// </summary>
         [Scripts.Event("Game.End")]
-        public bool gameEnd()
-        {	//Game finished, perhaps start a new one
-            _tickGameStart = 0;            
-            _tickGameStarting = 0;
-            _tickVictoryStart = 0;
-            _tickNextVictoryNotice = 0;
-            _victoryTeam = null;
-            _victoryNotice = 0;
+        public bool EndGame()
+        {
+            gameState = GameState.PostGame;
 
-            _arena.gameReset();
-            return true;
-        }
-
-        /// <summary>
-        /// Called when the statistical breakdown is displayed
-        /// </summary>
-        [Scripts.Event("Game.Breakdown")]
-        public bool breakdown()
-        {	//Allows additional "custom" breakdown information
-
-            //Always return true;
-            return true;
-        }
-
-        /// <summary>
-        /// Called to reset the game state
-        /// </summary>
-        [Scripts.Event("Game.Reset")]
-        public bool gameReset()
-        {	//Game reset, perhaps start a new one
-            _tickGameStart = 0;
-            _tickGameStarting = 0;
-            _tickVictoryStart = 0;
-            _tickNextVictoryNotice = 0;
-
-            _gameWon = false;
-            _victoryTeam = null;
+            if (winningTeam == null)
+            {
+                arena.sendArenaMessage("There was no winner.");
+            }
+            else
+            {
+                arena.sendArenaMessage(winningTeam._name + " has won the game!");
+                winningTeam = null;
+            }
 
             return true;
         }
+
         #endregion
 
         #region Player Events
@@ -432,10 +401,13 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Player.Explosion")]
         public bool playerExplosion(Player from, ItemInfo.Projectile usedWep, short posX, short posY, short posZ)
         {
-            if (_killStreaks.ContainsKey(from._alias))
+            if (gameState != GameState.ActiveGame)
+            { return true; }
+
+            if (killStreaks.ContainsKey(from._alias))
             {
-                if (_explosives.ContainsKey(usedWep.name))
-                    UpdateWeapon(from, usedWep, _explosives[usedWep.name]);
+                if (explosives.ContainsKey(usedWep.name))
+                    UpdateWeapon(from, usedWep, explosives[usedWep.name]);
             }
             return true;
         }
@@ -446,17 +418,21 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Player.PlayerKill")]
         public bool playerPlayerKill(Player victim, Player killer)
         {
+            if (gameState != GameState.ActiveGame)
+            { return true; }
+
             //Update our kill streak
             UpdateKiller(killer);
 
-            if (_killStreaks.ContainsKey(victim._alias))
+            if (killStreaks.ContainsKey(victim._alias))
             {
-                long wepTick = _killStreaks[victim._alias].lastUsedWepTick;
+                long wepTick = killStreaks[victim._alias].lastUsedWepTick;
                 if (wepTick != -1)
                     UpdateWeaponKill(killer);
             }
             if (killer != null && victim != null && victim._bounty >= 300)
-                _arena.sendArenaMessage(String.Format("{0} has ended {1}'s bounty.", killer._alias, victim._alias), 5);
+                arena.sendArenaMessage(String.Format("{0} has ended {1}'s bounty.", killer._alias, victim._alias), 5);
+
             return true;
         }
 
@@ -467,17 +443,11 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Player.Death")]
         public bool playerDeath(Player victim, Player killer, Helpers.KillType killType, CS_VehicleDeath update)
         {
+            if (gameState != GameState.ActiveGame)
+            { return true; }
+
             //Update our kill counter
             UpdateDeath(victim, killer);
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered when a vehicle dies
-        /// </summary>
-        [Scripts.Event("Vehicle.Death")]
-        public bool vehicleDeath(Vehicle dead, Player killer)
-        {
             return true;
         }
 
@@ -488,15 +458,14 @@ namespace InfServer.Script.GameType_CTF
         public void playerEnter(Player player)
         {
             //Add them to the list if its not in it
-            if (!_killStreaks.ContainsKey(player._alias))
+            if (!killStreaks.ContainsKey(player._alias))
             {
                 PlayerStreak temp = new PlayerStreak();
                 temp.lastKillerCount = 0;
                 temp.lastUsedWeap = null;
                 temp.lastUsedWepKillCount = 0;
                 temp.lastUsedWepTick = -1;
-                temp.player = player;
-                _killStreaks.Add(player._alias, temp);
+                killStreaks.Add(player._alias, temp);
             }
         }
 
@@ -507,15 +476,14 @@ namespace InfServer.Script.GameType_CTF
         public void playerEnterArena(Player player)
         {
             //Add them to the list if its not in it
-            if (!_killStreaks.ContainsKey(player._alias))
+            if (!killStreaks.ContainsKey(player._alias))
             {
                 PlayerStreak temp = new PlayerStreak();
                 temp.lastKillerCount = 0;
                 temp.lastUsedWeap = null;
                 temp.lastUsedWepKillCount = 0;
                 temp.lastUsedWepTick = -1;
-                temp.player = player;
-                _killStreaks.Add(player._alias, temp);
+                killStreaks.Add(player._alias, temp);
             }
         }
 
@@ -526,15 +494,14 @@ namespace InfServer.Script.GameType_CTF
         public bool playerJoinGame(Player player)
         {
             //Add them to the list if its not in it
-            if (!_killStreaks.ContainsKey(player._alias))
+            if (!killStreaks.ContainsKey(player._alias))
             {
                 PlayerStreak temp = new PlayerStreak();
                 temp.lastKillerCount = 0;
                 temp.lastUsedWeap = null;
                 temp.lastUsedWepKillCount = 0;
                 temp.lastUsedWepTick = -1;
-                temp.player = player;
-                _killStreaks.Add(player._alias, temp);
+                killStreaks.Add(player._alias, temp);
             }
             return true;
         }
@@ -559,7 +526,7 @@ namespace InfServer.Script.GameType_CTF
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -589,15 +556,15 @@ namespace InfServer.Script.GameType_CTF
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = true;
                         recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -616,7 +583,7 @@ namespace InfServer.Script.GameType_CTF
                     //We arent
                     //Get name and possible level
                     Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "*poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         player.sendMessage(0, "Note: there can only be 1 admin.");
@@ -639,13 +606,13 @@ namespace InfServer.Script.GameType_CTF
                         if (level < 1 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, string.Format("*poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             player.sendMessage(0, "Note: there can be only 1 admin level.");
                             return false;
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -658,7 +625,7 @@ namespace InfServer.Script.GameType_CTF
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
                     }
 
                     //Lets send it off
@@ -686,7 +653,7 @@ namespace InfServer.Script.GameType_CTF
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -718,15 +685,15 @@ namespace InfServer.Script.GameType_CTF
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = false;
                         recipient._permissionStatic = Data.PlayerPermission.Normal;
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -745,7 +712,7 @@ namespace InfServer.Script.GameType_CTF
                     //We arent
                     //Get name and possible level
                     Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "*powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         return false;
@@ -767,12 +734,12 @@ namespace InfServer.Script.GameType_CTF
                         if (level < 0 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("*powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, string.Format("*powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             return false;
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -788,7 +755,7 @@ namespace InfServer.Script.GameType_CTF
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been depowered to level {0}.", level));
+                        recipient.sendMessage(0, string.Format("You have been depowered to level {0}.", level));
                     }
 
                     //Lets send it off
@@ -804,58 +771,45 @@ namespace InfServer.Script.GameType_CTF
             }
             return false;
         }
+
         #endregion
 
-        #region Private Calls
-        /// <summary>
-        /// Updates the players score
-        /// </summary>
-        private void updateTickers()
+        #region Updaters
+        private void UpdateCTFTickers()
         {
-            int kills = 0;
-            int deaths = 0;
-            string format = "";
-
-            //1st and 2nd place
-            List<Player> ranked = new List<Player>();
-            foreach (Player p in _arena.Players)
-            {
-                if (p == null)
-                    continue;
-                if (p.StatsCurrentGame == null)
-                    continue;
-                ranked.Add(p);
-            }
-            //Order by placed kills
-            IEnumerable<Player> ranking = ranked.OrderByDescending(player => player.StatsCurrentGame.kills);
+            List<Player> rankedPlayers = arena.Players.ToList().OrderBy(player => (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.deaths)).OrderByDescending(
+                player => (player.StatsCurrentGame == null ? 0 : player.StatsCurrentGame.kills)).ToList();
             int idx = 3;
-            foreach (Player rankers in ranking)
+            string format = "";
+            foreach (Player p in rankedPlayers)
             {
+                if (p.StatsCurrentGame == null)
+                { continue; }
                 if (idx-- == 0)
+                {
                     break;
-                Data.PlayerStats current = rankers.StatsCurrentGame;
+                }
+
                 switch (idx)
                 {
                     case 2:
-                        format = String.Format("1st: {0}(K={1} D={2})", rankers._alias, current.kills, current.deaths);
+                        format = string.Format("!1st: {0}(K={1} D={2}) ", p._alias, p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths);
                         break;
                     case 1:
-                        format = (format + String.Format(" 2nd: {0}(K={1} D={2})", rankers._alias, current.kills, current.deaths));
+                        format = (format + string.Format("!2nd: {0}(K={1} D={2})", p._alias, p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths));
                         break;
                 }
             }
-            _arena.setTicker(0, 2, 0, format);
+            if (!string.IsNullOrWhiteSpace(format))
+            { arena.setTicker(1, 2, 0, format); }
 
-            //Personal scores
-            _arena.setTicker(2, 3, 0, delegate(Player p)
+            arena.setTicker(2, 3, 0, delegate(Player p)
             {
-                if (p.StatsCurrentGame != null)
+                if (p.StatsCurrentGame == null)
                 {
-                    kills = p.StatsCurrentGame.kills;
-                    deaths = p.StatsCurrentGame.deaths;
+                    return "Personal Score: Kills=0 - Deaths=0";
                 }
-                //Update their ticker
-                return String.Format("HP={0}          Personal Score: Kills={1} - Deaths={2}", p._state.health, kills, deaths);
+                return string.Format("Personal Score: Kills={0} - Deaths={1}", p.StatsCurrentGame.kills, p.StatsCurrentGame.deaths);
             });
         }
 
@@ -864,15 +818,143 @@ namespace InfServer.Script.GameType_CTF
         /// </summary>
         private void UpdateKillStreaks()
         {
-            foreach (PlayerStreak p in _killStreaks.Values)
+            foreach (KeyValuePair<string, PlayerStreak> p in killStreaks)
             {
-                if (p.lastUsedWepTick == -1)
+                if (p.Value.lastUsedWepTick == -1)
                     continue;
 
-                if (Environment.TickCount - p.lastUsedWepTick <= 0)
-                    ResetWeaponTicker(p.player);
+                if (Environment.TickCount - p.Value.lastUsedWepTick <= 0)
+                    ResetWeaponTicker(p.Key);
+            }
+        }
+
+        /// <summary>
+        /// Updates the last killer
+        /// </summary>
+        private void ResetKiller(Player killer)
+        {
+            lastKiller = killer;
+        }
+
+        /// <summary>
+        /// Resets the weapon ticker to default (Time Expired)
+        /// </summary>
+        private void ResetWeaponTicker(string targetAlias)
+        {
+            if (killStreaks.ContainsKey(targetAlias))
+            {
+                killStreaks[targetAlias].lastUsedWeap = null;
+                killStreaks[targetAlias].lastUsedWepKillCount = 0;
+                killStreaks[targetAlias].lastUsedWepTick = -1;
+            }
+        }
+
+        /// <summary>
+        /// Updates the killer and their kill counter
+        /// </summary>
+        private void UpdateKiller(Player killer)
+        {
+            if (killStreaks.ContainsKey(killer._alias))
+            {
+                killStreaks[killer._alias].lastKillerCount++;
+                switch (killStreaks[killer._alias].lastKillerCount)
+                {
+                    case 6:
+                        arena.sendArenaMessage(string.Format("{0} is on fire!", killer._alias), 8);
+                        break;
+                    case 8:
+                        arena.sendArenaMessage(string.Format("Someone kill {0}!", killer._alias), 9);
+                        break;
+                }
+            }
+            //Is this first blood?
+            if (lastKiller == null)
+            {
+                //It is, lets make the sound
+                arena.sendArenaMessage(string.Format("{0} has drawn first blood.", killer._alias), 7);
+            }
+            lastKiller = killer;
+        }
+
+        /// <summary>
+        /// Updates the victim's kill streak and notifies the public
+        /// </summary>
+        private void UpdateDeath(Player victim, Player killer)
+        {
+            if (killStreaks.ContainsKey(victim._alias))
+            {
+                if (killStreaks[victim._alias].lastKillerCount >= 6)
+                {
+                    arena.sendArenaMessage(string.Format("{0}", killer != null ? killer._alias + " has ended " + victim._alias + "'s kill streak." :
+                        victim._alias + "'s kill streak has ended."), 6);
+                }
+                killStreaks[victim._alias].lastKillerCount = 0;
+            }
+        }
+
+        /// <summary>
+        /// Updates the last fired weapon and its ticker
+        /// </summary>
+        private void UpdateWeapon(Player from, ItemInfo.Projectile usedWep, int aliveTime)
+        {
+            if (killStreaks.ContainsKey(from._alias))
+            {
+                killStreaks[from._alias].lastUsedWeap = usedWep;
+                killStreaks[from._alias].lastUsedWepTick = DateTime.Now.AddTicks(aliveTime).Ticks;
+            }
+        }
+
+        /// <summary>
+        /// Updates the last weapon used and kill count then announcing it to the public
+        /// </summary>
+        private void UpdateWeaponKill(Player from)
+        {
+            if (killStreaks.ContainsKey(from._alias))
+            {
+                if (killStreaks[from._alias].lastUsedWeap == null)
+                    return;
+
+                killStreaks[from._alias].lastUsedWepKillCount++;
+                ItemInfo.Projectile lastUsedWep = killStreaks[from._alias].lastUsedWeap;
+                switch (killStreaks[from._alias].lastUsedWepKillCount)
+                {
+                    case 2:
+                        arena.sendArenaMessage(string.Format("{0} just got a double {1} kill.", from._alias, lastUsedWep.name), 17);
+                        break;
+                    case 3:
+                        arena.sendArenaMessage(string.Format("{0} just got a triple {1} kill!", from._alias, lastUsedWep.name), 18);
+                        break;
+                    case 4:
+                        arena.sendArenaMessage(string.Format("A 4 {0} kill by {0}?!?", lastUsedWep.name, from._alias), 19);
+                        break;
+                    case 5:
+                        arena.sendArenaMessage(string.Format("Unbelievable! {0} with the 5 {1} kill?", from._alias, lastUsedWep.name), 20);
+                        break;
+                }
             }
         }
         #endregion
+
+        private enum GameState
+        {
+            Init,
+            PreGame,
+            ActiveGame,
+            PostGame,
+            NotEnoughPlayers,
+            Transitioning,
+        }
+
+        private enum CTFMode
+        {
+            None,
+            Aborted,
+            TenSeconds,
+            ThirtySeconds,
+            SixtySeconds,
+            XSeconds,
+            GameDone,
+        }
+
     }
 }

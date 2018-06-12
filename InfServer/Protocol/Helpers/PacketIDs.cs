@@ -27,7 +27,7 @@ namespace InfServer.Protocol
 			{
 				Login = 0x01,
 				SetBanner = 0x02,
-                PlayerDisconnected = 0x03,
+                PlayerZoneDisconnected = 0x03,
                 /*Unknown Packet #3 = 0x03, deals with a player leaving the zone but not switching arenas Note: doesnt have any data why?*/
                 /*Unknown = 0x04,*/
 				Shop = 0x05,

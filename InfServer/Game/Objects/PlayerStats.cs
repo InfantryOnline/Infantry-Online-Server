@@ -112,7 +112,7 @@ namespace InfServer.Game
                     _statsGame.cash += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].cash += diff;
             }
         }
@@ -161,7 +161,7 @@ namespace InfServer.Game
                 }
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                 {
                     _arena._currentGameStats[_alias].experience += diff;
                     if (diff > 0)
@@ -193,7 +193,7 @@ namespace InfServer.Game
                     _statsGame.experienceTotal += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].experienceTotal += diff;
             }
         }
@@ -225,7 +225,7 @@ namespace InfServer.Game
                     _team._currentGameKills += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].kills += diff;
             }
         }
@@ -257,7 +257,7 @@ namespace InfServer.Game
                     _team._currentGameDeaths += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].deaths += diff;
             }
         }
@@ -285,7 +285,7 @@ namespace InfServer.Game
                     _statsGame.killPoints += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].killPoints += diff;
             }
         }
@@ -313,7 +313,7 @@ namespace InfServer.Game
                     _statsGame.deathPoints += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].deathPoints += diff;
             }
         }
@@ -341,7 +341,7 @@ namespace InfServer.Game
                     _statsGame.bonusPoints += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].bonusPoints += diff;
             }
         }
@@ -369,7 +369,7 @@ namespace InfServer.Game
                     _statsGame.assistPoints += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].assistPoints += diff;
             }
         }
@@ -397,7 +397,7 @@ namespace InfServer.Game
                     _statsGame.vehicleKills += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].vehicleKills += diff;
             }
         }
@@ -425,7 +425,7 @@ namespace InfServer.Game
                     _statsGame.vehicleDeaths += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].vehicleDeaths += diff;
             }
         }
@@ -453,7 +453,7 @@ namespace InfServer.Game
                     _statsGame.playSeconds += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].playSeconds += diff;
             }
         }
@@ -481,7 +481,7 @@ namespace InfServer.Game
                     _statsGame.zonestat1 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat1 += diff;
             }
         }
@@ -509,7 +509,7 @@ namespace InfServer.Game
                     _statsGame.zonestat2 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat2 += diff;
             }
         }
@@ -537,7 +537,7 @@ namespace InfServer.Game
                     _statsGame.zonestat3 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat3 += diff;
             }
         }
@@ -565,7 +565,7 @@ namespace InfServer.Game
                     _statsGame.zonestat4 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat4 += diff;
             }
         }
@@ -593,7 +593,7 @@ namespace InfServer.Game
                     _statsGame.zonestat5 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat5 += diff;
             }
         }
@@ -621,7 +621,7 @@ namespace InfServer.Game
                     _statsGame.zonestat6 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat6 += diff;
             }
         }
@@ -649,7 +649,7 @@ namespace InfServer.Game
                     _statsGame.zonestat7 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat7 += diff;
             }
         }
@@ -677,7 +677,7 @@ namespace InfServer.Game
                     _statsGame.zonestat8 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat8 += diff;
             }
         }
@@ -705,7 +705,7 @@ namespace InfServer.Game
                     _statsGame.zonestat9 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat9 += diff;
             }
         }
@@ -733,7 +733,7 @@ namespace InfServer.Game
                     _statsGame.zonestat10 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat10 += diff;
             }
         }
@@ -761,7 +761,7 @@ namespace InfServer.Game
                     _statsGame.zonestat11 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat11 += diff;
             }
         }
@@ -789,7 +789,7 @@ namespace InfServer.Game
                     _statsGame.zonestat12 += diff;
 
                 //Keep track of our current game
-                if (_arena._currentGameStats.ContainsKey(_alias))
+                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
                     _arena._currentGameStats[_alias].zonestat12 += diff;
             }
         }

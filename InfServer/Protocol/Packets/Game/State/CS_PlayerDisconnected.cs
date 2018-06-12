@@ -6,17 +6,17 @@ using InfServer.Game;
 
 namespace InfServer.Protocol
 {	/// <summary>
-    /// CS_PlayerDisconnect is sent by the client when a player disconnects from the zone
+    /// CS_PlayerZoneDisconnect is sent by the client when a player disconnects from the zone
     /// </summary>
-    public class CS_PlayerDisconnected : PacketBase
+    public class CS_PlayerZoneDisconnected : PacketBase
     {	// Member Variables
         ///////////////////////////////////////////////////
 
         Player player = null;
 
         //Packet routing
-        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.PlayerDisconnected;
-        static public Action<CS_PlayerDisconnected, Player> Handlers;
+        public const ushort TypeID = (ushort)Helpers.PacketIDs.C2S.PlayerZoneDisconnected;
+        static public Action<CS_PlayerZoneDisconnected, Player> Handlers;
 
 
         ///////////////////////////////////////////////////
@@ -25,7 +25,7 @@ namespace InfServer.Protocol
         /// <summary>
         /// Creates an empty packet of the specified type.
         /// </summary>
-        public CS_PlayerDisconnected(ushort typeID, byte[] buffer, int index, int count)
+        public CS_PlayerZoneDisconnected(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
         { }
 

@@ -271,8 +271,8 @@ namespace InfServer.Protocol
                     packet = new CS_DamageEvent(typeID, buffer, offset, size);
                     break;
                     
-                case CS_PlayerDisconnected.TypeID:
-                    packet = new CS_PlayerDisconnected(typeID, buffer, offset, size);
+                case CS_PlayerZoneDisconnected.TypeID:
+                    packet = new CS_PlayerZoneDisconnected(typeID, buffer, offset, size);
                     break;
 
                 case CS_RegResponse.TypeID:

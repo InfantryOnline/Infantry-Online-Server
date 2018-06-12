@@ -26,7 +26,7 @@ namespace InfServer.Protocol
         /// </summary>
         public enum ChartType
         {
-            chatchart = 0
+            chatchart = 0,
         }
 
         //Packet routing
