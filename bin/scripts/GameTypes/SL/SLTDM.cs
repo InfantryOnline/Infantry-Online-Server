@@ -28,11 +28,15 @@ namespace InfServer.Script.GameType_SLTDM
         private int WinningTeamNotify;
         private int VictoryHoldTime;        //How long till the game ends
         private int MinPlayers;             //Mininimum amount of players to start a game
-        private int Jackpot;                //The game's jackpot so far
+        private int MinDeaths;              //How many deaths must occur before you are specced out
+        private int DefaultMinDeaths;       //Revert back to this after a league match
         private bool GameWon;               //Called when someone has captured all flags
 
         private GameState GameStates;
+        private LeagueState LeagueStates;
         private FlagStatus FlagMode;
+
+        private bool LeagueEvent;
 
         /// <summary>
         /// Our current in game recordings
@@ -58,6 +62,8 @@ namespace InfServer.Script.GameType_SLTDM
             arena.playtimeTickerIdx = 3; //Sets the global ticker index used for changing the timer
 
             MinPlayers = CFG.deathMatch.minimumPlayers;
+            MinDeaths = 3; //Change this if we want to run a higher death count
+            DefaultMinDeaths = MinDeaths;
             VictoryHoldTime = CFG.flag.victoryHoldTime;
             PreGamePeriod = CFG.deathMatch.startDelay;
             DeathmatchTimer = CFG.deathMatch.timer;
@@ -70,6 +76,7 @@ namespace InfServer.Script.GameType_SLTDM
             }
 
             GameStates = GameState.Init;
+            LeagueStates = LeagueState.None;
             return true;
         }
 
@@ -111,6 +118,7 @@ namespace InfServer.Script.GameType_SLTDM
                     GameStates = GameState.Init;
                     break;
             }
+
             return true;
         }
 
@@ -171,13 +179,20 @@ namespace InfServer.Script.GameType_SLTDM
         {
             GameStates = GameState.Transitioning;
 
-            //Sit here until timer runs out
-            arena.setTicker(1, 3, PreGamePeriod * 100, "Next game: ",
-                    delegate()
-                    {	//Trigger the game start
-                        arena.gameStart();
-                    }
-            );
+            if (isLeagueMatch)
+            {
+                leaguePreGame();
+            }
+            else
+            {   //Normal gamePlay
+                //Sit here until timer runs out
+                arena.setTicker(1, 3, PreGamePeriod * 100, "Next game: ",
+                        delegate()
+                        {  //Trigger the game start
+                            arena.gameStart();
+                        }
+                );
+            }
         }
 
         private void Reset()
@@ -185,6 +200,9 @@ namespace InfServer.Script.GameType_SLTDM
             //Clear any tickers that might be active first
             arena.setTicker(4, 0, 0, "");
             arena.setTicker(1, 3, 0, "");
+
+            //Clear saved stats
+            CurrentPlayerStats.Clear();
 
             //Reset
             GameStates = GameState.Init;
@@ -303,7 +321,7 @@ namespace InfServer.Script.GameType_SLTDM
         {
             //Team scores
             List<Team> ActiveTeams = arena.Teams.Where(entry => entry.ActivePlayerCount > 0).ToList();
-            Team titan = ActiveTeams.ElementAt(0) != null ? ActiveTeams.ElementAt(0) : arena.getTeamByName(CFG.teams[0].name);
+            Team titan = ActiveTeams.Count() > 0 ? ActiveTeams.ElementAt(0) : arena.getTeamByName(CFG.teams[0].name);
             Team collie = ActiveTeams.Count() > 1 ? ActiveTeams.ElementAt(1) : arena.getTeamByName(CFG.teams[1].name);
 
             string format = string.Format("{0}={1} - {2}={3}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills);
@@ -325,11 +343,6 @@ namespace InfServer.Script.GameType_SLTDM
             int idx = 3; format = "";
             foreach (Player rankers in ranking)
             {
-                if (rankers.StatsCurrentGame == null
-                    || !CurrentPlayerStats.ContainsKey(rankers._alias)
-                    || !CurrentPlayerStats[rankers._alias].HasPlayed)
-                    continue;
-
                 if (idx-- == 0)
                     break;
 
@@ -363,13 +376,20 @@ namespace InfServer.Script.GameType_SLTDM
             GameStates = GameState.ActiveGame;
             FlagMode = FlagStatus.None;
 
-            arena.sendArenaMessage("Game has started!");
-            arena.setTicker(1, 3, DeathmatchTimer * 100, "Time Left: ",
-                delegate()
-                {   //Trigger game end
-                    arena.gameEnd();
-                }
-            );
+            if (isLeagueMatch)
+            {
+                leagueStart();
+            }
+            else
+            {   //Normal gameplay
+                arena.sendArenaMessage("Game has started!");
+                arena.setTicker(1, 3, DeathmatchTimer * 100, "Time Left: ",
+                    delegate()
+                    {   //Trigger game end
+                        arena.gameEnd();
+                    }
+                );
+            }
             return true;
         }
 
@@ -388,6 +408,12 @@ namespace InfServer.Script.GameType_SLTDM
             {
                 arena.sendArenaMessage(WinningTeam._name + " has won the game!");
             }
+
+            if (isLeagueMatch)
+            {
+                leagueEnd();
+            }
+
             WinningTeam = null;
 
             return true;
@@ -431,7 +457,7 @@ namespace InfServer.Script.GameType_SLTDM
             {
                 if (p.StatsCurrentGame == null)
                     continue;
-                if (CurrentPlayerStats.ContainsKey(p._alias) && CurrentPlayerStats[p._alias].HasPlayed)
+                if (p.StatsCurrentGame.kills > 0 || p.StatsCurrentGame.deaths > 0)
                     plist.Add(p);
             }
 
@@ -470,8 +496,10 @@ namespace InfServer.Script.GameType_SLTDM
 
                     idx -= alias.Count();
                     if (alias.First() != null)
+                    {
                         from.sendMessage(0, string.Format(placeword + format, alias.First().Kills, alias.First().Deaths,
                             string.Join(", ", alias.Select(g => g.Alias))));
+                    }
                 }
 
                 IEnumerable<Player> specialPlayers = plist.OrderByDescending(player => player.StatsCurrentGame.deaths);
@@ -525,6 +553,12 @@ namespace InfServer.Script.GameType_SLTDM
                 temp.SubbedIn = false;
                 CurrentPlayerStats.Add(player._alias, temp);
             }
+
+            //Announce the command
+            if (player.PermissionLevelLocal > Data.PlayerPermission.Normal)
+            {
+                player.sendMessage(0, "NOTE: If you would like to squad battle like it was league match, use *leaguematch to set that type of game play.");
+            }
         }
 
         /// <summary>
@@ -536,6 +570,9 @@ namespace InfServer.Script.GameType_SLTDM
             if (GameStates != GameState.ActiveGame)
             { return; }
 
+            if (!isLeagueMatch)
+            { return; }
+
             if (CurrentPlayerStats.ContainsKey(player._alias))
             {
                 CurrentPlayerStats[player._alias].HasPlayed = true;
@@ -544,8 +581,7 @@ namespace InfServer.Script.GameType_SLTDM
                 CurrentPlayerStats[player._alias].SubbedIn = true;
             }
 
-            if (arena._isMatch)
-            { player._bAllowBanner = false; }
+            player._bAllowBanner = false;
         }
 
         /// <summary>
@@ -557,6 +593,9 @@ namespace InfServer.Script.GameType_SLTDM
             if (GameStates != GameState.ActiveGame)
             { return true; }
 
+            if (!isLeagueMatch)
+            { return true; }
+
             if (CurrentPlayerStats.ContainsKey(player._alias))
             {
                 CurrentPlayerStats[player._alias].HasPlayed = true;
@@ -565,8 +604,7 @@ namespace InfServer.Script.GameType_SLTDM
                 CurrentPlayerStats[player._alias].SubbedIn = true;
             }
 
-            if (arena._isMatch)
-            { player._bAllowBanner = false; }
+            player._bAllowBanner = false;
 
             return true;
         }
@@ -577,6 +615,9 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Player.PlayerKill")]
         public bool playerPlayerKill(Player victim, Player killer)
         {
+            if (!isLeagueMatch)
+            { return true; }
+
             if (CurrentPlayerStats.ContainsKey(killer._alias))
             { CurrentPlayerStats[killer._alias].Kills++; }
 
@@ -598,17 +639,178 @@ namespace InfServer.Script.GameType_SLTDM
             //We only want to trigger end game when the last team member died out
             if (death)
             {
-                if ((player.StatsCurrentGame != null && player.StatsCurrentGame.deaths >= 3)
+                if ((player.StatsCurrentGame != null && player.StatsCurrentGame.deaths >= MinDeaths)
                     || (CurrentPlayerStats.ContainsKey(player._alias) && CurrentPlayerStats[player._alias].SubbedIn))
                 {
                     player.spec();
                     arena.sendArenaMessage(string.Format("{0} has died out.", player._alias));
 
                     if (arena.ActiveTeams.Count() < 2)
+                    {
+                        if (arena.ActiveTeams.Count() == 1)
+                        {
+                            //Reset the victory timer since they died out before flag timer went off
+                            arena.setTicker(4, 0, 0, "");
+                            WinningTeam = arena.ActiveTeams.ElementAt(0);
+                        }
+
+                        GameWon = true;
                         arena.gameEnd();
+                    }
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Called when a player sends an unregistered mod command
+        /// </summary>
+        [Scripts.Event("Player.ModCommand")]
+        public bool playerModCommand(Player player, Player recipient, string command, string payload)
+        {
+            command = (command.ToLower());
+            if (command.Equals("leaguematch") && player.PermissionLevelLocal > Data.PlayerPermission.Normal)
+            {
+                if (GameStates == GameState.ActiveGame)
+                {
+                    player.sendMessage(-1, "This command can only used before a game has started or after a game has ended.");
+                    return false;
+                }
+
+                LeagueEvent = !LeagueEvent;
+                player.sendMessage(0, string.Format("League event has been turned {0}", LeagueEvent ? "ON!" : "OFF!"));
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        #region League Functions
+        ///////////////////////////////////////////////////
+        // League Functions
+        ///////////////////////////////////////////////////
+        private void leaguePreGame()
+        {
+            arena.setTicker(1, 3, 0, "Awaiting on the referee to use *startgame");
+        }
+
+        private void leagueStart()
+        {
+            //Clear saved stats
+            CurrentPlayerStats.Clear();
+
+            //Set their stats and make sure they cannot get banner spammed
+            foreach (Player p in arena.PlayersIngame)
+            {
+                if (!CurrentPlayerStats.ContainsKey(p._alias))
+                {
+                    PlayerStats temp = new PlayerStats();
+                    temp.Deaths = 0;
+                    temp.Kills = 0;
+                    temp.HasPlayed = false;
+                    temp.SubbedIn = false;
+                    CurrentPlayerStats.Add(p._alias, temp);
+                }
+                p._bAllowBanner = false;
+            }
+
+            //Lets start our timer
+            switch (LeagueStates)
+            {
+                case LeagueState.None:
+                    //This is the start of a new league match, lets set it
+                    LeagueStates = LeagueState.Match;
+                    break;
+                case LeagueState.Match:
+                    arena.sendArenaMessage("Game has started!");
+                    arena.setTicker(1, 3, DeathmatchTimer * 100, "Time Left: ",
+                        delegate()
+                        {   //Trigger game end
+                            arena.gameEnd();
+                        }
+                    );
+                    break;
+                case LeagueState.OverTime:
+                    //Set the deaths since its OT
+                    MinDeaths = 1;
+                    arena.sendArenaMessage("Game has started!");
+                    arena.setTicker(1, 3, DeathmatchTimer * 100, "Time Left: ",
+                        delegate()
+                        {   //Trigger game end
+                            arena.gameEnd();
+                        }
+                    );
+                    break;
+                case LeagueState.DoubleOT:
+                    //Double OT and after only have 15 min games
+                    arena.sendArenaMessage("Game has started!");
+                    arena.setTicker(1, 3, (DeathmatchTimer / 2) * 100, "Time Left: ",
+                        delegate()
+                        {   //Trigger game end
+                            arena.gameEnd();
+                        }
+                    );
+                    break;
+            }
+        }
+
+        private void leagueEnd()
+        {
+            switch (LeagueStates)
+            {
+                case LeagueState.None:
+                    //Do nothing
+                    break;
+                case LeagueState.Match:
+                    if (WinningTeam == null)
+                    {
+                        //Since this was a match already, we are going into OT boys!
+                        LeagueStates = LeagueState.OverTime;
+                        arena.sendArenaMessage("Game is going into Over Time!");
+                    }
+                    break;
+                case LeagueState.OverTime:
+                    if (WinningTeam == null)
+                    {
+                        //Since this was a match already, we are going into Double OT boys!
+                        LeagueStates = LeagueState.DoubleOT;
+                        arena.sendArenaMessage("Game is going into Double Over Time!");
+                    }
+                    break;
+                case LeagueState.DoubleOT:
+                    if (WinningTeam == null)
+                    {
+                        arena.sendArenaMessage("Game is continuing Double Over Time!");
+                    }
+                    break;
+            }
+
+            //Since there is a winner, reset the death count and league status back to default
+            if (WinningTeam != null)
+            {
+                MinDeaths = DefaultMinDeaths;
+                LeagueStates = LeagueState.None;
+                arena._isMatch = false;
+                LeagueEvent = false;
+
+                arena.sendArenaMessage("This concludes our league match. League event has now been turned OFF!");
+            }
+        }
+
+        private bool isLeagueMatch
+        {
+            get
+            {
+                if (arena._isMatch)
+                { return true; }
+
+                if (LeagueEvent)
+                { return true; }
+
+                return false;
+            }
         }
 
         #endregion
@@ -621,6 +823,14 @@ namespace InfServer.Script.GameType_SLTDM
             PostGame,
             NotEnoughPlayers,
             Transitioning,
+        }
+
+        private enum LeagueState
+        {
+            None,
+            Match,
+            OverTime,
+            DoubleOT,
         }
 
         private enum FlagStatus

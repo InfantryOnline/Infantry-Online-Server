@@ -64,7 +64,7 @@ namespace InfServer.Script.GameType_USL
             if (!_arena._bIsPublic)
                 _gamePlay.Voting = false;
 
-            
+
             return true;
         }
 
@@ -94,22 +94,8 @@ namespace InfServer.Script.GameType_USL
                 _arena.setTicker(1, 3, 0, "Not Enough Players");
             }
 
-            //Update our tickers
-            if (_tickGameStarted > 0 && now - _arena._tickGameStarted > 2000)
-            {
-                if (now - _lastTickerUpdate > 1500)
-                {
-                    _gamePlay.UpdateTickers();
-                    _lastTickerUpdate = now;
-                }
-            }
-
-            //Update our kill streak check
-            if (now - _lastKillStreakUpdate >= 500)
-            {
-                _gamePlay.UpdateKillStreaks();
-                _lastKillStreakUpdate = now;
-            }
+            //Update our gamePlay
+            _gamePlay.Poll(now);
 
             //Do we have enough to start a game?
             if (!_arena._bGameRunning && _tickGameStarting == 0 && playing >= _minPlayers)
@@ -173,7 +159,10 @@ namespace InfServer.Script.GameType_USL
 
             //Was an event turned off?
             if (EventOff != null)
+            {
                 EventOff();
+                EventOff -= EventOff;
+            }
 
             return _gamePlay.GameStart();
         }
@@ -450,7 +439,7 @@ namespace InfServer.Script.GameType_USL
                 _eventVoting[eventName].Add(player._id);
                 player.sendMessage(0, String.Format("You have voted for event {0}.", eventName));
             }
-            
+
             return true;
         }
 
@@ -833,8 +822,10 @@ namespace InfServer.Script.GameType_USL
 
                             _gamePlay.Events = true;
                             if (EventOff != null)
+                            {
                                 //Still active, lets reset
-                                EventOff = null;
+                                EventOff -= EventOff;
+                            }
                             return true;
                         }
                 }
@@ -967,7 +958,7 @@ namespace InfServer.Script.GameType_USL
             //Do we have enough players voting? 15%
             int inGameCount = _arena.PlayersIngame.Count();
             int votes = 0;
-            foreach(KeyValuePair<string, List<int>> voting in _eventVoting)
+            foreach (KeyValuePair<string, List<int>> voting in _eventVoting)
             {
                 votes += voting.Value.Count;
             }
@@ -1001,7 +992,6 @@ namespace InfServer.Script.GameType_USL
             _gamePlay.SpawnEvent = false;
             _gamePlay.SpawnTimer = 0;
             _tickVotingStarted = 0;
-            EventOff -= null;
 
             //If this is an arena match, just return
             if (_arena._isMatch || _gamePlay._gameType == Settings.GameTypes.LEAGUEOVERTIME)

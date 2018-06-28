@@ -20,6 +20,9 @@ namespace InfServer.Script.GameType_USL
         public SpawnEventTypes _spawnEventType;
         private Arena _arena;
         private CfgInfo _config;
+        private int _deathMatchTimer;
+        private int _lastTickerUpdate;
+        private int _lastKillStreakUpdate;
         private string _season;
 
         #region Stat Recording
@@ -65,13 +68,15 @@ namespace InfServer.Script.GameType_USL
 
             //Medic stats
             public int potentialHealthHealed { get; set; }
+
+            public bool onPlayingField { get; set; }
         }
         #endregion
 
         #region Misc Gameplay Pointers
         private Team BountyA, BountyB;
         private Player lastKiller;
-        
+
         /// <summary>
         /// Resets the last killer object
         /// </summary>
@@ -101,7 +106,7 @@ namespace InfServer.Script.GameType_USL
             if (_savedPlayerStats.ContainsKey(killer._alias))
             {
                 _savedPlayerStats[killer._alias].lastKillerCount++;
-                switch(_savedPlayerStats[killer._alias].lastKillerCount)
+                switch (_savedPlayerStats[killer._alias].lastKillerCount)
                 {
                     case 6:
                         _arena.sendArenaMessage(string.Format("{0} is on fire!", killer._alias), 17);
@@ -327,6 +332,31 @@ namespace InfServer.Script.GameType_USL
         #endregion
 
         #region Game Functions
+        public void Poll(int now)
+        {
+            //Do we need to check for rape lines?
+            if (_arena._isMatch && _arena.ActiveTeams.Count() > 0)
+            {
+                foreach (Team t in _arena.ActiveTeams)
+                {
+                    foreach (Player p in t.ActivePlayers.Reverse())
+                    { RapeLine(p); }
+                }
+            }
+
+            if (now - _lastTickerUpdate >= 1000)
+            {
+                UpdateTickers();
+                _lastTickerUpdate = now;
+            }
+
+            if (now - _lastKillStreakUpdate >= 500)
+            {
+                UpdateKillStreaks();
+                _lastKillStreakUpdate = now;
+            }
+        }
+
         /// <summary>
         /// Starts our game play type
         /// </summary>
@@ -335,7 +365,7 @@ namespace InfServer.Script.GameType_USL
             if (_arena.ActiveTeams.Count() == 0)
                 return false;
 
-            bool isMatch = _arena._isMatch;
+            bool isMatch = _arena._isMatch = true; //Temporary
             ResetKiller(null);
 
             _savedPlayerStats.Clear();
@@ -365,6 +395,7 @@ namespace InfServer.Script.GameType_USL
                 temp.lastUsedWepKillCount = 0;
                 temp.lastUsedWepTick = -1;
                 temp.potentialHealthHealed = 0;
+                temp.onPlayingField = false;
                 _savedPlayerStats.Add(p._alias, temp);
             }
 
@@ -544,7 +575,7 @@ namespace InfServer.Script.GameType_USL
                     IEnumerable<Player> mostHealed = Healed.OrderByDescending(player => _savedPlayerStats[player._alias].potentialHealthHealed);
                     idx = 3;
                     from.sendMessage(0, "&Most HP Healed");
-                    foreach(Player p in mostHealed)
+                    foreach (Player p in mostHealed)
                     {
                         if (p == null) continue;
                         if (_savedPlayerStats[p._alias] != null)
@@ -676,6 +707,10 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         public void playerSpawn(Player player, bool death, bool gameStarted)
         {
+            //Update their rape line boolean
+            if (_arena._isMatch && _savedPlayerStats.ContainsKey(player._alias))
+            { _savedPlayerStats[player._alias].onPlayingField = false; }
+
             //We only want to trigger end game when the last team member died out
             if (gameStarted && death)
             {
@@ -731,6 +766,7 @@ namespace InfServer.Script.GameType_USL
                 temp.deaths = 0;
                 temp.kills = 0;
                 temp.player = player;
+                temp.onPlayingField = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
             _savedPlayerStats[player._alias].teamname = player._team._name;
@@ -746,6 +782,8 @@ namespace InfServer.Script.GameType_USL
                 if (!player._bAllowSpectator)
                     //Make sure they are speccable
                     player._bAllowSpectator = true;
+
+                _savedPlayerStats[player._alias].onPlayingField = false;
             }
         }
 
@@ -768,6 +806,7 @@ namespace InfServer.Script.GameType_USL
                 temp.deaths = 0;
                 temp.kills = 0;
                 temp.player = player;
+                temp.onPlayingField = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
             _savedPlayerStats[player._alias].hasPlayed = true;
@@ -782,6 +821,8 @@ namespace InfServer.Script.GameType_USL
                 if (!player._bAllowSpectator)
                     //Make sure they are speccable
                     player._bAllowSpectator = true;
+
+                _savedPlayerStats[player._alias].onPlayingField = false;
             }
 
             //Are we doing an event?
@@ -956,6 +997,7 @@ namespace InfServer.Script.GameType_USL
                 temp.kills = 0;
                 temp.player = player;
                 temp.hasPlayed = false;
+                temp.onPlayingField = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
         }
@@ -1049,9 +1091,9 @@ namespace InfServer.Script.GameType_USL
         /// <summary>
         /// Updates our players kill streak timer
         /// </summary>
-        public void UpdateKillStreaks()
+        private void UpdateKillStreaks()
         {
-            foreach(PlayerStat p in _savedPlayerStats.Values)
+            foreach (PlayerStat p in _savedPlayerStats.Values)
             {
                 if (p.lastUsedWepTick == -1)
                     continue;
@@ -1066,16 +1108,24 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         public void UpdateTickers()
         {
-            //Team scores
-            IEnumerable<Team> activeTeams = _arena.Teams.Where(entry => entry.ActivePlayerCount > 0);
-            Team titan = activeTeams.ElementAt(0) != null ? activeTeams.ElementAt(0) : _arena.getTeamByName(_config.teams[0].name);
-            Team collie = activeTeams.Count() > 1 ? activeTeams.ElementAt(1) : _arena.getTeamByName(_config.teams[1].name);
+            if (!_arena._bGameRunning)
+            { return; }
+
+            IEnumerable<Team> active = _arena.ActiveTeams;
+            if (activeTeams != null && activeTeams.Count() > 0)
+            {
+                active = activeTeams;
+            }
+
+            Team collie = active.Count() > 1 ? active.ElementAt(1) : _arena.getTeamByName(_config.teams[0].name);
+            Team titan = active.Count() > 0 ? active.ElementAt(0) : _arena.getTeamByName(_config.teams[1].name);
+
             string format = string.Format("{0}={1} - {2}={3}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills);
             //We playing more events at the same time?
-            if (activeTeams.Count() > 3)
+            if (active.Count() > 3)
             {
-                Team third = activeTeams.ElementAt(2);
-                Team fourth = activeTeams.ElementAt(3);
+                Team third = active.ElementAt(2);
+                Team fourth = active.ElementAt(3);
                 format = string.Format("{0}={1} - {2}={3} | {4}={5} - {6}={7}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills,
                     third._name, third._currentGameKills, fourth._name, fourth._currentGameKills);
             }
@@ -1128,6 +1178,60 @@ namespace InfServer.Script.GameType_USL
         #endregion
 
         #region Private Calls
+        /// <summary>
+        /// Did this player cross back into their own rape line?
+        /// </summary>
+        private void RapeLine(Player p)
+        {
+            if (!_savedPlayerStats.ContainsKey(p._alias))
+            { return; }
+
+            int terrain = _arena.getTerrainID(p._state.positionX, p._state.positionY);
+            if (terrain != 2 && terrain != 3 && terrain != 6 && terrain != 7) //2 & 3 are drop ships, 6-7 = their rape line area
+            {
+                _savedPlayerStats[p._alias].onPlayingField = true;
+            }
+
+            if (_savedPlayerStats[p._alias].onPlayingField)
+            {
+                //Did they cross their own rape lines?
+                bool crossed = false;
+                string teamName = p._team._name.ToLower();
+                if ((teamName.Contains("- t") || teamName.Contains("titan")) && terrain == 6)
+                { crossed = true; }
+
+                if ((teamName.Contains("- c") || teamName.Contains("collective")) && terrain == 7)
+                { crossed = true; }
+
+                if (!crossed)
+                { return; }
+
+                //Spec and announce it
+                int time = (_deathMatchTimer - Environment.TickCount) / 1000;
+                if (time <= 60) //1 min or less remaining
+                {
+                    _arena.sendArenaMessage(p._alias + " has crossed their own rape lines. A kill has been awarded to the opposing team.");
+                    foreach (Team t in _arena.ActiveTeams)
+                    {
+                        if (p._team != t)
+                        {
+                            t._currentGameKills++;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    double minutes = Math.Floor((double)(time / 60) % 60);
+                    double seconds = Math.Floor((double)(time % 60));
+                    string timeLeft = string.Format("{0}:{1}", minutes.ToString(), (seconds < 10 ? "0" + seconds.ToString() : seconds.ToString()));
+                    p.spec();
+                    _arena.sendArenaMessage(p._alias + " has been sent to spec for crossing over their own rape lines.");
+                    _arena.sendArenaMessage(string.Format("{0} can return to the match at {1}.", p._alias, timeLeft));
+                }
+            }
+        }
+
         /// <summary>
         /// Checks for the current season from the usl site and returns a string
         /// </summary>
@@ -1197,7 +1301,9 @@ namespace InfServer.Script.GameType_USL
             else
                 OvertimeCount++;
 
-            activeTeams = _arena.ActiveTeams.Where(e => e.ActivePlayerCount > 0).ToList();
+            activeTeams = _arena.ActiveTeams.ToList();
+            //Set time
+            _deathMatchTimer = Environment.TickCount + (_config.deathMatch.timer * 1000);
         }
 
         /// <summary>
@@ -1206,7 +1312,7 @@ namespace InfServer.Script.GameType_USL
         private void MatchEnd()
         {
             if (activeTeams == null || activeTeams.Count == 0)
-                activeTeams = _arena.ActiveTeams.OrderByDescending(entry => entry._currentGameKills).ToList();
+                activeTeams = _arena.Teams.OrderByDescending(entry => entry._currentGameKills).ToList();
 
             Team team2 = activeTeams.Count > 1 ? activeTeams.ElementAt(1) : null;
             Team team1 = activeTeams.Count > 0 ? activeTeams.ElementAt(0) : null;
@@ -1469,7 +1575,7 @@ namespace InfServer.Script.GameType_USL
                 }
 
                 fs.WriteLine("---------------------------Medics-----------------------------------");
-                foreach(KeyValuePair<string, PlayerStat> p in _lastSavedStats)
+                foreach (KeyValuePair<string, PlayerStat> p in _lastSavedStats)
                 {
                     if (string.IsNullOrWhiteSpace(p.Key))
                         continue;

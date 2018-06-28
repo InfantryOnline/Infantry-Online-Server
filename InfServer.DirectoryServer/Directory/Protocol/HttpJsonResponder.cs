@@ -36,7 +36,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         {
             _listenerThread = new Thread(_ =>
                                    {
-                                       httpListener.IgnoreWriteExceptions = true;
+                                       /*httpListener.IgnoreWriteExceptions = true;*/
                                        httpListener.Start();
 
                                        while (httpListener.IsListening)
@@ -131,6 +131,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                     {
                         response.StatusCode = 400;
                         response.OutputStream.Close();
+                        break;
                     }
 
                     string stringData = new System.IO.StreamReader(request.InputStream).ReadToEnd();
@@ -138,6 +139,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                     {
                         response.StatusCode = 400;
                         response.OutputStream.Close();
+                        break;
                     }
 
                     //Done!

@@ -408,20 +408,30 @@ namespace InfServer.Logic
                         {
                             //Collect the list of zones and send it over
                             List<ZoneInstance> zoneList = new List<ZoneInstance>();
-                            foreach (Zone z in zone._server._zones.Where(zn => zn._zone.active == 1))
+
+                            try
                             {
-                                int playercount;
-                                //Invert player count of our current zone
-                                if (z._zone.port == Convert.ToInt32(pkt.payload))
-                                    playercount = -z._players.Count;
-                                else
-                                    playercount = z._players.Count;
-                                //Add it to our list
-                                zoneList.Add(new ZoneInstance(0,
-                                    z._zone.name,
-                                    z._zone.ip,
-                                    Convert.ToInt16(z._zone.port),
-                                    playercount));
+                                foreach (Zone z in zone._server._zones.Where(zn => zn._zone.active == 1))
+                                {
+                                    int playercount;
+                                    //Invert player count of our current zone
+                                    if (z._zone.port == Convert.ToInt32(pkt.payload))
+                                        playercount = -z._players.Count;
+                                    else
+                                        playercount = z._players.Count;
+                                    //Add it to our list
+                                    zoneList.Add(new ZoneInstance(0,
+                                        z._zone.name,
+                                        z._zone.ip,
+                                        Convert.ToInt16(z._zone.port),
+                                        playercount));
+                                }
+                            }
+                            catch(Exception e)
+                            {
+                                Log.write(TLog.Warning, e.ToString());
+                                zone._server.sendMessage(zone, pkt.sender, "Internal server error, could not generate the zonelist.");
+                                break;
                             }
                             SC_Zones<Zone> zl = new SC_Zones<Zone>();
                             zl.requestee = pkt.sender;

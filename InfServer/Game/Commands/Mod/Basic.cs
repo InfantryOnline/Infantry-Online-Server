@@ -2672,6 +2672,33 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Shows a ban list for a player
+        /// </summary>
+        static public void banlist(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity check
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            if (recipient == null && string.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Syntax: either :alias:*banlist or *banlist alias");
+                return;
+            }
+
+            //Relay it to the database
+            CS_ChatQuery<Data.Database> ban = new CS_ChatQuery<Data.Database>();
+            ban.queryType = CS_ChatQuery<Data.Database>.QueryType.ban;
+            ban.sender = player._alias;
+            ban.payload = recipient != null ? recipient._alias : payload;
+
+            player._server._db.send(ban);
+        }
+
+        /// <summary>
         /// Bans a player from a specific zone
         /// </summary>
         static public void block(Player player, Player recipient, string payload, int bong)
@@ -3420,6 +3447,11 @@ namespace InfServer.Game.Commands.Mod
                 "Bans a player from all zones",
                 "*ban alias minutes:reason(optional) or :player:*ban minutes:reason(optional)",
                 InfServer.Data.PlayerPermission.SMod, false);
+
+            yield return new HandlerDescriptor(banlist, "banlist",
+                "Shows a list of bans a player has",
+                "*banlist alias or :alias:*banlist",
+                InfServer.Data.PlayerPermission.Mod, false);
 
             yield return new HandlerDescriptor(block, "block",
                 "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",

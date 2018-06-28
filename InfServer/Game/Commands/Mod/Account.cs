@@ -64,18 +64,18 @@ namespace InfServer.Game.Commands.Mod
                 else
                 {   //Nope, check wildcard lookups
                     //Since db is reversed sides on wildcard lookups, lets snap it correctly for us
-                    wildcard = true;
                     if (payload.StartsWith("*") && !payload.EndsWith("*"))
                     {
                         payload = payload.TrimStart('*');
                         payload += "*";
+                        wildcard = true;
                     }
                     else if (payload.EndsWith("*") && !payload.StartsWith("*"))
                     {
                         if (!payload.Contains("."))
                         {
                             payload = payload.TrimEnd('*');
-                            payload = String.Format("*{0}", payload);
+                            payload = string.Format("*{0}", payload);
                         }
                         else
                         {
@@ -83,9 +83,10 @@ namespace InfServer.Game.Commands.Mod
                             if (!Helpers.IsNumeric(check[0].Trim()))
                             {
                                 payload = payload.TrimEnd('*');
-                                payload = String.Format("*{0}", payload);
+                                payload = string.Format("*{0}", payload);
                             }
                         }
+                        wildcard = true;
                     }
                 }
                 query.payload = payload;

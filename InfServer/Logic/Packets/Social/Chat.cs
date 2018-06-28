@@ -63,7 +63,38 @@ namespace InfServer.Logic
 				);
 						
 				return;
-			}
+            } //Is it a Communication Command?
+            else if (pkt.message[0] == '%' && pkt.message.Length > 1)
+            {   //Obtain the command and payload
+                int spcIdx = pkt.message.IndexOf(' ');
+                string command;
+                string payload = "";
+
+                if (spcIdx == -1)
+                    command = pkt.message.Substring(1);
+                else
+                {
+                    command = pkt.message.Substring(1, spcIdx - 1);
+                    payload = pkt.message.Substring(spcIdx + 1);
+                }
+
+                //Do we have a recipient?
+                Player recipient = null;
+                if (pkt.chatType == Helpers.Chat_Type.Whisper)
+                {
+                    if ((recipient = player._server.getPlayer(pkt.recipient)) == null)
+                        return;
+                }
+
+                //Route it to our arena!
+                player._arena.handleEvent(delegate(Arena arena)
+                    {
+                        arena.playerCommCommand(player, recipient, command, payload, pkt.bong);
+                    }
+                );
+
+                return;
+            } //Is it a Mod Command?
             else if (pkt.message[0] == '*' && pkt.message.Length > 1)
             {	//Obtain the command and payload
                 int spcIdx = pkt.message.IndexOf(' ');

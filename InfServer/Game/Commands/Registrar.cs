@@ -39,6 +39,7 @@ namespace InfServer.Game.Commands
 			List<HandlerInfo> regFunctions = new List<HandlerInfo>();
 			_modCommands = new Dictionary<string, HandlerDescriptor>();
 			_chatCommands = new Dictionary<string, HandlerDescriptor>();
+            _commCommands = new Dictionary<string, HandlerDescriptor>();
 
 			//Search for our namespace
 			IEnumerable<Type> classes = asm.GetTypes().Where(
