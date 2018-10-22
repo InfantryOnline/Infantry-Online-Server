@@ -1,0 +1,10 @@
+1 - Door
+2 - Switch
+3 - Flag
+4 - Warp
+5 - Hide
+6 - Portal
+7 - Sound
+8 - Text
+9 - Parallax
+10 - Nested

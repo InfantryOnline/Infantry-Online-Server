@@ -1,0 +1,37 @@
+===Portals===
+Element 1 : Lio Type : Integer
+Element 2 : Version : String
+Element 3 : Lio ID : Integer
+Element 4 : Lio Name : Integer
+Element 5 : X Coordinate : Integer
+Element 6 : Y Coordinate : Integer
+Element 7 : Width : Integer
+Element 8 : Height : Integer
+Element 9 : Use Relative ID : Integer
+Element 10 : Hunt Frequency : Integer
+Element 11 : Frequency : Integer
+Element 12 : Destination Warp Group : Integer
+Element 13 : Skill Logic : String
+Element 14 : Damage Ignore Time : Integer
+Element 15 : Reuse Delay : Integer
+Element 16 : Gravity : Integer
+Element 17 : Gfx Portal Blob Name : String
+Element 18 : Gfx Portal Blob ID : String
+Element 19 : Light Permutation : Integer
+Element 20 : Palette Offset : Integer
+Element 21 : Hue : Integer
+Element 22 : Saturation : Integer
+Element 23 : Value : Integer
+Element 24 : Animation Time : Integer
+Element 25 : Gfx Radar Blob Name : String
+Element 26 : Gfx Radar Blob ID : String
+Element 27 : Light Permutation : Integer
+Element 28 : Palette Offset : Integer
+Element 29 : Hue : Integer
+Element 30 : Saturation : Integer
+Element 31 : Value : Integer
+Element 32 : Animation Time : Integer
+Element 33 : Sound Portal Blob Name : String
+Element 34 : Sound Portal Blob ID : String
+Element 35 : Simultaneous : Integer
+Element 36 : <Undefined>

@@ -1,0 +1,7 @@
+C:\Infantry\infserver\branches\LvlViewer\bin\Release\LvlViewer.exe
+C:\Infantry\infserver\branches\LvlViewer\bin\Release\LvlViewer.pdb
+C:\Infantry\infserver\branches\LvlViewer\bin\Release\Assets.dll
+C:\Infantry\infserver\branches\LvlViewer\bin\Release\Assets.pdb
+C:\Infantry\infserver\branches\LvlViewer\obj\Release\LvlViewer.csprojResolveAssemblyReference.cache
+C:\Infantry\infserver\branches\LvlViewer\obj\Release\LvlViewer.exe
+C:\Infantry\infserver\branches\LvlViewer\obj\Release\LvlViewer.pdb

@@ -1,0 +1,228 @@
+===Projectile===
+Element 1 : Class : Int
+Element 2 : Version : String
+Element 3 : ID : Integer
+Element 4 : Name : String
+Element 5 : Category : String
+Element 6 : Skill Logic : String
+Element 7 : Description : String
+Element 8 : Weight : Integer
+Element 9 : Buy Price : Integer
+Element 10 : Probability : Integer
+Element 11 : Droppable : Boolean
+Element 12 : Key Preference : Integer
+Element 13 : Recommended : Integer
+Element 14 : Max Allowed : Integer
+Element 15 : Pickup Mode : Integer
+Element 16 : Sell Price : Integer
+Element 17 : Expire Timer : Integer
+Element 18 : Radar Color : Integer
+Element 19 : Prize Bounty Points : Integer
+Element 20 : Relative ID : Integer
+Element 21 : Held Category Type : Integer
+Element 22 : Prune Drop Percent : Integer
+Element 23 : Prune Odds : Integer
+Element 24 : Gfx Icon Blob Name : String
+Element 25 : Gfx Icon Blob ID : String
+Element 26 : Gfx Icon Light Permutation : Integer
+Element 27 : Gfx Icon Palette Offset : Integer
+Element 28 : Gfx Icon Hue : Integer
+Element 29 : Gfx Icon Saturation : Integer
+Element 30 : Gfx Icon Value : Integer
+Element 31 : Gfx Icon Animation Time : Integer
+Element 32 : Use Ammo ID : Integer
+Element 33 : Ammo Used Per Shot : Integer
+Element 34 : Ammo Capacity : Integer
+Element 35 : Required Item : Integer
+Element 36 : Required Item Amount : Integer
+Element 37 : Terrain 0 Energy Cost : Integer
+Element 38 : Terrain 1 Energy Cost : Integer
+Element 39 : Terrain 2 Energy Cost : Integer
+Element 40 : Terrain 3 Energy Cost : Integer
+Element 41 : Terrain 4 Energy Cost : Integer
+Element 42 : Terrain 5 Energy Cost : Integer
+Element 43 : Terrain 6 Energy Cost : Integer
+Element 44 : Terrain 7 Energy Cost : Integer
+Element 45 : Terrain 8 Energy Cost : Integer
+Element 46 : Terrain 9 Energy Cost : Integer
+Element 47 : Terrain 10 Energy Cost : Integer
+Element 48 : Terrain 11 Energy Cost : Integer
+Element 49 : Terrain 12 Energy Cost : Integer
+Element 50 : Terrain 13 Energy Cost : Integer
+Element 51 : Terrain 14 Energy Cost : Integer
+Element 52 : Terrain 15 Energy Cost : Integer
+Element 53 : Second Shot Energy : Integer
+Element 54 : Second Shot Timeout : Integer
+Element 55 : Fire Delay : Integer
+Element 56 : Fire Delay Other : Integer
+Element 57 : Max Fire Delay : Integer
+Element 58 : Entry Fire Delay : Integer
+Element 59 : Reload Delay Normal : Integer
+Element 60 : Reload Delay Partial : Integer
+Element 61 : Reload Delay Asyncronous : Integer
+Element 62 : Reload Delay Asynchronous Partial : Integer
+Element 63 : Route Range : Integer
+Element 64 : Route Rotational Range : Integer
+Element 65 : <Undefined>
+Element 66 : Route Friendly : Integer
+Element 67 : Recoil : Integer
+Element 68 : Verticle : Integer
+Element 69 : Prefire Delay : Integer
+Element 70 : Reliability : Integer
+Element 71 : Reliability Fire Delay : Integer
+Element 72 : Gfx Prefire Blob Name : String
+Element 73 : Gfx Prefire Blob ID : String
+Element 74 : Gfx Prefire Light Permutation : Integer
+Element 75 : Gfx Prefire Palette Offset : Integer
+Element 76 : Gfx Prefire Hue : Integer
+Element 77 : Gfx Prefire Saturation : Integer
+Element 78 : Gfx Prefire Value : Integer
+Element 79 : Gfx Animation Time : Integer
+Element 80 : Prefire Sound Blob Name : String
+Element 81 : Prefire Sound Blob ID : String
+Element 82 : Prefire Sound Simultaneous : Integer
+Element 83 : <Undefined>
+Element 84 : Movement Cancels Prefire : Boolean
+Element 85 : Notify Others Of Prefire : Boolean
+Element 86 : Cash Cost : Integer
+Element 87 : Use While Carrying Ball : Boolean
+Element 88 : Use While Carrying Flag : Boolean
+Element 89 : Soccer Throw : Integer
+Element 90 : Soccer Ball Friction : Integer
+Element 91 : Soccer Ball Speed : Integer
+Element 92 : Soccer Low Fire Angle : Integer
+Element 93 : Soccer High Fire Angle : Integer
+Element 94 : Horizontal Friction : Integer
+Element 95 : Inherited Speed : Integer
+Element 96 : Inherit Z Speed : Integer
+Element 97 : Start Height Adjust : Integer
+Element 98 : Low Rotation Angle : Integer
+Element 99 : High Rotation Angle : Integer
+Element 100 : Low Fire Angle : Integer
+Element 101 : High Fire Angle : Integer
+Element 102 : Muzzle Velocity : Integer
+Element 103 : Gravity Acceleration : Integer
+Element 104 : Horizontal Bounce Speed : Integer
+Element 105 : Bounce Count : Integer
+Element 106 : Floor Bounce Vertical Speed : Integer
+Element 107 : Floor Bounce Horizontal Speed : Integer
+Element 108 : Floor Bounce Count : Integer
+Element 109 : Proximity Radius : Integer
+Element 110 : Trigger Weight : Integer
+Element 111 : Alive Time : Integer
+Element 112 : Rotational Start Time : Integer
+Element 113 : Rotational End Time : Integer
+Element 114 : Rotational Speed : Integer
+Element 115 : Rotational Acceleration : Integer
+Element 116 : Inactive Time : Integer
+Element 117 : Damage Mode : Integer
+Element 118 : Damage Accessible : Boolean
+Element 119 : <Undefined>
+Element 120 : Trail Delay : Integer
+Element 121 : Explosion Recoil Radius : Integer
+Element 122 : Explosion Recoil Ignore Time : Integer
+Element 123 : Explosion Recoil Vehicle Vertical : Integer
+Element 124 : Explosion Recoil Ignore Time : Integer
+Element 125 : Explosion Recoil Weapon : Integer
+Element 126 : Explosion Recoil Weapon Duration : Integer
+Element 127 : Explosion Recoil Vehicle Absolute : Boolean
+Element 128 : Explosion Recoil Weapon Absolute : Boolean
+Element 129 : Explosion Recoil Direction Percent : Integer
+Element 130 : Explosion Screen Shake Amount : Integer
+Element 131 : Max Live Category Code : Integer
+Element 132 : Max Live Per Player : Integer
+Element 133 : Max Live Per Team : Integer
+Element 134 : Max Live Per Level : Integer
+Element 135 : Anti-Effects Radius : Integer
+Element 136 : Anti Effects Recharge : Integer
+Element 137 : Anti Effects Fire : Integer
+Element 138 : Anti Effects Ball Pickup Duration : Integer
+Element 139 : Anti Effects Rotate : Integer
+Element 140 : Anti Effects Thrust : Integer
+Element 141 : Anti Effects Ball Throw Duration : Integer
+Element 142 : Prevent Point Blank : Boolean
+Element 143 : Explode Item : Integer
+Element 144 : Projectile Radar Mode : Integer
+Element 145 : <Undefined>
+Element 146 : <Undefined>
+Element 147 : Damage Event Radius : Integer
+Element 148 : Damage Event String : String
+Element 149 : Portal Gravity : Boolean
+Element 150 : <Undefined>
+Element 151 : Vehicle Gravity : Integer
+Element 152 : Kinetic Damage Radius : Integer
+Element 153 : Kinetic Damage Inner : Integer
+Element 154 : Kinetic Damage Outer : Integer
+Element 155 : Kinetic Damage Mode : Integer
+Element 156 : Explosive Damage Radius : Integer
+Element 157 : Explosive Damage Inner : Integer
+Element 158 : Explosive Damage Outer : Integer
+Element 159 : Explosive Damage Mode : Integer
+Element 160 : Electronic Damage Radius : Integer
+Element 161 : Electronic Damage Inner : Integer
+Element 162 : Electronic Damage Outer : Integer
+Element 163 : Electronic Damage Mode : Integer
+Element 164 : Psionic Damage Radius : Integer
+Element 165 : Psionic Damage Inner : Integer
+Element 166 : Psionic Damage Outer : Integer
+Element 167 : Psionic Damage Mode : Integer
+Element 168 : Bypass Damage Radius : Integer
+Element 169 : Bypass Damage Inner : Integer
+Element 170 : Bypass Damage Outer : Integer
+Element 171 : Bypass Damage Mode : Integer
+Element 172 : Energy Damage Radius : Integer
+Element 173 : Energy Damage Inner : Integer
+Element 174 : Energy Damage Outer : Integer
+Element 175 : Energy Damage Mode : Integer
+Element 176 : Gfx Fire Blob Name : String
+Element 177 : Gfx Fire Blob ID : String
+Element 178 : Gfx Fire Light Permutation : Integer
+Element 179 : Gfx Fire Palette Offset : Integer
+Element 180 : Gfx Fire Hue : Integer
+Element 181 : Gfx Fire Saturation : Integer
+Element 182 : Gfx Fire Valye : Integer
+Element 183 : Gfx Fire Animation Time : Integer
+Element 184 : Gfx Projectile Blob Name : String
+Element 185 : Gfx Projectile Blob ID : String
+Element 186 : Gfx Projectile Light Permutation : Integer
+Element 187 : Gfx Projectile Palette Offset : Integer
+Element 188 : Gfx Projectile Hue : Integer
+Element 189 : Gfx Projectile Saturation : Integer
+Element 190 : Gfx Projectile Value : Integer
+Element 191 : Gfx Projectile Animation Time : Integer
+Element 192 : Gfx Shadow Blob Name : String
+Element 193 : Gfx Shadow Blob ID : String
+Element 194 : Gfx Shadow Light Permutation : Integer
+Element 195 : Gfx Shadow Palette Offset : Integer
+Element 196 : Gfx Shadow Hue : Integer
+Element 197 : Gfx Shadow Saturation : Integer
+Element 198 : Gfx Shadow Value : Integer
+Element 199 : Gfx Shadow Animation Time : Integer
+Element 200 : Gfx Trail Blob Name : String
+Element 201 : Gfx Trail Blob ID : String
+Element 202 : Gfx Trail Light Permutation : Integer
+Element 203 : Gfx Trail Palette Offset : Integer
+Element 204 : Gfx Trail Hue : Integer
+Element 205 : Gfx Trail Saturation : Integer
+Element 206 : Gfx Trail Value : Integer
+Element 207 : Gfx Trail Animation Time : Integer
+Element 208 : Gfx Explosion Blob Name : String
+Element 209 : Gfx Explosion Blob ID : String
+Element 210 : Gfx Explosion Light Permutation : Integer
+Element 211 : Gfx Explosion Palette Offset : Integer
+Element 212 : Gfx Explosion Hue : Integer
+Element 213 : Gfx Explosion Saturation : Integer
+Element 214 : Gfx Explosion Value : Integer
+Element 215 : Gfx Explosion Animation Time : Integer
+Element 216 : Firing Sound Blob Name : String
+Element 217 : Firing Sound Blob ID : String
+Element 218 : Firing Sound Max Simultaneous : Integer
+Element 219 : <Undefined>
+Element 220 : Explosion Sound Blob Name : String
+Element 221 : Explosion Sound Blob ID : String
+Element 222 : Explosion Sound Simultaneous : Integer
+Element 223 : <Undefined>
+Element 224 : Bounce Sound Blob Name : String
+Element 225 : Bound Sound Blob ID : String
+Element 226 : Bound Sound Simultaneous : Integer
+Element 227 : <Undefined>

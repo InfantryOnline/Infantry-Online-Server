@@ -1,0 +1,456 @@
+===Car VItem===
+Element 1 : Type Identifier : Int
+Element 2 : Version : String
+Element 3 : ID : Int
+Element 4 : Name : String
+Element 5 : Skill Logic : String !-Note, Actually on General 2
+Element 6 : Description : String
+Element 7 : HP : Int
+Element 8 : Weight : Int
+Element 9 : ClassID : Int
+Element 10 : Kinetic Self Ignore : Int
+Element 11 : Kinetic Pass Ignore : Int
+Element 12 : Kinetic Self Reduction : Int
+Element 13 : Kinetic Pass : Int
+Element 14 : Explosive Self Ignore : Int
+Element 15 : Explosive Pass Ignore : Int
+Element 16 : Explosive Self Reduction : Int
+Element 17 : Explosion Pass : Int
+Element 18 : Electronic Self Ignore : Int
+Element 19 : Electronic Pass Ignore : Int
+Element 20 : Electronic Self Reduction : Int
+Element 21 : Electronic Pass : Int
+Element 22 : Psionic Self Ignore : Int
+Element 23 : Psionic Pass Ignore : Int
+Element 24 : Psionic Self Reduction : Int
+Element 25 : Psionic Pass  : Int
+Element 26 : Bypass Self Ignore : Int
+Element 27 : Bypass Pass Ignore : Int
+Element 28 : Bypass Self Reduction : Int
+Element 29 : Bypass Pass : Int
+Element 30 : Drain Self Ignore : Int
+Element 31 : Drain Pass Ignore : Int
+Element 32 : Drain Self Reduction : Int
+Element 33 : Drain Pass : Int 
+Element 34 : Barrel Length : Int
+Element 35 : Fire Height : Int
+Element 36 : Physical Radius : Int
+Element 37 : Trigger Radius : Int
+Element 38 : Vehicle Physics Owned : Int
+Element 39 : Vehicle Physics Unowned : Int
+Element 40 : Weapon Physics Owned : Int
+Element 41 : Weapon Physics Unowned : Int
+Element 42 : Low Z : Int
+Element 43 : High Z : Int
+Element 44 : Pickup Item ID : Int
+Element 45 : Controllable : Boolean
+Element 46 : Warpable : Boolean
+Element 47 : Energy Cost / Tick : Int
+Element 48 : Normal Weight : Int
+Element 49 : Stop Weight : Int
+Element 50 : Display Health : Int
+Element 51 : Inventory Item 1 : Int
+Element 52 : Inventory Item 2 : Int
+Element 53 : Inventory Item 3 : Int
+Element 54 : Inventory Item 4 : Int
+Element 55 : Inventory Item 5 : Int
+Element 56 : Invetory Item 6 : Int
+Element 57 : Child Vehicle 1 : Int
+Element 58 : Child Vehicle 2 : Int
+Element 59 : Child Vehicle 3 : Int
+Element 60 : Child Vehicle 4 : Int
+Element 61 : Child Vehicle 5 : Int
+Element 62 : Child Vehicle 6 : Int
+Element 63 : Child Vehicle 7 : Int
+Element 64 : Child Vehicle 8 : Int
+Element 65 : Explode Item ID : Int
+Element 66 : Radar Prize : Int
+Element 67 : Vehicle Get In Mode : Int
+Element 68 : Visual Height : Int
+Element 69 : Drop Item ID : Int
+Element 70 : Drop Item Quantity : Int
+Element 71 : Ground Level Tick Distance : Int
+Element 72 : Ground Level Tick Frequency : Int
+Element 73 : Ground Level Tick Speed : Int
+Element 74 : Ground Level Color : Int
+Element 75 : Ground Level Blob Name : String
+Element 76 : Ground Level ID : String
+Element 77 : Ground Level Light Permutation : Int
+Element 78 : Ground Level Palette Offset : Int
+Element 79 : Ground Level Hue : Int
+Element 80 : Ground Level Saturation : Int
+Element 81 : Ground Level Value : Int
+Element 82 : Ground Level Animation Time : Int
+Element 83 : Firing Height Tick Distance : Int
+Element 84 : Firing Height Tick Frequency : Int
+Element 85 : Firing Height Speed : Int
+Element 86 : Firing Height Color : Int
+Element 87 : Firing Height Blob Name : String
+Element 88 : Firing Height ID : String
+Element 89 : Firing Height Light Permutation : Int
+Element 90 : Firing Height Palette Offset : Int
+Element 91 : Firing Height Hue : Int
+Element 92 : Firing Height Saturation : Int
+Element 93 : Firing Height Value : Int
+Element 94 : Firing Height Animation Time : Int 
+Element 95 : Energy Max : Int
+Element 96 : Energy Rate : Int
+Element 97 : Energy Start : Int
+Element 98 : Throw Time : Int
+Element 99 : Allow Weapons : Int
+Element 100 : Style 1 Ball Speed : Int
+Element 101 : Style 1 Low Fire Angle : Int
+Element 102 : Style 1 High Fire Angle : Int
+Element 103 : Style 1 Key Assignment : Int
+Element 104 : Style 1 Ball Friction : Int
+Element 105 : Style 2 Ball Speed : Int
+Element 106 : Style 2 Low Fire Angle : Int
+Element 107 : Style 2 High Fire Angle : Int
+Element 108 : Style 2 Key Assignment : Int
+Element 109 : Style 2 Ball Friction : Int
+Element 110 : Terrain 0 : Int
+Element 111 : Terrain 1 : Int
+Element 112 : Terrain 2 : Int
+Element 113 : Terrain 3 : Int
+Element 114 : Terrain 4 : Int
+Element 115 : Terrain 5 : Int
+Element 116 : Terrain 6 : Int
+Element 117 : Terrain 7 : Int
+Element 118 : Terrain 8 : Int
+Element 119 : Terrain 9 : Int
+Element 120 : Terrain 10 : Int
+Element 121 : Terrain 11 : Int
+Element 122 : Terrain 12 : Int
+Element 123 : Terrain 13 : Int
+Element 124 : Terrain 14 : Int
+Element 125 : Terrain 15 : Int
+Element 126 : Ball Cary Roll Vehicle Item : Int
+Element 127 : Ball Carry Armor Vehicle Item : Int
+Element 128 : Flag Carry Roll Vehicle Item : Int
+Element 129 : Flag Carry Armor Vehicle Item : Int
+Element 130 : Event String 1 : String
+Element 131 : Event String 2 : String
+Element 132 : Event String 3 : String
+Element 133 : Distance : Int
+Element 134 : Angle : Int
+Element 135 : XRay : Int
+Element 136 : Combat Awareness Time : Int
+Element 137 : Share Sibling Kills : Boolean
+Element 138 : Relative ID : Int
+Element 139 : Display on Friendly Radar : Boolean
+Element 140 : Friendly Radar Color : Int
+Element 141 : Display On Enemy Radar : Boolean
+Element 142 : Enemy Radar Color : Int
+Element 143 : Limit 1 : Int
+Element 144 : Extended Limit 1 : Int
+Element 145 : Limit 2 : Int
+Element 146 : Extended Limit 2 : Int
+Element 147 : Limit 3 : Int
+Element 148 : Extended Limit 3 : Int
+Element 149 : Limit 4 : Int
+Element 150 : Extended Limit 4 : Int
+Element 151 : Limit 5 : Int
+Element 152 : Extended Limit 5 : Int
+Element 153 : Limit 6 : Int
+Element 154 : Extended Limit 6 : Int
+Element 155 : Limit 7 : Int
+Element 156 : Extended Limit 7 : Int
+Element 157 : Limit 8 : Int
+Element 158 : Extended Limit 8 : Int
+Element 159 : Limit 9 : Int
+Element 160 : Extended Limit 9 : Int
+Element 161 : Limit 10 : Int
+Element 162 : Extended Limit 10 : Int
+Element 163 : Limit 11 : Int
+Element 164 : Extended Limit 11 : Int
+Element 165 : Limit 12 : Int
+Element 166 : Extended Limit 12 : Int
+Element 167 : Limit 13 : Int
+Element 168 : Extended Limit 13 : Int
+Element 169 : Limit 14 : Int
+Element 170 : Extended Limit 14 : Int
+Element 171 : Limit 15 : Int
+Element 172 : Extended Limit 15 : Int
+Element 173 : Limit 16 : Int
+Element 174 : Extended Limit 16 : Int
+Element 175 : Limit 17 : Int
+Element 176 : Extended Limit 17 : Int
+Element 177 : Limit 18 : Int
+Element 178 : Extended Limit 18 : Int
+Element 179 : Limit 19 : Int
+Element 180 : Extended Limit 19 : Int
+Element 181 : Limit 20 : Int
+Element 182 : Extended Limit 20 : Int
+Element 183 : Limit 21 : Int
+Element 184 : Extended Limit 21 : Int
+Element 185 : Limit 22 : Int
+Element 186 : Extended Limit 22 : Int
+Element 187 : Limit 23 : Int
+Element 188 : Extended Limit 23 : Int
+Element 189 : Limit 24 : Int
+Element 190 : Extended Limit 24 : Int
+Element 191 : Limit 25 : Int
+Element 192 : Extended Limit 25 : Int
+Element 193 : Limit 26 : Int
+Element 194 : Extended Limit 26 : Int
+Element 195 : Limit 27 : Int
+Element 196 : Extended Limit 27 : Int
+Element 197 : Limit 28 : Int
+Element 198 : Extended Limit 28 : Int
+Element 199 : Limit 29 : Int
+Element 200 : Extended Limit 29 : Int
+Element 201 : Limit 30 : Int
+Element 202 : Extended Limit 30 : Int
+Element 203 : Terrain 0 Roll Allowed : Int
+Element 204 : Terrain 0 Roll Friction : Int
+Element 205 : Terrain 0 Roll Thrust : Int
+Element 206 : Terrain 0 Roll Rotate : Int
+Element 207 : Terrain 0 Roll Top Speed : Int
+Element 208 : Terrain 0 Strafe Thrust : Int
+Element 209 : Terrain 0 Hyper Top Speed : Int
+Element 210 : Terrain 0 Hyper Thrust : Int
+Element 211 : Terrain 0 Backward Thrust : Int
+Element 212 : Terrain 0 Backward Hyper Thrust : Int
+Element 213 : Terrain 1 Roll Allowed : Int
+Element 214 : Terrain 1 Roll Friction : Int
+Element 215 : Terrain 1 Roll Thrust : Int
+Element 216 : Terrain 1 Roll Rotate : Int
+Element 217 : Terrain 1 Roll Top Speed : Int
+Element 218 : Terrain 1 Strafe Thrust : Int
+Element 219 : Terrain 1 Hyper Top Speed : Int
+Element 220 : Terrain 1 Hyper Thrust : Int
+Element 221 : Terrain 1 Backward Thrust : Int
+Element 222 : Terrain 1 Backward Hyper Thrust : Int
+Element 223 : Terrain 2 Roll Allowed : Int
+Element 224 : Terrain 2 Roll Friction : Int
+Element 225 : Terrain 2 Roll Thrust : Int
+Element 226 : Terrain 2 Roll Rotate : Int
+Element 227 : Terrain 2 Roll Top Speed : Int
+Element 228 : Terrain 2 Strafe Thrust : Int
+Element 229 : Terrain 2 Hyper Top Speed : Int
+Element 230 : Terrain 2 Hyper Thrust : Int
+Element 231 : Terrain 2 Backward Thrust : Int
+Element 232 : Terrain 2 Backward Hyper Thrust : Int
+Element 233 : Terrain 3 Roll Allowed : Int
+Element 234 : Terrain 3 Roll Friction : Int
+Element 235 : Terrain 3 Roll Thrust : Int
+Element 236 : Terrain 3 Roll Rotate : Int
+Element 237 : Terrain 3 Roll Top Speed : Int
+Element 238 : Terrain 3 Strafe Thrust : Int
+Element 239 : Terrain 3 Hyper Top Speed : Int
+Element 240 : Terrain 3 Hyper Thrust : Int
+Element 241 : Terrain 3 Backward Thrust : Int
+Element 242 : Terrain 3 Backward Hyper Thrust : Int
+Element 243 : Terrain 4 Roll Allowed : Int
+Element 244 : Terrain 4 Roll Friction : Int
+Element 245 : Terrain 4 Roll Thrust : Int
+Element 246 : Terrain 4 Roll Rotate : Int
+Element 247 : Terrain 4 Roll Top Speed : Int
+Element 248 : Terrain 4 Strafe Thrust : Int
+Element 249 : Terrain 4 Hyper Top Speed : Int
+Element 250 : Terrain 4 Hyper Thrust : Int
+Element 251 : Terrain 4 Backward Thrust : Int
+Element 252 : Terrain 4 Backward Hyper Thrust : Int
+Element 253 : Terrain 5 Roll Allowed : Int
+Element 254 : Terrain 5 Roll Friction : Int
+Element 255 : Terrain 5 Roll Thrust : Int
+Element 256 : Terrain 5 Roll Rotate : Int
+Element 257 : Terrain 5 Roll Top Speed : Int
+Element 258 : Terrain 5 Strafe Thrust : Int
+Element 259 : Terrain 5 Hyper Top Speed : Int
+Element 260 : Terrain 5 Hyper Thrust : Int
+Element 261 : Terrain 5 Backward Thrust : Int
+Element 262 : Terrain 5 Backward Hyper Thrust : Int
+Element 263 : Terrain 6 Roll Allowed : Int
+Element 264 : Terrain 6 Roll Friction : Int
+Element 265 : Terrain 6 Roll Thrust : Int
+Element 266 : Terrain 6 Roll Rotate : Int
+Element 267 : Terrain 6 Roll Top Speed : Int
+Element 268 : Terrain 6 Strafe Thrust : Int
+Element 269 : Terrain 6 Hyper Top Speed : Int
+Element 270 : Terrain 6 Hyper Thrust : Int
+Element 271 : Terrain 6 Backward Thrust : Int
+Element 272 : Terrain 6 Backward Hyper Thrust : Int
+Element 273 : Terrain 7 Roll Allowed : Int
+Element 274 : Terrain 7 Roll Friction : Int
+Element 275 : Terrain 7 Roll Thrust : Int
+Element 276 : Terrain 7 Roll Rotate : Int
+Element 277 : Terrain 7 Roll Top Speed : Int
+Element 278 : Terrain 7 Strafe Thrust : Int
+Element 279 : Terrain 7 Hyper Top Speed : Int
+Element 280 : Terrain 7 Hyper Thrust : Int
+Element 281 : Terrain 7 Backward Thrust : Int
+Element 282 : Terrain 7 Backward Hyper Thrust : Int
+Element 283 : Terrain 8 Roll Allowed : Int
+Element 284 : Terrain 8 Roll Friction : Int
+Element 285 : Terrain 8 Roll Thrust : Int
+Element 286 : Terrain 8 Roll Rotate : Int
+Element 287 : Terrain 8 Roll Top Speed : Int
+Element 288 : Terrain 8 Strafe Thrust : Int
+Element 289 : Terrain 8 Hyper Top Speed : Int
+Element 290 : Terrain 8 Hyper Thrust : Int
+Element 291 : Terrain 8 Backward Thrust : Int
+Element 292 : Terrain 8 Backward Hyper Thrust : Int
+Element 293 : Terrain 9 Roll Allowed : Int
+Element 294 : Terrain 9 Roll Friction : Int
+Element 295 : Terrain 9 Roll Thrust : Int
+Element 296 : Terrain 9 Roll Rotate : Int
+Element 297 : Terrain 9 Roll Top Speed : Int
+Element 298 : Terrain 9 Strafe Thrust : Int
+Element 299 : Terrain 9 Hyper Top Speed : Int
+Element 300 : Terrain 9 Hyper Thrust : Int
+Element 301 : Terrain 9 Backward Thrust : Int
+Element 302 : Terrain 9 Backward Hyper Thrust : Int
+Element 303 : Terrain 10 Roll Allowed : Int
+Element 304 : Terrain 10 Roll Friction : Int
+Element 305 : Terrain 10 Roll Thrust : Int
+Element 306 : Terrain 10 Roll Rotate : Int
+Element 307 : Terrain 10 Roll Top Speed : Int
+Element 308 : Terrain 10 Strafe Thrust : Int
+Element 309 : Terrain 10 Hyper Top Speed : Int
+Element 310 : Terrain 10 Hyper Thrust : Int
+Element 311 : Terrain 10 Backward Thrust : Int
+Element 312 : Terrain 10 Backward Hyper Thrust : Int
+Element 313 : Terrain 11 Roll Allowed : Int
+Element 314 : Terrain 11 Roll Friction : Int
+Element 315 : Terrain 11 Roll Thrust : Int
+Element 316 : Terrain 11 Roll Rotate : Int
+Element 317 : Terrain 11 Roll Top Speed : Int
+Element 318 : Terrain 11 Strafe Thrust : Int
+Element 319 : Terrain 11 Hyper Top Speed : Int
+Element 320 : Terrain 11 Hyper Thrust : Int
+Element 321 : Terrain 11 Backward Thrust : Int
+Element 322 : Terrain 11 Backward Hyper Thrust : Int
+Element 323 : Terrain 12 Roll Allowed : Int
+Element 324 : Terrain 12 Roll Friction : Int
+Element 325 : Terrain 12 Roll Thrust : Int
+Element 326 : Terrain 12 Roll Rotate : Int
+Element 327 : Terrain 12 Roll Top Speed : Int
+Element 328 : Terrain 12 Strafe Thrust : Int
+Element 329 : Terrain 12 Hyper Top Speed : Int
+Element 330 : Terrain 12 Hyper Thrust : Int
+Element 331 : Terrain 12 Backward Thrust : Int
+Element 332 : Terrain 12 Backward Hyper Thrust : Int
+Element 333 : Terrain 13 Roll Allowed : Int
+Element 334 : Terrain 13 Roll Friction : Int
+Element 335 : Terrain 13 Roll Thrust : Int
+Element 336 : Terrain 13 Roll Rotate : Int
+Element 337 : Terrain 13 Roll Top Speed : Int
+Element 338 : Terrain 13 Strafe Thrust : Int
+Element 339 : Terrain 13 Hyper Top Speed : Int
+Element 340 : Terrain 13 Hyper Thrust : Int
+Element 341 : Terrain 13 Backward Thrust : Int
+Element 342 : Terrain 13 Backward Hyper Thrust : Int
+Element 343 : Terrain 14 Roll Allowed : Int
+Element 344 : Terrain 14 Roll Friction : Int
+Element 345 : Terrain 14 Roll Thrust : Int
+Element 346 : Terrain 14 Roll Rotate : Int
+Element 347 : Terrain 14 Roll Top Speed : Int
+Element 348 : Terrain 14 Strafe Thrust : Int
+Element 349 : Terrain 14 Hyper Top Speed : Int
+Element 350 : Terrain 14 Hyper Thrust : Int
+Element 351 : Terrain 14 Backward Thrust : Int
+Element 352 : Terrain 14 Backward Hyper Thrust : Int
+Element 353 : Terrain 15 Roll Allowed : Int
+Element 354 : Terrain 15 Roll Friction : Int
+Element 355 : Terrain 15 Roll Thrust : Int
+Element 356 : Terrain 15 Roll Rotate : Int
+Element 357 : Terrain 15 Roll Top Speed : Int
+Element 358 : Terrain 15 Strafe Thrust : Int
+Element 359 : Terrain 15 Hyper Top Speed : Int
+Element 360 : Terrain 15 Hyper Thrust : Int
+Element 361 : Terrain 15 Backward Thrust : Int
+Element 362 : Terrain 15 Backward Hyper Thrust : Int
+Element 363 : Bounce Percent : Int
+Element 364 : Mode : Int
+Element 365 : Remove Dead Timer : Int
+Element 366 : Remove Unoccupied Timer : Int
+Element 367 : Remove Global Timer : Int
+Element 368 : Thrust Offset X : Int
+Element 369 : Thrust Offset Y : Int
+Element 370 : Thrust Height : Int
+Element 371 : Thrust Effect Speed : Int
+Element 372 : Smoke Count : Int
+Element 373 : Smoke Delta : Int
+Element 374 : Hyper Energy Cost : Int
+Element 375 : Gravity Acceleration : Int
+Element 376 : Floor Bounce Percent : Int
+Element 377 : Thrust While Flying : Int
+Element 378 : Rotate While Flying : Int
+Element 379 : Catch Lip Percent : Int
+Element 380 : Portal Grav : Boolean
+Element 381 : Thrust Delay : Int
+Element 382 : Thrust Offset Delay : Int
+Element 383 : Graphic Roll Blob Name : String
+Element 384 : Graphic Roll ID : String
+Element 385 : Roll Light Permutation : Int
+Element 386 : Roll Palette Offset : Int
+Element 387 : Roll Hue : Int
+Element 388 : Roll Saturation : Int
+Element 389 : Roll Value : Int
+Element 390 : Roll Animation Time : Int
+Element 391 : Graphic Empty Blob Name : String
+Element 392 : Graphic Empty ID : String
+Element 393 : Empty Light Permutation : Int
+Element 394 : Empty Palette Offset : Int
+Element 395 : Empty Hue : Int
+Element 396 : Empty Saturation : Int
+Element 397 : Empty Value : Int
+Element 398 : Empty Animation Time : Int
+Element 399 : Graphic Broken Blob Name : String
+Element 400 : Graphic Broken ID : String
+Element 401 : Broken Hue : Int
+Element 402 : Broken Palette Offset : Int
+Element 403 : Broken Hue : Int
+Element 404 : Broken Saturation : Int
+Element 405 : Broken Value : Int
+Element 406 : Broken Animation Time : Int
+Element 407 : Graphic Thrust Blob Name : String
+Element 408 : Graphic Thrust ID : String
+Element 409 : Graphic Thrust Light Permutation : Int
+Element 410 : Graphic Thrust Palette Offset : Int
+Element 411 : Graphic Thrust Hue : Int
+Element 412 : Graphic Thrust Saturation : Int
+Element 413 : Graphic Thrust Value : Int
+Element 414 : Graphic Thrust Animation Time : Int
+Element 415 : Graphic Smoke Blob Name : String
+Element 416 : Graphic Smoke ID : String
+Element 417 : Graphic Smoke Light Permutation : Int
+Element 418 : Graphic Smoke Palette Offset : Int
+Element 419 : Graphic Smoke Hue : Int
+Element 420 : Graphic Smoke Saturation : Int
+Element 421 : Graphic Smoke Value : Int
+Element 422 : Graphic Smoke Animation Time : Int
+Element 423 : Graphic Stopped Blob Name : String
+Element 424 : Graphic Stopped ID : String
+Element 425 : Stopped Light Permutation : Int
+Element 426 : Stopped Palette Offset : Int
+Element 427 : Stopped Hue : Int
+Element 428 : Stopped Saturation : Int
+Element 429 : Stopped Value : Int
+Element 430 : Stopped Animation Time : Int
+Element 431 : Graphic Shadow Blob Name : String
+Element 432 : Graphic Shadow ID : String
+Element 433 : Graphic Shadow Light Permutation : Int
+Element 434 : Graphic Shadow Palette Offset : Int
+Element 435 : Shadow Hue : Int
+Element 436 : Shadow Saturation : Int
+Element 437 : Shadow Value : Int
+Element 438 : Shadow Animation Time : Int
+Element 439 : Idle Blob Name : String
+Element 440 : Idle Blob ID : String
+Element 441 : Idle Simultaneous : Int
+Element 442 : <Unused?>
+Element 443 : Thrust Blob Name : String
+Element 444 : Thrust ID : String
+Element 445 : Thrust Simultaneous : Int
+Element 446 : <Unused?>
+Element 447 : Rotate Blob Name : String
+Element 448 : Rotate ID : String
+Element 449 : Rotate Simultaneous : Int
+Element 450 : <Unused?>
+Element 451 : Death Blob Name : String
+Element 452 : Death ID : String
+Element 453 : Death Simultaneous
+Element 454 : <Unused?>
+

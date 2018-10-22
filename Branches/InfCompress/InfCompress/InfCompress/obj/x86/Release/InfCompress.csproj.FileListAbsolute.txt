@@ -1,0 +1,5 @@
+C:\Infantry\infserver\branches\InfCompress\InfCompress\InfCompress\bin\Release\InfCompress.exe
+C:\Infantry\infserver\branches\InfCompress\InfCompress\InfCompress\bin\Release\InfCompress.pdb
+C:\Infantry\infserver\branches\InfCompress\InfCompress\InfCompress\obj\x86\Release\InfCompress.exe
+C:\Infantry\infserver\branches\InfCompress\InfCompress\InfCompress\obj\x86\Release\InfCompress.pdb
+C:\Infantry\infserver\branches\InfCompress\InfCompress\InfCompress\obj\x86\Release\InfCompress.csprojResolveAssemblyReference.cache

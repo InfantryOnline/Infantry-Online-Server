@@ -1,0 +1,79 @@
+===Flags===
+Element 1 : Lio Type : Integer
+Element 2 : Version : String
+Element 3 : Lio ID : Integer
+Element 4 : Lio Name : String
+Element 5 : X Coordinate : Integer
+Element 6 : Y Coordinate : Integer
+Element 7 : Width : Integer
+Element 8 : Height : Integer
+Element 9 : Use Relative ID : Integer
+Element 10 : Hunt Frequency : Integer
+Element 11 : Odds Of Appearing : Integer
+Element 12 : Min Player Count : Integer
+Element 13 : Max Player Count : Integer
+Element 14 : Friendly Owned Flag Player Visibility : Integer
+Element 15 : Enemy Owned Flag Player Visibility : Integer
+Element 16 : Unowned Flag Player Visibility : Integer
+Element 17 : Owned Flag Spectator Visibility : Integer
+Element 18 : Unowned Flag Spectator Visibility : Integer
+Element 19 : Friendly Flag Line Of Sight : Integer
+Element 20 : Enemy Flag Line Of Sight : Integer
+Element 21 : Unowned Flag Line Of Sight : Integer
+Element 22 : Flag Carriable : Integer
+Element 23 : Flag Owned When Carried : Boolean
+Element 24 : Flag Owned When Dropped :Boolean
+Element 25 : Drop Delay : Integer
+Element 26 : Drop Delay Reset : Integer
+Element 27 : Drop Radius : Integer
+Element 28 : Transfer Mode : Integer
+Element 29 : Periodic Points Reward : Integer
+Element 30 : Periodic Experience Reward : Integer
+Element 31 : Periodic Cash Reward : Integer
+Element 32 : Pickup Delay : Integer
+Element 33 : Flag Owner Special Radius : Integer
+Element 34 : Flag Owner Special Heal Rate : Integer
+Element 35 : Flag Owner Special Energy Rate : Integer
+Element 36 : Flag Owner Special Repair Rate : Integer
+Element 37 : Flag Owner Special Shield Percent : Integer
+Element 38 : Flag Graphic Row : Integer
+Element 39 : Turret Group ID : Integer
+Element 40 : Flag Relative ID : Integer
+Element 41 : Skill Logic : String
+Element 42 : Flag Droppable Terrain 0 : Integer
+Element 43 : Flag Droppable Terrain 1 : Integer
+Element 44 : Flag Droppable Terrain 2 : Integer
+Element 45 : Flag Droppable Terrain 3 : Integer
+Element 46 : Flag Droppable Terrain 4 : Integer
+Element 47 : Flag Droppable Terrain 5 : Integer
+Element 48 : Flag Droppable Terrain 6 : Integer
+Element 49 : Flag Droppable Terrain 7 : Integer
+Element 50 : Flag Droppable Terrain 8 : Integer
+Element 51 : Flag Droppable Terrain 9 : Integer
+Element 52 : Flag Droppable Terrain 10 : Integer
+Element 53 : Flag Droppable Terrain 11 : Integer
+Element 54 : Flag Droppable Terrain 12 : Integer
+Element 55 : Flag Droppable Terrain 13 : Integer
+Element 56 : Flag Droppable Terrain 14 : Integer
+Element 57 : Flag Droppable Terrain 15 : Integer
+Element 58 : Non-Flag Owner Special Radius : Integer
+Element 59 : Non-Flag Owner Special Heal Rate : Integer
+Element 60 : Non-Flag Owner Special Energy Rate : Integer
+Element 61 : Non-Flag Owner Special Repair Rate : Integer
+Element 62 : Non-Flag Owner Special Shield Percent : Integer
+Element 63 : Gfx Flag Blob Name : String
+Element 64 : Gfx Flag Blob ID : String
+Element 65 : Light Permutation : Integer
+Element 66 : Palette Offset : Integer
+Element 67 : Hue : Integer
+Element 68 : Saturation : Integer
+Element 69 : Value : Integer
+Element 70 : Animation Time : Integer
+Element 71 : Sound Pickup Blob Name : String
+Element 72 : Sound Pickup Blob ID : String
+Element 73 : Sound Pickup Simultaneous : Integer
+Element 74 : <Undefined>
+Element 75 : Sound Drop Blob Name : String
+Element 76 : Sound Drop Blob ID : String
+Element 77 : Sound Drop Simultaneous : Integer
+Element 78 : <Undefined>

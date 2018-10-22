@@ -1,0 +1,201 @@
+Element 1 : Class : Int
+Element 2 : Version : String
+Element 3 : ID  : Int
+Element 4 : Name : String
+Element 5 : Skill Logic : String
+Element 6 : Description : String
+Element 7 : HP : Int
+Element 8 : Weight : Int
+Element 9 : Class ID : Int
+Element 10 : <Unused>
+Element 11 : <Unused>
+Element 12 : <Unused>
+Element 13 : <Unused>
+Element 14 : <Unused>
+Element 15 : <Unused>
+Element 16 : <Unused>
+Element 17 : <Unused>
+Element 18 : <Unused>
+Element 19 : <Unused>
+Element 20 : <Unused>
+Element 21 : <Unused>
+Element 22 : <Unused>
+Element 23 : <Unused>
+Element 24 : <Unused>
+Element 25 : <Unused>
+Element 26 : <Unused>
+Element 27 : <Unused>
+Element 28 : <Unused>
+Element 29 : <Unused>
+Element 30 : <Unused>
+Element 31 : <Unused>
+Element 32 : <Unused>
+Element 33 : <Unused>
+Element 34 : Barrel Length : Int
+Element 35 : Fire Height : Int
+Element 36 : Physical Radius : Int
+Element 37 : Trigger Radius : Int
+Element 38 : Vehicle Physics Owned : Int
+Element 39 : Vehicle Physics Unowned : Int
+Element 40 : Weapon Physics Owned : Int
+Element 41 : Weapon Physics Unowned : Int
+Element 42 : Low Z : Int
+Element 43 : High Z : Int
+Element 44 : Pickup Item ID : Int
+Element 45 : Controllable : Int
+Element 46 : Warpable : Boolean
+Element 47 : Energy Cost Per Tick : Int
+Element 48 : Normal Weight : Int
+Element 49 : Stop Weight : Int
+Element 50 : Display Health : Int
+Element 51 : Item 1 : Int
+Element 52 : Item 2 : Int
+Element 53 : Item 3 : Int
+Element 54 : Item 4 : Int
+Element 55 : Item 5 : Int
+Element 56 : Item 6 : Int
+Element 57 : Child 1 : Int
+Element 58 : Child 2 : Int
+Element 59 : Child 3 : Int
+Element 60 : Child 4 : Int
+Element 61 : Child 5 : Int
+Element 62 : Child 6 : Int
+Element 63 : Child 7 : Int
+Element 64 : Child 8 : Int
+Element 65 : Explode Item ID : Int
+Element 66 : Radar Prize : Int
+Element 67 : Vehicle Get In Mode : Int
+Element 68 : Visual Height : Int
+Element 69 : <Unused>
+Element 70 : Drop Item Quantity : Int
+Element 71 : <Unused>
+Element 72 : <Unused>
+Element 73 : <Unused>
+Element 74 : <Unused>
+Element 75 : <Unused>
+Element 76 : <Unused>
+Element 77 : <Unused>
+Element 78 : <Unused>
+Element 79 : <Unused>
+Element 80 : <Unused>
+Element 81 : <Unused>
+Element 82 : <Unused>
+Element 83 : <Unused>
+Element 84 : <Unused>
+Element 85 : <Unused>
+Element 86 : <Unused>
+Element 87 : <Unused>
+Element 88 : <Unused>
+Element 89 : <Unused>
+Element 90 : <Unused>
+Element 91 : <Unused>
+Element 92 : <Unused>
+Element 93 : <Unused>
+Element 94 : <Unused>
+Element 95 : Energy Max : Int
+Element 96 : Energy Rate : Int
+Element 97 : Energy Start : Int
+Element 98 : <Unused>
+Element 99 : <Unused>
+Element 100 : <Unused>
+Element 101 : <Unused>
+Element 102 : <Unused>
+Element 103 : <Unused>
+Element 104 : <Unused>
+Element 105 : <Unused>
+Element 106 : <Unused>
+Element 107 : <Unused>
+Element 108 : <Unused>
+Element 109 : <Unused>
+Element 110 : <Unused>
+Element 111 : <Unused>
+Element 112 : <Unused>
+Element 113 : <Unused>
+Element 114 : <Unused>
+Element 115 : <Unused>
+Element 116 : <Unused>
+Element 117 : <Unused>
+Element 118 : <Unused>
+Element 119 : <Unused>
+Element 120 : <Unused>
+Element 121 : <Unused>
+Element 122 : <Unused>
+Element 123 : <Unused>
+Element 124 : <Unused>
+Element 125 : <Unused>
+Element 126 : <Unused>
+Element 127 : <Unused>
+Element 128 : Flag Carry Roll Vehicle : Int
+Element 129 : Flag Carry Armor Vehicle : Int
+Element 130 : Event String 1 : String
+Element 131 : Event String 2 : Int
+Element 132 : Event String 3 : String
+Element 133 : Distance : Int
+Element 134 : Angle : Int
+Element 135 : XRay : Int
+Element 136 : Combat Awareness Time : Int
+Element 137 : Share Sibling Kills : Boolean
+Element 138 : Relative ID : Int
+Element 139 : Display On Friendly Radar : Boolean
+Element 140 : Friendly Radar Color : Int
+Element 141 : Display On Enemy Radar : Boolean
+Element 142 : Enemy Radar Color : Int
+Element 143 : <Unused>
+Element 144 : <Unused>
+Element 145 : <Unused>
+Element 146 : <Unused>
+Element 147 : <Unused>
+Element 148 : <Unused>
+Element 149 : <Unused>
+Element 150 : <Unused>
+Element 151 : <Unused>
+Element 152 : <Unused>
+Element 153 : <Unused>
+Element 154 : <Unused>
+Element 155 : <Unused>
+Element 156 : <Unused>
+Element 157 : <Unused>
+Element 158 : <Unused>
+Element 159 : <Unused>
+Element 160 : <Unused>
+Element 161 : <Unused>
+Element 162 : <Unused>
+Element 163 : <Unused>
+Element 164 : <Unused>
+Element 165 : <Unused>
+Element 166 : <Unused>
+Element 167 : <Unused>
+Element 168 : <Unused>
+Element 169 : <Unused>
+Element 170 : <Unused>
+Element 171 : <Unused>
+Element 172 : <Unused>
+Element 173 : <Unused>
+Element 174 : <Unused>
+Element 175 : <Unused>
+Element 176 : <Unused>
+Element 177 : <Unused>
+Element 178 : <Unused>
+Element 179 : <Unused>
+Element 180 : <Unused>
+Element 181 : <Unused>
+Element 182 : <Unused>
+Element 183 : <Unused>
+Element 184 : <Unused>
+Element 185 : <Unused>
+Element 186 : <Unused>
+Element 187 : <Unused>
+Element 188 : <Unused>
+Element 189 : <Unused>
+Element 190 : <Unused>
+Element 191 : <Unused>
+Element 192 : <Unused>
+Element 193 : <Unused>
+Element 194 : <Unused>
+Element 195 : <Unused>
+Element 196 : <Unused>
+Element 197 : <Unused>
+Element 198 : <Unused>
+Element 199 : <Unused>
+Element 200 : <Unused>
+Element 201 : <Unused>

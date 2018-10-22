@@ -1,0 +1,38 @@
+Element 1 : Class : Integer
+Element 2 : Version : String
+Element 3 : ID : Integer
+Element 4 : Name : String
+Element 5 : Category : String
+Element 6 : Skill : String
+Element 7 : Description : String
+Element 8 : Weight : Integer
+Element 9 : Buy Price : Integer
+Element 10 : Probability : Integer
+Element 11 : Droppable : Boolean
+Element 12 : Key Preference : Integer
+Element 13 : Recommended : Integer
+Element 14 : Max Allowed : Integer
+Element 15 : Pickup Mode : Integer
+Element 16 : Sell Price : Integer
+Element 17 : Expire Timer : Integer
+Element 18 : Radar Color : Integer
+Element 19 : Prize Bounty Points : Integer
+Element 20 : Relative ID : Integer
+Element 21 : Held Category Type : Integer
+Element 22 : Prune Drop Percent : Integer
+Element 23 : Prune Odds : Integer
+Element 24 : Gfx Icon Blob Name : String
+Element 25 : Gfx Icon Blob ID : String
+Element 26 : Gfx Icon Light Permutation : Integer
+Element 27 : Gfx Icon Palette Offset : Integer
+Element 28 : Gfx Icon Hue : Integer
+Element 29 : Gfx Icon Saturation : Integer
+Element 30 : Gfx Icon Value : Integer
+Element 31 : Gfx Icon Animation Time : Integer
+=======================================
+Element 32 : Input Item 1 : Integer
+Element 33 : Output Item 1 : Integer
+*
+Element 62 : Input Item 15: Integer
+Element 63 : Output Item 15: Integer
+---------------------------------------

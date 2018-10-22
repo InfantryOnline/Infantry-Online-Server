@@ -1,0 +1,120 @@
+Directory Server Protocol
+Super-Man
+
+Testing:
+So far, seems like the directory server is hosted on port 4850, still a UDP communication.
+I will try to replicate the directory servers actions as closely as possible with the below
+information and see if the client will take to my responses properly once I've analyzed enough
+data.
+
+
+Initial client request packet to directory server is consistently 8 bytes.
+Packet info:
+First 4 bytes in the bytearray seem to be the identifier of the request, as they are always
+the same and never change. The remaining 4 seem to be exactly like the client-server
+communication regarding zone pinging/player count (possibly ping/pong?)
+1: 00
+2: 01
+3: 03
+4: 00
+5: unknown. possibly ping/pong?
+6: unknown. possibly ping/pong?
+7: unknown. possibly ping/pong?
+8: unknown. possibly ping/pong?
+example: 00 01 03 00 1F B7 90 03
+
+Server replies with 12 byte packet
+The first 4 bytes seem to be uniform and never change, possibly another packet identifier for 
+the clients use. Obviously i'm no pro reverser, but i'm making progress? :D Possibly versioning?
+The next 4 bytes (5-8) are a copy of the 4 unknowns (5-8) from the initial client request (client
+and server playing ping/pong?)
+The next 4 bytes (9-12) are all empty, and haven't held anything other than 00's for all of my tries.
+If anybody has time, try playing around with some client settings and seeing if you can change how the
+server replies, but it's no biggie.
+1: 00
+2: 02
+3: 42
+4: 0C
+5: unknown. possibly ping/pong?
+6: unknown. possibly ping/pong?
+7: unknown. possibly ping/pong?
+8: unknown. possibly ping/pong?
+9: 00
+10: 00
+11: 00
+12: 00
+
+Client replies with 41 byte packet
+The first 18 packets are always constant, and are as follows:
+Bytes 1-18: 00 03 00 00 00 00 00 00 01 49 6E 66 61 6E 74 72 79 00 
+the 03 could possibly be versioning again? the 49 6E 66 61 6E 74 72 79 converts to "Infantry" in ASCII
+After the last 00 after Infantry, it's followed by a series of bytes that will stay the same aslong as
+the client isn't closed. A new set of bytes is generated everytime the client is reset.
+Example:
+Bytes 19-41: 45 7E A6 00 A2 00 C0 37 51 00 28 38 51 00 30 00 00 00 00 00 00 00 2C
+
+Client sends another bytearray containing 28 bytes right after
+The first 2 bytes seem to be the same consistently: 00 05
+The next 5 bytes that are sent are random unknowns. I can't figure out what they are, ex: 45 00 8D BC 45
+The remaining 21 bytes are always the same, regardless of what I try to change around.
+Bytes 8-28: 00 03 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 12 00
+
+Server finally responds with the list of zones.
+**NOTE!** The server doesn't clear the buffer when sending multiple zones, instead it uses a
+delimiter (00) to seperate information. Be aware of useless information!
+This is where it gets fun.
+The server responds with a ton of information, but they're all chopped up to a packet size
+of 512 bytes. This isn't to be confused with a "max" packet size. ALL packets containing zone data
+are set to 512 bytes from my research.
+The first 16 bytes in the array are what I think to be the header of each packet to help the client
+with indentifying and repiecing.
+The headers are formatted like this:
+00 03 00 00 00 00 00 00 00 08 00 00 91 0D 00 00
+Where the 5th byte represents which piece of the whole stream it is.
+And the 13th and 14th bytes represent the size of the stream (91 0D = 0x91D = 2333 bytes)
+Example, the 3rd chunk will have this header:
+00 03 00 00 02 00 00 00 00 08 00 00 91 0D 00 00
+After the header, all the zone listing information starts to pour in.
+Zone information packet structure (excluding packet 16-byte packet header):
+The first byte is 00, the delimiter. Unless it's the first zone in the packet stream, the first
+byte is 01.
+The next 4 bytes are the zone ip, each byte representing an 8-bit integer (0-255)
+The next 2 bytes is a 16-bit integer representation of the port
+The next byte seems to almost always be 00, but in the case of CTFPL and CTFX it's 01,
+and in the case of Soccer Brawl and USL it's 02. Mechanized Skirmish is 04.
+Faydon Lake is 0E
+I can't find ANY connection with these numbers in the zonelist.
+The next 5 bytes are consistently the same: 00 01 00 9B 00
+The next 32 bytes are the zone name, there's a 00 at the end to specify end of the zone name
+The next byte is an integer, the 7th value in the zone list file (usually 50): 32
+The next byte appears to be the 5th value in the zone list file, consistently 0: 00
+The next byte seems to be the 8th value in the zone list file, whether the zone is
+a beginner zone or not. 00 = beginner, 01 = not beginner.
+The next byte is unknown, but is always 00 and never overwritten by the buffer.
+The following 28 bytes are empty. The current directory server doesn't clear it's buffer
+and will leave old byte data there and overwrite the empty 00's.
+The next amount of bytes is variable and contains the zone description.
+If there's another zone to be appended, go back to the beginning but the initial byte
+is now 00 instead of 01. Continued for as many zones as there are.
+
+
+After the 512-byte packet is sent, the client responds with some sort of confirmation
+ackonowledging that it was recieved that chunk.
+The 'acknowledgement' is 8 bytes, and in this format:
+00 0B 00 10 00 00 00 00
+Where the 5th byte is replaced with the number of the chunk it has just recieved.
+Example, after recieving the 3rd chunk, the client replies:
+00 0B 00 10 02 00 00 00
+
+This continues until there is no more data to send, and server sends a packet, 8 bytes in size,
+indicating that the stream of data is over.
+00 0b 00 71 00 00 00 00
+
+Client responds with another 8 byte packet, with the first 2 bytes constantly being: 00 07
+and the last byte being: 09.
+All bytes inbetween seem to have no easily definitive meaning.
+
+Server responds with one final packet that seems to tell the client that the stream is over.
+It's 12 bytes in size.
+The first 3 bytes are always 00 06 91, and the last byte is 11.
+Everything inbetween, again, seems to have no easily definitive meaning.

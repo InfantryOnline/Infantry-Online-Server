@@ -1,0 +1,22 @@
+===Parallax===
+Element 1 : Lio Type : Integer
+Element 2 : Version : String
+Element 3 : Lio ID : Integer
+Element 4 : Lio Name : String
+Element 5 : X Coordinate : Integer
+Element 6 : Y Coordinate : Integer
+Element 7 : Width : Integer
+Element 8 : Height : Integer
+Element 9 : Use Relative ID : Integer
+Element 10 : Hunt Frequency : Integer
+Element 11 : Near Distance : Integer
+Element 12 : Far Distance : Integer
+Element 13 : Quantity : Integer
+Element 14 : Gfx Parallax Blob Name : String
+Element 15 : Gfx Parallax Blob ID : String
+Element 16 : Light Permutation : Integer
+Element 17 : Palette Offset : Integer
+Element 18 : Hue : Integer
+Element 19 : Saturation : Integer
+Element 20 : Value : Integer
+Element 21 : Animation Time : Integer

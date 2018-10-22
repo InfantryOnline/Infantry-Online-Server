@@ -1,0 +1,5 @@
+C:\Infantry\infserver\branches\InfRecycler\bin\Release\InfRecycler.exe
+C:\Infantry\infserver\branches\InfRecycler\bin\Release\InfRecycler.pdb
+C:\Infantry\infserver\branches\InfRecycler\obj\x86\Release\ResolveAssemblyReference.cache
+C:\Infantry\infserver\branches\InfRecycler\obj\x86\Release\InfRecycler.exe
+C:\Infantry\infserver\branches\InfRecycler\obj\x86\Release\InfRecycler.pdb

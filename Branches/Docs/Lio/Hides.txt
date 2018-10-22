@@ -1,0 +1,32 @@
+===Hides===
+Element 1 : Lio Type : Integer
+Element 2 : Version : String
+Element 3 : Lio ID : Integer
+Element 4 : Lio Name : String
+Element 5 : X Coordinate : Integer
+Element 6 : Y Coordinate : Integer
+Element 7 : Width : Integer
+Element 8 : Height : Integer
+Element 9 : Use Relative ID : Integer
+Element 10 : Hunt Frequency : Integer
+Element 11 : Initial Count : Integer
+Element 12 : Attempt Delay : Integer
+Element 13 : Succeed Delay : Integer
+Element 14 : Probability : Integer
+Element 15 : Min Players : Integer
+Element 16 : Max Players : Integer
+Element 17 : Min Player Distance : Integer
+Element 18 : Max Player Distance : Integer
+Element 19 : MaxType In Area : Integer
+Element 20 : Max Type In Level : Integer
+Element 21 : Hide ID : Integer
+Element 22 : Hide Quantity : Integer
+Element 23 : Hide Turret Group : Integer
+Element 24 : Hide Announce : String
+Element 25 : Hide Relative ID : Integer
+Element 26 : Assign Frequency : Integer
+Element 27 : Clump Radius : Integer
+Element 28 : Clump Quantity : Integer
+Element 29 : Turret Switched Frequency : Integer
+Element 30 : Turret Inverse State : Integer
+Element 31 : Rts State Number : Integer

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FIPatcher>
+<File Name="default.ini" CRC="-1" Compression=".gz" DownloadSize="0" MD5="B32B4180CC1165F1AFFC19D2A91B1DFC" Size="573" />
+<File Name="InfantryLauncher.exe" CRC="-1" Compression=".gz" DownloadSize="235126" MD5="2F5757EC0C7D239ECA2DE9EBC6D2387E" Size="406528" />
+<File Name="weblinks.txt" CRC="-1" Compression=".gz" DownloadSize="0" MD5="166BD6E0A0B7F5A5CD78B546F03A46F1" Size="427" />
+</FIPatcher>

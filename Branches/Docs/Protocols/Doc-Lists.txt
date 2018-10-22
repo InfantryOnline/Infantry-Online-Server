@@ -1,0 +1,22 @@
+======Notes======
+
+?arena
+Packet structure
+Byte = TypeID (0x08 = arenalist)
+Char[32] = Arena Name
+Int16 = Player Count (negative if player is in the zone)
+
+?zonelist
+
+Packet Header
+Int16 = Packet ID
+Int16 = Chunk Piece/ID
+Int32 = Chunk Size (excluding headers, and only included in the first chunk)
+
+Packet structure
+Byte = TypeID (0x37 = zonelist)
+Char[32] = Zone Name
+Int16 = Player Count (negative if player is in the zone)
+Char[32] = Zone Address (format: "IP,port" in ASCII)
+
+67 bytes of data per zone, sent in chunks of 496 bytes.

@@ -1,0 +1,287 @@
+====Computer VItem===
+Element 1 : Class:Int
+Element 2 : Version:String
+Element 3 : ID : Int
+Element 4 : Name : String
+Element 5 : Skill Logic : String
+Element 6 : Description : String
+Element 7 : HP : Int
+Element 8 : Weight : Int
+Element 9 : ClassID : Int
+Element 10 : Kinetic Self Ignore : Int
+Element 11 : Kinetic Pass Ignore : Int
+Element 12 : Kinetic Self Reduction : Int
+Element 13 : Kinetic Pass Damage: Int
+Element 14 : Explosive Self Ignore : Int
+Element 15 : Explosive Pass Ignore : Int
+Element 16 : Explosive Self Reduction : Int
+Element 17 : Explosive Pass Damage : Int
+Element 18 : Electronic Self Ignore : Int
+Element 19 : Electronic Pass Ignore : Int
+Element 20 : Electronic Self Reduction : Int
+Element 21 : Electronic Pass Damage : Int
+Element 22 : Psionic Self Ignore : Int
+Element 23 : Psionic Pass Ignore : Int
+Element 24 : Psionic Self Reduction : Int
+Element 25 : Psionic Pass Damage: Int
+Element 26 : Bypass Self Ignore : Int
+Element 27 : Bypass Pass Ignore : Int
+Element 28 : Bypass Self Reduction : Int
+Element 29 : Bypass Pass Damage : Int
+Element 30 : Drain Self Ignore : Int
+Element 31 : Drain Pass Ignore : Int
+Element 32 : Drain Self Reduction : Int
+Element 33 : Drain Pass Damage: Int
+Element 34 : Barrel Length : Int
+Element 35 : Fire Height : Int
+Element 36 : Physics Radius : Int
+Element 37 : Trigger Radius : Int
+Element 38 : Vehicle Physics Owned : Int
+Element 39 : Vehicle Physics Unowned : Int
+Element 40 : Weapon Physics Owned : Int
+Element 41 : Weapon Physics Unowned : Int
+Element 42 : Low Z : Int
+Element 43 : High Z : Int
+Element 44 : Pickup Item ID : Int
+Element 45 : Controllable : Boolean
+Element 46 : Warpable : Boolean
+Element 47 : Energy Cost Per Tick : Int
+Element 48 : Normal Weight : Int
+Element 49 : Stop Weight : Int
+Element 50 : Display Health : Int
+Element 51 : Inventory Item 1 : Int
+Element 52 : Inventory Item 2 : Int
+Element 53 : Inventory Item 3 : Int
+Element 54 : Inventory Item 4 : Int
+Element 55 : Inventory Item 5 : Int
+Element 56 : Inventory Item 6 : Int
+Element 57 : Child 1 : Int
+Element 58 : Child 2 : Int
+Element 59 : Child 3 : Int
+Element 60 : Child 4 : Int
+Element 61 : Child 5 : Int
+Element 62 : Child 6 : Int
+Element 63 : Child 7 : Int
+Element 64 : Child 8 : Int
+Element 65 : Explode Item ID : Int
+Element 66 : Radar Prize : Int
+Element 67 : Vehicle Get In Mode : Int
+Element 68 : Visual Height : Int
+Element 69 : Drop Item ID : Int
+Element 70 : Drop Item Quantity : Int
+Element 71 : <Unused>
+Element 72 : <Unused>
+Element 73 : <Unused>
+Element 74 : <Unused>
+Element 75 : Graphic Ground Level Blob Name : String
+Element 76 : Graphic Gound Level ID : String
+Element 77 : Ground Level Light Permutation : Int
+Element 78 : Ground Level Palette Offset : Int
+Element 79 : Ground Level Hue : Int
+Element 80 : Ground Level Saturation : Int
+Element 81 : Ground Level Level Value : Int
+Element 82 : Ground Level Animation Time : Int
+Element 83 : <Unused>
+Element 84 : <Unused>
+Element 85 : <Unused>
+Element 86 : <Unused>
+Element 87 : Graphic Firing Height Blob Name : String
+Element 88 : Graphic Firing Height ID : String
+Element 89 : Firing Height Light Permutation : Int
+Element 90 : Firing Height Palette Offset : Int
+Element 91 : Firing Height Hue : Int
+Element 92 : Firing Height Saturation : Int
+Element 93 : Firing Height Value : Int
+Element 94 : Firing Height Animation Time : Int
+Element 95 : Energy Max : Int
+Element 96 : Energy Rate : Int
+Element 97 : Energy Start : Int
+Element 98 : Throw Time : Int
+Element 99 : Throw One Ball Friction : Int
+Element 100 : Throw One Ball Speed : Int
+Element 101 : Throw One Low Fire Angle : Int
+Element 102 : Throw One High Fire Angle : Int
+Element 103 : Throw One Key Assignment : Int
+Element 104 : Throw Two Ball Friction : Int
+Element 105 : Throw Two Ball Speed : Int
+Element 106 : Throw Two Low Fire Angle : Int
+Element 107 : Throw Two High Fire Angle : Int
+Element 108 : Throw Two Key Assignment : Int
+Element 109 : Allow Weapons : Int
+Element 110 : Terrain 0 : Int
+Element 111 : Terrain 1 : Int
+Element 112 : Terrain 2 : Int
+Element 113 : Terrain 3 : Int
+Element 114 : Terrain 4 : Int
+Element 115 : Terrain 5 : Int
+Element 116 : Terrain 6 : Int
+Element 117 : Terrain 7 : Int
+Element 118 : Terrain 8 : Int
+Element 119 : Terrain 9 : Int
+Element 120 : Terrain 10 : Int
+Element 121 : Terrain 11 : Int
+Element 122 : Terrain 12 : Int
+Element 123 : Terrain 13 : Int
+Element 124 : Terrain 14 : Int
+Element 125 : Terrain 15 : Int
+Element 126 : Ball Carry Roll Vehicle Item : Int
+Element 127 : Ball Carry Armor Vehicle Item : Int
+Element 128 : Flag Carry Roll Item : Int
+Element 129 : Flag Carry Armor Vehicle : Int
+Element 130 : Event String 1 : String
+Element 131 : Event String 2 : String
+Element 132 : Event String 3 : String
+Element 133 : Distance : Int
+Element 134 : Angle : Int
+Element 135 : Xray : Int
+Element 136 : Combat Awareness Time : Int
+Element 137 : Share Sibling Kills : Boolean
+Element 138 : Relative ID : Int
+Element 139 : Display On Friendly Radar : Boolean
+Element 140 : Friendly Radar Color : Int
+Element 141 : Display On Enemy Radar : Boolean
+Element 142 : Enemy Radar Color : Int
+Element 143 : Held Item Limit 1 : Int
+Element 144 : Held Item Extended Limit 1 : Int
+Element 145 : Held Item Limit 2 : Int
+Element 146 : Held Item Extended Limit 2 : Int
+Element 147 : Held Item Limit 3 : Int
+Element 148 : Held Item Extended Limit 3 : Int
+Element 149 : Held Item Limit 4 : Int
+Element 150 : Held Item Extended Limit 4 : Int
+Element 151 : Held Item Limit 5 : Int
+Element 152 : Held Item Extended Limit 5 : Int
+Element 153 : Held Item Limit 6 : Int
+Element 154 : Held Item Extended Limit 6 : Int
+Element 155 : Held Item Limit 7 : Int
+Element 156 : Held Item Extended Limit 7 : Int
+Element 157 : Held Item Limit 8 : Int
+Element 158 : Held Item Extended Limit 8 : Int
+Element 159 : Held Item Limit 9 : Int
+Element 160 : Held Item Extended Limit 9 : Int
+Element 161 : Held Item Limit 10 : Int
+Element 162 : Held Item Extended Limit 10 : Int
+Element 163 : Held Item Limit 11 : Int
+Element 164 : Held Item Extended Limit 11 : Int
+Element 165 : Held Item Limit 12 : Int
+Element 166 : Held Item Extended Limit 12 : Int
+Element 167 : Held Item Limit 13 : Int
+Element 168 : Held Item Extended Limit 13 : Int
+Element 169 : Held Item Limit 14 : Int
+Element 170 : Held Item Extended Limit 14 : Int
+Element 171 : Held Item Limit 15 : Int
+Element 172 : Held Item Extended Limit 15 : Int
+Element 173 : Held Item Limit 16 : Int
+Element 174 : Held Item Extended Limit 16 : Int
+Element 175 : Held Item Limit 17 : Int
+Element 176 : Held Item Extended Limit 17 : Int
+Element 177 : Held Item Limit 18 : Int
+Element 178 : Held Item Extended Limit 18 : Int
+Element 179 : Held Item Limit 19 : Int
+Element 180 : Held Item Extended Limit 19 : Int
+Element 181 : Held Item Limit 20 : Int
+Element 182 : Held Item Extended Limit 20 : Int
+Element 183 : Held Item Limit 21 : Int
+Element 184 : Held Item Extended Limit 21 : Int
+Element 185 : Held Item Limit 22 : Int
+Element 186 : Held Item Extended Limit 22 : Int
+Element 187 : Held Item Limit 23 : Int
+Element 188 : Held Item Extended Limit 23 : Int
+Element 189 : Held Item Limit 24 : Int
+Element 190 : Held Item Extended Limit 24 : Int
+Element 191 : Held Item Limit 25 : Int
+Element 192 : Held Item Extended Limit 25 : Int
+Element 193 : Held Item Limit 26 : Int
+Element 194 : Held Item Extended Limit 26 : Int
+Element 195 : Held Item Limit 27 : Int
+Element 196 : Held Item Extended Limit 27 : Int
+Element 197 : Held Item Limit 28 : Int
+Element 198 : Held Item Extended Limit 28 : Int
+Element 199 : Held Item Limit 29 : Int
+Element 200 : Held Item Extended Limit 29 : Int
+Element 201 : Held Item Limit 30 : Int
+Element 202 : Held Item Extended Limit 30 : Int
+Element 203 : Rotate Speed : Int
+Element 204 : Angle Start : Int
+Element 205 : Angle Length : Int
+Element 206 : Tracking Time : Int
+Element 207 : Tracking Radius : Int
+Element 208 : Tracking Weight Low : Int
+Element 209 : Tracking Weight High : Int
+Element 210 : Fire Radius : Int
+Element 211 : Repair Rate : Int
+Element 212 : HP to Operate : Int
+Element 213 : Remove Global Timer : Int
+Element 214 : Randomize Aim : Int
+Element 215 : Obey LOS : Int
+Element 216 : Energy Max : Int
+Element 217 : Energy Rate : Int
+Element 218 : Destroyable : Boolean
+Element 219 : Density Radius : Int
+Element 220 : Density Max Type : Int
+Element 221 : Density Max Active : Int
+Element 222 : Density Max Inactive : Int
+Element 223 : Max Type By Player Regardless Of Team : Int
+Element 224 : Frequency Max Type : Int
+Element 225 : Frequency Max Active : Int
+Element 226 : Frequency Max Inactive : Int
+Element 227 : Frequency Density Max Type : Int
+Element 228 : Frequency Density Max Active : Int
+Element 229 : Frequency Density Max Inactive : Int
+Element 230 : Chained Turret Required For Building : Boolean
+Element 231 : Chained Turret Required For Operation : Boolean
+Element 232 : Chained Turret ID : Int
+Element 233 : Chained Turret Radius : Int
+Element 234 : Number of Chained Turrets Required : Int
+Element 235 : Take Ownership Logic : String
+Element 236 : Steal Ownership Logic : String
+Element 237 : Turret Graphic Z Adjust : Int
+Element 238 : Graphic Base Blob Name : String
+Element 239 : Graphic Base ID : String
+Element 240 : Base Light Permutation : Int
+Element 241 : Base Palette Offset : Int
+Element 242 : Base Hue : Int
+Element 243 : Base Saturation : Int
+Element 244 : Base Value : Int
+Element 245 : Base Animation Time : Int
+Element 246 : Graphic Turret Blob Name : String
+Element 247 : Graphic Turret ID : String
+Element 248 : Turret Light Permutation : Int
+Element 249 : Turret Palette Offset : Int
+Element 250 : Turret Hue : Int
+Element 251 : Turret Saturation : Int
+Element 252 : Turret Value : Int
+Element 253 : Turret Animation Time : Int
+
+*----------------------------------------------------------------- 
+Note: New Item Every 14th Element
+
+Element 254 : Item 1 Produce Title : String
+Element 255 : Item 1 Item/Vehicle to be Produced : Int
+Element 256 : Item 1 Produce Quantity : Int
+Element 257 : Item 1 Produce for Team : Int
+Element 258 : Item 1 Produce Time : Int
+Element 259 : Item 1 Player Item Needed : Int
+Element 260 : Item 1 Player Item Amount : Int
+Element 261 : Item 1 Cash Cost : Int
+Element 262 : Item 1 Skill Logic : String
+Element 263 : Item 1 Team Item Needed : Int
+Element 264 : Item 1 Team Item Amount : Int
+Element 265 : Item 1 Team Building Logic : Int
+Element 266 : Item 1 Team Queue Request : Int
+Element 267 : Item 1 Confirm : Boolean
+*-----------------------------------------------------------------
+Element 464 : Item 16 Produce Title : String
+Element 465 : Item 16 Item/Vehicle to be Produced : Int
+Element 466 : Item 16 Produce Quantity : Int
+Element 467 : Item 16 Produce For Team : Int
+Element 468 : Item 16 Produce Time : Int
+Element 469 : Item 16 Player Item Needed : Int
+Element 470 : Item 16 Player Item Amount : Int
+Element 471 : Item 16 Cash Cost : Int
+Element 472 : Item 16 Skill Logic : String
+Element 473 : Item 16 Team Item Needed : Int
+Element 474 : Item 16 Team Item Amount : Int
+Element 475 : Item 16 Team Building Logic : String
+Element 476 : Item 16 Team Queue Request : Int
+Element 477 : Item 16 Confirm : Boolean

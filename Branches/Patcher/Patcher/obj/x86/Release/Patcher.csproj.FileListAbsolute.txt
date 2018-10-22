@@ -1,0 +1,9 @@
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\bin\Release\Patcher.exe
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\bin\Release\Patcher.pdb
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\obj\x86\Release\Patcher.exe
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\obj\x86\Release\Patcher.pdb
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\obj\x86\Release\Patcher.csprojResolveAssemblyReference.cache
+C:\Infantry\infserver\branches\Patcher\Patcher\bin\Release\Patcher.exe
+C:\Infantry\infserver\branches\Patcher\Patcher\bin\Release\Patcher.pdb
+C:\Infantry\infserver\branches\Patcher\Patcher\obj\x86\Release\Patcher.exe
+C:\Infantry\infserver\branches\Patcher\Patcher\obj\x86\Release\Patcher.pdb

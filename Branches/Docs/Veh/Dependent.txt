@@ -1,0 +1,249 @@
+----Dependent VType----
+Element 1 : Class : Int
+Element 2 : Version : String
+Element 3 : ID : Int
+Element 4 : Name : String
+Element 5 : Skill Logic : String
+Element 6 : Description : String
+Element 7 : HP : Int
+Element 8 : Weight : Int
+Element 9 : ClassID : Int
+Element 10 : Kinetic Self Ignore : Int
+Element 11 : Kinetic Pass Ignore : Int
+Element 12 : Kinetic Self Reduction : Int
+Element 13 : Kinetic Pass Damage: Int
+Element 14 : Explosive Self Ignore : Int
+Element 15 : Explosive Pass Ignore : Int
+Element 16 : Explosive Self Reduction : Int
+Element 17 : Explosive Pass Damage : Int
+Element 18 : Electronic Self Ignore : Int
+Element 19 : Electronic Pass Ignore : Int
+Element 20 : Electronic Self Reduction : Int
+Element 21 : Electronic Pass Damage : Int
+Element 22 : Psionic Self Ignore : Int
+Element 23 : Psionic Pass Ignore : Int
+Element 24 : Psionic Self Reduction : Int
+Element 25 : Psionic Pass Damage: Int
+Element 26 : Bypass Self Ignore : Int
+Element 27 : Bypass Pass Ignore : Int
+Element 28 : Bypass Self Reduction : Int
+Element 29 : Bypass Pass Damage : Int
+Element 30 : Drain Self Ignore : Int
+Element 31 : Drain Pass Ignore : Int
+Element 32 : Drain Self Reduction : Int
+Element 33 : Drain Pass Damage: Int
+Element 34 : Barrel Length : Int
+Element 35 : Fire Height : Int
+Element 36 : Physics Radius : Int
+Element 37 : Trigger Radius : Int
+Element 38 : Vehicle Physics Owned : Int
+Element 39 : Vehicle Physics Unowned : Int
+Element 40 : Weapon Physics Owned : Int
+Element 41 : Weapon Physics Unowned : Int
+Element 42 : Low Z : Int
+Element 43 : High Z : Int
+Element 44 : Pickup Item ID : Int
+Element 45 : Controllable : Boolean
+Element 46 : Warpable : Boolean
+Element 47 : Energy Cost Per Tick : Int
+Element 48 : Normal Weight : Int
+Element 49 : Stop Weight : Int
+Element 50 : Display Health : Int
+Element 51 : Inventory Item 1 : Int
+Element 52 : Inventory Item 2 : Int
+Element 53 : Inventory Item 3 : Int
+Element 54 : Inventory Item 4 : Int
+Element 55 : Inventory Item 5 : Int
+Element 56 : Inventory Item 6 : Int
+Element 57 : Child Vehicle 1 : Int
+Element 58 : Child Vehicle 2 : Int
+Element 59 : Child Vehicle 3 : Int
+Element 60 : Child Vehicle 4 : Int
+Element 61 : Child Vehicle 5 : Int
+Element 62 : Child Vehicle 6 : Int
+Element 63 : Child Vehicle 7 : Int
+Element 64 : Child Vehicle 8 : Int
+Element 65 : Explode Item ID : Int
+Element 66 : Radar Prize : Int
+Element 67 : Vehicle Get In Mode : Int
+Element 68 : Visual Height : Int
+Element 69 : Drop Item ID : Int
+Element 70 : Drop Item Quantity : Int
+Element 71 : Ground Level Tick Distance : Int
+Element 72 : Ground Level Tick Frequency : Int
+Element 73 : Ground Level Tick Speed : Int
+Element 74 : Ground Level Tick Color : Int
+Element 75 : Graphic Ground Level Blob Name : String
+Element 76 : Graphic Ground Level ID : String
+Element 77 : Ground Level Light Permutation : Int
+Element 78 : Ground Level Palette Offset : Int
+Element 79 : Ground Level Hue : Int
+Element 80 : Ground Level Saturation : Int
+Element 81 : Ground Level Value : Int
+Element 82 : Ground Level Animation Time : Int
+Element 83 : Firing Height Tick Distance : Int
+Element 84 : Firing Height Tick Frequency : Int
+Element 85 : Firing Height Tick Speed : Int
+Element 86 : Firing Height Tick Color : Int
+Element 87 : Graphic Firing Height Blob Name : String
+Element 88 : Graphic Firing Height ID : String
+Element 89 : Firing Height Light Permutation : Int
+Element 90 : Firing Height Palette Offset : Int
+Element 91 : Firing Height Hue : Int
+Element 92 : Firing Height Saturation : Int
+Element 93 : Firing Height Value : Int
+Element 94 : Firing Height Animation Time : Int
+Element 95 : Energy Max : Int
+Element 96 : Energy Rate : Int
+Element 97 : Energy Start : Int
+Element 98 : Soccer Throw Time : Int
+Element 99 : Ball Throw Style One Friction : Int
+Element 100 : Ball Throw Style One Speed : Int
+Element 101 : Ball One Throw Style Low Fire Angle : Int
+Element 102 : Ball One Throw Style High Fire Angle : Int
+Element 103 : Ball One Throw Style High Fire Angle : Int
+Element 104 : Ball Two Throw Style Friction : String
+Element 105 : Ball Two Throw Style Speed : Int
+Element 106 : Ball Two Throw Style Low Fire Angle : Int
+Element 107 : Ball Two Throw Style High Fire Angle : Int
+Element 108 : Ball Two Throw Style Key Assignment : Int
+Element 109 : Soccer Allow Weapons : Int
+Element 110 : Soccer Prox Terrain 0 : Int
+Element 111 : Soccer Prox Terrain 1 : Int
+Element 112 : Soccer Prox Terrain 2 : Int
+Element 113 : Soccer Prox Terrain 3 : Int
+Element 114 : Soccer Prox Terrain 4 : Int
+Element 115 : Soccer Prox Terrain 5 : Int
+Element 116 : Soccer Prox Terrain 6 : Int
+Element 117 : Soccer Prox Terrain 7 : Int
+Element 118 : Soccer Prox Terrain 8 : Int
+Element 119 : Soccer Prox Terrain 9 : Int
+Element 120 : Soccer Prox Terrain 10 : Int
+Element 121 : Soccer Prox Terrain 11 : Int
+Element 122 : Soccer Prox Terrain 12 : Int
+Element 123 : Soccer Prox Terrain 13 : Int
+Element 124 : Soccer Prox Terrain 14 : Int
+Element 125 : Soccer Prox Terrain 15 : Int
+Element 126 : Ball Carry Roll Item : Int
+Element 127 : Ball Carry Armor Item : Int
+Element 128 : Flag Carry Roll Item : Int
+Element 129 : Flag Cary Armor Item : Int
+Element 130 : Event String 1 : String
+Element 131 : Event String 2 : String
+Element 132 : Event String 3 : String
+Element 133 : LOS Distance
+Element 134 : LOS Angle : Int
+Element 135 : LOS XRay : Int
+Element 136 : Combat Awareness Time : Int
+Element 137 : Share Sibling Kills : Int
+Element 138 : Relative ID : Int
+Element 139 : Display On Friendly Radar : Boolean
+Element 140 : Friendly Radar Color : Int
+Element 141 : Display On Enemy Radar : Boolean
+Element 142 : Enemy Radar Color : Int
+Element 143 : Held Item Limit 1 : Int
+Element 144 : Held Item Extended Limit 1 : Int
+Element 145 : Held Item Limit 2 : Int
+Element 146 : Held Item Extended Limit 2 : Int
+Element 147 : Held Item Limit 3 : Int
+Element 148 : Held Item Extended Limit 3 : Int
+Element 149 : Held Item Limit 4 : Int
+Element 150 : Held Item Extended Limit 4 : Int
+Element 151 : Held Item Limit 5 : Int
+Element 152 : Held Item Extended Limit 5 : Int
+Element 153 : Held Item Limit 6 : Int
+Element 154 : Held Item Extended Limit 6 : Int
+Element 155 : Held Item Limit 7 : Int
+Element 156 : Held Item Extended Limit 7 : Int
+Element 157 : Held Item Limit 8 : Int
+Element 158 : Held Item Extended Limit 8 : Int
+Element 159 : Held Item Limit 9 : Int
+Element 160 : Held Item Extended Limit 9 : Int
+Element 161 : Held Item Limit 10 : Int
+Element 162 : Held Item Extended Limit 10 : Int
+Element 163 : Held Item Limit 11 : Int
+Element 164 : Held Item Extended Limit 11 : Int
+Element 165 : Held Item Limit 12 : Int
+Element 166 : Held Item Extended Limit 12 : Int
+Element 167 : Held Item Limit 13 : Int
+Element 168 : Held Item Extended Limit 13 : Int
+Element 169 : Held Item Limit 14 : Int
+Element 170 : Held Item Extended Limit 14 : Int
+Element 171 : Held Item Limit 15 : Int
+Element 172 : Held Item Extended Limit 15 : Int
+Element 173 : Held Item Limit 16 : Int
+Element 174 : Held Item Extended Limit 16 : Int
+Element 175 : Held Item Limit 17 : Int
+Element 176 : Held Item Extended Limit 17 : Int
+Element 177 : Held Item Limit 18 : Int
+Element 178 : Held Item Extended Limit 18 : Int
+Element 179 : Held Item Limit 19 : Int
+Element 180 : Held Item Extended Limit 19 : Int
+Element 181 : Held Item Limit 20 : Int
+Element 182 : Held Item Extended Limit 20 : Int
+Element 183 : Held Item Limit 21 : Int
+Element 184 : Held Item Extended Limit 21 : Int
+Element 185 : Held Item Limit 22 : Int
+Element 186 : Held Item Extended Limit 22 : Int
+Element 187 : Held Item Limit 23 : Int
+Element 188 : Held Item Extended Limit 23 : Int
+Element 189 : Held Item Limit 24 : Int
+Element 190 : Held Item Extended Limit 24 : Int
+Element 191 : Held Item Limit 25 : Int
+Element 192 : Held Item Extended Limit 25 : Int
+Element 193 : Held Item Limit 26 : Int
+Element 194 : Held Item Extended Limit 26 : Int
+Element 195 : Held Item Limit 27 : Int
+Element 196 : Held Item Extended Limit 27 : Int
+Element 197 : Held Item Limit 28 : Int
+Element 198 : Held Item Extended Limit 28 : Int
+Element 199 : Held Item Limit 29 : Int
+Element 200 : Held Item Extended Limit 29 : Int
+Element 201 : Held Item Limit 30 : Int
+Element 202 : Held Item Extended Limit 30 : Int
+Element 203 : Child Rotate Left : Int
+Element 204 : Child Rotate Right : Int
+Element 205 : Child Parent Relative Rotation : Int
+Element 206 : Child Angle Start : Int
+Element 207 : Child Angle Length : Int
+Element 208 : Child Center Delta X : Int
+Element 209 : Child center Delta Y : Int
+Element 210 : Child Center Delta Z : Int
+Element 211 : Child Sort Adjust : Int
+Element 212 : Child Disable When Parent Dead : Boolean
+Element 213 : Child Disable When Parent Empty : Boolean
+Element 214 : Child Elevation Low Angle : Int
+Element 215 : Child Elevation High Angle : Int
+Element 216 : Child Elevation Speed : Int
+Element 217 : <Unused?>
+Element 218 : <Unused?>
+Element 219 : <Unused?>
+Element 220 : <Unused?>
+Element 221 : Graphic Occupied Blob Name : String
+Element 222 : Graphic Occupied ID : String
+Element 223 : Occupied Light Permutation
+Element 224 : Occupied Palette Offset : Int
+Element 225 : Occupied Hue : Int
+Element 226 : Occupied Saturation : Int
+Element 227 : Occupied Value : Int
+Element 228 : Occupied Animation Time : Int
+Element 229 : Graphic Empty Blob Name : String
+Element 230 : Graphic Empty ID : String
+Element 231 : Empty Light Permutation : Int
+Element 232 : Empty Palette Offset : Int
+Element 233 : Empty Hue : Int
+Element 234 : Empty Saturation : Int
+Element 235 : Empty Value : Int
+Element 236 : Empty Animation Time : Int
+Element 237 : Graphic Broken Blob Name : String
+Element 238 : Graphic Broken ID : String
+Element 239 : Broken Light Permutation : Int
+Element 240 : Broken Palette Offset : Int
+Element 241 : Broken Hue : Int
+Element 242 : Broken Saturation : Int
+Element 243 : Broken Value : Int
+Element 244 : Broken Animation Time : Int
+Element 245 : Sound Rotate Blob Name : String
+Element 246 : Sound Rotate ID : String
+Element 247 : Sound Rotate Simultaneous : Int
+Element 248 : <Unused>

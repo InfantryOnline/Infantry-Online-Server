@@ -1,0 +1,12 @@
+C:\Users\Brian\Downloads\AssetFetch\AssetFetch\bin\Debug\AssetFetch.exe.config
+C:\Users\Brian\Downloads\AssetFetch\AssetFetch\bin\Debug\AssetFetch.exe
+C:\Users\Brian\Downloads\AssetFetch\AssetFetch\bin\Debug\AssetFetch.pdb
+C:\Users\Brian\Downloads\AssetFetch\AssetFetch\obj\Debug\AssetFetch.csprojResolveAssemblyReference.cache
+C:\Users\Brian\Downloads\AssetFetch\AssetFetch\obj\Debug\AssetFetch.exe
+C:\Users\Brian\Downloads\AssetFetch\AssetFetch\obj\Debug\AssetFetch.pdb
+C:\Infantry\infserver\branches\AssetFetch\AssetFetch\bin\Debug\AssetFetch.exe.config
+C:\Infantry\infserver\branches\AssetFetch\AssetFetch\obj\Debug\AssetFetch.exe
+C:\Infantry\infserver\branches\AssetFetch\AssetFetch\obj\Debug\AssetFetch.pdb
+C:\Infantry\infserver\branches\AssetFetch\AssetFetch\bin\Debug\AssetFetch.exe
+C:\Infantry\infserver\branches\AssetFetch\AssetFetch\bin\Debug\AssetFetch.pdb
+C:\Infantry\infserver\branches\AssetFetch\AssetFetch\obj\Debug\AssetFetch.csprojResolveAssemblyReference.cache

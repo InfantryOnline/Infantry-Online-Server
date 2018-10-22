@@ -1,0 +1,6 @@
+﻿<launcher>
+    <accounts url="http://infdir1.aaerox.com:1010/" />
+    <assets url="http://freeinfantry.org/assets/ZZ/" filelist="manifest.xml"/>
+    <install path="C:/Program Files/Sony/Infantry/" />
+    <directory address="infdir1.aaerox.com" backup="infdir2.aaerox.com" />
+</launcher>

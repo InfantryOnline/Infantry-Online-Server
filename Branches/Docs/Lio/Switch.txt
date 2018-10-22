@@ -1,0 +1,53 @@
+===Switches===
+Element 1 : Lio Type : Integer
+Element 2 : Version : String
+Element 3 : Lio ID : Integer
+Element 4 : Lio Name : String
+Element 5 : X Coordinate : Integer
+Element 6 : Y Coordinate : Integer
+Element 7 : Width : Integer
+Element 8 : Height : Integer
+Element 9 : Use Relative ID : Integer
+Element 10 : Hunt Frequency : Integer
+Element 11 : Switch : Integer
+Element 12 : Switch Lio ID 1 : Integer
+Element 13 : Switch Lio ID 2 : Integer
+Element 14 : Switch Lio ID 3 : Integer
+Element 15 : Switch Lio ID 4 : Integer
+Element 16 : Switch Lio ID 5 : Integer
+Element 17 : Switch Lio ID 6 : Integer
+Element 18 : Switch Lio ID 7 : Integer
+Element 19 : Switch Lio ID 8 : Integer
+Element 20 : Switch Lio ID 9 : Integer
+Element 21 : Switch Lio ID 10 : Integer
+Element 22 : Switch Lio ID 11 : Integer
+Element 23 : Switch Lio ID 12 : Integer
+Element 24 : Switch Lio ID 13 : Integer
+Element 25 : Switch Lio ID 14 : Integer
+Element 26 : Switch Lio ID 15 : Integer
+Element 27 : Switch Lio ID 16 : Integer
+Element 28 : Switch Delay : Integer
+Element 29 : Ammo ID : Integer
+Element 30 : Use Ammo Amount : Integer
+Element 31 : Use Energy Amount : Integer
+Element 32 : Auto Close Delay : Integer
+Element 33 : Skill Logic : String
+Element 34 : Frequency : Integer
+Element 35 : Ammo Overrides Logic : Boolean
+Element 36 : Ammo Overrides Frequency : Boolean
+Element 37 : Frequency Overrides Ammo : Boolean
+Element 38 : Frequency Overrides Logic : Boolean
+Element 39 : Logic Overrides Ammo : Boolean
+Element 40 : Logic Overrides Frequency : Boolean
+Element 41 : Gfx Switch Blob Name : String
+Element 42 : Gfx Switch Blob ID : String
+Element 43 : Light Permutation : Integer
+Element 44 : Palette Offset : Integer
+Element 45 : Hue : Integer
+Element 46 : Saturation : Integer
+Element 47 : Value : Integer
+Element 48 : Animation Time : Integer
+Element 49 : Sound Switch Blob Name : String
+Element 50 : Sound Switch Blob ID : String
+Element 51 : Sound Switch Simultaneous : Integer
+Element 52 : <Undefined>

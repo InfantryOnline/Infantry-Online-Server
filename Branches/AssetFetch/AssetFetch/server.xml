@@ -1,0 +1,12 @@
+<!-- Main configuration file -->
+<xml>
+	<server>
+		<URL value = "infdir1.aaerox.com/directory/assetRequest/" />
+		<URLBackup value = "infdir2.aaerox.com/directory/assetRequest/" />
+	</server>
+	
+	<assets>
+		<HashList value = "zipped_hash_manifest.xml" />
+		<AssetList value = "manifest.xml" />
+	</assets>
+</xml>

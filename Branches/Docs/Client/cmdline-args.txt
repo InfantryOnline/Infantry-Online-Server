@@ -1,0 +1,20 @@
+Infantry.exe Command Line Arguments
+Super-Man
+
+Found some stuff after snooping around Infantry.exe, documented it as well as I could have. Still missing a couple notes.
+/ticket:[] Obviously we've been using this one already. If you don't provide a ticket, you're alerted to restart the client via the launcher
+/quick No idea what this one is trying to do, I see no behavioral changes in infantry.exe, but I could be missing something. Somebody find out!
+/name:[] This has no effect on how the infantry.exe client reacts but it was used in SOE Infantrys launcher to identify your account name
+/launch:[] Skips loading the client/zonelist interface and goes directly into loading a zone specified in "ip:port" format
+/dirserve:[] Writes the specified dirserver to registry and replaces old one, refreshes zone list with new dirserver.
+/alias:[] Launches client with specified alias
+/upgrade From what I can tell in the debugger, it's attempting to create a new process (infup.exe). This was probably the old method of upgrading the infantry.exe client before a launcher was introduced, obsolete now
+/uid:[] Doesn't effect client behavior, probably a pre-launcher user identifier, most likely useless
+/delete:[] Deletes a specified file (ex: /delete "vehicle.blo") in current directory
+
+Cool uses:
+infantry.exe /ticket:"whatever" /alias:"My Alias!" /launch:"192.168.1.1:1337"
+This will put you right into whatever zone is hosted at 192.168.1.1:1337, assuming your ticket is valid and there are no issues with your username.
+The client zonelist interface won't be loaded and skipped entirely, and when you exit the zone, the client closes as well.
+This could make creating a new zonelist interface an extremely easy task if we ever wanted to do such a thing instead of going through the hassle of 
+hacking up infantry.exe, or if skinning the current client by modifying its bitmaps just isn't enough for us. Anyways, this is all speculation.

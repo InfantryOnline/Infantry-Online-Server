@@ -1,0 +1,19 @@
+===Warps===
+Element 1 : Lio Type : Integer
+Element 2 : Version : String
+Element 3 : Lio ID : Integer
+Element 4 : Lio Name : String
+Element 5 : X Coordinate : Integer
+Element 6 : Y Coordinate : Integer
+Element 7 : Width : Integer
+Element 8 : Height : Integer
+Element 9 : Use Relative ID : Integer
+Element 10 : Hunt Frequency : Integer
+Element 11 : Min Player Count : Integer
+Element 12 : Max Player Count : Integer
+Element 13 : Min Players In Area : Integer
+Element 14 : Max Players In Area : Integer
+Element 15 : Warp Group : Integer
+Element 16 : Warp Mode : Integer
+Element 17 : Warp Mode Parameter : Integer
+Element 18 : Skill Logic : String

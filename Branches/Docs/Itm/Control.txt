@@ -1,0 +1,107 @@
+Element 1 : Class : Integer
+Element 2 : Version : String
+Element 3 : ID : Integer
+Element 4 : Name : String
+Element 5 : Category : String
+Element 6 : Skill : String
+Element 7 : Description : String
+Element 8 : Weight : Integer
+Element 9 : Buy Price : Integer
+Element 10 : Probability : Integer
+Element 11 : Droppable : Boolean
+Element 12 : Key Preference : Integer
+Element 13 : Recommended : Integer
+Element 14 : Max Allowed : Integer
+Element 15 : Pickup Mode : Integer
+Element 16 : Sell Price : Integer
+Element 17 : Expire Timer : Integer
+Element 18 : Radar Color : Integer
+Element 19 : Prize Bounty Points : Integer
+Element 20 : Relative ID : Integer
+Element 21 : Held Category Type : Integer
+Element 22 : Prune Drop Percent : Integer
+Element 23 : Prune Odds : Integer
+Element 24 : Gfx Icon Blob Name : String
+Element 25 : Gfx Icon Blob ID : String
+Element 26 : Gfx Icon Light Permutation : Integer
+Element 27 : Gfx Icon Palette Offset : Integer
+Element 28 : Gfx Icon Hue : Integer
+Element 29 : Gfx Icon Saturation : Integer
+Element 30 : Gfx Icon Value : Integer
+Element 31 : Gfx Icon Animation Time : Integer
+Element 32 : Use Ammo ID : Integer
+Element 33 : Ammo Used Per Shot : Integer
+Element 34 : Ammo Capacity : Integer
+Element 35 : Required Item : Integer
+Element 36 : Required Item Amount : Integer
+Element 37 : Energy Cost Terrain 0 : Integer
+Element 38 : Energy Cost Terrain 1 : Integer
+Element 39 : Energy Cost Terrain 2 : Integer
+Element 40 : Energy Cost Terrain 3 : Integer
+Element 41 : Energy Cost Terrain 4 : Integer
+Element 42 : Energy Cost Terrain 5 : Integer
+Element 43 : Energy Cost Terrain 6 : Integer
+Element 44 : Energy Cost Terrain 7 : Integer
+Element 45 : Energy Cost Terrain 8 : Integer
+Element 46 : Energy Cost Terrain 9 : Integer
+Element 47 : Energy Cost Terrain 10 : Integer
+Element 48 : Energy Cost Terrain 11 : Integer
+Element 49 : Energy Cost Terrain 12 : Integer
+Element 50 : Energy Cost Terrain 13 : Integer
+Element 51 : Energy Cost Terrain 14 : Integer
+Element 52 : Energy Cost Terrain 15 : Integer
+Element 53 : Second Shot Energy : Integer
+Element 54 : Second Shot Timeout : Integer
+Element 55 : Fire Delay : Integer
+Element 56 : Fire Delay Other : Integer
+Element 57 : Max Fire Delay : Integer
+Element 58 : Entry Fire Delay : Integer
+Element 59 : Reload Delay Normal : Integer
+Element 60 : Reload Delay Partial : Integer
+Element 61 : Reload Delay Asynchronous : Integer
+Element 62 : Reload Delay Asynchronous Partial : Integer
+Element 63 : Route Range : Integer
+Element 64 : Route Rotational Range : Integer
+Element 65 : <Undefined>
+Element 66 : Route Friendly : Boolean
+Element 67 : Recoil : Integer
+Element 68 : Vertical Recoil : Integer
+Element 69 : Prefire Delay : Integer
+Element 70 : Reliability : Integer
+Element 71 : Reliability Fire Delay : Integer
+Element 72 : Gfx Prefire Blob Name : String
+Element 73 : Gfx Prefire Blob ID : String
+Element 74 : Gfx Prefire Light Permutation : Integer
+Element 75 : Gfx Prefire Palette Offset : Integer
+Element 76 : Gfx Prefire Hue : Integer
+Element 77 : Gfx Prefire Saturation : Integer
+Element 78 : Gfx Prefire Value : Integer
+Element 79 : Gfx Prefire Animation Time : Integer
+Element 80 : Sound Prefire Blob Name : String
+Element 81 : Sound Prefire ID : String
+Element 82 : Sound Prefire Simultaneous : Integer
+Element 83 : <Undefined>
+Element 84 : Movement Cancels Prefire : Boolean
+Element 85 : Notify Others Of Prefire : Boolean
+Element 86 : Cash Cost : Integer
+Element 87 : Use While Carrying Ball : Boolean
+Element 88 : Use While Carrying Flag : Boolean
+Element 89 : Soccer Throw : Integer
+Element 90 : Soccer Ball Friction : Integer
+Element 91 : Soccer Ball Speed : Integer
+Element 92 : Soccer Low Fire Angle : Integer
+Element 93 : Soccer High Fire Angle : Integer
+Element 94 : Control Distance : Integer
+Element 95 : Control Time : Integer
+Element 96 : Gfx Effect Blob Name : String
+Element 97 : Gfx Effect Blob ID : String
+Element 98 : Gfx Effect Light Permutation : Integer
+Element 99 : Gfx Effect Palette Offset : Integer
+Element 100 : Gfx Effect Hue : Integer
+Element 101 : Gfx Effect Saturation : Integer
+Element 102 : Gfx Effect Value : Integer
+Element 103 : Gfx Effect Animation Time : Integer
+Element 104 : Sound Fire Blob Name : String
+Element 105 : Sound Fire Blob ID : String
+Element 106 : Sound Fire Simultaneous : Integer
+Element 107 : <Undefined>

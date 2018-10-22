@@ -1,0 +1,137 @@
+Element 1 : Class : Integer
+Element 2 : Version : String
+Element 3 : ID : Integer
+Element 4 : Name : String
+Element 5 : Category : String
+Element 6 : Skill : String
+Element 7 : Description : String
+Element 8 : Weight : Integer
+Element 9 : Buy Price : Integer
+Element 10 : Probability : Integer
+Element 11 : Droppable : Boolean
+Element 12 : Key Preference : Integer
+Element 13 : Recommended : Integer
+Element 14 : Max Allowed : Integer
+Element 15 : Pickup Mode : Integer
+Element 16 : Sell Price : Integer
+Element 17 : Expire Timer : Integer
+Element 18 : Radar Color : Integer
+Element 19 : Prize Bounty Points : Integer
+Element 20 : Relative ID : Integer
+Element 21 : Held Category Type : Integer
+Element 22 : Prune Drop Percent : Integer
+Element 23 : Prune Odds : Integer
+Element 24 : Gfx Icon Blob Name : String
+Element 25 : Gfx Icon Blob ID : String
+Element 26 : Gfx Icon Light Permutation : Integer
+Element 27 : Gfx Icon Palette Offset : Integer
+Element 28 : Gfx Icon Hue : Integer
+Element 29 : Gfx Icon Saturation : Integer
+Element 30 : Gfx Icon Value : Integer
+Element 31 : Gfx Icon Animation Time : Integer
+Element 32 : Max Slotted : Integer
+Element 33 : Max Slotted Category Code : Integer
+Element 34 : Extra Capacity : Integer
+Element 35 : Recharge Rate : Integer
+Element 36 : Stealth Distance : Integer
+Element 37 : Cloak Distance : Integer
+Element 38 : AntiStealth Distance : Integer
+Element 39 : AntiCloak Distance : Integer
+Element 40 : AntiWarp Distance : Integer
+Element 41 : Stealth Distance Time : Integer
+Element 42 : Cloak Distance Time : Integer
+Element 43 : Vehicle Top Speed : Integer
+Element 44 : Vehicle Hyper Top Speed : Integer
+Element 45 : Vehicle Thrust : Integer
+Element 46 : Vehicle Rotate : Integer
+Element 47 : Soccer Throw Timer : Integer
+Element 48 : Start Mode : Integer
+Element 49 : Sound Activate Blob Name : String
+Element 50 : Sound Activate Blob ID : String
+Element 51 : Sound Activate ID : Integer
+Element 52 : <Undefined>
+Element 53 : Kinetic Ignore : Integer
+Element 54 : Kinetic Percent : Integer
+Element 55 : Explosive Ignore : Integer
+Element 56 : Explosive Percent : Integer
+Element 57 : Electronic Ignore : Integer
+Element 58 : Electronic Percent : Integer
+Element 59 : Psionic Ignore : Integer
+Element 60 : Psionic Percent : Integer
+Element 61 : Bypass Ignore : Integer
+Element 62 : Bypass Percent : Integer
+Element 63 : Energy Ignore : Integer
+Element 64 : Energy Percent : Integer
+Element 65 : <Undefined>
+Element 66 : <Undefined>
+Element 67 : <Undefined>
+Element 68 : <Undefined>
+Element 69 : <Undefined>
+Element 70 : <Undefined>
+Element 71 : <Undefined>
+Element 72 : <Undefined>
+Element 73 : <Undefined>
+Element 74 : <Undefined>
+Element 75 : <Undefined>
+Element 76 : <Undefined>
+Element 77 : <Undefined>
+Element 78 : <Undefined>
+Element 79 : <Undefined>
+Element 80 : <Undefined>
+Element 81 : <Undefined>
+Element 82 : <Undefined>
+Element 83 : <Undefined>
+Element 84 : <Undefined>
+Element 85 : <Undefined>
+Element 86 : <Undefined>
+Element 87 : <Undefined>
+Element 88 : <Undefined>
+Element 89 : <Undefined>
+Element 90 : <Undefined>
+Element 91 : <Undefined>
+Element 92 : <Undefined>
+Element 93 : <Undefined>
+Element 94 : <Undefined>
+Element 95 : <Undefined>
+Element 96 : <Undefined>
+Element 97 : <Undefined>
+Element 98 : <Undefined>
+Element 99 : <Undefined>
+Element 100 : <Undefined>
+Element 101 : <Undefined>
+Element 102 : <Undefined>
+Element 103 : <Undefined>
+Element 104 : <Undefined>
+Element 105 : <Undefined>
+Element 106 : <Undefined>
+Element 107 : <Undefined>
+Element 108 : <Undefined>
+Element 109 : <Undefined>
+Element 110 : <Undefined>
+Element 111 : <Undefined>
+Element 112 : <Undefined>
+Element 113 : <Undefined>
+Element 114 : <Undefined>
+Element 115 : <Undefined>
+Element 116 : <Undefined>
+Element 117 : <Undefined>
+Element 118 : <Undefined>
+Element 119 : <Undefined>
+Element 120 : <Undefined>
+Element 121 : <Undefined>
+Element 122 : <Undefined>
+Element 123 : <Undefined>
+Element 124 : <Undefined>
+Element 125 : LOS Distance : Integer
+Element 126 : LOS Angle : Integer
+Element 127 : LOS XRay : Integer
+Element 128 : LOS Distance : Integer
+Element 129 : LOS Angle : Integer
+Element 130 : Combat Awareness : Integer
+Element 131 : Radar Prize Distance : Integer
+Element 132 : Normal Weight : Integer
+Element 133 : Stop Weight : Integer
+Element 134 : Strafe Thrust : Integer
+Element 135 : Forward Thrust : Integer
+Element 136 : Reverse Thrust : Integer
+Element 137 : Soccer Catch Radius : Integer

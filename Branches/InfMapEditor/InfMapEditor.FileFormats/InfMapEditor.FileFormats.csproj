@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E2F8AB9B-56EA-4AA0-8F5B-9ED9BE8443B5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>InfMapEditor.FileFormats</RootNamespace>
+    <AssemblyName>InfMapEditor.FileFormats</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Infantry\BlobFile.cs" />
+    <Compile Include="Infantry\LevelFile.cs" />
+    <Compile Include="Infantry\Level\BlobReference.cs" />
+    <Compile Include="Infantry\Level\DetailLevel.cs" />
+    <Compile Include="Infantry\Level\DrawOrder.cs" />
+    <Compile Include="Infantry\Level\Entity.cs" />
+    <Compile Include="Infantry\Level\ExtraDataMeaning.cs" />
+    <Compile Include="Infantry\Level\Header.cs" />
+    <Compile Include="Infantry\Level\LightColor.cs" />
+    <Compile Include="Infantry\Level\OldEntity.cs" />
+    <Compile Include="Infantry\Level\Tile.cs" />
+    <Compile Include="Infantry\Level\Transluency.cs" />
+    <Compile Include="Infantry\Map\BlobReference.cs" />
+    <Compile Include="Infantry\Map\Header.cs" />
+    <Compile Include="Infantry\SpriteFile.cs" />
+    <Compile Include="Infantry\Sprite\CompressionFlags.cs" />
+    <Compile Include="Infantry\Sprite\Frame.cs" />
+    <Compile Include="Infantry\Sprite\FrameInfo.cs" />
+    <Compile Include="Infantry\Sprite\Header.cs" />
+    <Compile Include="Infantry\Sprite\OldHeader2.cs" />
+    <Compile Include="Infantry\Sprite\OldHeader3.cs" />
+    <Compile Include="Infantry\Sprite\OldHeader4.cs" />
+    <Compile Include="Infantry\StreamHelpers.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Editor\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gibbed.Helpers\Gibbed.Helpers.csproj">
+      <Project>{5162A9FB-4DE1-4BBF-B7A2-5E8116AB0D26}</Project>
+      <Name>Gibbed.Helpers</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

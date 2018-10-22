@@ -1,0 +1,15 @@
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\bin\Release\InfLauncher.exe.config
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\bin\Release\InfLauncher.exe
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\bin\Release\InfLauncher.pdb
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\bin\Release\Newtonsoft.Json.dll
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\bin\Release\Newtonsoft.Json.pdb
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\bin\Release\Newtonsoft.Json.xml
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\ResolveAssemblyReference.cache
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\InfLauncher.Views.MainForm.resources
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\InfLauncher.Properties.Resources.resources
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\InfLauncher.Views.NewAccountForm.resources
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\InfLauncher.Views.UpdaterForm.resources
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\GenerateResource.read.1.tlog
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\GenerateResource.write.1.tlog
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\InfLauncher.exe
+C:\Infantry\infserver\branches\InfLauncher\InfLauncher\obj\x86\Release\InfLauncher.pdb

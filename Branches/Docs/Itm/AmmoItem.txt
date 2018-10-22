@@ -1,0 +1,35 @@
+============4 - Ammo Type==========
+---General - 1 ---
+Position 1 : ItemType : Int
+Position 2 : Version : String
+Position 3 : ID : Int
+Position 4 : Name : String
+Position 5 : Category : String
+Position 6 : Skill : String
+Position 7 : Description : String
+Position 8 : Weight : Float
+Position 9 : Buy Price : Int
+Position 10 : Probability : Int
+Position 11 : Droppable : Int
+Position 12 : Key Preference : Int
+Position 13 : Recommended : Int
+Position 14 : Max Allowed : Int
+Position 15 : Pickup Mode : Int
+Position 16 : Sell Price : Int
+Position 17 : Expire Timer : Int
+Position 18 : Radar Color : Int
+Position 19 : Prize Bty Points : Int
+Position 20 : Relative ID : Int
+Position 21 : Held Category Type : Int
+Position 22 : Prune Drop Percent : Int
+Position 23 : Prune Odds : Int
+
+---Graphics---
+Position 24 : Blob Name : String
+Position 25 : Blob ID : String
+Position 26 : Light Permutation : Int
+Position 27 : Palette Offset : Int
+Position 28 : Hue : Int
+Position 29 : Saturation : Int
+Position 30 : Value : Int
+Position 31 : Animation Time : Int

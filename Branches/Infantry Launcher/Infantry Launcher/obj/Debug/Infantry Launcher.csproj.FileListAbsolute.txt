@@ -1,0 +1,27 @@
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\InfantryLauncher.exe.config
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\InfantryLauncher.exe
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\InfantryLauncher.pdb
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.MainForm.resources
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.MessageBoxForm.resources
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.RecoveryForm.resources
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.RegisterForm.resources
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.ReminderForm.resources
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.Properties.Resources.resources
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry Launcher.csproj.GenerateResource.Cache
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\InfantryLauncher.exe
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\InfantryLauncher.pdb
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\InfantryLauncher.exe.config
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\InfantryLauncher.exe
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\InfantryLauncher.pdb
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\InfantryLauncher.exe
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\InfantryLauncher.pdb
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\bin\Debug\Newtonsoft.Json.dll
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry Launcher.csprojResolveAssemblyReference.cache
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.MainForm.resources
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.MessageBoxForm.resources
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.RecoveryForm.resources
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.RegisterForm.resources
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.ReminderForm.resources
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry_Launcher.Properties.Resources.resources
+C:\Infantry\infserver\branches\Infantry Launcher\Infantry Launcher\obj\Debug\Infantry Launcher.csproj.GenerateResource.Cache

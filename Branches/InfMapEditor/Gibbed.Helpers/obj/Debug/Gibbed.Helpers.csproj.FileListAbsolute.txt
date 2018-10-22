@@ -1,0 +1,10 @@
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\InfMapEditor\Gibbed.Helpers\bin\Debug\Gibbed.Helpers.dll
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\InfMapEditor\Gibbed.Helpers\bin\Debug\Gibbed.Helpers.pdb
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\InfMapEditor\Gibbed.Helpers\obj\Debug\Gibbed.Helpers.csprojResolveAssemblyReference.cache
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\InfMapEditor\Gibbed.Helpers\obj\Debug\Gibbed.Helpers.dll
+C:\Users\Brian\Downloads\infserverModded\infserver\branches\InfMapEditor\Gibbed.Helpers\obj\Debug\Gibbed.Helpers.pdb
+C:\Users\Brian\Downloads\InfMapEditor\Gibbed.Helpers\bin\Debug\Gibbed.Helpers.dll
+C:\Users\Brian\Downloads\InfMapEditor\Gibbed.Helpers\bin\Debug\Gibbed.Helpers.pdb
+C:\Users\Brian\Downloads\InfMapEditor\Gibbed.Helpers\obj\Debug\Gibbed.Helpers.csprojResolveAssemblyReference.cache
+C:\Users\Brian\Downloads\InfMapEditor\Gibbed.Helpers\obj\Debug\Gibbed.Helpers.dll
+C:\Users\Brian\Downloads\InfMapEditor\Gibbed.Helpers\obj\Debug\Gibbed.Helpers.pdb

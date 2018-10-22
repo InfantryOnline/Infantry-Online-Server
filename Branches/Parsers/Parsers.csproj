@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D6B8315F-2153-4E28-A579-D87CEC4E1585}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Parsers</RootNamespace>
+    <AssemblyName>Parsers</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CsvFile.cs" />
+    <Compile Include="ICsvFormat.cs" />
+    <Compile Include="ICsvReader.cs" />
+    <Compile Include="Item.cs" />
+    <Compile Include="ItemsFile.cs" />
+    <Compile Include="Items\Ammo.cs" />
+    <Compile Include="Items\Cash.cs" />
+    <Compile Include="Items\Control.cs" />
+    <Compile Include="Items\ItemMaker.cs" />
+    <Compile Include="Items\MultiUse.cs" />
+    <Compile Include="Items\Nested.cs" />
+    <Compile Include="Items\Projectile.cs" />
+    <Compile Include="Items\Repair.cs" />
+    <Compile Include="Items\Skill.cs" />
+    <Compile Include="Items\Unknown00404B70.cs" />
+    <Compile Include="Items\Unknown00405A12.cs" />
+    <Compile Include="Items\Unknown00406678.cs" />
+    <Compile Include="Items\Unknown004066B0.cs" />
+    <Compile Include="Items\Upgrade.cs" />
+    <Compile Include="Items\Use.cs" />
+    <Compile Include="Items\Utility.cs" />
+    <Compile Include="Items\VehicleMaker.cs" />
+    <Compile Include="Items\Warp.cs" />
+    <Compile Include="Level.cs" />
+    <Compile Include="Level\Header.cs" />
+    <Compile Include="Level\BlobReference.cs" />
+    <Compile Include="Level\Tile.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="HSV.cs" />
+    <Compile Include="BlobSound.cs" />
+    <Compile Include="BlobSprite.cs" />
+    <Compile Include="StreamHelpers.cs" />
+    <Compile Include="Vehicle.cs" />
+    <Compile Include="VehiclesFile.cs" />
+    <Compile Include="Vehicles\AnimatedSprite.cs" />
+    <Compile Include="Vehicles\ArmorValues.cs" />
+    <Compile Include="Vehicles\Car.cs" />
+    <Compile Include="Vehicles\Computer.cs" />
+    <Compile Include="Vehicles\Spectator.cs" />
+    <Compile Include="Vehicles\SpeedValues.cs" />
+    <Compile Include="Vehicles\ComputerProduct.cs" />
+    <Compile Include="Vehicles\Dependent.cs" />
+    <Compile Include="Vehicles\Nested.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

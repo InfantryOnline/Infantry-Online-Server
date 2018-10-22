@@ -1,0 +1,33 @@
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\bin\Debug\InfantryLauncher.exe
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\bin\Debug\InfantryLauncher.pdb
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.csprojResolveAssemblyReference.cache
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.Forms.MainForm.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.Forms.RegisterForm.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.Properties.Resources.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.VistaStyleProgressBar.ProgressBar.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.csproj.GenerateResource.Cache
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.exe
+C:\Users\Brian\Downloads\infserverModded\current launcher\InfantryLauncher\obj\Debug\InfantryLauncher.pdb
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.exe
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.pdb
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\bin\Debug\InfantryLauncher.exe
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\bin\Debug\InfantryLauncher.pdb
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.csprojResolveAssemblyReference.cache
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.Forms.MainForm.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.Forms.RegisterForm.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.Properties.Resources.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.VistaStyleProgressBar.ProgressBar.resources
+C:\Users\Brian\Downloads\infserverModded\current launcher\CurrentLauncher\obj\Debug\InfantryLauncher.csproj.GenerateResource.Cache
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.exe
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.pdb
+C:\Infantry\infserver\branches\CurrentLauncher\bin\Debug\InfantryLauncher.exe
+C:\Infantry\infserver\branches\CurrentLauncher\bin\Debug\InfantryLauncher.pdb
+C:\Infantry\infserver\branches\CurrentLauncher\bin\Debug\Newtonsoft.Json.dll
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.Forms.MainForm.resources
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.Forms.RegisterForm.resources
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.Properties.Resources.resources
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.VistaStyleProgressBar.ProgressBar.resources
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.csproj.GenerateResource.Cache
+C:\Infantry\infserver\branches\CurrentLauncher\obj\Debug\InfantryLauncher.csprojResolveAssemblyReference.cache

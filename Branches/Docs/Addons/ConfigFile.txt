@@ -1,0 +1,1 @@
+VehicleExitWarpRadius=# //Distance from vehicle player should be warped while exiting (in pixels).

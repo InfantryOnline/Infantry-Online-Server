@@ -1,0 +1,59 @@
+============1 - Multi Item==========
+---General-
+Position 1 : ItemType : Integer
+Position 2 : Version : String
+Position 3 : ID : Integer
+Position 4 : Name : String
+Position 5 : Category : String
+Position 6 : Skill Logic : String
+Position 7 : Description : String
+Position 8 : Weight : Float
+Position 9 : Buy Price : Integer
+Position 10 : Probability : Integer
+Position 11 : Droppable : Integer
+Position 12 : Key Preference : Integer
+Position 13 : Recommended : Integer
+Position 14 : Max Allowed : Integer
+Position 15 : Pickup Mode : Integer
+Position 16 : Sell Price : Integer
+Position 17 : Expire Timer : Integer
+Position 18 : Radar Color: Integer
+Position 19 : Prize Bty Points : Integer
+Position 20 : Relative ID : Integer
+Position 21 : Held Category Type : Integer
+Position 22 : Prune Drop Percent : Integer
+Position 23 : Prune Odds : Integer
+
+---Graphics---
+Position 24 : Blob Name : String
+Position 25 : Blob ID : String
+Position 26 : Light Permutation : Integer
+Position 27 : Palette Offset : Integer
+Position 28 : Hue : Integer
+Position 29 : Saturation : Integer
+Position 30 : Value : Integer
+Position 31 : Animation Time : Integer
+
+---Cash---
+Position 32 : Cash : Integer
+Position 33 : Energy : Integer
+Position 34 : Health  : Integer
+Position 35 : Repair : Integer
+Position 36 : Experience : Integer
+Position 37 : Slot 0 : Integer
+Position 38 : Slot 1 : Integer
+Position 39 : Slot 2 : Integer
+Position 40 : Slot 3 : Integer
+Position 41 : Slot 4 : Integer
+Position 42 : Slot 5 : Integer
+Position 43 : Slot 6 : Integer
+Position 44 : Slot 7 : Integer
+Position 45 : Slot 8 : Integer
+Position 46 : Slot 9 : Integer
+Position 47 : Slot 10 : Integer
+Position 48 : Slot 11 : Integer
+Position 49 : Slot 12 : Integer
+Position 50 : Slot 13 : Integer
+Position 51 : Slot 14 : Integer
+Position 52 : Slot 15 : Integer
+Position 53 : Slot 16 : Integer

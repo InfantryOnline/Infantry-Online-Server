@@ -1,0 +1,95 @@
+===Vehicle Maker===
+Element 1 : Item Type : Integer
+Element 2 : Version : String
+Element 3 : Item ID : Integer
+Element 4 : Item Name : String
+Element 5 : Item Category : String
+Element 6 : Skill Logic : String
+Element 7 : Item Description : String
+Element 8 : Item Weight : Integer
+Element 9 : Buy Price : Integer
+Element 10 : Probability : Integer
+Element 11 : Droppable : Integer
+Element 12 : Key Preference : Integer
+Element 13 : Recommended : Integer
+Element 14 : Max Allowed : Integer
+Element 15 : Pickup Mode : Integer
+Element 16 : Sell Price : Integer
+Element 17 : <Undefined>
+Element 18 : Radar Color : Integer
+Element 19 : <Undefined>
+Element 20 : <Undefined>
+Element 21 : <Undefined>
+Element 22 : <Undefined>
+Element 23 : <Undefined>
+Element 24 : Icon Blob Name : String
+Element 25 : Icon Blob ID : String
+Element 26 : Light Premutation : Integer
+Element 27 : Palette Offset : Integer
+Element 28 : Hue : Integer
+Element 29 : Saturation : Integer
+Element 30 : Value : Integer
+Element 31 : <Modified> - 10
+Element 32 : Ammo ID : Integer
+Element 33 : Ammo Used Per Shot : Integer
+Element 34 : Ammo Capacity : Integer
+Element 35 : Required Item ID : Integer
+Element 36 : Required Item Amount : Integer
+Element 37 : Energy Use Terrain 1 : Integer
+Element 38 : Energy Use Terrain 2 : Integer
+Element 39 : Energy Use Terrain 3 : Integer
+Element 40 : Energy Use Terrain 4 : Integer
+Element 41 : Energy Use Terrain 5 : Integer
+Element 42 : Energy Use Terrain 6 : Integer
+Element 43 : Energy Use Terrain 7 : Integer
+Element 44 : Energy Use Terrain 8 : Integer
+Element 45 : Energy Use Terrain 9 : Integer
+Element 46 : Energy Use Terrain 10 : Integer
+Element 47 : Energy Use Terrain 11 : Integer
+Element 48 : Energy Use Terrain 12 : Integer
+Element 49 : Energy Use Terrain 13 : Integer
+Element 50 : Energy Use Terrain 14 : Integer
+Element 51 : Energy Use Terrain 15 : Integer
+Element 52 : Energy Use Terrain 16 : Integer
+Element 53 : Second Shot Energy : Integer
+Element 54 : Second Shot Timeout : Integer
+Element 55 : Fire Delay : Integer
+Element 56 : Fire Delay Other : Integer
+Element 57 : Max Fire Delay : Integer
+Element 58 : Entry Fire Delay : Integer
+Element 59 : Normal Reload Delay : Integer
+Element 60 : Partial Reload Delay : Integer
+Element 61 : Asynchronous Reload Delay : Integer
+Element 62 : Asynchronous Partial Reload Delay : Integer
+Element 63 : Route Range : Integer
+Element 64 : Route Rotational Range : Integer
+Element 65 : <Undefined>
+Element 66 : Route Friendly : Integer
+Element 67 : Recoil : Integer
+Element 68 : Vertical Recoil : Integer
+Element 69 : Prefire Delay : Integer
+Element 70 : Reliability Misfire : Integer
+Element 71 : Reliability (Misfire) Fire Delay : Integer
+Element 72 : Prefire Blob Name : String
+Element 73 : Prefire Blob ID : String
+Element 74 : Light Permutation : Integer
+Element 75 : Palette Offset : Integer
+Element 76 : Hue : Integer
+Element 77 : Saturation : Integer
+Element 78 : Value : Integer
+Element 79 : Animation Time : Integer
+Element 80 : Sound Prefire Blob Name : String
+Element 81 : Sound Prefire Blob ID : String
+Element 82 : Simultaneous : Integer
+Element 83 : <Undefined>
+Element 84 : Movement Cancels Prefire : Integer
+Element 85 : Prefire Notify : Integer
+Element 86 : Cash Cost : Integer
+Element 87 : Use While Carrying Ball : Integer
+Element 88 : Use While Carrying Flag : Integer
+Element 89 : Soccer Throw : Integer
+Element 90 : Soccer Ball Friction : Integer
+Element 91 : Soccer Ball Speed : Integer
+Element 92 : Soccer Low Fire Angle : Integer
+Element 93 : Soccer High Fire Angle : Integer
+Element 94 : Vehicle ID : Integer

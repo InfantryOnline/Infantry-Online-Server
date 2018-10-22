@@ -1,0 +1,35 @@
+===Doors===
+Element 1 : Lio Type : Integer
+Element 2 : Version : String
+Element 3 : Lio ID : Integer
+Element 4 : Lio Name : String
+Element 5 : X Coordinate : Integer
+Element 6 : Y Coordinate : Integer
+Element 7 : Width : Integer
+Element 8 : Height : Integer
+Element 9 : Use Relative ID : Integer
+Element 10 : Hunt Frequency : Integer
+Element 11 : Relative Physics Tile X Location : Integer
+Element 12 : Relative Physics Tile Y Location : Integer
+Element 13 : Physics Width : Integer
+Element 14 : Physics Height : Integer
+Element 15 : Open Odds : Integer
+Element 16 : Linked Door ID : Integer
+Element 17 : Initial State : Integer
+Element 18 : Inverse State : Integer
+Element 19 : Gfx Horizontal/Top Blob Name : String
+Element 20 : Gfx Horizontal/Top Blob ID : String
+Element 21 : Light Permutation : Integer
+Element 22 : Palette Offset : Integer
+Element 23 : Hue : Integer
+Element 24 : Saturation : Integer
+Element 25 : Value : Integer
+Element 26 : Animation Time : Integer
+Element 27 : Sound Open Blob Name : String
+Element 28 : Sound Open Blob ID : String
+Element 29 : Sound Open Simultaneous : Integer
+Element 30 : <Undefined>
+Element 31 : Sound Close Blob Name : String
+Element 32 : Sound Close Blob ID : String
+Element 33 : Sound Close Simultaneous : Integer
+Element 34 : <Undefined>

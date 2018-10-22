@@ -1,0 +1,197 @@
+1 : Class : Int
+2 : Version : String
+3 : ID : Int
+4 : Name : String
+5 : Skill Logic : String
+6 : Description : String
+7 : HP : Int
+8 : Weight : Int
+9 : ClassID : Int
+10 : Kinetic Self Ignore : Int
+11 : Kinetic Pass Ignore : Int
+12 : Kinetic Self Reduction : Int
+13 : Kinetic Pass Damage: Int
+14 : Explosive Self Ignore : Int
+15 : Explosive Pass Ignore : Int
+16 : Explosive Self Reduction : Int
+17 : Explosive Pass Damage : Int
+18 : Electronic Self Ignore : Int
+19 : Electronic Pass Ignore : Int
+20 : Electronic Self Reduction : Int
+21 : Electronic Pass Damage : Int
+22 : Psionic Self Ignore : Int
+23 : Psionic Pass Ignore : Int
+24 : Psionic Self Reduction : Int
+25 : Psionic Pass Damage: Int
+26 : Bypass Self Ignore : Int
+27 : Bypass Pass Ignore : Int
+28 : Bypass Self Reduction : Int
+29 : Bypass Pass Damage : Int
+30 : Drain Self Ignore : Int
+31 : Drain Pass Ignore : Int
+32 : Drain Self Reduction : Int
+33 : Drain Pass Damage: Int
+34 : Barrel Length : Int
+35 : Fire Height : Int
+36 : Physics Radius : Int
+37 : Trigger Radius : Int
+38 : Vehicle Physics Owned : Int
+39 : Vehicle Physics Unowned : Int
+40 : Weapon Physics Owned : Int
+41 : Weapon Physics Unowned : Int
+42 : Low Z : Int
+43 : High Z : Int
+44 : Pickup Item ID : Int
+45 : Controllable : Boolean
+46 : Warpable : Boolean
+47 : Energy Cost Per Tick : Int
+48 : Normal Weight : Int
+49 : Stop Weight : Int
+50 : Display Health : Int
+51 : Inventory Item 1 : Int
+52 : Inventory Item 2 : Int
+53 : Inventory Item 3 : Int
+54 : Inventory Item 4 : Int
+55 : Inventory Item 5 : Int
+56 : Inventory Item 6 : Int
+57 : Child Vehicle 1 : Int
+58 : Child Vehicle 2 : Int
+59 : Child Vehicle 3 : Int
+60 : Child Vehicle 4 : Int
+61 : Child Vehicle 5 : Int
+62 : Child Vehicle 6 : Int
+63 : Child Vehicle 7 : Int
+64 : Child Vehicle 8 : Int
+65 : Explode Item ID : Int
+66 : Radar Prize : Int
+67 : Vehicle Get In Mode : Int
+68 : Visual Height : Int
+69 : Drop Item ID : Int
+70 : Drop Item Quantity : Int
+71 : Ground Level Tick Distance : Int
+72 : Ground Level Tick Frequency : Int
+73 : Ground Level Tick Speed : Int
+74 : Ground Level Tick Color : Int
+75 : Graphic Ground Level Blob Name : String
+76 : Graphic Ground Level ID : String
+77 : Ground Level Light Permutation : Int
+78 : Ground Level Palette Offset : Int
+79 : Ground Level Hue : Int
+80 : Ground Level Saturation : Int
+81 : Ground Level Value : Int
+82 : Ground Level Animation Time : Int
+83 : Firing Height Tick Distance : Int
+84 : Firing Height Tick Frequency : Int
+85 : Firing Height Tick Speed : Int
+86 : Firing Height Tick Color : Int
+87 : Graphic Firing Height Blob Name : String
+88 : Graphic Firing Height ID : String
+89 : Firing Height Light Permutation : Int
+90 : Firing Height Palette Offset : Int
+91 : Firing Height Hue : Int
+92 : Firing Height Saturation : Int
+93 : Firing Height Value : Int
+94 : Firing Height Animation Time : Int
+95 : Energy Max : Int
+96 : Energy Rate : Int
+97 : Energy Start : Int
+98 : Soccer Throw Time : Int
+100 : Ball Throw Style One Speed : Int
+101 : Ball One Throw Style Low Fire Angle : Int
+102 : Ball One Throw Style High Fire Angle : Int
+105 : Ball Two Throw Style Speed : Int
+106 : Ball Two Throw Style Low Fire Angle : Int
+107 : Ball Two Throw Style High Fire Angle : Int
+108 : Ball Two Throw Style Key Assignment : Int
+110 : Soccer Prox Terrain 0 : Int
+111 : Soccer Prox Terrain 1 : Int
+112 : Soccer Prox Terrain 2 : Int
+113 : Soccer Prox Terrain 3 : Int
+114 : Soccer Prox Terrain 4 : Int
+115 : Soccer Prox Terrain 5 : Int
+116 : Soccer Prox Terrain 6 : Int
+117 : Soccer Prox Terrain 7 : Int
+118 : Soccer Prox Terrain 8 : Int
+119 : Soccer Prox Terrain 9 : Int
+120 : Soccer Prox Terrain 10 : Int
+121 : Soccer Prox Terrain 11 : Int
+122 : Soccer Prox Terrain 12 : Int
+123 : Soccer Prox Terrain 13 : Int
+124 : Soccer Prox Terrain 14 : Int
+125 : Soccer Prox Terrain 15 : Int
+126 : Ball Carry Roll Item : Int
+127 : Ball Carry Armor Item : Int
+128 : Flag Carry Roll Item : Int
+129 : Flag Cary Armor Item : Int
+130 : Event String 1 : String
+131 : Event String 2 : String
+132 : Event String 3 : String
+133 : LOS Distance
+134 : LOS Angle : Int
+135 : LOS XRay : Int
+136 : Combat Awareness Time : Int
+138 : Relative ID : Int
+139 : Display On Friendly Radar : Boolean
+140 : Friendly Radar Color : Int
+141 : Display On Enemy Radar : Boolean
+142 : Enemy Radar Color : Int
+143 : Held Item Limit 1 : Int
+144 : Held Item Extended Limit 1 : Int
+145 : Held Item Limit 2 : Int
+146 : Held Item Extended Limit 2 : Int
+147 : Held Item Limit 3 : Int
+148 : Held Item Extended Limit 3 : Int
+149 : Held Item Limit 4 : Int
+150 : Held Item Extended Limit 4 : Int
+151 : Held Item Limit 5 : Int
+152 : Held Item Extended Limit 5 : Int
+153 : Held Item Limit 6 : Int
+154 : Held Item Extended Limit 6 : Int
+155 : Held Item Limit 7 : Int
+156 : Held Item Extended Limit 7 : Int
+157 : Held Item Limit 8 : Int
+158 : Held Item Extended Limit 8 : Int
+159 : Held Item Limit 9 : Int
+160 : Held Item Extended Limit 9 : Int
+161 : Held Item Limit 10 : Int
+162 : Held Item Extended Limit 10 : Int
+163 : Held Item Limit 11 : Int
+164 : Held Item Extended Limit 11 : Int
+165 : Held Item Limit 12 : Int
+166 : Held Item Extended Limit 12 : Int
+167 : Held Item Limit 13 : Int
+168 : Held Item Extended Limit 13 : Int
+169 : Held Item Limit 14 : Int
+170 : Held Item Extended Limit 14 : Int
+171 : Held Item Limit 15 : Int
+172 : Held Item Extended Limit 15 : Int
+173 : Held Item Limit 16 : Int
+174 : Held Item Extended Limit 16 : Int
+175 : Held Item Limit 17 : Int
+176 : Held Item Extended Limit 17 : Int
+177 : Held Item Limit 18 : Int
+178 : Held Item Extended Limit 18 : Int
+179 : Held Item Limit 19 : Int
+180 : Held Item Extended Limit 19 : Int
+181 : Held Item Limit 20 : Int
+182 : Held Item Extended Limit 20 : Int
+183 : Held Item Limit 21 : Int
+184 : Held Item Extended Limit 21 : Int
+185 : Held Item Limit 22 : Int
+186 : Held Item Extended Limit 22 : Int
+187 : Held Item Limit 23 : Int
+188 : Held Item Extended Limit 23 : Int
+189 : Held Item Limit 24 : Int
+190 : Held Item Extended Limit 24 : Int
+191 : Held Item Limit 25 : Int
+192 : Held Item Extended Limit 25 : Int
+193 : Held Item Limit 26 : Int
+194 : Held Item Extended Limit 26 : Int
+195 : Held Item Limit 27 : Int
+196 : Held Item Extended Limit 27 : Int
+197 : Held Item Limit 28 : Int
+198 : Held Item Extended Limit 28 : Int
+199 : Held Item Limit 29 : Int
+200 : Held Item Extended Limit 29 : Int
+201 : Held Item Limit 30 : Int
+202 : Held Item Extended Limit 30 : Int

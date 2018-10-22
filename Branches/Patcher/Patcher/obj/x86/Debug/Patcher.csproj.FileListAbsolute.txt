@@ -1,0 +1,6 @@
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\bin\Debug\Patcher.exe
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\bin\Debug\Patcher.pdb
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\obj\x86\Debug\Patcher.exe
+C:\Users\Brian\Downloads\infserver\infserver\branches\Patcher\Patcher\obj\x86\Debug\Patcher.pdb
+C:\Infantry\infserver\branches\Patcher\Patcher\obj\x86\Debug\Patcher.exe
+C:\Infantry\infserver\branches\Patcher\Patcher\obj\x86\Debug\Patcher.pdb
