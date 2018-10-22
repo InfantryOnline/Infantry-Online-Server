@@ -14,11 +14,11 @@ using InfServer.Data;
 
 using Assets;
 
-namespace InfServer.Script.GameType_USL
+namespace InfServer.Script.GameType_USLTDM
 {	// Script Class
     /// Provides the interface between the script and arena
     ///////////////////////////////////////////////////////
-    class Script_USL : Scripts.IScript
+    class Script_USLTDM : Scripts.IScript
     {	///////////////////////////////////////////////////
         // Member Variables
         ///////////////////////////////////////////////////
