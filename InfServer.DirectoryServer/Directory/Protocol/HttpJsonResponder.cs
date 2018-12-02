@@ -114,10 +114,11 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                             break;
                         }
                     }
+
                     else if (request.Url.LocalPath.Contains("notz"))
                         responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones where !zone.Title.Contains("I:TZ") select new { zone.Title, zone.PlayerCount }));
                     else
-                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { zone.Title, zone.PlayerCount }));
+                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { Title = zone.Title, PlayerCount = zone.PlayerCount, Address = IPAddress.Parse(zone.Address.ToString()).ToString(), Port = zone.Port }));
                     response.ContentLength64 = responseString.Length;
                     response.AppendHeader("Access-Control-Allow-Origin", "*");
                     response.AppendHeader("Access-Control-Allow-Methods", "POST, GET");

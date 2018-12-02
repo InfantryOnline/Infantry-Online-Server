@@ -1,0 +1,4 @@
+C:\Infantry\Repositories\Server\InfServer.Network\bin\Debug\InfServer.Network.dll
+C:\Infantry\Repositories\Server\InfServer.Network\bin\Debug\InfServer.Network.pdb
+C:\Infantry\Repositories\Server\InfServer.Network\obj\Debug\InfServer.Network.dll
+C:\Infantry\Repositories\Server\InfServer.Network\obj\Debug\InfServer.Network.pdb

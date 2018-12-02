@@ -1,0 +1,5 @@
+C:\Infantry\Repositories\Server\bin\Directory\InfServer.DirectoryServer.exe
+C:\Infantry\Repositories\Server\bin\Directory\InfServer.DirectoryServer.pdb
+C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csprojResolveAssemblyReference.cache
+C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.exe
+C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.pdb

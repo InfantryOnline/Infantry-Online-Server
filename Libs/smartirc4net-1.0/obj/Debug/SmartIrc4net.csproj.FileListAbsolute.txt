@@ -1,0 +1,4 @@
+C:\Infantry\Repositories\Server\Libs\smartirc4net-1.0\bin\debug\Meebey.SmartIrc4net.dll
+C:\Infantry\Repositories\Server\Libs\smartirc4net-1.0\bin\debug\Meebey.SmartIrc4net.pdb
+C:\Infantry\Repositories\Server\Libs\smartirc4net-1.0\obj\Debug\Meebey.SmartIrc4net.dll
+C:\Infantry\Repositories\Server\Libs\smartirc4net-1.0\obj\Debug\Meebey.SmartIrc4net.pdb
