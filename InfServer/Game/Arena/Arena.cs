@@ -23,6 +23,7 @@ namespace InfServer.Game
         public LogClient _logger;						//The logger we use for this arena!
         public volatile bool _bActive;					//Is the arena functioning, or condemned?
         public bool _bIsPublic;							//Is this a public arena?
+        public bool _bIsNamed;
 
         public ZoneServer _server;						//The server we belong to
         public Bots.Pathfinder _pathfinder;				//The pathfinding object used for this arena

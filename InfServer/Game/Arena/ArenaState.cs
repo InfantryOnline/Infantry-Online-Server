@@ -168,10 +168,14 @@ namespace InfServer.Game
         /// Called when a new player is entering our arena
         /// </summary>
         public void newPlayer(Player player)
-        {	///////////////////////////////////////////////
+        {   ///////////////////////////////////////////////
             // Prepare the player state
-            ///////////////////////////////////////////////           
-            
+            ///////////////////////////////////////////////          
+
+            //First player entering a inactive named arena? Let's flip on the lights for him
+            if (_bIsNamed && !_bActive)
+                _bActive = true;
+
             //We're entering the arena..
             player._arena = this;
 
@@ -425,10 +429,12 @@ namespace InfServer.Game
                 }
             }
 
-            //Do we have any players left?
-            if (TotalPlayerCount == 0)
+            //Do we have any players left? Don't close named arenas (We always want these displayed so players know they exist)
+            if (TotalPlayerCount == 0 && !_bIsNamed)
                 //Nope. It's closing time.
                 close();
+            else if (TotalPlayerCount == 0 && _bIsNamed)
+                _bActive = false;
             else
             {
                 //Notify everyone else of his departure
