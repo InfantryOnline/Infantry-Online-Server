@@ -46,7 +46,21 @@ namespace InfServer.Game
                 return false;
             }
 
+            initNamedArenas();
+
             return true;
+        }
+
+        /// <summary>
+        /// Handles the creation of all of our named arenas (These do -not- close when the player count hits zero)
+        /// </summary>
+        private void initNamedArenas()
+        {
+            IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
+            foreach (ConfigSetting named in namedArenas)
+            {
+                newArena(named.Name);
+            }
         }
 
         /// <summary>
@@ -115,16 +129,17 @@ namespace InfServer.Game
             //Is this a registered arena name?
             string invokerType = _config["server/gameType"].Value;
             IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
+            bool isNamed = false;
 
             foreach (ConfigSetting named in namedArenas)
             {	//Correct arena?
                 if (name.Equals(named.Value, StringComparison.OrdinalIgnoreCase))
                 {
                     invokerType = named["gameType"].Value;
+                    isNamed = true;
                     break;
                 }
             }
-
             //Instance our gametype
             if (!Scripting.Scripts.invokerTypeExists(invokerType))
             {
@@ -135,7 +150,11 @@ namespace InfServer.Game
             //Populate the class
             Arena arena = new ScriptArena(this, invokerType);
 
-            arena._bActive = true;
+            if (!isNamed)
+                arena._bActive = true;
+            else
+                arena._bIsNamed = true;
+
             arena._name = name;
             if (arena._name.StartsWith("Public"))
                 arena._bIsPublic = true;

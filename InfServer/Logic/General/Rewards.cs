@@ -10,14 +10,14 @@ using InfServer.Game;
 using Assets;
 
 namespace InfServer.Logic
-{	// Logic_Rewards Class
-	/// Handles various rewards-related functions
-	///////////////////////////////////////////////////////
-	public partial class Logic_Rewards
-	{
-		/// <summary>
-		/// Calculates and distributes rewards for a turret kill
-		/// </summary>		
+{   // Logic_Rewards Class
+    /// Handles various rewards-related functions
+    ///////////////////////////////////////////////////////
+    public partial class Logic_Rewards
+    {
+        /// <summary>
+        /// Calculates and distributes rewards for a turret kill
+        /// </summary>		
         static public void calculateTurretKillRewards(Player victim, Computer comp, CS_VehicleDeath update)
         {	//Does it have a valid owner?
             Player owner = comp._creator;
@@ -44,7 +44,7 @@ namespace InfServer.Logic
 
             //Is our creator still on the same team?
             if (owner._team == comp._team)
-            {   
+            {
                 //Are we sharing kills to our owner?
                 if (cfg.arena.turretKillShareOwner)
                     owner.Kills++;
@@ -115,7 +115,7 @@ namespace InfServer.Logic
                     continue;
 
                 //Let em know
-                p.triggerMessage(5, 500,
+                p.triggerMessage(4, 500,
                     String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
                     victim._type.Name, killer._alias, cashRewards[p._id],
                     expRewards[p._id], pointRewards[p._id]));
@@ -142,21 +142,25 @@ namespace InfServer.Logic
                 if (sentTo.Contains(p._id))
                     continue;
 
+                //Adjust our color accordingly..
+                byte color = 0;
+                if (victim._team == p._team)
+                    color = 4;
+
                 //Let them know
-                p.triggerMessage(1, 500,
-                    String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
-                    victim._type.Name, killer._alias,
-                    killerCash, killerExp, killerPoints));
+                p.triggerMessage(color, 500,
+                    String.Format("{0} killed by {1}",
+                    victim._type.Name, killer._alias));
             }
         }
-		
-		/// <summary>
-		/// Calculates and distributes rewards for a player kill
-		/// </summary>		
+
+        /// <summary>
+        /// Calculates and distributes rewards for a player kill
+        /// </summary>		
         static public void calculatePlayerKillRewards(Player victim, Player killer, CS_VehicleDeath update)
         {
             CfgInfo cfg = victim._server._zoneConfig;
-            
+
             int killerCash = 0;
             int killerExp = 0;
             int killerPoints = 0;
@@ -165,9 +169,9 @@ namespace InfServer.Logic
             {
 
                 //Calculate kill reward for killer
-               // List<Player> carriers = new List<Player>();
-               // carriers = killer._arena._flags.Values.Where(flag => flag.carrier == killer).Select(flag => flag.carrier).ToList();
-              
+                // List<Player> carriers = new List<Player>();
+                // carriers = killer._arena._flags.Values.Where(flag => flag.carrier == killer).Select(flag => flag.carrier).ToList();
+
                 killerCash = (int)(cfg.cash.killReward +
                     (victim.Bounty * (((float)cfg.cash.percentOfTarget) / 1000)) +
                     (killer.Bounty * (((float)cfg.cash.percentOfKiller) / 1000)));
@@ -178,13 +182,13 @@ namespace InfServer.Logic
                    (victim.Bounty * (((float)cfg.point.percentOfTarget) / 1000)) +
                    (killer.Bounty * (((float)cfg.point.percentOfKiller) / 1000)));
 
-         /*       if (carriers.Contains(killer))
-                {
-                    killerCash *= cfg.flag.cashMultiplier / 1000;
-                    killerExp *= cfg.flag.experienceMultiplier / 1000;
-                    killerPoints *= cfg.flag.pointMultiplier / 1000;
+                /*       if (carriers.Contains(killer))
+                       {
+                           killerCash *= cfg.flag.cashMultiplier / 1000;
+                           killerExp *= cfg.flag.experienceMultiplier / 1000;
+                           killerPoints *= cfg.flag.pointMultiplier / 1000;
 
-                }       */
+                       }       */
             }
             else
             {
@@ -365,5 +369,5 @@ namespace InfServer.Logic
                 Helpers.Player_RouteKill(p, update, victim, 0, killerPoints, 0, 0);
             }
         }
-	}
+    }
 }
