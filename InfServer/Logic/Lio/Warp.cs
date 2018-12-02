@@ -37,7 +37,10 @@ namespace InfServer.Logic
                     continue;
                 }
 				//Test for viability
+                //if the playerCount == 0, set it to 1.. some zones check for 1
 				int playerCount = player._arena.PlayerCount;
+                if (playerCount < 1)
+                { playerCount = 1; }
 
                 if (warp.WarpFieldData.MinPlayerCount > playerCount)
                 {

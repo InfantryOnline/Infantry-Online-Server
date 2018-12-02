@@ -400,6 +400,21 @@ namespace InfServer.Game
                 _server._db.send(update);
             }
         }
+
+        /// <summary>
+        /// Sends a request to the database server for any pending squad invites
+        /// </summary>
+        public void getSquadInvites()
+        {
+            if (!_server.IsStandalone)
+            {
+                CS_Squads<Data.Database> sqdquery = new CS_Squads<Data.Database>();
+                sqdquery.queryType = CS_Squads<Data.Database>.QueryType.invitesplayer;
+                sqdquery.alias = _alias;
+                sqdquery.payload = "zone";
+                _server._db.send(sqdquery);
+            }
+        }
         #endregion
 
         #region Game State

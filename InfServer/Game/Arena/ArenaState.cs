@@ -139,7 +139,9 @@ namespace InfServer.Game
             {
                 //Duplicate checking..
                 if (_teams.ContainsKey(ti.name.ToLower()))
-                {
+                {   //Skip it
+                    id++;
+
                     //Log it and continue
                     Log.write(TLog.Warning, "Found a duplicated team name ({0}) in the .cfg.", ti.name);
                     continue;
@@ -166,14 +168,10 @@ namespace InfServer.Game
         /// Called when a new player is entering our arena
         /// </summary>
         public void newPlayer(Player player)
-        {   ///////////////////////////////////////////////
+        {	///////////////////////////////////////////////
             // Prepare the player state
-            ///////////////////////////////////////////////       
-
-            //First player entering a inactive named arena? Let's flip on the lights for him
-            if (_bIsNamed && !_bActive)
-                _bActive = true;
-
+            ///////////////////////////////////////////////           
+            
             //We're entering the arena..
             player._arena = this;
 
@@ -234,12 +232,12 @@ namespace InfServer.Game
                 player._watchMod = true;
 
             //Check if we can use him as a reliable player [check if mod]
-            if (player.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevel >= Data.PlayerPermission.Sysop)
                 player.setVar("reliable", player);
 
             //Send a security check for their client asset checksum
             SC_SecurityCheck cs = new SC_SecurityCheck();
-            cs.key = 1015; //Key we are using
+            cs.key = 1125; //Key we are using
             cs.unknown = 0; // Unknown, send as 0   
             player._client.send(cs); //Send it    
 
@@ -351,6 +349,10 @@ namespace InfServer.Game
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
                         player.sendMessage(-3, "$[Mod Notice] To see a list of commands, type *help. To specifically get info on a command type *help <command name>");
+
+                    //Any pending squad invites?
+                    if (_bIsPublic)
+                        player.getSquadInvites();
                 }
             );
         }
@@ -423,13 +425,10 @@ namespace InfServer.Game
                 }
             }
 
-            //Do we have any players left? Don't close named arenas (We always want these displayed so players know they exist)
-            if (TotalPlayerCount == 0 && !_bIsNamed)
+            //Do we have any players left?
+            if (TotalPlayerCount == 0)
                 //Nope. It's closing time.
                 close();
-            else if (TotalPlayerCount == 0 && _bIsNamed)
-                _bActive = false;
-
             else
             {
                 //Notify everyone else of his departure

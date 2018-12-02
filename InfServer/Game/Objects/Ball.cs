@@ -28,7 +28,6 @@ namespace InfServer.Game
         public int ballStatus;              //Whats going on with the ball
         public Player _owner;               //The person holding us
         public Player _lastOwner;           //The person who held us last
-        public int ballSpeed;               //How fast the ball was thrown/kicked
         public short ballFriction;
         public uint tickCount;              //Given to us by the client
         public bool deadBall = false;       //Is this ball stuck/unplayabe?

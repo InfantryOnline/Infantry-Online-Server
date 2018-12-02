@@ -115,7 +115,7 @@ namespace InfServer.Logic
                     continue;
 
                 //Let em know
-                p.triggerMessage(4, 500,
+                p.triggerMessage(5, 500,
                     String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
                     victim._type.Name, killer._alias, cashRewards[p._id],
                     expRewards[p._id], pointRewards[p._id]));
@@ -142,15 +142,11 @@ namespace InfServer.Logic
                 if (sentTo.Contains(p._id))
                     continue;
 
-                //Adjust our color accordingly..
-                byte color = 0;
-                if (victim._team == p._team)
-                    color = 4;
-
                 //Let them know
-                p.triggerMessage(color, 500,
-                    String.Format("{0} killed by {1}",
-                    victim._type.Name, killer._alias));
+                p.triggerMessage(1, 500,
+                    String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
+                    victim._type.Name, killer._alias,
+                    killerCash, killerExp, killerPoints));
             }
         }
 		

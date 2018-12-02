@@ -58,6 +58,12 @@ namespace InfServer.Logic
 				//Route it to our arena!
 				player._arena.handleEvent(delegate(Arena arena)
 					{
+                        if (arena == null)
+                        {
+                            Log.write(TLog.Error, "Handle_CS_Chat(): Player {0} sent server chat command with no delegating arena.", player);
+                            return;
+                        }
+
 						arena.playerChatCommand(player, recipient, command, payload, pkt.bong);
 					}
 				);
@@ -89,6 +95,12 @@ namespace InfServer.Logic
                 //Route it to our arena!
                 player._arena.handleEvent(delegate(Arena arena)
                     {
+                        if (arena == null)
+                        {
+                            Log.write(TLog.Error, "Handle_CS_Chat(): Player {0} sent communication chat command with no delegating arena.", player);
+                            return;
+                        }
+
                         arena.playerCommCommand(player, recipient, command, payload, pkt.bong);
                     }
                 );
@@ -120,6 +132,12 @@ namespace InfServer.Logic
                 //Route it to our arena!
                 player._arena.handleEvent(delegate(Arena arena)
                     {
+                        if (arena == null)
+                        {
+                            Log.write(TLog.Error, "Handle_CS_Chat(): Player {0} sent mod chat command with no delegating arena.", player);
+                            return;
+                        }
+
                         player._arena.playerModCommand(player, recipient, command, payload, pkt.bong);
                     }
                 );
@@ -197,6 +215,12 @@ namespace InfServer.Logic
                         //Send it to our arena!
                         player._arena.handleEvent(delegate(Arena arena)
                             {
+                                if (arena == null)
+                                {
+                                    Log.write(TLog.Error, "Handle_CS_Chat(): Player {0} sent chat packet with no delegating arena.", player);
+                                    return;
+                                }
+
                                 pkt.bong = 0;
                                 player._arena.playerArenaChat(player, pkt);
                             }

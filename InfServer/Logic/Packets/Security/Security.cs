@@ -104,6 +104,12 @@ namespace InfServer.Logic
             foreach (string element in pkt.windows)            
                 target.sendMessage(0, "*" + Logic_Text.RemoveIllegalCharacters(element));
             
+            // TODO: Write these out to a file so that later we can compare them.
+            if (!String.IsNullOrWhiteSpace(player.getVar("envReqParams") as String))
+            {
+                var filename = ""; // read envReqParams
+                // Write out to a file.
+            }
 		}
 
         /// <summary>

@@ -28,7 +28,7 @@ namespace InfServer.Logic
                             }
 
                             //Who the alias is going to
-                            Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => aTo.name.Equals(pkt.aliasTo));
+                            Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => string.Compare(aTo.name, pkt.aliasTo, true) == 0);
                             if (paliasTo == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cant find the recipient's alias.");
@@ -36,8 +36,8 @@ namespace InfServer.Logic
                             }
 
                             //The alias in question
-                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
-                            Data.DB.player playerA = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.query));
+                            Data.DB.alias alias = db.alias.FirstOrDefault(a => string.Compare(a.name, pkt.query, true) == 0);
+                            Data.DB.player playerA = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.query, true) == 0);
                             if (alias == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Can't find the alias in question, maybe its not created yet.");
@@ -69,8 +69,11 @@ namespace InfServer.Logic
                                         temp.squad1.owner = temp.id;
                                     }
                                     else if (squadmates.Count() == 1)
+                                    {
                                         //Lets delete the squad
                                         db.squads.DeleteOnSubmit(playerA.squad1);
+                                        db.SubmitChanges();
+                                    }
                                 }
                                 playerA.squad1 = null;
                                 playerA.squad = null;
@@ -99,8 +102,8 @@ namespace InfServer.Logic
                             }
 
                             //Lets get all account related info then delete it
-                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
-                            Data.DB.player player = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.query));
+                            Data.DB.alias palias = db.alias.FirstOrDefault(a => string.Compare(a.name, pkt.query, true) == 0);
+                            Data.DB.player player = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.query, true) == 0);
                             if (palias == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -126,8 +129,11 @@ namespace InfServer.Logic
                                         temp.squad1.owner = temp.id;
                                     }
                                     else if (squadmates.Count() == 1)
+                                    {
                                         //Lets delete the squad
                                         db.squads.DeleteOnSubmit(player.squad1);
+                                    }
+                                    db.SubmitChanges();
                                 }
                                 player.squad1 = null;
                                 player.squad = null;
@@ -153,8 +159,8 @@ namespace InfServer.Logic
                             }
 
                             //Get all account related info
-                            Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => aTo.name.Equals(pkt.aliasTo));
-                            Data.DB.alias alias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
+                            Data.DB.alias paliasTo = db.alias.FirstOrDefault(aTo => string.Compare(aTo.name, pkt.aliasTo, true) == 0);
+                            Data.DB.alias alias = db.alias.FirstOrDefault(a => string.Compare(a.name, pkt.query, true) == 0);
                             //Player even alive?
                             if (paliasTo == null)
                             {
@@ -201,7 +207,7 @@ namespace InfServer.Logic
                             }
 
                             //Lets get all account related info
-                            Data.DB.alias palias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.query));
+                            Data.DB.alias palias = db.alias.FirstOrDefault(a => string.Compare(a.name, pkt.query, true) == 0);
                             Data.DB.account account = db.accounts.FirstOrDefault(p => p.id == palias.account1.id);
                             if (palias == null)
                             {
@@ -232,7 +238,7 @@ namespace InfServer.Logic
 
                             //Lets get all account related info
                             Data.DB.player player = (from plyr in db.players
-                                                     where plyr.alias1.name == pkt.query && plyr.zone1 == zone._zone
+                                                     where string.Compare(plyr.alias1.name, pkt.query, true) == 0 && plyr.zone1 == zone._zone
                                                      select plyr).FirstOrDefault();
                             if (player == null)
                             {
@@ -257,7 +263,7 @@ namespace InfServer.Logic
                             }
 
                             //Lets find the player first
-                            Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.FirstOrDefault(p => p.alias1.name.Equals(pkt.aliasTo));
+                            Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.aliasTo, true) == 0);
                             if (dbplayer == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the player.");
@@ -265,7 +271,7 @@ namespace InfServer.Logic
                             }
 
                             //Lets find the squad in question
-                            Data.DB.squad squad = db.squads.First(s => s.name.Equals(pkt.query) && s.zone == zone._zone.id);
+                            Data.DB.squad squad = db.squads.First(s => string.Compare(s.name, pkt.query, true) == 0 && s.zone == zone._zone.id);
                             if (squad == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified squad.");
@@ -305,7 +311,7 @@ namespace InfServer.Logic
                             }
 
                             //Lets find the player first
-                            Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.FirstOrDefault(p => p.alias1.name.Equals(pkt.aliasTo));
+                            Data.DB.player dbplayer = db.zones.First(z => z.id == zone._zone.id).players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.aliasTo, true) == 0);
                             if (dbplayer == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the player.");
@@ -313,7 +319,7 @@ namespace InfServer.Logic
                             }
 
                             //Lets find the squad in question
-                            Data.DB.squad squad = db.squads.FirstOrDefault(s => s.name.Equals(pkt.query) && s.zone == zone._zone.id);
+                            Data.DB.squad squad = db.squads.FirstOrDefault(s => string.Compare(s.name, pkt.query, true) == 0 && s.zone == zone._zone.id);
                             if (squad == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified squad.");
@@ -340,6 +346,7 @@ namespace InfServer.Logic
                                     {   //There are other people on the squad, transfer it to someone
                                         Data.DB.player transferPlayer = squadmates.FirstOrDefault(p => p.id != dbplayer.id);
                                         dbplayer.squad1.owner = transferPlayer.id;
+                                        db.SubmitChanges();
                                         zone._server.sendMessage(zone, transferPlayer.alias1.name, "You have been promoted to squad captain of " + transferPlayer.squad1.name);
                                     }
                                 }
@@ -363,7 +370,7 @@ namespace InfServer.Logic
 
                             if (pkt.query.Equals("list"))
                             {
-                                Data.DB.player sender = db.players.FirstOrDefault(p => p.alias1.name.Equals(pkt.sender) && p.zone == zone._zone.id);
+                                Data.DB.player sender = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.sender, true) == 0 && p.zone == zone._zone.id);
                                 if (sender == null)
                                     return;
 
@@ -374,7 +381,7 @@ namespace InfServer.Logic
                                     foreach (KeyValuePair<int, Zone.Player> Player in z._players)
                                     {
                                         pAlias = Player.Value.alias;
-                                        var alias = db.alias.SingleOrDefault(p => p.name.Equals(pAlias));
+                                        var alias = db.alias.SingleOrDefault(p => string.Compare(p.name, pAlias, true) == 0);
                                         if (alias == null)
                                             continue;
                                         if (alias.name == pkt.sender)
@@ -419,7 +426,7 @@ namespace InfServer.Logic
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Search Results:");
 
-                            Data.DB.alias alias = db.alias.SingleOrDefault(ali => ali.name.Equals(pkt.query));
+                            Data.DB.alias alias = db.alias.SingleOrDefault(ali => string.Compare(ali.name, pkt.query, true) == 0);
                             if (alias == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -452,7 +459,7 @@ namespace InfServer.Logic
         {
             using (InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.alias dbplayer = db.alias.First(p => p.name.Equals(pkt.alias));
+                Data.DB.alias dbplayer = db.alias.First(p => string.Compare(p.name, pkt.alias, true) == 0);
 
                 //Lets check to see if they are banned already
                 foreach (Data.DB.ban b in db.bans.Where(b => b.account == dbplayer.account1.id))

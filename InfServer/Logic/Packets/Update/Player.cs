@@ -28,8 +28,15 @@ namespace InfServer.Logic
                 Log.write(TLog.Error, "Handle_CS_PlayerUpdate(): Player {0} sent update packet with no arena.", player);
                 return;
             }
+
             player._arena.handleEvent(delegate(Arena arena)
                 {
+                    if (arena == null)
+                    {
+                        Log.write(TLog.Error, "Handle_CS_PlayerUpdate(): Player {0} sent update packet with no delegating arena.", player);
+                        return;
+                    }
+
                     player._arena.handlePlayerUpdate(player, pkt);
                 }
             );
@@ -55,6 +62,12 @@ namespace InfServer.Logic
 
             player._arena.handleEvent(delegate(Arena arena)
                 {
+                    if (arena == null)
+                    {
+                        Log.write(TLog.Error, "Handle_CS_PlayerDeath(): Player {0} sent update packet with no delegating arena.", player);
+                        return;
+                    }
+
                     player._arena.handlePlayerDeath(player, pkt);
                 }
             );

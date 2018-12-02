@@ -12,15 +12,20 @@ namespace InfServer.DirectoryServer.Directory.Protocol
     /// </summary>
     public class HttpJsonResponder
     {
+        LogClient _logger;
+
         /// <summary>
         /// Creates the responder with a directory server.
         /// </summary>
         /// <param name="directoryServer">Directory server to use</param>
         public HttpJsonResponder(DirectoryServer directoryServer)
         {
+            _logger = Log.createClient("HttpJsonResponder");
+
             if(directoryServer == null)
             {
-                throw new ArgumentNullException("directoryServer");
+                Log.write(TLog.Warning, "Cannot start the Json Responder, directory server is null.");
+                return;
             }
 
             this.directoryServer = directoryServer;
@@ -34,6 +39,8 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         /// </summary>
         public void Start()
         {
+            Log.assume(_logger);
+
             _listenerThread = new Thread(_ =>
                                    {
                                        /*httpListener.IgnoreWriteExceptions = true;*/
@@ -114,11 +121,11 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                             break;
                         }
                     }
-
                     else if (request.Url.LocalPath.Contains("notz"))
                         responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones where !zone.Title.Contains("I:TZ") select new { zone.Title, zone.PlayerCount }));
                     else
-                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { Title = zone.Title, PlayerCount = zone.PlayerCount, Address = IPAddress.Parse(zone.Address.ToString()).ToString(), Port = zone.Port }));
+                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { zone.Title, zone.PlayerCount }));
+
                     response.ContentLength64 = responseString.Length;
                     response.AppendHeader("Access-Control-Allow-Origin", "*");
                     response.AppendHeader("Access-Control-Allow-Methods", "POST, GET");

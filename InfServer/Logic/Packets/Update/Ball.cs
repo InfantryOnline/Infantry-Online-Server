@@ -33,6 +33,12 @@ namespace InfServer.Logic
 
             player._arena.handleEvent(delegate(Arena arena)
             {
+                if (arena == null)
+                {
+                    Log.write(TLog.Error, "Handle_CS_BallDrop(): Player {0} sent chat packet with no delegating arena.", player);
+                    return;
+                }
+
                 player._arena.handleBallDrop(player, pkt);
             });
         }
@@ -57,6 +63,12 @@ namespace InfServer.Logic
             // Arena handles it, so they can keep track of the score
             player._arena.handleEvent(delegate(Arena arena)
             {
+                if (arena == null)
+                {
+                    Log.write(TLog.Error, "Handle_CS_GoalScored(): Player {0} sent chat packet with no delegating arena.", player);
+                    return;
+                }
+
                 player._arena.handlePlayerGoal(player, pkt);
             });
         }
@@ -87,6 +99,12 @@ namespace InfServer.Logic
             //Let the arena handle it too
             player._arena.handleEvent(delegate(Arena arena)
             {
+                if (arena == null)
+                {
+                    Log.write(TLog.Error, "Handle_CS_BallPickup(): Player {0} sent chat packet with no delegating arena.", player);
+                    return;
+                }
+
                 player._arena.handleBallPickup(player, pkt);
             });
         }

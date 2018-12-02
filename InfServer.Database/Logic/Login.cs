@@ -50,6 +50,7 @@ namespace InfServer.Logic
             //Great! Escalate our client object to a zone
             Zone zone = new Zone(client, server, dbZone);
             client._obj = zone;
+            zone._zone.active = 1; //Set it as active
 
             server._zones.Add(zone);
 
@@ -213,7 +214,8 @@ namespace InfServer.Logic
 
                 if (alias == null && !pkt.bCreateAlias)
                 {	//Prompt him to create a new alias if he has room
-                    if (account.alias.Count < 30)
+                    int maxAliases = 30;
+                    if (account.alias.Count < maxAliases)
                     {   //He has space! Prompt him to make a new alias
                         plog.bSuccess = false;
                         plog.bNewAlias = true;
@@ -224,7 +226,7 @@ namespace InfServer.Logic
                     else
                     {
                         plog.bSuccess = false;
-                        plog.loginMessage = "Your account has reached the maximum number of aliases allowed.";
+                        plog.loginMessage = "Your account has reached the maximum number of " + maxAliases.ToString() + " aliases allowed.";
 
                         zone._client.send(plog);
                         return;
@@ -288,18 +290,28 @@ namespace InfServer.Logic
                 else
                 {	//Load the player details and stats!
                     plog.banner = player.banner;
-                    if (account.id == 17 && alias.name.ToLower().Contains("hoto"))
-                        plog.permission = 0;
-                    else
-                        plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
+                    plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
 
                     if (player.permission > account.permission)
                         //He's a dev here, set the bool
                         plog.developer = true;
 
                     //Check for admin
-                    if (Logic_Admins.checkAdmin(alias.name))
-                        plog.admin = true;
+                    Data.DB.alias aliasMatch = null;
+                    foreach (string str in Logic_Admins.ServerAdmins)
+                    {
+                        if ((aliasMatch = db.alias.SingleOrDefault(a => string.Compare(a.name, str, true) == 0)) != null)
+                        {
+                            if (account.id == aliasMatch.account && account.permission >= 5)
+                            {
+                                plog.admin = true;
+                                break;
+                            }
+                        }
+                    }
+                    //If he isn't part of the admin list, he doesn't get powers
+                    if (!plog.admin && account.permission >= 5)
+                    { account.permission = 0; }
 
                     plog.squad = (player.squad1 == null) ? "" : player.squad1.name;
                     if (player.squad1 != null)

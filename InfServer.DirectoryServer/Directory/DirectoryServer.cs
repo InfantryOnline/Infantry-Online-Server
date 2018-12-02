@@ -143,8 +143,11 @@ namespace InfServer.DirectoryServer.Directory
             {
                 begin(listenPoint);
             }
-            catch (System.NullReferenceException e)
+            catch (Exception e)
             {
+                Log.write(TLog.Warning, "Failed to start the server: {0}", e.ToString());
+                System.Threading.Thread.Sleep(5000);
+                return;
             }
 
             if (_json)

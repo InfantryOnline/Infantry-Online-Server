@@ -1267,18 +1267,6 @@ namespace InfServer.Game
                 //Update last movement with firing, don't want to spec people in stationary turrets;
                 from._lastMovement = now;
                 from._maxTimeCalled = false;
-
-                //Check for ball handling
-                if (from._gotBallID != 999)
-                {
-                    Ball ball = _balls.getObjByID((ushort)from._gotBallID);
-                    if (ball != null)
-                    {
-                        ItemInfo.Projectile project = info as ItemInfo.Projectile;
-                        if (project != null)
-                            ball.ballSpeed = project.soccerBallSpeed;
-                    }
-                }
             }
 
 
@@ -1785,7 +1773,7 @@ namespace InfServer.Game
                         List<LioInfo.WarpField> warps = _server._assets.Lios.getWarpGroupByID(item.warpGroup);
                         if (warps == null)
                         {
-                            Log.write(TLog.Error, "Warp group '{0}' doesn't exist.", item.warpGroup);
+                            Log.write(TLog.Error, "Item: {0}. Warp group '{1}' doesn't exist.", item.name, item.warpGroup);
                             break;
                         }
 

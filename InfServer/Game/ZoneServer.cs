@@ -436,8 +436,13 @@ namespace InfServer.Game
                         if (_bStandalone)
                         {
                             foreach (var arena in _arenas)
+                            {
                                 if (arena.Value._bActive)
+                                {
                                     arena.Value.sendArenaMessage("!Connection to the database has been re-established. Server is no longer in Stand Alone Mode.");
+                                    arena.Value.sendArenaMessage("!Please relog so your stats will save again.");
+                                }
+                            }
                         }
                         _bStandalone = false;
                         _db._bLoginSuccess = true;

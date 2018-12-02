@@ -47,6 +47,9 @@ namespace InfServer
             _chats = new SortedDictionary<string, Chat>();
             _players = new Dictionary<string, Zone.Player>();
             _squadInvites = new List<KeyValuePair<int, int>>();
+
+            //Populate our server admins
+            Logic.Logic_Admins.PopulateAdmins();
         }
 
         public bool newPlayer(Zone.Player player)

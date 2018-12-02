@@ -19,6 +19,20 @@ namespace InfServer.Logic
 		{	//Let's escalate our client's status to player!
 			ZoneServer server = (client._handler as ZoneServer);
 
+            //Is our server currently recycling?
+            if (server._recycling)
+            {
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone server is currently recycling... Please wait.");
+                return;
+            }
+
+            //Is our server being shut down?
+            if (server._shutdown)
+            {
+                Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Zone server is being shut down.");
+                return;
+            }
+
             // check for excessive joins to zone from same IP
             if (pkt.bCreateAlias != true && server._connections.ContainsKey(client._ipe.Address))
             {

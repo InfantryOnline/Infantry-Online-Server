@@ -158,7 +158,7 @@ namespace InfServer.Game
             System.IO.File.WriteAllLines(string.Format("{0}/{1}", Environment.CurrentDirectory, _bloListFileName), _bloList);
 
             //Update our asset server
-            sendDataToDirectory();
+            //sendDataToDirectory();
 
 			//Initialize our lio data
 			Lios = new Lio(this);

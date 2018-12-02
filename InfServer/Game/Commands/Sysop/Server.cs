@@ -96,7 +96,7 @@ namespace InfServer.Game.Commands.Mod
                 foreach (Player p in player._arena.Players)
                 {
                     SC_SecurityCheck cs = new SC_SecurityCheck();
-                    cs.key = 1015; //Key we are using
+                    cs.key = 1125; //Key we are using
                     cs.unknown = 0; // Unknown, send as 0   
                     p.setVar("secReq", player); //Pass the person we need to PM the info
                     p._client.send(cs); //Send it
@@ -105,7 +105,7 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 SC_SecurityCheck cs = new SC_SecurityCheck();
-                cs.key = 1015; //Key we are using
+                cs.key = 1125; //Key we are using
                 cs.unknown = 0; // Unknown, send as 0
                 recipient.setVar("secReq", player); //Pass the person we need to PM the info
                 recipient._client.send(cs); //Send it

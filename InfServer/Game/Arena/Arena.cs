@@ -23,7 +23,6 @@ namespace InfServer.Game
         public LogClient _logger;						//The logger we use for this arena!
         public volatile bool _bActive;					//Is the arena functioning, or condemned?
         public bool _bIsPublic;							//Is this a public arena?
-        public bool _bIsNamed;                          //Is this a named arena?
 
         public ZoneServer _server;						//The server we belong to
         public Bots.Pathfinder _pathfinder;				//The pathfinding object used for this arena
@@ -729,7 +728,7 @@ namespace InfServer.Game
                         _lastAssetCheck = now;
 
                         SC_SecurityCheck cs = new SC_SecurityCheck();
-                        cs.key = 1015; //Key we are using
+                        cs.key = 1125; //Key we are using
                         cs.unknown = 0; // Unknown, send as 0   
                         p._client.send(cs); //Send it    
                     }

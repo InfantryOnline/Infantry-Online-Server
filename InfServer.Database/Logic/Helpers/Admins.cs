@@ -3,31 +3,43 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
+using InfServer.Data;
+
 namespace InfServer.Logic
 {
-    public partial class Logic_Admins
+    class Logic_Admins
     {
         /// <summary>
-        /// Checks to see if this player logging in is an admin
+        /// Our list of the current server admins
         /// </summary>
-        static public bool checkAdmin(string alias)
+        public static List<string> ServerAdmins;
+
+        /// <summary>
+        /// Populates the admin list
+        /// </summary>
+        static public void PopulateAdmins()
         {
             if (!File.Exists("admins.xml"))
             {
                 Log.write(TLog.Warning, "Cannot locate the admins.xml file. Skipping.");
-                return false;
+                return;
             }
 
-            bool result = false;
             XmlDocument doc = new XmlDocument();
             doc.Load("admins.xml");
 
-            XmlNodeList list = doc.SelectNodes(String.Format("/admins/player[@alias=\"{0}\"]", alias));
+            if (doc.HasChildNodes)
+            {
+                int i = 0;
+                ServerAdmins = new List<string>();
+                foreach (XmlNode n in doc.ChildNodes.Item(i))
+                {
+                    ServerAdmins.Add(n.InnerText);
+                    i++;
+                }
+            }
 
-            if (list.Count > 0)
-                result = true;
-
-            return result;
+            return;
         }
 
         /// <summary>
@@ -36,23 +48,13 @@ namespace InfServer.Logic
         static public string listAdmins()
         {
             string str = "Empty.";
-            if (!File.Exists("admins.xml"))
+            if (ServerAdmins == null)
             {
-                Log.write(TLog.Warning, "Cannot locate the admins.xml file, skipping.");
-                return "Cannot find the admins file.";
+                return "None.";
             }
 
-            XmlDocument doc = new XmlDocument();
-            doc.Load("admins.xml");
-
-            XmlNodeList list = doc.SelectNodes("/admins/player");
-            SortedList<string, string> admins = new SortedList<string, string>();
-
-            foreach(XmlNode node in list)
-                admins.Add(node.Attributes[0].Value, ", ");
-
-            if (admins.Count > 0)
-                str = string.Join(", ", admins.Keys);
+            ServerAdmins.Sort();
+            str = string.Join(", ", ServerAdmins);
             return str;
         }
     }
