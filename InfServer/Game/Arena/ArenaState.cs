@@ -425,12 +425,11 @@ namespace InfServer.Game
 
             //Do we have any players left? Don't close named arenas (We always want these displayed so players know they exist)
             if (TotalPlayerCount == 0 && !_bIsNamed)
-            {
                 //Nope. It's closing time.
                 close();
-                //Flag the arena as inactive so it's no longer polled
+            else if (TotalPlayerCount == 0 && _bIsNamed)
                 _bActive = false;
-            }
+
             else
             {
                 //Notify everyone else of his departure
