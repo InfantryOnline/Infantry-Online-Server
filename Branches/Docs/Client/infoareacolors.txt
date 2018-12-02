@@ -1,0 +1,12 @@
+triggerMessage/Infoarea color designations:
+
+(byte) 0 = White
+(byte) 1 = Red
+(byte) 2 = Green
+(byte) 3 = Blue
+(byte) 4 = Yellow
+(byte) 5 = Purple
+(byte) 6 = Aqua
+(byte) 7 = Gray
+
+The rest seem to be darker variants of the above colors up until 48 where it turns into black.

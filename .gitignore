@@ -1,0 +1,7 @@
+
+*.cache
+.vs/InfServer/v15/Server/sqlite3/db.lock
+.vs/InfServer/v15/Server/sqlite3/storage.ide
+.vs/InfServer/v15/Server/sqlite3/storage.ide-shm
+.vs/InfServer/v15/Server/sqlite3/storage.ide-wal
+.vs/InfServer/v15/.suo
