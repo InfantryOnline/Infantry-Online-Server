@@ -343,6 +343,9 @@ namespace InfServer.Game
             //InitializeGameEventsDictionary();
 
             InitializeIrcClient();
+
+            //Create all of our namedArenas
+            initNamedArenas();
             return true;
         }
 

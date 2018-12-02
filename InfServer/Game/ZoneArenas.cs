@@ -45,9 +45,6 @@ namespace InfServer.Game
                 Log.write(TLog.Error, "Invalid maxVehicles setting; cannot exceed {0}", UInt16.MaxValue - ZoneServer.maxPlayers);
                 return false;
             }
-
-            initNamedArenas();
-
             return true;
         }
 
@@ -58,9 +55,7 @@ namespace InfServer.Game
         {
             IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
             foreach (ConfigSetting named in namedArenas)
-            {
-                newArena(named.Name);
-            }
+                newArena(named.Value);
         }
 
         /// <summary>
@@ -156,7 +151,7 @@ namespace InfServer.Game
                 arena._bIsNamed = true;
 
             arena._name = name;
-            if (arena._name.StartsWith("Public"))
+            if (arena._name.StartsWith("Public") || isNamed)
                 arena._bIsPublic = true;
             else
                 arena._bIsPublic = false;
