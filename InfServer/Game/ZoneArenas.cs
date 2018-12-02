@@ -50,6 +50,18 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Handles the creation of all of our named arenas (These do -not- close when the player count hits zero)
+        /// </summary>
+        private void initNamedArenas()
+        {
+            IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
+            foreach (ConfigSetting named in namedArenas)
+            {
+                newArena(named.Name);
+            }
+        }
+
+        /// <summary>
         /// Looks after the gamestate of all arenas
         /// </summary>
         private void handleArenas()
@@ -115,12 +127,14 @@ namespace InfServer.Game
             //Is this a registered arena name?
             string invokerType = _config["server/gameType"].Value;
             IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
+            bool isNamed = false;
 
             foreach (ConfigSetting named in namedArenas)
             {	//Correct arena?
                 if (name.Equals(named.Value, StringComparison.OrdinalIgnoreCase))
                 {
                     invokerType = named["gameType"].Value;
+                    isNamed = true;
                     break;
                 }
             }
@@ -137,7 +151,7 @@ namespace InfServer.Game
 
             arena._bActive = true;
             arena._name = name;
-            if (arena._name.StartsWith("Public"))
+            if (arena._name.StartsWith("Public") || isNamed)
                 arena._bIsPublic = true;
             else
                 arena._bIsPublic = false;
