@@ -5,5 +5,5 @@
 .vs/InfServer/v15/Server/sqlite3/storage.ide-shm
 .vs/InfServer/v15/Server/sqlite3/storage.ide-wal
 .vs/InfServer/v15/.suo
-bin/
-obj/
+bin
+obj
