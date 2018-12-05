@@ -49,7 +49,8 @@ namespace InfServer.Game
             _breakdownSettings = new BreakdownSettings();
 
             //Load the associated scripts
-            _scripts = Scripts.instanceScripts(this, _scriptType);
+            if (_scriptType != null)
+                _scripts = Scripts.instanceScripts(this, _scriptType);
 
             //Cache this just because
             _startCfg = _server._zoneConfig.startGame;
@@ -60,11 +61,46 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Reloads our scripts
+        /// </summary>
+        public override void reloadScript()
+        {
+
+            //Is this a registered arena name?
+            string invokerType = _server._config["server/gameType"].Value;
+            IList<ConfigSetting> namedArenas = _server._config["arena"].GetNamedChildren("namedArena");
+
+            foreach (ConfigSetting named in namedArenas)
+            {	//Correct arena?
+                if (_name.Equals(named.Value, StringComparison.OrdinalIgnoreCase))
+                {
+                    invokerType = named["gameType"].Value;
+                    break;
+                }
+            }
+            //Instance our gametype
+            if (!Scripting.Scripts.invokerTypeExists(invokerType))
+            {
+                Log.write(TLog.Error, "Unable to find gameType '{0}'", invokerType);
+            }
+
+            _scriptType = invokerType;
+
+            //Load the associated scripts
+            if (_scriptType != null)
+                _scripts = Scripts.instanceScripts(this, _scriptType);
+        }
+
+        /// <summary>
         /// Allows the arena to keep it's game state up-to-date
         /// </summary>
         public override void poll()
         {	//Process the base state
             base.poll();
+
+            //Do we have a script loaded?
+            if (_scriptType == null)
+                return;
 
             //Poll all scripts!
             foreach (Scripts.IScript script in _scripts)

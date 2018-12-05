@@ -484,6 +484,13 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Reloads our scripts
+        /// </summary>
+        public virtual void reloadScript()
+        {
+        }
+
+        /// <summary>
         /// Adds an event to be processed
         /// </summary>
         public void handleEvent(Action<Arena> action)

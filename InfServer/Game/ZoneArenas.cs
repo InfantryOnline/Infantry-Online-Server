@@ -135,15 +135,20 @@ namespace InfServer.Game
                     break;
                 }
             }
+            bool bScriptLoad = true;
             //Instance our gametype
             if (!Scripting.Scripts.invokerTypeExists(invokerType))
             {
                 Log.write(TLog.Error, "Unable to find gameType '{0}'", invokerType);
-                return null;
+                bScriptLoad = false;
             }
 
             //Populate the class
-            Arena arena = new ScriptArena(this, invokerType);
+            Arena arena;
+            if (bScriptLoad)
+                arena = new ScriptArena(this, invokerType);
+            else
+                arena = new ScriptArena(this, null);
 
             if (!isNamed)
                 arena._bActive = true;
