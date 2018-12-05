@@ -272,13 +272,11 @@ namespace InfServer.Game
                 if (!bSuccess)
                 {	//Failed. Exit
                     Log.write(TLog.Error, "Unable to load scripts.");
-                    return false;
                 }
             }
             catch (Exception ex)
             {	//Error while compiling
                 Log.write(TLog.Exception, "Exception while compiling scripts:\n" + ex.ToString());
-                return false;
             }
 
             if (_config["server/pathFindingEnabled"].boolValue)
@@ -347,6 +345,35 @@ namespace InfServer.Game
             //Create all of our namedArenas
             initNamedArenas();
             return true;
+        }
+
+        /// <summary>
+        /// Reloads all of our scripts
+        /// </summary>
+        public bool reloadScripts()
+        {
+            bool bSuccess = false;
+
+            try
+            {	//Loads!
+                bSuccess = Scripting.Scripts.compileScripts();
+                if (!bSuccess)
+                {	//Failed. Exit
+                    Log.write(TLog.Error, "Unable to load scripts.");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {	//Error while compiling
+                Log.write(TLog.Exception, "Exception while compiling scripts:\n" + ex.ToString());
+                return false;
+            }
+
+            //If we've gotten this far, we've had success, lets tell each arena to reload its specified script
+            foreach (Arena arena in _arenas.Values)
+                arena.reloadScript();
+
+            return bSuccess;
         }
 
         /// <summary>
