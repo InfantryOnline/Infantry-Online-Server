@@ -90,7 +90,7 @@ namespace Assets
         }
 
         /// <summary>
-        /// Returns true if vehicle cannot traverse over the tile located at (x, y).
+        /// Returns true if vehicle cannot traverse over or under the tile located at (x, y).
         /// A tile is considered to be blocked if it's low and high physics encompass the vehicles.
         /// </summary>
         /// <param name="x">x-coordinate of the tile</param>
@@ -101,7 +101,6 @@ namespace Assets
             if (vehicle == null)
                 return false;
             bool blocked = isTileBlocked(x, y);
-            //Is this vehicle low enough to run under?
             if (blocked)
             {
                 x /= 16;
@@ -109,8 +108,13 @@ namespace Assets
                 int phy = Tiles[y * Width + x].Physics;
                 short low = PhysicsLow[phy];
                 short high = PhysicsHigh[phy];
-                if (vehicle.LowZ <= low || vehicle.HighZ >= high)
-                    blocked = !blocked;
+
+                //Typical man vehicle: LowZ = 0 HighZ = 55
+                //Physic (Green): LowZ = 0 HighZ = 16
+
+                //Can we pass under or over?
+                if (vehicle.LowZ < low && vehicle.HighZ < high || vehicle.LowZ > low)
+                    blocked = !blocked;   //Not blocked
             }
             return blocked;
         }
