@@ -200,7 +200,7 @@ namespace InfServer.Bots
 			LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
             LvlInfo level = _arena._server._assets.Level;
 
-			if (tile.Blocked && level.isTileBlocked((int)newPosition.x, (int)newPosition.y, _type))
+			if (tile.Blocked && canRollOver((int)newPosition.x, (int)newPosition.y, _type))
 			{
                 bool collision = false;
 
@@ -337,13 +337,37 @@ namespace InfServer.Bots
             stopStrafing();
             stopRotating();
 		}
-		#endregion
+        #endregion
 
-		#region Utility functions
-		/// <summary>
-		/// Determines the hardcoded direction value from our movement instructions
-		/// </summary>
-		public Helpers.ObjectState.Direction getDirection()
+        #region Utility functions
+
+
+        public bool canRollOver(int x, int y, VehInfo type)
+        {
+            LvlInfo level = _arena._server._assets.Level;
+
+            bool blocked = level.isTileBlocked(x, y, type);
+            if (blocked)
+            {
+                x /= 16;
+                y /= 16;
+                int phy = level.Tiles[y * level.Width + x].Physics;
+                short low = level.PhysicsLow[phy];
+                short high = level.PhysicsHigh[phy];
+
+                //Typical man vehicle: LowZ = 0 HighZ = 55
+                //Physic (Green): LowZ = 0 HighZ = 16
+
+                //Can we pass under or over?
+                if (_state.positionZ > low)
+                    blocked = false;   //Not blocked
+            }
+            return blocked;
+        }
+        /// <summary>
+        /// Determines the hardcoded direction value from our movement instructions
+        /// </summary>
+        public Helpers.ObjectState.Direction getDirection()
 		{
 			if (_isThrustingForward)
 			{

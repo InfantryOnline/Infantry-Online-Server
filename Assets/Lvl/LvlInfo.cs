@@ -114,7 +114,7 @@ namespace Assets
 
                 //Can we pass under or over?
                 if (vehicle.LowZ < low && vehicle.HighZ < high || vehicle.LowZ > low)
-                    blocked = !blocked;   //Not blocked
+                    blocked = false;   //Not blocked
             }
             return blocked;
         }
