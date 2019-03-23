@@ -22,6 +22,7 @@ namespace InfServer.Bots
 		protected Helpers.ObjectState _state;			//Our internal object state
 		protected Arena _arena;                         //The arena we're in
 		public bool bEnabled;							//Are we able to accept movement commands?
+        public bool bCollision;
 
 		//Hardcode the terrain for now until we get access to the map info!
 		private int _terrainType = 0;
@@ -94,135 +95,134 @@ namespace InfServer.Bots
             return direction;
         }
 
-		/// <summary>
-		/// Updates the state in accordance with movement instructions
-		/// </summary>
+        /// <summary>
+        /// Updates the state in accordance with movement instructions
+        /// </summary>
         public virtual bool updateState(double delta)
-        {	//If we're dead
-			if (delta <= 0 || !bEnabled)
-				return false;
-			
-			//Are we frozen?
-			if (_tickMovementFrozenUntil != 0 && _tickMovementFrozenUntil > Environment.TickCount)
-			{
-				_isThrustingForward = false;
-				_isThrustingBackward = false;
-				_isStrafingLeft = false;
-				_isStrafingRight = false;
-			}
-			else
-				_tickMovementFrozenUntil = 0;
-	
-			//Get our speed values for our current terrain
+        {   //If we're dead
+            if (delta <= 0 || !bEnabled)
+                return false;
+
+            //Are we frozen?
+            if (_tickMovementFrozenUntil != 0 && _tickMovementFrozenUntil > Environment.TickCount)
+            {
+                _isThrustingForward = false;
+                _isThrustingBackward = false;
+                _isStrafingLeft = false;
+                _isStrafingRight = false;
+            }
+            else
+                _tickMovementFrozenUntil = 0;
+
+            //Get our speed values for our current terrain
             SpeedValues stats = _type.TerrainSpeeds[_terrainType];
 
-			//Apply our rotation
+            //Apply our rotation
             if (_isRotatingLeft)
-				_direction -= ((_rollRotate / 10000.0d) * delta);
-			else if (_isRotatingRight)
-				_direction += ((_rollRotate / 10000.0d) * delta);
+                _direction -= ((_rollRotate / 10000.0d) * delta);
+            else if (_isRotatingRight)
+                _direction += ((_rollRotate / 10000.0d) * delta);
 
-			_direction %= 240;
+            _direction %= 240;
 
-			if (_direction < 0)
-				_direction = 240 + _direction;
+            if (_direction < 0)
+                _direction = 240 + _direction;
 
-			//Vectorize our direction, unf.
-			Vector2 directionVector = Vector2.createUnitVector(_direction);
-			Vector2 accelVector = Vector2.Zero;
+            //Vectorize our direction, unf.
+            Vector2 directionVector = Vector2.createUnitVector(_direction);
+            Vector2 accelVector = Vector2.Zero;
 
-			//Apply our thrusting instructions
+            //Apply our thrusting instructions
             _thrustDirection = 0;
 
-			if (_isThrustingForward)
-			{
-				accelVector.x += directionVector.x * _rollThrust;
-				accelVector.y += directionVector.y * _rollThrust;
-				_thrustDirection = _direction;
-			}
-			else if (_isThrustingBackward)
-			{
-				accelVector.x += directionVector.x * -_rollThrustBack;
-				accelVector.y += directionVector.y * -_rollThrustBack;
-				_thrustDirection = calculateNewDirection(_direction, 120);
-			}
+            if (_isThrustingForward)
+            {
+                accelVector.x += directionVector.x * _rollThrust;
+                accelVector.y += directionVector.y * _rollThrust;
+                _thrustDirection = _direction;
+            }
+            else if (_isThrustingBackward)
+            {
+                accelVector.x += directionVector.x * -_rollThrustBack;
+                accelVector.y += directionVector.y * -_rollThrustBack;
+                _thrustDirection = calculateNewDirection(_direction, 120);
+            }
 
-			if (_isStrafingLeft)
-			{
-				double tmpX = directionVector.x;
-				accelVector.x += directionVector.y * _rollThrustStrafe;
-				accelVector.y += -tmpX * _rollThrustStrafe;
-			}
-			else if (_isStrafingRight)
-			{
-				double tmpX = directionVector.x;
-				accelVector.x += -directionVector.y * _rollThrustStrafe;
-				accelVector.y += tmpX * _rollThrustStrafe;
-			}
+            if (_isStrafingLeft)
+            {
+                double tmpX = directionVector.x;
+                accelVector.x += directionVector.y * _rollThrustStrafe;
+                accelVector.y += -tmpX * _rollThrustStrafe;
+            }
+            else if (_isStrafingRight)
+            {
+                double tmpX = directionVector.x;
+                accelVector.x += -directionVector.y * _rollThrustStrafe;
+                accelVector.y += tmpX * _rollThrustStrafe;
+            }
 
-			//Apply our acceleration
-			_velocity.x += accelVector.x * (delta / 1000.0d);
-			_velocity.y += accelVector.y * (delta / 1000.0d);
+            //Apply our acceleration
+            _velocity.x += accelVector.x * (delta / 1000.0d);
+            _velocity.y += accelVector.y * (delta / 1000.0d);
 
-			//Apply friction
-			double frictionMod = 1000 - ((((((double)_rollFriction) * 800) / 256) / 10) * (delta / 10.0d));
+            //Apply friction
+            double frictionMod = 1000 - ((((((double)_rollFriction) * 800) / 256) / 10) * (delta / 10.0d));
 
-			_velocity.x = ((_velocity.x * frictionMod) / 1000.0d);
-			_velocity.y = ((_velocity.y * frictionMod) / 1000.0d);
+            _velocity.x = ((_velocity.x * frictionMod) / 1000.0d);
+            _velocity.y = ((_velocity.y * frictionMod) / 1000.0d);
 
             //TODO: Add the effects of projectile explosions on our velocity
             //TODO: Check for physics react accordingly
 
-			//Clamp our resulting velocity
-			if (_velocity.Length >= _rollTopSpeed / 1)
-				_velocity.Normalize(_rollTopSpeed / 1);
+            //Clamp our resulting velocity
+            if (_velocity.Length >= _rollTopSpeed / 1)
+                _velocity.Normalize(_rollTopSpeed / 1);
 
-			//Calculate our new position
-			double xPerTick = _velocity.x / 10000.0d;
-			double yPerTick = _velocity.y / 10000.0d;
+            //Calculate our new position
+            double xPerTick = _velocity.x / 10000.0d;
+            double yPerTick = _velocity.y / 10000.0d;
 
-			yPerTick *= 0.70f;			//Y coordinates are bigger than x by 0.7?
+            yPerTick *= 0.70f;          //Y coordinates are bigger than x by 0.7?
 
-			Vector2 newPosition = new Vector2(_position.x + (xPerTick * delta), _position.y + (yPerTick * delta));
+            Vector2 newPosition = new Vector2(_position.x + (xPerTick * delta), _position.y + (yPerTick * delta));
 
-			//Clamp our position
-			newPosition.x = Math.Min(newPosition.x, (AssetManager.Manager.Level.Width - 1) * 16);
-			newPosition.x = Math.Max(newPosition.x, 0);
-			newPosition.y = Math.Min(newPosition.y, (AssetManager.Manager.Level.Height - 1) * 16);
-			newPosition.y = Math.Max(newPosition.y, 0);
+            //Clamp our position
+            newPosition.x = Math.Min(newPosition.x, (AssetManager.Manager.Level.Width - 1) * 16);
+            newPosition.x = Math.Max(newPosition.x, 0);
+            newPosition.y = Math.Min(newPosition.y, (AssetManager.Manager.Level.Height - 1) * 16);
+            newPosition.y = Math.Max(newPosition.y, 0);
 
-			//Check for collisions
-			int tileX = (int)Math.Floor(_position.x / 16);
-			int tileY = (int)Math.Floor(_position.y / 16);
-			int newTileX = (int)Math.Floor(newPosition.x / 16);
-			int newTileY = (int)Math.Floor(newPosition.y / 16);
+            //Check for collisions
+            int tileX = (int)Math.Floor(_position.x / 16);
+            int tileY = (int)Math.Floor(_position.y / 16);
+            int newTileX = (int)Math.Floor(newPosition.x / 16);
+            int newTileY = (int)Math.Floor(newPosition.y / 16);
 
-			LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
+            LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
             LvlInfo level = _arena._server._assets.Level;
 
-			if (tile.Blocked && canRollOver((int)newPosition.x, (int)newPosition.y, _type))
-			{
-                bool collision = false;
+            //Collision detection. Will expand on this later
+            if (tile.Blocked && canRollOver((int)newPosition.x, (int)newPosition.y, _type))
+            {
+                bCollision = true;
 
                 if (Math.Abs(tileX - newTileX) > 0)
-                {
                     _velocity.x *= -1;
-                    collision = true;
-                }
 
                 if (Math.Abs(tileY - newTileY) > 0)
-                {
                     _velocity.y *= -1;
-                    collision = true;
-                }
 
-                if (collision)
-                    _velocity *= _type.BouncePercent / 1000.0d;
-			}
-
-            //Finally, we can adjust our position
-			_position.x = newPosition.x;
-			_position.y = newPosition.y;
+                //Apply any bounce physics
+                _velocity *= _type.BouncePercent / 1000.0d;
+            }
+            else
+            {
+                //No collision?
+                bCollision = false;
+                //We can adjust our position
+                _position.x = newPosition.x;
+                _position.y = newPosition.y;
+            }
 
             //Update the state, converting our floats into the nearest short values
 			_state.positionX = (short)(uint)_position.x;
