@@ -23,9 +23,10 @@ namespace InfServer.Bots
 		protected Arena _arena;                         //The arena we're in
 		public bool bEnabled;							//Are we able to accept movement commands?
         public bool bCollision;
+        public Vector3 _lastCollision;
 
-		//Hardcode the terrain for now until we get access to the map info!
-		private int _terrainType = 0;
+        //Hardcode the terrain for now until we get access to the map info!
+        private int _terrainType = 0;
 		
 		//Our internal representation of position/velocity/direction
 		//These are vectors using float precision
@@ -200,11 +201,11 @@ namespace InfServer.Bots
 
             LvlInfo.Tile tile = _arena._tiles[(newTileY * _arena._levelWidth) + newTileX];
             LvlInfo level = _arena._server._assets.Level;
-
             //Collision detection. Will expand on this later
             if (tile.Blocked && canRollOver((int)newPosition.x, (int)newPosition.y, _type))
             {
                 bCollision = true;
+                _lastCollision = new Vector3(((float)_position.x) / 100.0, ((float)newPosition.y) / 100.0, 0);
 
                 if (Math.Abs(tileX - newTileX) > 0)
                     _velocity.x *= -1;
@@ -212,20 +213,48 @@ namespace InfServer.Bots
                 if (Math.Abs(tileY - newTileY) > 0)
                     _velocity.y *= -1;
 
+                _state.yaw = (byte)_direction;
+                _state.direction = getDirection();
+
                 //Apply any bounce physics
                 _velocity *= _type.BouncePercent / 1000.0d;
-            }
-            else
-            {
-                //No collision?
-                bCollision = false;
-                //We can adjust our position
+
+                //Clamp our resulting velocity
+                if (_velocity.Length >= _rollTopSpeed / 1)
+                    _velocity.Normalize(_rollTopSpeed / 1);
+
+                //Calculate our new position
+                xPerTick = _velocity.x / 10000.0d;
+                yPerTick = _velocity.y / 10000.0d;
+
+                yPerTick *= 0.70f;          //Y coordinates are bigger than x by 0.7?
+
+                newPosition = new Vector2(_position.x + (xPerTick * delta), _position.y + (yPerTick * delta));
+
+                //Clamp our position
+                newPosition.x = Math.Min(newPosition.x, (AssetManager.Manager.Level.Width - 1) * 16);
+                newPosition.x = Math.Max(newPosition.x, 0);
+                newPosition.y = Math.Min(newPosition.y, (AssetManager.Manager.Level.Height - 1) * 16);
+                newPosition.y = Math.Max(newPosition.y, 0);
+
                 _position.x = newPosition.x;
                 _position.y = newPosition.y;
+
+                _state.positionX = (short)(uint)_position.x;
+                _state.positionY = (short)(uint)_position.y;
+                _state.velocityX = (short)(uint)_velocity.x;
+                _state.velocityY = (short)(uint)_velocity.y;
+                _state.lastUpdate = Environment.TickCount;
+                return false;
             }
+            else
+                bCollision = false;
+            
+            _position.x = newPosition.x;
+            _position.y = newPosition.y;
 
             //Update the state, converting our floats into the nearest short values
-			_state.positionX = (short)(uint)_position.x;
+            _state.positionX = (short)(uint)_position.x;
 			_state.positionY = (short)(uint)_position.y;
 			_state.velocityX = (short)(uint)_velocity.x;
 			_state.velocityY = (short)(uint)_velocity.y;
