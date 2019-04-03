@@ -1081,7 +1081,8 @@ namespace InfServer.Game
                         return;
                     }
 
-                    if (!Logic_Assets.SkillCheck(from, skill.skill.Logic))
+                    //Why was this checking attributes? Client handles all of that bizness
+                    if (skill.skill.SkillId > 0 && !Logic_Assets.SkillCheck(from, skill.skill.Logic))
                     {
                         from.sendMessage(-1, "You do not have the requirements to play this class.");
                         return;
