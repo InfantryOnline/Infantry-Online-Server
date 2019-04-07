@@ -423,6 +423,24 @@ namespace InfServer.Bots
 
 			return Helpers.ObjectState.Direction.None;
 		}
-		#endregion
-	}
+        #endregion
+
+        #region State Modifiers
+
+        /// <summary>
+        /// Warps the bot to the specified location
+        /// </summary>
+        public void warp(Helpers.ObjectState warpTo)
+        {
+            //Modify it's position first
+            _position = new Vector2(warpTo.positionX, warpTo.positionY);
+            _state.positionX = warpTo.positionX;
+            _state.positionY = warpTo.positionY;
+
+            //Update
+            updateState(0);
+        }
+
+        #endregion
+    }
 }
