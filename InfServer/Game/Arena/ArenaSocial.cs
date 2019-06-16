@@ -242,7 +242,7 @@ namespace InfServer.Game
                 //Lets check their level and their arena
                 if (from.PermissionLevel < Data.PlayerPermission.SMod)
                 {
-                    if (recipient != null && !recipient._arena._name.Equals(from._arena._name))
+                    if (recipient != null && !recipient._arena._name.Equals(from._arena._name, StringComparison.OrdinalIgnoreCase))
                     {
                         from.sendMessage(-1, "You cannot use commands from one arena to another.");
                         return;

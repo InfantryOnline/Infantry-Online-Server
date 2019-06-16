@@ -4,3 +4,5 @@ C:\Infantry\infserver\branches\MiniAccountServer\MiniAccountServer\obj\x86\Relea
 C:\Infantry\infserver\branches\MiniAccountServer\MiniAccountServer\obj\x86\Release\MiniAccountServer.pdb
 C:\Infantry\infserver\branches\MiniAccountServer\MiniAccountServer\obj\x86\Release\MiniAccountServer.csprojResolveAssemblyReference.cache
 C:\Infantry\Accounts\MiniAccountServer.exe.config
+C:\Infantry\Repositories\Server\MiniAccountServer\MiniAccountServer\obj\x86\Release\MiniAccountServer.exe
+C:\Infantry\Repositories\Server\MiniAccountServer\MiniAccountServer\obj\x86\Release\MiniAccountServer.pdb
