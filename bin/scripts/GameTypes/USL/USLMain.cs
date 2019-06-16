@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using InfServer.Logic;
 using InfServer.Game;
 using InfServer.Scripting;
-using InfServer.Protocol;
 using InfServer.Bots;
+using InfServer.Protocol;
 
 using Assets;
 
@@ -62,8 +63,11 @@ namespace InfServer.Script.GameType_USL
 
             //Allow voting here?
             if (!_arena._bIsPublic)
+            {
                 _gamePlay.Voting = false;
-
+                _gamePlay.Events = false;
+                _gamePlay.SpawnEvent = false;
+            }
 
             return true;
         }
@@ -371,16 +375,16 @@ namespace InfServer.Script.GameType_USL
                     return false;
                 }
 
-                var eventName = names.FirstOrDefault(x => String.Equals(x, payload, StringComparison.OrdinalIgnoreCase));
-                var options = String.Join(", ", names);
+                var eventName = names.FirstOrDefault(x => string.Equals(x, payload, StringComparison.OrdinalIgnoreCase));
+                var options = string.Join(", ", names);
 
-                if (String.IsNullOrWhiteSpace(payload) || String.IsNullOrWhiteSpace(eventName))
+                if (string.IsNullOrWhiteSpace(payload) || string.IsNullOrWhiteSpace(eventName))
                 {
                     //If an event is active, show what it is
                     if (_gamePlay.Events)
-                        player.sendMessage(0, String.Format("Current active event - {0}", Enum.GetName(typeof(Settings.EventTypes), _gamePlay._eventType)));
+                        player.sendMessage(0, string.Format("Current active event - {0}", Enum.GetName(typeof(Settings.EventTypes), _gamePlay._eventType)));
 
-                    player.sendMessage(-1, String.Format("Syntax: ?event <event name> - Options are {0}.", options));
+                    player.sendMessage(-1, string.Format("Syntax: ?event <event name> - Options are {0}.", options));
                     return false;
                 }
 
@@ -409,7 +413,7 @@ namespace InfServer.Script.GameType_USL
                 {
                     _tickVotingStarted = Environment.TickCount;
                     _votingTime = _gamePlay.VotingTime;
-                    player._arena.sendArenaMessage(String.Format("Event voting has started, use ?event <event name> to vote - Options are {0}.", options));
+                    player._arena.sendArenaMessage(string.Format("Event voting has started, use ?event <event name> to vote - Options are {0}.", options));
                 }
 
                 List<string> removeKeys = new List<string>();
@@ -437,7 +441,7 @@ namespace InfServer.Script.GameType_USL
 
                 //Add them
                 _eventVoting[eventName].Add(player._id);
-                player.sendMessage(0, String.Format("You have voted for event {0}.", eventName));
+                player.sendMessage(0, string.Format("You have voted for event {0}.", eventName));
             }
 
             return true;
@@ -450,9 +454,10 @@ namespace InfServer.Script.GameType_USL
         public bool playerModCommand(Player player, Player recipient, string command, string payload)
         {
             command = (command.ToLower());
+
             if (command.Equals("mvp") && player.PermissionLevelLocal >= Data.PlayerPermission.Mod)
             {
-                if (String.IsNullOrWhiteSpace(payload))
+                if (string.IsNullOrWhiteSpace(payload))
                 {
                     player.sendMessage(-1, "Syntax: *mvp alias OR ::*mvp");
                     return false;
@@ -474,9 +479,10 @@ namespace InfServer.Script.GameType_USL
                     _arena._server._db.updatePlayer(target);
                 }
 
-                if (!String.IsNullOrEmpty(_gamePlay.GetFileName))
+                if (!string.IsNullOrEmpty(_gamePlay.GetFileName))
                 {
-                    StreamWriter fs = Logic.Logic_File.OpenStatFile(_gamePlay.GetFileName, String.Format("Season {0}", _gamePlay.LeagueSeason.ToString()));
+                    StreamWriter fs = Logic_File.OpenStatFile(_gamePlay.GetFileName, string.Format("Season {0}", _gamePlay.LeagueSeason.ToString()));
+                    fs.WriteLine("Referee: {0}", player._alias);
                     fs.WriteLine();
                     fs.WriteLine("MVP: {0}", target != null ? target._alias : payload);
                     fs.Close();
@@ -488,7 +494,7 @@ namespace InfServer.Script.GameType_USL
 
             if (command.Equals("setscore"))
             {
-                if (String.IsNullOrEmpty(payload))
+                if (string.IsNullOrEmpty(payload))
                 {
                     player.sendMessage(-1, "Syntax: *setscore 1,2  (In order by teamname per scoreboard)");
                     return false;
@@ -509,9 +515,9 @@ namespace InfServer.Script.GameType_USL
 
                 IEnumerable<Team> activeTeams = _arena.ActiveTeams;
                 if (activeTeams.ElementAt(0) != null)
-                    Int32.TryParse(args[0].Trim(), out activeTeams.ElementAt(0)._currentGameKills);
+                    int.TryParse(args[0].Trim(), out activeTeams.ElementAt(0)._currentGameKills);
                 if (activeTeams.ElementAt(1) != null)
-                    Int32.TryParse(args[1].Trim(), out activeTeams.ElementAt(1)._currentGameKills);
+                    int.TryParse(args[1].Trim(), out activeTeams.ElementAt(1)._currentGameKills);
 
                 //Immediately notify the change
                 _gamePlay.UpdateTickers();
@@ -532,7 +538,7 @@ namespace InfServer.Script.GameType_USL
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -562,15 +568,15 @@ namespace InfServer.Script.GameType_USL
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = true;
                         recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
-                        player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -588,8 +594,8 @@ namespace InfServer.Script.GameType_USL
                 {
                     //We arent
                     //Get name and possible level
-                    Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    short number;
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "Syntax: *poweradd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         player.sendMessage(0, "Note: there can only be 1 admin.");
@@ -612,13 +618,13 @@ namespace InfServer.Script.GameType_USL
                         if (level < 1 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("Syntax: *poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, string.Format("Syntax: *poweradd alias:level(optional) OR :alias:*poweradd level(optional) possible levels are 1-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             player.sendMessage(0, "Note: there can be only 1 admin level.");
                             return false;
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have promoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have promoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -631,7 +637,7 @@ namespace InfServer.Script.GameType_USL
                                 break;
                         }
                         recipient._developer = true;
-                        recipient.sendMessage(0, String.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
+                        recipient.sendMessage(0, string.Format("You have been powered to level {0}. Use *help to familiarize with the commands and please read all rules.", level));
                     }
 
                     //Lets send it off
@@ -659,7 +665,7 @@ namespace InfServer.Script.GameType_USL
                 if (recipient != null)
                 {
                     //Check for a possible level
-                    if (!String.IsNullOrWhiteSpace(payload))
+                    if (!string.IsNullOrWhiteSpace(payload))
                     {
                         try
                         {
@@ -691,15 +697,15 @@ namespace InfServer.Script.GameType_USL
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
                     else
                     {
                         recipient._developer = false;
                         recipient._permissionStatic = Data.PlayerPermission.Normal;
-                        recipient.sendMessage(0, String.Format("You have been demoted to level {0}.", level));
-                        player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", recipient._alias, level));
+                        recipient.sendMessage(0, string.Format("You have been demoted to level {0}.", level));
+                        player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", recipient._alias, level));
                     }
 
                     //Lets send it to the database
@@ -717,8 +723,8 @@ namespace InfServer.Script.GameType_USL
                 {
                     //We arent
                     //Get name and possible level
-                    Int16 number;
-                    if (String.IsNullOrEmpty(payload))
+                    short number;
+                    if (string.IsNullOrEmpty(payload))
                     {
                         player.sendMessage(-1, "Syntax: *powerremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
                         return false;
@@ -740,12 +746,12 @@ namespace InfServer.Script.GameType_USL
                         if (level < 0 || level > (int)player.PermissionLevelLocal
                             || level == (int)Data.PlayerPermission.SMod)
                         {
-                            player.sendMessage(-1, String.Format("Syntax: *powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
+                            player.sendMessage(-1, string.Format("Syntax: *powerremove alias:level(optional) OR :alias:*powerremove level(optional) possible levels are 0-{0}", ((int)player.PermissionLevelLocal).ToString()));
                             return false;
                         }
                         payload = param[0];
                     }
-                    player.sendMessage(0, String.Format("You have demoted {0} to level {1}.", payload, level));
+                    player.sendMessage(0, string.Format("You have demoted {0} to level {1}.", payload, level));
                     if ((recipient = player._server.getPlayer(payload)) != null)
                     { //They are playing, lets update them
                         switch (level)
@@ -761,7 +767,7 @@ namespace InfServer.Script.GameType_USL
                                 recipient._permissionStatic = Data.PlayerPermission.Mod;
                                 break;
                         }
-                        recipient.sendMessage(0, String.Format("You have been depowered to level {0}.", level));
+                        recipient.sendMessage(0, string.Format("You have been depowered to level {0}.", level));
                     }
 
                     //Lets send it off
@@ -785,13 +791,13 @@ namespace InfServer.Script.GameType_USL
                     return false;
                 }
 
-                if (String.IsNullOrEmpty(payload))
+                if (string.IsNullOrEmpty(payload))
                 {
                     //If an event is active, show what it is
                     if (_gamePlay.Events)
-                        player.sendMessage(0, String.Format("Current active event - {0}", Enum.GetName(typeof(Settings.EventTypes), _gamePlay._eventType)));
-                    string options = String.Join(", ", names);
-                    player.sendMessage(-1, String.Format("Syntax: *event <event name> - Options are {0}.", options));
+                        player.sendMessage(0, string.Format("Current active event - {0}", Enum.GetName(typeof(Settings.EventTypes), _gamePlay._eventType)));
+                    string options = string.Join(", ", names);
+                    player.sendMessage(-1, string.Format("Syntax: *event <event name> - Options are {0}.", options));
                     player.sendMessage(0, "Use *event off to stop events and return to normal gameplay.");
                     return false;
                 }
@@ -806,8 +812,8 @@ namespace InfServer.Script.GameType_USL
                 if (!names.Contains(payload, StringComparer.OrdinalIgnoreCase))
                 {
                     player.sendMessage(-1, "That is not a valid option.");
-                    string options = String.Join(", ", names);
-                    player.sendMessage(0, String.Format("Syntax: *event <event name> - Options are {0} (use *event off to stop the event)", options));
+                    string options = string.Join(", ", names);
+                    player.sendMessage(0, string.Format("Syntax: *event <event name> - Options are {0} (use *event off to stop the event)", options));
                     return false;
                 }
 
@@ -818,7 +824,7 @@ namespace InfServer.Script.GameType_USL
                         if (Enum.TryParse(s, out eType))
                         {
                             _gamePlay._eventType = eType;
-                            _arena.sendArenaMessage(String.Format("Event {0} is now ON!", s));
+                            _arena.sendArenaMessage(string.Format("Event {0} is now ON!", s));
 
                             _gamePlay.Events = true;
                             if (EventOff != null)
@@ -834,13 +840,13 @@ namespace InfServer.Script.GameType_USL
             if (command.Equals("spawnevent"))
             {
                 var names = Enum.GetNames(typeof(Settings.SpawnEventTypes));
-                if (String.IsNullOrEmpty(payload))
+                if (string.IsNullOrEmpty(payload))
                 {
                     //If an event is active, show what it is
                     if (_gamePlay.SpawnEvent)
                         player.sendMessage(0, String.Format("Current active event - {0}", Enum.GetName(typeof(Settings.SpawnEventTypes), _gamePlay._spawnEventType)));
-                    string options = String.Join(", ", names);
-                    player.sendMessage(-1, String.Format("Syntax: *spawnevent <event name> - Options are {0}.", options));
+                    string options = string.Join(", ", names);
+                    player.sendMessage(-1, string.Format("Syntax: *spawnevent <event name> - Options are {0}.", options));
                     player.sendMessage(0, "If you want to set or disable a halfway point for 30k's, use *spawnevent timer");
                     player.sendMessage(0, "Use *spawnevent off to stop events and return to normal gameplay.");
                     return false;
@@ -887,8 +893,8 @@ namespace InfServer.Script.GameType_USL
                 if (!names.Contains(payload, StringComparer.OrdinalIgnoreCase))
                 {
                     player.sendMessage(-1, "That is not a valid option.");
-                    string options = String.Join(", ", names);
-                    player.sendMessage(0, String.Format("Syntax: *spawnevent <event name> - Options are {0} (use *spawnevent off to stop the event)", options));
+                    string options = string.Join(", ", names);
+                    player.sendMessage(0, string.Format("Syntax: *spawnevent <event name> - Options are {0} (use *spawnevent off to stop the event)", options));
                     return false;
                 }
 
@@ -899,7 +905,7 @@ namespace InfServer.Script.GameType_USL
                         if (Enum.TryParse(s, out eType))
                         {
                             _gamePlay._spawnEventType = eType;
-                            _arena.sendArenaMessage(String.Format("SpawnEvent {0} has been turned ON!", s));
+                            _arena.sendArenaMessage(string.Format("SpawnEvent {0} has been turned ON!", s));
 
                             _gamePlay.SpawnEvent = true;
                             return true;
@@ -939,11 +945,11 @@ namespace InfServer.Script.GameType_USL
             if (names.Count == 0)
                 return;
 
-            var options = String.Join(", ", names);
+            var options = string.Join(", ", names);
             if (_tickVotingStarted == 0)
             {
                 _tickVotingStarted = Environment.TickCount;
-                _arena.sendArenaMessage(String.Format("Event voting has started, use ?event <event name> to vote - Options are {0}.", options));
+                _arena.sendArenaMessage(string.Format("Event voting has started, use ?event <event name> to vote - Options are {0}.", options));
             }
         }
 
@@ -970,7 +976,7 @@ namespace InfServer.Script.GameType_USL
             }
 
             var winningEvent = _eventVoting.OrderByDescending(x => x.Value).FirstOrDefault();
-            _arena.sendArenaMessage(String.Format("Voting over! Winning event is {0} with {1} vote(s). Switching teams...", winningEvent.Key, winningEvent.Value.Count));
+            _arena.sendArenaMessage(string.Format("Voting over! Winning event is {0} with {1} vote(s). Switching teams...", winningEvent.Key, winningEvent.Value.Count));
 
             _gamePlay._eventType = (Settings.EventTypes)Enum.Parse(typeof(Settings.EventTypes), winningEvent.Key);
 
@@ -1016,7 +1022,7 @@ namespace InfServer.Script.GameType_USL
         {
             foreach (var player in _arena.PlayersIngame)
             {
-                switch ((Settings.EventTypes)_gamePlay._eventType)
+                switch (_gamePlay._eventType)
                 {
                     case Settings.EventTypes.RedBlue:
                         Team red = _arena.getTeamByName("Red");
@@ -1159,35 +1165,6 @@ namespace InfServer.Script.GameType_USL
                         break;
                 }
             }
-        }
-
-        /// <summary>
-        /// Downloads our rules from the usl site
-        /// </summary>
-        private void GetUslRules(string url)
-        {
-            if (string.IsNullOrWhiteSpace(url))
-                return;
-
-            System.Net.WebClient webclient = new System.Net.WebClient();
-            webclient.DownloadDataCompleted += ParseRules;
-
-            try
-            {
-                webclient.DownloadDataAsync(new Uri(url));
-                webclient.Dispose();
-            }
-            catch
-            { }
-        }
-
-        /// <summary>
-        /// Called only when downloading our rule file via webclient
-        /// </summary>
-        private void ParseRules(object sender, System.Net.DownloadDataCompletedEventArgs e)
-        {
-            var data = e.Result;
-            File.WriteAllBytes("/assets/mslrules.txt", data);
         }
 
         #endregion

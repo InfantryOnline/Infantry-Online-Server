@@ -33,6 +33,10 @@ namespace InfServer.Script.GameType_USL
         DateTime startTime;
 
         /// <summary>
+        /// Player & Squad Name - based on the usl site
+        /// </summary>
+        Dictionary<string, string> activeSquads;
+        /// <summary>
         /// Current game player stats
         /// </summary>
         private Dictionary<string, PlayerStat> _savedPlayerStats;
@@ -261,13 +265,17 @@ namespace InfServer.Script.GameType_USL
             return types;
         }
 
+        /// <summary>
+        /// Will see if any of the event types exist in the .lio and are on the map or out of bounds
+        /// </summary>
+        /// <returns>Returns true if any event type is playable, false if not</returns>
         private bool GetEventTypes(Team check1, Team check2)
         {
             if (check1 == null || check2 == null)
                 return false;
 
             CfgInfo teamInfo = _arena._server._zoneConfig;
-            //Crap way of doing this, need to get the warp parameter id
+            //Crap way of doing this, but its getting the warp parameter id
             int i = 0, team1 = 0, team2 = 0;
             foreach (CfgInfo.TeamInfo info in teamInfo.teams)
             {
@@ -299,6 +307,31 @@ namespace InfServer.Script.GameType_USL
 
             return true;
         }
+
+        /// <summary>
+        /// Sets the default mini map event for the zone starting with RedBlue
+        /// </summary>
+        private void SetDefaultEventType()
+        {
+            if (CurrentEventTypes.Contains("RedBlue"))
+            {
+                _eventType = EventTypes.RedBlue;
+            }
+            else if (CurrentEventTypes.Contains("GreenYellow"))
+            {
+                _eventType = EventTypes.GreenYellow;
+            }
+            else if (CurrentEventTypes.Contains("WhiteBlack"))
+            {
+                _eventType = EventTypes.WhiteBlack;
+            }
+            else if (CurrentEventTypes.Contains("PinkPurple"))
+            {
+                _eventType = EventTypes.PinkPurple;
+            }
+
+            Events = true;
+        }
         #endregion
 
         #region Constructors
@@ -316,6 +349,10 @@ namespace InfServer.Script.GameType_USL
             _savedPlayerStats = new Dictionary<string, PlayerStat>();
             _config = _arena._server._zoneConfig;
 
+            //Lets get our squad data from the usl website
+            GetUslData();
+
+            /*
             //Lets see what season we are in (Match related)
             //Lets try from the usl site first then season directory if that fails
             string season = string.Empty;
@@ -324,10 +361,14 @@ namespace InfServer.Script.GameType_USL
             { season = Logic_File.GetSeasonDirectory(); }
             if (season.Contains("Season"))
                 season = (season.Split(' ')).ElementAt(1);
-            if (!Int32.TryParse(season, out LeagueSeason))
+            if (!int.TryParse(season, out LeagueSeason))
                 LeagueSeason = 1;
+            */
             //Lets generate our list of available events
             CurrentEventTypes = GetEventTypes();
+
+            //Lets set the default script for low pop game play
+            SetDefaultEventType();
         }
         #endregion
 
@@ -335,6 +376,7 @@ namespace InfServer.Script.GameType_USL
         public void Poll(int now)
         {
             //Do we need to check for rape lines?
+            /* FIX ME IN THE MAP
             if (_arena._isMatch && _arena.ActiveTeams.Count() > 0)
             {
                 foreach (Team t in _arena.ActiveTeams)
@@ -342,7 +384,7 @@ namespace InfServer.Script.GameType_USL
                     foreach (Player p in t.ActivePlayers.Reverse())
                     { RapeLine(p); }
                 }
-            }
+            }*/
 
             if (now - _lastTickerUpdate >= 1000)
             {
@@ -365,7 +407,7 @@ namespace InfServer.Script.GameType_USL
             if (_arena.ActiveTeams.Count() == 0)
                 return false;
 
-            bool isMatch = _arena._isMatch = true; //Temporary
+            bool isMatch = _arena._isMatch;
             ResetKiller(null);
 
             _savedPlayerStats.Clear();
@@ -379,7 +421,7 @@ namespace InfServer.Script.GameType_USL
                 temp.bonusPoints = 0;
                 temp.killPoints = 0;
                 temp.playSeconds = 0;
-                temp.squad = p._squad;
+                temp.squad = activeSquads.ContainsKey(p._alias.ToLower()) ? activeSquads[p._alias.ToLower()] : "";
                 temp.kills = 0;
                 temp.deaths = 0;
                 temp.player = p;
@@ -396,6 +438,7 @@ namespace InfServer.Script.GameType_USL
                 temp.lastUsedWepTick = -1;
                 temp.potentialHealthHealed = 0;
                 temp.onPlayingField = false;
+                //Add them to the dictionary
                 _savedPlayerStats.Add(p._alias, temp);
             }
 
@@ -684,7 +727,7 @@ namespace InfServer.Script.GameType_USL
             if (!SpawnEvent)
                 return;
 
-            switch ((SpawnEventTypes)_spawnEventType)
+            switch (_spawnEventType)
             {
                 case SpawnEventTypes.SOLOTHIRTYK:
                     break;
@@ -756,7 +799,7 @@ namespace InfServer.Script.GameType_USL
             if (!_savedPlayerStats.ContainsKey(player._alias))
             {
                 PlayerStat temp = new PlayerStat();
-                temp.squad = player._squad;
+                temp.squad = activeSquads.ContainsKey(player._alias.ToLower()) ? activeSquads[player._alias.ToLower()] : "";
                 temp.assistPoints = 0;
                 temp.bonusPoints = 0;
                 temp.killPoints = 0;
@@ -771,6 +814,7 @@ namespace InfServer.Script.GameType_USL
             }
             _savedPlayerStats[player._alias].teamname = player._team._name;
             _savedPlayerStats[player._alias].hasPlayed = player.IsSpectator ? false : true;
+
             if (player._baseVehicle != null)
                 _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
@@ -797,7 +841,7 @@ namespace InfServer.Script.GameType_USL
             {
                 PlayerStat temp = new PlayerStat();
                 temp.alias = player._alias;
-                temp.squad = player._squad;
+                temp.squad = activeSquads.ContainsKey(player._alias.ToLower()) ? activeSquads[player._alias.ToLower()] : "";
                 temp.assistPoints = 0;
                 temp.bonusPoints = 0;
                 temp.killPoints = 0;
@@ -809,7 +853,7 @@ namespace InfServer.Script.GameType_USL
                 temp.onPlayingField = false;
                 _savedPlayerStats.Add(player._alias, temp);
             }
-            _savedPlayerStats[player._alias].hasPlayed = true;
+
             if (player._baseVehicle != null)
                 _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
 
@@ -828,7 +872,7 @@ namespace InfServer.Script.GameType_USL
             //Are we doing an event?
             if (Events)
             {   //Which event are we doing?
-                switch ((EventTypes)_eventType)
+                switch (_eventType)
                 {
                     case EventTypes.GreenYellow:
                         //Lets get team stuff
@@ -992,7 +1036,7 @@ namespace InfServer.Script.GameType_USL
                 temp.bonusPoints = 0;
                 temp.points = 0;
                 temp.playSeconds = 0;
-                temp.squad = player._squad;
+                temp.squad = activeSquads.ContainsKey(player._alias.ToLower()) ? activeSquads[player._alias.ToLower()] : "";
                 temp.deaths = 0;
                 temp.kills = 0;
                 temp.player = player;
@@ -1120,6 +1164,8 @@ namespace InfServer.Script.GameType_USL
             Team collie = active.Count() > 1 ? active.ElementAt(1) : _arena.getTeamByName(_config.teams[0].name);
             Team titan = active.Count() > 0 ? active.ElementAt(0) : _arena.getTeamByName(_config.teams[1].name);
 
+            //NOTE: Change this so each active team playing is displayed the scoreboard to them based on the event
+            //IE. RedBlue see's only RedBlue, Sb's only see sb.. spec only see's each active team score and not their own unless playing
             string format = string.Format("{0}={1} - {2}={3}", titan._name, titan._currentGameKills, collie._name, collie._currentGameKills);
             //We playing more events at the same time?
             if (active.Count() > 3)
@@ -1232,37 +1278,105 @@ namespace InfServer.Script.GameType_USL
             }
         }
 
+        private void GetUslData()
+        {
+            //Lets see what season we are in (Match related)
+            //Lets try from the usl site first then season directory if that fails
+            string season = string.Empty;
+
+            System.Net.WebClient webClient = new System.Net.WebClient();
+            webClient.DownloadDataCompleted += GetUslSeasonCompleted;
+
+            try
+            {
+                webClient.DownloadDataAsync(new Uri(@"http://www.uslzone.com/usl/view_schedule.php"));
+            }
+            catch
+            {
+                season = Logic_File.GetSeasonDirectory();
+
+                if (season.Contains("Season"))
+                    season = (season.Split(' ')).ElementAt(1);
+                if (!int.TryParse(season, out LeagueSeason))
+                    LeagueSeason = 1;
+            }
+
+            //Lets create a dictionary of all our active squads and members
+            activeSquads = new Dictionary<string, string>();
+            webClient = new System.Net.WebClient();
+            webClient.DownloadDataCompleted += GetUslSquadsCompleted;
+
+            try
+            {
+                webClient.DownloadDataAsync(new Uri(@"https://www.uslzone.com/usl/active_players.php"));
+            }
+            catch
+            {
+            }
+            webClient.Dispose();
+        }
+
         /// <summary>
         /// Checks for the current season from the usl site and returns a string
         /// </summary>
-        private bool GetUslSeason(string url, out string result)
+        private void GetUslSeasonCompleted(object sender, System.Net.DownloadDataCompletedEventArgs e)
         {
-            System.Net.WebClient webclient = new System.Net.WebClient();
-            result = string.Empty;
+            string season = string.Empty;
             try
             {
-                byte[] data = webclient.DownloadData(new Uri(url));
-                if (data.Length <= 0)
-                { return false; }
-                else
+                if (e.Result.Length > 0)
                 {
-                    string downloadedString = Encoding.ASCII.GetString(data);
+                    string downloadedString = Encoding.ASCII.GetString(e.Result);
                     string pattern = @"\b(?i:s)eason\s\d+\b";
                     foreach (System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(downloadedString, pattern))
                     {
-                        result = match.Value;
+                        season = match.Value;
                         break;
                     }
                 }
-                webclient.Dispose();
             }
             catch
-            { return false; }
+            { }
 
-            if (string.IsNullOrEmpty(result))
-            { return false; }
+            if (string.IsNullOrEmpty(season))
+            {
+                season = Logic_File.GetSeasonDirectory();
+            }
 
-            return true;
+            if (season.Contains("Season"))
+                season = (season.Split(' ')).ElementAt(1);
+            if (!int.TryParse(season, out LeagueSeason))
+                LeagueSeason = 1;
+
+            return;
+        }
+
+        /// <summary>
+        /// Creates a dictionary of each active player and the squad they are on
+        /// </summary>
+        private void GetUslSquadsCompleted(object sender, System.Net.DownloadDataCompletedEventArgs e)
+        {
+            try
+            {
+                if (e.Result.Length > 0)
+                {
+                    string downloadedString = Encoding.ASCII.GetString(e.Result);
+                    string fixedString = string.Empty;
+                    foreach (char c in downloadedString)
+                    {
+                        fixedString += c;
+                        if (fixedString.EndsWith("<br>"))
+                        {
+                            fixedString = (fixedString.Substring(0, fixedString.Length - 4));
+                            string[] split = fixedString.Split(',');
+                            activeSquads.Add(split[0].ToLower(), split[1]);
+                            fixedString = string.Empty;
+                        }
+                    }
+                }
+            }
+            catch
+            { }
         }
 
         /// <summary>
@@ -1418,7 +1532,7 @@ namespace InfServer.Script.GameType_USL
                 return;
 
             //Lets find the item first
-            Assets.ItemInfo item = _arena._server._assets.getItemByName("Bty");
+            ItemInfo item = _arena._server._assets.getItemByName("Bty");
             if (item == null)
                 return;
 
@@ -1435,7 +1549,7 @@ namespace InfServer.Script.GameType_USL
             if (hides == null)
                 return;
 
-            switch ((SpawnEventTypes)_spawnEventType)
+            switch (_spawnEventType)
             {
                 case SpawnEventTypes.SOLOTHIRTYK:
                     {
@@ -1463,7 +1577,7 @@ namespace InfServer.Script.GameType_USL
                         }
 
                         //Spawn it
-                        _arena.itemSpawn(item, (ushort)1, hide.GeneralData.OffsetX, hide.GeneralData.OffsetY, null);
+                        _arena.itemSpawn(item, 1, hide.GeneralData.OffsetX, hide.GeneralData.OffsetY, null);
                     }
                     break;
 
@@ -1503,9 +1617,9 @@ namespace InfServer.Script.GameType_USL
 
                         //Spawn it
                         if (BountyA == null)
-                            _arena.itemSpawn(item, (ushort)1, hideA.GeneralData.OffsetX, hideA.GeneralData.OffsetY, null);
+                            _arena.itemSpawn(item, 1, hideA.GeneralData.OffsetX, hideA.GeneralData.OffsetY, null);
                         if (BountyB == null)
-                            _arena.itemSpawn(item, (ushort)1, hideB.GeneralData.OffsetX, hideB.GeneralData.OffsetY, null);
+                            _arena.itemSpawn(item, 1, hideB.GeneralData.OffsetX, hideB.GeneralData.OffsetY, null);
                     }
                     break;
             }
