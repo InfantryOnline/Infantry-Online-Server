@@ -1661,6 +1661,7 @@ namespace InfServer.Script.GameType_USL
                 FileName = filename;
                 StreamWriter fs = Logic_File.CreateStatFile(filename, string.Format("Season {0}", LeagueSeason.ToString()));
 
+                fs.WriteLine("Map: " + _arena._server.Name);
                 fs.WriteLine();
                 fs.WriteLine(string.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = {4}",
                     lastTeam1._name, lastTeam1._currentGameKills, lastTeam1._currentGameDeaths, lastTeam1._name.Equals(victoryTeam._name) ? "Yes" : "No", OT));
@@ -1773,7 +1774,7 @@ namespace InfServer.Script.GameType_USL
                 //Report it
                 _arena.sendArenaMessage("Stats have been backed up to a file. Please stay till refs are done recording.", 0);
             }
-            else
+            else //This is not in OT
             {
                 //Make the file with current date and filename
                 string name1 = team1._name.Trim(' ');
@@ -1782,6 +1783,7 @@ namespace InfServer.Script.GameType_USL
                 FileName = filename;
                 StreamWriter fs = Logic_File.CreateStatFile(filename, string.Format("Season {0}", LeagueSeason.ToString()));
 
+                fs.WriteLine("Map: " + _arena._server.Name);
                 fs.WriteLine();
                 fs.WriteLine(string.Format("Team Name = {0}, Kills = {1}, Deaths = {2}, Win = {3}, In OT? = No",
                     team1._name, team1._currentGameKills, team1._currentGameDeaths, team1 == victoryTeam ? "Yes" : "No"));
