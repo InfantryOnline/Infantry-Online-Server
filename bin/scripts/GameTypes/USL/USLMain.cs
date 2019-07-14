@@ -357,7 +357,7 @@ namespace InfServer.Script.GameType_USL
             if (command == "elo")
             {
                 EloRating rating = new EloRating(1500.0d, 1500.0d, 37, 33);
-                player.sendMessage(0, String.Format("{0},{1}", rating.FinalResult1, rating.FinalResult2));
+                player.sendMessage(0, string.Format("{0},{1}", rating.FinalResult1, rating.FinalResult2));
             }
 
             if (command == "event")

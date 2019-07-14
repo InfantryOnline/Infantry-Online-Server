@@ -352,18 +352,6 @@ namespace InfServer.Script.GameType_USL
             //Lets get our squad data from the usl website
             GetUslData();
 
-            /*
-            //Lets see what season we are in (Match related)
-            //Lets try from the usl site first then season directory if that fails
-            string season = string.Empty;
-
-            if (!GetUslSeason(@"http://www.uslzone.com/usl/view_schedule.php", out season))
-            { season = Logic_File.GetSeasonDirectory(); }
-            if (season.Contains("Season"))
-                season = (season.Split(' ')).ElementAt(1);
-            if (!int.TryParse(season, out LeagueSeason))
-                LeagueSeason = 1;
-            */
             //Lets generate our list of available events
             CurrentEventTypes = GetEventTypes();
 
