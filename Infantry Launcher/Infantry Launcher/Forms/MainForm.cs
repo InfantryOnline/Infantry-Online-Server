@@ -19,8 +19,19 @@ namespace Infantry_Launcher
         /// </summary>
         public void UpdateStatusMsg(string status)
         {
+            UpdateStatusMsg(status, false);
+        }
+
+        /// <summary>
+        /// Updates our status message, displays the text, then refreshes the form for an immediate result
+        /// </summary>
+        public void UpdateStatusMsg(string status, bool refresh)
+        {
             Status.Visible = true;
             Status.Text = status;
+
+            if (refresh)
+            { Refresh(); }
         }
 
         /// <summary>
@@ -344,7 +355,7 @@ namespace Infantry_Launcher
         /// </summary>
         private void PingServer()
         {
-            UpdateStatusMsg("Checking Server Status...");
+            UpdateStatusMsg("Checking Server Status...", true);
 
             string url = settings.Get("Launcher","Accounts");
             if (!AccountController.PingServer(url))
@@ -381,7 +392,7 @@ namespace Infantry_Launcher
                 return;
             }
 
-            UpdateStatusMsg("Checking for launcher updates...");
+            UpdateStatusMsg("Checking for launcher updates...", true);
             AssetDownloadController.CurrentDirectory = currentDirectory;
             AssetDownloadController.SetForm(this);
             try
@@ -449,7 +460,7 @@ namespace Infantry_Launcher
         /// </summary>
         private void UpdateFiles()
         {
-            UpdateStatusMsg("Checking for file updates...");
+            UpdateStatusMsg("Checking for file updates...", true);
             try
             {
                 AssetDownloadController.OnUpdateFiles += UpdateComplete;
