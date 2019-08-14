@@ -729,6 +729,52 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Checks Held Category logic, returns the amount of items a player may be able to pick up depending on category
+        /// </summary>
+        public int heldCategoryCheck(ItemInfo item, int adjust)
+        {
+            int result = adjust;
+
+            //Held category checks
+            if (adjust > 0 && item.heldCategoryType > 0)
+            {
+
+                //The amount we already have
+                int alreadyHolding = _inventory
+                    .Where(it => it.Value.item.heldCategoryType == item.heldCategoryType)
+                    .Sum(it => it.Value.quantity);
+
+                //The total amount our player desires
+                int desired = adjust + alreadyHolding;
+
+                //Veh editor says a held category is "maximum number of unique types of items of this category type"
+                //Vehicle hold categories take precedence over the cfg values
+                if (ActiveVehicle == null)
+                    //Maybe they haven't instanced an active vehicle yet?
+                    return 0;
+
+                if (ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
+                {
+                    if (desired > ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
+                        return ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1] - alreadyHolding;
+                }
+                else if (ActiveVehicle != _baseVehicle &&
+                    _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
+                {
+                    if (desired > _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
+                        return _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1] - alreadyHolding;
+                }
+                else if (_server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1] != -1)
+                {
+                    if (desired > _server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1])
+                        return _server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1] - alreadyHolding;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Modifies and updates the player's inventory
         /// </summary>
         public bool inventoryModify(ItemInfo item, int adjust)
@@ -819,34 +865,11 @@ namespace InfServer.Game
                 return true;
             }
 
-            //Held category checks
-            if (adjust > 0 && ii == null && item.heldCategoryType > 0)
-            {
-                int alreadyHolding = _inventory
-                    .Where(it => it.Value.item.heldCategoryType == item.heldCategoryType)
-                    .Sum(it => 1);
-                //Veh editor says a held category is "maximum number of unique types of items of this category type"
-                //Vehicle hold categories take precedence over the cfg values
-                if (ActiveVehicle == null)
-                    //Maybe they haven't instanced an active vehicle yet?
-                    return false;
-                if (ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
-                {
-                    if (1 + alreadyHolding > ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
-                        return false;
-                }
-                else if (ActiveVehicle != _baseVehicle &&
-                    _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
-                {
-                    if (1 + alreadyHolding > _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
-                        return false;
-                }
-                else if (_server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1] != -1)
-                {
-                    if (1 + alreadyHolding > _server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1])
-                        return false;
-                }
-            }
+            int maxCategory = heldCategoryCheck(item, adjust);
+            adjust = maxCategory;
+
+            if (maxCategory == 0)
+                return false;
 
             if (ii != null)
             {	//Is there enough space?
