@@ -35,7 +35,7 @@ namespace InfServer.Script.GameType_USL
         /// <summary>
         /// Player & Squad Name - based on the usl site
         /// </summary>
-        Dictionary<string, string> activeSquads;
+        private Dictionary<string, string> activeSquads;
         /// <summary>
         /// Current game player stats
         /// </summary>
@@ -78,6 +78,11 @@ namespace InfServer.Script.GameType_USL
         #endregion
 
         #region Misc Gameplay Pointers
+        /// <summary>
+        /// Returns the player and squad name based on what the USL site says
+        /// </summary>
+        public Dictionary<string, string> ActiveSquads { get { return activeSquads; } }
+
         private Team BountyA, BountyB;
         private Player lastKiller;
 
@@ -441,7 +446,7 @@ namespace InfServer.Script.GameType_USL
             //Let everyone know
             _arena.sendArenaMessage("Game has started!");
             _arena.setTicker(1, 3, _config.deathMatch.timer * 100, "Time Left: ",
-                delegate()
+                delegate ()
                 {   //Trigger game end
                     _arena.gameEnd();
                 }
@@ -1166,7 +1171,7 @@ namespace InfServer.Script.GameType_USL
             _arena.setTicker(1, 2, 0, format);
 
             //Personal Scores
-            _arena.setTicker(2, 1, 0, delegate(Player p)
+            _arena.setTicker(2, 1, 0, delegate (Player p)
             {
                 //Update their ticker
                 if (_savedPlayerStats.ContainsKey(p._alias))
@@ -1357,7 +1362,7 @@ namespace InfServer.Script.GameType_USL
                         {
                             fixedString = (fixedString.Substring(0, fixedString.Length - 4));
                             string[] split = fixedString.Split(',');
-                            activeSquads.Add(split[0].ToLower(), split[1]);
+                            activeSquads.Add(split[0].Trim().ToLower(), split[1].Trim());
                             fixedString = string.Empty;
                         }
                     }

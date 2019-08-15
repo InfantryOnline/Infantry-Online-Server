@@ -112,7 +112,7 @@ namespace InfServer.Script.GameType_USL
                 if (_gamePlay._gameType != Settings.GameTypes.LEAGUEOVERTIME)
                 {
                     _arena.setTicker(1, 3, _config.deathMatch.startDelay * 100, "Next game: ",
-                        delegate()
+                        delegate ()
                         {   //Trigger the game start
                             _arena.gameStart();
                         }
@@ -132,7 +132,7 @@ namespace InfServer.Script.GameType_USL
                     {
                         var voteByName = _eventVoting.Select(x => String.Format("{0}({1})", x.Key, x.Value.Count));
                         _arena.setTicker(0, 0, 0,
-                            delegate(Player p)
+                            delegate (Player p)
                             {
                                 return "Event Votes: " + String.Join(", ", voteByName) + " | Voting Time Left: " + _votingTime;
                             }
@@ -357,7 +357,7 @@ namespace InfServer.Script.GameType_USL
             if (command == "elo")
             {
                 EloRating rating = new EloRating(1500.0d, 1500.0d, 37, 33);
-                player.sendMessage(0, string.Format("{0},{1}", rating.FinalResult1, rating.FinalResult2));
+                player.sendMessage(0, String.Format("{0},{1}", rating.FinalResult1, rating.FinalResult2));
             }
 
             if (command == "event")
@@ -454,14 +454,47 @@ namespace InfServer.Script.GameType_USL
         public bool playerModCommand(Player player, Player recipient, string command, string payload)
         {
             command = (command.ToLower());
+            if (command.Equals("squadfind") && player.PermissionLevelLocal >= Data.PlayerPermission.Mod)
+            {
+                if (string.IsNullOrWhiteSpace(payload) && recipient == null)
+                {
+                    player.sendMessage(-1, "Sytax: *squadfind alias OR ::*squadfind");
+                    return false;
+                }
+
+                if (_gamePlay.ActiveSquads == null)
+                {
+                    player.sendMessage(-1, "Cannot search for the player; the active squad list does not exist.");
+                    return false;
+                }
+
+                if (recipient != null && _gamePlay.ActiveSquads.ContainsKey(recipient._alias.ToLower()))
+                {
+                    player.sendMessage(0, string.Format("Player: {0} - Squad: {1}", recipient._alias, _gamePlay.ActiveSquads[recipient._alias.ToLower()]));
+                    return true;
+                }
+
+                else if (_gamePlay.ActiveSquads.ContainsKey(payload.ToLower()))
+                {
+                    player.sendMessage(0, string.Format("Player: {0} - Squad: {1}", payload, _gamePlay.ActiveSquads[payload.ToLower()]));
+                    return true;
+                }
+
+                else
+                {
+                    player.sendMessage(0, "That player doesn't seem to be on a usl squad.");
+                    return true;
+                }
+            }
 
             if (command.Equals("mvp") && player.PermissionLevelLocal >= Data.PlayerPermission.Mod)
             {
-                if (string.IsNullOrWhiteSpace(payload))
+                if (string.IsNullOrWhiteSpace(payload) && recipient == null)
                 {
                     player.sendMessage(-1, "Syntax: *mvp alias OR ::*mvp");
                     return false;
                 }
+
 
                 if (!_gamePlay.AwardMVP)
                 {
