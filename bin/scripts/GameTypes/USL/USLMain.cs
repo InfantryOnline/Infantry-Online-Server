@@ -339,6 +339,15 @@ namespace InfServer.Script.GameType_USL
         }
 
         /// <summary>
+        /// Called when someone attempts to pick a class
+        /// </summary>
+        [Scripts.Event("Shop.SkillRequest")]
+        public bool playerSkillRequest(Player player, SkillInfo skill)
+        {
+            return _gamePlay.playerSkillRequest(player, skill);
+        }
+
+        /// <summary>
         /// Called when a player successfully changes their class
         /// </summary>
         [Scripts.Event("Shop.SkillPurchase")]

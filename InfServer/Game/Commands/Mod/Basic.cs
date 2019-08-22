@@ -1809,7 +1809,7 @@ namespace InfServer.Game.Commands.Mod
                     //Add
                     teamA.addPlayer(p);
 
-                    //Was player just spectating?
+                    //Was the player just spectating?
                     if (p.IsSpectator)
                         //He was, dont count them
                         continue;
@@ -1829,7 +1829,7 @@ namespace InfServer.Game.Commands.Mod
                     //Add
                     teamB.addPlayer(plyr);
 
-                    //Was player just spectating?
+                    //Was the player just spectating?
                     if (plyr.IsSpectator)
                         //They were, dont count them
                         continue;
@@ -1837,24 +1837,36 @@ namespace InfServer.Game.Commands.Mod
                     ++count;
                 }
             }
-            else
+            else //No recipient
             {
-                if (string.IsNullOrWhiteSpace(payload) && player._arena.ActiveTeams.Count() > 2)
-                {
-                    player.sendMessage(-1, "That team doesn't exist.");
-                    player.sendMessage(0, "Syntax: *switch <teamname> OR :player:*switch");
-                    return;
-                }
-
-                //Get each team first
+                //Lets set the defaults
                 Team teamA = player._team;
-                Team teamB = player._arena.getTeamByName(payload);
+                Team teamB = null;
+
+                if (string.IsNullOrWhiteSpace(payload))
+                {
+                    //Lets assume the active teams want to switch sides
+                    if (player._arena.ActiveTeams.Count() == 2)
+                    {
+                        teamB = player._arena.ActiveTeams.SingleOrDefault(t => t != player._team);
+                    }
+                    else //Ask them to choose instead
+                    {
+                        player.sendMessage(-1, "Which team do you want to switch with?");
+                        player.sendMessage(0, "Either type the exact team name or pm the player to switch sides with.");
+                        player.sendMessage(0, "Syntax: *switch <teamname> OR :player:*switch");
+                        return;
+                    }
+                }
+                else //They used a team name
+                {
+                    teamB = player._arena.getTeamByName(payload);
+                }
 
                 //Does the team exist?
                 if (teamB == null)
                 {
                     player.sendMessage(-1, "That team doesn't exist.");
-                    player.sendMessage(0, "Syntax: *switch <teamname> OR :player:*switch");
                     return;
                 }
 
@@ -1911,7 +1923,7 @@ namespace InfServer.Game.Commands.Mod
                     //Add
                     teamA.addPlayer(p);
 
-                    //Was player just spectating?
+                    //Was the player just spectating?
                     if (p.IsSpectator)
                         //They were, dont count them
                         continue;
@@ -1931,7 +1943,7 @@ namespace InfServer.Game.Commands.Mod
                     //Add
                     teamB.addPlayer(plyr);
 
-                    //Was player just spectating?
+                    //Was the player just spectating?
                     if (plyr.IsSpectator)
                         //They were, dont count them
                         continue;
@@ -3616,7 +3628,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(switchSides, "switch",
                 "Switches sides with another team.",
-                "::*switch or *switch [teamname]",
+                "*switch, ::*switch or *switch [teamname]",
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(team, "team",

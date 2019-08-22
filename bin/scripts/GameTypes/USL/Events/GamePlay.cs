@@ -62,7 +62,8 @@ namespace InfServer.Script.GameType_USL
             public int bonusPoints { get; set; }
             public int playSeconds { get; set; }
             public bool hasPlayed { get; set; }
-            public string classType { get; set; }
+
+            public Dictionary<string, int> classType;
 
             //Kill stats
             public ItemInfo.Projectile lastUsedWep { get; set; }
@@ -382,6 +383,8 @@ namespace InfServer.Script.GameType_USL
             if (now - _lastTickerUpdate >= 1000)
             {
                 UpdateTickers();
+                UpdateClassPlayingTime();
+
                 _lastTickerUpdate = now;
             }
 
@@ -422,7 +425,10 @@ namespace InfServer.Script.GameType_USL
                 if (!p.IsSpectator)
                 {
                     if (p._baseVehicle != null)
-                        temp.classType = p._baseVehicle._type.Name;
+                    {
+                        temp.classType = new Dictionary<string, int>();
+                        temp.classType.Add(p._baseVehicle._type.Name, 0);
+                    }
                 }
 
                 temp.lastKillerCount = 0;
@@ -803,13 +809,20 @@ namespace InfServer.Script.GameType_USL
                 temp.kills = 0;
                 temp.player = player;
                 temp.onPlayingField = false;
+                temp.classType = new Dictionary<string, int>();
                 _savedPlayerStats.Add(player._alias, temp);
             }
             _savedPlayerStats[player._alias].teamname = player._team._name;
             _savedPlayerStats[player._alias].hasPlayed = player.IsSpectator ? false : true;
 
             if (player._baseVehicle != null)
-                _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
+            {
+                string baseVehicle = player._baseVehicle._type.Name;
+                if (!_savedPlayerStats[player._alias].classType.ContainsKey(baseVehicle))
+                {
+                    _savedPlayerStats[player._alias].classType.Add(baseVehicle, 0);
+                }
+            }
 
             if (_gameType == GameTypes.LEAGUEMATCH || _gameType == GameTypes.LEAGUEOVERTIME)
             {
@@ -844,11 +857,18 @@ namespace InfServer.Script.GameType_USL
                 temp.kills = 0;
                 temp.player = player;
                 temp.onPlayingField = false;
+                temp.classType = new Dictionary<string, int>();
                 _savedPlayerStats.Add(player._alias, temp);
             }
 
             if (player._baseVehicle != null)
-                _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
+            {
+                string baseVehicle = player._baseVehicle._type.Name;
+                if (!_savedPlayerStats[player._alias].classType.ContainsKey(baseVehicle))
+                {
+                    _savedPlayerStats[player._alias].classType.Add(baseVehicle, 0);
+                }
+            }
 
             if (_gameType == GameTypes.LEAGUEMATCH || _gameType == GameTypes.LEAGUEOVERTIME)
             {
@@ -1035,6 +1055,7 @@ namespace InfServer.Script.GameType_USL
                 temp.player = player;
                 temp.hasPlayed = false;
                 temp.onPlayingField = false;
+                temp.classType = new Dictionary<string, int>();
                 _savedPlayerStats.Add(player._alias, temp);
             }
         }
@@ -1054,7 +1075,13 @@ namespace InfServer.Script.GameType_USL
                     _savedPlayerStats[player._alias].killPoints = gameStarted ? player.StatsCurrentGame.killPoints : player.StatsLastGame != null ? player.StatsLastGame.killPoints : 0;
                     _savedPlayerStats[player._alias].bonusPoints = gameStarted ? player.StatsCurrentGame.bonusPoints : player.StatsLastGame != null ? player.StatsLastGame.bonusPoints : 0;
                     if (player._baseVehicle != null)
-                        _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
+                    {
+                        string baseVehicle = player._baseVehicle._type.Name;
+                        if (!_savedPlayerStats[player._alias].classType.ContainsKey(baseVehicle))
+                        {
+                            _savedPlayerStats[player._alias].classType.Add(baseVehicle, 0);
+                        }
+                    }
                 }
             }
 
@@ -1079,7 +1106,13 @@ namespace InfServer.Script.GameType_USL
                     _savedPlayerStats[player._alias].killPoints = gameStarted ? player.StatsCurrentGame.killPoints : player.StatsLastGame != null ? player.StatsLastGame.killPoints : 0;
                     _savedPlayerStats[player._alias].bonusPoints = gameStarted ? player.StatsCurrentGame.bonusPoints : player.StatsLastGame != null ? player.StatsLastGame.bonusPoints : 0;
                     if (player._baseVehicle != null)
-                        _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
+                    {
+                        string baseVehicle = player._baseVehicle._type.Name;
+                        if (!_savedPlayerStats[player._alias].classType.ContainsKey(baseVehicle))
+                        {
+                            _savedPlayerStats[player._alias].classType.Add(baseVehicle, 0);
+                        }
+                    }
                 }
             }
 
@@ -1114,13 +1147,89 @@ namespace InfServer.Script.GameType_USL
         }
 
         /// <summary>
+        /// Called when a player attempts to pick their class
+        /// </summary>
+        public bool playerSkillRequest(Player player, SkillInfo skill)
+        {
+            if (_gameType == GameTypes.LEAGUEMATCH)
+            {
+                if (!player.IsSpectator && player._baseVehicle != null)
+                {
+                    string baseVehicle = player._baseVehicle._type.Name;
+                    Dictionary<string, int> supportClasses = new Dictionary<string, int>();
+
+                    foreach (Player p in player._team.ActivePlayers)
+                    {
+                        if (p == player)
+                            continue;
+
+                        if (p._baseVehicle != null)
+                        {
+                            string playerBaseVehicle = p._baseVehicle._type.Name;
+                            if (playerBaseVehicle.Equals("Marine"))
+                                continue;
+
+                            if (!supportClasses.ContainsKey(playerBaseVehicle))
+                                supportClasses.Add(playerBaseVehicle, 1);
+                            else
+                                supportClasses[playerBaseVehicle] += 1;
+                        }
+                    }
+
+                    if (player._team.ActivePlayerCount <= 9)
+                    {
+                        if (skill.Name.Equals("Medic") && supportClasses.ContainsKey("Medic") && supportClasses["Medic"] >= 2)
+                        {
+                            player.sendMessage(-1, "There is only 2 medic's allowed.");
+                            return false;
+                        }
+
+                        if (supportClasses.Where(f => f.Key.CompareTo("Medic") != 0).Count() >= 3)
+                        {
+                            player.sendMessage(-1, "There are only 3 support classes allowed.");
+                            return false;
+                        }
+                    }
+
+                    if (player._team.ActivePlayerCount > 9)
+                    {
+                        if (skill.Name.Equals("Medic") && supportClasses.ContainsKey("Medic") && supportClasses["Medic"] >= 3)
+                        {
+                            player.sendMessage(-1, "There is only 3 medic's allowed.");
+                            return false;
+                        }
+
+                        if (supportClasses.Where(f => f.Key.CompareTo("Medic") != 0).Count() >= 4)
+                        {
+                            player.sendMessage(-1, "There are only 4 support classes allowed.");
+                            return false;
+                        }
+                    }
+
+                    if (supportClasses.ContainsKey(skill.Name))
+                    {
+                        player.sendMessage(-1, "Someone on your team is playing that class.");
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Called when a player successfully changes their class
         /// </summary>
         public void playerSkillPurchase(Player player, SkillInfo skill)
         {
             if (_gameType == GameTypes.LEAGUEMATCH)
+            {
                 if (_savedPlayerStats.ContainsKey(player._alias) && player._baseVehicle != null)
-                    _savedPlayerStats[player._alias].classType = player._baseVehicle._type.Name;
+                {
+                    string baseVehicle = player._baseVehicle._type.Name;
+                    if (!_savedPlayerStats[player._alias].classType.ContainsKey(baseVehicle))
+                        _savedPlayerStats[player._alias].classType.Add(baseVehicle, 0);
+                }
+            }
         }
         #endregion
 
@@ -1137,6 +1246,25 @@ namespace InfServer.Script.GameType_USL
 
                 if (Environment.TickCount - p.lastUsedWepTick <= 0)
                     ResetWeaponTicker(p.player);
+            }
+        }
+
+        /// <summary>
+        /// Updates each players' class type in seconds while in game
+        /// </summary>
+        private void UpdateClassPlayingTime()
+        {
+            foreach (Player p in _arena.PlayersIngame)
+            {
+                if (_savedPlayerStats.ContainsKey(p._alias))
+                {
+                    PlayerStat pStat = _savedPlayerStats[p._alias];
+                    if (pStat.classType == null)
+                        continue;
+
+                    if (p._baseVehicle != null && pStat.classType.ContainsKey(p._baseVehicle._type.Name))
+                        pStat.classType[p._baseVehicle._type.Name] += 1;
+                }
             }
         }
 
@@ -1619,6 +1747,24 @@ namespace InfServer.Script.GameType_USL
         }
 
         /// <summary>
+        /// Will retrieve the most used class type for stat recording purposes
+        /// </summary>
+        private string GetClassType(PlayerStat p)
+        {
+            string result = string.Empty;
+            int playTime = 0;
+            foreach(KeyValuePair<string, int> cType in p.classType)
+            {
+                if (cType.Value > playTime)
+                {
+                    playTime = cType.Value;
+                    result = cType.Key;
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Saves all league stats to a file and website
         /// </summary>
         private void ExportStats(Team team1, Team team2)
@@ -1679,7 +1825,7 @@ namespace InfServer.Script.GameType_USL
                         p.Value.kills,
                         p.Value.deaths,
                         p.Value.playSeconds,
-                        p.Value.classType));
+                        GetClassType(p.Value)));
                 }
 
                 fs.WriteLine("---------------------------Medics-----------------------------------");
@@ -1721,7 +1867,7 @@ namespace InfServer.Script.GameType_USL
                         p.Value.kills,
                         p.Value.deaths,
                         p.Value.playSeconds,
-                        p.Value.classType));
+                        GetClassType(p.Value)));
                 }
 
                 fs.WriteLine("---------------------------Medics-----------------------------------");
@@ -1756,7 +1902,7 @@ namespace InfServer.Script.GameType_USL
                         p.Value.deaths,
                         p.Value.assistPoints,
                         p.Value.playSeconds,
-                        p.Value.classType,
+                        GetClassType(p.Value),
                         (p.Value.potentialHealthHealed <= 0 ? 0 : p.Value.potentialHealthHealed)));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
@@ -1801,7 +1947,7 @@ namespace InfServer.Script.GameType_USL
                         p.Value.kills,
                         p.Value.deaths,
                         p.Value.playSeconds,
-                        p.Value.classType));
+                        GetClassType(p.Value)));
                 }
 
                 fs.WriteLine("---------------------------Medics-----------------------------------");
@@ -1843,7 +1989,7 @@ namespace InfServer.Script.GameType_USL
                         p.Value.kills,
                         p.Value.deaths,
                         p.Value.playSeconds,
-                        p.Value.classType));
+                        GetClassType(p.Value)));
                 }
 
                 fs.WriteLine("---------------------------Medics-----------------------------------");
@@ -1878,7 +2024,7 @@ namespace InfServer.Script.GameType_USL
                         p.Value.deaths,
                         p.Value.assistPoints,
                         p.Value.playSeconds,
-                        p.Value.classType,
+                        GetClassType(p.Value),
                         (p.Value.potentialHealthHealed <= 0 ? 0 : p.Value.potentialHealthHealed)));
                 }
                 fs.WriteLine("--------------------------------------------------------------------");
