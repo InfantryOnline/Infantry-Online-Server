@@ -371,7 +371,7 @@ namespace InfServer.Script.GameType_USL
         {
             //Do we need to check for rape lines?
             /* FIX ME IN THE MAP
-            if (_arena._isMatch && _arena.ActiveTeams.Count() > 0)
+            if (_arena._isMatch && _arena._bGameRunning)
             {
                 foreach (Team t in _arena.ActiveTeams)
                 {
@@ -422,11 +422,11 @@ namespace InfServer.Script.GameType_USL
                 temp.deaths = 0;
                 temp.player = p;
                 temp.hasPlayed = p.IsSpectator ? false : true;
+                temp.classType = new Dictionary<string, int>();
                 if (!p.IsSpectator)
                 {
                     if (p._baseVehicle != null)
                     {
-                        temp.classType = new Dictionary<string, int>();
                         temp.classType.Add(p._baseVehicle._type.Name, 0);
                     }
                 }
@@ -1147,76 +1147,6 @@ namespace InfServer.Script.GameType_USL
         }
 
         /// <summary>
-        /// Called when a player attempts to pick their class
-        /// </summary>
-        public bool playerSkillRequest(Player player, SkillInfo skill)
-        {
-            if (_gameType == GameTypes.LEAGUEMATCH)
-            {
-                if (!player.IsSpectator && player._baseVehicle != null)
-                {
-                    string baseVehicle = player._baseVehicle._type.Name;
-                    Dictionary<string, int> supportClasses = new Dictionary<string, int>();
-
-                    foreach (Player p in player._team.ActivePlayers)
-                    {
-                        if (p == player)
-                            continue;
-
-                        if (p._baseVehicle != null)
-                        {
-                            string playerBaseVehicle = p._baseVehicle._type.Name;
-                            if (playerBaseVehicle.Equals("Marine"))
-                                continue;
-
-                            if (!supportClasses.ContainsKey(playerBaseVehicle))
-                                supportClasses.Add(playerBaseVehicle, 1);
-                            else
-                                supportClasses[playerBaseVehicle] += 1;
-                        }
-                    }
-
-                    if (player._team.ActivePlayerCount <= 9)
-                    {
-                        if (skill.Name.Equals("Medic") && supportClasses.ContainsKey("Medic") && supportClasses["Medic"] >= 2)
-                        {
-                            player.sendMessage(-1, "There is only 2 medic's allowed.");
-                            return false;
-                        }
-
-                        if (supportClasses.Where(f => f.Key.CompareTo("Medic") != 0).Count() >= 3)
-                        {
-                            player.sendMessage(-1, "There are only 3 support classes allowed.");
-                            return false;
-                        }
-                    }
-
-                    if (player._team.ActivePlayerCount > 9)
-                    {
-                        if (skill.Name.Equals("Medic") && supportClasses.ContainsKey("Medic") && supportClasses["Medic"] >= 3)
-                        {
-                            player.sendMessage(-1, "There is only 3 medic's allowed.");
-                            return false;
-                        }
-
-                        if (supportClasses.Where(f => f.Key.CompareTo("Medic") != 0).Count() >= 4)
-                        {
-                            player.sendMessage(-1, "There are only 4 support classes allowed.");
-                            return false;
-                        }
-                    }
-
-                    if (supportClasses.ContainsKey(skill.Name))
-                    {
-                        player.sendMessage(-1, "Someone on your team is playing that class.");
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Called when a player successfully changes their class
         /// </summary>
         public void playerSkillPurchase(Player player, SkillInfo skill)
@@ -1254,6 +1184,10 @@ namespace InfServer.Script.GameType_USL
         /// </summary>
         private void UpdateClassPlayingTime()
         {
+            //We don't want to keep tracking their play seconds unless the game has started
+            if (!_arena._bGameRunning)
+            { return; }
+
             foreach (Player p in _arena.PlayersIngame)
             {
                 if (_savedPlayerStats.ContainsKey(p._alias))
@@ -1537,6 +1471,7 @@ namespace InfServer.Script.GameType_USL
                 OvertimeCount++;
 
             activeTeams = _arena.ActiveTeams.ToList();
+
             //Set time
             _deathMatchTimer = Environment.TickCount + (_config.deathMatch.timer * 1000);
         }
