@@ -296,6 +296,9 @@ namespace InfServer.Logic
                                     //Finally the alias
                                     db.alias.DeleteOnSubmit(palias);
                                     db.SubmitChanges();
+                                    
+                                    //Lets update the counter
+                                    deleted++;
                                 }
 
                                 if (notOnAccount.Count > 0)

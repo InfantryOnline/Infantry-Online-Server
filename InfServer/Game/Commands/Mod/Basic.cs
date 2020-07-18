@@ -2386,6 +2386,7 @@ namespace InfServer.Game.Commands.Mod
                 recipient.syncState();
                 Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeSkillSetup);
                 Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeInvSetup);
+                recipient.setDefaultSkill();
 
                 player.sendMessage(0, "His/her character has been wiped.");
                 return;
@@ -2418,6 +2419,7 @@ namespace InfServer.Game.Commands.Mod
                             p.syncState();
                             Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.firstTimeSkillSetup);
                             Logic_Assets.RunEvent(p, p._server._zoneConfig.EventInfo.firstTimeInvSetup);
+                            p.setDefaultSkill();
                         }
                     }
                 }
@@ -2450,6 +2452,7 @@ namespace InfServer.Game.Commands.Mod
                     recipient.syncState();
                     Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeSkillSetup);
                     Logic_Assets.RunEvent(recipient, recipient._server._zoneConfig.EventInfo.firstTimeInvSetup);
+                    recipient.setDefaultSkill();
                     recipient.sendMessage(0, "Your stats have been wiped.");
                 }
 

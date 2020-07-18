@@ -208,6 +208,10 @@ namespace InfServer.Game
             {
                 Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
                 Logic_Assets.RunEvent(player, _server._zoneConfig.EventInfo.firstTimeInvSetup);
+
+                //Check for inproper cfg skill setup, IE: wipeskill was used without addskill next
+                player.setDefaultSkill();
+
                 if (player._bIngame)
                     player.firstTimePlayer = false;
             }

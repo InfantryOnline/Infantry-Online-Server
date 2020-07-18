@@ -488,6 +488,23 @@ namespace InfServer.Game
         }
 
         /// <summary>
+		/// Checks for a default skill, will set to default if no skill is found
+		/// </summary>
+        public void setDefaultSkill()
+        {
+			//Find his natural vehicle id and prepare the class
+			SkillItem baseSkill = _skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);
+            int baseVehicleID = (baseSkill == null) ? _server._zoneConfig.publicProfile.defaultVItemId : baseSkill.skill.DefaultVehicleId;
+
+            if (_skills.Values.Count == 0)
+            {
+                SkillInfo skill = _server._assets.getSkillByName(_baseVehicle._type.Name);
+                if (skill != null)
+                    skillModify(skill, 1);
+            }
+        }
+
+        /// <summary>
         /// Finds the specified skill in the skill inventory, if it exists
         /// </summary>
         public SkillItem findSkill(SkillInfo skill)
@@ -1618,10 +1635,15 @@ namespace InfServer.Game
             _bDBLoaded = true;
         }
 
-        public void firstTimeEvents()
+        /// <summary>
+		/// Sets the players skill and inventory set up when they enter for the first time
+		/// NOTE: This is only used when the server is in standalone
+		/// </summary>
+		public void firstTimeEvents()
         {
             Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeSkillSetup);
             Logic_Assets.RunEvent(this, _server._zoneConfig.EventInfo.firstTimeInvSetup);
+            this.setDefaultSkill();
         }
 
         /// <summary>

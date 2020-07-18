@@ -1573,6 +1573,12 @@ namespace InfServer.Game.Commands.Chat
                                 return;
                             }
 
+                            if (temp.Count() > 32)
+                            {
+                                player.sendMessage(-1, "The team name cannot be longer than 32 characters.");
+                                return;
+                            }
+
                             //They want to create a private team
                             Team privteam = new Team(player._arena, player._arena._server);
 
@@ -1703,7 +1709,7 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            if (String.IsNullOrWhiteSpace(payload) || !payload.Equals("yes", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(payload) || !payload.Equals("yes", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "Are you sure you want to wipe your character? Type ?wipecharacter yes to confirm");
                 return;
@@ -1715,6 +1721,8 @@ namespace InfServer.Game.Commands.Chat
             player.syncState();
             Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeSkillSetup);
             Logic_Assets.RunEvent(player, player._server._zoneConfig.EventInfo.firstTimeInvSetup);
+            player.setDefaultSkill();
+
             player.sendMessage(0, "Your character has been wiped.");
         }
         #endregion
