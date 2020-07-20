@@ -905,7 +905,7 @@ namespace InfServer.Logic
                 lStats.losses++; //Sad trombone.....
 
                 //Grab our associated match.
-                Data.DB.squadmatch match = db.squadmatches.FirstOrDefault(m => m.squad1 == winner.id | m.squad2 == winner.id | m.squad1 == loser.id | m.squad2 == loser.id && m.winner == null);
+                Data.DB.squadmatch match = db.squadmatches.FirstOrDefault(m => m.squad1 == winner.id | m.squad2 == winner.id | m.squad1 == loser.id | m.squad2 == loser.id);
 
                 //Update it
                 match.winner = pkt.winner;
