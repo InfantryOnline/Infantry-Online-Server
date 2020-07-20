@@ -25,11 +25,11 @@ namespace InfServer.Logic
 		static public bool SkillCheck(Player player, string skillString)
 		{
             // Any need?
-            if (String.IsNullOrWhiteSpace(skillString) || skillString == "\"\"")
+            if (string.IsNullOrWhiteSpace(skillString) || skillString == "\"\"")
                 return true;
 
-            // Make the string safe to test
-            String cleanString = illegalChars.Replace(skillString, "");
+			// Make the string safe to test
+			string cleanString = illegalChars.Replace(skillString, "");
 
             // Is there still any need?
             if (cleanString == "")
@@ -48,19 +48,19 @@ namespace InfServer.Logic
         /// </summary>
         static public bool AllowedClassCheck(Player player, SkillInfo skill, string skillString)
         {
-            if (String.IsNullOrWhiteSpace(skillString) || skillString == "\"\"")
+            if (string.IsNullOrWhiteSpace(skillString) || skillString == "\"\"")
                 return true;
 
-            // Make the string safe to test
-            String cleanString = illegalChars.Replace(skillString, "");
+			// Make the string safe to test
+			string cleanString = illegalChars.Replace(skillString, "");
 
             // Is there still any need?
             if (cleanString == "")
                 return true;
 
-            //First, kill all spaces then replace with proper boolean values
-            //The calculate boolean values
-            String booleanString = paramRegex.Replace(cleanString.TrimStart('&'), delegate(Match m)
+			//First, kill all spaces then replace with proper boolean values
+			//The calculate boolean values
+			string booleanString = paramRegex.Replace(cleanString.TrimStart('&'), delegate(Match m)
             {
                 bool val = false;
                 int numVal = int.Parse(m.Groups[2].Value);
@@ -89,11 +89,11 @@ namespace InfServer.Logic
         static public bool BuildingCheck(Player player, string buildingString)
         {
             // We're done here.
-            if (String.IsNullOrWhiteSpace(buildingString) || buildingString == "\"\"")
+            if (string.IsNullOrWhiteSpace(buildingString) || buildingString == "\"\"")
                 return true;
 
-            // Make the string safe to test
-            String cleanString = illegalChars.Replace(buildingString, "");
+			// Make the string safe to test
+			string cleanString = illegalChars.Replace(buildingString, "");
 
             // Is there still any need?
             if (cleanString == "")
@@ -101,9 +101,9 @@ namespace InfServer.Logic
 
             IEnumerable<Vehicle> vehs = player._arena.Vehicles.Where(v => v != null && v._team == player._team);
 
-            //First, kill all spaces then replace with proper boolean values
-            //The calculate boolean values
-            String booleanString = paramRegex.Replace(cleanString.TrimStart('&'), delegate(Match m)
+			//First, kill all spaces then replace with proper boolean values
+			//The calculate boolean values
+			string booleanString = paramRegex.Replace(cleanString.TrimStart('&'), delegate(Match m)
             {
                 bool val = false;
                 int numVal = int.Parse(m.Groups[2].Value);
@@ -147,11 +147,11 @@ namespace InfServer.Logic
 
 			// First, we kill all spaces (if any), then replace all the junk with proper boolean values.				
 			// Then Calculate boolean values for all the shit in the expression.
-            // Returns "1" or "0" for each value 
-			String booleanString = paramRegex.Replace(skillString.TrimStart('&'), delegate(Match m)
+			// Returns "1" or "0" for each value 
+			string booleanString = paramRegex.Replace(skillString.TrimStart('&'), delegate(Match m)
 			{
 				bool val;
-				String prefix = m.Groups[1].Value;
+				string prefix = m.Groups[1].Value;
 				int numVal = int.Parse(m.Groups[2].Value);
                 bool startsWith = m.Groups[0].Value.StartsWith("!");
 

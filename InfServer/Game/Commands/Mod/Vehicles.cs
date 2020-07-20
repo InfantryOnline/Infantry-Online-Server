@@ -17,7 +17,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void defaultVehicle(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
-            if (String.IsNullOrEmpty(payload))
+            if (string.IsNullOrEmpty(payload))
 			{
 				player.sendMessage(-1, "Syntax: *defaultvehicle [vehicleid] or ::*defaultvehicle [vehicleid]");
 				return;
@@ -41,7 +41,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void spawnVehicle(Player player, Player recipient, string payload, int bong)
 		{	//Sanity checks
-            if (String.IsNullOrEmpty(payload) ||
+            if (string.IsNullOrEmpty(payload) ||
 				recipient != null)
 			{
 				player.sendMessage(-1, "Syntax: *vehicle [vehicleid] or *vehicle [vehicleid],amount");
@@ -114,7 +114,7 @@ namespace InfServer.Game.Commands.Mod
 		/// </summary>
         static public void findVehicle(Player player, Player recipient, string payload, int bong)
         {
-            if (String.IsNullOrEmpty(payload))
+            if (string.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: *findvehicle [vehicleid or vehicle name]");
                 return;
@@ -132,7 +132,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                player.sendMessage(0, String.Format("[{0}] {1}", vehicle.Id, vehicle.Name));
+                player.sendMessage(0, string.Format("[{0}] {1}", vehicle.Id, vehicle.Name));
             }
             else
             {
@@ -149,7 +149,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     if (veh.Name.ToLower().Contains(payload))
                     {
-                        player.sendMessage(0, String.Format("[{0}] {1}", veh.Id, veh.Name));
+                        player.sendMessage(0, string.Format("[{0}] {1}", veh.Id, veh.Name));
                         count++;
                     }
                 }

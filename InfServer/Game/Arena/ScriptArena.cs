@@ -1073,7 +1073,7 @@ namespace InfServer.Game
                     if (skill.skill.SkillId > 0 &&
                         !Logic_Assets.AllowedClassCheck(from, skill.skill, from._server._zoneConfig.arena.exitSpectatorLogic))
                     {
-                        if (!String.IsNullOrWhiteSpace(_server._zoneConfig.arena.exitSpectatorMessage))
+                        if (!string.IsNullOrWhiteSpace(_server._zoneConfig.arena.exitSpectatorMessage))
                             //Use logic message
                             from.sendMessage(-1, _server._zoneConfig.arena.exitSpectatorMessage);
                         else
@@ -1081,12 +1081,13 @@ namespace InfServer.Game
                         return;
                     }
 
+                    /* Testing - this might not be needed
                     //Why was this checking attributes? Client handles all of that bizness
                     if (skill.skill.SkillId > 0 && !Logic_Assets.SkillCheck(from, skill.skill.Logic))
                     {
                         from.sendMessage(-1, "You do not have the requirements to play this class.");
                         return;
-                    }
+                    }*/
                 }
 
                 //Does he have a high p-loss or ping?
@@ -1642,7 +1643,7 @@ namespace InfServer.Game
             if (skill.SkillId > 0 &&
                 !Logic_Assets.AllowedClassCheck(from, skill, from._server._zoneConfig.arena.exitSpectatorLogic))
             {
-                if (!String.IsNullOrWhiteSpace(from._server._zoneConfig.arena.exitSpectatorMessage))
+                if (!string.IsNullOrWhiteSpace(from._server._zoneConfig.arena.exitSpectatorMessage))
                     //Use logic message
                     from.sendMessage(-1, from._server._zoneConfig.arena.exitSpectatorMessage);
                 else
@@ -1728,8 +1729,9 @@ namespace InfServer.Game
                         {
                             foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
                             {
-                                //Is he dead, on the correct team or warpable?
-                                if (!p.IsDead && p.ActiveVehicle._type.IsWarpable)
+                                //Is he dead, warpable, or ignoring summons?
+                                if (!p.IsDead && p.ActiveVehicle._type.IsWarpable 
+                                    && !p._summonIgnore.Contains(player._alias) && !p._summonIgnore.Contains("*"))
                                 {
                                     LvlInfo level = player._server._assets.Level;
 
@@ -1852,8 +1854,12 @@ namespace InfServer.Game
                         {
                             foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
                             {
-                                //Is he dead, on the correct team or warpable?
-                                if (!p.IsDead && target._team == p._team && p.ActiveVehicle._type.IsWarpable)
+                                //Is he dead, on the correct team, warpable, or ignoring summons?
+                                if (!p.IsDead 
+                                    && target._team == p._team 
+                                    && p.ActiveVehicle._type.IsWarpable 
+                                    && !p._summonIgnore.Contains(player._alias) 
+                                    && !p._summonIgnore.Contains("*"))
                                     p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
                             }
                         }
@@ -1888,8 +1894,8 @@ namespace InfServer.Game
                         {
                             foreach (Player p in getPlayersInRange(posX, posY, item.areaEffectRadius))
                             {
-                                //Is the player in range dead?
-                                if (!p.IsDead)
+                                //Is the player in range dead or ignoring summons?
+                                if (!p.IsDead && !p._summonIgnore.Contains(player._alias) && !p._summonIgnore.Contains("*"))
                                     p.warp(Helpers.ResetFlags.ResetNone, target._state, (short)item.accuracyRadius, -1, 0);
                             }
                         }
@@ -1963,7 +1969,8 @@ namespace InfServer.Game
                                 if (!p.IsDead
                                     && target._team == p._team
                                     && p.ActiveVehicle._type.IsWarpable
-                                    && (!p._summonIgnore.Contains(player._alias) || !p._summonIgnore.Contains("*")))
+                                    && !p._summonIgnore.Contains(player._alias) 
+                                    && !p._summonIgnore.Contains("*"))
                                     p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
                             }
                         }
@@ -2005,8 +2012,8 @@ namespace InfServer.Game
                         {
                             foreach (Player p in getPlayersInRange(target._state.positionX, target._state.positionY, item.areaEffectRadius))
                             {
-                                //Is the player dead, or warpable?
-                                if (!p.IsDead && p.ActiveVehicle._type.IsWarpable)
+                                //Is the player dead, warpable, or ignoring summons?
+                                if (!p.IsDead && p.ActiveVehicle._type.IsWarpable && !p._summonIgnore.Contains(player._alias) && !p._summonIgnore.Contains("*"))
                                     p.warp(Helpers.ResetFlags.ResetNone, player._state, (short)item.accuracyRadius, -1, 0);
                             }
                         }

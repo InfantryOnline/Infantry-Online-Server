@@ -109,7 +109,6 @@ namespace InfServer.Game
         public Dictionary<int, InventoryItem> _inventory;	//Our current inventory
         public Dictionary<int, SkillItem> _skills;	//Our current skill inventory
         public List<ItemInfo.UtilityItem> activeUtilities;	//Active Utilities
-        public Dictionary<SkillItem, int> _skillCounts;
 
         public bool firstTimePlayer;
         public bool _bDBLoaded;						//Has the player's statistics been loaded from the database?
@@ -580,6 +579,7 @@ namespace InfServer.Game
                 //Clear inventory?
                 if (skill.ResetInventory)
                     _inventory.Clear();
+
                 //Process inventory adjustments
                 foreach (SkillInfo.InventoryMutator ia in skill.InventoryMutators)
                 {	//If it's valid..

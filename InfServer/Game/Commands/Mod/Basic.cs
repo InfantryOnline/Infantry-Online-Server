@@ -666,6 +666,72 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Finds a skill within the zone
+        /// </summary>
+        static public void findSkill(Player player, Player recipient, string payload, int bong)
+		{
+            if (string.IsNullOrEmpty(payload))
+            {
+                player.sendMessage(-1, "Syntax: *findskill [skill ID or skill Name]");
+                return;
+            }
+
+            //Our handy string/int checker
+            bool IsNumeric = Regex.IsMatch(payload, @"^[-0-9]+$");
+
+            SkillInfo skill;
+            //Asking for a skill id?
+            if (!IsNumeric)
+            {
+                payload = payload.Trim().ToLower();
+
+                //Nope, lets try finding the exact match first
+                skill = player._server._assets.getSkillByName(payload);
+                if (skill != null)
+                {
+                    player.sendMessage(0, string.Format("[{0}] {1}", skill.SkillId, skill.Name));
+                    return;
+                }
+
+                //Lets try a semi match
+                List<Assets.SkillInfo> skills = player._server._assets.getSkillInfos;
+                if (skills == null)
+				{
+                    player.sendMessage(-1, "That skill doesn't exist.");
+                    return;
+				}
+
+                int count = 0;
+                foreach(Assets.SkillInfo sk in skills)
+				{
+                    if (sk.Name.Contains(payload))
+					{
+                        player.sendMessage(0, string.Format("[{0}] {1}", sk.SkillId, sk.Name));
+                        count++;
+					}
+				}
+
+                if (count == 0)
+				{
+                    player.sendMessage(-1, "That skill doesn't exist.");
+                    return;
+				}
+
+                return;
+            }
+            else
+                skill = player._server._assets.getSkillByID(Int32.Parse(payload.Trim()));
+
+            if (skill == null)
+            {
+                player.sendMessage(-1, "That skill doesn't exist.");
+                return;
+            }
+
+            player.sendMessage(0, string.Format("[{0}] {1}", skill.SkillId, skill.Name));
+        }
+
+        /// <summary>
         /// Sends a global message to every zone connected to current database
         /// </summary>
         static public void global(Player player, Player recipient, string payload, int bong)

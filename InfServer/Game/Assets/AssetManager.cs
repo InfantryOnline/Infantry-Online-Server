@@ -359,10 +359,24 @@ namespace InfServer.Game
 			return skill;
 		}
 
-		/// <summary>
-		/// Gets the VehInfo of a particular ID
-		/// </summary>		
-		public VehInfo getVehicleByID(int id)
+        /// <summary>
+        /// Gets a list of SkillInfo's 
+        /// </summary>
+        public List<SkillInfo> getSkillInfos
+        {
+            get
+            {
+                if (_idToSkill.Count == 0)
+                    return null;
+                else
+                    return _idToSkill.Values.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Gets the VehInfo of a particular ID
+        /// </summary>		
+        public VehInfo getVehicleByID(int id)
 		{
 			VehInfo veh;
 
