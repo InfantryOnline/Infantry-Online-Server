@@ -491,6 +491,11 @@ namespace InfServer.Game
 		/// </summary>
         public void setDefaultSkill()
         {
+            ///
+            ///Really not sure what the intent was with this. Infantry has always never given a default skill UNLESS addskill= was used.
+            ///
+
+            /*
 			//Find his natural vehicle id and prepare the class
 			SkillItem baseSkill = _skills.Values.FirstOrDefault(skill => skill.skill.DefaultVehicleId != -1);
             int baseVehicleID = (baseSkill == null) ? _server._zoneConfig.publicProfile.defaultVItemId : baseSkill.skill.DefaultVehicleId;
@@ -500,7 +505,7 @@ namespace InfServer.Game
                 SkillInfo skill = _server._assets.getSkillByName(_baseVehicle._type.Name);
                 if (skill != null)
                     skillModify(skill, 1);
-            }
+            }*/
         }
 
         /// <summary>
