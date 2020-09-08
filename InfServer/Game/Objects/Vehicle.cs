@@ -202,10 +202,31 @@ namespace InfServer.Game
         /// <summary>
         /// Heals a vehicle with a specific item
         /// </summary>
-        public void heal(Player from, ItemInfo item)
+        public void heal(Player from, ItemInfo.RepairItem item)
         {
-            Helpers.Player_RouteItemUsed(this._inhabitant != null ? this._inhabitant : from, from, this._id,
+            //New formula
+            float percentage = (float)item.repairPercentage / 100;
+
+            //For old formula, too lazy to switch out all item files.. dont judge!
+            if (item.repairPercentage > 100)
+                percentage = (float)item.repairPercentage / 1000;
+
+            int repairAmount = item.repairAmount;
+
+            //Occupied vehicle?
+            if (this._inhabitant != null)
+            {
+                Helpers.Player_RouteItemUsed(this._inhabitant, from, this._id,
                 (short)item.id, from._state.positionX, from._state.positionY, (byte)from._state.yaw);
+            }
+            //Unoccupied or Computer vehicle
+            else
+            {
+                this._state.health = (short)Math.Min(this._type.Hitpoints, (int)(this._state.health + (percentage * this._state.health) + repairAmount));
+              
+                if (this is Computer)
+                 (this as Computer)._sendUpdate = true;
+            }
         }
 
         /// <summary>
@@ -294,7 +315,7 @@ namespace InfServer.Game
             //Disable our base vehicle and enable the new
             Helpers.Object_VehicleBind(_arena.Players, player._baseVehicle, null);
             Helpers.Object_VehicleBind(_arena.Players, this, player._baseVehicle,
-                delegate()
+                delegate ()
                 {
                     player._bIgnoreUpdates = false;
                 }
@@ -323,7 +344,7 @@ namespace InfServer.Game
 
                 _inhabitant._baseVehicle._inhabitant = _inhabitant;
                 Helpers.Object_VehicleBind(_arena.Players, _inhabitant._baseVehicle, _inhabitant._baseVehicle,
-                    delegate()
+                    delegate ()
                     {
                         exInhabitant._bIgnoreUpdates = false;
                     });

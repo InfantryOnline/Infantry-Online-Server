@@ -32,7 +32,6 @@ namespace InfServer.Script.GameType_KOTH
         private int _tickGameStart;				//The tick at which the game started (0 == stopped)
         //Settings
         private int _minPlayers;				//The minimum amount of players
-        private bool _firstGame = true;
 
         private class PlayerCrownStatus
         {
@@ -59,6 +58,9 @@ namespace InfServer.Script.GameType_KOTH
             get { return _playerCrownStatus.Where(p => !p.Value.crown).Select(p => p.Key).ToList(); }
         }
 
+        private Dictionary<Player, Team> _startTeams;
+
+
         private List<Team> _crownTeams;
 
         ///////////////////////////////////////////////////
@@ -75,6 +77,8 @@ namespace InfServer.Script.GameType_KOTH
             _minPlayers = _config.king.minimumPlayers;
             _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
             _crownTeams = new List<Team>();
+            _startTeams = new Dictionary<Player, Team>();
+            _arena.flagSpawn();
 
             return true;
         }
@@ -141,6 +145,7 @@ namespace InfServer.Script.GameType_KOTH
                 {//All our crowners expired at the same time
                     _arena.sendArenaMessage("There was no winner");
                     gameReset();
+                    return true;
                 }
                 return true;
             }
@@ -150,7 +155,7 @@ namespace InfServer.Script.GameType_KOTH
             {
                 if (now - _tickGameLastTickerUpdate > 1000)
                 {
-                    updateTickers();
+                    //updateTickers();
                     _tickGameLastTickerUpdate = now;
                 }
             }
@@ -158,8 +163,8 @@ namespace InfServer.Script.GameType_KOTH
             //Do we have enough players to start a game?
             if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
             {	//Stop the game!
-                _arena.setTicker(1, 1, 0, "Not Enough Players");
-                _arena.gameReset();
+                _arena.setTicker(1, 2, 0, "Not Enough Players");
+                gameReset();
             }
 
             //Do we have enough players to start a game?
@@ -173,6 +178,7 @@ namespace InfServer.Script.GameType_KOTH
                     }
                 );
             }
+
             return true;
         }
 
@@ -180,22 +186,25 @@ namespace InfServer.Script.GameType_KOTH
         /// Called when the specified team have won
         /// </summary>
         public void gameVictory(Team victors)
-        {	//Let everyone know          
+        {   //Let everyone know
+
+            int gameLength = (Environment.TickCount - _arena._tickGameStarted) / 1000;
 
             //TODO: Move this calculation to breakdown() in ScriptArena?
             //Calculate the jackpot for each player
-            int playersInGame = _arena.PlayersIngame.Count() * 2; //Math given by cfg help info
-
-            //Are we giving it to the whole team?
             foreach (Player p in victors.AllPlayers)
             {	//Spectating? 
                 if (p.IsSpectator)
                     continue;
 
+                //Did they team hop?
+                if (p._team != _startTeams[p])
+                    continue;
+
                 //Obtain the respective rewards
-                int cashReward = playersInGame * _config.king.cashReward / 1000;
-                int experienceReward = playersInGame * _config.king.experienceReward / 1000;
-                int pointReward = playersInGame * _config.king.pointReward / 1000;
+                int cashReward = (_config.king.cashReward * _arena.PlayersIngame.Count()) + gameLength;
+                int experienceReward = (_config.king.experienceReward * _arena.PlayersIngame.Count()) + gameLength;
+                int pointReward = (_config.king.pointReward * _arena.PlayersIngame.Count()) + gameLength;
 
                 p.sendMessage(0, String.Format("Your Personal Reward: Points={0} Cash={1} Experience={2}", pointReward, cashReward, experienceReward));
 
@@ -245,6 +254,7 @@ namespace InfServer.Script.GameType_KOTH
         [Scripts.Event("Player.EnterArena")]
         public void playerEnterArena(Player player)
         {
+
             //Send them the crowns..
             if (!_playerCrownStatus.ContainsKey(player))
             {
@@ -295,20 +305,18 @@ namespace InfServer.Script.GameType_KOTH
             _arena.sendArenaMessage("Game has started!", 1);
 
             _crownTeams = new List<Team>();
+            _startTeams = new Dictionary<Player, Team>();
             _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
             List<Player> crownPlayers = (_config.king.giveSpecsCrowns ? _arena.Players : _arena.PlayersIngame).ToList();
-
-            //Check for first game to spawn flags, otherwise leave them alone
-            if (_firstGame)
-            {
-                _arena.flagSpawn();
-                _firstGame = false;
-            }
 
             foreach (var p in crownPlayers)
             {
                 _playerCrownStatus[p] = new PlayerCrownStatus();
                 giveCrown(p);
+
+                //Register the team he was on when the game starts.
+                _startTeams[p] = p._team;
+         
             }
             //Everybody is king!
             Helpers.Player_Crowns(_arena, true, crownPlayers);
@@ -342,6 +350,8 @@ namespace InfServer.Script.GameType_KOTH
         public bool gameEnd()
         {	//Game finished, perhaps start a new one
 
+
+            _arena._tickers.Clear();
             _arena.sendArenaMessage("Game Over");
 
             _tickGameStart = 0;
@@ -352,6 +362,7 @@ namespace InfServer.Script.GameType_KOTH
             //Needs testing
             Helpers.Player_Crowns(_arena, false, _arena.Players.ToList());
             _playerCrownStatus.Clear();
+            
 
             return true;
         }
@@ -385,8 +396,14 @@ namespace InfServer.Script.GameType_KOTH
             _tickGameStart = 0;
             _tickGameStarting = 0;
 
-            _firstGame = true;
             _victoryTeam = null;
+
+            _crownTeams = null;
+            //It would be preferable to send false, {emtpy list} here
+            //Needs testing
+            Helpers.Player_Crowns(_arena, false, _arena.Players.ToList());
+            _playerCrownStatus.Clear();
+
             return true;
         }
 
@@ -425,6 +442,11 @@ namespace InfServer.Script.GameType_KOTH
         [Scripts.Event("Player.JoinGame")]
         public bool playerJoinGame(Player player)
         {
+
+            if (!_startTeams.ContainsKey(player))
+            {
+                _startTeams[player] = null;
+            }
 
             return true;
         }
