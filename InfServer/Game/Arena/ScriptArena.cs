@@ -227,8 +227,11 @@ namespace InfServer.Game
             _tickGameEnded = 0;
 
             //Reset the flags
-            if (_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
+            if (!_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
+            {
                 flagReset();
+                flagSpawn();
+            }
 
             //Reset the playing balls
             if (_balls.Count() > 0)
@@ -243,10 +246,6 @@ namespace InfServer.Game
 
             if (_startCfg.initialHides)
                 initialHideSpawns();
-
-            //Respawn the flags
-            if (!_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
-                flagSpawn();
 
             //Scramble teams if the cfg calls for it
             if (_scramble && PlayerCount > 2)
@@ -2457,14 +2456,6 @@ namespace InfServer.Game
                                     return;
 
                                 target.heal(player, item);
-
-                                //TODO: A bit hackish, should probably standardize this or improve computer updates
-                                if (target is Computer)
-                                {
-                                    //Computer health is server controlled
-                                    target._state.health = (short)Math.Min(target._type.Hitpoints, (int)(target._state.health + (percentage * target._state.health) + repairAmount));
-                                    (target as Computer)._sendUpdate = true;
-                                }
                             }
                             else if (item.repairDistance < 0)
                             {	//An area heal! Get all vehicles within this area..
@@ -2493,13 +2484,6 @@ namespace InfServer.Game
                                         child.heal(player, item);
                                     }
 
-                                    //TODO: A bit hackish, should probably standardize this or improve computer updates
-                                    if (v is Computer)
-                                    {
-                                        //Computer health is server controlled
-                                        v._state.health = (short)Math.Min(v._type.Hitpoints, (int)(v._state.health + (percentage * v._state.health) + repairAmount));
-                                        (v as Computer)._sendUpdate = true;
-                                    }
                                 }
                             }
                             else
