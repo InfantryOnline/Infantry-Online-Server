@@ -66,14 +66,24 @@ namespace InfServer.Script.GameType_Multi
                         //Should we be firing our rifle?
                         if (distance <= fireDist && distance > sgDist)
                         {
-                            _weapon.equip(AssetManager.Manager.getItemByID(_type.InventoryItems[0]));
+                            if (_target._occupiedVehicle != null && _target._occupiedVehicle._type.ClassId > 0 && _lawQuantity >= 1)
+                                _weapon.equip(_arena._server._assets.getItemByID(1004));
+                            else
+                                _weapon.equip(AssetManager.Manager.getItemByID(_type.InventoryItems[0]));
 
                             if (_weapon.ableToFire())
                             {
                                 int aimResult = _weapon.getAimAngle(_target._state);
 
                                 if (_weapon.isAimed(aimResult))
-                                {   //Spot on! Fire?
+                                {
+                                    if (_target._occupiedVehicle != null && _target._occupiedVehicle._type.ClassId > 0 && _lawQuantity >= 1)
+                                    {
+                                        _lawQuantity--;
+                                        _movement.freezeMovement(3000);
+                                    }
+
+                                    //Spot on! Fire?
                                     _itemUseID = _weapon.ItemID;
                                     _weapon.shotFired();
                                 }

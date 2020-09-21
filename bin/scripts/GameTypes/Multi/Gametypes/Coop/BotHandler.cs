@@ -27,6 +27,12 @@ namespace InfServer.Script.GameType_Multi
             if (_bots == null)
                 _bots = new List<Bot>();
 
+            int extraBots = 0;
+
+            if (_arena._name.EndsWith("Hell"))
+                extraBots = _arena.PlayerCount * 3;
+                
+
             
 
             if (spawnBots && _arena._bGameRunning)
@@ -67,7 +73,7 @@ namespace InfServer.Script.GameType_Multi
                 {
                     int botcount = _bots.Where(b => ((b._type.Id == 131) || (b._type.Id == 151) || (b._type.Id == 154)) && b._team == _botTeam).Count();
                     int playercount = _team.ActivePlayerCount;
-                    int max = Convert.ToInt32(playercount * 1);
+                    int max = Convert.ToInt32((playercount * 1) + extraBots);
 
                     if (botcount < max) 
                     {
@@ -82,7 +88,7 @@ namespace InfServer.Script.GameType_Multi
                 {
                     int botcount = _bots.Where(b => ((b._type.Id == 145) || (b._type.Id == 152) || (b._type.Id == 153)) && b._team == _botTeam).Count();
                     int playercount = _team.ActivePlayerCount;
-                    int max = (int)(playercount * 0.50);
+                    int max = (int)((playercount * 0.50) + extraBots);
 
                     if (botcount < max)
                     {

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Threading;
-
+using Assets;
 using InfServer.Network;
 
 namespace InfServer.Game
@@ -14,6 +15,7 @@ namespace InfServer.Game
     {	// Member variables
         ///////////////////////////////////////////////////
         public Dictionary<string, Arena> _arenas;			//The arenas present in the zone, sorted by name
+        public IList<CfgInfo.NamedArena> _namedArenas; //Named arenas present in the zone
 
         ///////////////////////////////////////////////////
         // Member Functions
@@ -24,6 +26,7 @@ namespace InfServer.Game
         public bool initArenas()
         {	//Initialize variables
             _arenas = new Dictionary<string, Arena>(StringComparer.OrdinalIgnoreCase);
+            _namedArenas = _zoneConfig.arenas.Where(n => !String.IsNullOrEmpty(n.name)).ToList();
 
             //Gather config settings
             Arena.maxItems = _config["arena/maxArenaItems"].intValue;
@@ -46,16 +49,6 @@ namespace InfServer.Game
                 return false;
             }
             return true;
-        }
-
-        /// <summary>
-        /// Handles the creation of all of our named arenas (These do -not- close when the player count hits zero)
-        /// </summary>
-        private void initNamedArenas()
-        {
-            IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
-            foreach (ConfigSetting named in namedArenas)
-                newArena(named.Value);
         }
 
         /// <summary>
@@ -108,7 +101,7 @@ namespace InfServer.Game
         /// <summary>
         /// Creates a new, appropriate arena
         /// </summary>
-        public Arena newArena(string name)
+        public Arena newArena(string name, bool namedArena)
         {	//Are we going to make a new public arena?
             if (name == "")
             {	//Yes, we need to find the lowest unused public name
@@ -123,18 +116,6 @@ namespace InfServer.Game
 
             //Is this a registered arena name?
             string invokerType = _config["server/gameType"].Value;
-            IList<ConfigSetting> namedArenas = _config["arena"].GetNamedChildren("namedArena");
-            bool isNamed = false;
-
-            foreach (ConfigSetting named in namedArenas)
-            {	//Correct arena?
-                if (name.Equals(named.Value, StringComparison.OrdinalIgnoreCase))
-                {
-                    invokerType = named["gameType"].Value;
-                    isNamed = true;
-                    break;
-                }
-            }
             bool bScriptLoad = true;
             //Instance our gametype
             if (!Scripting.Scripts.invokerTypeExists(invokerType))
@@ -150,13 +131,13 @@ namespace InfServer.Game
             else
                 arena = new ScriptArena(this, null);
 
-            if (!isNamed)
+            if (!namedArena)
                 arena._bActive = true;
             else
                 arena._bIsNamed = true;
 
             arena._name = name;
-            if (arena._name.StartsWith("Public") || isNamed)
+            if (arena._name.StartsWith("Public") || namedArena)
                 arena._bIsPublic = true;
             else
                 arena._bIsPublic = false;
@@ -211,7 +192,7 @@ namespace InfServer.Game
             }
 
             //Make a new one
-            return newArena("");
+            return newArena("", false);
         }
 
         /// <summary>
@@ -241,7 +222,7 @@ namespace InfServer.Game
                     return null;
 
                 //Create it!
-                return newArena(arenaName);
+                return newArena(arenaName, false);
             }
 
             //Are we banned from this arena?

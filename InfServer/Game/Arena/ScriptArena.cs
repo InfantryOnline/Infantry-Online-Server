@@ -194,44 +194,10 @@ namespace InfServer.Game
         /// </summary>
         public override void gameStart()
         {
-            //Check to see if we are even allowed to start
-            if (_scriptType.Equals("GameType_USL", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_TDM", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_SLTDM", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_FL_TDM", StringComparison.OrdinalIgnoreCase))
-            {
-                if (PlayerCount < _server._zoneConfig.deathMatch.minimumPlayers)
-                    return;
-            }
-
-            if (_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
-            {
-                if (PlayerCount < _server._zoneConfig.king.minimumPlayers)
-                    return;
-            }
-
-            if (_scriptType.Equals("GameType_Gravball", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_BasketBall", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_BoomBall", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_Soccerbrawl", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_Footbrawl", StringComparison.OrdinalIgnoreCase)
-                || _scriptType.Equals("GameType_Hockey", StringComparison.OrdinalIgnoreCase))
-            {
-                if (PlayerCount < _server._zoneConfig.soccer.minimumPlayers)
-                    return;
-            }
-
             //We're running!
             _bGameRunning = true;
             _tickGameStarted = Environment.TickCount;
             _tickGameEnded = 0;
-
-            //Reset the flags
-            if (!_scriptType.Equals("GameType_KOTH", StringComparison.OrdinalIgnoreCase))
-            {
-                flagReset();
-                flagSpawn();
-            }
 
             //Reset the playing balls
             if (_balls.Count() > 0)
@@ -310,10 +276,6 @@ namespace InfServer.Game
             _bGameRunning = false;
             _tickGameEnded = Environment.TickCount;
 
-            //Reset the game state
-            if (_scriptType != "GameType_KOTH")
-                flagReset();
-
             //Execute the end game event
             string endGame = _server._zoneConfig.EventInfo.endGame;
 
@@ -344,8 +306,6 @@ namespace InfServer.Game
         /// </summary>
         public override void gameReset()
         {
-            //Reset the game state
-            flagReset();
 
             if (_startCfg.prizeReset)
                 resetItems();

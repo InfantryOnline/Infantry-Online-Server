@@ -6,6 +6,7 @@ using System.IO;
 
 using InfServer.Game;
 using InfServer.Network;
+using Assets;
 
 namespace InfServer.Protocol
 {	/// <summary>
@@ -38,7 +39,8 @@ namespace InfServer.Protocol
 		/// Serializes the data stored in the packet class into a byte array ready for sending.
 		/// </summary>
 		public override void Serialize()
-		{	//Write out each asset
+		{	
+			//Write out each asset
 			foreach (Arena arena in arenas)
 			{	//Is he able to see this arena?
 				if (!arena.isVisibleToPlayer(requestee) && requestee._arena != arena)
@@ -53,6 +55,18 @@ namespace InfServer.Protocol
                     Write((short)(arena.TotalPlayerCount * -1));
                 else
                     Write((short)arena.TotalPlayerCount);
+			}
+			foreach (CfgInfo.NamedArena arena in requestee._server._namedArenas)
+            {
+				//Is it active? Handled above
+				if (arenas.Count(a => a._name.ToLower() == arena.name.ToLower()) == 1)
+					continue;
+
+				//Not sure why it does this for each entry
+				Write((byte)TypeID);
+
+				Write(arena.name, 32);
+				Write((short)0);
 			}
 		}
 

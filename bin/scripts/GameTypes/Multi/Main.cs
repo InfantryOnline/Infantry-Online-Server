@@ -97,7 +97,7 @@ namespace InfServer.Script.GameType_Multi
             _condemnedLoot = new Dictionary<ushort, LootDrop>();
 
             //Default to Conquest
-            _gameType = Settings.GameTypes.Coop;
+            _gameType = Settings.GameTypes.Royale;
             _minPlayers = 1;
 
             _isEarlyAccess = false;
@@ -404,10 +404,7 @@ namespace InfServer.Script.GameType_Multi
             //Read our list
             _earlyAccessList = ListReader.readListFromFile("earlyaccess.txt");
 
-
-            player.sendMessage(0,
-                "&NOTICE: All invididual co-op arenas have been removed. Public1 now defaults to co-op mode at the normal difficulty level. With this, " +
-                "hopefully we'll see some more stability in the zone as the public arenas are able to close/restart when they hit 0 players.");
+            player.sendMessage(3, "#Co-Op Arenas are BACK! Please type ?arena to pick your difficulty!");
 
 
             if (_isEarlyAccess)

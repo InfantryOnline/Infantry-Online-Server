@@ -72,9 +72,14 @@ namespace InfServer.Script.GameType_Multi
                     //Just right
                     else
                         steering.steerDelegate = null;
-                    
 
-                        
+
+
+                    if (_target._occupiedVehicle != null && _target._occupiedVehicle._type.ClassId > 0 && _lawQuantity >= 1)
+                        _weapon.equip(_arena._server._assets.getItemByID(1004));
+                    else
+                        _weapon.equip(AssetManager.Manager.getItemByID(_type.InventoryItems[0]));
+
 
                     //Can we shoot?
                     if (!bFleeing && _weapon.ableToFire() && distance < fireDist)
@@ -83,7 +88,14 @@ namespace InfServer.Script.GameType_Multi
                         int aimResult = _weapon.getAimAngle(_target._state);
 
                         if (_weapon.isAimed(aimResult))
-                        {   //Spot on! Fire?
+                        {
+                            if (_target._occupiedVehicle != null && _target._occupiedVehicle._type.ClassId > 0 && _lawQuantity >= 1)
+                            {
+                                _lawQuantity--;
+                                _movement.freezeMovement(3000);
+                            }
+
+                            //Spot on! Fire?
                             _itemUseID = _weapon.ItemID;
                             _weapon.shotFired();
                         }

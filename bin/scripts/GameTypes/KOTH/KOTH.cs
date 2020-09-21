@@ -1,17 +1,10 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
-
-using InfServer.Logic;
-using InfServer.Game;
-using InfServer.Scripting;
-using InfServer.Bots;
-using InfServer.Protocol;
-
 using Assets;
+using InfServer.Game;
+using InfServer.Protocol;
+using InfServer.Scripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 //KING OF THE CORN!
 namespace InfServer.Script.GameType_KOTH
@@ -30,6 +23,7 @@ namespace InfServer.Script.GameType_KOTH
         private int _lastGameCheck;				//The tick at which we last checked for game viability
         private int _tickGameStarting;			//The tick at which the game began starting (0 == not initiated)
         private int _tickGameStart;				//The tick at which the game started (0 == stopped)
+
         //Settings
         private int _minPlayers;				//The minimum amount of players
 
@@ -78,7 +72,8 @@ namespace InfServer.Script.GameType_KOTH
             _playerCrownStatus = new Dictionary<Player, PlayerCrownStatus>();
             _crownTeams = new List<Team>();
             _startTeams = new Dictionary<Player, Team>();
-            _arena.flagSpawn();
+           
+
 
             return true;
         }
@@ -155,7 +150,7 @@ namespace InfServer.Script.GameType_KOTH
             {
                 if (now - _tickGameLastTickerUpdate > 1000)
                 {
-                    //updateTickers();
+                    updateTickers();
                     _tickGameLastTickerUpdate = now;
                 }
             }
@@ -163,7 +158,7 @@ namespace InfServer.Script.GameType_KOTH
             //Do we have enough players to start a game?
             if ((_tickGameStart == 0 || _tickGameStarting == 0) && playing < _minPlayers)
             {	//Stop the game!
-                _arena.setTicker(1, 2, 0, "Not Enough Players");
+                _arena.setTicker(1, 1, 0, "Not Enough Players");
                 gameReset();
             }
 
@@ -172,7 +167,7 @@ namespace InfServer.Script.GameType_KOTH
             {	//Great! Get going
                 _tickGameStarting = now;
                 _arena.setTicker(1, 1, _config.king.startDelay * 100, "Next game: ",
-                    delegate()
+                    delegate ()
                     {	//Trigger the game start
                         _arena.gameStart();
                     }
@@ -296,7 +291,8 @@ namespace InfServer.Script.GameType_KOTH
         /// </summary>
         [Scripts.Event("Game.Start")]
         public bool gameStart()
-        {	//We've started!
+        {   //We've started!
+            _arena.flagSpawn();
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
             _playerCrownStatus.Clear();
@@ -316,7 +312,7 @@ namespace InfServer.Script.GameType_KOTH
 
                 //Register the team he was on when the game starts.
                 _startTeams[p] = p._team;
-         
+
             }
             //Everybody is king!
             Helpers.Player_Crowns(_arena, true, crownPlayers);
@@ -332,14 +328,18 @@ namespace InfServer.Script.GameType_KOTH
             //string format;
             if (_arena.ActiveTeams.Count() > 1)
             {//Show players their crown timer using a ticker
-                _arena.setTicker(1, 0, 0, delegate(Player p)
+
+                int gameLength = (Environment.TickCount - _arena._tickGameStarted) / 1000;
+
+                _arena.setTicker(1, 0, 0, delegate (Player p)
                 {
                     if (_playerCrownStatus.ContainsKey(p) && _playerCrownStatus[p].crown)
-                        return String.Format("Crown Timer: {0}", (_playerCrownStatus[p].expireTime - Environment.TickCount) / 1000);
+                        return String.Format("Jackpot: {0} | Crown Timer: {1}", gameLength, (_playerCrownStatus[p].expireTime - Environment.TickCount) / 1000);
 
                     else
-                        return "";
+                        return String.Format("Jackpot: {0}", gameLength);
                 });
+
             }
         }
 
@@ -349,7 +349,7 @@ namespace InfServer.Script.GameType_KOTH
         [Scripts.Event("Game.End")]
         public bool gameEnd()
         {	//Game finished, perhaps start a new one
-
+            _arena.flagReset();
 
             _arena._tickers.Clear();
             _arena.sendArenaMessage("Game Over");
@@ -362,7 +362,7 @@ namespace InfServer.Script.GameType_KOTH
             //Needs testing
             Helpers.Player_Crowns(_arena, false, _arena.Players.ToList());
             _playerCrownStatus.Clear();
-            
+
 
             return true;
         }
@@ -393,6 +393,7 @@ namespace InfServer.Script.GameType_KOTH
         [Scripts.Event("Game.Reset")]
         public bool gameReset()
         {	//Game reset, perhaps start a new one
+            _arena.flagReset();
             _tickGameStart = 0;
             _tickGameStarting = 0;
 
@@ -457,7 +458,6 @@ namespace InfServer.Script.GameType_KOTH
         [Scripts.Event("Player.LeaveGame")]
         public bool playerLeaveGame(Player player)
         {
-
             if (_playerCrownStatus.ContainsKey(player))
             {
                 _playerCrownStatus[player].crown = false;
@@ -465,6 +465,16 @@ namespace InfServer.Script.GameType_KOTH
             }
             return true;
         }
+
+        /// <summary>
+        /// Handles a player's flag request
+        /// </summary>
+        [Scripts.Event("Player.FlagAction")]
+        public bool playerFlagAction(Player player, bool bPickup, bool bInPlace, LioInfo.Flag flag)
+        {
+            return true;
+        }
+
 
         /// <summary>
         /// Triggered when a player has died, by any means

@@ -229,19 +229,21 @@ namespace InfServer.Script.GameType_Multi
             killer.syncState();
 
             //Check for players in the share radius
-            List<Player> sharedRewards = victim._arena.getPlayersInRange(victim._state.positionX, victim._state.positionY, cfg.bot.shareRadius);
-            Dictionary<int, int> cashRewards = new Dictionary<int, int>();
-            Dictionary<int, int> expRewards = new Dictionary<int, int>();
-            Dictionary<int, int> pointRewards = new Dictionary<int, int>();
+            List<Player> sharedRewards = victim._arena.getPlayersInRange(killer._state.positionX, killer._state.positionY, cfg.bot.shareRadius);
+            Dictionary<Player, int> cashRewards = new Dictionary<Player, int>();
+            Dictionary<Player, int> expRewards = new Dictionary<Player, int>();
+            Dictionary<Player, int> pointRewards = new Dictionary<Player, int>();
+
+            double sharePercent = (double)(cfg.bot.sharePercent / 100);
 
             foreach (Player p in sharedRewards)
             {
                 if (p == killer || p._team != killer._team)
                     continue;
 
-                cashRewards[p._id] = (int)((((float)killerCash) / 1000) * cfg.bot.sharePercent);
-                expRewards[p._id] = (int)((((float)killerExp) / 1000) * cfg.bot.sharePercent);
-                pointRewards[p._id] = (int)((((float)killerPoints) / 1000) * cfg.bot.sharePercent);
+                cashRewards[p] = Convert.ToInt32(((double)killerCash / 100) * 33);
+                expRewards[p] = Convert.ToInt32(((double)killerCash / 100) * 33);
+                pointRewards[p] = Convert.ToInt32(((double)killerCash / 100) * 33);
             }
 
             //Send reward notices to our lucky witnesses
@@ -251,15 +253,15 @@ namespace InfServer.Script.GameType_Multi
                 if (p == killer || p._team != killer._team)
                     continue;
 
-                cashRewards[p._id] = addCash(p, cashRewards[p._id], gameType);
-                p.Experience += expRewards[p._id];
-                p.AssistPoints += pointRewards[p._id];
+                cashRewards[p] = addCash(p, cashRewards[p], gameType);
+                p.Experience += expRewards[p];
+                p.AssistPoints += pointRewards[p];
 
                 //Let em know
                 p.triggerMessage(4, 500,
                     String.Format("{0} killed by {1} (Cash={2} Exp={3} Points={4})",
-                    victim._type.Name, killer._alias, cashRewards[p._id],
-                    expRewards[p._id], pointRewards[p._id]));
+                    victim._type.Name, killer._alias, cashRewards[p],
+                    expRewards[p], pointRewards[p]));
 
 
                 //Sync their state

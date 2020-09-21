@@ -71,13 +71,23 @@ namespace InfServer.Script.GameType_Multi
                             if (_weapon.ItemID != AssetManager.Manager.getItemByID(_type.InventoryItems[0]).id)
                             _weapon.equip(AssetManager.Manager.getItemByID(_type.InventoryItems[0]));
 
+                            if (_target._occupiedVehicle != null && _target._occupiedVehicle._type.ClassId > 0 && _lawQuantity >= 1)
+                                _weapon.equip(_arena._server._assets.getItemByID(1004));
+
                             if (_weapon.ableToFire())
                             {
                                 _movement.freezeMovement(800);
                                 int aimResult = _weapon.getAimAngle(_target._state);
 
                                 if (_weapon.isAimed(aimResult))
-                                {   //Spot on! Fire?
+                                {
+                                    if (_target._occupiedVehicle != null && _target._occupiedVehicle._type.ClassId > 0 && _lawQuantity >= 1)
+                                    {
+                                        _lawQuantity--;
+                                        _movement.freezeMovement(3000);
+                                    }
+
+                                    //Spot on! Fire?
                                     _itemUseID = _weapon.ItemID;
                                     _weapon.shotFired();
                                 }

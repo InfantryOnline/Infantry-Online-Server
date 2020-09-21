@@ -191,7 +191,12 @@ namespace InfServer.Script.GameType_BugHunt
 		/// </summary>
 		[Scripts.Event("Game.Start")]
 		public bool gameStart()
-		{	//We've started!
+		{
+			//Reset Flags
+			_arena.flagReset();
+			_arena.flagSpawn();
+			
+			//We've started!
 			_tickGameStart = Environment.TickCount;
 			_tickGameStarting = 0;
 
@@ -226,7 +231,8 @@ namespace InfServer.Script.GameType_BugHunt
 		/// </summary>
 		[Scripts.Event("Game.End")]
 		public bool gameEnd()
-		{	//Game finished, perhaps start a new one
+		{   //Game finished, perhaps start a new one
+			_arena.flagReset();
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
 			_tickVictoryStart = 0;
@@ -253,7 +259,8 @@ namespace InfServer.Script.GameType_BugHunt
 		/// </summary>
 		[Scripts.Event("Game.Reset")]
 		public bool gameReset()
-		{	//Game reset, perhaps start a new one
+		{   //Game reset, perhaps start a new one
+			_arena.flagReset();
 			_tickGameStart = 0;
 			_tickGameStarting = 0;
 			_tickVictoryStart = 0;

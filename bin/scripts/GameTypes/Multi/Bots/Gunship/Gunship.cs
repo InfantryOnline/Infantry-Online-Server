@@ -245,6 +245,9 @@ namespace InfServer.Script.GameType_Multi
             if (target._type.Id == 406 || target._type.Id == 407)
                 return false;
 
+            if (target._type.ClassId >= 1)
+                return false;
+
             if (target._team == _team)
                 return false;
 

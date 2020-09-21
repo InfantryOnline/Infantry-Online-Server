@@ -205,6 +205,8 @@ namespace InfServer.Script.GameType_Multi
             if (_arena.ActiveTeams.Count() == 0)
                 return;
 
+            _arena.flagReset();
+            _arena.flagSpawn();
 
             _flags = _arena._flags.Values.OrderBy(f => f.posX).ToList();
             _allPoints = new List<CapturePoint>();
@@ -289,6 +291,7 @@ namespace InfServer.Script.GameType_Multi
 
         public void gameEnd()
         {
+            _arena.flagReset();
             int conquered = (_winnerFlags / _totalFlags) * 100;
 
             _arena.sendArenaMessage(String.Format("{0} is Victorious with {1}% Conquered", _baseScript._winner._name, conquered));
@@ -296,7 +299,7 @@ namespace InfServer.Script.GameType_Multi
 
         public void gameReset()
         {
-
+            _arena.flagReset();
         }
         #endregion
 

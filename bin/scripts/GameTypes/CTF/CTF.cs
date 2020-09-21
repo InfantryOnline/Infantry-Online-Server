@@ -36,6 +36,30 @@ namespace InfServer.Script.GameType_CTF
         private GameState gameState;
         private CTFMode flagMode;
 
+        private bool isOVD = false;
+        private Team notPlaying;
+        private Team playing;
+        private Team spec;
+
+        private Dictionary<string, Base> bases;
+
+        private class Base
+        {
+            public Base(short posX, short posY, short fposX, short fposY)
+            {
+                x = (short)(posX * 16);
+                y = (short)(posY * 16);
+
+                flagX = (short)(fposX * 16);
+                flagY = (short)(fposY * 16);
+
+            }
+            public short x;
+            public short y;
+            public short flagX;
+            public short flagY;
+        }
+
         /// <summary>
         /// Stores our player streak information
         /// </summary>
@@ -78,6 +102,8 @@ namespace InfServer.Script.GameType_CTF
             killStreaks = new Dictionary<string, PlayerStreak>();
             explosives = new Dictionary<string, int>();
 
+            bases = new Dictionary<string, Base>();
+
             for (int i = 0; i < explosiveList.Length; i++)
             {
                 explosives.Add(explosiveList[i], explosiveAliveTimes[i]);
@@ -93,6 +119,27 @@ namespace InfServer.Script.GameType_CTF
             }
 
             gameState = GameState.Init;
+
+            if (arena._name.ToLower().Contains("ovd"))
+            {
+                playing = new Team(arena, arena._server);
+                playing._name = "Playing";
+                playing._id = (short)arena.Teams.Count();
+                playing._password = "";
+                playing._owner = null;
+                playing._isPrivate = true;
+                arena.createTeam(playing);
+
+                bases["A7"] = new Base(21, 474, 9, 483);
+                bases["D7"] = new Base(279, 504, 267, 491);
+                bases["F8"] = new Base(412, 575, 390, 563);
+                bases["F4"] = new Base(422, 271, 413, 263);
+                bases["A5"] = new Base(57, 359, 37, 349);
+
+                isOVD = true;
+            }
+
+
             return true;
         }
 
@@ -204,7 +251,7 @@ namespace InfServer.Script.GameType_CTF
 
             //Sit here until timer runs out
             arena.setTicker(1, 3, preGamePeriod * 100, "Next game: ",
-                    delegate()
+                    delegate ()
                     {	//Trigger the game start
                         arena.gameStart();
                     }
@@ -349,6 +396,10 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Game.Start")]
         public bool StartGame()
         {
+            //Reset Flags
+            arena.flagReset();
+            arena.flagSpawn();
+
             gameState = GameState.ActiveGame;
             flagMode = CTFMode.None;
 
@@ -378,15 +429,29 @@ namespace InfServer.Script.GameType_CTF
         public bool EndGame()
         {
             gameState = GameState.PostGame;
+            _arena.flagReset();
 
-            if (winningTeam == null)
+            if (!isOVD)
             {
-                arena.sendArenaMessage("There was no winner.");
-            }
-            else
+                if (winningTeam == null)
+                {
+                    arena.sendArenaMessage("There was no winner.");
+                }
+                else
+                {
+                    arena.sendArenaMessage(winningTeam._name + " has won the game!");
+                    winningTeam = null;
+                }
+            } else
             {
-                arena.sendArenaMessage(winningTeam._name + " has won the game!");
-                winningTeam = null;
+                arena.setTicker(3, 4, 0, "?team spec to Play!");
+
+                //Spec all in game players
+                foreach (Player p in arena.PlayersIngame.ToList())
+                    p.spec("np");
+
+
+                arena.sendArenaMessage("&Game has ended, Please type ?team spec to ready-up for the next game!", 3);
             }
 
             return true;
@@ -395,6 +460,29 @@ namespace InfServer.Script.GameType_CTF
         #endregion
 
         #region Player Events
+        /// <summary>
+        /// Called when a player sends a chat command
+        /// </summary>
+        [Scripts.Event("Player.ChatCommand")]
+        public bool playerChatCommand(Player player, Player recipient, string command, string payload)
+        {
+
+            switch (command.ToLower())
+            {
+                case "playing":
+                    player.spec("spec");
+                    break;
+                case "np":
+                    {
+                        player.spec();
+                    }
+                    break;
+            }
+          
+            return true;
+        }
+
+
         /// <summary>
         /// Triggered when an explosion happens from a projectile a player fired
         /// </summary>
@@ -475,6 +563,15 @@ namespace InfServer.Script.GameType_CTF
         [Scripts.Event("Player.EnterArena")]
         public void playerEnterArena(Player player)
         {
+            if (isOVD)
+            {
+                player.sendMessage(3, "&Welcome to Offense vs Defense. Please type ?playing if you wish to play!");
+
+                if (player.PermissionLevel > 0 || player._permissionTemp > 0)
+                {
+                    player.sendMessage(0, "#If you are hosting OvDs, please use *endgame to spec all. This will automatically trigger the playing/not playing scripting");
+                }
+            }
             //Add them to the list if its not in it
             if (!killStreaks.ContainsKey(player._alias))
             {
@@ -513,6 +610,50 @@ namespace InfServer.Script.GameType_CTF
         public bool playerModCommand(Player player, Player recipient, string command, string payload)
         {
             command = (command.ToLower());
+
+            if (command.Equals("setup"))
+            {
+                if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod)
+                    return false;
+
+                if (!bases.ContainsKey(payload.ToUpper()))
+                {
+                    player.sendMessage(-1, "That base is not recognized, Options are: ");
+                    foreach (string key in bases.Keys)
+                        player.sendMessage(0, key);
+
+                    return true;
+                }
+
+                Base defense = bases[payload.ToUpper()];
+
+                arena.itemSpawn(arena._server._assets.getItemByID(2005), 150, defense.x, defense.y, 100, null);
+                arena.itemSpawn(arena._server._assets.getItemByID(2009), 150, defense.x, defense.y, 100, null);
+                //arena.itemSpawn(arena._server._assets.getItemByID(23), 2, defense.x, defense.y, 100, null);
+                //arena.itemSpawn(arena._server._assets.getItemByID(10), 2, defense.x, defense.y, 100, null);
+                //arena.itemSpawn(arena._server._assets.getItemByID(11), 1, defense.x, defense.y, 100, null);
+                //arena.itemSpawn(arena._server._assets.getItemByID(9), 1, defense.x, defense.y, 100, null);
+                Arena.FlagState flag = arena.getFlag("Bridge3");
+
+                flag.posX = defense.flagX;
+                flag.posY = defense.flagY;
+
+                Helpers.Object_Flags(arena.Players, flag);
+                arena.sendArenaMessage(String.Format("&Minerals, flag, and auto-kits dropped at {0}", payload.ToUpper()));
+                return true;
+            }
+            if (command.Equals("healall"))
+            {
+                if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod)
+                    return false;
+
+                foreach (Player p in arena.PlayersIngame)
+                    p.inventoryModify(104, 1);
+
+                arena.sendArenaMessage("&All players have been healed");
+                return true;
+
+            }
             if (command.Equals("poweradd"))
             {
                 if (player.PermissionLevelLocal < Data.PlayerPermission.SMod)
@@ -803,7 +944,7 @@ namespace InfServer.Script.GameType_CTF
             if (!string.IsNullOrWhiteSpace(format))
             { arena.setTicker(1, 2, 0, format); }
 
-            arena.setTicker(2, 3, 0, delegate(Player p)
+            arena.setTicker(2, 3, 0, delegate (Player p)
             {
                 if (p.StatsCurrentGame == null)
                 {
@@ -956,5 +1097,38 @@ namespace InfServer.Script.GameType_CTF
             GameDone,
         }
 
+    }
+}
+
+public static class ArenaExtensions
+{
+    /// <summary>
+    /// Spawns the given item randomly in the specified area
+    /// </summary>
+    public static void spawnItemInArea(this Arena arena, ItemInfo item, ushort quantity, short x, short y, short radius)
+    {       //Sanity
+        if (quantity <= 0)
+            return;
+
+        int blockedAttempts = 30;
+
+        short pX;
+        short pY;
+        while (true)
+        {
+            pX = x;
+            pY = y;
+            Helpers.randomPositionInArea(arena, radius, ref pX, ref pY);
+            if (arena.getTile(pX, pY).Blocked)
+            {
+                blockedAttempts--;
+                if (blockedAttempts <= 0)
+                    //Consider the spawn to be blocked
+                    return;
+                continue;
+            }
+            arena.itemSpawn(item, quantity, pX, pY, null);
+            break;
+        }
     }
 }
