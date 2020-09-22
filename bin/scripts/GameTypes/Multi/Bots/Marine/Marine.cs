@@ -47,6 +47,7 @@ namespace InfServer.Script.GameType_Multi
         private int _tickNextStrafeChange;          //The last time we changed strafe direction
         private bool _bStrafeLeft;                  //Are we strafing left or right?
         private int _tickLastRadarDot;
+        private int _lawQuantity = 1;
 
 
         public Marine(VehInfo.Car type, Helpers.ObjectState state, Arena arena)

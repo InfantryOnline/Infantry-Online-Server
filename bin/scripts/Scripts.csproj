@@ -228,9 +228,12 @@
     <Compile Include="GameTypes\BurntMultiAss\Gametypes\Gladiator.cs" />
     <Compile Include="GameTypes\BurntMultiAss\Gametypes\KOTH.cs" />
     <Compile Include="GameTypes\BurntMultiAss\Gametypes\TDM.cs" />
+    <Compile Include="GameTypes\KOTH\Bots\CTBot.cs" />
+    <Compile Include="GameTypes\KOTH\Helpers\Teams.cs" />
     <Compile Include="GameTypes\KOTH\KOTH.cs" />
     <Compile Include="GameTypes\BurntMultiAss\Main.cs" />
     <Compile Include="GameTypes\BurntMultiAss\Settings.cs" />
+    <Compile Include="GameTypes\KOTH\Bots\Velitor.cs" />
     <Compile Include="GameTypes\LaserTag\Events.cs" />
     <Compile Include="GameTypes\LaserTag\LaserTag.cs" />
     <Compile Include="GameTypes\LaserTag\Objects\HQ.cs" />
@@ -386,6 +389,7 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="GameTypes\Ambush\" />
     <Folder Include="GameTypes\Basic\Objects\" />
   </ItemGroup>
 </Project>

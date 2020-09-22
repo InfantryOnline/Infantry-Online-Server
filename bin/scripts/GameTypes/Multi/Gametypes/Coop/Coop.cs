@@ -96,11 +96,11 @@ namespace InfServer.Script.GameType_Multi
                 {
                     _botDifficulty = 15;
                 }
+                if (_arena._name.EndsWith("Hell"))
+                {
+                    _botDifficulty = 35;
+                }
             }
-
-            _botDifficulty = 1;
-
-
         }
 
         public void Poll(int now)
@@ -193,6 +193,9 @@ namespace InfServer.Script.GameType_Multi
         {
             if (_arena.ActiveTeams.Count() == 0)
                 return;
+
+            _arena.flagReset();
+            _arena.flagSpawn();
 
             _firstRushWave = false;
             _secondRushWave = false;
@@ -298,6 +301,9 @@ namespace InfServer.Script.GameType_Multi
 
         public void gameEnd()
         {
+
+            _arena.flagReset();
+
             foreach (Bot bot in _bots)
                 _condemnedBots.Add(bot);
 
@@ -323,7 +329,7 @@ namespace InfServer.Script.GameType_Multi
 
         public void gameReset()
         {
-
+            _arena.flagReset();
         }
         #endregion
 

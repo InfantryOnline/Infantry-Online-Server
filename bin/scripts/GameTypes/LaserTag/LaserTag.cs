@@ -438,6 +438,8 @@ namespace InfServer.Script.GameType_LaserTag
         [Scripts.Event("Game.End")]
         public bool gameEnd()
         {
+            _arena.flagReset();
+
             //TODO: 
             //1. Fix the game start timer shit
             //2. Make sure you add cases for deleting hqs at game end and when game resets and when game stops
@@ -478,6 +480,7 @@ namespace InfServer.Script.GameType_LaserTag
         public bool gameReset()
         {
             //Game reset, perhaps start a new one
+            _arena.flagReset();
             _tickGameStart = 0;
             _tickGameStarting = 0;
             _tickVictoryStart = 0;

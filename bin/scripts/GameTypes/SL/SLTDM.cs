@@ -373,6 +373,10 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Game.Start")]
         public bool gameStart()
         {
+            //Reset flags
+            arena.flagReset();
+            arena.flagSpawn();
+
             GameStates = GameState.ActiveGame;
             FlagMode = FlagStatus.None;
 
@@ -399,6 +403,9 @@ namespace InfServer.Script.GameType_SLTDM
         [Scripts.Event("Game.End")]
         public bool gameEnd()
         {
+            //Reset flags
+            _arena.flagReset();
+
             GameStates = GameState.PostGame;
 
             //Game finished
