@@ -26,6 +26,7 @@ namespace InfServer.Script.GameType_KOTH
 
         //Settings
         private int _minPlayers;				//The minimum amount of players
+        private int _gameCount = 0;
 
         private class PlayerCrownStatus
         {
@@ -291,7 +292,17 @@ namespace InfServer.Script.GameType_KOTH
         /// </summary>
         [Scripts.Event("Game.Start")]
         public bool gameStart()
-        {   //We've started!
+        {
+
+            //Do we even have enough players to start a game?
+            if (_arena.PlayerCount < _minPlayers)
+            {	//Stop the game!
+                _arena.setTicker(1, 1, 0, "Not Enough Players");
+                return false;
+            }
+
+
+            //We've started!
             _arena.flagSpawn();
             _tickGameStart = Environment.TickCount;
             _tickGameStarting = 0;
@@ -353,6 +364,14 @@ namespace InfServer.Script.GameType_KOTH
 
             _arena._tickers.Clear();
             _arena.sendArenaMessage("Game Over");
+
+            _gameCount++;
+
+            if (_gameCount >= 3)
+            {
+                ScriptArena.scrambleTeams(_arena, _arena._server._zoneConfig.arena.desiredFrequencies, true);
+                _gameCount = 0;
+            }
 
             _tickGameStart = 0;
             _tickGameStarting = 0;

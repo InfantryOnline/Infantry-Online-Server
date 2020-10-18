@@ -20,7 +20,9 @@ namespace InfServer.Bots
 		///////////////////////////////////////////////////
 		private InfantryVehicle vehicle;					//Our vehicle to model steering behavior
 		public bool bSkipAim;								//Skip aiming and use the given angle
-		public bool bSkipRotate;							//Don't turn to steer to the target, just strafe and thrust
+		public bool bSkipRotate;                            //Don't turn to steer to the target, just strafe and thrust
+		public bool bStrafeLeft;
+		public bool bStrafeRight;
 		public float angle;									//The given angle to use
 
 		public Func<InfantryVehicle, Vector3> steerDelegate;//Delegate which calculates how much steering to apply
@@ -111,12 +113,12 @@ namespace InfServer.Bots
 				thrustBackward();
 				stopStrafing();
 			}
-			else if (steerDifference > 50)
+			else if (steerDifference > 50 || bStrafeLeft)
 			{
 				stopThrusting();
 				strafeRight();
 			}
-			else if (steerDifference < -50)
+			else if (steerDifference < -50 || bStrafeRight)
 			{
 				stopThrusting();
 				strafeLeft();
@@ -130,6 +132,8 @@ namespace InfServer.Bots
 			//These should be updated every poll
 			bSkipAim = false;
 			bSkipRotate = false;
+			bStrafeLeft = false;
+			bStrafeRight = false;
 
 			steerDelegate = null;
 			return base.updateState(delta);
