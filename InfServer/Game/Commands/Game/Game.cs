@@ -46,7 +46,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void startgame(Player player, Player recipient, string payload, int bong)
         {
-            player._arena.gameReset();
+            //player._arena.gameReset();
             player._arena.gameStart();
         }
 

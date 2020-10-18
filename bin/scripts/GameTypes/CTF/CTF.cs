@@ -7,6 +7,7 @@ using InfServer.Scripting;
 using InfServer.Protocol;
 
 using Assets;
+using InfServer.Script.GameType_CTF_OvD;
 
 namespace InfServer.Script.GameType_CTF
 {
@@ -109,6 +110,8 @@ namespace InfServer.Script.GameType_CTF
                 explosives.Add(explosiveList[i], explosiveAliveTimes[i]);
             }
 
+            
+
             foreach (Arena.FlagState fs in arena._flags.Values)
             {	//Determine the minimum number of players
                 if (fs.flag.FlagData.MinPlayerCount < minPlayers)
@@ -122,7 +125,18 @@ namespace InfServer.Script.GameType_CTF
 
             if (arena._name.ToLower().Contains("ovd"))
             {
-                playing = new Team(arena, arena._server);
+                foreach (Arena.FlagState fs in arena._flags.Values)
+                {
+                    if (fs.flag.FlagData.MinPlayerCount == 200)
+                    {
+                        fs.flag.FlagData.MinPlayerCount = 0;
+                        continue;
+                    }
+                    else if (fs.flag.FlagData.MinPlayerCount == 0)
+                        fs.flag.FlagData.MinPlayerCount = 300;
+                }
+
+                    playing = new Team(arena, arena._server);
                 playing._name = "Playing";
                 playing._id = (short)arena.Teams.Count();
                 playing._password = "";
@@ -429,7 +443,7 @@ namespace InfServer.Script.GameType_CTF
         public bool EndGame()
         {
             gameState = GameState.PostGame;
-            _arena.flagReset();
+            arena.flagReset();
 
             if (!isOVD)
             {
@@ -444,18 +458,36 @@ namespace InfServer.Script.GameType_CTF
                 }
             } else
             {
-                arena.setTicker(3, 4, 0, "?team spec to Play!");
-
-                //Spec all in game players
-                foreach (Player p in arena.PlayersIngame.ToList())
-                    p.spec("np");
-
-
-                arena.sendArenaMessage("&Game has ended, Please type ?team spec to ready-up for the next game!", 3);
+                arena.sendArenaMessage("&Game has ended, Host may either *reset to spec all, or *restart for a rematch", 3);
             }
 
             return true;
         }
+
+        /// <summary>
+        /// Called to reset the game state
+        /// </summary>
+        [Scripts.Event("Game.Reset")]
+        public bool gameReset()
+        {
+            gameState = GameState.PostGame;
+            arena.flagReset();
+            ResetKiller(null);
+            killStreaks.Clear();
+
+
+            if (isOVD)
+            {
+                arena.sendArenaMessage("& ----=[ Please type ?team spec or ?playing to ready up for the next game! ]=----", 30);
+
+                //Spec all in game players
+                foreach (Player p in arena.Players)
+                    p.spec("np");
+            }
+
+            return true;
+        }
+
 
         #endregion
 

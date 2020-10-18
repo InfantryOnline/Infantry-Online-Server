@@ -122,9 +122,9 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                         }
                     }
                     else if (request.Url.LocalPath.Contains("notz"))
-                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones where !zone.Title.Contains("I:TZ") select new { zone.Title, zone.PlayerCount }));
+                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones where !zone.Title.Contains("I:TZ") select new { zone.Title, zone.Description, zone.PlayerCount, zone.Address, zone.Port }));
                     else
-                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { zone.Title, zone.PlayerCount }));
+                        responseString = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(from zone in directoryServer.Zones select new { zone.Title, zone.Description, zone.PlayerCount, zone.Address, zone.Port }));
 
                     response.ContentLength64 = responseString.Length;
                     response.AppendHeader("Access-Control-Allow-Origin", "*");
