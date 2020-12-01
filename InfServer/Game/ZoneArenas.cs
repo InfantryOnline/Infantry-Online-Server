@@ -152,12 +152,6 @@ namespace InfServer.Game
 
             Log.write(TLog.Normal, "Opened arena: " + name);
 
-            var tmpIrcName = String.Join("", (from c in name where !Char.IsWhiteSpace(c) && Char.IsLetterOrDigit(c) select c).ToArray());
-
-            arena.IrcName = "#" + this.IrcName + "_" + tmpIrcName;
-
-            ircClient.RfcJoin(arena.IrcName);
-
             return arena;
         }
 
@@ -170,8 +164,6 @@ namespace InfServer.Game
 
             using (DdMonitor.Lock(_arenas))
                 _arenas.Remove(arena._name);
-
-            ircClient.RfcPart(arena.IrcName);
         }
 
         /// <summary>

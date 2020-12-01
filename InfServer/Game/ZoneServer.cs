@@ -340,8 +340,6 @@ namespace InfServer.Game
 
             //InitializeGameEventsDictionary();
 
-            InitializeIrcClient();
-
             return true;
         }
 
@@ -477,15 +475,6 @@ namespace InfServer.Game
                     }
                 }
             }
-
-            try
-            {
-                ircClient.ListenOnce(false);
-            }
-            catch (Exception e)
-            {
-                Log.write(TLog.Warning, e.Message);
-            }
         }
 
         /// <sumary>
@@ -525,10 +514,6 @@ namespace InfServer.Game
                 //Disconnect from the database gracefully..
                 _db.send(new Disconnect<Database>());
             }
-
-            //Shut off our irc connection
-            if (ircClient.IsConnected)
-                ircClient.Disconnect();
 
             //End all threads
             _pingResponder.End();

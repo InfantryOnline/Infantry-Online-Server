@@ -5,3 +5,10 @@ C:\Infantry\Repositories\Server\InfServer.DBComm\bin\Debug\InfServer.Network.pdb
 C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.dll
 C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.pdb
+C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\InfServer.DBComm.dll
+C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\InfServer.DBComm.pdb
+C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.csprojAssemblyReference.cache
+C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.csproj.CoreCompileInputs.cache
+C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.csproj.CopyComplete
+C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.dll
+C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.pdb

@@ -11,7 +11,6 @@ using InfServer.Protocol;
 using InfServer.Game.Commands;
 
 using Assets;
-using Meebey.SmartIrc4net;
 
 namespace InfServer.Game
 {
@@ -325,7 +324,6 @@ namespace InfServer.Game
         public void playerArenaChat(Player from, CS_Chat chat)
         {	//Route it to our entire player list!
             Helpers.Player_RouteChat(this, from, chat);
-            this._server.ircClient.SendMessage(SendType.Message, IrcName, String.Format("[{0}]: {1}", from._alias, chat.message));
         }
         #endregion
     }
