@@ -3,8 +3,3 @@ C:\Infantry\Repositories\Server\Assets\bin\Debug\Assets.pdb
 C:\Infantry\Repositories\Server\Assets\obj\Debug\Assets.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\Assets\obj\Debug\Assets.dll
 C:\Infantry\Repositories\Server\Assets\obj\Debug\Assets.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Assets.dll
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Assets.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\Assets\obj\Debug\Assets.csproj.CoreCompileInputs.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\Assets\obj\Debug\Assets.dll
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\Assets\obj\Debug\Assets.pdb

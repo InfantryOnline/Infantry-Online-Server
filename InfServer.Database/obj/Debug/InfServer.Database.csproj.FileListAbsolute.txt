@@ -4,11 +4,3 @@ C:\Infantry\Repositories\Server\bin\Database\InfServer.Database.pdb
 C:\Infantry\Repositories\Server\InfServer.Database\obj\Debug\InfServer.Database.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer.Database\obj\Debug\InfServer.Database.exe
 C:\Infantry\Repositories\Server\InfServer.Database\obj\Debug\InfServer.Database.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Database\InfServer.Database.exe.config
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Database\InfServer.Database.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Database\InfServer.Database.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Database\obj\Debug\InfServer.Database.csprojAssemblyReference.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Database\obj\Debug\InfServer.Database.csproj.CoreCompileInputs.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Database\obj\Debug\InfServer.Database.csproj.CopyComplete
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Database\obj\Debug\InfServer.Database.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Database\obj\Debug\InfServer.Database.pdb

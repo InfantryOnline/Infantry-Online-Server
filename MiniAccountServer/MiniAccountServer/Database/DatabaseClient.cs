@@ -61,7 +61,7 @@ namespace MiniAccountServer.Database
         /// </summary>
         public DatabaseClient()
         {
-            _connString = "Server=INFANTRY\\SQLEXPRESS;Database=Data;Trusted_Connection=True;";
+            _connString = "Server=localhost\\SQLEXPRESS;Database=Data;Trusted_Connection=True;";
 
             _connection = new SqlConnection(_connString);
 

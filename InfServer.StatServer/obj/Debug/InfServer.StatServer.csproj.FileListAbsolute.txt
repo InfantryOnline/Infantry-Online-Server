@@ -3,11 +3,3 @@ C:\Infantry\Repositories\Server\bin\Stats\InfServer.StatServer.pdb
 C:\Infantry\Repositories\Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.exe
 C:\Infantry\Repositories\Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Stats\InfServer.StatServer.exe.config
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Stats\InfServer.StatServer.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Stats\InfServer.StatServer.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.csprojAssemblyReference.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.csproj.CoreCompileInputs.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.csproj.CopyComplete
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.pdb

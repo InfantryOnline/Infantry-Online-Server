@@ -3,11 +3,3 @@ C:\Infantry\Repositories\Server\bin\Directory\InfServer.DirectoryServer.pdb
 C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.exe
 C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Directory\InfServer.DirectoryServer.exe.config
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Directory\InfServer.DirectoryServer.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\Directory\InfServer.DirectoryServer.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csprojAssemblyReference.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csproj.CoreCompileInputs.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csproj.CopyComplete
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.pdb

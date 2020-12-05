@@ -8,8 +8,3 @@ C:\Infantry\Repositories\Server\InfServer.Network\bin\Debug\InfServer.Network.pd
 C:\Infantry\Repositories\Server\InfServer.Network\obj\Debug\InfServer.Network.dll
 C:\Infantry\Repositories\Server\InfServer.Network\obj\Debug\InfServer.Network.pdb
 C:\Infantry\Repositories\Server\InfServer.Network\obj\Debug\InfServer.Network.csprojResolveAssemblyReference.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\InfServer.Network.dll
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\InfServer.Network.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Network\obj\Debug\InfServer.Network.csproj.CoreCompileInputs.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Network\obj\Debug\InfServer.Network.dll
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer.Network\obj\Debug\InfServer.Network.pdb

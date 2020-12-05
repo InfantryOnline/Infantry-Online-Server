@@ -4,11 +4,3 @@ C:\Infantry\Repositories\Server\bin\InfServer.pdb
 C:\Infantry\Repositories\Server\InfServer\obj\Debug\InfServer.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer\obj\Debug\InfServer.exe
 C:\Infantry\Repositories\Server\InfServer\obj\Debug\InfServer.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\InfServer.exe.config
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\InfServer.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\bin\InfServer.pdb
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer\obj\Debug\InfServer.csprojAssemblyReference.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer\obj\Debug\InfServer.csproj.CoreCompileInputs.cache
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer\obj\Debug\InfServer.csproj.CopyComplete
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer\obj\Debug\InfServer.exe
-C:\Users\JovanS\Documents\Projects\Current\Infantry-Online-Server\InfServer\obj\Debug\InfServer.pdb
