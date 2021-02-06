@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RegisterForm));
             this.UsernameBox = new System.Windows.Forms.TextBox();
             this.PasswordBox = new System.Windows.Forms.TextBox();
+            this.PasswordBox.PasswordChar = '*';
             this.EmailBox = new System.Windows.Forms.TextBox();
             this.RegisterButton = new System.Windows.Forms.Button();
             this.UsernameLabel = new System.Windows.Forms.Label();
