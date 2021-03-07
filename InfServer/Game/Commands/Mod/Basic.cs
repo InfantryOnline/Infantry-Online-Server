@@ -3490,6 +3490,15 @@ namespace InfServer.Game.Commands.Mod
             player.sendMessage(0, string.Format("You have kicked player {0}{1}", recipient._alias, (minutes > 0) ? string.Format(" for {0} minutes.", minutes) : "."));
         }
 
+        static public void addswear(Player player, Player recipient, string payload, int bong)
+        {
+
+        }
+        static public void removeswear(Player player, Player recipient, string payload, int bong)
+        {
+
+        }
+
         /// <summary>
         /// Registers all handlers
         /// </summary>

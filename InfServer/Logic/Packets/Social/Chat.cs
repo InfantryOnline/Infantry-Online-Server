@@ -49,7 +49,7 @@ namespace InfServer.Logic
                 
 				//Do we have a recipient?
 				Player recipient = null;
-				if (pkt.chatType == Helpers.Chat_Type.Whisper)
+				if (pkt.chatType == Protocol.Helpers.Chat_Type.Whisper)
 				{
 					if ((recipient = player._server.getPlayer(pkt.recipient)) == null)
 						return;
@@ -86,7 +86,7 @@ namespace InfServer.Logic
 
                 //Do we have a recipient?
                 Player recipient = null;
-                if (pkt.chatType == Helpers.Chat_Type.Whisper)
+                if (pkt.chatType == Protocol.Helpers.Chat_Type.Whisper)
                 {
                     if ((recipient = player._server.getPlayer(pkt.recipient)) == null)
                         return;
@@ -123,7 +123,7 @@ namespace InfServer.Logic
 
                 //Do we have a recipient?
                 Player recipient = null;
-                if (pkt.chatType == Helpers.Chat_Type.Whisper)
+                if (pkt.chatType == Protocol.Helpers.Chat_Type.Whisper)
                 {
                     if ((recipient = player._server.getPlayer(pkt.recipient)) == null)
                         return;
@@ -196,18 +196,18 @@ namespace InfServer.Logic
                 //What sort of chat has occured?
                 switch (pkt.chatType)
                 {
-                    case Helpers.Chat_Type.Normal:
+                    case Protocol.Helpers.Chat_Type.Normal:
                         //For leagues, dont allow them to talk to the teams
                         if (!Allowed)
                         {
-                            pkt.chatType = Helpers.Chat_Type.Team;
+                            pkt.chatType = Protocol.Helpers.Chat_Type.Team;
                             Handle_CS_Chat(pkt, player);
                             break;
                         }
 
                         if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
                         {
-                            pkt.chatType = Helpers.Chat_Type.Team;
+                            pkt.chatType = Protocol.Helpers.Chat_Type.Team;
                             Handle_CS_Chat(pkt, player);
                             break;
                         }
@@ -221,39 +221,41 @@ namespace InfServer.Logic
                                     return;
                                 }
 
+                                bool detected;
                                 pkt.bong = 0;
+                                pkt.message = SwearFilter.Filter(pkt.message, out detected);
                                 player._arena.playerArenaChat(player, pkt);
                             }
                         );
                         break;
 
-                    case Helpers.Chat_Type.Macro:
+                    case Protocol.Helpers.Chat_Type.Macro:
                         if (!Allowed)
                         {
                             //Arent allowed
-                            pkt.chatType = Helpers.Chat_Type.Team;
+                            pkt.chatType = Protocol.Helpers.Chat_Type.Team;
                             Handle_CS_Chat(pkt, player);
                             break;
                         }
 
                         if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
                         {
-                            pkt.chatType = Helpers.Chat_Type.Team;
+                            pkt.chatType = Protocol.Helpers.Chat_Type.Team;
                             Handle_CS_Chat(pkt, player);
                             break;
                         }
 
-                        pkt.chatType = Helpers.Chat_Type.Normal;
+                        pkt.chatType = Protocol.Helpers.Chat_Type.Normal;
                         Handle_CS_Chat(pkt, player);
                         break;
 
-                    case Helpers.Chat_Type.Team:
+                    case Protocol.Helpers.Chat_Type.Team:
                         //Send it to the player's team
                         player._team.playerTeamChat(player, pkt);
 
                         break;
 
-                    case Helpers.Chat_Type.EnemyTeam:
+                    case Protocol.Helpers.Chat_Type.EnemyTeam:
                         //Send it to the players team and enemy's team
                         player._team.playerTeamChat(player, pkt);
 
@@ -273,7 +275,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case Helpers.Chat_Type.PrivateChat:
+                    case Protocol.Helpers.Chat_Type.PrivateChat:
                         if (!player._server.IsStandalone)
                         {
                             CS_PrivateChat<Data.Database> pchat = new CS_PrivateChat<Data.Database>();
@@ -284,7 +286,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case Helpers.Chat_Type.Whisper:
+                    case Protocol.Helpers.Chat_Type.Whisper:
                         {	                           
                             //Find our recipient
                             Player recipient = player._server.getPlayer(pkt.recipient);
@@ -320,7 +322,7 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case Helpers.Chat_Type.Squad:
+                    case Protocol.Helpers.Chat_Type.Squad:
                         //Since squads are only zone-wide, we don't need to route it to the database,
                         //instead we route it to every player in every arena in the zone
                         foreach (Arena a in player._server._arenas.Values)
