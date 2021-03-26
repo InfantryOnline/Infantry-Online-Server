@@ -177,9 +177,48 @@ namespace InfServer.Game
         public void propagateState()
         {
             foreach (Vehicle child in _childs)
-            {	//If it's occupied, this isn't necessary
+            {
+                var dep = child._type as VehInfo.Dependent;
+
+                if (dep != null)
+                {
+                    //
+                    // Force an angle lock, more work may be needed here, because
+                    // we may need to keep track of a child's yaw as a separate value
+                    // from the parent so that we can add the two of them when needed.
+                    //
+                    // For now we only care about what is called an "absolute constraint".
+                    // This means that the child vehicle cannot rotate at all, so that it
+                    // _always_ faces the exactly same angle of the parent vehicle.
+                    //
+                    // Later on, we will implement variable angle constraints as well.
+                    //
+
+                    var absoluteConstraint = dep.ChildAngleLength == 0
+                        && dep.ChildAngleStart == 0
+                        && dep.ChildRotateLeft == 0
+                        && dep.ChildRotateRight == 0;
+
+                    if (dep.ChildParentRelativeRotation == 1)
+                    {
+                        child._state.positionX = _state.positionX;
+                        child._state.positionY = _state.positionY;
+                        child._state.positionZ = _state.positionZ;
+
+                        child._state.velocityX = _state.velocityX;
+                        child._state.velocityY = _state.velocityY;
+                        child._state.velocityZ = _state.velocityZ;
+
+                        child._state.yaw = _state.yaw;
+                        child._state.pitch = _state.pitch;
+                    }
+                }
+
+                //If it's occupied, this isn't necessary
                 if (child._inhabitant != null)
+                {
                     continue;
+                }
 
                 child._state.positionX = _state.positionX;
                 child._state.positionY = _state.positionY;
@@ -188,6 +227,7 @@ namespace InfServer.Game
                 child._state.velocityX = _state.velocityX;
                 child._state.velocityY = _state.velocityY;
                 child._state.velocityZ = _state.velocityZ;
+
                 //no changes
                 child._state.yaw = _state.yaw;
             }
