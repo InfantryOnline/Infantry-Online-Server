@@ -44,7 +44,7 @@ namespace InfServer.Game
                     //Update the bot's state
                     if (!bot.bCondemned)
                     {
-                        _vehicles.updateObjState(bot, bot._state);
+                        //_vehicles.updateObjState(bot, bot._state);
                         _bots.updateObjState(bot, bot._state);
                     }
 
@@ -207,6 +207,7 @@ namespace InfServer.Game
         public void lostBot(Bot bot)
         {	//Mark it for deletion
             bot.bCondemned = true;
+            Log.write(TLog.Error, "condemned bot removed.");
         }
 
         /// <summary>

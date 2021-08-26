@@ -161,8 +161,12 @@ namespace InfServer.Bots
             {
                 Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count);
 
-                //Let them know
-                callback(null, 0);
+				//Remove all path requests currently in pathing queue
+				//pathingQueue.TakeWhile<PathfindReq> (qItem => qItem != null);
+				pathingQueue = new BlockingCollection<PathfindReq>();
+
+				//Let them know
+				callback(null, 0);
                 return;
             }
 			PathfindReq req = new PathfindReq();

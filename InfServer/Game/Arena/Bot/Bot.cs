@@ -228,6 +228,7 @@ namespace InfServer.Bots
 			_arena.lostBot(this);
 		}
 
+
 		/// <summary>
 		/// Looks after the bot's functionality
 		/// </summary>
@@ -246,7 +247,15 @@ namespace InfServer.Bots
 			if (delta > 600)
 			{
 				Log.write(TLog.Warning, "Encountered excessive bot delta of {0}", delta);
-                destroy(true);
+				//freezeMovement(5);
+				//dirty hack to stop spamming, set bot to be like it's been killed
+				//Die, and then cease movement
+				_state.health = 0;
+				_tickDead = Environment.TickCount;
+
+				_movement.stop();
+				_movement.bEnabled = false;
+				destroy(true);
 				return false;
 			}
 
@@ -291,6 +300,7 @@ namespace InfServer.Bots
 
 			return false;
 		}
+
 
 		/// <summary>
 		/// Handles damage from explosions triggered nearby
