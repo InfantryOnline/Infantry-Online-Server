@@ -2562,14 +2562,12 @@ namespace InfServer.Game.Commands.Mod
                 {
                     payload = string.Format("[Zone] {0}", payload);
                 }
-               
-                foreach (Arena arena in player._server._arenas.Values)
+
+                var arenas = player._server._arenas.Values.Where(a => a != null);
+
+                foreach (var arena in arenas)
                 {
-                    if (arena != null)
-                    {
-                        arena.sendArenaMessage(payload, bong);
-                    }
-                    
+                    arena.sendArenaMessage(payload, bong);
                 }
             }
         }
