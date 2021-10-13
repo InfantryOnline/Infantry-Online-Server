@@ -219,17 +219,21 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Message can not be empty.");
             else
             {
-                string format = string.Format("{0} - {1}", payload, player._alias);
-
                 //Snap color code before sending
+
                 Regex reg = new Regex(@"^(~|!|@|#|\$|%|\^|&|\*)", RegexOptions.IgnoreCase);
                 Match match = reg.Match(payload);
+
                 if (match.Success)
-                    format = string.Format("{0}[Arena] {1}", match.Groups[0].Value, format.Remove(0, 1));
+                {
+                    payload = string.Format("{0}[Arena] {1}", match.Groups[0].Value, payload.Remove(0, 1));
+                }
                 else
-                    format = string.Format("[Arena] {0}", format);
-                //Send it
-                player._arena.sendArenaMessage(format, bong);
+                {
+                    payload = string.Format("[Arena] {0}", payload);
+                }
+
+                player._arena.sendArenaMessage(payload, bong);
             }
         }
 
@@ -748,19 +752,23 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            string format = string.Format("{0} - {1}", payload, player._alias);
             //Snap the color code before sending
             Regex reg = new Regex(@"^(~|!|@|#|\$|%|\^|&|\*)", RegexOptions.IgnoreCase);
             Match match = reg.Match(payload);
+
             if (match.Success)
-                format = string.Format("{0}[Global] {1}", match.Groups[0].Value, format.Remove(0, 1));
+            {
+                payload = string.Format("{0}[Global] {1}", match.Groups[0].Value, payload.Remove(0, 1));
+            }
             else
-                format = string.Format("[Global] {0}", format);
+            {
+                payload = string.Format("[Global] {0}", payload);
+            }
 
             CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
             pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.global;
             pkt.sender = player._alias;
-            pkt.payload = format;
+            pkt.payload = payload;
 
             player._server._db.send(pkt);
         }
@@ -2542,18 +2550,27 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Message can not be empty.");
             else
             {
-                string format = string.Format("{0} - {1}", payload, player._alias);
                 //Snap color code before sending
                 Regex reg = new Regex(@"^(~|!|@|#|\$|%|\^|&|\*)", RegexOptions.IgnoreCase);
                 Match match = reg.Match(payload);
+
                 if (match.Success)
-                    format = string.Format("{0}[Zone] {1}", match.Groups[0].Value, format.Remove(0, 1));
+                {
+                    payload = string.Format("{0}[Zone] {1}", match.Groups[0].Value, payload.Remove(0, 1));
+                }
                 else
-                    format = string.Format("[Zone] {0}", format);
-                //Send it to all
+                {
+                    payload = string.Format("[Zone] {0}", payload);
+                }
+               
                 foreach (Arena arena in player._server._arenas.Values)
+                {
                     if (arena != null)
-                        arena.sendArenaMessage(format, bong);
+                    {
+                        arena.sendArenaMessage(payload, bong);
+                    }
+                    
+                }
             }
         }
 
