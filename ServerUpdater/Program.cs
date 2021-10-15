@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 namespace ServerUpdater
 {
     /// <summary>
-    /// Applies server updates from the `BinDirectory` to the 
+    /// Applies server updates from the `BinDirectory` to the other folders located in the `RootDirectory`.
     /// </summary>
     class Program
     {
