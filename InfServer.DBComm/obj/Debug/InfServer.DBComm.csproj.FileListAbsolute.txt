@@ -5,3 +5,10 @@ C:\Infantry\Repositories\Server\InfServer.DBComm\bin\Debug\InfServer.Network.pdb
 C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.dll
 C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.pdb
+F:\Game Dev Files\Infantry Server Code\bin\InfServer.DBComm.dll
+F:\Game Dev Files\Infantry Server Code\bin\InfServer.DBComm.pdb
+F:\Game Dev Files\Infantry Server Code\InfServer.DBComm\obj\Debug\InfServer.DBComm.csprojAssemblyReference.cache
+F:\Game Dev Files\Infantry Server Code\InfServer.DBComm\obj\Debug\InfServer.DBComm.csproj.CoreCompileInputs.cache
+F:\Game Dev Files\Infantry Server Code\InfServer.DBComm\obj\Debug\InfServer.DBComm.csproj.CopyComplete
+F:\Game Dev Files\Infantry Server Code\InfServer.DBComm\obj\Debug\InfServer.DBComm.dll
+F:\Game Dev Files\Infantry Server Code\InfServer.DBComm\obj\Debug\InfServer.DBComm.pdb

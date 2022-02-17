@@ -3,3 +3,11 @@ C:\Infantry\Repositories\Server\bin\Directory\InfServer.DirectoryServer.pdb
 C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.exe
 C:\Infantry\Repositories\Server\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.pdb
+F:\Game Dev Files\Infantry Server Code\bin\Directory\InfServer.DirectoryServer.exe.config
+F:\Game Dev Files\Infantry Server Code\bin\Directory\InfServer.DirectoryServer.exe
+F:\Game Dev Files\Infantry Server Code\bin\Directory\InfServer.DirectoryServer.pdb
+F:\Game Dev Files\Infantry Server Code\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csprojAssemblyReference.cache
+F:\Game Dev Files\Infantry Server Code\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csproj.CoreCompileInputs.cache
+F:\Game Dev Files\Infantry Server Code\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.csproj.CopyComplete
+F:\Game Dev Files\Infantry Server Code\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.exe
+F:\Game Dev Files\Infantry Server Code\InfServer.DirectoryServer\obj\Debug\InfServer.DirectoryServer.pdb
