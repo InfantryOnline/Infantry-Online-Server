@@ -1320,8 +1320,64 @@ namespace InfServer.Game
 
                 from._occupiedVehicle._state.lastUpdate = updateTick;
 
+                //
+                // Force an angle lock, more work may be needed here, because
+                // we may need to keep track of a child's yaw as a separate value
+                // from the parent so that we can add the two of them when needed.
+                //
+                // For now we only care about what is called an "absolute constraint".
+                // This means that the child vehicle cannot rotate at all, so that it
+                // _always_ faces the exactly same angle of the parent vehicle.
+                //
+                // Later on, we will implement variable angle constraints as well.
+                //
+
+                var child = from._occupiedVehicle;
+
+                if (child._parent != null)
+                {
+                    var dep = child._type as VehInfo.Dependent;
+
+                    if (dep != null)
+                    {
+                        //
+                        // Force an angle lock, more work may be needed here, because
+                        // we may need to keep track of a child's yaw as a separate value
+                        // from the parent so that we can add the two of them when needed.
+                        //
+                        // For now we only care about what is called an "absolute constraint".
+                        // This means that the child vehicle cannot rotate at all, so that it
+                        // _always_ faces the exactly same angle of the parent vehicle.
+                        //
+                        // Later on, we will implement variable angle constraints as well.
+                        //
+
+                        var absoluteConstraint = dep.ChildAngleLength == 0
+                            && dep.ChildAngleStart == 0
+                            && dep.ChildRotateLeft == 0
+                            && dep.ChildRotateRight == 0;
+
+                        if (dep.ChildParentRelativeRotation == 1)
+                        {
+                            var _state = child._parent._state;
+
+                            child._state.positionX = _state.positionX;
+                            child._state.positionY = _state.positionY;
+                            child._state.positionZ = _state.positionZ;
+
+                            child._state.velocityX = _state.velocityX;
+                            child._state.velocityY = _state.velocityY;
+                            child._state.velocityZ = _state.velocityZ;
+
+                            child._state.yaw = _state.yaw;
+                            child._state.pitch = _state.pitch;
+                        }
+                    }
+                }
+
                 //Update spatial data
                 _vehicles.updateObjState(from._occupiedVehicle, from._occupiedVehicle._state);
+
 
                 //Propagate the state
                 from._occupiedVehicle.propagateState();

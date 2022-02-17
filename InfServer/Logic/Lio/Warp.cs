@@ -16,7 +16,7 @@ namespace InfServer.Logic
 	{	/// <summary>
 		/// Handles a warp request from a client
 		/// </summary>
-		static public void Warp(Helpers.ResetFlags flags, Player player, IEnumerable<LioInfo.WarpField> warpGroup)
+		static public void Warp(Protocol.Helpers.ResetFlags flags, Player player, IEnumerable<LioInfo.WarpField> warpGroup)
 		{	//Redirect
 			Warp(flags, player, warpGroup, player._server._zoneConfig.vehicle.warpDamageIgnoreTime);
 		}
@@ -24,7 +24,7 @@ namespace InfServer.Logic
 		/// <summary>
 		/// Handles a warp request from a client
 		/// </summary>
-		static public void Warp(Helpers.ResetFlags flags, Player player, IEnumerable<LioInfo.WarpField> warpGroup, int invulnTime)
+		static public void Warp(Protocol.Helpers.ResetFlags flags, Player player, IEnumerable<LioInfo.WarpField> warpGroup, int invulnTime)
 		{	//Search for valid warps to use
 			//List<LioInfo.WarpField> valid = new List<LioInfo.WarpField>();
             List<Arena.RelativeObj> valid = new List<Arena.RelativeObj>();
@@ -120,7 +120,7 @@ namespace InfServer.Logic
 		/// <summary>
         /// Handles an item pickup request from a client
     	/// </summary>
-	    static public void Warp(Helpers.ResetFlags flags, Player player, Arena.RelativeObj warp, int invulnTime)
+	    static public void Warp(Protocol.Helpers.ResetFlags flags, Player player, Arena.RelativeObj warp, int invulnTime)
 		{
             LvlInfo level = player._server._assets.Level;
 
@@ -141,7 +141,7 @@ namespace InfServer.Logic
                 if (!player._arena.getTile(px, py).Blocked)
                     break;
 
-                Helpers.randomPositionInArea(player._arena, ref px, ref py, width, height);
+                Protocol.Helpers.randomPositionInArea(player._arena, ref px, ref py, width, height);
             }
 
 			//Use our first warp!

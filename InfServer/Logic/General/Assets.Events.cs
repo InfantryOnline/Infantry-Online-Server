@@ -22,12 +22,12 @@ namespace InfServer.Logic
         {
             public bool bWarping;									//Are we going to warp?
             public bool bWarpInPlace = true;                        //Do we want to warp in place?
-            public Helpers.ResetFlags warpFlags;					//The warp flags to use
+            public Protocol.Helpers.ResetFlags warpFlags;					//The warp flags to use
             public IEnumerable<LioInfo.WarpField> warpGroup;		//Our warpgroup to warp to, if any
 
             public EventState()
             {
-                warpFlags = Helpers.ResetFlags.ResetNone;
+                warpFlags = Protocol.Helpers.ResetFlags.ResetNone;
                 warpGroup = null;
             }
         }
@@ -400,7 +400,7 @@ namespace InfServer.Logic
                             break;
 
                         state.bWarping = true;
-                        state.warpFlags = Helpers.ResetFlags.ResetAll;
+                        state.warpFlags = Protocol.Helpers.ResetFlags.ResetAll;
 
                         //Lets check for what they want to reset
                         if (param != "")
@@ -408,24 +408,24 @@ namespace InfServer.Logic
                             switch (Convert.ToInt32(param))
                             {
                                 case 0:
-                                    state.warpFlags = Helpers.ResetFlags.ResetNone;
+                                    state.warpFlags = Protocol.Helpers.ResetFlags.ResetNone;
                                     break;
                                 case 1:
-                                    state.warpFlags = Helpers.ResetFlags.ResetEnergy;
+                                    state.warpFlags = Protocol.Helpers.ResetFlags.ResetEnergy;
                                     break;
                                 case 2:
-                                    state.warpFlags = Helpers.ResetFlags.ResetHealth;
+                                    state.warpFlags = Protocol.Helpers.ResetFlags.ResetHealth;
                                     break;
                                 case 3: //Dont know yet
-                                    state.warpFlags = Helpers.ResetFlags.ResetAll;
+                                    state.warpFlags = Protocol.Helpers.ResetFlags.ResetAll;
                                     break;
                                 case 4:
-                                    state.warpFlags = Helpers.ResetFlags.ResetVelocity;
+                                    state.warpFlags = Protocol.Helpers.ResetFlags.ResetVelocity;
                                     break;
                                 case 5: //Dont know yet
                                 case 6: //Dont know yet
                                 case 7:
-                                    state.warpFlags = Helpers.ResetFlags.ResetAll;
+                                    state.warpFlags = Protocol.Helpers.ResetFlags.ResetAll;
                                     break;
                             }
                         }
@@ -517,7 +517,7 @@ namespace InfServer.Logic
             else if (state.bWarping && state.bWarpInPlace)
             {
                 short energy = player._state.energy;
-                if (state.warpFlags == Helpers.ResetFlags.ResetAll || state.warpFlags == Helpers.ResetFlags.ResetEnergy)
+                if (state.warpFlags == Protocol.Helpers.ResetFlags.ResetAll || state.warpFlags == Protocol.Helpers.ResetFlags.ResetEnergy)
                     energy = -1;
 
                 //We want to warp in place
