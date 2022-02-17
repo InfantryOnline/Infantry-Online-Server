@@ -207,7 +207,6 @@ namespace InfServer.Game
         public void lostBot(Bot bot)
         {	//Mark it for deletion
             bot.bCondemned = true;
-            Log.write(TLog.Error, "condemned bot removed.");
         }
 
         /// <summary>
