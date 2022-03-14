@@ -3,11 +3,3 @@ C:\Infantry\Repositories\Server\bin\Stats\InfServer.StatServer.pdb
 C:\Infantry\Repositories\Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.csprojResolveAssemblyReference.cache
 C:\Infantry\Repositories\Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.exe
 C:\Infantry\Repositories\Server\InfServer.StatServer\obj\Debug\InfServer.StatServer.pdb
-F:\Game Dev Files\Infantry Server Code\bin\Stats\InfServer.StatServer.exe.config
-F:\Game Dev Files\Infantry Server Code\bin\Stats\InfServer.StatServer.exe
-F:\Game Dev Files\Infantry Server Code\bin\Stats\InfServer.StatServer.pdb
-F:\Game Dev Files\Infantry Server Code\InfServer.StatServer\obj\Debug\InfServer.StatServer.csprojAssemblyReference.cache
-F:\Game Dev Files\Infantry Server Code\InfServer.StatServer\obj\Debug\InfServer.StatServer.csproj.CoreCompileInputs.cache
-F:\Game Dev Files\Infantry Server Code\InfServer.StatServer\obj\Debug\InfServer.StatServer.csproj.CopyComplete
-F:\Game Dev Files\Infantry Server Code\InfServer.StatServer\obj\Debug\InfServer.StatServer.exe
-F:\Game Dev Files\Infantry Server Code\InfServer.StatServer\obj\Debug\InfServer.StatServer.pdb
