@@ -26,9 +26,9 @@ namespace InfServer.Bots
 		private int pathHandleClr0;
 
 		private Thread pathingThread;
-		private BlockingCollection<PathfindReq> pathingQueue;
+		public BlockingCollection<PathfindReq> pathingQueue;
 
-		private class PathfindReq
+		public class PathfindReq
 		{
 			public short startX;
 			public short startY;
@@ -72,7 +72,7 @@ namespace InfServer.Bots
             _logger = logger;
 
 			lvlInfo = server._assets.Level;
-			pathingQueue = new BlockingCollection<PathfindReq>();
+			pathingQueue = new BlockingCollection<PathfindReq>(25);
 
 			//Create a boolean representation of our map
 			byte[] map = new byte[lvlInfo.Width * lvlInfo.Height];
@@ -157,23 +157,34 @@ namespace InfServer.Bots
 		/// </summary>
 		public void queueRequest(short startX, short startY, short endX, short endY, Action<List<Vector3>, int> callback)
 		{
-            if (pathingQueue.Count > 25)
-            {
-                Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count);
+			//Increased from 25 to 50, there really is no need to limit this, however if we hit over 50 we can clear some.
+			if (pathingQueue.Count > 50)
+			{
+				Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count);
 
-                //Let them know
-                callback(null, 0);
-                return;
-            }
-			PathfindReq req = new PathfindReq();
+				//Remove all path requests currently in pathing queue
+				PathfindReq cItem = pathingQueue.Take();
+				pathingQueue.TryTake(out cItem, TimeSpan.FromMilliseconds(100));
 
-			req.startX = startX;
-			req.startY = startY;
-			req.endX = endX;
-			req.endY = endY;
-			req.callback = callback;
+				//temp add in write to log, this will need removing as it may effectivly spam 50 times as it loops through each item.
+				Log.write(TLog.Warning, "Removed Pathing item " + cItem.ToString());
 
-			pathingQueue.Add(req);
+				//Let them know
+				callback(null, 0);
+				return;
+			}
+			else
+			{
+				PathfindReq req = new PathfindReq();
+
+				req.startX = startX;
+				req.startY = startY;
+				req.endX = endX;
+				req.endY = endY;
+				req.callback = callback;
+
+				pathingQueue.Add(req);
+			}
 		}
 
 		/// <summary>
@@ -282,5 +293,14 @@ namespace InfServer.Bots
 			//Create our new pathway
 			return points;
 		}
+		/// <summary>
+		/// Counts paths in queuelist
+		/// </summary>
+		public int queueCount()
+		{
+			return pathingQueue.Count;
+		}
+
+
 	}
 }
