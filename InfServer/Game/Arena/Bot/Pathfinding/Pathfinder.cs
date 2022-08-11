@@ -157,17 +157,31 @@ namespace InfServer.Bots
 		/// </summary>
 		public void queueRequest(short startX, short startY, short endX, short endY, Action<List<Vector3>, int> callback)
 		{
+			List<int> logger = new List <int>();
 			//Increased from 25 to 50, there really is no need to limit this, however if we hit over 50 we can clear some.
 			if (pathingQueue.Count > 50)
 			{
-				Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count);
+				//Add log to list to count
+				logger.Add(1);
 
-				//Remove all path requests currently in pathing queue
-				PathfindReq cItem = pathingQueue.Take();
+				//get count of current log list
+				int logcheck = logger.Count();
+
+				//write single log for combined count of 50
+				if(logcheck == 50)
+                {
+                    Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count + " combined x50 logs");
+					//Clear log list to start again.
+					logger.Clear();
+                }
+
+                //Remove all path requests currently in pathing queue
+                PathfindReq cItem = pathingQueue.Take();
 				pathingQueue.TryTake(out cItem, TimeSpan.FromMilliseconds(100));
 
+
 				//temp add in write to log, this will need removing as it may effectivly spam 50 times as it loops through each item.
-				Log.write(TLog.Warning, "Removed Pathing item " + cItem.ToString());
+				//Log.write(TLog.Warning, "Removed Pathing item " + cItem.ToString());
 
 				//Let them know
 				callback(null, 0);
