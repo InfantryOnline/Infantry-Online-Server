@@ -7,15 +7,19 @@ Free Infantry Server Emulator
 
 Infantry Online pits you against hundreds of players in real-time, fast paced tactical combat. Use momentum to your advantage and to your enemies detriment as your bullets and explosive shrapnel ricochet. Plan your attack from the shadows and ambush your enemy!
 
-If you want to just get in on the action and play, visit http://www.freeinfantry.com/ and download the game client to play. This repository is what is used to emulate and run the each zone's server for the Free Infantry project. The following instructions are for those that want to either help with development of the server, or can be used to run a test server on their own hardware for zone testing purposes, using the same software the Free Infantry project is using.
+If you want to just get in on the action and play, visit http://www.freeinfantry.com/ and download the game client to play.
+
+If you wish to take an existing zone and either make changes to it or improve upon it, or make a new zone entirely, then we have a separate guide that will get you started immediately with very few extra steps.
+
+This repository is intended for an audience that wishes to know how the internals of the server work, and whoever wishes to help out with new bugs or features. The main output of the codebase here is the `InfServer.exe` file which powers all the zone servers that we run in our production environments.
 
 
 ## Prerequisites
 
 You will need the following software installed before proceeding:
 
-1. A Windows Operating System (Infantry is Windows only)
-2. [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) (or Visual Studio >= 2010)
+1. Windows 7+ (Infantry is Windows only)
+2. [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) (or Visual Studio 2019+)
 3. OPTIONAL [GitHub Desktop](https://desktop.github.com/) or any other preferred Git tools
 
  - If you want to contribute back to the project with code, you'll need to use a Git tool to submit pull request patches. If you're unfamiliar with Git, please first read through [Git Immersion](http://gitimmersion.com/).
