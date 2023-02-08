@@ -9,7 +9,7 @@ Simply pick one, download it and extract it anywhere. By default, the server wil
 You are almost done. Now you just need to tell your client to show your server in the zone listing file,
 which means disconnecting from our directory server. Here is how:
 
-1. Launch the Infantry executable (Infantry.exe - do not run the Launcher), go to View > Options, and clear the fields containing "infdir1.aaerox.com" and "infdir2.aaerox.com".  This will prevent the FI server from overwriting your local zone list file in the next step. Restore these fields, or run the Launcher, to connect back to the FI server to play on the official server. ~~You can also move the Infantry directory to a separate directory for testing.~~
+1. Launch the Infantry executable (Infantry.exe - do not run the Launcher), go to View > Options, and clear the fields containing "infdir1.aaerox.com" and "infdir2.aaerox.com".  This will prevent the FI server from overwriting your local zone list file in the next step. Restore these fields, or run the Launcher, to connect back to the FI server to play on the official server.
 2. Close the Infantry executable, and modify `Infantry.lst` accordingly before launching the Infantry executable (Infantry.exe), giving it an entry for your server. By default, the IP is 127.0.0.1 and the port is 1337. **Reminder:** You can find these settings in your `bin\server.xml` file. Here is an example line:
    `"Test Zone","127.0.0.1",1337,1,0,"The test zone's description.",50,0`
    **Note:** You will need to run the application you edit this file with as an administrator to make changes to this file on Windows 10 or newer.
