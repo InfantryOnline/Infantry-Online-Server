@@ -9,7 +9,7 @@ Infantry Online pits you against hundreds of players in real-time, fast paced ta
 
 If you want to just get in on the action and play, visit http://www.freeinfantry.com/ and download the game client to play.
 
-If you wish to take an existing zone and either make changes to it or improve upon it, or make a new zone entirely, then we have a separate guide that will get you started immediately with very few extra steps.
+If you wish to take an existing zone and either make changes to it or improve upon it, or make a new zone entirely, then we have a separate guide that will get you started immediately with very few extra steps. Read our [Quick Start Guide](quick-start.md) for that.
 
 This repository is intended for an audience that wishes to know how the internals of the server work, and whoever wishes to help out with new bugs or features. The main output of the codebase here is the `InfServer.exe` file which powers all the zone servers that we run in our production environments.
 
