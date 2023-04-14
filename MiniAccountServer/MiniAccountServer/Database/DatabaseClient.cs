@@ -4,6 +4,7 @@ using System.Xml;
 using MiniAccountServer.Models;
 using MiniAccountServer.Helpers;
 using MiniAccountServer.Helpers.Config;
+using System.Net.Mail;
 
 namespace MiniAccountServer.Database
 {
@@ -547,10 +548,15 @@ namespace MiniAccountServer.Database
             try
             {
                 _config = new Xmlconfig("email.xml", false).Settings;
-                string from = _config["credentials/username"].Value;
+                string host = _config["credentials/hostname"].Value;
+                string from = _config["credentials/email"].Value;
+                string credentialUsername = _config["credentials/username"].Value;
                 string to = email;
 
-                System.Net.Mail.MailMessage mail = new System.Net.Mail.MailMessage(from, to);
+                var fromAddress = new MailAddress(from, "FreeInfantry");
+                System.Net.Mail.MailMessage mail = new System.Net.Mail.MailMessage();
+                mail.From = fromAddress;
+                mail.To.Add(to);
                 mail.Subject = "Recovery Request";
                 mail.Body = _config["response/topic"].Value + "\n\r";
                 //Recovery or reset?
@@ -567,12 +573,12 @@ namespace MiniAccountServer.Database
 
                 mail.Body += "\n\r\n\r" + _config["response/endmsg"].Value;
 
-                System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com");
+                System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient(host);
                 smtpClient.Port = _config["credentials/port"].intValue;
                 smtpClient.EnableSsl = true;
                 smtpClient.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
                 smtpClient.UseDefaultCredentials = false;
-                smtpClient.Credentials = new System.Net.NetworkCredential(from, _config["credentials/password"].Value);
+                smtpClient.Credentials = new System.Net.NetworkCredential(credentialUsername, _config["credentials/password"].Value);
 
                 smtpClient.Send(mail);
                 return true;
