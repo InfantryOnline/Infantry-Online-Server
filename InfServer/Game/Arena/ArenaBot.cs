@@ -44,7 +44,7 @@ namespace InfServer.Game
                     //Update the bot's state
                     if (!bot.bCondemned)
                     {
-                        //_vehicles.updateObjState(bot, bot._state);
+                        _vehicles.updateObjState(bot, bot._state);
                         _bots.updateObjState(bot, bot._state);
                     }
 
