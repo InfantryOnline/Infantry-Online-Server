@@ -10,153 +10,153 @@ using Assets;
 
 namespace InfServer.Bots
 {
-	// Bot Class
-	/// Represents a bot, inherited from a vehicle
-	///////////////////////////////////////////////////////
+    // Bot Class
+    /// Represents a bot, inherited from a vehicle
+    ///////////////////////////////////////////////////////
     public class Bot : Vehicle, IEventObject
-	{	// Member variables
-		///////////////////////////////////////////////////
-        public new VehInfo.Car _type;					//The car type we represent
-		public MovementController _movement;			//Our movement controller
-		public WeaponController _weapon;				//Our trusty weapon controller
-       // public int _lane;
-			
-		public int _itemUseID;							//The item we're using
+    {   // Member variables
+        ///////////////////////////////////////////////////
+        public new VehInfo.Car _type;                   //The car type we represent
+        public MovementController _movement;            //Our movement controller
+        public WeaponController _weapon;                //Our trusty weapon controller
+                                                        // public int _lane;
 
-		public List<ItemInfo.UtilityItem> _activeEquip;	//Our active equipment
+        public int _itemUseID;                          //The item we're using
 
-        private int _tickLastPoll;						//The last tick at which poll was called
-		private int _tickLastUpdate;					//HACK: For stemming the flow of updates
+        public List<ItemInfo.UtilityItem> _activeEquip;	//Our active equipment
 
-		#region EventObject
-		/// <summary>
-		/// The event logger, if exists, for this class
-		/// </summary>
-		public EventHandlers events
-		{
-			get;
-			set;
-		}
+        private int _tickLastPoll;                      //The last tick at which poll was called
+        private int _tickLastUpdate;                    //HACK: For stemming the flow of updates
 
-		#region ThreadedObject
-		/// <summary>
-		/// The event logger, if exists, for this class
-		/// </summary>
-		public LogClient _eventLogger
-		{
-			get;
-			set;
-		}
+        #region EventObject
+        /// <summary>
+        /// The event logger, if exists, for this class
+        /// </summary>
+        public EventHandlers events
+        {
+            get;
+            set;
+        }
 
-		/// <summary>
-		/// The sync object for this class
-		/// </summary>
-		public object _sync
-		{
-			get;
-			set;
-		}
-		#endregion
+        #region ThreadedObject
+        /// <summary>
+        /// The event logger, if exists, for this class
+        /// </summary>
+        public LogClient _eventLogger
+        {
+            get;
+            set;
+        }
 
-		/// <summary>
-		/// Initializes events for the event object
-		/// </summary>
-		public void eventInit(bool bParseEvents)
-		{
-			EventObjects.eventInit(this, bParseEvents);
-		}
+        /// <summary>
+        /// The sync object for this class
+        /// </summary>
+        public object _sync
+        {
+            get;
+            set;
+        }
+        #endregion
 
-		/// <summary>
-		/// Triggers an event
-		/// </summary>
-		public void trigger(string name, params object[] args)
-		{
-			EventObjects.trigger(this, name, true, args);
-		}
+        /// <summary>
+        /// Initializes events for the event object
+        /// </summary>
+        public void eventInit(bool bParseEvents)
+        {
+            EventObjects.eventInit(this, bParseEvents);
+        }
 
-		/// <summary>
-		/// Calls a singlecast event, returning a value
-		/// </summary>
-		public object call(string name, params object[] args)
-		{
-			return EventObjects.callsync(this, name, true, args);
-		}
+        /// <summary>
+        /// Triggers an event
+        /// </summary>
+        public void trigger(string name, params object[] args)
+        {
+            EventObjects.trigger(this, name, true, args);
+        }
 
-		/// <summary>
-		/// Calls a singlecast event, returning a value
-		/// </summary>
-		public object callsync(string name, bool bSync, params object[] args)
-		{
-			return EventObjects.callsync(this, name, bSync, args);
-		}
+        /// <summary>
+        /// Calls a singlecast event, returning a value
+        /// </summary>
+        public object call(string name, params object[] args)
+        {
+            return EventObjects.callsync(this, name, true, args);
+        }
 
-		/// <summary>
-		/// Determines if a event type exists
-		/// </summary>
-		public bool exists(string name)
-		{	//Does the event exist?
-			HandlerList list;
-			return events.TryGetValue(name, out list);
-		}
+        /// <summary>
+        /// Calls a singlecast event, returning a value
+        /// </summary>
+        public object callsync(string name, bool bSync, params object[] args)
+        {
+            return EventObjects.callsync(this, name, bSync, args);
+        }
 
-		/// <summary>
-		/// Flushes the handlerlist - removing all handlers
-		/// </summary>
-		public void flushEvents()
-		{	//Kill all the handlers!
-			using (DdMonitor.Lock(_sync))
-				events.Clear();
-		}
-		#endregion
+        /// <summary>
+        /// Determines if a event type exists
+        /// </summary>
+        public bool exists(string name)
+        {   //Does the event exist?
+            HandlerList list;
+            return events.TryGetValue(name, out list);
+        }
 
-		///////////////////////////////////////////////////
-		// Member Functions
-		///////////////////////////////////////////////////
-		/// <summary>
-		/// Generic constructor
-		/// </summary>
-		public Bot(VehInfo.Car type, Arena arena)
-			: base(type, arena)
-		{	//Initialize the event object
-			eventInit(true);
+        /// <summary>
+        /// Flushes the handlerlist - removing all handlers
+        /// </summary>
+        public void flushEvents()
+        {   //Kill all the handlers!
+            using (DdMonitor.Lock(_sync))
+                events.Clear();
+        }
+        #endregion
 
-			//Populate variables
-			_type = type;
+        ///////////////////////////////////////////////////
+        // Member Functions
+        ///////////////////////////////////////////////////
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        public Bot(VehInfo.Car type, Arena arena)
+            : base(type, arena)
+        {   //Initialize the event object
+            eventInit(true);
 
-			_movement = new MovementController(_type, _state, arena);
-			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
-			_activeEquip = new List<ItemInfo.UtilityItem>();
-
-			_tickLastPoll = Environment.TickCount;
-
-			_bBotVehicle = true;
-
-			configureBot();
-		}
-
-		/// <summary>
-		/// Generic constructor
-		/// </summary>
-        public Bot(VehInfo.Car type, Helpers.ObjectState state, Arena arena)
-            : base(type, state, arena)
-		{	//Initialize the event object
-			eventInit(true);
-
-			//Populate variables
+            //Populate variables
             _type = type;
 
-			_movement = new MovementController(_type, _state, arena);
-			_weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
-			_activeEquip = new List<ItemInfo.UtilityItem>();
+            _movement = new MovementController(_type, _state, arena);
+            _weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
+            _activeEquip = new List<ItemInfo.UtilityItem>();
 
-			_tickLastPoll = Environment.TickCount;
+            _tickLastPoll = Environment.TickCount;
 
-			_bBotVehicle = true;
+            _bBotVehicle = true;
 
-			configureBot();
-		}
+            configureBot();
+        }
 
-       
+        /// <summary>
+        /// Generic constructor
+        /// </summary>
+        public Bot(VehInfo.Car type, Helpers.ObjectState state, Arena arena)
+            : base(type, state, arena)
+        {   //Initialize the event object
+            eventInit(true);
+
+            //Populate variables
+            _type = type;
+
+            _movement = new MovementController(_type, _state, arena);
+            _weapon = new WeaponController(_state, new WeaponController.WeaponSettings());
+            _activeEquip = new List<ItemInfo.UtilityItem>();
+
+            _tickLastPoll = Environment.TickCount;
+
+            _bBotVehicle = true;
+
+            configureBot();
+        }
+
+
 
         /// <summary>
         /// Generic constructor
@@ -179,13 +179,13 @@ namespace InfServer.Bots
 
             configureBot();
         }
-		/// <summary>
-		/// Configures the bot based on the vehicle information
-		/// </summary>
-		protected virtual void configureBot()
-		{	//Are we using any equipment?
-			foreach (int item in _type.InventoryItems)
-			{
+        /// <summary>
+        /// Configures the bot based on the vehicle information
+        /// </summary>
+        protected virtual void configureBot()
+        {   //Are we using any equipment?
+            foreach (int item in _type.InventoryItems)
+            {
                 if (item != 0)
                 {
                     ItemInfo.UtilityItem util = AssetManager.Manager.getItemByID(item) as ItemInfo.UtilityItem;
@@ -199,136 +199,136 @@ namespace InfServer.Bots
                         _activeEquip.Add(util);
                     }
                 }
-			}
-		}
+            }
+        }
 
-		#region State
-		/// <summary>
-		/// Causes the vehicle to die
-		/// </summary>
-		public override void kill(Player killer, int weaponID)
-		{	//Die, and then cease movement
-			_state.health = 0;
-			_tickDead = Environment.TickCount;
+        #region State
+        /// <summary>
+        /// Causes the vehicle to die
+        /// </summary>
+        public override void kill(Player killer, int weaponID)
+        {   //Die, and then cease movement
+            _state.health = 0;
+            _tickDead = Environment.TickCount;
 
-			_movement.stop();
-			_movement.bEnabled = false;
+            _movement.stop();
+            _movement.bEnabled = false;
 
-			//Notify the arena
-			_arena.handleBotDeath(this, killer, weaponID);
-		}
+            //Notify the arena
+            _arena.handleBotDeath(this, killer, weaponID);
+        }
 
-		/// <summary>
-		/// The vehicle is being destroyed, clean up assets
-		/// </summary>
-		public override void destroy(bool bRestoreBase, bool bRemove)
-		{	//Notify the arena of our destruction
-			base.destroy(bRestoreBase, bRemove);
+        /// <summary>
+        /// The vehicle is being destroyed, clean up assets
+        /// </summary>
+        public override void destroy(bool bRestoreBase, bool bRemove)
+        {   //Notify the arena of our destruction
+            base.destroy(bRestoreBase, bRemove);
 
-			_arena.lostBot(this);
-		}
+            _arena.lostBot(this);
+        }
 
 
-		/// <summary>
-		/// Looks after the bot's functionality
-		/// </summary>
-		public virtual bool poll()
-        {	//Calculate our delta time..
-			int tickCount = Environment.TickCount;
-			int delta = tickCount - _tickLastPoll;
-	
-			//Don't need to update too much
-			if (delta < 0)
-				return false;
+        /// <summary>
+        /// Looks after the bot's functionality
+        /// </summary>
+        public virtual bool poll()
+        {   //Calculate our delta time..
+            int tickCount = Environment.TickCount;
+            int delta = tickCount - _tickLastPoll;
 
-			_tickLastPoll = tickCount;
+            //Don't need to update too much
+            if (delta < 0)
+                return false;
 
-			//If it's a ridiculous delta, ignore it
-			if (delta > 600)
-			{
-				Log.write(TLog.Warning, "Encountered excessive bot delta of {0}", delta);
+            _tickLastPoll = tickCount;
 
-				//dirty hack to stop spamming, set bot to be like it's been killed by itself as a suicide.
-				_state.health = 0;
-				_tickDead = Environment.TickCount;
+            //If it's a ridiculous delta, ignore it
+            if (delta > 600)
+            {
+                Log.write(TLog.Warning, "Encountered excessive bot delta of {0}", delta);
 
-				_movement.stop();
-				_movement.bEnabled = false;
+                //dirty hack to stop spamming, set bot to be like it's been killed by itself as a suicide.
+                _state.health = 0;
+                _tickDead = Environment.TickCount;
 
-				//Should we remove ourself from the world?
-				if (_type.RemoveDeadTimer != 0 && _tickDead != 0 &&
-					tickCount - _tickDead > (_type.RemoveDeadTimer * 1000))
-					destroy(true);
-				else
-				{   //Keep sending 'corpse' updates
-					if (tickCount - _tickLastUpdate > 1500)
-					{
-						_tickLastUpdate = tickCount;
-						return true;
-					}
-				}
+                _movement.stop();
+                _movement.bEnabled = false;
 
-				return false;
-			}
+                //Should we remove ourself from the world?
+                if (_type.RemoveDeadTimer != 0 && _tickDead != 0 &&
+                    tickCount - _tickDead > (_type.RemoveDeadTimer * 1000))
+                    destroy(true);
+                else
+                {   //Keep sending 'corpse' updates
+                    if (tickCount - _tickLastUpdate > 1500)
+                    {
+                        _tickLastUpdate = tickCount;
+                        return true;
+                    }
+                }
 
-			//Are we dead?
-			if (IsDead)
-			{
+                return false;
+            }
+
+            //Are we dead?
+            if (IsDead)
+            {
                 //Drop our items
                 VehInfo vehicle = _arena._server._assets.getVehicleByID(_type.Id);
                 ItemInfo item = _arena._server._assets.getItemByID(vehicle.DropItemId);
                 if (item != null)
                     _arena.itemSpawn(item, (ushort)vehicle.DropItemQuantity, _state.positionX, _state.positionY, null);
-                
+
                 //Should we remove ourself from the world?
-				if (_type.RemoveDeadTimer != 0 && _tickDead != 0 &&
-					tickCount - _tickDead > (_type.RemoveDeadTimer * 1000))
-					destroy(true);
-				else
-				{	//Keep sending 'corpse' updates
-					if (tickCount - _tickLastUpdate > 1500)
-					{
-						_tickLastUpdate = tickCount;
-						return true;
-					}
-				}
-			}
-			else
-			{
-				//Allow our controller to update our vehicle state
-				_movement.updateState(delta);
+                if (_type.RemoveDeadTimer != 0 && _tickDead != 0 &&
+                    tickCount - _tickDead > (_type.RemoveDeadTimer * 1000))
+                    destroy(true);
+                else
+                {   //Keep sending 'corpse' updates
+                    if (tickCount - _tickLastUpdate > 1500)
+                    {
+                        _tickLastUpdate = tickCount;
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                //Allow our controller to update our vehicle state
+                _movement.updateState(delta);
 
-				if (_itemUseID == 0)
-				{
-					if (tickCount - _tickLastUpdate > 200)
-					{
-						_tickLastUpdate = tickCount;
-						return true;
-					}
-    				return false;
-				}
-				return true;
-			}
+                if (_itemUseID == 0)
+                {
+                    if (tickCount - _tickLastUpdate > 200)
+                    {
+                        _tickLastUpdate = tickCount;
+                        return true;
+                    }
+                    return false;
+                }
+                return true;
+            }
 
-			return false;
-		}
+            return false;
+        }
 
 
-		/// <summary>
-		/// Handles damage from explosions triggered nearby
-		/// </summary>		
-		public override void applyExplosion(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
-		{	//Apply our damage
-			applyExplosionDamage(true, attacker, dmgX, dmgY, wep);
-		}
+        /// <summary>
+        /// Handles damage from explosions triggered nearby
+        /// </summary>		
+        public override void applyExplosion(Player attacker, int dmgX, int dmgY, ItemInfo.Projectile wep)
+        {   //Apply our damage
+            applyExplosionDamage(true, attacker, dmgX, dmgY, wep);
+        }
 
-		/// <summary>
-		/// Causes the zombie to cease movement for the specified period of time
-		/// </summary>		
-		public void freezeMovement(int duration)
-		{
-			_movement.freezeMovement(duration);
-		}
-		#endregion
+        /// <summary>
+        /// Causes the zombie to cease movement for the specified period of time
+        /// </summary>		
+        public void freezeMovement(int duration)
+        {
+            _movement.freezeMovement(duration);
+        }
+        #endregion
     }
 }
