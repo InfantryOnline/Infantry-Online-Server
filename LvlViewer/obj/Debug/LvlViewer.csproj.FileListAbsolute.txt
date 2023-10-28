@@ -1,7 +1,0 @@
-C:\Infantry\infserver\branches\LvlViewer\bin\Debug\LvlViewer.exe
-C:\Infantry\infserver\branches\LvlViewer\bin\Debug\LvlViewer.pdb
-C:\Infantry\infserver\branches\LvlViewer\bin\Debug\Assets.dll
-C:\Infantry\infserver\branches\LvlViewer\bin\Debug\Assets.pdb
-C:\Infantry\infserver\branches\LvlViewer\obj\Debug\LvlViewer.csprojResolveAssemblyReference.cache
-C:\Infantry\infserver\branches\LvlViewer\obj\Debug\LvlViewer.exe
-C:\Infantry\infserver\branches\LvlViewer\obj\Debug\LvlViewer.pdb

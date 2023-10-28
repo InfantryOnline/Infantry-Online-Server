@@ -6,6 +6,8 @@ using InfServer.Data;
 using InfServer.Network;
 using InfServer.Protocol;
 using System.Globalization;
+using InfServer.Data.DB;
+using System.Text.RegularExpressions;
 
 namespace InfServer.Logic
 {	// Logic_Login Class
@@ -13,6 +15,21 @@ namespace InfServer.Logic
     ///////////////////////////////////////////////////////
     class Logic_Login
     {
+        public static string RemoveIllegalCharacters(string str)
+        {   //Remove non-Infantry characters... trim whitespaces, and remove duplicate spaces
+            string sb = "";
+            foreach (char c in str)
+                if (c >= ' ' && c <= '~')
+                    sb += c;
+            //Get rid of duplicate spaces
+            Regex regex = new Regex(@"[ ]{2,}", RegexOptions.None);
+            sb = regex.Replace(sb, @" ");
+            //Trim it
+            sb = sb.Trim();
+            //We have our new Infantry compatible string!
+            return sb;
+        }
+
         /// <summary>
         /// Handles the zone login request packet 
         /// </summary>
@@ -197,6 +214,47 @@ namespace InfServer.Logic
                 plog.permission = (PlayerPermission)account.permission;
                 if (account.permission > (int)PlayerPermission.Sysop)
                     plog.permission = PlayerPermission.Sysop;
+
+                // Jovan - Allow symbols as login names for admins.
+                var pktAlias = pkt.alias;
+
+                if (plog.permission != PlayerPermission.Sysop)
+                {
+                    
+
+                    try
+                    {
+                        if (!char.IsLetterOrDigit(pktAlias, 0) ||
+                            char.IsWhiteSpace(pktAlias, 0) ||
+                            char.IsWhiteSpace(pktAlias, pktAlias.Length - 1) ||
+                            pktAlias != RemoveIllegalCharacters(pktAlias))
+                        {   //Boot him..
+                            plog.bSuccess = false;
+                            plog.loginMessage = "Alias contains illegal characters, must start with a letter or number and cannot end with a space.";
+                            zone._client.send(plog);
+                            return;
+                        }
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        Log.write(TLog.Warning, "Player login name is {0}", pktAlias);
+                        plog.bSuccess = false;
+                        plog.loginMessage = "Alias contains illegal characters, must start with a letter or number and cannot end with a space.";
+                        zone._client.send(plog);
+                        return;
+                    }
+                }
+                else
+                {
+                    if (!char.IsLetterOrDigit(pktAlias[0]) && pkt.bCreateAlias)
+                    {
+                        plog.bSuccess = false;
+                        plog.loginMessage = "Symbolic aliases must be created through the database directly. Contact Jovan if anything.";
+
+                        zone._client.send(plog);
+                        return;
+                    }
+                }
 
                 //Attempt to find the related alias
                 Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));

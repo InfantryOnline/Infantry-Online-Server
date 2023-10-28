@@ -1,5 +1,0 @@
-C:\Infantry\Repositories\Server\Assets\bin\Debug\Assets.dll
-C:\Infantry\Repositories\Server\Assets\bin\Debug\Assets.pdb
-C:\Infantry\Repositories\Server\Assets\obj\Debug\Assets.csprojResolveAssemblyReference.cache
-C:\Infantry\Repositories\Server\Assets\obj\Debug\Assets.dll
-C:\Infantry\Repositories\Server\Assets\obj\Debug\Assets.pdb

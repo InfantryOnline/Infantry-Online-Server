@@ -1,6 +1,0 @@
-C:\Infantry\infserver\branches\InfXmlGenerator\InfXmlGenerator\bin\Debug\InfXmlGenerator.exe.config
-C:\Infantry\infserver\branches\InfXmlGenerator\InfXmlGenerator\bin\Debug\InfXmlGenerator.exe
-C:\Infantry\infserver\branches\InfXmlGenerator\InfXmlGenerator\bin\Debug\InfXmlGenerator.pdb
-C:\Infantry\infserver\branches\InfXmlGenerator\InfXmlGenerator\obj\Debug\InfXmlGenerator.csprojResolveAssemblyReference.cache
-C:\Infantry\infserver\branches\InfXmlGenerator\InfXmlGenerator\obj\Debug\InfXmlGenerator.exe
-C:\Infantry\infserver\branches\InfXmlGenerator\InfXmlGenerator\obj\Debug\InfXmlGenerator.pdb

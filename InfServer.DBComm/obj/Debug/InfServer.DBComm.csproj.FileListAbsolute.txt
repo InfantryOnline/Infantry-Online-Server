@@ -1,7 +1,0 @@
-C:\Infantry\Repositories\Server\InfServer.DBComm\bin\Debug\InfServer.DBComm.dll
-C:\Infantry\Repositories\Server\InfServer.DBComm\bin\Debug\InfServer.DBComm.pdb
-C:\Infantry\Repositories\Server\InfServer.DBComm\bin\Debug\InfServer.Network.dll
-C:\Infantry\Repositories\Server\InfServer.DBComm\bin\Debug\InfServer.Network.pdb
-C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.csprojResolveAssemblyReference.cache
-C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.dll
-C:\Infantry\Repositories\Server\InfServer.DBComm\obj\Debug\InfServer.DBComm.pdb
