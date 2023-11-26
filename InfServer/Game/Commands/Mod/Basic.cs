@@ -3645,8 +3645,8 @@ namespace InfServer.Game.Commands.Mod
                 InfServer.Data.PlayerPermission.ArenaMod, true);
 
             yield return new HandlerDescriptor(permit, "permit",
-                "Permits target player to enter a permission-only zone.",
-                "*permit [alias]",
+                "Permits target player to enter, leave, or read an allowed list of a permission-only zone.",
+                "permit [alias] (Type it again to remove them) *permit list",
                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(poll, "poll",
