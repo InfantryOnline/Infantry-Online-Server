@@ -56,7 +56,7 @@ namespace InfServer.Game
             _startCfg = _server._zoneConfig.startGame;
 
             //Run initial hides if it doesn't depend on a game running
-            if (_startCfg.initialHides)
+            if (!_startCfg.initialHides)
                 initialHideSpawns();
         }
 
