@@ -670,7 +670,7 @@ namespace InfServer.Game
                 if (hs.Hide.HideData.MinPlayerDistance != 0 &&
                     getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MinPlayerDistance, true).Count > 0)
                     continue;
-                if (hs.Hide.HideData.MaxPlayerDistance < Int32.MaxValue &&
+                if (hs.Hide.HideData.MaxPlayerDistance < 99999 &&
                     getPlayersInRange(sp.posX, sp.posY, hs.Hide.HideData.MaxPlayerDistance, true).Count == 0)
                     continue;
 
