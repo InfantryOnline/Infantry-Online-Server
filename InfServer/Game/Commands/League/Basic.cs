@@ -24,13 +24,10 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
             
-            if (!player._server.Name.Contains("League"))
+            if (!(player._server.Name.Contains("League") || player._server.Name.Contains("USL")))
             {
-                if (!player._server.Name.Contains("TZ"))
-                {
-                    player.sendMessage(-1, "This command can only be used in league zones.");
-                    return;
-                }
+                player.sendMessage(-1, "This command can only be used in league zones.");
+                return;
             }
 
             //Lock the arena
