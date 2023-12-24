@@ -24,7 +24,9 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
             
-            if (!(player._server.Name.Contains("League") || player._server.Name.Contains("USL")))
+            // league zones only, but allow test zones too
+            var allowed_zones = new [] {"USL", "CTFPL", "League", "TZ"};
+            if (!allowed_zones.Any(player._server.Name.Contains))
             {
                 player.sendMessage(-1, "This command can only be used in league zones.");
                 return;
