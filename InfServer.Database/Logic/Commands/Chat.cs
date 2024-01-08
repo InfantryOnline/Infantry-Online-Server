@@ -160,8 +160,24 @@ namespace InfServer.Logic
                                 zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                 //Loop and display
                                 foreach (var alias in aliases)
-                                    zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4})",
-                                        alias.account, alias.name, alias.IPAddress, alias.creation.ToString(), alias.lastAccess.ToString()));
+                                {
+                                    TimeSpan timeplayed = TimeSpan.FromMinutes(alias.timeplayed);
+                                    var days = (int)timeplayed.Days;
+                                    var hrs = (int)timeplayed.Hours;
+                                    var mins = (int)timeplayed.Minutes;
+
+                                    zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
+                                        alias.account, // 0
+                                        alias.name, // 1
+                                        alias.IPAddress, // 2
+                                        alias.creation.ToString(), // 3
+                                        alias.lastAccess.ToString(), // 4
+                                        days, // 5
+                                        hrs, // 6
+                                        mins) // 7
+                                        );
+
+                                }
                             }
                             else
                                 zone._server.sendMessage(zone, pkt.sender, "No matches found for the given string.");
