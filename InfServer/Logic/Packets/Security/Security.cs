@@ -135,7 +135,7 @@ namespace InfServer.Logic
                     return;
                 }
                 //Not a mod
-                if (pkt.Unk3 != player._server._reliableChecksum && player._server._reliableChecksum != 0 && player._permissionStatic != Data.PlayerPermission.Sysop)
+                if (pkt.Unk3 != player._server._reliableChecksum && player._server._reliableChecksum != 0 && player._permissionStatic < Data.PlayerPermission.Manager)
                 {//Mismatch
                     Log.write(TLog.Security, "Checksum mismatch: " + pkt.Unk3 + " vs " + player._server._reliableChecksum);
 
