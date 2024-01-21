@@ -289,17 +289,17 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(admins, "admins",
                 "Currently returns a list of powered admins",
                 "*admins or *admins list",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.HeadModAdmin, false);
 
             yield return new HandlerDescriptor(assets, "assets",
                "secret",
                "?quit",
-               InfServer.Data.PlayerPermission.Sysop, false);
+               InfServer.Data.PlayerPermission.HeadModAdmin, false);
 
             yield return new HandlerDescriptor(environment, "environment",
                 "Queries environment information from a player",
                 "::*environment",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.HeadModAdmin, false);
 
             yield return new HandlerDescriptor(history, "history",
                 "Returns a list of mod commands used in every server",
@@ -324,17 +324,17 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(showGif, "showgif",
                 "Sends a gif to the target player",
                 "::*showgif [gif url]",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(shutdown, "shutdown",
                 "Shut downs the current zone server",
                 "*shutdown",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(testPacket, "testpacket",
                 "Sends a test packet to the target player or just sends a packet",
                 "::*testpacket, *testpacket",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
         }
     }

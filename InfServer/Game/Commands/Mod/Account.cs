@@ -1029,22 +1029,22 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(modadd, "modadd",
                 "Gives mod powers to a player, default level is arena mod",
                 "*modadd alias:level(optional) or ::*modadd level(optional)",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.HeadModAdmin, false);
 
             yield return new HandlerDescriptor(modremove, "modremove",
                 "Takes mod powers away, default level is player level",
                 "*modremove alias:level(optional) or ::*modremove level(optional)",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.HeadModAdmin, false);
 
             yield return new HandlerDescriptor(devadd, "devadd",
                 "Gives dev powers to a player, default level is arena mod",
                 "*devadd alias:level(optional) or ::*devadd level(optional) - Note: devadd them in the zone you want",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(devremove, "devremove",
                 "Takes dev powers away, default level is player level",
                 "*devremove alias:level(optional) or ::*devremove level(optional) - Note: devremove them in the zone you want",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(powered, "powered",
                 "Shows a list of currently powered players.",
@@ -1054,32 +1054,32 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(renamealias, "renamealias",
                 "Rename's the current players alias",
                 "::*renamealias newAlias OR *renamealias alias:newAlias - to rename one on the account",
-                InfServer.Data.PlayerPermission.SMod, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(removealias, "removealias",
                 "Deletes the current players alias",
                 "::*removealias OR *removealias alias - to delete one from the account",
-                InfServer.Data.PlayerPermission.SMod, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(squadjoin, "squadjoin",
                 "Forces a player to squad join a squad",
                 "::*squadjoin squadname, *squadjoin alias:squadname",
-                InfServer.Data.PlayerPermission.SMod, true);
+                InfServer.Data.PlayerPermission.SuperMod, true);
 
             yield return new HandlerDescriptor(transferalias, "transferalias",
                 "Transfers aliases between characters",
                 "*transferalias aliasGoingTo:alias in question OR :playerGoingTo:*transferalias alias in question",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(transfersquad, "transfersquad",
                 "Transfer a squad to a player",
                 "*transfersquad aliasTo:squadname, ::*transfersquad squadname, *transfersquad aliasTo(if already joined), ::*transfersquad(if joined already)",
-                InfServer.Data.PlayerPermission.SMod, true);
+                InfServer.Data.PlayerPermission.SuperMod, true);
 
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",
                 "*whois [ipaddress/alias/#id] or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
         }
     }
 }

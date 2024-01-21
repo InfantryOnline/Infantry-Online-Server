@@ -58,19 +58,19 @@ namespace InfServer.Game.Commands.Mod
 		{
             yield return new HandlerDescriptor(endgame, "endgame",
                 "Ends the current game.",
-                "*endgame", InfServer.Data.PlayerPermission.ArenaMod, true);
+                "*endgame", InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
 			yield return new HandlerDescriptor(restart, "restart",
 				"Restarts the current game.",
-				"*restart", InfServer.Data.PlayerPermission.ArenaMod, true);
+				"*restart", InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(reset, "reset",
                 "Resets the current game.",
-                "*reset", InfServer.Data.PlayerPermission.ArenaMod, true);
+                "*reset", InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(startgame, "startgame",
                 "Starts a new game.",
-                "*startgame", InfServer.Data.PlayerPermission.ArenaMod, true);
+                "*startgame", InfServer.Data.PlayerPermission.GrantedPlayer, true);
 		}
 	}
 }

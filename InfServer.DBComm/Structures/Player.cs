@@ -22,10 +22,22 @@ namespace InfServer.Data
 	public enum PlayerPermission
 	{
 		Normal = 0,
+		GrantedPlayer = 1,
+        Mod = 2,
+        SuperMod = 3,
+		ManagerSysop = 4,
+		HeadModAdmin = 5,
+
+		[Obsolete("This enum value is obselete, please use GrantedPlayer instead.")]
 		ArenaMod = 1,
-		Mod = 2,
-		SMod = 3,
+
+        [Obsolete("This enum value is obselete, please use SuperMod instead.")]
+        SMod = 3,
+
+        [Obsolete("This enum value is obselete, please use ManagerSysop instead.")]
         Manager = 4,
+
+        [Obsolete("This enum value is obselete, please use HeadModAdmin instead.")]
         Sysop = 5,
 	}
 

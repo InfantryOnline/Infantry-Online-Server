@@ -875,7 +875,7 @@ namespace InfServer.Game.Commands.Mod
 
                 SortedList<string, int> commands = new SortedList<string, int>();
                 int playerPermission = (int)player.PermissionLevelLocal;
-                string[] powers = { "Basic", "ArenaMod", "Mod", "SMod", "Manager", "Head Mod/Sysop" };
+                string[] powers = { "Basic", "Granted Player", "Mod", "Super Mod", "Manager/Sysop", "Head Mod/Admin" };
                 int level;
 
                 //New help list, sorted by level
@@ -3523,27 +3523,27 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(help, "help",
                 "Gives the user help information on a given command.",
                 "*help [commandName]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(addball, "addball",
                 "Adds a ball to the arena.",
                 "*addball",
-               InfServer.Data.PlayerPermission.ArenaMod, true);
+               InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(allow, "allow",
                 "Lists, Adds or Removes a player from a private arena list.",
                 "*allow list OR *allow alias",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(arena, "arena",
                 "Send a arena-wide system message.",
                 "*arena message",
-               InfServer.Data.PlayerPermission.ArenaMod, true);
+               InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(arenalock, "arenalock",
                 "Locks or unlocks an arena from outsiders. Note: will kick out any non powered players in spec and only mods or admins can join/stay.",
                 "*arenalock",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(auth, "auth",
                 "Log in during Stand-Alone Mode",
@@ -3552,7 +3552,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(ban, "ban",
                 "Bans a player from all zones",
                 "*ban alias minutes:reason(optional) or :player:*ban minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.SMod, false);
+                InfServer.Data.PlayerPermission.SuperMod, false);
 
             yield return new HandlerDescriptor(banlist, "banlist",
                 "Shows a list of bans a player has",
@@ -3567,22 +3567,22 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(cash, "cash",
                 "Prizes specified amount of cash to target player",
                 "*cash [amount] or ::*cash [amount]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(dc, "dc",
                 "Kicks a player from the server",
                 "*dc reason (optional) or dc all",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(experience, "experience",
                 "Prizes specified amount of experience to target player",
                 "*experience [amount] or ::*experience [amount]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(flagSpawn, "flagspawn",
                 "Spawns all or a specific flag at either default location, exact, or coordinate",
                 "*flagspawn <all|id|name>:<default|coord|exacts>",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(find, "find",
                 "Searches for an alias and returns if they are possibly on another name",
@@ -3592,17 +3592,17 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(findItem, "finditem",
                 "Finds an item within our zone",
                 "*finditem [itemID or item name]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(getball, "getball",
                 "Gets a ball.",
                 "*getball (gets ball ID 0) or *getball # (gets a specific ball ID)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(gkill, "gkill",
                 "Globally bans a player from the entire server",
                 ":player:*gkill minutes:reason(Optional) or *gkill alias minutes:reason(Optional)",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(global, "global",
                "Sends a global message to every zone connected to current database",
@@ -3612,17 +3612,17 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(warp, "goto",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
                 ":alias:*goto or *goto [alias] or *goto A4 (optional team name) or *goto 123,123 (optional team name)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(grant, "grant",
                 "Gives arena privileges to a player",
                 ":player:*grant or *grant [alias]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(ipban, "ipban",
                 "IPBans a player from all zones",
                 "*ipban alias minutes:reason(optional) or :player:*ipban minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.SMod, false);
+                InfServer.Data.PlayerPermission.SuperMod, false);
 
             yield return new HandlerDescriptor(helpcall, "helpcall",
                 "helpcall shows all helpcalls from all zones",
@@ -3632,7 +3632,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(kick, "kick",
                 "Kicks and can also ban a player from an arena",
                 ":player:*kick minutes(Optional) or *kick alias minutes(optional)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(block, "kill",
                 "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
@@ -3642,7 +3642,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(speclock, "lock",
                 "*lock will toggle arena lock on or off, using lock in a pm will lock and spec or unlock a player in spec",
                 "*lock OR :target:*lock",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(permit, "permit",
                 "Permits target player to enter, leave, or read an allowed list of a permission-only zone.",
@@ -3652,27 +3652,27 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(poll, "poll",
                 "Starts a poll for a question asked, *poll cancel to stop one, *poll end to end one",
                 "*poll question(Optional: *poll question:timer)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(prize, "prize",
                 "Spawns an item on the ground or in a player's inventory",
                 "*prize item:amount or ::*prize item:amount",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(profile, "profile",
                 "Displays a player's inventory.",
                 "/*profile or :player:*profile or *profile",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(removeball, "removeball",
                 "Removes a ball from the arena.",
                 "*removeball (by itself, removes ballID 0), *removeball # (removes that ball id)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(scramble, "scramble",
                 "Scrambles an arena, use on/off to set the arena to scramble automatically.",
                 "::*scramble [on/off(optional)]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(silence, "silence",
                "Toggles a players ability to use the messaging system entirely across the zone",
@@ -3682,27 +3682,27 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(shutup, "shutup",
                "Toggles a players ability to use the messaging system entirely",
                ":alias:*shutup",
-               InfServer.Data.PlayerPermission.ArenaMod, true);
+               InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(skill, "skill",
                 "Gives or sets a skill to a player",
                 "::*skill id:amount",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(spec, "spec",
                 "Puts a player into spectator mode, optionally on a specified team.",
                 "*spec or ::*spec or ::*spec [team]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(spectate, "spectate",
                 "Forces a player or the whole arena to spectate the specified player.",
                 "Syntax: ::*spectate [player] or *spectate [player]",
-                InfServer.Data.PlayerPermission.Sysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(specquiet, "specquiet",
                 "Toggles chatting to spectator only.",
                 "Syntax: :alias:*specquiet (for a specific player) or *specquiet (toggles the whole arena)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(stealth, "stealth",
                 "Toggles stealth mode, mods become invisible to arena's",
@@ -3712,57 +3712,57 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(substitute, "sub",
                 "Substitutes one player for another.",
                 "*sub aliasComingOut:aliasGoingIn or :aliasComingOut:*sub aliasGoingIn",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Summons a specified player to your location, or all players to your location.",
                 "::*summon, *summon alias, *summon team [teamname], or *summon all",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(switchSides, "switch",
                 "Switches sides with another team.",
                 "*switch, ::*switch or *switch [teamname]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(team, "team",
                 "Puts another player, or yourself, on a specified team",
                 "*team [teamname] or ::*team [teamname]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(teamname, "teamname",
                 "Renames public team names in the arena",
                 "*teamname [teamname1,teamname2,...]",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(ticker, "ticker",
                "Sets a ticker at the specified index with color/timer/message",
                "*ticker [message],[index],[color=optional],[timer=optional]",
-               InfServer.Data.PlayerPermission.ArenaMod, true);
+               InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(timer, "timer",
                 "Sets a ticker to display a timer",
                 "Syntax: *timer xx or *timer xx:xx",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(unspec, "unspec",
                 "Takes a player out of spectator mode and puts him on the specified team.",
                 "*unspec [team] or ::*unspec [team] or ::*unspec ..",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(warp, "warp",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
                 "::*warp, *warp alias, *warp A4 (optional team name) or *warp 123,123 (optional team name)",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(watchmod, "watchmod",
                 "Toggles viewing mod commands on or off",
                 "*watchmod",
-                InfServer.Data.PlayerPermission.ArenaMod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(wipe, "wipe",
                 "Wipes a character (or all) within the current zone",
                 "*wipe all yes, *wipe [alias] yes, :alias:*wipe yes",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.ManagerSysop, true);
 
             yield return new HandlerDescriptor(zone, "zone",
                 "Send a zone-wide system message.",
