@@ -1001,11 +1001,16 @@ namespace InfServer.Game.Commands.Mod
                 foreach (Player p in player._arena.Players)
                 {
                     if (p._permissionTemp >= Data.PlayerPermission.ArenaMod)
+                    {
                         granted.Add(p._alias, p);
+                    }
+                        
                 }
 
                 foreach (string str in granted.Keys)
+                {
                     player.sendMessage(0, String.Format("*{0} (granted)", str));
+                }
 
                 //They just want to see a list of admins
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
