@@ -620,14 +620,14 @@ namespace InfServer.Game.Commands.Mod
                     }
                     catch
                     {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-5");
+                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-3");
                         player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
 
-                    if (level < 1 || level > 5)
+                    if (level < 1 || level > 3)
                     {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-5");
+                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-3");
                         player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
                         return;
                     }
@@ -643,12 +643,10 @@ namespace InfServer.Game.Commands.Mod
                         case 3:
                             recipient._permissionStatic = Data.PlayerPermission.SMod;
                             break;
-                        case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
-                            break;
-                        case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
-                            break;
+                        default:
+                            player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-3");
+                            player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
+                            return;
                     }
 
                     recipient._developer = true;
