@@ -72,6 +72,7 @@ namespace Infantry_Launcher.Protocol
                 return;
             }
 
+            System.Net.ServicePointManager.SecurityProtocol = (SecurityProtocolType)192; // Tls - See: https://learn.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype?view=net-7.0
             WebClient webClient = new WebClient();
             webClient.DownloadDataCompleted += AssetFileListDownloadCompleted;
 
@@ -222,6 +223,7 @@ namespace Infantry_Launcher.Protocol
             currentAssetDescriptor = asset;
             assetFileName = asset.Name;
 
+            System.Net.ServicePointManager.SecurityProtocol = (SecurityProtocolType)192; // Tls - See: https://learn.microsoft.com/en-us/dotnet/api/system.net.securityprotocoltype?view=net-7.0
             WebClient webClient = new WebClient();
             webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(AssetProgressChanged);
             webClient.DownloadDataCompleted += new DownloadDataCompletedEventHandler(AssetDownloadingComplete);
