@@ -230,13 +230,13 @@ namespace Infantry_Launcher
 
             if (string.IsNullOrWhiteSpace(UsernameBox.Text))
             {
-                MessageBox.Show("Username cannot be blank.", "Infantry Online");
+                MessageBox.Show("Username cannot be blank.", "FreeInfantry");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(PasswordBox.Text))
             {
-                MessageBox.Show("Password cannot be blank.", "Infantry Online");
+                MessageBox.Show("Password cannot be blank.", "FreeInfantry");
                 return;
             }
 
