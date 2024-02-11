@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Infantry Launcher")]
-[assembly: AssemblyDescription("Infantry Online's Game Launcher")]
+[assembly: AssemblyTitle("FreeInfantry Launcher")]
+[assembly: AssemblyDescription("FreeInfantry's Game Launcher")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Infantry Group Ltd.")]
-[assembly: AssemblyProduct("Infantry Launcher")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCompany("FreeInfantry Group")]
+[assembly: AssemblyProduct("FreeInfantry Launcher")]
+[assembly: AssemblyCopyright("Copyright © 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
