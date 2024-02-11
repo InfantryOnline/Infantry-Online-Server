@@ -395,6 +395,19 @@ namespace Infantry_Launcher
             UpdateStatusMsg("Checking for launcher updates...", true);
             AssetDownloadController.CurrentDirectory = currentDirectory;
             AssetDownloadController.SetForm(this);
+
+            try
+            {
+            string launcherAlertMessage = new System.Net.WebClient().DownloadString(settings.Get("Launcher", "LauncherAssets") + "alert.txt");
+
+                if (!string.IsNullOrWhiteSpace(launcherAlertMessage.Trim()))
+                {
+                    MessageBox.Show(launcherAlertMessage, "Launcher Alert");
+                }
+            }
+            catch
+            { /* do nothing, okay to skip */ }
+
             try
             {
                 string version = settings.Get("Launcher","Version");
