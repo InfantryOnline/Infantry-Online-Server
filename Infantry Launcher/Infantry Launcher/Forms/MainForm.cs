@@ -392,9 +392,7 @@ namespace Infantry_Launcher
                 return;
             }
 
-            UpdateStatusMsg("Checking for launcher updates...", true);
-            AssetDownloadController.CurrentDirectory = currentDirectory;
-            AssetDownloadController.SetForm(this);
+            UpdateStatusMsg("Checking for server message...", true);
 
             try
             {
@@ -407,6 +405,12 @@ namespace Infantry_Launcher
             }
             catch
             { /* do nothing, okay to skip */ }
+
+            // Removing Launcher "Auto-Update"
+            /*
+            UpdateStatusMsg("Checking for launcher updates...", true);
+            AssetDownloadController.CurrentDirectory = currentDirectory;
+            AssetDownloadController.SetForm(this);
 
             try
             {
@@ -427,6 +431,8 @@ namespace Infantry_Launcher
             }
             catch
             { UpdateStatusMsg("Cannot download launcher updates....Skipping."); }
+
+            */
 
             UpdateFiles();
         }
