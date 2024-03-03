@@ -309,7 +309,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(log, "log",
                 "Grabs exception logs for the current zone",
                 "*log",
-                InfServer.Data.PlayerPermission.Sysop, true);
+                InfServer.Data.PlayerPermission.SuperMod, true);
 
             yield return new HandlerDescriptor(recycle, "recycle",
                 "Restarts the current zone",

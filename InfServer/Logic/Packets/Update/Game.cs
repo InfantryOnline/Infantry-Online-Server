@@ -424,6 +424,14 @@ namespace InfServer.Logic
             //Allow/disallow spectators
             player._bAllowSpectator = pkt.allow;
 
+            bool forceAllowSpec = player._arena._allowSpec;
+
+            if (forceAllowSpec)
+            {
+                player.sendMessage(0, "You cannot disable being spectated at this time.");
+                return;
+            }
+
             //Remove all his current spectators
             if (!player._bAllowSpectator)
             {

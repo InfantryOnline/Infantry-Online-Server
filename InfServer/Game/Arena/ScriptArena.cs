@@ -2650,8 +2650,10 @@ namespace InfServer.Game
                 return;
             }
 
+            bool forceAllowSpec = target._arena._allowSpec;
+
             //Check spectator permission
-            if (!target._bAllowSpectator && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+            if (!forceAllowSpec && !target._bAllowSpectator && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
             {
                 player.sendMessage(-1, "Specified player isn't allowing spectators.");
                 return;

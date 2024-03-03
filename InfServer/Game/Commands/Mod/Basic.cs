@@ -1573,6 +1573,12 @@ namespace InfServer.Game.Commands.Mod
             player._arena.sendArenaMessage("Spec Quiet is now" + (player._arena._specQuiet ? " ON!" : " OFF!"), 0);
         }
 
+        static public void allowspec(Player player, Player recipient, string payload, int bong)
+        {
+            player._arena._allowSpec = !player._arena._allowSpec;
+            player.sendMessage(0, $"Force allow-spec is now toggled " + (player._arena._allowSpec ? "ON" : "OFF"));
+        }
+
         /// <summary>
         /// Toggles stealth mode for mods, will prevent players from seeing them on lists
         /// </summary>
@@ -3703,6 +3709,11 @@ namespace InfServer.Game.Commands.Mod
                 "Toggles chatting to spectator only.",
                 "Syntax: :alias:*specquiet (for a specific player) or *specquiet (toggles the whole arena)",
                 InfServer.Data.PlayerPermission.GrantedPlayer, true);
+
+            yield return new HandlerDescriptor(allowspec, "allowspec",
+                "Toggles the ability for players to disable being spectated. Will not clear player preference of those who already set it, but it will ignore the preference while it is toggled on.",
+                "Syntax: *allowspec",
+                InfServer.Data.PlayerPermission.HeadModAdmin, true);
 
             yield return new HandlerDescriptor(stealth, "stealth",
                 "Toggles stealth mode, mods become invisible to arena's",
