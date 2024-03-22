@@ -18,7 +18,7 @@ namespace InfServer.Game.Commands.Mod
     {
         static public void startmatch(Player player, Player recipient, string payload, int bong)
         {
-            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "This command can only be used in non-public arenas.");
                 return;
