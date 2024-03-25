@@ -352,7 +352,7 @@ namespace InfServer.Game
                     callsync("Player.EnterArena", false, player);
 
                     //Temporary player message, remove this later. This is just here to get old accounts to update their information
-                    player.sendMessage(-3, "[Notice] Welcome to Infantry! To get support simply use the discord link located on the top right of the infantry launcher. Enjoy your stay!");
+                    player.sendMessage(-3, "[Notice] Welcome to FreeInfantry! To get support simply use the discord link located on our website at https://www.freeinfantry.com. Enjoy your stay!");
 
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
