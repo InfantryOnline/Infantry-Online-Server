@@ -107,11 +107,11 @@ namespace InfServer.Game
             {	//Yes, we need to find the lowest unused public name
                 int idx = 1;
 
-                while (_arenas.Keys.Contains("Public" + idx))
+                while (_arenas.Keys.Contains("Arena " + idx))
                     idx++;
 
                 //Got one!
-                name = "Public" + idx;
+                name = "Arena " + idx;
             }
 
             //Is this a registered arena name?
@@ -137,7 +137,7 @@ namespace InfServer.Game
                 arena._bIsNamed = true;
 
             arena._name = name;
-            if (arena._name.StartsWith("Public") || namedArena)
+            if (arena._name.StartsWith("Arena") || namedArena)
                 arena._bIsPublic = true;
             else
                 arena._bIsPublic = false;
@@ -150,7 +150,7 @@ namespace InfServer.Game
             using (DdMonitor.Lock(_arenas))
                 _arenas.Add(name, arena);
 
-            Log.write(TLog.Normal, "Opened arena: " + name);
+            Log.write(TLog.Normal, "Opened: " + name);
 
             return arena;
         }
@@ -173,10 +173,28 @@ namespace InfServer.Game
         {
             int maxPlayers = _zoneConfig.arena.maxPlayers;
             int playingDesired = _zoneConfig.arena.playingDesired;
+            if (_namedArenas.Count() > 0)
+            {
+                if (!_arenas.ContainsKey(_namedArenas.FirstOrDefault().name))
+                {
+                    foreach (KeyValuePair<string, Arena> a in _arenas)
+                    {
+                        if (a.Key.StartsWith(_namedArenas.FirstOrDefault().name, StringComparison.OrdinalIgnoreCase))
+                        {   //Is there space?
+                            if (a.Value.PlayerCount < playingDesired && a.Value.TotalPlayerCount < maxPlayers)
+                                return a.Value;
+                        }
+                    }
+                }
+                else
+                {
+                    return newArena(_namedArenas.FirstOrDefault().name, true);
+                }
+            }
 
             foreach (KeyValuePair<string, Arena> a in _arenas)
             {
-                if (a.Key.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+                if (a.Key.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
                 {   //Is there space?
                     if (a.Value.PlayerCount < playingDesired && a.Value.TotalPlayerCount < maxPlayers)
                         return a.Value;
@@ -209,7 +227,7 @@ namespace InfServer.Game
             if (!_arenas.TryGetValue(arenaName, out arena))
             {	//Let's attempt to make it!
                 //Is it a reserved public arena?
-                if (arenaName.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+                if (arenaName.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
                     //Can't do this I'm afraid
                     return null;
 

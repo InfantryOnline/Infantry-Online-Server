@@ -313,13 +313,13 @@ namespace InfServer.Game.Commands.Mod
             else
                 level = (int)player.PermissionLevel;
 
-            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
             }
 
-            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
+            if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
                 if (level < (int)Data.PlayerPermission.Mod)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
@@ -358,13 +358,13 @@ namespace InfServer.Game.Commands.Mod
             else
                 level = (int)player.PermissionLevel;
 
-            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
             }
 
-            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
+            if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
                 if (level < (int)Data.PlayerPermission.Mod)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
@@ -1077,13 +1077,13 @@ namespace InfServer.Game.Commands.Mod
             else
                 level = (int)player.PermissionLevel;
 
-            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
             }
             /*
-            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
+            if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
                 if (level < (int)Data.PlayerPermission.Mod)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
@@ -1388,7 +1388,7 @@ namespace InfServer.Game.Commands.Mod
             else
                 level = (int)player.PermissionLevel;
             /*
-            if (!player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase)
+            if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase)
                 && !player._arena.IsPrivate)
                 if (level < (int)Data.PlayerPermission.Mod)
                 {
@@ -1628,7 +1628,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "This command can only be used in non-public arenas.");
                 return;
@@ -3425,7 +3425,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (level < (int)Data.PlayerPermission.Mod && player._arena._name.StartsWith("Public", StringComparison.OrdinalIgnoreCase))
+            if (level < (int)Data.PlayerPermission.Mod && player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
