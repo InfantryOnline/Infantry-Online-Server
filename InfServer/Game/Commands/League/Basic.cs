@@ -18,21 +18,16 @@ namespace InfServer.Game.Commands.Mod
     {
         static public void startmatch(Player player, Player recipient, string payload, int bong)
         {
-            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
+            if (!TryPerformInitialValidation(player, recipient, payload, bong))
             {
-                player.sendMessage(-1, "This command can only be used in non-public arenas.");
                 return;
             }
 
-
-			bool isLeagueZone = player._server.Name.Contains("League") || player._server.Name.Contains("USL") || player._server.Name.Contains("CTFPL");
-			bool isTestZone = player._server.Name.Contains("TZ") || player._server.Name.Contains("Test"); // League tests if needed...
-			if (!isLeagueZone && !isTestZone)
-			{
-			    player.sendMessage(-1, "This command can only be used in league zones.");
-			    return;
-			}
-
+            if (player._arena._isMatch)
+            {
+                player.sendMessage(-1, "A match has already started, please use stopmatch to end it.");
+                return;
+            }
 
             //Lock the arena
             if (!player._arena._bLocked)
@@ -48,19 +43,48 @@ namespace InfServer.Game.Commands.Mod
                         p._bAllowSpectator = true;
             }
 
-            //Toggle Stat Saving for any attached script
-            player._arena._isMatch = !player._arena._isMatch;
+            player._arena._isMatch = true;
 
-            //Let Everyone Know
-            if (player._arena._isMatch)
-            {
-                player._arena.gameStart();
-                player._arena.sendArenaMessage("Game ON! - Good Luck");
-            }
-            else
-                player._arena.sendArenaMessage("League match has ended.");
+            player._arena.gameStart();
+            player._arena.sendArenaMessage("Game ON! - Good Luck");
         }
-   
+
+        static public void stopmatch(Player player, Player recipient, string payload, int bong)
+        {
+            if (!TryPerformInitialValidation(player, recipient, payload, bong))
+            {
+                return;
+            }
+
+            if  (!player._arena._isMatch)
+            {
+                player.sendMessage(-1, "There is no match currently underway. Use start match to start one.");
+                return;
+            }
+
+            player._arena._isMatch = false;
+            player._arena.sendArenaMessage("League match has ended.");
+        }
+
+        static private bool TryPerformInitialValidation(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
+            {
+                player.sendMessage(-1, "This command can only be used in non-public arenas.");
+                return false;
+            }
+
+            bool isLeagueZone = player._server.Name.Contains("League") || player._server.Name.Contains("USL") || player._server.Name.Contains("CTFPL");
+            bool isTestZone = player._server.Name.Contains("TZ") || player._server.Name.Contains("Test"); // League tests if needed...
+            if (!isLeagueZone && !isTestZone)
+            {
+                player.sendMessage(-1, "This command can only be used in league zones.");
+                return false;
+            }
+
+            return true;
+        }
+        
 
         /// <summary>
         /// Registers all handlers
@@ -69,8 +93,13 @@ namespace InfServer.Game.Commands.Mod
         static public IEnumerable<Commands.HandlerDescriptor> Register()
         {
             yield return new HandlerDescriptor(startmatch, "startmatch",
-                "Toggles a league match and automatically locks an arena",
+                "Starts a league match and automatically locks an arena",
                 "*startmatch", 
+                InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(stopmatch, "stopmatch",
+                "Stops a league match if there is one in progress.",
+                "*stopmatch",
                 InfServer.Data.PlayerPermission.Mod, true);
         }
     }
