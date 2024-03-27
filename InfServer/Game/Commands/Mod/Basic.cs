@@ -3663,7 +3663,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(prize, "prize",
                 "Spawns an item on the ground or in a player's inventory",
                 "*prize item:amount or ::*prize item:amount",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(profile, "profile",
                 "Displays a player's inventory.",
