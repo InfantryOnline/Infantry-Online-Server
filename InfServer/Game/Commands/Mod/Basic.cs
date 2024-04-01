@@ -3784,7 +3784,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(shutup, "shutup",
                "Toggles a players ability to use the messaging system entirely",
                ":alias:*shutup",
-               InfServer.Data.PlayerPermission.GrantedPlayer, true);
+               InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(skill, "skill",
                 "Gives or sets a skill to a player",
