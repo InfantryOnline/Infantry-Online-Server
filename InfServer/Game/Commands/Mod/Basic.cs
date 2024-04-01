@@ -865,6 +865,97 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Grants a player private arena privileges
+        /// </summary>
+        static public void moderator(Player player, Player recipient, string payload, int bong)
+        {
+            //Sanity checks
+            if (player._arena._bIsPublic)
+            {
+                player.sendMessage(-1, "You cannot grant moderator in public arena's.");
+                return;
+            }
+
+            if (!player._arena.IsGranted(player) && player.PermissionLevelLocal < Data.PlayerPermission.Mod)
+            {
+                player.sendMessage(-1, "You are not granted moderator in this arena.");
+                return;
+            }
+
+            if (recipient != null)
+            {
+                if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                {
+                    player.sendMessage(-1, "That person doesn't need grant.");
+                    return;
+                }
+
+                if (player._arena.IsGranted(recipient))
+                {
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                    {
+                        player.sendMessage(-1, "You cannot remove this players power.");
+                        return;
+                    }
+
+                    if (player._arena._owner.Contains(recipient._alias))
+                        player._arena._owner.Remove(recipient._alias);
+
+                    recipient._permissionTemp = Data.PlayerPermission.Normal;
+                    player._arena.sendArenaMessage(string.Format("{0} is no longer granted moderator.", recipient._alias));
+                    recipient.sendMessage(0, "You have been removed from arena privileges.");
+                    return;
+                }
+                player._arena._owner.Add(recipient._alias);
+                recipient._permissionTemp = Data.PlayerPermission.Mod;
+                player._arena.sendArenaMessage(string.Format("{0} is now granted moderator.", recipient._alias));
+                recipient.sendMessage(0, "You are now granted arena privileges.");
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(payload))
+                {
+                    player.sendMessage(-1, "Syntax: *moderator alias");
+                    return;
+                }
+
+                if ((recipient = player._arena.getPlayerByName(payload.ToLower())) == null)
+                {
+                    player.sendMessage(-1, "That player doesn't exist.");
+                    return;
+                }
+
+                if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                {
+                    player.sendMessage(-1, "That person doesn't need grant.");
+                    return;
+                }
+
+                if (player._arena.IsGranted(recipient))
+                {
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                    {
+                        player.sendMessage(-1, "You cannot remove this players power.");
+                        return;
+                    }
+
+                    if (player._arena._owner.Contains(recipient._alias))
+                        player._arena._owner.Remove(recipient._alias);
+
+                    recipient._permissionTemp = Data.PlayerPermission.Normal;
+                    player._arena.sendArenaMessage(string.Format("{0} is no longer granted.", recipient._alias));
+                    recipient.sendMessage(0, "You have been removed from arena privileges.");
+                    return;
+                }
+                player._arena._owner.Add(recipient._alias);
+                recipient._permissionTemp = Data.PlayerPermission.Mod;
+                recipient.sendMessage(0, "You are now granted arena privileges.");
+            }
+
+            player.sendMessage(0, "You have given " + recipient._alias + " arena moderator privileges.");
+        }
+
+        /// <summary>
         /// Gives the user help information on a given command
         /// </summary>
         static public void help(Player player, Player recipient, string payload, int bong)
@@ -3624,6 +3715,11 @@ namespace InfServer.Game.Commands.Mod
                 "Gives arena privileges to a player",
                 ":player:*grant or *grant [alias]",
                 InfServer.Data.PlayerPermission.GrantedPlayer, true);
+
+            yield return new HandlerDescriptor(moderator, "moderator",
+                "Gives moderator arena privileges to a player",
+                ":player:*moderator or *moderator [alias]",
+                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(ipban, "ipban",
                 "IPBans a player from all zones",

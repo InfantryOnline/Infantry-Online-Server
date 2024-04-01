@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>InfServer</RootNamespace>
     <AssemblyName>InfServer</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -122,6 +122,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libs\CSScriptLibrary.dll</HintPath>
     </Reference>
+    <Reference Include="Google.FlatBuffers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a5f9b243cdbcd871, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.FlatBuffers.23.5.26\lib\net46\Google.FlatBuffers.dll</HintPath>
+    </Reference>
     <Reference Include="Ionic.Zlib, Version=1.9.1.5, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libs\Ionic.Zlib.dll</HintPath>
@@ -131,6 +134,9 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -386,6 +392,10 @@
       <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
       <Name>Assets</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DB2\DB2.csproj">
+      <Project>{9ee769d4-a44c-4e15-911e-7687ade7fc97}</Project>
+      <Name>DB2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\InfServer.DBComm\InfServer.DBComm.csproj">
       <Project>{8817E7B9-441E-45EF-B2BF-9E637DCCB868}</Project>
       <Name>InfServer.DBComm</Name>
@@ -397,6 +407,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

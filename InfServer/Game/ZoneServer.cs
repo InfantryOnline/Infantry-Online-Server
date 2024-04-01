@@ -12,6 +12,10 @@ using InfServer.Protocol;
 using InfServer.Data;
 
 using Assets;
+using System.Threading.Tasks;
+using db.packets;
+using System.IO;
+using DB2;
 
 namespace InfServer.Game
 {
@@ -29,6 +33,7 @@ namespace InfServer.Game
         public Bots.Pathfinder _pathfinder;		//Global pathfinder
 
         public Database _db;					//Our connection to the database
+        public DB2.ClientConnection dbConnection;
         public IPEndPoint _dbEP;
 
         public uint _reliableChecksum = 0;      //Reliable checksum value for this zone
@@ -321,6 +326,18 @@ namespace InfServer.Game
                 _dbEP = new IPEndPoint(IPAddress.Parse(_config["database/ip"].Value), _config["database/port"].intValue);
 
                 _db.connect(_dbEP, true);
+
+                if (_config.Exists("database2"))
+                {
+                    var db2Ep = new IPEndPoint(IPAddress.Parse(_config["database2/ip"].Value), _config["database2/port"].intValue);
+                    dbConnection = new DB2.ClientConnection(db2Ep);
+                    Task.Run(async () => {
+                        await dbConnection.ProcessAsync();
+                    });
+
+                    var data = ClientServerPacketFactory.CreateAuthenticateClient(new Random().Next(), _config["database2/password"].Value);
+                    dbConnection.Send(data);
+                }
             }
 
             //Initialize other parts of the zoneserver class
