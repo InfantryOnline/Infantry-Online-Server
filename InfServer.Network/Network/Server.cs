@@ -127,7 +127,7 @@ namespace InfServer.Network
                 _sock.Bind(_listenPoint);
 
                 //Begin listening for packets
-                _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, null);
+                _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, _sock);
             }
             catch (SocketException se)
             {	//Failure!
@@ -185,7 +185,10 @@ namespace InfServer.Network
         /// Delegate for asynchronously receiving UDP packets
         /// </summary>
         private void onDataRecieved(IAsyncResult asyn)
-        {	//Use the logger
+        {
+            var socket = asyn.AsyncState as Socket;
+
+            //Use the logger
             using (LogAssume.Assume(_logger))
             {
                 PacketBase packet = null;
@@ -200,10 +203,10 @@ namespace InfServer.Network
                     }
 
                     //Is it our current async? If it isnt, skip it
-                    if (asyn == _currentAsyncResult)
+                    // if (_currentAsyncResult == asyn)
                     {
                         //Receive the data
-                        read = _sock.EndReceiveFrom(asyn, ref _remEP);
+                        read = socket.EndReceiveFrom(asyn, ref _remEP);
 
                         //Read in the typeID
                         ushort typeID = NetworkClient.getTypeID(_buffer, 0);
@@ -241,11 +244,15 @@ namespace InfServer.Network
                                 _clients[id] = client;
                             }
                             else
+                            {
                                 _clients.TryGetValue(id, out client);
+                            }
 
                             //Out of sync packet?
                             if (client == null)
+                            {
                                 Log.write(TLog.Inane, "Out of state packet received from {0}", _remEP);
+                            }
                             //If the client is inactive, ignore
                             else if (client._bDestroyed)
                             {
@@ -273,7 +280,6 @@ namespace InfServer.Network
                                 packet._handler = this;
 
                                 packet.Deserialize();
-
                                 //Queue it up
                                 handlePacket(packet, client);
                                 client._lastPacketRecv = Environment.TickCount;
@@ -302,7 +308,7 @@ namespace InfServer.Network
 
                 try
                 {	//Wait for more data
-                    _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, null);
+                    _currentAsyncResult = socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, socket);
                 }
                 catch (SocketException se)
                 {	//Store the exception and exit

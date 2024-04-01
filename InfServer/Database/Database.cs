@@ -69,16 +69,6 @@ namespace InfServer.Data
 
                 //Start our connection
                 _conn.begin(dbPoint);
-
-                //Send our initial packet
-                CS_Initial init = new CS_Initial();
-
-                _conn._client._connectionID = init.connectionID = new Random().Next();
-                init.CRCLength = Client.crcLength;
-                init.udpMaxPacket = Client.udpMaxSize;
-
-                _conn._client.send(init);
-
                 _syncStart.WaitOne(10000);
 
                 //Reset our event
