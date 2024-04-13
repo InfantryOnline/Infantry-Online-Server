@@ -55,6 +55,10 @@ namespace Assets
                         {
                             i = end + 1;
                         }
+                        else
+                        {
+                            i = input.Length;
+                        }
                     }
                     else
                     {
