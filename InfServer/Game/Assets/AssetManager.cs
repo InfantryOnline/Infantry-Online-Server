@@ -487,8 +487,8 @@ namespace InfServer.Game
 		}
 
         /// <summary>
-		/// Some vehicle files have nested vehicle files within, this will grab all of them as needed
-		/// </summary>	
+        /// Some vehicle files have nested vehicle files within, this will grab all of them as needed
+        /// </summary>	
         private VehicleFile LoadVehicleFiles(CfgInfo zoneConf) 
         {
             VehicleFile mainFile = AssetFileFactory.CreateFromFile<VehicleFile>(zoneConf.level.vehFile);
@@ -527,8 +527,8 @@ namespace InfServer.Game
         }
 
         /// <summary>
-		/// Some item files have nested item files within, this will grab all of them as needed
-		/// </summary>	
+        /// Some item files have nested item files within, this will grab all of them as needed
+        /// </summary>	
         private ItemFile LoadItemFiles(CfgInfo zoneConf) 
         {
             ItemFile mainFile = AssetFileFactory.CreateFromFile<ItemFile>(zoneConf.level.itmFile);
