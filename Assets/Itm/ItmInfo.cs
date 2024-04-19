@@ -111,6 +111,7 @@ namespace Assets
                         break;
                     case "18":
                         NestedItem nested = NestedItem.Load(values);
+                        nested.itemType = ItemType.Nested;
                         FilesToLoad.Add(nested.location);
                         itemInfo.Add(nested);
                         break;

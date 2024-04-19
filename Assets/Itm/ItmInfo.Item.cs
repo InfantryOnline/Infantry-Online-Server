@@ -108,6 +108,11 @@ namespace Assets
 			range = 0;
 			return false;
 		}
+
+        public virtual List<string> getFilesToLoad()
+        { 
+            return FilesToLoad; 
+        }
     }
 }
 
