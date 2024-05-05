@@ -19,6 +19,8 @@ namespace InfServer.Logic
         /// </summary>
         static public void PopulateAdmins()
         {
+            ServerAdmins = new List<string>();
+
             if (!File.Exists("admins.xml"))
             {
                 Log.write(TLog.Warning, "Cannot locate the admins.xml file. Skipping.");
@@ -31,7 +33,6 @@ namespace InfServer.Logic
             if (doc.HasChildNodes)
             {
                 int i = 0;
-                ServerAdmins = new List<string>();
                 foreach (XmlNode n in doc.ChildNodes.Item(i))
                 {
                     ServerAdmins.Add(n.InnerText);

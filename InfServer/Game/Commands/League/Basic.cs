@@ -43,15 +43,15 @@ namespace InfServer.Game.Commands.Mod
                         p._bAllowSpectator = true;
             }
 
-            player._arena._isMatch = true;
-
             player._arena.sendArenaMessage("&Welcome to USL. I'll be your Referee for this match. -" + player._alias);
-            player._arena.sendArenaMessage("@Class Restrictions: Marines - Unlimited, 2 Medics(3 if 10v10). Only 1 Support Class of each type are allowed PER team. These Support Classes are - Sniper, Nader, LMG, Ripper, AT, and Demo.%2");
+            player._arena.sendArenaMessage("@Class Restrictions: Marines - Unlimited, 2 Medics(3 if 10v10). Only 1 Support Class of each type are allowed PER team. These Support Classes are - Sniper, Nader, LMG, Ripper, AT, and Demo.", 2);
             player._arena.sendArenaMessage("Any player determined to be visually lagging and disrupting the game due to their lag will be subject to removal. The player slot is not lost, and a Captain or Co-Captain may select a sub.");
             player._arena.sendArenaMessage("!Players may not Cross their own Base Lines. (First Offense: Warned - Second Offense: Removed without warning, and player slot lost for 5 minutes.");
             player._arena.sendArenaMessage("!Players may cross enemy lines in order to gain position but may not shoot. Any player found shooting in enemy lines will be specced. Base Lines voided at 3 minutes left.");
 
+            player._arena.startMatch();
             player._arena.gameStart();
+            
             player._arena.sendArenaMessage("Game ON! - Good Luck");
         }
 
@@ -68,7 +68,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            player._arena._isMatch = false;
+            player._arena.stopMatch();
             player._arena.sendArenaMessage("League match has ended.");
         }
 

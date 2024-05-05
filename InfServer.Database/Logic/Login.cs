@@ -273,7 +273,7 @@ namespace InfServer.Logic
                 if (alias == null && !pkt.bCreateAlias)
                 {	//Prompt him to create a new alias if he has room
                     int maxAliases = 30;
-                    if (account.alias.Count < maxAliases)
+                    if (plog.permission == PlayerPermission.HeadModAdmin || account.alias.Count < maxAliases)
                     {   //He has space! Prompt him to make a new alias
                         plog.bSuccess = false;
                         plog.bNewAlias = true;

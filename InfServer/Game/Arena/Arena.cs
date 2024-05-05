@@ -1259,6 +1259,22 @@ namespace InfServer.Game
         }
 
         /// <summary>
+        /// Called when a league match is starting.
+        /// </summary>
+        public virtual void startMatch()
+        {
+
+        }
+
+        /// <summary>
+        /// Called when a league match is ending.
+        /// </summary>
+        public virtual void stopMatch()
+        {
+
+        }
+
+        /// <summary>
         /// Creates a breakdown tailored for one player
         /// </summary>
         public virtual void individualBreakdown(Player from, bool bCurrent)

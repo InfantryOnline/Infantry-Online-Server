@@ -300,6 +300,21 @@ namespace InfServer.Game
         }
         #endregion
 
+        public override void startMatch()
+        {
+            _isMatch = true;
+            callsync("Game.StartLeagueMatch", false);
+        }
+
+        /// <summary>
+        /// Called when a league match is ending.
+        /// </summary>
+        public override void stopMatch()
+        {
+            _isMatch = false;
+            callsync("Game.StopLeagueMatch", false);
+        }
+
         #region gameReset
         /// <summary>
         /// Called to reset the game state
