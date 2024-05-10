@@ -26,7 +26,7 @@ namespace InfServer.Game
         public bool _bIsNamed;
 
         public ZoneServer _server;						//The server we belong to
-        public Bots.Pathfinder _pathfinder;				//The pathfinding object used for this arena
+        public Bots.IPathfinder _pathfinder;				//The pathfinding object used for this arena
 
         protected ObjTracker<Player> _players;			//The list of players in this arena
         protected ObjTracker<Player> _playersIngame;	//The list of players currently in game

@@ -30,7 +30,7 @@ namespace InfServer.Game
         public CfgInfo _zoneConfig;				//The zone-specific configuration file
 
         public AssetManager _assets;
-        public Bots.Pathfinder _pathfinder;		//Global pathfinder
+        public Bots.IPathfinder _pathfinder;		//Global pathfinder
 
         public Database _db;					//Our connection to the database
         public DB2.ClientConnection dbConnection;
@@ -289,6 +289,13 @@ namespace InfServer.Game
                 Log.write("Initializing pathfinder..");
                 LogClient log = Log.createClient("Pathfinder");
                 _pathfinder = new Bots.Pathfinder(this, log);
+                _pathfinder.beginThread();
+            }
+            else if(_config["server/pathFindingEnabledNew"].boolValue)
+            {
+                Log.write("Initializing new pathfinder..");
+                LogClient log = Log.createClient("Pathfinder2");
+                _pathfinder = new Bots.Pathfinder2(this, log);
                 _pathfinder.beginThread();
             }
             else

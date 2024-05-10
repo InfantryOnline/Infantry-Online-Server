@@ -11,13 +11,14 @@ using InfServer.Game;
 using Bnoerj.AI.Steering;
 using Axiom.Math;
 using Assets;
+using System.Diagnostics;
 
 namespace InfServer.Bots
 {
     // Pathfinder Class
     /// Performs pathfinding operations for an arena
     ///////////////////////////////////////////////////////
-    public class Pathfinder
+    public class Pathfinder : IPathfinder
     {   // Member variables
         ///////////////////////////////////////////////////
         private LogClient _logger;
@@ -28,16 +29,6 @@ namespace InfServer.Bots
 
         private Thread pathingThread;
         public BlockingCollection<PathfindReq> pathingQueue;
-
-        public class PathfindReq
-        {
-            public short startX;
-            public short startY;
-            public short endX;
-            public short endY;
-
-            public Action<List<Vector3>, int> callback;
-        }
 
         #region Pathfinder DLL Declarations
         [DllImport("pathfinder.dll")]

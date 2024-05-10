@@ -118,9 +118,15 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="C5, Version=2.4.5947.17248, Culture=neutral, PublicKeyToken=282361b99ded7e8e, processorArchitecture=MSIL">
+      <HintPath>..\packages\C5.2.4.5947.17249\lib\net45\C5.dll</HintPath>
+    </Reference>
     <Reference Include="CSScriptLibrary, Version=2.1.0.0, Culture=neutral, PublicKeyToken=70fcc3d18c749033, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libs\CSScriptLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="EpPathFinding.cs, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EpPathFinding.cs.1.4.2\lib\EpPathFinding.cs.dll</HintPath>
     </Reference>
     <Reference Include="Google.FlatBuffers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=a5f9b243cdbcd871, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.FlatBuffers.23.5.26\lib\net46\Google.FlatBuffers.dll</HintPath>
@@ -174,7 +180,9 @@
     <Compile Include="Game\Arena\Bot\Math\Vector3.cs" />
     <Compile Include="Game\Arena\Bot\Math\Vector4.cs" />
     <Compile Include="Game\Arena\Bot\MovementController.cs" />
+    <Compile Include="Game\Arena\Bot\Pathfinding\IPathfinder.cs" />
     <Compile Include="Game\Arena\Bot\Pathfinding\Pathfinder.cs" />
+    <Compile Include="Game\Arena\Bot\Pathfinding\Pathfinder2.cs" />
     <Compile Include="Game\Arena\Bot\ScriptBot.cs" />
     <Compile Include="Game\Arena\Bot\SharpSteer\AbstractVehicle.cs" />
     <Compile Include="Game\Arena\Bot\SharpSteer\BruteForceProximityDatabase.cs" />
