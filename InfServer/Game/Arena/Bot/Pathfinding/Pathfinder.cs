@@ -12,6 +12,7 @@ using Bnoerj.AI.Steering;
 using Axiom.Math;
 using Assets;
 using System.Diagnostics;
+using static Assets.LvlInfo;
 
 namespace InfServer.Bots
 {
@@ -300,6 +301,9 @@ namespace InfServer.Bots
             return pathingQueue.Count;
         }
 
-
+        public void updateTile(int tileX, int tileY, Tile tile)
+        {
+            // Not actually implemented.
+        }
     }
 }

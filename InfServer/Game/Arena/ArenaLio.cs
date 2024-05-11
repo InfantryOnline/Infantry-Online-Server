@@ -504,6 +504,12 @@ namespace InfServer.Game
                     else
                         //Clear the tiles
                         _tiles[t].PhysicsVision = (byte)0x00;
+
+                    if (_pathfinder != null)
+                    {
+                        // Alert our pathfinder so that we know the new tile state.
+                        _pathfinder.updateTile(posx, posy, _tiles[t]);
+                    }
                 }
             }
 

@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Assets.LvlInfo;
 
 namespace InfServer.Bots
 {
@@ -257,6 +258,12 @@ namespace InfServer.Bots
         public int queueCount()
         {
             return pathingQueue.Count;
+        }
+
+        public void updateTile(int tileX, int tileY, Tile tile)
+        {
+            rawGrid.SetWalkableAt(tileX, tileY, !tile.Blocked);
+            clearanceGrid.SetWalkableAt(tileX, tileY, !tile.Blocked);
         }
     }
 }
