@@ -9,11 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assets", "Assets\Assets.csproj", "{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfServer.Network", "InfServer.Network\InfServer.Network.csproj", "{5D556DA8-1878-46F3-8064-AC5338832BB4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfServer", "InfServer\InfServer.csproj", "{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfServer.DirectoryServer", "InfServer.DirectoryServer\InfServer.DirectoryServer.csproj", "{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}"
 EndProject
@@ -41,22 +37,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|Itanium.ActiveCfg = Debug|Itanium
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|Itanium.Build.0 = Debug|Itanium
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|x86.ActiveCfg = Debug|x86
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Debug|x86.Build.0 = Debug|x86
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|Itanium.ActiveCfg = Release|Itanium
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|Itanium.Build.0 = Release|Itanium
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|x86.ActiveCfg = Release|x86
-		{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}.Release|x86.Build.0 = Release|x86
 		{5D556DA8-1878-46F3-8064-AC5338832BB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D556DA8-1878-46F3-8064-AC5338832BB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D556DA8-1878-46F3-8064-AC5338832BB4}.Debug|Itanium.ActiveCfg = Debug|Itanium
@@ -73,22 +53,6 @@ Global
 		{5D556DA8-1878-46F3-8064-AC5338832BB4}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
 		{5D556DA8-1878-46F3-8064-AC5338832BB4}.Release|x86.ActiveCfg = Release|x86
 		{5D556DA8-1878-46F3-8064-AC5338832BB4}.Release|x86.Build.0 = Release|x86
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|Itanium.ActiveCfg = Debug|Itanium
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|Itanium.Build.0 = Debug|Itanium
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|x86.ActiveCfg = Debug|x86
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Debug|x86.Build.0 = Debug|x86
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|Itanium.ActiveCfg = Release|Itanium
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|Itanium.Build.0 = Release|Itanium
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|x86.ActiveCfg = Release|x86
-		{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}.Release|x86.Build.0 = Release|x86
 		{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEE908A4-5FBE-440B-8A6D-99442F30F3A2}.Debug|Itanium.ActiveCfg = Debug|Itanium
