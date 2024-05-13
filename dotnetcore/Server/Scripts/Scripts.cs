@@ -213,25 +213,6 @@ namespace InfServer.Scripting
                 }
 			}
 
-            //Cater for linq
-            //requestedRefAsms.AddAssembly(AssemblyResolver.FindAssembly("System.Core", new string[0])[0]);
-
-            //compilerParams.ReferencedAssemblies.AddRange((string[])requestedRefAsms);
-
-            //foreach (string sref in compilerParams.ReferencedAssemblies)
-            //	Log.write(TLog.Inane, "\t- Ref: " + sref);
-
-            ////Determine our output assembly filename
-            //string compiledAssembly = System.Environment.CurrentDirectory + "\\scripts.cmp";
-
-            //if (File.Exists(compiledAssembly))
-            //	File.Delete(compiledAssembly);
-
-            //compilerParams.OutputAssembly = compiledAssembly;
-
-            ////Attempt to compile
-            //CompilerResults results = compiler.CompileAssemblyFromFile(compilerParams, sources);
-
             string assemblyName = Path.GetRandomFileName();
 
 			var trees = sources.Select(t => File.ReadAllText(t)).Select(x => CSharpSyntaxTree.ParseText(x));
@@ -321,11 +302,11 @@ namespace InfServer.Scripting
 							//Start forming our path
 							path = new string(' ', 0);
 						else if (path != null)
-							path += dirpath[i] + "\\";
+							path += dirpath[i] + $"{Path.DirectorySeparatorChar}";
 					}
 
 					//Trim the last slash
-					path = path.Trim(new char[] { '\\' });
+					path = path.Trim(new [] { Path.DirectorySeparatorChar });
 
 					//Parse the script and add to the dictionary
 					ScriptParser parser = new ScriptParser(f, true);
@@ -356,7 +337,7 @@ namespace InfServer.Scripting
 		/// </summary>
 		static public bool compileScripts()
 		{	//Look in the scripts directories for compilable cs files
-			string scriptDirectory = System.Environment.CurrentDirectory + "\\scripts\\";
+			string scriptDirectory = System.Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}scripts{Path.DirectorySeparatorChar}";
 			List<ScriptParser> scripts = new List<ScriptParser>();
 
 			loadDirScripts(ref scripts, scriptDirectory);

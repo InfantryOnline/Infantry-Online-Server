@@ -39,10 +39,10 @@ namespace Assets
                 throw new ArgumentNullException("Null filename.");
 
 			//Attempt to find the file in the directory structure
-			string filePath = findAssetFile(filename, "assets\\");
+			string filePath = findAssetFile(filename, $"assets{Path.DirectorySeparatorChar}");
             if (filePath == null)
             {
-                filePath = findAssetFile(filename, "..\\BIN\\assets\\");
+                filePath = findAssetFile(filename, $"..{Path.DirectorySeparatorChar}BIN{Path.DirectorySeparatorChar}assets{Path.DirectorySeparatorChar}");
             }
 
 			if (filePath == null)
@@ -69,10 +69,10 @@ namespace Assets
                 throw new ArgumentNullException("Null filename.");
 
             //Attempt to find the file in the directory structure
-            string filePath = findAssetFile(filename, "..\\Blobs\\");
+            string filePath = findAssetFile(filename, $"..{Path.DirectorySeparatorChar}Blobs{Path.DirectorySeparatorChar}");
             if (filePath == null)
             {
-                filePath = findAssetFile(filename, ".\\Assets\\");
+                filePath = findAssetFile(filename, $".{Path.DirectorySeparatorChar}Assets{Path.DirectorySeparatorChar}");
             }
 
             if (filePath == null)

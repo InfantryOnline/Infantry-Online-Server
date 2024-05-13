@@ -94,9 +94,16 @@ namespace InfServer.Network
         public void end()
         {
             if (_listenThread.IsAlive)
-                _listenThread.Abort();
+            {
+                // FIXME: Time to use cancellation tokens.
+                // _listenThread.Abort();
+                _bOperating = false;
+            }
+
             if (_sock != null)
+            {
                 _sock.Close();
+            }
         }
 
         /// <summary>
@@ -114,14 +121,30 @@ namespace InfServer.Network
                 _sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 _remEP = new IPEndPoint(IPAddress.Any, 0);
 
-                _sock.DontFragment = true;
-                _sock.Ttl = 255;
+                try
+                {
+                    _sock.DontFragment = true;
+                    _sock.Ttl = 255;
+                }
+                catch (SocketException e)
+                {
+                    Console.WriteLine("Warning: This operation is not supported on your platform. All good.");
+                    Console.WriteLine(e.ToString());
+                }
 
-                //Prevent useless connection reset exceptions
-                uint IOC_IN = 0x80000000;
-                uint IOC_VENDOR = 0x18000000;
-                uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
-                _sock.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+                try
+                {
+                    //Prevent useless connection reset exceptions
+                    uint IOC_IN = 0x80000000;
+                    uint IOC_VENDOR = 0x18000000;
+                    uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+                    _sock.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+                }
+                catch (PlatformNotSupportedException e)
+                {
+                    Console.WriteLine("Warning: Socket IOControl not supported on this platform. All good.");
+                    Console.WriteLine(e.ToString());
+                }
 
                 //Bind our socket
                 _sock.Bind(_listenPoint);

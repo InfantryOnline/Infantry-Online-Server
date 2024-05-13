@@ -11,7 +11,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Assets", "Assets\Assets.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EpPathFinding.cs", "EpPathFinding.cs\EpPathFinding.cs.csproj", "{32420595-C356-4A4A-893C-3B2BA19C6CD2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EpPathFinding.cs", "EpPathFinding.cs\EpPathFinding.cs.csproj", "{32420595-C356-4A4A-893C-3B2BA19C6CD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Visibility", "Visibility\Visibility.csproj", "{0EB84016-969A-4BB5-886C-A3C935BAE8FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpSteer", "SharpSteer\SharpSteer.csproj", "{7A685548-DFEE-4326-926A-F0FD5F22113F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Math", "Math\Math.csproj", "{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +45,18 @@ Global
 		{32420595-C356-4A4A-893C-3B2BA19C6CD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32420595-C356-4A4A-893C-3B2BA19C6CD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32420595-C356-4A4A-893C-3B2BA19C6CD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EB84016-969A-4BB5-886C-A3C935BAE8FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EB84016-969A-4BB5-886C-A3C935BAE8FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EB84016-969A-4BB5-886C-A3C935BAE8FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EB84016-969A-4BB5-886C-A3C935BAE8FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A685548-DFEE-4326-926A-F0FD5F22113F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A685548-DFEE-4326-926A-F0FD5F22113F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A685548-DFEE-4326-926A-F0FD5F22113F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A685548-DFEE-4326-926A-F0FD5F22113F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

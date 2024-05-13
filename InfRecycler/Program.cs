@@ -43,7 +43,7 @@ namespace InfRecycler
             CopyAll(newServerDir, curServerDir);
 
             //Create the new InfServer process
-            ProcessStartInfo srvProcess = new ProcessStartInfo(Path.Combine(curServerDir.ToString(), "InfServer.exe"));
+            ProcessStartInfo srvProcess = new ProcessStartInfo(Path.Combine(curServerDir.ToString(), "Server.exe"));
             srvProcess.WorkingDirectory = curServerDir.ToString();
             Process.Start(srvProcess);
         }

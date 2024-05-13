@@ -106,7 +106,9 @@ namespace InfServer.Bots
         {   //Delete our context
             deleteMapContext(pathHandleClr0);
             deleteMapContext(pathHandleClr2);
-            pathingThread.Abort();
+
+            // FIXME: Time to use cancellation tokens.
+            //pathingThread.Abort();
         }
 
         /// <summary>

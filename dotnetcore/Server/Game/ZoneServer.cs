@@ -155,7 +155,7 @@ namespace InfServer.Game
             Log.write(TLog.Normal, "Loading Server Configuration");
             _config = new Xmlconfig("server.xml", false).Settings;
 
-            string assetsPath = "assets\\";
+            string assetsPath = $"assets{Path.DirectorySeparatorChar}";
 
             //Load our zone config
             Log.write(TLog.Normal, "Loading Zone Configuration");
@@ -186,7 +186,7 @@ namespace InfServer.Game
                 if (_config["server/updateGlobalNws"].Value.Length > 0)
                 {
                     Log.write(TLog.Normal, String.Format("Grabbing latest global news from {0}...", _config["server/updateGlobalNws"].Value));
-                    if (!_assets.grabGlobalNews(_config["server/updateGlobalNws"].Value, "..\\Global\\global.nws"))
+                    if (!_assets.grabGlobalNews(_config["server/updateGlobalNws"].Value, $"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws"))
                     {
                         try
                         {
@@ -194,10 +194,10 @@ namespace InfServer.Game
                             if ((global = Assets.AssetFileFactory.findAssetFile("global.nws", _config["server/copyServerFrom"].Value)) != null)
                             {
                                 //We first must delete before copying over
-                                if (System.IO.File.Exists("..\\Global\\global.nws"))
-                                    System.IO.File.Delete("..\\Global\\global.nws");
+                                if (System.IO.File.Exists($"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws"))
+                                    System.IO.File.Delete($"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws");
 
-                                System.IO.File.Copy(global, "..\\Global\\global.nws");
+                                System.IO.File.Copy(global, $"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws");
                             }
                         }
                         catch (Exception e)
@@ -208,9 +208,9 @@ namespace InfServer.Game
                     else
                     {
                         //Copy over
-                        if (System.IO.File.Exists(_config["server/copyServerFrom"].Value + "/global.nws"))
-                            System.IO.File.Delete(_config["server/copyServerFrom"].Value + "/global.nws");
-                        System.IO.File.Copy("..\\Global\\global.nws", _config["server/copyServerFrom"].Value + "/global.nws");
+                        if (System.IO.File.Exists(_config["server/copyServerFrom"].Value + $"{Path.DirectorySeparatorChar}global.nws"))
+                            System.IO.File.Delete(_config["server/copyServerFrom"].Value + $"{Path.DirectorySeparatorChar}global.nws");
+                        System.IO.File.Copy($"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws", _config["server/copyServerFrom"].Value + $"{Path.DirectorySeparatorChar}global.nws");
                     }
                 }
 
@@ -537,8 +537,9 @@ namespace InfServer.Game
             }
 
             //End all threads
-            _pingResponder.End();
-            base.end();
+            // FIXME: This throws an error because we aren't using cancellation tokens. need to clean this up.
+            // _pingResponder.End();
+            // base.end();
 
             //Add a little delay...
             Thread.Sleep(2000);
@@ -653,7 +654,9 @@ namespace InfServer.Game
             public void End()
             {
                 if (_listenThread.IsAlive)
-                    _listenThread.Abort();
+                {
+                    _isOperating = false;
+                }
             }
 
             private void Listen(Object obj)
@@ -661,11 +664,19 @@ namespace InfServer.Game
                 var listenPoint = (IPEndPoint)obj;
                 EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
-                //Prevent useless connection reset exceptions
-                uint IOC_IN = 0x80000000;
-                uint IOC_VENDOR = 0x18000000;
-                uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
-                _socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+                try
+                {
+                    //Prevent useless connection reset exceptions
+                    uint IOC_IN = 0x80000000;
+                    uint IOC_VENDOR = 0x18000000;
+                    uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+                    _socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+                }
+                catch (PlatformNotSupportedException e)
+                {
+                    Console.WriteLine("Warning: Socket IOControl not supported on this platform.");
+                    Console.WriteLine(e.ToString());
+                }              
 
                 _socket.Bind(listenPoint);
                 _socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEP, OnRequestReceived, null);

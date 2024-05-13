@@ -261,7 +261,7 @@ namespace InfServer
 				if (Directory.GetFiles("logs").Length > 0)
 				{	//Directory contains old logs, we need to move them.
 					//Find an empty oldlogs directory to occupy
-					string oldlogpath = "oldlogs\\logs";
+					string oldlogpath = $"oldlogs{Path.DirectorySeparatorChar}logs";
 					int lognum = 0;
 
 					do
@@ -286,10 +286,10 @@ namespace InfServer
 			}
 
 			//Open the special logs
-			m_warning = new StreamWriter("logs\\warnings.txt");
-			m_error = new StreamWriter("logs\\errors.txt");
-			m_exception = new StreamWriter("logs\\exceptions.txt");
-            m_security = new StreamWriter("logs\\security.txt");
+			m_warning = new StreamWriter($"logs{Path.DirectorySeparatorChar}warnings.txt");
+			m_error = new StreamWriter($"logs{Path.DirectorySeparatorChar}errors.txt");
+			m_exception = new StreamWriter($"logs{Path.DirectorySeparatorChar}exceptions.txt");
+            m_security = new StreamWriter($"logs{Path.DirectorySeparatorChar}security.txt");
 
 			//Load settings
 			string threshold = "Normal";
@@ -346,7 +346,7 @@ namespace InfServer
 			client.m_guid = System.Guid.NewGuid().ToString();
 
 			//Open a logfile
-			string logpath = "logs\\" + clientname;
+			string logpath = $"logs{Path.DirectorySeparatorChar}" + clientname;
 			int clientnum = 0;
 
 			do

@@ -88,7 +88,11 @@ namespace InfServer.Network
 
             //Close our current listener thread
             if (_listenThread != null)
+            {
+                // FIXME: Time to use cancellation tokens.
+
                 _listenThread.Abort();
+            }
 
             //Create a new client object
             if (_client != null)
@@ -209,9 +213,13 @@ namespace InfServer.Network
         /// Called when client is destroyed due to the connection being terminated
         /// </summary>
         private void onClientDestroy(NetworkClient client)
-        {	//We're no longer operating
+        {
+            //We're no longer operating
             if (_listenThread != null)
+            {
+                // FIXME: Time to use cancellation tokens.
                 _listenThread.Abort();
+            }
 
             _client = null;
             _bOperating = false;

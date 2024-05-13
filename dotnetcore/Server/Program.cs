@@ -22,7 +22,7 @@ namespace InfServer
             {
                 //We want to update InfServer before recycling
                 Process recycler = new Process();
-                recycler.StartInfo.FileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).ToString(), @"Global\InfRecycler.exe");
+                recycler.StartInfo.FileName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).ToString(), $"Global{Path.DirectorySeparatorChar}InfRecycler.exe");
                 recycler.StartInfo.Arguments = String.Format("-d1:\"{0}\" -d2:\"{1}\" -id:\"{2}\"", config["server/copyServerFrom"].Value, Directory.GetCurrentDirectory().ToString(), process.Id);
 
                 //Start the recycler
@@ -33,7 +33,7 @@ namespace InfServer
             }
             else
             {
-                Process.Start(Environment.CurrentDirectory + "/InfServer.exe");
+                Process.Start(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Server.exe");
                 Stop();
             }
         }

@@ -87,7 +87,9 @@ namespace InfServer.Bots
         /// </summary>
         ~Pathfinder2()
         {
-            pathingThread.Abort();
+            // FIXME: Time to use cancellation tokens.
+
+            // pathingThread.Abort();
         }
 
         /// <summary>
