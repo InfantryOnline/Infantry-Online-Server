@@ -10,6 +10,7 @@ using csscript;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using InfServer.Game;
 
 namespace InfServer.Scripting
 {
@@ -36,10 +37,18 @@ namespace InfServer.Scripting
 		/// Provides a simple interface for scripting objects
 		/// </summary>
 		public interface IScript
-		{	//init - Allows the script to register events, etc.
+		{
+			/// <summary>
+			/// 
+			/// </summary>
+			/// <param name="invoker"></param>
+			/// <returns></returns>
 			bool init(IEventObject invoker);
 
-			//poll - Allows the script to take care of matters
+			/// <summary>
+			/// 
+			/// </summary>
+			/// <returns></returns>
 			bool poll();
 		}
 

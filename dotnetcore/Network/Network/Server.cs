@@ -5,6 +5,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace InfServer.Network
 {
@@ -121,29 +122,24 @@ namespace InfServer.Network
                 _sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 _remEP = new IPEndPoint(IPAddress.Any, 0);
 
-                try
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     _sock.DontFragment = true;
                     _sock.Ttl = 255;
-                }
-                catch (SocketException e)
-                {
-                    Console.WriteLine("Warning: This operation is not supported on your platform. All good.");
-                    Console.WriteLine(e.ToString());
-                }
 
-                try
-                {
-                    //Prevent useless connection reset exceptions
+                    //
+                    // Prevent WSAECONNRESET. From MSDN:
+                    //
+                    // WSAECONNRESET
+                    // The virtual circuit was reset by the remote side executing a hard or abortive close. The application should
+                    // close the socket; it is no longer usable.On a UDP-datagram socket this error indicates a previous send
+                    // operation resulted in an ICMP Port Unreachable message.
+                    //
+
                     uint IOC_IN = 0x80000000;
                     uint IOC_VENDOR = 0x18000000;
                     uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
                     _sock.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
-                }
-                catch (PlatformNotSupportedException e)
-                {
-                    Console.WriteLine("Warning: Socket IOControl not supported on this platform. All good.");
-                    Console.WriteLine(e.ToString());
                 }
 
                 //Bind our socket

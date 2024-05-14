@@ -13,11 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EpPathFinding.cs", "EpPathFinding.cs\EpPathFinding.cs.csproj", "{32420595-C356-4A4A-893C-3B2BA19C6CD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Visibility", "Visibility\Visibility.csproj", "{0EB84016-969A-4BB5-886C-A3C935BAE8FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Visibility", "Visibility\Visibility.csproj", "{0EB84016-969A-4BB5-886C-A3C935BAE8FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpSteer", "SharpSteer\SharpSteer.csproj", "{7A685548-DFEE-4326-926A-F0FD5F22113F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpSteer", "SharpSteer\SharpSteer.csproj", "{7A685548-DFEE-4326-926A-F0FD5F22113F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Math", "Math\Math.csproj", "{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Math", "Math\Math.csproj", "{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

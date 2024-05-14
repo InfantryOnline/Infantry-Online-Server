@@ -14,6 +14,7 @@ using InfServer.Data;
 using Assets;
 using System.Threading.Tasks;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace InfServer.Game
 {
@@ -664,19 +665,22 @@ namespace InfServer.Game
                 var listenPoint = (IPEndPoint)obj;
                 EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
 
-                try
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    //Prevent useless connection reset exceptions
+                    //
+                    // Prevent WSAECONNRESET. From MSDN:
+                    //
+                    // WSAECONNRESET
+                    // The virtual circuit was reset by the remote side executing a hard or abortive close. The application should
+                    // close the socket; it is no longer usable.On a UDP-datagram socket this error indicates a previous send
+                    // operation resulted in an ICMP Port Unreachable message.
+                    //
+
                     uint IOC_IN = 0x80000000;
                     uint IOC_VENDOR = 0x18000000;
                     uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
                     _socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
                 }
-                catch (PlatformNotSupportedException e)
-                {
-                    Console.WriteLine("Warning: Socket IOControl not supported on this platform.");
-                    Console.WriteLine(e.ToString());
-                }              
 
                 _socket.Bind(listenPoint);
                 _socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEP, OnRequestReceived, null);

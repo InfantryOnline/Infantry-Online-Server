@@ -1,0 +1,285 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\zoneserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\zoneserver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5941FC3E-83DA-486B-80E2-D14BEC69EB04}|Network\\Network.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\network\\network\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5941FC3E-83DA-486B-80E2-D14BEC69EB04}|Network\\Network.csproj|solutionrelative:network\\network\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\scripts\\zonescript.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\scripts\\zonescript.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\scripts\\scripts.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\scripts\\scripts.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\objects\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\objects\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3C38B70-2906-4B48-A6DB-D8EE9A402C16}|DBComm\\DBComm.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\dbcomm\\c2sfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3C38B70-2906-4B48-A6DB-D8EE9A402C16}|DBComm\\DBComm.csproj|solutionrelative:dbcomm\\c2sfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F3C38B70-2906-4B48-A6DB-D8EE9A402C16}|DBComm\\DBComm.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\dbcomm\\packets\\stats\\cs_statsupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F3C38B70-2906-4B48-A6DB-D8EE9A402C16}|DBComm\\DBComm.csproj|solutionrelative:dbcomm\\packets\\stats\\cs_statsupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\assets\\assetmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\assets\\assetmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\objects\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\objects\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\arena\\scriptarena.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\arena\\scriptarena.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\zonearenas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\zonearenas.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\arena\\arenastate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\arena\\arenastate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\zoneplayers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\zoneplayers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\scripts\\threadedobject.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\scripts\\threadedobject.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\scripts\\scriptparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\scripts\\scriptparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|c:\\users\\jovans\\documents\\projects\\current\\infantry-online-server\\dotnetcore\\server\\game\\arena\\bot\\bot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D76AC3FF-8176-4333-ADC8-BF0D3650BAF4}|Server\\Server.csproj|solutionrelative:server\\game\\arena\\bot\\bot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Server.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Network\\Network\\Server.cs",
+              "RelativeDocumentMoniker": "Network\\Network\\Server.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Network\\Network\\Server.cs",
+              "RelativeToolTip": "Network\\Network\\Server.cs",
+              "ViewState": "AQIAAHAAAAAAAAAAAAAMwI4AAAARAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-14T03:13:44.229Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Player.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Objects\\Player.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\Objects\\Player.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Objects\\Player.cs",
+              "RelativeToolTip": "Server\\Game\\Objects\\Player.cs",
+              "ViewState": "AQIAAGwBAAAAAAAAAAAAAIABAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-14T00:13:43.121Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "C2SFactory.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\DBComm\\C2SFactory.cs",
+              "RelativeDocumentMoniker": "DBComm\\C2SFactory.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\DBComm\\C2SFactory.cs",
+              "RelativeToolTip": "DBComm\\C2SFactory.cs",
+              "ViewState": "AQIAAMUAAAAAAAAAAAAWwNcAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-14T00:13:29.371Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AssetManager.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Assets\\AssetManager.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\Assets\\AssetManager.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Assets\\AssetManager.cs",
+              "RelativeToolTip": "Server\\Game\\Assets\\AssetManager.cs",
+              "ViewState": "AQIAANoAAAAAAAAAAAD4v+MAAAAfAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T22:27:57.022Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ZoneServer.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\ZoneServer.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\ZoneServer.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\ZoneServer.cs",
+              "RelativeToolTip": "Server\\Game\\ZoneServer.cs",
+              "ViewState": "AQIAAI0CAAAAAAAAAIAwwJcCAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T22:27:41.96Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "CS_StatsUpdate.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\DBComm\\Packets\\Stats\\CS_StatsUpdate.cs",
+              "RelativeDocumentMoniker": "DBComm\\Packets\\Stats\\CS_StatsUpdate.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\DBComm\\Packets\\Stats\\CS_StatsUpdate.cs",
+              "RelativeToolTip": "DBComm\\Packets\\Stats\\CS_StatsUpdate.cs",
+              "ViewState": "AQIAABwAAAAAAAAAAAD4vyoAAAAPAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T22:16:11.287Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "PlayerStats.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Objects\\PlayerStats.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\Objects\\PlayerStats.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Objects\\PlayerStats.cs",
+              "RelativeToolTip": "Server\\Game\\Objects\\PlayerStats.cs",
+              "ViewState": "AQIAAD8DAAAAAAAAAAAiwE4DAAAiAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T22:15:12.276Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ZoneArenas.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\ZoneArenas.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\ZoneArenas.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\ZoneArenas.cs",
+              "RelativeToolTip": "Server\\Game\\ZoneArenas.cs",
+              "ViewState": "AQIAAFkAAAAAAAAAAAAMwHEAAAAmAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T03:02:33.419Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ZonePlayers.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\ZonePlayers.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\ZonePlayers.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\ZonePlayers.cs",
+              "RelativeToolTip": "Server\\Game\\ZonePlayers.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABEAAAAmAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:53:48.357Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ZoneScript.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\ZoneScript.cs",
+              "RelativeDocumentMoniker": "Server\\Scripts\\ZoneScript.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\ZoneScript.cs",
+              "RelativeToolTip": "Server\\Scripts\\ZoneScript.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:53:13.619Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ThreadedObject.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\ThreadedObject.cs",
+              "RelativeDocumentMoniker": "Server\\Scripts\\ThreadedObject.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\ThreadedObject.cs",
+              "RelativeToolTip": "Server\\Scripts\\ThreadedObject.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:28:41.492Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ArenaState.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Arena\\ArenaState.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\Arena\\ArenaState.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Arena\\ArenaState.cs",
+              "RelativeToolTip": "Server\\Game\\Arena\\ArenaState.cs",
+              "ViewState": "AQIAADkBAAAAAAAAAAAewF8BAAAUAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:22:06Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Bot.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Arena\\Bot\\Bot.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\Arena\\Bot\\Bot.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Arena\\Bot\\Bot.cs",
+              "RelativeToolTip": "Server\\Game\\Arena\\Bot\\Bot.cs",
+              "ViewState": "AQIAAD8AAAAAAAAAAAA5wE0AAAA3AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:16:48.017Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Scripts.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\Scripts.cs",
+              "RelativeDocumentMoniker": "Server\\Scripts\\Scripts.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\Scripts.cs",
+              "RelativeToolTip": "Server\\Scripts\\Scripts.cs",
+              "ViewState": "AQIAAGQBAAAAAAAAAAAmwGcBAAAiAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:12:30.201Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ScriptArena.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Arena\\ScriptArena.cs",
+              "RelativeDocumentMoniker": "Server\\Game\\Arena\\ScriptArena.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Game\\Arena\\ScriptArena.cs",
+              "RelativeToolTip": "Server\\Game\\Arena\\ScriptArena.cs",
+              "ViewState": "AQIAAB4AAAAAAAAAAAAQwDQAAAAuAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:14:09.197Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "ScriptParser.cs",
+              "DocumentMoniker": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\ScriptParser.cs",
+              "RelativeDocumentMoniker": "Server\\Scripts\\ScriptParser.cs",
+              "ToolTip": "C:\\Users\\JovanS\\Documents\\Projects\\Current\\Infantry-Online-Server\\dotnetcore\\Server\\Scripts\\ScriptParser.cs",
+              "RelativeToolTip": "Server\\Scripts\\ScriptParser.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-13T02:12:34.371Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
