@@ -110,6 +110,7 @@
     <Compile Include="Logic\Commands\Chat.cs" />
     <Compile Include="Logic\Commands\Mod.cs" />
     <Compile Include="Logic\Helpers\Admins.cs" />
+    <Compile Include="Logic\Helpers\Database.cs" />
     <Compile Include="Logic\Login.cs" />
     <Compile Include="Logic\Player.cs" />
     <Compile Include="Logic\Stats.cs" />

@@ -6,6 +6,7 @@ using System.Text;
 using InfServer.Protocol;
 using InfServer.Data;
 using InfServer;
+using InfServer.Database;
 
 namespace InfServer.Logic
 {
@@ -38,13 +39,13 @@ namespace InfServer.Logic
         /// <summary>
         /// Queries the database and finds bans associated with accounts, IPs and UIDs
         /// </summary>
-        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, InfantryDataContext db, Data.DB.account account, long zoneid)
+        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, InfantryDataContext db, InfServer.Database.account account, long zoneid)
         {
             Ban.BanType type = Ban.BanType.None;
             DateTime expires = DateTime.Now;
 
             //Find all associated bans
-            foreach (Data.DB.ban b in db.bans.Where(b =>
+            foreach (InfServer.Database.ban b in db.bans.Where(b =>
                 b.account == account.id ||
                 b.IPAddress == pkt.ipaddress ||
                 b.uid1 == pkt.UID1 && pkt.UID1 != 0 ||
@@ -59,7 +60,7 @@ namespace InfServer.Logic
                 //Find the highest level ban that hasn't expired yet
                 if (b.type > (int)type && b.expires > expires)
                 {   //Set it as our current ban type
-                    expires = b.expires;
+                    expires = b.expires.Value;
                     type = (Ban.BanType)b.type;
                 }
             }

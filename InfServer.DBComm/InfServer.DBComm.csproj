@@ -101,7 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="C2SFactory.cs" />
-    <Compile Include="Helpers\Database.cs" />
     <Compile Include="Helpers\PacketIDs.cs" />
     <Compile Include="Packets\Commands\Chat\CS_ChartQuery.cs" />
     <Compile Include="Packets\Commands\Chat\CS_ChatQuery.cs" />

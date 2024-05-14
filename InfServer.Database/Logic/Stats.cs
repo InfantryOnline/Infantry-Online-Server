@@ -6,6 +6,7 @@ using System.IO;
 
 using InfServer.Protocol;
 using InfServer.Data;
+using InfServer.Database;
 
 namespace InfServer.Logic
 {	// Logic_Stats Class
@@ -16,11 +17,11 @@ namespace InfServer.Logic
         /// <summary>
         /// Writes a scorechart element to a memory stream
         /// </summary>
-        static private bool writeElementToBuffer(Data.DB.stats stat, MemoryStream stream)
+        static private bool writeElementToBuffer(InfServer.Database.stats stat, MemoryStream stream)
         {
             try
             {
-                Data.DB.player player = stat.players.SingleOrDefault(s => s.stats1.id == stat.id);
+                InfServer.Database.player player = stat.players.SingleOrDefault(s => s.stats1.id == stat.id);
                 if (player == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "No player found for stat ID {0}.", stat.id);
@@ -32,7 +33,7 @@ namespace InfServer.Logic
                 bw.Write(player.alias1.name.ToCharArray());
                 bw.Write((byte)0);
 
-                Data.DB.squad squad = player.squad1;
+                InfServer.Database.squad squad = player.squad1;
                 string squadname = "";
                 if (squad != null)
                     squadname = squad.name;
@@ -87,7 +88,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {	//What sort of request are we dealing with?
                 switch (pkt.type)
                 {
@@ -99,7 +100,7 @@ namespace InfServer.Logic
                                          select st).Take(100);
 
                             MemoryStream stream = new MemoryStream();
-                            foreach (Data.DB.stats lifetime in stats)
+                            foreach (InfServer.Database.stats lifetime in stats)
                                 if (lifetime != null && writeElementToBuffer(lifetime, stream) == false)
                                     continue;
 
@@ -163,13 +164,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsDaily day in daily)
+                                foreach (InfServer.Database.statsDaily day in daily)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(day.players[0].alias1.name.ToCharArray());
+                                    bw.Write(day.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = day.players[0].squad1;
+                                    InfServer.Database.squad squad = day.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -188,6 +189,18 @@ namespace InfServer.Logic
                                     bw.Write(day.deaths);
                                     bw.Write((int)0);
                                     bw.Write(day.playSeconds);
+                                    bw.Write(day.zonestat1);
+                                    bw.Write(day.zonestat2);
+                                    bw.Write(day.zonestat3);
+                                    bw.Write(day.zonestat4);
+                                    bw.Write(day.zonestat5);
+                                    bw.Write(day.zonestat6);
+                                    bw.Write(day.zonestat7);
+                                    bw.Write(day.zonestat8);
+                                    bw.Write(day.zonestat9);
+                                    bw.Write(day.zonestat10);
+                                    bw.Write(day.zonestat11);
+                                    bw.Write(day.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -257,13 +270,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsWeekly week in weekly)
+                                foreach (InfServer.Database.statsWeekly week in weekly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(week.players[0].alias1.name.ToCharArray());
+                                    bw.Write(week.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = week.players[0].squad1;
+                                    InfServer.Database.squad squad = week.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -282,6 +295,18 @@ namespace InfServer.Logic
                                     bw.Write(week.deaths);
                                     bw.Write((int)0);
                                     bw.Write(week.playSeconds);
+                                    bw.Write(week.zonestat1);
+                                    bw.Write(week.zonestat2);
+                                    bw.Write(week.zonestat3);
+                                    bw.Write(week.zonestat4);
+                                    bw.Write(week.zonestat5);
+                                    bw.Write(week.zonestat6);
+                                    bw.Write(week.zonestat7);
+                                    bw.Write(week.zonestat8);
+                                    bw.Write(week.zonestat9);
+                                    bw.Write(week.zonestat10);
+                                    bw.Write(week.zonestat11);
+                                    bw.Write(week.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -353,13 +378,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsMonthly month in monthly)
+                                foreach (InfServer.Database.statsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(month.players[0].alias1.name.ToCharArray());
+                                    bw.Write(month.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = month.players[0].squad1;
+                                    InfServer.Database.squad squad = month.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -378,6 +403,18 @@ namespace InfServer.Logic
                                     bw.Write(month.deaths);
                                     bw.Write((int)0);
                                     bw.Write(month.playSeconds);
+                                    bw.Write(month.zonestat1);
+                                    bw.Write(month.zonestat2);
+                                    bw.Write(month.zonestat3);
+                                    bw.Write(month.zonestat4);
+                                    bw.Write(month.zonestat5);
+                                    bw.Write(month.zonestat6);
+                                    bw.Write(month.zonestat7);
+                                    bw.Write(month.zonestat8);
+                                    bw.Write(month.zonestat9);
+                                    bw.Write(month.zonestat10);
+                                    bw.Write(month.zonestat11);
+                                    bw.Write(month.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -445,13 +482,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsYearly year in yearly)
+                                foreach (InfServer.Database.statsYearly year in yearly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(year.players[0].alias1.name.ToCharArray());
+                                    bw.Write(year.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = year.players[0].squad1;
+                                    InfServer.Database.squad squad = year.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -470,6 +507,18 @@ namespace InfServer.Logic
                                     bw.Write(year.deaths);
                                     bw.Write((int)0);
                                     bw.Write(year.playSeconds);
+                                    bw.Write(year.zonestat1);
+                                    bw.Write(year.zonestat2);
+                                    bw.Write(year.zonestat3);
+                                    bw.Write(year.zonestat4);
+                                    bw.Write(year.zonestat5);
+                                    bw.Write(year.zonestat6);
+                                    bw.Write(year.zonestat7);
+                                    bw.Write(year.zonestat8);
+                                    bw.Write(year.zonestat9);
+                                    bw.Write(year.zonestat10);
+                                    bw.Write(year.zonestat11);
+                                    bw.Write(year.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -490,8 +539,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily:
                         {
-                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
-                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            InfServer.Database.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            InfServer.Database.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
                             if (getPlayer == null)
                                 return;
 
@@ -509,13 +558,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsDaily day in daily)
+                                foreach (InfServer.Database.statsDaily day in daily)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(day.players[0].alias1.name.ToCharArray());
+                                    bw.Write(day.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = day.players[0].squad1;
+                                    InfServer.Database.squad squad = day.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -534,6 +583,18 @@ namespace InfServer.Logic
                                     bw.Write(day.deaths);
                                     bw.Write((int)0);
                                     bw.Write(day.playSeconds);
+                                    bw.Write(day.zonestat1);
+                                    bw.Write(day.zonestat2);
+                                    bw.Write(day.zonestat3);
+                                    bw.Write(day.zonestat4);
+                                    bw.Write(day.zonestat5);
+                                    bw.Write(day.zonestat6);
+                                    bw.Write(day.zonestat7);
+                                    bw.Write(day.zonestat8);
+                                    bw.Write(day.zonestat9);
+                                    bw.Write(day.zonestat10);
+                                    bw.Write(day.zonestat11);
+                                    bw.Write(day.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -554,8 +615,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly:
                         {
-                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
-                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            InfServer.Database.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            InfServer.Database.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
                             if (getPlayer == null)
                                 return;
 
@@ -574,13 +635,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsWeekly week in weekly)
+                                foreach (InfServer.Database.statsWeekly week in weekly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(week.players[0].alias1.name.ToCharArray());
+                                    bw.Write(week.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = week.players[0].squad1;
+                                    InfServer.Database.squad squad = week.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -599,6 +660,18 @@ namespace InfServer.Logic
                                     bw.Write(week.deaths);
                                     bw.Write((int)0);
                                     bw.Write(week.playSeconds);
+                                    bw.Write(week.zonestat1);
+                                    bw.Write(week.zonestat2);
+                                    bw.Write(week.zonestat3);
+                                    bw.Write(week.zonestat4);
+                                    bw.Write(week.zonestat5);
+                                    bw.Write(week.zonestat6);
+                                    bw.Write(week.zonestat7);
+                                    bw.Write(week.zonestat8);
+                                    bw.Write(week.zonestat9);
+                                    bw.Write(week.zonestat10);
+                                    bw.Write(week.zonestat11);
+                                    bw.Write(week.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -619,8 +692,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly:
                         {
-                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
-                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            InfServer.Database.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            InfServer.Database.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
                             if (getPlayer == null)
                                 return;
 
@@ -639,13 +712,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsMonthly month in monthly)
+                                foreach (InfServer.Database.statsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(month.players[0].alias1.name.ToCharArray());
+                                    bw.Write(month.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = month.players[0].squad1;
+                                    InfServer.Database.squad squad = month.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -664,6 +737,18 @@ namespace InfServer.Logic
                                     bw.Write(month.deaths);
                                     bw.Write((int)0);
                                     bw.Write(month.playSeconds);
+                                    bw.Write(month.zonestat1);
+                                    bw.Write(month.zonestat2);
+                                    bw.Write(month.zonestat3);
+                                    bw.Write(month.zonestat4);
+                                    bw.Write(month.zonestat5);
+                                    bw.Write(month.zonestat6);
+                                    bw.Write(month.zonestat7);
+                                    bw.Write(month.zonestat8);
+                                    bw.Write(month.zonestat9);
+                                    bw.Write(month.zonestat10);
+                                    bw.Write(month.zonestat11);
+                                    bw.Write(month.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -684,8 +769,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly:
                         {
-                            Data.DB.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
-                            Data.DB.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
+                            InfServer.Database.alias getAlias = db.alias.FirstOrDefault(a => a.name.Equals(pkt.options));
+                            InfServer.Database.player getPlayer = db.players.FirstOrDefault(p => p.alias1 == getAlias && p.zone == zone._zone.id);
                             if (getPlayer == null)
                                 return;
 
@@ -704,13 +789,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (Data.DB.statsYearly year in yearly)
+                                foreach (InfServer.Database.statsYearly year in yearly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(year.players[0].alias1.name.ToCharArray());
+                                    bw.Write(year.player1.alias1.name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Data.DB.squad squad = year.players[0].squad1;
+                                    InfServer.Database.squad squad = year.player1.squad1;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.name;
@@ -729,6 +814,18 @@ namespace InfServer.Logic
                                     bw.Write(year.deaths);
                                     bw.Write((int)0);
                                     bw.Write(year.playSeconds);
+                                    bw.Write(year.zonestat1);
+                                    bw.Write(year.zonestat2);
+                                    bw.Write(year.zonestat3);
+                                    bw.Write(year.zonestat4);
+                                    bw.Write(year.zonestat5);
+                                    bw.Write(year.zonestat6);
+                                    bw.Write(year.zonestat7);
+                                    bw.Write(year.zonestat8);
+                                    bw.Write(year.zonestat9);
+                                    bw.Write(year.zonestat10);
+                                    bw.Write(year.zonestat11);
+                                    bw.Write(year.zonestat12);
                                 }
                             }
                             catch (Exception e)
@@ -755,6 +852,8 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_StatsUpdate(CS_StatsUpdate<Zone> pkt, Zone zone)
         {
+            throw new NotImplementedException("Not implemented.");
+
             //Find player
             Zone.Player player = zone.getPlayer(pkt.player.id);
             if (player == null)
@@ -763,10 +862,10 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {
                 //Get player entry
-                Data.DB.player dbplayer = db.players.SingleOrDefault(p => p.id == player.dbid);
+                InfServer.Database.player dbplayer = db.players.SingleOrDefault(p => p.id == player.dbid);
                 if (dbplayer == null)
                 {
                     Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in database.", player.alias);
@@ -779,7 +878,7 @@ namespace InfServer.Logic
                     case CS_StatsUpdate<Zone>.ScoreType.ScoreDaily:
                         {
                             //Add to the database
-                            Data.DB.statsDaily daily = new Data.DB.statsDaily();
+                            InfServer.Database.statsDaily daily = new InfServer.Database.statsDaily();
 
                             daily.experience = pkt.stats.experience;
                             daily.experienceTotal = pkt.stats.experienceTotal;
@@ -802,7 +901,7 @@ namespace InfServer.Logic
                     case CS_StatsUpdate<Zone>.ScoreType.ScoreWeekly:
                         {
                             //Add to the database
-                            Data.DB.statsWeekly weekly = new Data.DB.statsWeekly();
+                            InfServer.Database.statsWeekly weekly = new InfServer.Database.statsWeekly();
 
                             weekly.experience = pkt.stats.experience;
                             weekly.experienceTotal = pkt.stats.experienceTotal;
@@ -825,7 +924,7 @@ namespace InfServer.Logic
                     case CS_StatsUpdate<Zone>.ScoreType.ScoreMonthly:
                         {
                             //Add to the database
-                            Data.DB.statsMonthly monthly = new Data.DB.statsMonthly();
+                            InfServer.Database.statsMonthly monthly = new InfServer.Database.statsMonthly();
 
                             monthly.experience = pkt.stats.experience;
                             monthly.experienceTotal = pkt.stats.experienceTotal;
@@ -848,7 +947,7 @@ namespace InfServer.Logic
                     case CS_StatsUpdate<Zone>.ScoreType.ScoreYearly:
                         {
                             //Add to the database
-                            Data.DB.statsYearly yearly = new Data.DB.statsYearly();
+                            InfServer.Database.statsYearly yearly = new InfServer.Database.statsYearly();
 
                             yearly.experience = pkt.stats.experience;
                             yearly.experienceTotal = pkt.stats.experienceTotal;
@@ -876,17 +975,17 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_SquadMatch(CS_SquadMatch<Zone> pkt, Zone zone)
         {
-            using (InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.squad winner = db.squads.FirstOrDefault(s => s.id == pkt.winner);
-                Data.DB.squad loser = db.squads.FirstOrDefault(s => s.id == pkt.loser);
+                InfServer.Database.squad winner = db.squads.FirstOrDefault(s => s.id == pkt.winner);
+                InfServer.Database.squad loser = db.squads.FirstOrDefault(s => s.id == pkt.loser);
 
                 //Try to trick me, I dare you, do it.
                 if (winner == null || loser == null)
                     return;
 
-                Data.DB.squadstats wStats = db.squadstats.FirstOrDefault(s => s.squad == winner.id);
-                Data.DB.squadstats lStats = db.squadstats.FirstOrDefault(s => s.squad == loser.id);
+                InfServer.Database.squadstats wStats = db.squadstats.FirstOrDefault(s => s.squad == winner.id);
+                InfServer.Database.squadstats lStats = db.squadstats.FirstOrDefault(s => s.squad == loser.id);
 
                 //Again, try it!
                 if (wStats == null || lStats == null)
@@ -905,7 +1004,7 @@ namespace InfServer.Logic
                 lStats.losses++; //Sad trombone.....
 
                 //Grab our associated match.
-                Data.DB.squadmatch match = db.squadmatches.FirstOrDefault(m => m.squad1 == winner.id | m.squad2 == winner.id | m.squad1 == loser.id | m.squad2 == loser.id);
+                InfServer.Database.squadmatch match = db.squadmatches.FirstOrDefault(m => m.squad1 == winner.id | m.squad2 == winner.id | m.squad1 == loser.id | m.squad2 == loser.id);
 
                 //Update it
                 match.winner = pkt.winner;

@@ -32,5 +32,16 @@ namespace InfServer.Database.Properties {
                 return ((string)(this["DataSourceConnectionString"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=JOVAN\\SQLEXPRESS01;Initial Catalog=Data;Integrated Security=True;Trus" +
+            "tServerCertificate=True")]
+        public string DataConnectionString {
+            get {
+                return ((string)(this["DataConnectionString"]));
+            }
+        }
     }
 }

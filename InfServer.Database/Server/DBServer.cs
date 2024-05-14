@@ -9,6 +9,7 @@ using System.Threading;
 using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Data;
+using InfServer.Database;
 
 namespace InfServer
 {
@@ -192,7 +193,7 @@ namespace InfServer
             _connectionString = _config["database/connectionString"].Value;
 
             //Does the database exist?
-            using (InfantryDataContext db = getContext())
+            using (InfServer.Database.InfantryDataContext db = getContext())
             {
                 if (!db.DatabaseExists())
                 {	//Create a new one

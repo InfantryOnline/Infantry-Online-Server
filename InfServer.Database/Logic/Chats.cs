@@ -130,9 +130,9 @@ namespace InfServer.Logic
 
         static public void Handle_CS_ModCommand(CS_ModCommand<Zone> pkt, Zone zone)
         {
-            using (Data.InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.history hist = new Data.DB.history();
+                InfServer.Database.history hist = new InfServer.Database.history();
                 hist.sender = pkt.sender;
                 hist.recipient = pkt.recipient;
                 hist.zone = pkt.zone;
@@ -146,9 +146,9 @@ namespace InfServer.Logic
 
         static public void Handle_CS_ChatCommand(CS_ChatCommand<Zone> pkt, Zone zone)
         {
-            using (Data.InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.helpcall help = new Data.DB.helpcall();
+                InfServer.Database.helpcall help = new InfServer.Database.helpcall();
                 help.sender = pkt.sender;
                 help.zone = pkt.zone;
                 help.arena = pkt.arena;

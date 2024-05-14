@@ -6,7 +6,7 @@ using InfServer.Data;
 using InfServer.Network;
 using InfServer.Protocol;
 using System.Globalization;
-using InfServer.Data.DB;
+using InfServer.Database;
 using System.Text.RegularExpressions;
 
 namespace InfServer.Logic
@@ -39,9 +39,9 @@ namespace InfServer.Logic
 
             //Attempt to find the associated zone
             DBServer server = client._handler as DBServer;
-            Data.DB.zone dbZone;
+            InfServer.Database.zone dbZone;
 
-            using (InfantryDataContext db = server.getContext())
+            using (InfServer.Database.InfantryDataContext db = server.getContext())
                 dbZone = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
 
             //Does the zone exist?
@@ -85,10 +85,10 @@ namespace InfServer.Logic
 
             client.sendReliable(success);
 
-            using (InfantryDataContext db = server.getContext())
+            using (InfServer.Database.InfantryDataContext db = server.getContext())
             {
                 //Update and activate the zone for our directory server
-                Data.DB.zone zoneentry = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
+                InfServer.Database.zone zoneentry = db.zones.SingleOrDefault(z => z.id == pkt.zoneID);
 
                 zoneentry.name = pkt.zoneName;
                 zoneentry.description = pkt.zoneDescription;
@@ -141,10 +141,10 @@ namespace InfServer.Logic
             }
 
 
-            using (InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.player player = null;
-                Data.DB.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
+                InfServer.Database.player player = null;
+                InfServer.Database.account account = db.accounts.SingleOrDefault(acct => acct.ticket.Equals(pkt.ticketid));
 
                 if (account == null)
                 {	//They're trying to trick us, jim!
@@ -257,8 +257,8 @@ namespace InfServer.Logic
                 }
 
                 //Attempt to find the related alias
-                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
-                Data.DB.stats stats = null;
+                InfServer.Database.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
+                InfServer.Database.stats stats = null;
 
                 //Is there already a player online under this alias?
                 if (alias != null && zone._server._zones.Any(z => z.hasAliasPlayer(alias.id)))
@@ -292,7 +292,7 @@ namespace InfServer.Logic
                 }
                 else if (alias == null && pkt.bCreateAlias)
                 {	//We want to create a new alias!
-                    alias = new InfServer.Data.DB.alias();
+                    alias = new InfServer.Database.alias();
 
                     alias.name = pkt.alias;
                     alias.creation = DateTime.Now;
@@ -324,7 +324,7 @@ namespace InfServer.Logic
 
                 if (player == null)
                 {	//We need to create another!
-                    player = new InfServer.Data.DB.player();
+                    player = new InfServer.Database.player();
 
                     player.squad1 = null;
                     player.zone = zone._zone.id;
@@ -334,7 +334,7 @@ namespace InfServer.Logic
                     player.permission = 0;
 
                     //Create a blank stats row
-                    stats = new InfServer.Data.DB.stats();
+                    stats = new InfServer.Database.stats();
 
                     stats.zone = zone._zone.id;
                     player.stats1 = stats;
@@ -347,7 +347,11 @@ namespace InfServer.Logic
                 }
                 else
                 {	//Load the player details and stats!
-                    plog.banner = player.banner;
+                    if (player.banner != null)
+                    {
+                        plog.banner = player.banner.ToArray();
+                    }    
+
                     plog.permission = (PlayerPermission)Math.Max(player.permission, (int)plog.permission);
 
                     if (player.permission > account.permission)
@@ -355,7 +359,7 @@ namespace InfServer.Logic
                         plog.developer = true;
 
                     //Check for admin
-                    Data.DB.alias aliasMatch = null;
+                    InfServer.Database.alias aliasMatch = null;
                     foreach (string str in Logic_Admins.ServerAdmins)
                     {
                         if ((aliasMatch = db.alias.SingleOrDefault(a => string.Compare(a.name, str, true) == 0)) != null)
@@ -483,10 +487,10 @@ namespace InfServer.Logic
             Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.name);
 
             // Update their playtime
-            using (InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
-                //Data.DB.alias alias = db.alias.SingleOrDefault(a => a.id == p.aliasid);
+                InfServer.Database.alias alias = db.alias.SingleOrDefault(a => a.name.Equals(pkt.alias));
+                //InfServer.Database.alias alias = db.alias.SingleOrDefault(a => a.id == p.aliasid);
                 //If person was loaded correctly, save their info
                 if (alias != null)
                 {
@@ -504,9 +508,9 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ZoneUpdate(CS_ZoneUpdate<Zone> pkt, Zone zone)
         {
-            using (InfantryDataContext db = zone._server.getContext())
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
             {
-                Data.DB.zone zEntry = db.zones.SingleOrDefault(z => z.id == zone._zone.id);
+                InfServer.Database.zone zEntry = db.zones.SingleOrDefault(z => z.id == zone._zone.id);
                 if (zEntry != null)
                 {
                     //Update the zone for our directory server

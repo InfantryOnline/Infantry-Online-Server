@@ -15,7 +15,7 @@ namespace InfServer
         public Client _client;								//Our connection to the zone server
         public DBServer _server;							//The server we work for!
 
-        public Data.DB.zone _zone;							//Our zone database entry
+        public InfServer.Database.zone _zone;							//Our zone database entry
 
         public Dictionary<int, Player> _players;			//The players present in our zone
 
@@ -45,7 +45,7 @@ namespace InfServer
         /// <summary>
         /// Generic constructor
         /// </summary>
-        public Zone(Client client, DBServer server, Data.DB.zone zone)
+        public Zone(Client client, DBServer server, InfServer.Database.zone zone)
         {
             _client = client;
             _server = server;
@@ -137,7 +137,7 @@ namespace InfServer
         /// <summary>
         /// Indicates that a player has joined the zone server
         /// </summary>
-        public bool newPlayer(int id, string alias, Data.DB.player dbplayer)
+        public bool newPlayer(int id, string alias, InfServer.Database.player dbplayer)
         {
             if (string.IsNullOrWhiteSpace(alias))
             {
