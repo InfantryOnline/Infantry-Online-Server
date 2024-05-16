@@ -44,6 +44,7 @@ namespace InfServer.Protocol
                 ChartQuery = 24,
                 PlayerBannerAnimated = 25,
                 ZoneUpdate = 26,
+                Stealth = 27,
             }
 
             ///<summary>

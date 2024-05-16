@@ -36,9 +36,6 @@ namespace InfServer.Database
     partial void InsertstatsYearly(statsYearly instance);
     partial void UpdatestatsYearly(statsYearly instance);
     partial void DeletestatsYearly(statsYearly instance);
-    partial void Insertalias(alias instance);
-    partial void Updatealias(alias instance);
-    partial void Deletealias(alias instance);
     partial void Insertban(ban instance);
     partial void Updateban(ban instance);
     partial void Deleteban(ban instance);
@@ -81,6 +78,9 @@ namespace InfServer.Database
     partial void Insertzone(zone instance);
     partial void Updatezone(zone instance);
     partial void Deletezone(zone instance);
+    partial void Insertalias(alias instance);
+    partial void Updatealias(alias instance);
+    partial void Deletealias(alias instance);
     #endregion
 		
 		public InfantryDataContext() : 
@@ -126,14 +126,6 @@ namespace InfServer.Database
 			get
 			{
 				return this.GetTable<statsYearly>();
-			}
-		}
-		
-		public System.Data.Linq.Table<alias> alias
-		{
-			get
-			{
-				return this.GetTable<alias>();
 			}
 		}
 		
@@ -248,6 +240,14 @@ namespace InfServer.Database
 				return this.GetTable<zone>();
 			}
 		}
+		
+		public System.Data.Linq.Table<alias> alias
+		{
+			get
+			{
+				return this.GetTable<alias>();
+			}
+		}
 	}
 	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.account")]
@@ -276,9 +276,9 @@ namespace InfServer.Database
 		
 		private long _forumID;
 		
-		private EntitySet<alias> _alias;
-		
 		private EntitySet<resetToken> _resetTokens;
+		
+		private EntitySet<alias> _alias;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -308,8 +308,8 @@ namespace InfServer.Database
 		
 		public account()
 		{
-			this._alias = new EntitySet<alias>(new Action<alias>(this.attach_alias), new Action<alias>(this.detach_alias));
 			this._resetTokens = new EntitySet<resetToken>(new Action<resetToken>(this.attach_resetTokens), new Action<resetToken>(this.detach_resetTokens));
+			this._alias = new EntitySet<alias>(new Action<alias>(this.attach_alias), new Action<alias>(this.detach_alias));
 			OnCreated();
 		}
 		
@@ -513,19 +513,6 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alia", Storage="_alias", ThisKey="id", OtherKey="account")]
-		public EntitySet<alias> alias
-		{
-			get
-			{
-				return this._alias;
-			}
-			set
-			{
-				this._alias.Assign(value);
-			}
-		}
-		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_resetToken", Storage="_resetTokens", ThisKey="id", OtherKey="account")]
 		public EntitySet<resetToken> resetTokens
 		{
@@ -536,6 +523,19 @@ namespace InfServer.Database
 			set
 			{
 				this._resetTokens.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alia", Storage="_alias", ThisKey="id", OtherKey="account")]
+		public EntitySet<alias> alias
+		{
+			get
+			{
+				return this._alias;
+			}
+			set
+			{
+				this._alias.Assign(value);
 			}
 		}
 		
@@ -559,18 +559,6 @@ namespace InfServer.Database
 			}
 		}
 		
-		private void attach_alias(alias entity)
-		{
-			this.SendPropertyChanging();
-			entity.account1 = this;
-		}
-		
-		private void detach_alias(alias entity)
-		{
-			this.SendPropertyChanging();
-			entity.account1 = null;
-		}
-		
 		private void attach_resetTokens(resetToken entity)
 		{
 			this.SendPropertyChanging();
@@ -578,6 +566,18 @@ namespace InfServer.Database
 		}
 		
 		private void detach_resetTokens(resetToken entity)
+		{
+			this.SendPropertyChanging();
+			entity.account1 = null;
+		}
+		
+		private void attach_alias(alias entity)
+		{
+			this.SendPropertyChanging();
+			entity.account1 = this;
+		}
+		
+		private void detach_alias(alias entity)
 		{
 			this.SendPropertyChanging();
 			entity.account1 = null;
@@ -1349,281 +1349,6 @@ namespace InfServer.Database
 			{
 				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
-		}
-	}
-	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.alias")]
-	public partial class alias : INotifyPropertyChanging, INotifyPropertyChanged
-	{
-		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private long _id;
-		
-		private long _account;
-		
-		private string _name;
-		
-		private System.DateTime _creation;
-		
-		private string _IPAddress;
-		
-		private System.DateTime _lastAccess;
-		
-		private long _timeplayed;
-		
-		private EntitySet<player> _players;
-		
-		private EntityRef<account> _account1;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnidChanging(long value);
-    partial void OnidChanged();
-    partial void OnaccountChanging(long value);
-    partial void OnaccountChanged();
-    partial void OnnameChanging(string value);
-    partial void OnnameChanged();
-    partial void OncreationChanging(System.DateTime value);
-    partial void OncreationChanged();
-    partial void OnIPAddressChanging(string value);
-    partial void OnIPAddressChanged();
-    partial void OnlastAccessChanging(System.DateTime value);
-    partial void OnlastAccessChanged();
-    partial void OntimeplayedChanging(long value);
-    partial void OntimeplayedChanged();
-    #endregion
-		
-		public alias()
-		{
-			this._players = new EntitySet<player>(new Action<player>(this.attach_players), new Action<player>(this.detach_players));
-			this._account1 = default(EntityRef<account>);
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public long id
-		{
-			get
-			{
-				return this._id;
-			}
-			set
-			{
-				if ((this._id != value))
-				{
-					this.OnidChanging(value);
-					this.SendPropertyChanging();
-					this._id = value;
-					this.SendPropertyChanged("id");
-					this.OnidChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_account", DbType="BigInt NOT NULL")]
-		public long account
-		{
-			get
-			{
-				return this._account;
-			}
-			set
-			{
-				if ((this._account != value))
-				{
-					if (this._account1.HasLoadedOrAssignedValue)
-					{
-						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
-					}
-					this.OnaccountChanging(value);
-					this.SendPropertyChanging();
-					this._account = value;
-					this.SendPropertyChanged("account");
-					this.OnaccountChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_name", DbType="VarChar(64) NOT NULL", CanBeNull=false)]
-		public string name
-		{
-			get
-			{
-				return this._name;
-			}
-			set
-			{
-				if ((this._name != value))
-				{
-					this.OnnameChanging(value);
-					this.SendPropertyChanging();
-					this._name = value;
-					this.SendPropertyChanged("name");
-					this.OnnameChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_creation", DbType="DateTime NOT NULL")]
-		public System.DateTime creation
-		{
-			get
-			{
-				return this._creation;
-			}
-			set
-			{
-				if ((this._creation != value))
-				{
-					this.OncreationChanging(value);
-					this.SendPropertyChanging();
-					this._creation = value;
-					this.SendPropertyChanged("creation");
-					this.OncreationChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IPAddress", DbType="VarChar(20) NOT NULL", CanBeNull=false)]
-		public string IPAddress
-		{
-			get
-			{
-				return this._IPAddress;
-			}
-			set
-			{
-				if ((this._IPAddress != value))
-				{
-					this.OnIPAddressChanging(value);
-					this.SendPropertyChanging();
-					this._IPAddress = value;
-					this.SendPropertyChanged("IPAddress");
-					this.OnIPAddressChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_lastAccess", DbType="DateTime NOT NULL")]
-		public System.DateTime lastAccess
-		{
-			get
-			{
-				return this._lastAccess;
-			}
-			set
-			{
-				if ((this._lastAccess != value))
-				{
-					this.OnlastAccessChanging(value);
-					this.SendPropertyChanging();
-					this._lastAccess = value;
-					this.SendPropertyChanged("lastAccess");
-					this.OnlastAccessChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_timeplayed", DbType="BigInt NOT NULL")]
-		public long timeplayed
-		{
-			get
-			{
-				return this._timeplayed;
-			}
-			set
-			{
-				if ((this._timeplayed != value))
-				{
-					this.OntimeplayedChanging(value);
-					this.SendPropertyChanging();
-					this._timeplayed = value;
-					this.SendPropertyChanged("timeplayed");
-					this.OntimeplayedChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alia_player", Storage="_players", ThisKey="id", OtherKey="alias")]
-		public EntitySet<player> players
-		{
-			get
-			{
-				return this._players;
-			}
-			set
-			{
-				this._players.Assign(value);
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alia", Storage="_account1", ThisKey="account", OtherKey="id", IsForeignKey=true)]
-		public account account1
-		{
-			get
-			{
-				return this._account1.Entity;
-			}
-			set
-			{
-				account previousValue = this._account1.Entity;
-				if (((previousValue != value) 
-							|| (this._account1.HasLoadedOrAssignedValue == false)))
-				{
-					this.SendPropertyChanging();
-					if ((previousValue != null))
-					{
-						this._account1.Entity = null;
-						previousValue.alias.Remove(this);
-					}
-					this._account1.Entity = value;
-					if ((value != null))
-					{
-						value.alias.Add(this);
-						this._account = value.id;
-					}
-					else
-					{
-						this._account = default(long);
-					}
-					this.SendPropertyChanged("account1");
-				}
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-		
-		private void attach_players(player entity)
-		{
-			this.SendPropertyChanging();
-			entity.alias1 = this;
-		}
-		
-		private void detach_players(player entity)
-		{
-			this.SendPropertyChanging();
-			entity.alias1 = null;
 		}
 	}
 	
@@ -2677,13 +2402,13 @@ namespace InfServer.Database
 		
 		private EntitySet<statsWeekly> _statsWeeklies;
 		
-		private EntityRef<alias> _alias1;
-		
 		private EntityRef<squad> _squad1;
 		
 		private EntityRef<stats> _stats1;
 		
 		private EntityRef<zone> _zone1;
+		
+		private EntityRef<alias> _alias1;
 		
     #region Extensibility Method Definitions
     partial void OnLoaded();
@@ -2717,10 +2442,10 @@ namespace InfServer.Database
 			this._statsDailies = new EntitySet<statsDaily>(new Action<statsDaily>(this.attach_statsDailies), new Action<statsDaily>(this.detach_statsDailies));
 			this._statsMonthlies = new EntitySet<statsMonthly>(new Action<statsMonthly>(this.attach_statsMonthlies), new Action<statsMonthly>(this.detach_statsMonthlies));
 			this._statsWeeklies = new EntitySet<statsWeekly>(new Action<statsWeekly>(this.attach_statsWeeklies), new Action<statsWeekly>(this.detach_statsWeeklies));
-			this._alias1 = default(EntityRef<alias>);
 			this._squad1 = default(EntityRef<squad>);
 			this._stats1 = default(EntityRef<stats>);
 			this._zone1 = default(EntityRef<zone>);
+			this._alias1 = default(EntityRef<alias>);
 			OnCreated();
 		}
 		
@@ -2992,40 +2717,6 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alia_player", Storage="_alias1", ThisKey="alias", OtherKey="id", IsForeignKey=true, DeleteOnNull=true, DeleteRule="CASCADE")]
-		public alias alias1
-		{
-			get
-			{
-				return this._alias1.Entity;
-			}
-			set
-			{
-				alias previousValue = this._alias1.Entity;
-				if (((previousValue != value) 
-							|| (this._alias1.HasLoadedOrAssignedValue == false)))
-				{
-					this.SendPropertyChanging();
-					if ((previousValue != null))
-					{
-						this._alias1.Entity = null;
-						previousValue.players.Remove(this);
-					}
-					this._alias1.Entity = value;
-					if ((value != null))
-					{
-						value.players.Add(this);
-						this._alias = value.id;
-					}
-					else
-					{
-						this._alias = default(long);
-					}
-					this.SendPropertyChanged("alias1");
-				}
-			}
-		}
-		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="squad_player", Storage="_squad1", ThisKey="squad", OtherKey="id", IsForeignKey=true)]
 		public squad squad1
 		{
@@ -3060,7 +2751,7 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="stat_player", Storage="_stats1", ThisKey="stats", OtherKey="id", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="stats_player", Storage="_stats1", ThisKey="stats", OtherKey="id", IsForeignKey=true)]
 		public stats stats1
 		{
 			get
@@ -3124,6 +2815,40 @@ namespace InfServer.Database
 						this._zone = default(long);
 					}
 					this.SendPropertyChanged("zone1");
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alia_player", Storage="_alias1", ThisKey="alias", OtherKey="id", IsForeignKey=true, DeleteOnNull=true, DeleteRule="CASCADE")]
+		public alias alias1
+		{
+			get
+			{
+				return this._alias1.Entity;
+			}
+			set
+			{
+				alias previousValue = this._alias1.Entity;
+				if (((previousValue != value) 
+							|| (this._alias1.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._alias1.Entity = null;
+						previousValue.players.Remove(this);
+					}
+					this._alias1.Entity = value;
+					if ((value != null))
+					{
+						value.players.Add(this);
+						this._alias = value.id;
+					}
+					else
+					{
+						this._alias = default(long);
+					}
+					this.SendPropertyChanged("alias1");
 				}
 			}
 		}
@@ -4813,7 +4538,7 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="stat_player", Storage="_players", ThisKey="id", OtherKey="stats")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="stats_player", Storage="_players", ThisKey="id", OtherKey="stats")]
 		public EntitySet<player> players
 		{
 			get
@@ -4826,7 +4551,7 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_stat", Storage="_zone1", ThisKey="zone", OtherKey="id", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_stats", Storage="_zone1", ThisKey="zone", OtherKey="id", IsForeignKey=true)]
 		public zone zone1
 		{
 			get
@@ -7474,7 +7199,7 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_stat", Storage="_stats", ThisKey="id", OtherKey="zone")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="zone_stats", Storage="_stats", ThisKey="id", OtherKey="zone")]
 		public EntitySet<stats> stats
 		{
 			get
@@ -7616,6 +7341,305 @@ namespace InfServer.Database
 		{
 			this.SendPropertyChanging();
 			entity.zone1 = null;
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.alias")]
+	public partial class alias : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private long _account;
+		
+		private string _name;
+		
+		private System.DateTime _creation;
+		
+		private string _IPAddress;
+		
+		private System.DateTime _lastAccess;
+		
+		private long _timeplayed;
+		
+		private int _stealth;
+		
+		private EntitySet<player> _players;
+		
+		private EntityRef<account> _account1;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnaccountChanging(long value);
+    partial void OnaccountChanged();
+    partial void OnnameChanging(string value);
+    partial void OnnameChanged();
+    partial void OncreationChanging(System.DateTime value);
+    partial void OncreationChanged();
+    partial void OnIPAddressChanging(string value);
+    partial void OnIPAddressChanged();
+    partial void OnlastAccessChanging(System.DateTime value);
+    partial void OnlastAccessChanged();
+    partial void OntimeplayedChanging(long value);
+    partial void OntimeplayedChanged();
+    partial void OnstealthChanging(int value);
+    partial void OnstealthChanged();
+    #endregion
+		
+		public alias()
+		{
+			this._players = new EntitySet<player>(new Action<player>(this.attach_players), new Action<player>(this.detach_players));
+			this._account1 = default(EntityRef<account>);
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_account", DbType="BigInt NOT NULL")]
+		public long account
+		{
+			get
+			{
+				return this._account;
+			}
+			set
+			{
+				if ((this._account != value))
+				{
+					if (this._account1.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.OnaccountChanging(value);
+					this.SendPropertyChanging();
+					this._account = value;
+					this.SendPropertyChanged("account");
+					this.OnaccountChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_name", DbType="VarChar(64) NOT NULL", CanBeNull=false)]
+		public string name
+		{
+			get
+			{
+				return this._name;
+			}
+			set
+			{
+				if ((this._name != value))
+				{
+					this.OnnameChanging(value);
+					this.SendPropertyChanging();
+					this._name = value;
+					this.SendPropertyChanged("name");
+					this.OnnameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_creation", DbType="DateTime NOT NULL")]
+		public System.DateTime creation
+		{
+			get
+			{
+				return this._creation;
+			}
+			set
+			{
+				if ((this._creation != value))
+				{
+					this.OncreationChanging(value);
+					this.SendPropertyChanging();
+					this._creation = value;
+					this.SendPropertyChanged("creation");
+					this.OncreationChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IPAddress", DbType="VarChar(20) NOT NULL", CanBeNull=false)]
+		public string IPAddress
+		{
+			get
+			{
+				return this._IPAddress;
+			}
+			set
+			{
+				if ((this._IPAddress != value))
+				{
+					this.OnIPAddressChanging(value);
+					this.SendPropertyChanging();
+					this._IPAddress = value;
+					this.SendPropertyChanged("IPAddress");
+					this.OnIPAddressChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_lastAccess", DbType="DateTime NOT NULL")]
+		public System.DateTime lastAccess
+		{
+			get
+			{
+				return this._lastAccess;
+			}
+			set
+			{
+				if ((this._lastAccess != value))
+				{
+					this.OnlastAccessChanging(value);
+					this.SendPropertyChanging();
+					this._lastAccess = value;
+					this.SendPropertyChanged("lastAccess");
+					this.OnlastAccessChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_timeplayed", DbType="BigInt NOT NULL")]
+		public long timeplayed
+		{
+			get
+			{
+				return this._timeplayed;
+			}
+			set
+			{
+				if ((this._timeplayed != value))
+				{
+					this.OntimeplayedChanging(value);
+					this.SendPropertyChanging();
+					this._timeplayed = value;
+					this.SendPropertyChanged("timeplayed");
+					this.OntimeplayedChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_stealth", DbType="Int NOT NULL")]
+		public int stealth
+		{
+			get
+			{
+				return this._stealth;
+			}
+			set
+			{
+				if ((this._stealth != value))
+				{
+					this.OnstealthChanging(value);
+					this.SendPropertyChanging();
+					this._stealth = value;
+					this.SendPropertyChanged("stealth");
+					this.OnstealthChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alia_player", Storage="_players", ThisKey="id", OtherKey="alias")]
+		public EntitySet<player> players
+		{
+			get
+			{
+				return this._players;
+			}
+			set
+			{
+				this._players.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alia", Storage="_account1", ThisKey="account", OtherKey="id", IsForeignKey=true)]
+		public account account1
+		{
+			get
+			{
+				return this._account1.Entity;
+			}
+			set
+			{
+				account previousValue = this._account1.Entity;
+				if (((previousValue != value) 
+							|| (this._account1.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._account1.Entity = null;
+						previousValue.alias.Remove(this);
+					}
+					this._account1.Entity = value;
+					if ((value != null))
+					{
+						value.alias.Add(this);
+						this._account = value.id;
+					}
+					else
+					{
+						this._account = default(long);
+					}
+					this.SendPropertyChanged("account1");
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+		
+		private void attach_players(player entity)
+		{
+			this.SendPropertyChanging();
+			entity.alias1 = this;
+		}
+		
+		private void detach_players(player entity)
+		{
+			this.SendPropertyChanging();
+			entity.alias1 = null;
 		}
 	}
 }

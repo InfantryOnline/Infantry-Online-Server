@@ -212,16 +212,19 @@ namespace InfServer.Logic
 
                 //We have the account associated!
                 plog.permission = (PlayerPermission)account.permission;
-                if (account.permission > (int)PlayerPermission.Sysop)
-                    plog.permission = PlayerPermission.Sysop;
 
-                // Jovan - Allow symbols as login names for admins.
+                if (account.permission > (int)PlayerPermission.HeadModAdmin)
+                {
+                    plog.permission = PlayerPermission.HeadModAdmin;
+                }
+                   
+                //
+                // Allow symbols as login names for admins.
+                //
                 var pktAlias = pkt.alias;
 
-                if (plog.permission != PlayerPermission.Sysop)
+                if (plog.permission != PlayerPermission.HeadModAdmin)
                 {
-                    
-
                     try
                     {
                         if (!char.IsLetterOrDigit(pktAlias, 0) ||
@@ -409,6 +412,7 @@ namespace InfServer.Logic
                     plog.stats.experience = stats.experience;
                     plog.stats.experienceTotal = stats.experienceTotal;
                     plog.stats.skills = new List<PlayerStats.SkillStat>();
+                    plog.stealth = alias.stealth == 1;
 
                     //Convert the binary inventory/skill data
                     if (player.inventory != null)

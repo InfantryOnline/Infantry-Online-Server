@@ -576,6 +576,29 @@ namespace InfServer.Logic
             }
         }
 
+        static public void Handle_CS_Stealth(CS_Stealth<Zone> pkt, Zone zone)
+        {
+            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
+            {
+                var dbalias = db.alias.First(p => string.Compare(p.name, pkt.sender, true) == 0);
+                var zonePlayer = zone.getPlayer(pkt.sender);
+
+                if (dbalias == null || zonePlayer == null)
+                {
+                    Console.WriteLine("Alias not found:" + pkt.sender);
+                    return;
+                }
+
+                zonePlayer.stealth = pkt.stealth;
+
+                dbalias.stealth = pkt.stealth ? 1 : 0;
+                db.SubmitChanges();
+
+                var status = pkt.stealth ? "ON" : "OFF";
+
+                zone._server.sendMessage(zone, pkt.sender, $"Stealth is now {status}");
+            }
+        }
 
         /// <summary>
         /// Registers all handlers
@@ -585,6 +608,7 @@ namespace InfServer.Logic
         {
             CS_Ban<Zone>.Handlers += Handle_CS_Ban;
             CS_ModQuery<Zone>.Handlers += Handle_CS_ModQuery;
+            CS_Stealth<Zone>.Handlers += Handle_CS_Stealth;
         }
     }
 }

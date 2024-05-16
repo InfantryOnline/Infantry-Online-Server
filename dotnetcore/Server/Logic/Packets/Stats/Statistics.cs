@@ -29,7 +29,7 @@ namespace InfServer.Logic
 			{
 				case Helpers.ChartType.ScoreOnlinePlayers:
 					{
-						List<Player> players = player._arena.Players.OrderByDescending(p => p.Points).ToList();
+						List<Player> players = player._arena.Players.Where(p => !p.IsStealth).OrderByDescending(p => p.Points).ToList();
 
 						chart.type = Helpers.ChartType.ScoreOnlinePlayers;
 						chart.columns = "Online Player Scores,Name,Squad";
@@ -52,7 +52,7 @@ namespace InfServer.Logic
 
 				case Helpers.ChartType.ScoreCurrentGame:
 					{
-						List<Player> players = player._arena.Players.OrderByDescending(p => p.Points).ToList();
+						List<Player> players = player._arena.Players.Where(p => !p.IsStealth).OrderByDescending(p => p.Points).ToList();
 
 						chart.type = Helpers.ChartType.ScoreCurrentGame;
 						chart.columns = "Current Game Scores,Name,Squad";
@@ -75,7 +75,7 @@ namespace InfServer.Logic
 
 				case Helpers.ChartType.ScorePreviousGame:
 					{
-						List<Player> players = player._arena.Players.OrderByDescending(p => p.Points).ToList();
+						List<Player> players = player._arena.Players.Where(p => !p.IsStealth).OrderByDescending(p => p.Points).ToList();
 
 						chart.type = Helpers.ChartType.ScorePreviousGame;
 						chart.columns = "Current Session Scores,Name,Squad";
@@ -98,7 +98,7 @@ namespace InfServer.Logic
 
 				case Helpers.ChartType.ScoreCurrentSession:
 					{
-						List<Player> players = player._arena.Players.OrderByDescending(p => p.Points).ToList();
+						List<Player> players = player._arena.Players.Where(p => !p.IsStealth).OrderByDescending(p => p.Points).ToList();
 
 						chart.type = Helpers.ChartType.ScoreCurrentSession;
 						chart.columns = "Current Session Scores,Name,Squad";

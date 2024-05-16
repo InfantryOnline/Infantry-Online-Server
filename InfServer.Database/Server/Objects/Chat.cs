@@ -116,7 +116,7 @@ namespace InfServer
             List<string> members = new List<string>();
             foreach (var player in _players)
             {
-                if (player == null)
+                if (player == null || player.stealth)
                     continue;
 
                 members.Add(player.alias);

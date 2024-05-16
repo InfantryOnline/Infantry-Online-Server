@@ -108,6 +108,7 @@
     <Compile Include="Packets\Commands\Chat\SC_ChatQuery.cs" />
     <Compile Include="Packets\Commands\Mod\CS_ModQuery.cs" />
     <Compile Include="Packets\Commands\Mod\CS_Ban.cs" />
+    <Compile Include="Packets\Commands\Mod\CS_Stealth.cs" />
     <Compile Include="Packets\Login\CS_ArenaUpdate.cs" />
     <Compile Include="Packets\Login\CS_Auth.cs" />
     <Compile Include="Packets\Login\CS_PlayerLogin.cs" />

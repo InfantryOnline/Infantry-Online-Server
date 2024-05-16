@@ -31,6 +31,7 @@ namespace InfServer
             public long acctid;			        //The player's account id
             public long aliasid;		        //The player's alias id
             public string IPAddress;            //The player's ip address
+            public bool stealth;
             public long dbid;			        //The player's id in the database
             public string alias;		        //The player's alias
             public Zone zone;                   //The zone he's in.
@@ -161,6 +162,7 @@ namespace InfServer
             player.IPAddress = dbplayer.alias1.IPAddress;
             player.dbid = dbplayer.id;
             player.alias = alias;
+            player.stealth = dbplayer.alias1.stealth == 1;
             player.permission = dbplayer.permission;
             player.zone = this;
             player.arena = "";

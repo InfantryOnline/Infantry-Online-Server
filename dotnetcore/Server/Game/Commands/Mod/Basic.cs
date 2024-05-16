@@ -1675,22 +1675,25 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void stealth(Player player, Player recipient, string payload, int bong)
         {
-            if (player._developer || player._permissionTemp >= Data.PlayerPermission.ArenaMod)
+            if (player._developer || player._permissionTemp >= Data.PlayerPermission.GrantedPlayer)
             {
                 player.sendMessage(-1, "You are not authorized to use this command.");
                 return;
             }
 
             List<Player> audience = player._arena.Players.ToList();
+
             if (!player.IsStealth)
             {
-                player.sendMessage(0, "Stealth mode is now 'ON'. You will no longer be seen in arena lists.");
                 player._bIsStealth = true;
 
                 foreach (Player person in audience)
                 {
                     if (person == player)
+                    {
                         continue;
+                    }
+
                     //Their level is greater, allow them to see him/her
                     if (player.PermissionLevel > person.PermissionLevel)
                     {
@@ -1698,14 +1701,25 @@ namespace InfServer.Game.Commands.Mod
                         //Add here to spoof leave chat
                     }
                 }
-                return;
+            }
+            else
+            {
+                player._bIsStealth = false;
+
+                foreach (Player person in audience)
+                {
+                    if (person != player && person.PermissionLevel < player.PermissionLevel)
+                    {
+                        Helpers.Object_Players(person, player);
+                    }
+                }
             }
 
-            player.sendMessage(0, "Stealth mode is now 'OFF'.");
-            player._bIsStealth = false;
-            foreach (Player person in audience)
-                if (person != player && person.PermissionLevel < player.PermissionLevel)
-                    Helpers.Object_Players(person, player);
+            CS_Stealth<Data.Database> stealthReq = new CS_Stealth<Data.Database>();
+            stealthReq.sender = player._alias;
+            stealthReq.stealth = player.IsStealth;
+
+            player._server._db.send(stealthReq);
         }
 
         /// <summary>

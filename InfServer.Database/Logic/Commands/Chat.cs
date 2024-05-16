@@ -444,9 +444,9 @@ namespace InfServer.Logic
                             {
                                 if (z._players.Count() < 1)
                                     continue;
-                                server.sendMessage(zone, pkt.sender, string.Format("~Server={0} Players={1}", z._zone.name, z._players.Count()));
+                                server.sendMessage(zone, pkt.sender, string.Format("~Server={0} Players={1}", z._zone.name, z._players.Where(p => !p.Value.stealth).Count()));
                             }
-                            zone._server.sendMessage(zone, pkt.sender, string.Format("Infantry (Total={0}) (Peak={1})", server._players.Count(), server.playerPeak));
+                            zone._server.sendMessage(zone, pkt.sender, string.Format("Infantry (Total={0}) (Peak={1})", server._players.Where(p => !p.Value.stealth).Count(), server.playerPeak));
                         }
                         break;
 

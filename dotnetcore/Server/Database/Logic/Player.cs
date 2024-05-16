@@ -17,8 +17,10 @@ namespace InfServer.Logic
 		/// Handles the servers's player login reply
 		/// </summary>
 		static public void Handle_SC_PlayerLogin(SC_PlayerLogin<Database> pkt, Database db)
-		{	//Attempt to find the player in question
+		{
+            //Attempt to find the player in question
 			Player player = db._server.getPlayer(pkt.player);
+
 			if (player == null)
 			{
 				Log.write(TLog.Warning, "Received login reply for unknown player instance.");
@@ -53,6 +55,7 @@ namespace InfServer.Logic
             player._permissionStatic = pkt.permission;
             player._developer = pkt.developer;
             player._admin = pkt.admin;
+            player._bIsStealth = pkt.stealth;
             player._alias = pkt.alias;
             player._squad = pkt.squad;
             player._squadID = pkt.squadID;

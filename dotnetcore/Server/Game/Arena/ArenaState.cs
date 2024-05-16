@@ -329,9 +329,13 @@ namespace InfServer.Game
                     else
                     { //Check their level vs people in the room
                         foreach (Player person in audience)
+                        {
                             //Their level is the same or greater, allow them to see him/her
                             if (person != player && person.PermissionLevel >= player.PermissionLevel)
+                            {
                                 Helpers.Object_Players(person, player);
+                            }
+                        }
                     }
 
                     //Consider him loaded!
@@ -356,11 +360,20 @@ namespace InfServer.Game
 
                     //Mod notice
                     if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+                    {
                         player.sendMessage(-3, "$[Mod Notice] To see a list of commands, type *help. To specifically get info on a command type *help <command name>");
+                    }
 
                     //Any pending squad invites?
                     if (_bIsPublic)
+                    {
                         player.getSquadInvites();
+                    }
+
+                    if (player.IsStealth)
+                    {
+                        player.sendMessage(-1, "Stealth is ON");
+                    }
                 }
             );
         }

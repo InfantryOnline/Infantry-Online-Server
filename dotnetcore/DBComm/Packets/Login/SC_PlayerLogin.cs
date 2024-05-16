@@ -28,6 +28,7 @@ namespace InfServer.Protocol
 		public Data.PlayerPermission permission;	//The player's permission in this zone
         public bool developer;                      //Are we just a dev?
         public bool admin;                          //Are we an admin?
+		public bool stealth;
 
 		public bool bFirstTimeSetup;				//Is it the first time the player is setting up inventory?
 		public Data.PlayerStats stats;				//The player's statistics
@@ -102,6 +103,7 @@ namespace InfServer.Protocol
 			Write((byte)permission);
             Write(developer);
             Write(admin);
+			Write(stealth);
 
 			Write(bFirstTimeSetup);
 			
@@ -142,8 +144,9 @@ namespace InfServer.Protocol
 			permission = (InfServer.Data.PlayerPermission)_contentReader.ReadByte();
             developer = _contentReader.ReadBoolean();
             admin = _contentReader.ReadBoolean();
+            stealth = _contentReader.ReadBoolean();
 
-			bFirstTimeSetup = _contentReader.ReadBoolean();
+            bFirstTimeSetup = _contentReader.ReadBoolean();
 
 			//If it's a first time, then no need to init rest of the stats
 			if (bFirstTimeSetup)

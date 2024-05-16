@@ -30,6 +30,11 @@ namespace InfServer.Game.Commands.Chat
 			{	//Append his stats
 				Client.ConnectionStats stats = p._client._stats;
 
+                if (p.IsStealth)
+                {
+                    continue;
+                }
+
 				string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",{3},{4},{5},{6},{7},{8}%,{9}%",
 							p._alias, p._squad, (p._team == null ? "" : p._team._name),
 							stats.clientCurrentUpdate, stats.clientAverageUpdate, stats.clientShortestUpdate, stats.clientLongestUpdate, stats.clientLastUpdate,
@@ -51,7 +56,14 @@ namespace InfServer.Game.Commands.Chat
 			chart.columns = "-Name:14,-Squad:14,-Team:14,-Main Vehicle:14,-Driving Vehicle:14,Experience:10,Lifetime Experience:10,Cash:10,-Ranking:14";
 
 			foreach (Player p in player._arena.Players)
-			{	//Append his stats
+			{	
+                
+                if (p.IsStealth)
+                {
+                    continue;
+                }
+
+                //Append his stats
 				string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"{3}\",\"{4}\",{5},{6},{7},\"{8}\"",
 							p._alias, (p._squad == null ? "" : p._squad), (p._team == null ? "" : p._team._name),
 							p._baseVehicle._type.Name, (p._occupiedVehicle == null ? "" : p._occupiedVehicle._type.Name),
@@ -78,6 +90,11 @@ namespace InfServer.Game.Commands.Chat
 
                 foreach (Player p in player._arena.Players)
                 {
+                    if (p.IsStealth)
+                    {
+                        continue;
+                    }
+
                     //Append his stats
                     string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"\"{3}\"\"",
                         p._alias, p._server.Name, p._arena._name, "");
@@ -115,6 +132,11 @@ namespace InfServer.Game.Commands.Chat
             {
                 foreach (Player p in arena.Players)
                 {
+                    if (p.IsStealth)
+                    {
+                        continue;
+                    }
+
                     //Append his stats
                     if (String.IsNullOrWhiteSpace(p._squad))
                         continue;

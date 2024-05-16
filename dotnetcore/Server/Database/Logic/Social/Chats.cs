@@ -25,6 +25,13 @@ namespace InfServer.Logic
             notify.message = pkt.chat + ":<< Entering Chat >>";
             notify.from = pkt.from;
 
+            var joiningPlayer = _db._server.getPlayer(pkt.from);
+
+            if (joiningPlayer != null && joiningPlayer.IsStealth)
+            {
+                return;
+            }
+
             foreach (string user in users)
             {
                 Player p = _db._server.getPlayer(user);
@@ -48,6 +55,13 @@ namespace InfServer.Logic
             notify.chatType = Helpers.Chat_Type.PrivateChat;
             notify.message = pkt.chat + ":<< Leaving Chat >>";
             notify.from = pkt.from;
+
+            var leavingPlayer = _db._server.getPlayer(pkt.from);
+
+            if (leavingPlayer != null && leavingPlayer.IsStealth)
+            {
+                return;
+            }
 
             foreach (string user in users)
             {
