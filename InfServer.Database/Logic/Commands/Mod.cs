@@ -5,6 +5,8 @@ using System.Data.SqlClient;
 
 using InfServer.Protocol;
 using InfServer.Data;
+using InfServer.Network;
+using System.Xml.Linq;
 
 namespace InfServer.Logic
 {
@@ -597,6 +599,48 @@ namespace InfServer.Logic
                 var status = pkt.stealth ? "ON" : "OFF";
 
                 zone._server.sendMessage(zone, pkt.sender, $"Stealth is now {status}");
+
+                foreach (var chatName in zonePlayer.chats)
+                {
+                    var chat = zone._server._chats.FirstOrDefault(c => c.Key == chatName).Value;
+
+                    if (chat == null || !chat.hasPlayer(zonePlayer))
+                    {
+                        // Log error?
+                        continue;
+                    }
+
+                    if (pkt.stealth)
+                    {
+                        SC_LeaveChat<Zone> leave = new SC_LeaveChat<Zone>();
+                        leave.from = zonePlayer.alias;
+                        leave.chat = chat._name;
+                        leave.users = chat.List();
+
+                        foreach (Zone z in zone._server._zones)
+                        {
+                            if (z == null)
+                                continue;
+
+                            z._client.send(leave);
+                        }
+                    }
+                    else
+                    {
+                        SC_JoinChat<Zone> join = new SC_JoinChat<Zone>();
+                        join.from = zonePlayer.alias;
+                        join.chat = chat._name;
+                        join.users = chat.List();
+
+                        foreach (Zone z in zone._server._zones)
+                        {
+                            if (z == null)
+                                continue;
+
+                            z._client.send(join);
+                        }
+                    }
+                }
             }
         }
 
