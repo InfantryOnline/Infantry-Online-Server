@@ -40,8 +40,9 @@ namespace Infantry_Launcher.Helpers
         /// </summary>
         public string Add(string line)
         {
-            if (string.IsNullOrEmpty(line))
-                throw new Exception("Ini file must start with a section.");
+            // Okay to have comments at the beginning of an .ini file.
+            //if (string.IsNullOrEmpty(line))
+            //    throw new Exception("Ini file must start with a section.");
             if (line.StartsWith("["))
                 line = line.TrimStart('[');
             if (line.EndsWith("]"))
@@ -59,6 +60,7 @@ namespace Infantry_Launcher.Helpers
             {
                 StreamReader streamReader = new StreamReader(FileName);
                 string index = "";
+                bool createdBlankIndex = false;
                 while (streamReader.Peek() != -1)
                 {
                     string line = streamReader.ReadLine();
@@ -66,10 +68,18 @@ namespace Infantry_Launcher.Helpers
                     {
                         index = Add(line);
                     }
+                    else if (string.IsNullOrEmpty(line))
+                    {
+                        // Skip an empty line...
+                    }
                     else
                     {
-                        if (index.Length == 0)
-                            throw new Exception("Ini file must start with a section.");
+                        if ((index.Length == 0) && (!createdBlankIndex))
+                        {
+                            // throw new Exception("Ini file must start with a section.");
+                            index = Add(""); // BLANK is okay, top of file does not need a section...
+                            createdBlankIndex = true;
+                        }
                         this[index].Add(line);
                     }
                 }
@@ -94,9 +104,19 @@ namespace Infantry_Launcher.Helpers
                 StreamWriter streamWriter = new StreamWriter(FileName);
                 foreach (string index1 in Keys)
                 {
-                    streamWriter.WriteLine("[" + index1 + "]");
+                    if (index1 != "")
+                    {
+                        streamWriter.WriteLine("[" + index1 + "]");
+                    }
                     foreach (string index2 in this[index1].Keys)
-                        streamWriter.WriteLine(index2 + "=" + this[index1][index2]);
+                    {
+                        if (index2.StartsWith(";")) // THIS IS A COMMENT LINE
+                        {
+                            streamWriter.WriteLine(index2);
+                        } else {
+                            streamWriter.WriteLine(index2 + "=" + this[index1][index2]);
+                        }
+                    }
                     streamWriter.WriteLine();
                     streamWriter.Flush();
                 }

@@ -42,6 +42,7 @@
             this.DiscordLink = new System.Windows.Forms.LinkLabel();
             this.DonateLink = new System.Windows.Forms.LinkLabel();
             this.PswdHint = new System.Windows.Forms.LinkLabel();
+            this.GearButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // WebsiteLink
@@ -53,10 +54,9 @@
             this.WebsiteLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.WebsiteLink.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
             this.WebsiteLink.LinkColor = System.Drawing.Color.Silver;
-            this.WebsiteLink.Location = new System.Drawing.Point(18, 17);
-            this.WebsiteLink.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.WebsiteLink.Location = new System.Drawing.Point(9, 9);
             this.WebsiteLink.Name = "WebsiteLink";
-            this.WebsiteLink.Size = new System.Drawing.Size(113, 30);
+            this.WebsiteLink.Size = new System.Drawing.Size(65, 16);
             this.WebsiteLink.TabIndex = 1;
             this.WebsiteLink.TabStop = true;
             this.WebsiteLink.Text = "Website";
@@ -68,10 +68,9 @@
             // 
             this.UsernameBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.UsernameBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.UsernameBox.Location = new System.Drawing.Point(230, 283);
-            this.UsernameBox.Margin = new System.Windows.Forms.Padding(6);
+            this.UsernameBox.Location = new System.Drawing.Point(115, 147);
             this.UsernameBox.Name = "UsernameBox";
-            this.UsernameBox.Size = new System.Drawing.Size(314, 37);
+            this.UsernameBox.Size = new System.Drawing.Size(159, 22);
             this.UsernameBox.TabIndex = 4;
             // 
             // PasswordBox
@@ -79,11 +78,10 @@
             this.PasswordBox.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.PasswordBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.PasswordBox.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.PasswordBox.Location = new System.Drawing.Point(230, 379);
-            this.PasswordBox.Margin = new System.Windows.Forms.Padding(6);
+            this.PasswordBox.Location = new System.Drawing.Point(115, 197);
             this.PasswordBox.Name = "PasswordBox";
             this.PasswordBox.PasswordChar = '*';
-            this.PasswordBox.Size = new System.Drawing.Size(314, 37);
+            this.PasswordBox.Size = new System.Drawing.Size(159, 22);
             this.PasswordBox.TabIndex = 5;
             this.PasswordBox.TextChanged += new System.EventHandler(this.PasswordBox_TextChanged);
             // 
@@ -92,10 +90,9 @@
             this.RememberPwd.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.RememberPwd.AutoSize = true;
             this.RememberPwd.BackColor = System.Drawing.Color.Transparent;
-            this.RememberPwd.Location = new System.Drawing.Point(230, 446);
-            this.RememberPwd.Margin = new System.Windows.Forms.Padding(6);
+            this.RememberPwd.Location = new System.Drawing.Point(115, 232);
             this.RememberPwd.Name = "RememberPwd";
-            this.RememberPwd.Size = new System.Drawing.Size(28, 27);
+            this.RememberPwd.Size = new System.Drawing.Size(15, 14);
             this.RememberPwd.TabIndex = 6;
             this.RememberPwd.UseVisualStyleBackColor = false;
             // 
@@ -112,10 +109,9 @@
             this.SignUpButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SignUpButton.ForeColor = System.Drawing.Color.Silver;
             this.SignUpButton.Image = ((System.Drawing.Image)(resources.GetObject("SignUpButton.Image")));
-            this.SignUpButton.Location = new System.Drawing.Point(310, 590);
-            this.SignUpButton.Margin = new System.Windows.Forms.Padding(6);
+            this.SignUpButton.Location = new System.Drawing.Point(155, 307);
             this.SignUpButton.Name = "SignUpButton";
-            this.SignUpButton.Size = new System.Drawing.Size(126, 87);
+            this.SignUpButton.Size = new System.Drawing.Size(63, 45);
             this.SignUpButton.TabIndex = 9;
             this.SignUpButton.Text = "Sign Up";
             this.SignUpButton.UseVisualStyleBackColor = false;
@@ -136,10 +132,9 @@
             this.PlayButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.PlayButton.ForeColor = System.Drawing.Color.Transparent;
             this.PlayButton.Image = ((System.Drawing.Image)(resources.GetObject("PlayButton.Image")));
-            this.PlayButton.Location = new System.Drawing.Point(606, 702);
-            this.PlayButton.Margin = new System.Windows.Forms.Padding(6);
+            this.PlayButton.Location = new System.Drawing.Point(303, 365);
             this.PlayButton.Name = "PlayButton";
-            this.PlayButton.Size = new System.Drawing.Size(126, 87);
+            this.PlayButton.Size = new System.Drawing.Size(63, 45);
             this.PlayButton.TabIndex = 10;
             this.PlayButton.Text = "Play";
             this.PlayButton.UseVisualStyleBackColor = false;
@@ -152,10 +147,9 @@
             this.ProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.ProgressBar.BackColor = System.Drawing.SystemColors.Control;
             this.ProgressBar.ForeColor = System.Drawing.Color.DarkRed;
-            this.ProgressBar.Location = new System.Drawing.Point(24, 746);
-            this.ProgressBar.Margin = new System.Windows.Forms.Padding(6);
+            this.ProgressBar.Location = new System.Drawing.Point(12, 388);
             this.ProgressBar.Name = "ProgressBar";
-            this.ProgressBar.Size = new System.Drawing.Size(544, 44);
+            this.ProgressBar.Size = new System.Drawing.Size(272, 23);
             this.ProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.ProgressBar.TabIndex = 0;
             this.ProgressBar.Visible = false;
@@ -166,10 +160,9 @@
             this.Status.BackColor = System.Drawing.Color.Transparent;
             this.Status.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Status.ForeColor = System.Drawing.Color.White;
-            this.Status.Location = new System.Drawing.Point(25, 755);
-            this.Status.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.Status.Location = new System.Drawing.Point(12, 393);
             this.Status.Name = "Status";
-            this.Status.Size = new System.Drawing.Size(0, 26);
+            this.Status.Size = new System.Drawing.Size(0, 13);
             this.Status.TabIndex = 7;
             // 
             // ForgotPswd
@@ -182,10 +175,9 @@
             this.ForgotPswd.DisabledLinkColor = System.Drawing.Color.Silver;
             this.ForgotPswd.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ForgotPswd.LinkColor = System.Drawing.Color.Silver;
-            this.ForgotPswd.Location = new System.Drawing.Point(258, 538);
-            this.ForgotPswd.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.ForgotPswd.Location = new System.Drawing.Point(129, 280);
             this.ForgotPswd.Name = "ForgotPswd";
-            this.ForgotPswd.Size = new System.Drawing.Size(225, 29);
+            this.ForgotPswd.Size = new System.Drawing.Size(122, 15);
             this.ForgotPswd.TabIndex = 8;
             this.ForgotPswd.TabStop = true;
             this.ForgotPswd.Text = "Forgot Password?";
@@ -199,10 +191,9 @@
             this.ServerLabel.BackColor = System.Drawing.Color.Transparent;
             this.ServerLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ServerLabel.ForeColor = System.Drawing.Color.Red;
-            this.ServerLabel.Location = new System.Drawing.Point(258, 17);
-            this.ServerLabel.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.ServerLabel.Location = new System.Drawing.Point(129, 9);
             this.ServerLabel.Name = "ServerLabel";
-            this.ServerLabel.Size = new System.Drawing.Size(233, 29);
+            this.ServerLabel.Size = new System.Drawing.Size(124, 15);
             this.ServerLabel.TabIndex = 0;
             this.ServerLabel.Text = "Server is OFFLINE";
             this.ServerLabel.Visible = false;
@@ -217,10 +208,9 @@
             this.DiscordLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DiscordLink.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
             this.DiscordLink.LinkColor = System.Drawing.Color.Silver;
-            this.DiscordLink.Location = new System.Drawing.Point(618, 17);
-            this.DiscordLink.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.DiscordLink.Location = new System.Drawing.Point(309, 9);
             this.DiscordLink.Name = "DiscordLink";
-            this.DiscordLink.Size = new System.Drawing.Size(108, 30);
+            this.DiscordLink.Size = new System.Drawing.Size(62, 16);
             this.DiscordLink.TabIndex = 3;
             this.DiscordLink.TabStop = true;
             this.DiscordLink.Text = "Discord";
@@ -238,10 +228,9 @@
             this.DonateLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.DonateLink.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
             this.DonateLink.LinkColor = System.Drawing.Color.Silver;
-            this.DonateLink.Location = new System.Drawing.Point(320, 73);
-            this.DonateLink.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.DonateLink.Location = new System.Drawing.Point(160, 38);
             this.DonateLink.Name = "DonateLink";
-            this.DonateLink.Size = new System.Drawing.Size(0, 30);
+            this.DonateLink.Size = new System.Drawing.Size(0, 16);
             this.DonateLink.TabIndex = 2;
             this.DonateLink.UseWaitCursor = true;
             this.DonateLink.VisitedLinkColor = System.Drawing.Color.Red;
@@ -258,10 +247,9 @@
             this.PswdHint.Enabled = false;
             this.PswdHint.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.PswdHint.LinkColor = System.Drawing.Color.Silver;
-            this.PswdHint.Location = new System.Drawing.Point(258, 500);
-            this.PswdHint.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
+            this.PswdHint.Location = new System.Drawing.Point(129, 260);
             this.PswdHint.Name = "PswdHint";
-            this.PswdHint.Size = new System.Drawing.Size(73, 29);
+            this.PswdHint.Size = new System.Drawing.Size(41, 15);
             this.PswdHint.TabIndex = 7;
             this.PswdHint.TabStop = true;
             this.PswdHint.Text = "Hint: ";
@@ -269,13 +257,37 @@
             this.PswdHint.VisitedLinkColor = System.Drawing.Color.Silver;
             this.PswdHint.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PswdHint_LinkClicked);
             // 
+            // GearButton
+            // 
+            this.GearButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.GearButton.BackColor = System.Drawing.Color.Transparent;
+            this.GearButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("GearButton.BackgroundImage")));
+            this.GearButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.GearButton.CausesValidation = false;
+            this.GearButton.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.GearButton.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.GearButton.FlatAppearance.BorderSize = 0;
+            this.GearButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
+            this.GearButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
+            this.GearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.GearButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.GearButton.ForeColor = System.Drawing.Color.Silver;
+            this.GearButton.Location = new System.Drawing.Point(14, 328);
+            this.GearButton.Name = "GearButton";
+            this.GearButton.Size = new System.Drawing.Size(22, 22);
+            this.GearButton.TabIndex = 11;
+            this.GearButton.UseMnemonic = false;
+            this.GearButton.UseVisualStyleBackColor = false;
+            this.GearButton.Click += new System.EventHandler(this.GearButton_Click);
+            // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.GrayText;
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
-            this.ClientSize = new System.Drawing.Size(756, 813);
+            this.ClientSize = new System.Drawing.Size(378, 423);
+            this.Controls.Add(this.GearButton);
             this.Controls.Add(this.PswdHint);
             this.Controls.Add(this.DonateLink);
             this.Controls.Add(this.DiscordLink);
@@ -292,7 +304,6 @@
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(6);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FreeInfantry";
@@ -317,6 +328,7 @@
         private System.Windows.Forms.LinkLabel DiscordLink;
         private System.Windows.Forms.LinkLabel DonateLink;
         private System.Windows.Forms.LinkLabel PswdHint;
+        private System.Windows.Forms.Button GearButton;
     }
 }
 
