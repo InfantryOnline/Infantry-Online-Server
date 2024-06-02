@@ -14,6 +14,15 @@ namespace InfServer.Game.Commands.Mod
     /// </summary>
     public class Server
     {
+        static public void logpackets(Player player, Player recipient, string payload, int bong)
+        {
+            player._arena._server._bLogPackets = !player._arena._server._bLogPackets;
+
+            var state = player._arena._server._bLogPackets ? "ON" : "OFF";
+
+            player.sendMessage(-1, $"Packet logging is now {state}.");
+        }
+
         /// <summary>
         /// Restarts the server
         /// </summary>
@@ -309,6 +318,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(log, "log",
                 "Grabs exception logs for the current zone",
                 "*log",
+                InfServer.Data.PlayerPermission.SuperMod, true);
+
+            yield return new HandlerDescriptor(logpackets, "logpackets",
+                "Toggles logging of packets on/off.",
+                "*logpackets",
                 InfServer.Data.PlayerPermission.SuperMod, true);
 
             yield return new HandlerDescriptor(recycle, "recycle",

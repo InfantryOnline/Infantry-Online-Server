@@ -108,6 +108,20 @@ namespace InfServer
             return _players.Contains(player);
         }
 
+        public string All()
+        {
+            List<string> members = new List<string>();
+
+            foreach (var player in _players)
+            {
+                if (player == null)
+                    continue;
+
+                members.Add(player.alias);
+            }
+            return string.Join(", ", members);
+        }
+
         /// <summary>
         /// Sends a player list of this chat
         /// </summary>

@@ -3616,6 +3616,26 @@ namespace InfServer.Game.Commands.Mod
             player.sendMessage(0, string.Format("You have kicked player {0}{1}", recipient._alias, (minutes > 0) ? string.Format(" for {0} minutes.", minutes) : "."));
         }
 
+        static public void kickremove(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(0, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            var alias = recipient != null ? recipient._alias : payload.Trim();
+
+            if (!player._arena._blockedList.ContainsKey(alias))
+            {
+                player.sendMessage(-1, $"Alias {alias} isn't on the kick list.");
+                return;
+            }
+
+            player._arena._blockedList.Remove(alias);
+            player.sendMessage(0, $"Alias {alias} has been removed from the kick list.");
+        }
+
         static public void addswear(Player player, Player recipient, string payload, int bong)
         {
 
@@ -3748,6 +3768,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(kick, "kick",
                 "Kicks and can also ban a player from an arena",
                 ":player:*kick minutes(Optional) or *kick alias minutes(optional)",
+                InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(kickremove, "kickremove",
+                "Removes an active kick for the given alias.",
+                ":player:*kickremove or *kickremove alias",
                 InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(block, "kill",

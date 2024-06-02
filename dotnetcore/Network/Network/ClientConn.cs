@@ -128,6 +128,7 @@ namespace InfServer.Network
             init.udpMaxPacket = Client.udpMaxSize;
 
             _client.send(init);
+            _client._lastPacketSent = Environment.TickCount;
 
             //Restart the listen thread
             _listenThread = new Thread(new ThreadStart(listen));
@@ -324,7 +325,7 @@ namespace InfServer.Network
         private void routePacket(PacketBase packet)
         {	//Log packets?
             if (_bLogPackets)
-                Log.write(TLog.Normal, "<-- Packet: {0}\r\n{1}", _logger, packet.Dump, packet.DataDump);
+                Log.write(TLog.Normal, "<-- Packet: {0}:{1}\r\n{2}", _logger, this._client._connectionID, packet.Dump, packet.DataDump);
 
             try
             {	//Allow the packet type to call relevant handlers
@@ -362,11 +363,12 @@ namespace InfServer.Network
         public void sendPacket(PacketBase packet, byte[] data, EndPoint ep)
         {	//Log packets?
             if (_bLogPackets)
-                Log.write(TLog.Normal, "--> Packet: {0}\r\n{1}", _logger, packet.Dump, packet.DataDump);
+                Log.write(TLog.Normal, "--> Packet: {0}:{1}\r\n{2}", _logger, this._client._connectionID, packet.Dump, packet.DataDump);
 
             try
             {
                 _udp.Send(data, data.Length);
+                _client._lastPacketSent = Environment.TickCount;
             }
             catch (Exception ex)
             {

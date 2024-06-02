@@ -342,7 +342,7 @@ namespace InfServer.Network
         private void routePacket(PacketBase packet)
         {	//Log packets?
             if (_bLogPackets)
-                Log.write(TLog.Normal, "<-- Packet: {0}\r\n{1}", _logger, packet.Dump, packet.DataDump);
+                Log.write(TLog.Normal, "<-- Packet: {0}:{1}\r\n{2}", _logger, packet._client._clientID, packet.Dump, packet.DataDump);
 
             try
             {	//Allow the packet type to call relevant handlers
@@ -383,7 +383,7 @@ namespace InfServer.Network
         public void sendPacket(PacketBase packet, byte[] data, EndPoint ep)
         {	//Log packets?
             if (_bLogPackets)
-                Log.write(TLog.Normal, "--> Packet: {0}\r\n{1}", _logger, packet.Dump, packet.DataDump);
+                Log.write(TLog.Normal, "--> Packet: {0}:{1}\r\n{2}", _logger, packet._client._clientID, packet.Dump, packet.DataDump);
             try
             {
                 _sock.SendTo(data, ep);

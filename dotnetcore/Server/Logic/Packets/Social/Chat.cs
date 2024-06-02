@@ -5,6 +5,7 @@ using System.Text;
 
 using InfServer.Protocol;
 using InfServer.Game;
+using Assets;
 
 namespace InfServer.Logic
 {	// Logic_Chat Class
@@ -19,6 +20,50 @@ namespace InfServer.Logic
             if (player == null)
             {
                 Log.write(TLog.Error, "Handle_CS_Chat(): Called with null player.");
+                return;
+            }
+
+            if (pkt.message == "?diag")
+            {
+                // Raw diagnostic output.
+                var actualArena = player._server._arenas.FirstOrDefault(a => a.Value.Players.FirstOrDefault(p => p._alias == player._alias) != null);
+
+                var arenaName = actualArena.Value != null ? actualArena.Value._name : "Not found!";
+                var inArena = player._arena != null ? player._arena._name : "No Arena!";
+                var ingame = player._bIngame ? "Yes" : "No!";
+                var spectator = player.IsSpectator ? "Yes" : "No";
+
+                SC_Chat rawResponse = new SC_Chat();
+                rawResponse.chatType = Helpers.Chat_Type.Arena;
+                rawResponse.message = $"Player Alias: {player._alias}. Assumed Arena: {inArena}. Found Arena: {arenaName}";
+                rawResponse.from = "";
+
+                player._client.send(rawResponse);
+
+                rawResponse = new SC_Chat();
+                rawResponse.chatType = Helpers.Chat_Type.Arena;
+                rawResponse.message = $"Last Packet Received: {player._client._lastPacketRecv}. Last Packet Sent: {player._client._lastPacketSent}. Current Time: {Environment.TickCount}. Time Diff: {player._client._timeDiff}";
+                rawResponse.from = "";
+
+                player._client.send(rawResponse);
+
+                rawResponse = new SC_Chat();
+                rawResponse.chatType = Helpers.Chat_Type.Arena;
+                rawResponse.message = $"Player Id: {player._id}. In game? {ingame}. Spectating? {spectator}";
+                rawResponse.from = "";
+
+                player._client.send(rawResponse);
+
+                foreach (var stream in player._client._streams)
+                {
+                    rawResponse = new SC_Chat();
+                    rawResponse.chatType = Helpers.Chat_Type.Arena;
+                    rawResponse.message = $"Stream ID: {stream.streamID}. C2S: {stream.C2S_Reliable}. S2C: {stream.S2C_Reliable} / Confirmed: {stream.S2C_ReliableConfirmed}. S2C Queue: {stream.reliableQueue.Count}. C2S Queue: {stream.reliablePackets.Count}.";
+                    rawResponse.from = "";
+
+                    player._client.send(rawResponse);
+                }
+
                 return;
             }
 

@@ -21,6 +21,7 @@ namespace InfServer.Network
 
         //Connection stats
         public int _lastPacketRecv;						//The time at which we last received a packet from this client
+        public int _lastPacketSent;
         /// <summary>
         /// Calls onClientDistroy
         /// </summary>

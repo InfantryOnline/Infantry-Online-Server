@@ -6,42 +6,28 @@ using System.Text;
 using InfServer.Network;
 
 namespace InfServer.Protocol
-{	/// <summary>
+{   /// <summary>
     /// 
     /// </summary>
-    public class CS_ChatQuery<T> : PacketBase
+    public class CS_Unban<T> : PacketBase
         where T : IClient
     {	// Member Variables
         ///////////////////////////////////////////////////
-        public QueryType queryType;         //Query type
-        public string sender;               //Player requesting
-        public string payload;              //Query payload
+        public BanType banType;         //Query type
+        public string sender;           //Player requesting
+        public string alias;            //Target alias (for retrieving account info)
 
         //Packet routing
-        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.ChatQuery;
-        static public event Action<CS_ChatQuery<T>, T> Handlers;
+        public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.Unban;
+        static public event Action<CS_Unban<T>, T> Handlers;
 
-
-        public enum QueryType
+        public enum BanType
         {
-            accountinfo,
-            whois,
-            find,
-            online,
-            emailupdate,
-            zonelist,
-            history,
-            global,
-            ban,
-            squadstats,
-            helpcall,
-            alert,
-            modChat,
-            deletealias,
-            wipe,
-            adminlist,
-            accountignore,
-            cmdhistory
+            none = 0,
+            zone = 1,
+            account = 2,
+            ip = 3,
+            global = 4,
         }
 
 
@@ -52,11 +38,10 @@ namespace InfServer.Protocol
         /// Creates an empty packet of the specified type. This is used
         /// for constructing new packets for sending.
         /// </summary>
-        public CS_ChatQuery()
+        public CS_Unban()
             : base(TypeID)
         {
             sender = "";
-            payload = "";
         }
 
         /// <summary>
@@ -65,7 +50,7 @@ namespace InfServer.Protocol
         /// </summary>
         /// <param name="typeID">The type of the received packet.</param>
         /// <param name="buffer">The received data.</param>
-        public CS_ChatQuery(ushort typeID, byte[] buffer, int index, int count)
+        public CS_Unban(ushort typeID, byte[] buffer, int index, int count)
             : base(typeID, buffer, index, count)
         {
         }
@@ -86,8 +71,8 @@ namespace InfServer.Protocol
         {	//Type ID
             Write((byte)TypeID);
             Write(sender, 0);
-            Write((byte)queryType);
-            Write(payload, 0);
+            Write(alias, 0);
+            Write((byte)banType);
         }
 
         /// <summary>
@@ -96,8 +81,8 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             sender = ReadNullString();
-            queryType = (QueryType)_contentReader.ReadByte();
-            payload = ReadNullString();
+            alias = ReadNullString();
+            banType = (BanType)_contentReader.ReadByte();
         }
 
         /// <summary>
@@ -107,7 +92,7 @@ namespace InfServer.Protocol
         {
             get
             {
-                return "Zone server chat query request";
+                return "Zone server unban request";
             }
         }
     }

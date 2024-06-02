@@ -64,6 +64,8 @@ namespace InfServer.Protocol
         static public int connectionTimeout;
         static public bool bLogUnknowns;
 
+        static private Random rand = new Random();
+
         ///////////////////////////////////////////////////
         // Member Classes
         ///////////////////////////////////////////////////
@@ -501,8 +503,53 @@ namespace InfServer.Protocol
             if (bytesLeft < 0)
                 return;
 
+            var n = stream.S2C_Reliable;
+            var m = stream.S2C_ReliableConfirmed;
+
+            // Take care of uint16 wraparound.
+            if (n < m)
+            {
+                while (n != m)
+                {
+                    ReliableInfo ri;
+
+                    if (!stream.reliablePackets.TryGetValue(n, out ri))
+                    {
+                        n++;
+                        continue;
+                    }
+
+                    //Has it been delayed too long?
+                    if (currentTick - ri.timeSent < 1000)
+                    {
+                        n++;
+                        continue;
+                    }
+
+                    //Resend it
+                    _packetQueue.Enqueue(ri.packet);
+
+                    //Was it a reattempt?
+                    if (ri.timeSent != 0)
+                    {
+                        ri.attempts++;
+
+                        //Log.write(TLog.Warning, "Reliable packet #" + ri.rid + " lost. (" + ri.attempts + ")");
+                    }
+
+                    ri.timeSent = Environment.TickCount;
+
+                    //Don't go over the bandwidth limit or we'll just complicate things
+                    bytesLeft -= ri.packet._size;
+                    if (bytesLeft < 0)
+                        break;
+
+                    n++;
+                }
+            }
+
             //We want to start with the first sent packet
-            for (ushort n = stream.S2C_ReliableConfirmed; n < stream.S2C_Reliable; ++n)
+            for (n = stream.S2C_ReliableConfirmed; n < stream.S2C_Reliable; ++n)
             {	//Does it exist?
                 ReliableInfo ri;
 
@@ -544,9 +591,19 @@ namespace InfServer.Protocol
             {	//Get the relevant stream
                 Client.StreamState stream = _streams[streamID];
 
+                if (stream.S2C_ReliableConfirmed == ushort.MaxValue)
+                {
+                    Log.write(TLog.Warning, $"confirmReliable: Reached MaxValue. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
+                }
+
+                if (stream.S2C_ReliableConfirmed == ushort.MaxValue - 1)
+                {
+                    Log.write(TLog.Warning, $"confirmReliable: Reached MaxValue - 1. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
+                }
+
                 //This satisfies all packets inbetween
                 for (ushort i = stream.S2C_ReliableConfirmed; i <= rID; ++i)
-                {	//Get our associated info
+                {   //Get our associated info
                     ReliableInfo ri;
 
                     if (!stream.reliablePackets.TryGetValue(i, out ri))
@@ -564,7 +621,18 @@ namespace InfServer.Protocol
                         ri.onCompleted();
                 }
 
+                // Forces a rollover once it reaches the MaxValue.
                 stream.S2C_ReliableConfirmed = (ushort)(rID + 1);
+
+                if (stream.S2C_ReliableConfirmed == ushort.MaxValue - 1)
+                {
+                    Log.write(TLog.Warning, $"confirmReliable: Advanced to MaxValue - 1. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
+                }
+
+                if (stream.S2C_ReliableConfirmed == ushort.MaxValue)
+                {
+                    Log.write(TLog.Warning, $"confirmReliable: Advanced to MaxValue. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
+                }
             }
         }
 
@@ -592,7 +660,10 @@ namespace InfServer.Protocol
         /// Sends a reliable packet to the client
         /// </summary>
         public void sendReliable(PacketBase packet)
-        {	//Relay
+        {
+            // Vary the Stream ID so it is evenly distributed between the four streams.
+            //var randomStreamId = rand.Next(4);
+
             sendReliable(packet, null, 0);
         }
 
@@ -609,6 +680,9 @@ namespace InfServer.Protocol
         /// </summary>
         public void sendReliable(PacketBase packet, Action completionCallback)
         {
+            // Vary the Stream ID so it is evenly distributed between the four streams.
+            // var randomStreamId = rand.Next(4);
+
             sendReliable(packet, completionCallback, 0);
         }
 
@@ -783,10 +857,20 @@ namespace InfServer.Protocol
         public ICollection<ReliableInfo> boxReliablePackets(Queue<ReliableInfo> packetQueue, StreamState stream, int streamID)
         {	//Empty?
             if (packetQueue.Count == 0)
-                return null;
+            {
+                return new List<ReliableInfo>();
+            }
             //If it's just one packet, there's no need
+
             else if (packetQueue.Count == 1)
-            {	//We need to put it in a reliable case
+            {
+                // FIXME: Testing reliable packet issues.
+                if (stream.S2C_Reliable > ushort.MaxValue - 4)
+                {
+                    return new List<ReliableInfo>();
+                }
+
+                //We need to put it in a reliable case
                 Reliable reli = new Reliable();
                 ReliableInfo rinfo = packetQueue.Dequeue();
 

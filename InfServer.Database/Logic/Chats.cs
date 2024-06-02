@@ -117,7 +117,7 @@ namespace InfServer.Logic
             reply.chat = pkt.chat;
             reply.from = pkt.from;
             reply.message = pkt.message;
-            reply.users = chat.List();
+            reply.users = chat.All();
 
             foreach (Zone z in server._zones)
             {

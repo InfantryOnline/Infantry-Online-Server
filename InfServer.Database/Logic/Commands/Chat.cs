@@ -217,15 +217,9 @@ namespace InfServer.Logic
                             {
                                 //Lets get all account related info then delete it
                                 InfServer.Database.alias palias = db.alias.FirstOrDefault(a => string.Compare(a.name, pkt.payload, true) == 0);
-                                InfServer.Database.player player = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.payload, true) == 0);
                                 if (palias == null)
                                 {
                                     zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
-                                    return;
-                                }
-                                if (player == null)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified player.");
                                     return;
                                 }
 
@@ -236,68 +230,10 @@ namespace InfServer.Logic
                                     return;
                                 }
 
-                                //Check for a squad
-                                if (player.squad != null)
+                                var players = db.players.Where(t => t.alias == palias.id).ToList();
+
+                                foreach(var player in players)
                                 {
-                                    IQueryable<InfServer.Database.player> squadmates = db.players.Where(plyr => plyr.zone == player.zone && plyr.squad != null && plyr.squad == player.squad);
-                                    if (player.squad1.owner == player.id)
-                                    {
-                                        if (squadmates.Count() > 1)
-                                        {
-                                            InfServer.Database.player temp = squadmates.FirstOrDefault(p => p.id != player.id);
-                                            //Since the player is the owner, lets just give it to someone else
-                                            temp.squad1.owner = temp.id;
-                                        }
-                                        else if (squadmates.Count() == 1)
-                                        {
-                                            //Lets delete the squad
-                                            db.squads.DeleteOnSubmit(player.squad1);
-                                        }
-                                        db.SubmitChanges();
-                                    }
-                                    player.squad1 = null;
-                                    player.squad = null;
-                                }
-                                //Now lets remove stats
-                                db.stats.DeleteOnSubmit(player.stats1);
-                                //Next the player structure
-                                db.players.DeleteOnSubmit(player);
-                                //Finally the alias
-                                db.alias.DeleteOnSubmit(palias);
-                                db.SubmitChanges();
-                                zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
-                                break;
-                            }
-                            else
-                            {
-                                //Player wants to delete multiple aliases
-                                List<string> cannotFind = new List<string>();
-                                List<string> notOnAccount = new List<string>();
-                                string[] payload = pkt.payload.Split(',');
-                                int deleted = 0;
-
-                                foreach (string str in payload)
-                                {
-                                    InfServer.Database.alias palias = db.alias.FirstOrDefault(a => string.Compare(a.name, str, true) == 0);
-                                    InfServer.Database.player player = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, str, true) == 0);
-                                    if (palias == null)
-                                    {
-                                        cannotFind.Add(str);
-                                        continue;
-                                    }
-                                    if (player == null)
-                                    {
-                                        cannotFind.Add(str);
-                                        continue;
-                                    }
-
-                                    //First and most important, check to see if this alias is on the account
-                                    if (palias.account1 != sender.account1)
-                                    {
-                                        notOnAccount.Add(str);
-                                        continue;
-                                    }
-
                                     //Check for a squad
                                     if (player.squad != null)
                                     {
@@ -309,54 +245,136 @@ namespace InfServer.Logic
                                                 InfServer.Database.player temp = squadmates.FirstOrDefault(p => p.id != player.id);
                                                 //Since the player is the owner, lets just give it to someone else
                                                 temp.squad1.owner = temp.id;
-                                                zone._server.sendMessage(zone, temp.alias1.name, "You have been promoted to squad captain of " + temp.squad1.name);
                                             }
                                             else if (squadmates.Count() == 1)
                                             {
                                                 //Lets delete the squad
                                                 db.squads.DeleteOnSubmit(player.squad1);
                                             }
-                                            db.SubmitChanges();
                                         }
+
                                         player.squad1 = null;
                                         player.squad = null;
                                     }
-                                    //Now lets remove stats
-                                    db.stats.DeleteOnSubmit(player.stats1);
-                                    //Next the player structure
-                                    db.players.DeleteOnSubmit(player);
-                                    //Finally the alias
-                                    db.alias.DeleteOnSubmit(palias);
+
+                                    // Remove the historic stuff too.
+                                    var dailies = db.statsDailies.Where(s => s.player == player.id);
+                                    var weeklies = db.statsWeeklies.Where(s => s.player == player.id);
+                                    var monthlies = db.statsMonthlies.Where(s => s.player == player.id);
+                                    var yearlies = db.statsYearlies.Where(s => s.player == player.id);
+
+                                    db.statsDailies.DeleteAllOnSubmit(dailies);
+                                    db.statsWeeklies.DeleteAllOnSubmit(weeklies);
+                                    db.statsMonthlies.DeleteAllOnSubmit(monthlies);
+                                    db.statsYearlies.DeleteAllOnSubmit(yearlies);
+
                                     db.SubmitChanges();
-                                    
-                                    //Lets update the counter
-                                    deleted++;
+
+                                    var stats = db.stats.Where(s => s.id == player.stats);
+
+                                    db.stats.DeleteAllOnSubmit(stats);
+                                    db.players.DeleteOnSubmit(player);
+
+                                    db.SubmitChanges();
                                 }
 
-                                if (notOnAccount.Count > 0)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) are not on the account.", notOnAccount.Count));
-                                    string getAlias = "";
-                                    foreach (string str in notOnAccount)
-                                        getAlias += str + ", ";
+                                db.alias.DeleteOnSubmit(palias);
 
-                                    getAlias = (getAlias.Substring(0, getAlias.Length - 2));
-                                    zone._server.sendMessage(zone, pkt.sender, getAlias);
-                                }
+                                db.SubmitChanges();
+                                zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
+                                break;
+                            }
+                            else
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, String.Format("Please remove aliases one at a time."));
 
-                                if (cannotFind.Count > 0)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) cannot be found.", cannotFind.Count));
-                                    string getAlias = "";
-                                    foreach (string str in cannotFind)
-                                        getAlias += str + ", ";
+                                //Player wants to delete multiple aliases
+                                //List<string> cannotFind = new List<string>();
+                                //List<string> notOnAccount = new List<string>();
+                                //string[] payload = pkt.payload.Split(',');
+                                //int deleted = 0;
 
-                                    getAlias = (getAlias.Substring(0, getAlias.Length - 2));
-                                    zone._server.sendMessage(zone, pkt.sender, getAlias);
-                                }
+                                //foreach (string str in payload)
+                                //{
+                                //    InfServer.Database.alias palias = db.alias.FirstOrDefault(a => string.Compare(a.name, str, true) == 0);
+                                //    InfServer.Database.player player = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, str, true) == 0);
+                                //    if (palias == null)
+                                //    {
+                                //        cannotFind.Add(str);
+                                //        continue;
+                                //    }
+                                //    if (player == null)
+                                //    {
+                                //        cannotFind.Add(str);
+                                //        continue;
+                                //    }
 
-                                if (deleted > 0)
-                                    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) have been deleted.", deleted));
+                                //    //First and most important, check to see if this alias is on the account
+                                //    if (palias.account1 != sender.account1)
+                                //    {
+                                //        notOnAccount.Add(str);
+                                //        continue;
+                                //    }
+
+                                //    //Check for a squad
+                                //    if (player.squad != null)
+                                //    {
+                                //        IQueryable<InfServer.Database.player> squadmates = db.players.Where(plyr => plyr.zone == player.zone && plyr.squad != null && plyr.squad == player.squad);
+                                //        if (player.squad1.owner == player.id)
+                                //        {
+                                //            if (squadmates.Count() > 1)
+                                //            {
+                                //                InfServer.Database.player temp = squadmates.FirstOrDefault(p => p.id != player.id);
+                                //                //Since the player is the owner, lets just give it to someone else
+                                //                temp.squad1.owner = temp.id;
+                                //                zone._server.sendMessage(zone, temp.alias1.name, "You have been promoted to squad captain of " + temp.squad1.name);
+                                //            }
+                                //            else if (squadmates.Count() == 1)
+                                //            {
+                                //                //Lets delete the squad
+                                //                db.squads.DeleteOnSubmit(player.squad1);
+                                //            }
+                                //            db.SubmitChanges();
+                                //        }
+                                //        player.squad1 = null;
+                                //        player.squad = null;
+                                //    }
+                                //    //Now lets remove stats
+                                //    db.stats.DeleteOnSubmit(player.stats1);
+                                //    //Next the player structure
+                                //    db.players.DeleteOnSubmit(player);
+                                //    //Finally the alias
+                                //    db.alias.DeleteOnSubmit(palias);
+                                //    db.SubmitChanges();
+
+                                //    //Lets update the counter
+                                //    deleted++;
+                                //}
+
+                                //if (notOnAccount.Count > 0)
+                                //{
+                                //    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) are not on the account.", notOnAccount.Count));
+                                //    string getAlias = "";
+                                //    foreach (string str in notOnAccount)
+                                //        getAlias += str + ", ";
+
+                                //    getAlias = (getAlias.Substring(0, getAlias.Length - 2));
+                                //    zone._server.sendMessage(zone, pkt.sender, getAlias);
+                                //}
+
+                                //if (cannotFind.Count > 0)
+                                //{
+                                //    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) cannot be found.", cannotFind.Count));
+                                //    string getAlias = "";
+                                //    foreach (string str in cannotFind)
+                                //        getAlias += str + ", ";
+
+                                //    getAlias = (getAlias.Substring(0, getAlias.Length - 2));
+                                //    zone._server.sendMessage(zone, pkt.sender, getAlias);
+                                //}
+
+                                //if (deleted > 0)
+                                //    zone._server.sendMessage(zone, pkt.sender, String.Format("{0} alias(es) have been deleted.", deleted));
                             }
                         }
                         break;
@@ -384,6 +402,11 @@ namespace InfServer.Logic
 
                             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                             {
+                                if (player.Value.stealth && player.Value.permission > pPlayer.permission)
+                                {
+                                    continue;
+                                }
+
                                 if (player.Key.ToLower() == pkt.payload.ToLower())
                                 {
                                     //Have they found the exact player they were looking for?
