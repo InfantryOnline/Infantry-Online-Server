@@ -45,6 +45,7 @@ namespace InfServer.Protocol
                 PlayerBannerAnimated = 25,
                 ZoneUpdate = 26,
                 Stealth = 27,
+                Unban = 28
             }
 
             ///<summary>

@@ -2879,6 +2879,31 @@ namespace InfServer.Game.Commands.Mod
             player._server._db.send(newBan);
         }
 
+        static public void banremove(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            var alias = recipient != null ? recipient._alias : payload;
+
+            if (String.IsNullOrWhiteSpace(alias))
+            {
+                player.sendMessage(-1, "Coommand used incorrectly, please specify target alias.");
+                return;
+            }
+
+            var cmd = new CS_Unban<Data.Database>();
+
+            cmd.banType = CS_Unban<Data.Database>.BanType.account;
+            cmd.alias = alias;
+            cmd.sender = player._alias;
+
+            player._server._db.send(cmd);
+        }
+
         /// <summary>
         /// Shows a ban list for a player
         /// </summary>
@@ -2909,7 +2934,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Bans a player from a specific zone
         /// </summary>
-        static public void block(Player player, Player recipient, string payload, int bong)
+        static public void zoneban(Player player, Player recipient, string payload, int bong)
         {
             //Sanity check
             if (player._server.IsStandalone)
@@ -2920,7 +2945,7 @@ namespace InfServer.Game.Commands.Mod
 
             if (recipient == null && string.IsNullOrEmpty(payload))
             {
-                player.sendMessage(-1, "Syntax: either ::*block time:reason(optional) or *block alias time:reason(optional)");
+                player.sendMessage(-1, "Syntax: either ::*zoneban time:reason(optional) or *zoneban alias time:reason(optional)");
                 player.sendMessage(-1, "Note: make sure you are in the zone you want to ban from");
                 return;
             }
@@ -2942,7 +2967,7 @@ namespace InfServer.Game.Commands.Mod
 
                 if (string.IsNullOrEmpty(payload))
                 {
-                    player.sendMessage(-1, "Syntax: ::*block time:reason(Optional)");
+                    player.sendMessage(-1, "Syntax: ::*zoneban time:reason(Optional)");
                     return;
                 }
 
@@ -2955,7 +2980,7 @@ namespace InfServer.Game.Commands.Mod
 
                     if (!Int32.TryParse(param[0], out number))
                     {
-                        player.sendMessage(-1, "Syntax: ::*block time:reason(optional) Note: if using a reason, use : between time and reason");
+                        player.sendMessage(-1, "Syntax: ::*zoneban time:reason(optional) Note: if using a reason, use : between time and reason");
                         return;
                     }
 
@@ -2977,7 +3002,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     if (!Int32.TryParse(payload, out number))
                     {
-                        player.sendMessage(-1, "That is not a valid time. Syntax ::*block time:reason(Optional)");
+                        player.sendMessage(-1, "That is not a valid time. Syntax ::*zoneban time:reason(Optional)");
                         return;
                     }
 
@@ -3007,13 +3032,13 @@ namespace InfServer.Game.Commands.Mod
                         alias = payload.Substring(listStart + 1, (listEnd - listStart) - 1);
                     else
                     {
-                        player.sendMessage(-1, "Bad Syntax, use *block \"alias\" time:reason(optional)");
+                        player.sendMessage(-1, "Bad Syntax, use *zoneban \"alias\" time:reason(optional)");
                         return;
                     }
                 }
                 else
                 {
-                    player.sendMessage(-1, "Syntax: *block \"alias\" time:reason(Optional) Note: Use quotations around the alias");
+                    player.sendMessage(-1, "Syntax: *zoneban \"alias\" time:reason(Optional) Note: Use quotations around the alias");
                     return;
                 }
 
@@ -3092,6 +3117,34 @@ namespace InfServer.Game.Commands.Mod
             newBan.reason = reason.ToString();
 
             player._server._db.send(newBan);
+        }
+
+        /// <summary>
+        /// Removes a zone ban for the player.
+        /// </summary>
+        static public void zonebanremove(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is currently in stand-alone mode.");
+                return;
+            }
+
+            var alias = recipient != null ? recipient._alias : payload;
+
+            if (String.IsNullOrWhiteSpace(alias))
+            {
+                player.sendMessage(-1, "Coommand used incorrectly, please specify target alias.");
+                return;
+            }
+
+            var cmd = new CS_Unban<Data.Database>();
+
+            cmd.banType = CS_Unban<Data.Database>.BanType.zone;
+            cmd.alias = alias;
+            cmd.sender = player._alias;
+
+            player._server._db.send(cmd);
         }
 
         /// <summary>
@@ -3311,201 +3364,9 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
-        /// Removes a player from the entire server
-        /// </summary>
-        static public void gkill(Player player, Player recipient, string payload, int bong)
-        {
-            if (player._server.IsStandalone)
-            {
-                player.sendMessage(-1, "Server is currently in stand-alone mode.");
-                return;
-            }
-
-            if (player._developer)
-            {
-                player.sendMessage(-1, "Nice try.");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(payload) && recipient == null)
-            {
-                player.sendMessage(-1, "Syntax: Either PM the person with *gkill time:reason(Optional) or *gkill alias time:reason(Optional)");
-                return;
-            }
-
-            string[] param;
-            string reason = "None given";
-            string alias;
-            int minutes = 0;
-            int number;
-
-            //Check to see if we are pm'ing someone
-            if (recipient != null)
-            {
-                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
-                {
-                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(payload))
-                {
-                    player.sendMessage(-1, "Syntax: ::*gkill time:reason(Optional)");
-                    return;
-                }
-
-                alias = recipient._alias.ToString();
-
-                if (payload.Contains(':'))
-                {
-                    //Lets snag both the time and reason here
-                    param = payload.Split(':');
-
-                    if (!Int32.TryParse(param[0], out number))
-                    {
-                        player.sendMessage(-1, "Syntax: ::*gkill time:reason(optional) Note: if using a reason, use : between time and reason");
-                        return;
-                    }
-
-                    try
-                    {
-                        minutes = Convert.ToInt32(number);
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-
-                    //Was a reason used?
-                    if (!string.IsNullOrEmpty(param[1]))
-                        reason = param[1];
-                }
-                else //Just check for a time
-                {
-                    if (!Int32.TryParse(payload, out number))
-                    {
-                        player.sendMessage(-1, "That is not a valid time. Syntax ::*gkill time:reason(Optional)");
-                        return;
-                    }
-
-                    try
-                    {
-                        minutes = Convert.ToInt32(number);
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-                }
-
-                //Let the person know
-                if (minutes > 0)
-                    recipient.sendMessage(0, string.Format("You are being banned for {0} minutes.", minutes));
-            }
-            else //Using an alias instead
-            {
-                int listStart = -1, listEnd = -1;
-                if (payload.Contains('"'))
-                {
-                    listStart = payload.IndexOf('"');
-                    listEnd = payload.IndexOf('"', listStart + 1);
-                    if (listStart != -1 && listEnd != -1)
-                        alias = payload.Substring(listStart + 1, (listEnd - listStart) - 1);
-                    else
-                    {
-                        player.sendMessage(-1, "Bad Syntax, use *gkill \"alias\" time:reason(optional)");
-                        return;
-                    }
-                }
-                else
-                {
-                    player.sendMessage(-1, "Syntax: *gkill \"alias\" time:reason(Optional) Note: Use quotations around the alias");
-                    return;
-                }
-
-                //Must be a timed ban with a reason?
-                if (payload.Contains(':'))
-                {
-                    param = payload.Split(':');
-                    string[] pick = param.ElementAt(0).Split(' ');
-                    try
-                    {
-                        minutes = Convert.ToInt32(pick.ElementAt(1)); //Without element1, it displays everything before ':'
-                    }
-                    catch
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-
-                    //Check if there is a reason
-                    if (!string.IsNullOrEmpty(param[1]))
-                        reason = param[1];
-                }
-                else //Just a timed ban
-                {
-                    string time;
-                    listStart = listEnd;
-                    if (listStart != -1)
-                    {
-                        time = payload.Substring(listStart + 1);
-                        if (time.Contains(' '))
-                            time = payload.Substring(listStart + 2);
-                    }
-                    else
-                    {
-                        player.sendMessage(-1, "Bad Syntax, use *gkill \"alias\" time:reason(optional)");
-                        return;
-                    }
-
-                    try
-                    {
-                        minutes = Convert.ToInt32(time);
-                    }
-                    catch
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-                }
-            }
-
-            //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
-            if ((recipient = player._arena.getPlayerByName(alias)) != null)
-            {
-                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
-                {
-                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
-                    return;
-                }
-                recipient.disconnect();
-            }
-
-            player.sendMessage(0, string.Format("You are banning {0} for {1} minutes.", alias, minutes));
-
-            //Relay it to the database
-            CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
-            newBan.banType = CS_Ban<Data.Database>.BanType.global;
-            newBan.alias = alias;
-            if (recipient != null)
-            {
-                newBan.UID1 = recipient._UID1;
-                newBan.UID2 = recipient._UID2;
-                newBan.UID3 = recipient._UID3;
-            }
-            newBan.time = minutes;
-            newBan.sender = player._alias;
-            newBan.reason = reason.ToString();
-
-            player._server._db.send(newBan);
-        }
-
-        /// <summary>
         /// Bans or just kicks the player from a specific arena - if granted players, privately owned only
         /// </summary>
-        static public void kick(Player player, Player recipient, string payload, int bong)
+        static public void arenaban(Player player, Player recipient, string payload, int bong)
         {
             //Sanity check
             if (player._server.IsStandalone)
@@ -3616,7 +3477,7 @@ namespace InfServer.Game.Commands.Mod
             player.sendMessage(0, string.Format("You have kicked player {0}{1}", recipient._alias, (minutes > 0) ? string.Format(" for {0} minutes.", minutes) : "."));
         }
 
-        static public void kickremove(Player player, Player recipient, string payload, int bong)
+        static public void arenabanremove(Player player, Player recipient, string payload, int bong)
         {
             if (player._server.IsStandalone)
             {
@@ -3635,6 +3496,8 @@ namespace InfServer.Game.Commands.Mod
             player._arena._blockedList.Remove(alias);
             player.sendMessage(0, $"Alias {alias} has been removed from the kick list.");
         }
+
+
 
         static public void addswear(Player player, Player recipient, string payload, int bong)
         {
@@ -3680,17 +3543,12 @@ namespace InfServer.Game.Commands.Mod
                 "Log in during Stand-Alone Mode",
                 "*auth password");
 
-            yield return new HandlerDescriptor(ban, "ban",
-                "Bans a player from all zones",
-                "*ban alias minutes:reason(optional) or :player:*ban minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.SuperMod, false);
-
             yield return new HandlerDescriptor(banlist, "banlist",
                 "Shows a list of bans a player has",
                 "*banlist alias or :alias:*banlist",
                 InfServer.Data.PlayerPermission.Mod, false);
 
-            yield return new HandlerDescriptor(block, "block",
+            yield return new HandlerDescriptor(zoneban, "block",
                 "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
                 "*block alias minutes:reason(optional) or :player:*block minutes:reason(optional)",
                 InfServer.Data.PlayerPermission.Mod, true);
@@ -3730,11 +3588,6 @@ namespace InfServer.Game.Commands.Mod
                 "*getball (gets ball ID 0) or *getball # (gets a specific ball ID)",
                 InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
-            yield return new HandlerDescriptor(gkill, "gkill",
-                "Globally bans a player from the entire server",
-                ":player:*gkill minutes:reason(Optional) or *gkill alias minutes:reason(Optional)",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
-
             yield return new HandlerDescriptor(global, "global",
                "Sends a global message to every zone connected to current database",
                "*global [message]",
@@ -3765,20 +3618,35 @@ namespace InfServer.Game.Commands.Mod
                 "*helpcall  OR *helpcall page - to show a specific page",
                 InfServer.Data.PlayerPermission.Mod, false);
 
-            yield return new HandlerDescriptor(kick, "kick",
-                "Kicks and can also ban a player from an arena",
-                ":player:*kick minutes(Optional) or *kick alias minutes(optional)",
+            yield return new HandlerDescriptor(arenaban, "arenaban",
+                "Bans a player from an arena",
+                ":player:*arenaban minutes(Optional) or *arenaban alias minutes(optional)",
                 InfServer.Data.PlayerPermission.Mod, true);
 
-            yield return new HandlerDescriptor(kickremove, "kickremove",
+            yield return new HandlerDescriptor(arenabanremove, "arenabanremove",
                 "Removes an active kick for the given alias.",
-                ":player:*kickremove or *kickremove alias",
+                ":player:*arenabanremove or *arenabanremove alias",
                 InfServer.Data.PlayerPermission.Mod, true);
 
-            yield return new HandlerDescriptor(block, "kill",
+            yield return new HandlerDescriptor(zoneban, "zoneban",
                 "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
-                "*kill alias minutes:reason(optional) or :player:*kill minutes:reason(optional)",
+                "*zoneban alias minutes:reason(optional) or :player:*zoneban minutes:reason(optional)",
                InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(zonebanremove, "zonebanremove",
+                "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
+                "*zonebanremove alias or :player:*zonebanremove",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(ban, "ban",
+                "Bans a player from all zones",
+                "*ban alias minutes:reason(optional) or :player:*ban minutes:reason(optional)",
+                InfServer.Data.PlayerPermission.SuperMod, false);
+
+            yield return new HandlerDescriptor(banremove, "banremove",
+                "Removes a ban from the given alias.",
+                "*banremove alias or :player:*banremove",
+                InfServer.Data.PlayerPermission.SuperMod, false);
 
             yield return new HandlerDescriptor(speclock, "lock",
                 "*lock will toggle arena lock on or off, using lock in a pm will lock and spec or unlock a player in spec",

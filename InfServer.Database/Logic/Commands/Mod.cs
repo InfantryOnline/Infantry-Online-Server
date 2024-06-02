@@ -7,6 +7,7 @@ using InfServer.Protocol;
 using InfServer.Data;
 using InfServer.Network;
 using System.Xml.Linq;
+using System.Diagnostics;
 
 namespace InfServer.Logic
 {
@@ -537,44 +538,90 @@ namespace InfServer.Logic
                         }
                         break;
 
-                    case CS_Ban<Zone>.BanType.ip:
-                        {
-                            newBan.type = (short)Logic_Bans.Ban.BanType.IPBan;
-                            if (pkt.time == 0)
-                                newBan.expires = DateTime.Now;
-                            else
-                                newBan.expires = DateTime.Now.AddMinutes(pkt.time);
-                            newBan.created = DateTime.Now;
-                            newBan.uid1 = pkt.UID1;
-                            newBan.uid2 = pkt.UID2;
-                            newBan.uid3 = pkt.UID3;
-                            newBan.account = dbplayer.account;
-                            newBan.IPAddress = dbplayer.IPAddress;
-                            newBan.reason = pkt.reason;
-                            newBan.name = dbplayer.name;
-                        }
-                        break;
+                    //case CS_Ban<Zone>.BanType.ip:
+                    //    {
+                    //        newBan.type = (short)Logic_Bans.Ban.BanType.IPBan;
+                    //        if (pkt.time == 0)
+                    //            newBan.expires = DateTime.Now;
+                    //        else
+                    //            newBan.expires = DateTime.Now.AddMinutes(pkt.time);
+                    //        newBan.created = DateTime.Now;
+                    //        newBan.uid1 = pkt.UID1;
+                    //        newBan.uid2 = pkt.UID2;
+                    //        newBan.uid3 = pkt.UID3;
+                    //        newBan.account = dbplayer.account;
+                    //        newBan.IPAddress = dbplayer.IPAddress;
+                    //        newBan.reason = pkt.reason;
+                    //        newBan.name = dbplayer.name;
+                    //    }
+                    //    break;
 
-                    case CS_Ban<Zone>.BanType.global:
-                        {
-                            newBan.type = (short)Logic_Bans.Ban.BanType.GlobalBan;
-                            if (pkt.time == 0)
-                                newBan.expires = DateTime.Now;
-                            else
-                                newBan.expires = DateTime.Now.AddMinutes(pkt.time);
-                            newBan.created = DateTime.Now;
-                            newBan.uid1 = pkt.UID1;
-                            newBan.uid2 = pkt.UID2;
-                            newBan.uid3 = pkt.UID3;
-                            newBan.account = dbplayer.account;
-                            newBan.IPAddress = dbplayer.IPAddress;
-                            newBan.reason = pkt.reason;
-                            newBan.name = dbplayer.name;
-                        }
-                        break;
+                    //case CS_Ban<Zone>.BanType.global:
+                    //    {
+                    //        newBan.type = (short)Logic_Bans.Ban.BanType.GlobalBan;
+                    //        if (pkt.time == 0)
+                    //            newBan.expires = DateTime.Now;
+                    //        else
+                    //            newBan.expires = DateTime.Now.AddMinutes(pkt.time);
+                    //        newBan.created = DateTime.Now;
+                    //        newBan.uid1 = pkt.UID1;
+                    //        newBan.uid2 = pkt.UID2;
+                    //        newBan.uid3 = pkt.UID3;
+                    //        newBan.account = dbplayer.account;
+                    //        newBan.IPAddress = dbplayer.IPAddress;
+                    //        newBan.reason = pkt.reason;
+                    //        newBan.name = dbplayer.name;
+                    //    }
+                    //    break;
                 }
                 db.bans.InsertOnSubmit(newBan);
                 db.SubmitChanges();
+            }
+        }
+
+        static public void Handle_CS_Unban(CS_Unban<Zone> pkt, Zone zone)
+        {
+            // TODO: Have one enum, not three.
+
+            Logic_Bans.Ban.BanType banType;
+
+            if (pkt.banType == CS_Unban<Zone>.BanType.zone)
+            {
+                banType = Logic_Bans.Ban.BanType.ZoneBan;
+            }
+            else if (pkt.banType == CS_Unban<Zone>.BanType.account)
+            {
+                banType = Logic_Bans.Ban.BanType.AccountBan;
+            }
+            else
+            {
+                zone._server.sendMessage(zone, pkt.sender, "Unrecognized ban type. Contact server developers.");
+                return;
+            }
+
+            using (var db = zone._server.getContext())
+            {
+                var alias = db.alias.FirstOrDefault(x => x.name == pkt.alias);
+
+                if (alias == null)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                    return;
+                }
+
+                Debug.Assert(alias.account1 != null, "Missing DB FK Constraint.");
+
+                var bans = db.bans.Where(t => t.account == alias.account && t.type == (short)banType);
+
+                if (banType == Logic_Bans.Ban.BanType.ZoneBan)
+                {
+                    bans = bans.Where(t => t.zone == zone._zone.id);
+                }
+
+                db.bans.DeleteAllOnSubmit(bans);
+                db.SubmitChanges();
+
+                zone._server.sendMessage(zone, pkt.sender, "Any bans of the requested type has been removed.");
             }
         }
 
@@ -651,6 +698,7 @@ namespace InfServer.Logic
         static public void Register()
         {
             CS_Ban<Zone>.Handlers += Handle_CS_Ban;
+            CS_Unban<Zone>.Handlers += Handle_CS_Unban;
             CS_ModQuery<Zone>.Handlers += Handle_CS_ModQuery;
             CS_Stealth<Zone>.Handlers += Handle_CS_Stealth;
         }

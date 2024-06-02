@@ -197,6 +197,10 @@ namespace InfServer.Data
                     packet = new CS_Ban<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_Unban<T>.TypeID:
+                    packet = new CS_Unban<T>(typeID, buffer, offset, size);
+                    break;
+
                 case CS_Stealth<T>.TypeID:
                     packet = new CS_Stealth<T>(typeID, buffer, offset, size);
                     break;
