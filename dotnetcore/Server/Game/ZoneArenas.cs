@@ -5,6 +5,7 @@ using System.Security;
 using System.Threading;
 using Assets;
 using InfServer.Network;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace InfServer.Game
 {
@@ -173,9 +174,13 @@ namespace InfServer.Game
         {
             int maxPlayers = _zoneConfig.arena.maxPlayers;
             int playingDesired = _zoneConfig.arena.playingDesired;
-            if (_namedArenas.Count() > 0)
+            if (_namedArenas.Count() >= 1)
             {
                 if (!_arenas.ContainsKey(_namedArenas.FirstOrDefault().name))
+                {
+                    return newArena(_namedArenas.FirstOrDefault().name, true);
+                }
+                else
                 {
                     foreach (KeyValuePair<string, Arena> a in _arenas)
                     {
@@ -186,23 +191,22 @@ namespace InfServer.Game
                         }
                     }
                 }
-                else
-                {
-                    return newArena(_namedArenas.FirstOrDefault().name, true);
-                }
             }
-
-            foreach (KeyValuePair<string, Arena> a in _arenas)
+            else
             {
-                if (a.Key.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
-                {   //Is there space?
-                    if (a.Value.PlayerCount < playingDesired && a.Value.TotalPlayerCount < maxPlayers)
-                        return a.Value;
+                foreach (KeyValuePair<string, Arena> a in _arenas)
+                {
+                    if (a.Key.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
+                    {   //Is there space?
+                        if (a.Value.PlayerCount < playingDesired && a.Value.TotalPlayerCount < maxPlayers)
+                            return a.Value;
+                    }
                 }
             }
 
             //Make a new one
             return newArena("", false);
+
         }
 
         /// <summary>
