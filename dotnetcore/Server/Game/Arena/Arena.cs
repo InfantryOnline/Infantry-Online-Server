@@ -11,6 +11,9 @@ using InfServer.Network;
 using InfServer.Protocol;
 
 using Assets;
+using static Assets.CfgInfo;
+using InfServer.Game.Commands.Chat;
+using System.ComponentModel;
 
 namespace InfServer.Game
 {
@@ -611,6 +614,7 @@ namespace InfServer.Game
                             player.Bounty += (t.bountyAutoRate < 100 ? (_rand.Next(100) < t.bountyAutoRate ? 1 : 0) : (int)Math.Floor((double)t.bountyAutoRate / 100.0));
                         }
                     }
+
                 }
 
                 //Do we have any players that need to be unsilenced?
@@ -680,6 +684,7 @@ namespace InfServer.Game
                                 else if (carInfo.RemoveUnoccupiedTimer != 0 && vehicle._tickUnoccupied != 0 &&
                                     (now - vehicle._tickUnoccupied) > (carInfo.RemoveUnoccupiedTimer * 1000))
                                     vehicle.destroy(true);
+
                             }
                             break;
 
