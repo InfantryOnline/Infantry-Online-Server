@@ -229,7 +229,7 @@ namespace InfServer.Data
                     packet = new CS_ZoneUpdate<T>(typeID, buffer, offset, size);
                     break;
 
-				default:
+                default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);
 					break;

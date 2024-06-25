@@ -111,6 +111,16 @@ namespace InfServer.Logic
             recipient._client.sendReliable(zl, 1);
         }
 
+        static public void Handle_SC_DisconnectPlayer(SC_DisconnectPlayer<Database> pkt, Database db)
+        {
+            var player = db._server.getPlayer(pkt.alias);
+
+            if (player != null)
+            {
+                player.disconnect();
+            }
+        }
+
 		/// <summary>
 		/// Registers all handlers
 		/// </summary>
@@ -121,6 +131,7 @@ namespace InfServer.Logic
             SC_Whisper<Database>.Handlers += Handle_SC_Whisper;
             SC_Chat<Database>.Handlers += Handle_DB_Chat;
             SC_Zones<Database>.Handlers += Handle_SC_ZoneList;
+            SC_DisconnectPlayer<Database>.Handlers += Handle_SC_DisconnectPlayer;
 		}
 	}
 }

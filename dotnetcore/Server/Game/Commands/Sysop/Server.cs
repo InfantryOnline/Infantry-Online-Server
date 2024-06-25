@@ -253,6 +253,58 @@ namespace InfServer.Game.Commands.Mod
             player._server._db.send(pkt);
         }
 
+        static public void cmdhistory(Player player, Player recipient, string payload, int bong)
+        {
+            int page = 0;
+            string cmd = string.Empty;
+            string[] args = payload.Split(':');
+            bool pageIsFirst = Regex.IsMatch(args[0], @"^[0-9]+$");
+
+            if (!String.IsNullOrWhiteSpace(payload))
+            {
+                if (pageIsFirst)
+                {
+                    try
+                    {
+                        page = Convert.ToInt32(args[0]);
+                    }
+                    catch
+                    {
+                        page = 0; //Convert doesn't do negative numbers
+                    }
+                }
+                else
+                {
+                    //We are typing a cmd first
+                    cmd = args[0].Trim();
+
+                    if (payload.Contains(':'))
+                    {
+                        try
+                        {
+                            page = Convert.ToInt32(args[1]);
+                        }
+                        catch
+                        {
+                            page = 0; //Convert doesn't do negative numbers
+                        }
+                    }
+                }
+            }
+
+            // convert 1-indexed human entries to 0-indexed
+            if (page > 0)
+            {
+                page--;
+            }
+
+            CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
+            pkt.sender = player._alias;
+            pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.cmdhistory;
+            pkt.payload = String.Join(":", cmd, page.ToString());
+            player._server._db.send(pkt);
+        }
+
         /// <summary>
         /// Calls a shutdown of the current zone server
         /// </summary>
@@ -313,6 +365,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(history, "history",
                 "Returns a list of mod commands used in every server",
                 "*history [page], *history [name], or *history [name]:[page]",
+                InfServer.Data.PlayerPermission.Mod, false);
+
+            yield return new HandlerDescriptor(cmdhistory, "cmdhistory",
+                "Returns a list of aliases that used the command in every server",
+                "*history [page], *history [cmd], or *history [cmd]:[page]",
                 InfServer.Data.PlayerPermission.Mod, false);
 
             yield return new HandlerDescriptor(log, "log",

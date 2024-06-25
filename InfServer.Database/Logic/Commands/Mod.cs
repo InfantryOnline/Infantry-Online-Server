@@ -40,14 +40,15 @@ namespace InfServer.Logic
 
                             //The alias in question
                             InfServer.Database.alias alias = db.alias.FirstOrDefault(a => string.Compare(a.name, pkt.query, true) == 0);
-                            InfServer.Database.player playerA = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.query, true) == 0);
+                            InfServer.Database.player anyPlayer = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.query, true) == 0);
+
                             if (alias == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Can't find the alias in question, maybe its not created yet.");
                                 return;
                             }
 
-                            if (playerA == null)
+                            if (anyPlayer == null)
                             {
                                 //Since structure doesn't exist, go ahead and transfer
                                 alias.IPAddress = paliasTo.IPAddress.Trim();
@@ -59,32 +60,49 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            //Check for a squad
-                            if (playerA.squad != null)
+                            var players = db.players.Where(p => p.alias == alias.id).ToList();
+
+                            // Remove all players under this alias
+
+                            foreach(var p in players)
                             {
-                                IQueryable<InfServer.Database.player> squadmates = db.players.Where(plyr => plyr.zone == playerA.zone && plyr.squad != null && plyr.squad == playerA.squad);
-                                if (playerA.squad1.owner == playerA.id)
+                                if (p.squad != null)
                                 {
-                                    if (squadmates.Count() > 1)
+                                    var squadmates = db.players.Where(plyr => plyr.zone == p.zone && plyr.squad != null && plyr.squad == p.squad).ToList();
+
+                                    if (p.squad1.owner == p.id)
                                     {
-                                        InfServer.Database.player temp = squadmates.FirstOrDefault(p => p.id != playerA.id);
-                                        //Since the player is the owner, lets just give it to someone else
-                                        temp.squad1.owner = temp.id;
+                                        if (squadmates.Count() > 1)
+                                        {
+                                            var otherPlayer = squadmates.FirstOrDefault(plyr => plyr.id != p.id);
+                                            //Since the player is the owner, lets just give it to someone else
+                                            otherPlayer.squad1.owner = otherPlayer.id;
+                                        }
+                                        else if (squadmates.Count() == 1)
+                                        {
+                                            //Lets delete the squad
+                                            db.squads.DeleteOnSubmit(p.squad1);
+                                        }
                                     }
-                                    else if (squadmates.Count() == 1)
-                                    {
-                                        //Lets delete the squad
-                                        db.squads.DeleteOnSubmit(playerA.squad1);
-                                        db.SubmitChanges();
-                                    }
+                                    p.squad1 = null;
+                                    p.squad = null;
                                 }
-                                playerA.squad1 = null;
-                                playerA.squad = null;
+
+                                db.stats.DeleteOnSubmit(p.stats1);
+                                db.players.DeleteOnSubmit(p);
+
+                                var dailies = db.statsDailies.Where(s => s.player == p.id);
+                                var weeklies = db.statsWeeklies.Where(s => s.player == p.id);
+                                var monthlies = db.statsMonthlies.Where(s => s.player == p.id);
+                                var yearlies = db.statsYearlies.Where(s => s.player == p.id);
+
+                                db.statsDailies.DeleteAllOnSubmit(dailies);
+                                db.statsWeeklies.DeleteAllOnSubmit(weeklies);
+                                db.statsMonthlies.DeleteAllOnSubmit(monthlies);
+                                db.statsYearlies.DeleteAllOnSubmit(yearlies);
+
+                                db.SubmitChanges();
                             }
-                            //Lets delete stats/player structures
-                            //Note: the server will treat this as a new alias and create structures
-                            db.stats.DeleteOnSubmit(playerA.stats1);
-                            db.players.DeleteOnSubmit(playerA);
 
                             //Now lets transfer
                             alias.IPAddress = paliasTo.IPAddress.Trim();
@@ -106,47 +124,56 @@ namespace InfServer.Logic
 
                             //Lets get all account related info then delete it
                             InfServer.Database.alias palias = db.alias.FirstOrDefault(a => string.Compare(a.name, pkt.query, true) == 0);
-                            InfServer.Database.player player = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, pkt.query, true) == 0);
+
                             if (palias == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
                                 return;
                             }
 
-                            if (player == null)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified player.");
-                                return;
-                            }
+                            var players = db.players.Where(p => p.alias == palias.id).ToList();
 
-                            //Check for a squad
-                            if (player.squad != null)
+                            // Remove all players under this alias
+                            foreach (var p in players)
                             {
-                                IQueryable<InfServer.Database.player> squadmates = db.players.Where(plyr => plyr.zone == player.zone && plyr.squad != null && plyr.squad == player.squad);
-                                if (player.squad1.owner == player.id)
+                                if (p.squad != null)
                                 {
-                                    if (squadmates.Count() > 1)
+                                    var squadmates = db.players.Where(plyr => plyr.zone == p.zone && plyr.squad != null && plyr.squad == p.squad).ToList();
+
+                                    if (p.squad1.owner == p.id)
                                     {
-                                        InfServer.Database.player temp = squadmates.FirstOrDefault(p => p.id != player.id);
-                                        //Since the player is the owner, lets just give it to someone else
-                                        temp.squad1.owner = temp.id;
+                                        if (squadmates.Count() > 1)
+                                        {
+                                            var otherPlayer = squadmates.FirstOrDefault(plyr => plyr.id != p.id);
+                                            //Since the player is the owner, lets just give it to someone else
+                                            otherPlayer.squad1.owner = otherPlayer.id;
+                                        }
+                                        else if (squadmates.Count() == 1)
+                                        {
+                                            //Lets delete the squad
+                                            db.squads.DeleteOnSubmit(p.squad1);
+                                        }
                                     }
-                                    else if (squadmates.Count() == 1)
-                                    {
-                                        //Lets delete the squad
-                                        db.squads.DeleteOnSubmit(player.squad1);
-                                    }
-                                    db.SubmitChanges();
+                                    p.squad1 = null;
+                                    p.squad = null;
                                 }
-                                player.squad1 = null;
-                                player.squad = null;
+
+                                db.stats.DeleteOnSubmit(p.stats1);
+                                db.players.DeleteOnSubmit(p);
+
+                                var dailies = db.statsDailies.Where(s => s.player == p.id);
+                                var weeklies = db.statsWeeklies.Where(s => s.player == p.id);
+                                var monthlies = db.statsMonthlies.Where(s => s.player == p.id);
+                                var yearlies = db.statsYearlies.Where(s => s.player == p.id);
+
+                                db.statsDailies.DeleteAllOnSubmit(dailies);
+                                db.statsWeeklies.DeleteAllOnSubmit(weeklies);
+                                db.statsMonthlies.DeleteAllOnSubmit(monthlies);
+                                db.statsYearlies.DeleteAllOnSubmit(yearlies);
+
+                                db.SubmitChanges();
                             }
 
-                            //Now lets remove stats
-                            db.stats.DeleteOnSubmit(player.stats1);
-                            //Next the player structure
-                            db.players.DeleteOnSubmit(player);
-                            //Finally the alias
                             db.alias.DeleteOnSubmit(palias);
                             db.SubmitChanges();
                             zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
@@ -574,8 +601,22 @@ namespace InfServer.Logic
                     //    }
                     //    break;
                 }
+
                 db.bans.InsertOnSubmit(newBan);
                 db.SubmitChanges();
+
+                SC_DisconnectPlayer<Zone> dc = new SC_DisconnectPlayer<Zone>();
+                dc.alias = pkt.alias;
+
+                var server = zone._server;
+
+                foreach (Zone z in server._zones)
+                {
+                    if (z == null)
+                        continue;
+
+                    z._client.send(dc);
+                }
             }
         }
 

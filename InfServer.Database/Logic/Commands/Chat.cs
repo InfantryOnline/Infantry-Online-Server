@@ -536,6 +536,34 @@ namespace InfServer.Logic
                         }
                         break;
 
+                    case CS_ChatQuery<Zone>.QueryType.cmdhistory:
+                        {
+                            const int resultsPerPage = 30;
+                            string[] args = pkt.payload.Split(':');
+                            string cmd = args[0];
+                            int page = Convert.ToInt32(args[1]);
+
+                            zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
+
+                            cmd = cmd.ToLower();
+
+                            var commandHistory =
+                                db.histories.Where(h => h.command.ToLower().Contains(cmd))
+                                    .OrderByDescending(hist => hist.id)
+                                    .Skip(page * resultsPerPage)
+                                    .Take(resultsPerPage)
+                                    .ToList();
+
+                            //List them
+                            foreach (var h in commandHistory)
+                            {
+                                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                                    Convert.ToString(h.date), h.zone, h.arena, h.sender, h.recipient, h.command));
+                            }
+                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *cmdhistory 2, *cmdhistory 3, etc to navigate full history OR *cmdhistory cmd:2 *cmdhistory cmd:3 for command filtering.");
+                        }
+                        break;
+
                     case CS_ChatQuery<Zone>.QueryType.global:
                         foreach (Zone z in zone._server._zones)
                             z._server.sendMessage(z, "*", pkt.payload);

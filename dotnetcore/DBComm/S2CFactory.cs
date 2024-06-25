@@ -173,6 +173,10 @@ namespace InfServer.Data
                     packet = new SC_Zones<T>(typeID, buffer, offset, size);
                     break;
 
+				case SC_DisconnectPlayer<T>.TypeID:
+					packet = new SC_DisconnectPlayer<T>(typeID, buffer, offset, size);
+					break;
+
                 case Disconnect<T>.TypeID:
                     packet = new Disconnect<T>(typeID, buffer, offset, size);
                     break;

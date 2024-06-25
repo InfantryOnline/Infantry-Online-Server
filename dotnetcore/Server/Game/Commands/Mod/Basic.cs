@@ -2850,7 +2850,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
-            if ((recipient = player._arena.getPlayerByName(alias)) != null)
+            if ((recipient = player._server.getPlayer(alias)) != null)
             {
                 if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
                 {
@@ -3090,7 +3090,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
-            if ((recipient = player._arena.getPlayerByName(alias)) != null)
+            if ((recipient = player._server.getPlayer(alias)) != null)
             {
                 if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
                 {
@@ -3174,193 +3174,6 @@ namespace InfServer.Game.Commands.Mod
                 else
                     player.sendMessage(-1, "Syntax: ::*kill reason (optional) or *kill all");
             }
-        }
-
-        /// <summary>
-        /// Bans a player from a specific zone
-        /// </summary>
-        static public void ipban(Player player, Player recipient, string payload, int bong)
-        {
-            //Sanity check
-            if (player._server.IsStandalone)
-            {
-                player.sendMessage(-1, "Server is currently in stand-alone mode.");
-                return;
-            }
-
-            if (recipient == null && string.IsNullOrEmpty(payload))
-            {
-                player.sendMessage(-1, "Syntax: either ::*ipban time:reason(optional) or *ipban alias time:reason(optional)");
-                return;
-            }
-
-            string[] param;
-            string reason = "None given";
-            string alias;
-            int minutes = 0;
-            int number;
-
-            //Check to see if we are pm'ing someone
-            if (recipient != null)
-            {
-                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
-                {
-                    player.sendMessage(-1, "You can't ban someone equal or higher than you.");
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(payload))
-                {
-                    player.sendMessage(-1, "Syntax: ::*ipban time:reason(Optional)");
-                    return;
-                }
-
-                alias = recipient._alias.ToString();
-
-                if (payload.Contains(':'))
-                {
-                    //Lets snag both the time and reason here
-                    param = payload.Split(':');
-
-                    if (!Int32.TryParse(param[0], out number))
-                    {
-                        player.sendMessage(-1, "Syntax: ::*ipban time:reason(optional) Note: if using a reason, use : between time and reason");
-                        return;
-                    }
-
-                    try
-                    {
-                        minutes = Convert.ToInt32(number);
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-
-                    //Was a reason used?
-                    if (!string.IsNullOrEmpty(param[1]))
-                        reason = param[1];
-                }
-                else //Just check for a time
-                {
-                    if (!Int32.TryParse(payload, out number))
-                    {
-                        player.sendMessage(-1, "That is not a valid time. Syntax ::*ipban time:reason(Optional)");
-                        return;
-                    }
-
-                    try
-                    {
-                        minutes = Convert.ToInt32(number);
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-                }
-
-                //Let the person know
-                if (minutes > 0)
-                    recipient.sendMessage(0, string.Format("You are being banned for {0} minutes.", minutes));
-            }
-            else //Using an alias instead
-            {
-                int listStart = -1, listEnd = -1;
-                if (payload.Contains('"'))
-                {
-                    listStart = payload.IndexOf('"');
-                    listEnd = payload.IndexOf('"', listStart + 1);
-                    if (listStart != -1 && listEnd != -1)
-                        alias = payload.Substring(listStart + 1, (listEnd - listStart) - 1);
-                    else
-                    {
-                        player.sendMessage(-1, "Bad Syntax, use *ipban \"alias\" time:reason(optional)");
-                        return;
-                    }
-                }
-                else
-                {
-                    player.sendMessage(-1, "Syntax: *ipban \"alias\" time:reason(Optional) Note: Use quotations around the alias");
-                    return;
-                }
-
-                //Must be a timed ban with a reason?
-                if (payload.Contains(':'))
-                {
-                    param = payload.Split(':');
-                    string[] pick = param.ElementAt(0).Split(' ');
-                    try
-                    {
-                        minutes = Convert.ToInt32(pick.ElementAt(1)); //Without element1, it displays everything before ':'
-                    }
-                    catch
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-
-                    //Check if there is a reason
-                    if (!string.IsNullOrEmpty(param[1]))
-                        reason = param[1];
-                }
-                else //Just a timed ban
-                {
-                    string time;
-                    listStart = listEnd;
-                    if (listStart != -1)
-                    {
-                        time = payload.Substring(listStart + 1);
-                        if (time.Contains(' '))
-                            time = payload.Substring(listStart + 2);
-                    }
-                    else
-                    {
-                        player.sendMessage(-1, "Bad Syntax, use *ipban \"alias\" time:reason(optional)");
-                        return;
-                    }
-
-                    try
-                    {
-                        minutes = Convert.ToInt32(time);
-                    }
-                    catch
-                    {
-                        player.sendMessage(-1, "That is not a valid time.");
-                        return;
-                    }
-                }
-            }
-
-            //KILL HIM!! Note: putting it here because the person never see's the message before being dc'd
-            if ((recipient = player._arena.getPlayerByName(alias)) != null)
-            {
-                if (recipient.PermissionLevel >= player.PermissionLevel && !player._admin)
-                {
-                    player.sendMessage(-1, "You cannot ban someone equal or higher than you.");
-                    return;
-                }
-                recipient.disconnect();
-            }
-
-            player.sendMessage(0, string.Format("You are banning {0} for {1} minutes.", alias, minutes));
-
-            //Relay it to the database
-            CS_Ban<Data.Database> newBan = new CS_Ban<Data.Database>();
-            newBan.banType = CS_Ban<Data.Database>.BanType.ip;
-            newBan.alias = alias;
-            if (recipient != null)
-            {
-                newBan.UID1 = recipient._UID1;
-                newBan.UID2 = recipient._UID2;
-                newBan.UID3 = recipient._UID3;
-            }
-            newBan.time = minutes;
-            newBan.sender = player._alias;
-            newBan.reason = reason.ToString();
-
-            player._server._db.send(newBan);
         }
 
         /// <summary>
@@ -3607,11 +3420,6 @@ namespace InfServer.Game.Commands.Mod
                 "Gives moderator arena privileges to a player",
                 ":player:*moderator or *moderator [alias]",
                 InfServer.Data.PlayerPermission.Mod, true);
-
-            yield return new HandlerDescriptor(ipban, "ipban",
-                "IPBans a player from all zones",
-                "*ipban alias minutes:reason(optional) or :player:*ipban minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.SuperMod, false);
 
             yield return new HandlerDescriptor(helpcall, "helpcall",
                 "helpcall shows all helpcalls from all zones",

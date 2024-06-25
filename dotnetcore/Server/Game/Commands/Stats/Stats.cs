@@ -35,7 +35,7 @@ namespace InfServer.Game.Commands.Chat
                     continue;
                 }
 
-				string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",{3},{4},{5},{6},{7},{8}%,{9}%",
+				string row = String.Format("\"{0}\",\"{1}\",\"{2}\",{3},{4},{5},{6},{7},{8}%,{9}%",
 							p._alias, p._squad, (p._team == null ? "" : p._team._name),
 							stats.clientCurrentUpdate, stats.clientAverageUpdate, stats.clientShortestUpdate, stats.clientLongestUpdate, stats.clientLastUpdate,
 							stats.S2CPacketLoss.ToString("F1"), stats.C2SPacketLoss.ToString("F1"));
@@ -64,7 +64,7 @@ namespace InfServer.Game.Commands.Chat
                 }
 
                 //Append his stats
-				string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"{3}\",\"{4}\",{5},{6},{7},\"{8}\"",
+				string row = String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",{5},{6},{7},\"{8}\"",
 							p._alias, (p._squad == null ? "" : p._squad), (p._team == null ? "" : p._team._name),
 							p._baseVehicle._type.Name, (p._occupiedVehicle == null ? "" : p._occupiedVehicle._type.Name),
 							p.Experience, p.ExperienceTotal, p.Cash,
