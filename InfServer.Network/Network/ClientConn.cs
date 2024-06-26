@@ -116,6 +116,15 @@ namespace InfServer.Network
             _bOperating = true;
             _udp.BeginReceive(onDataRecieved, null);
 
+            //Send our initial packet
+            CS_Initial init = new CS_Initial();
+
+            _client._connectionID = init.connectionID = new Random().Next();
+            init.CRCLength = Client.crcLength;
+            init.udpMaxPacket = Client.udpMaxSize;
+
+            _client.send(init);
+
             //Restart the listen thread
             _listenThread = new Thread(new ThreadStart(listen));
             _listenThread.IsBackground = true;

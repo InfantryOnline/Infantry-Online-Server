@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>InfServer.DBComm</RootNamespace>
     <AssemblyName>InfServer.DBComm</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -101,7 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="C2SFactory.cs" />
-    <Compile Include="Helpers\Database.cs" />
     <Compile Include="Helpers\PacketIDs.cs" />
     <Compile Include="Packets\Commands\Chat\CS_ChartQuery.cs" />
     <Compile Include="Packets\Commands\Chat\CS_ChatQuery.cs" />
@@ -109,12 +108,15 @@
     <Compile Include="Packets\Commands\Chat\SC_ChatQuery.cs" />
     <Compile Include="Packets\Commands\Mod\CS_ModQuery.cs" />
     <Compile Include="Packets\Commands\Mod\CS_Ban.cs" />
+    <Compile Include="Packets\Commands\Mod\CS_Stealth.cs" />
+    <Compile Include="Packets\Commands\Mod\CS_Unban.cs" />
     <Compile Include="Packets\Login\CS_ArenaUpdate.cs" />
     <Compile Include="Packets\Login\CS_Auth.cs" />
     <Compile Include="Packets\Login\CS_PlayerLogin.cs" />
     <Compile Include="Packets\Login\SC_Auth.cs" />
     <Compile Include="Packets\Login\SC_PlayerLogin.cs" />
     <Compile Include="Packets\Player\CS_PlayerBannerAnimated.cs" />
+    <Compile Include="Packets\Player\SC_DisconnectPlayer.cs" />
     <Compile Include="Packets\Social\Chats\SC_LeaveChat.cs" />
     <Compile Include="Packets\Social\Chats\CS_LeaveChat.cs" />
     <Compile Include="Packets\Social\CS_ChatCommand.cs" />

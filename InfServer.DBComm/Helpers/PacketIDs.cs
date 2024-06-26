@@ -44,6 +44,8 @@ namespace InfServer.Protocol
                 ChartQuery = 24,
                 PlayerBannerAnimated = 25,
                 ZoneUpdate = 26,
+                Stealth = 27,
+                Unban = 28
             }
 
             ///<summary>
@@ -63,6 +65,7 @@ namespace InfServer.Protocol
                 Disconnect = 17,
                 ChartResponse = 24,
                 ChatQuery = 25,
+                DisconnectPlayer = 26,
             }
         }
     }

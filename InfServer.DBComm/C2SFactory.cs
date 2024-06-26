@@ -197,6 +197,14 @@ namespace InfServer.Data
                     packet = new CS_Ban<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_Unban<T>.TypeID:
+                    packet = new CS_Unban<T>(typeID, buffer, offset, size);
+                    break;
+
+                case CS_Stealth<T>.TypeID:
+                    packet = new CS_Stealth<T>(typeID, buffer, offset, size);
+                    break;
+
                 case CS_SquadMatch<T>.TypeID:
                     packet = new CS_SquadMatch<T>(typeID, buffer, offset, size);
                     break;
@@ -221,7 +229,7 @@ namespace InfServer.Data
                     packet = new CS_ZoneUpdate<T>(typeID, buffer, offset, size);
                     break;
 
-				default:
+                default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);
 					break;

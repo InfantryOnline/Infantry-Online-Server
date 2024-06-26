@@ -1,0 +1,395 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{92319419-09C9-449F-95A3-C2A659211D80}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>scripts</RootNamespace>
+    <AssemblyName>scripts</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Itanium'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Itanium\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>Itanium</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Debug\scripts.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Itanium'">
+    <OutputPath>bin\Itanium\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>Itanium</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\scripts.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;E:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Assets\Assets.csproj">
+      <Project>{4CAAE4EA-8F54-4FF7-A40A-EDB3949EDF18}</Project>
+      <Name>Assets</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InfServer.DBComm\InfServer.DBComm.csproj">
+      <Project>{8817E7B9-441E-45EF-B2BF-9E637DCCB868}</Project>
+      <Name>InfServer.DBComm</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InfServer.Network\InfServer.Network.csproj">
+      <Project>{5D556DA8-1878-46F3-8064-AC5338832BB4}</Project>
+      <Name>InfServer.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InfServer\InfServer.csproj">
+      <Project>{D5FE7923-118B-4DBE-B18C-26DBEC0A18F8}</Project>
+      <Name>InfServer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bots\DuelBot\DuelBot.cs" />
+    <Compile Include="Bots\FollowBot\FollowBot.cs" />
+    <Compile Include="Bots\TeamBot\TeamBot.cs" />
+    <Compile Include="GameTypes\AxiCTF\ZonePoll.cs" />
+    <Compile Include="GameTypes\Basic\Basic.cs" />
+    <Compile Include="GameTypes\BasketBall\Bball.cs" />
+    <Compile Include="GameTypes\Blank\Blank.cs" />
+    <Compile Include="GameTypes\BoomBall\BoomBall.cs" />
+    <Compile Include="GameTypes\BugHunt\BugHunt.cs" />
+    <Compile Include="GameTypes\AxiCTF\CTF.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Vote\VoteSystem.cs" />
+    <Compile Include="GameTypes\Conquest\CTF.cs" />
+    <Compile Include="GameTypes\Conquest\Warps.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\BasicDefense.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\Captain.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\Engineer.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\RoamingAttacker.cs" />
+    <Compile Include="GameTypes\CTFHQ\Bots\RoamingCaptain.cs" />
+    <Compile Include="GameTypes\CTF\OGCTF.cs" />
+    <Compile Include="GameTypes\CTFHQ\CTFHQ.cs" />
+    <Compile Include="GameTypes\CTFHQ\Objects\Headquarters.cs" />
+    <Compile Include="GameTypes\FantasyZone\Bots\BasicDefense.cs" />
+    <Compile Include="GameTypes\FantasyZone\Bots\BotHandler.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Books\BookInfo.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Books\Library.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Database.cs" />
+    <Compile Include="GameTypes\FantasyZone\Data\Recipes\RecipeInfo.cs" />
+    <Compile Include="GameTypes\FantasyZone\Fantasy.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Book.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Chest.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\HQ.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Recipe.cs" />
+    <Compile Include="GameTypes\FantasyZone\Objects\Vendor.cs" />
+    <Compile Include="GameTypes\GravBall\Gravball.cs" />
+    <Compile Include="GameTypes\HQ\Headquarters.cs" />
+    <Compile Include="GameTypes\Dodgeball\Dodgeball.cs" />
+    <Compile Include="GameTypes\Frontlines\TDM.cs" />
+    <Compile Include="GameTypes\HQ\Events.cs" />
+    <Compile Include="GameTypes\HQ\Objects\HQ.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\CTF.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\Gladiator.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\KOTH.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Gametypes\TDM.cs" />
+    <Compile Include="GameTypes\KOTH\Bots\CTBot.cs" />
+    <Compile Include="GameTypes\KOTH\Helpers\Teams.cs" />
+    <Compile Include="GameTypes\KOTH\KOTH.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Main.cs" />
+    <Compile Include="GameTypes\BurntMultiAss\Settings.cs" />
+    <Compile Include="GameTypes\KOTH\Bots\Velitor.cs" />
+    <Compile Include="GameTypes\LaserTag\Events.cs" />
+    <Compile Include="GameTypes\LaserTag\LaserTag.cs" />
+    <Compile Include="GameTypes\LaserTag\Objects\HQ.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\Projectile.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\RangeMinion.cs" />
+    <Compile Include="GameTypes\MOBA\Objects\Level.cs" />
+    <Compile Include="GameTypes\MOBA\Turrets\Tower.cs" />
+    <Compile Include="GameTypes\Multi\Bots\BotType.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Dropship\Actions\Actions.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Dropship\Dropship.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Dropship\Environment.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Dropship\Evaluation.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Dropship\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Dropship\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Dropship\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteHeavy\Actions\Actions.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteHeavy\EliteHeavy.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteHeavy\Environment.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteHeavy\Evaluation.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteHeavy\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteHeavy\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteHeavy\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteMarine\Actions\Actions.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteMarine\EliteMarine.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteMarine\Environment.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteMarine\Evaluation.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteMarine\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteMarine\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\EliteMarine\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoHeavy\Actions\Actions.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoHeavy\Environment.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoHeavy\Evaluation.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoHeavy\ExoHeavy.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoHeavy\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoHeavy\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoHeavy\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoLight\Actions\Actions.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoLight\Environment.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoLight\Evaluation.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoLight\ExoLight.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoLight\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoLight\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\ExoLight\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Gunship\Gunship.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Gunship\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Gunship\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Marine\Actions\Actions.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Marine\Environment.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Marine\Evaluation.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Marine\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Marine\Marine.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Marine\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Marine\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Medic\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Medic\Medic.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Medic\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Ripper\Actions\Actions.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Ripper\Environment.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Ripper\Evaluation.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Ripper\Items.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Ripper\Ripper.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Ripper\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Bots\Ripper\Steering.cs" />
+    <Compile Include="GameTypes\Multi\Events.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Conquest\BotHandler.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Conquest\Conquest.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Coop\BotHandler.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Coop\Coop.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Coop\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Coop\Spawn.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Objects\Boundary.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Objects\CapturePoint.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Objects\Fortification.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Objects\SupplyDrop.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\Royale\Royale.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Database\Attackers.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Database\Bots.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Database\Database.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Database\Items.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Database\Structures.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Helpers\Calculations.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Helpers\Structures.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Logic\Bots.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Logic\Commands.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Logic\Production.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Menus\Barracks.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Menus\Collections.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Menus\CommandCenter.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Menus\Defense.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Menus\Housing.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Menus\Production.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Menus\RefineryIron.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Game\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Objects\Attacker.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Objects\Building.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Objects\City.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Objects\Drop.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Objects\Structure.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\Objects\Unit.cs" />
+    <Compile Include="GameTypes\Multi\Gametypes\RTS\RTS.cs" />
+    <Compile Include="GameTypes\Multi\Helpers\BotSettings.cs" />
+    <Compile Include="GameTypes\Multi\Helpers\Teams.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Crafting.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Loot.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Range.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Rewards.cs" />
+    <Compile Include="GameTypes\Multi\Logic\TeamWarp.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Trading\Engineer.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Trading\Helmets.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Trading\Refinery.cs" />
+    <Compile Include="GameTypes\Multi\Logic\Upgrade.cs" />
+    <Compile Include="GameTypes\Multi\Main.cs" />
+    <Compile Include="GameTypes\Multi\Objects\Breakdown.cs" />
+    <Compile Include="GameTypes\Multi\Objects\CraftTable.cs" />
+    <Compile Include="GameTypes\Multi\Objects\LootDrop.cs" />
+    <Compile Include="GameTypes\Multi\Objects\LootInfo.cs" />
+    <Compile Include="GameTypes\Multi\Objects\LootTable.cs" />
+    <Compile Include="GameTypes\Multi\Objects\PlayerStats.cs" />
+    <Compile Include="GameTypes\Multi\Settings.cs" />
+    <Compile Include="GameTypes\Multi\Utility\ListReader.cs" />
+    <Compile Include="GameTypes\SKCTF\Objects\Points.cs" />
+    <Compile Include="GameTypes\SKCTF\SKCTF.cs" />
+    <Compile Include="GameTypes\SL\SLTDM.cs" />
+    <Compile Include="GameTypes\SoccerBrawl\SoccerBrawl.cs" />
+    <Compile Include="GameTypes\TDM\TDM.cs" />
+    <Compile Include="GameTypes\CTF\CTF_OvD\OvD.cs" />
+    <Compile Include="GameTypes\CTF\CTF.cs" />
+    <Compile Include="GameTypes\USL\Events\GamePlay.cs" />
+    <Compile Include="GameTypes\USL\Rating.cs" />
+    <Compile Include="GameTypes\USL\Settings\Settings.cs" />
+    <Compile Include="GameTypes\USL\USLMain.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\ChopperEnding.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\CombatBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\DualZombieBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\Turrets\EnergizerBotTurret.cs" />
+    <Compile Include="GameTypes\ZombieZone\Turrets\HealingBotTurret.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\KingZombieBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\Turrets\LaserTurret.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\RangedZombieBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\SuicideZombieBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\Bots\ZombieBot.cs" />
+    <Compile Include="GameTypes\ZombieZone\Turrets\SnareTrap.cs" />
+    <Compile Include="GameTypes\ZombieZone\ZombieTransitions.cs" />
+    <Compile Include="GameTypes\ZombieZone\ZombieZone.cs" />
+    <Compile Include="GameTypes\ZombieZone\ZombieZone.Stats.cs" />
+    <Compile Include="GameTypes\ZombieZone\ZZExtensions.cs" />
+    <Compile Include="Helpers\Functions.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\JungleBot.cs" />
+    <Compile Include="GameTypes\MOBA\Minions\MeleeMinion.cs" />
+    <Compile Include="GameTypes\MOBA\MOBA.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="GameTypes\Ambush\" />
+    <Folder Include="GameTypes\Basic\Objects\" />
+  </ItemGroup>
+</Project>

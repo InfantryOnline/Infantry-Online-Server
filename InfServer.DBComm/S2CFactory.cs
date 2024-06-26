@@ -177,7 +177,11 @@ namespace InfServer.Data
                     packet = new Disconnect<T>(typeID, buffer, offset, size);
                     break;
 
-				default:
+				case SC_DisconnectPlayer<T>.TypeID:
+                    packet = new SC_DisconnectPlayer<T>(typeID, buffer, offset, size);
+                    break;
+
+                default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);
 					break;

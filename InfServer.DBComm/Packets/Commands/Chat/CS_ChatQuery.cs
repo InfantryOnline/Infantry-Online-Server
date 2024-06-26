@@ -41,6 +41,7 @@ namespace InfServer.Protocol
             wipe,
             adminlist,
             accountignore,
+            cmdhistory
         }
 
 

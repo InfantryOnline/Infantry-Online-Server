@@ -10,369 +10,616 @@ If you need help with a specific bug or would like to report bugs or suggest ide
 ~B~1Patch/Update Notes~2~B
 ------------------------------------------------------------------------------------
 
-~B~4Revision:~B 314
-										Sunday, June 17th, 2012
-										11:41 PM~2
-~BNotes:~B 
+~B~4Revision:~B 528
+										Sunday, October 21st, 2018
+										8:46 PM~2
+~BNotes:~B Just fixing a run error for private servers. Duplicate script naming.
 ~BModifications~B
-	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
-~BCommited by:~B nebezb
+	~6M~2 /trunk/bin/scripts/GameTypes/USL/TDM.cs
+~BCommited by:~B mizzouse
 
 
-~B~4Revision:~B 313
-										Sunday, June 17th, 2012
-										11:27 PM~2
-~BNotes:~B 
-~BModifications~B
-	~6M~2 /trunk/InfServer.DBComm/Packets/Zone/SC_Zones.cs
-	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
-~BCommited by:~B nebezb
+~B~4Revision:~B 527
+										Thursday, June 28th, 2018
+										6:51 PM~2
+~BNotes:~B Updated: Skirmish league script(small 1 death bug fix) and USL script
+Blank.cs calls to match every call currently available in scriptArena.
 
-
-~B~4Revision:~B 312
-										Sunday, June 17th, 2012
-										11:20 PM~2
-~BNotes:~B 
-~BModifications~B
-	~6M~2 /trunk/InfServer.DBComm/Packets/Zone/SC_Zones.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 311
-										Sunday, June 17th, 2012
-										11:10 PM~2
-~BNotes:~B 
-~BModifications~B
-	~6M~2 /trunk/InfServer.DBComm/InfServer.DBComm.csproj
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 310
-										Sunday, June 17th, 2012
-										11:08 PM~2
-~BNotes:~B 
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
-	~6A~2 /trunk/InfServer.DBComm/Packets/Zone/SC_Zones.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
-	~6M~2 /trunk/InfServer/Database/Logic/Player.cs
-	~6M~2 /trunk/InfServer.DBComm/S2CFactory.cs
-	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
-	~6D~2 /trunk/InfServer.DBComm/Packets/Zone/SC_ZoneList.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 309
-										Sunday, June 17th, 2012
-										10:59 PM~2
-~BNotes:~B Packet definition for DCBomm SC_ZoneList
-~BModifications~B
-	~6A~2 /trunk/InfServer.DBComm/Packets/Zone/SC_ZoneList.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 308
-										Sunday, June 17th, 2012
-										10:53 PM~2
-~BNotes:~B A lot of updates, can't list them all right now.
-~BModifications~B
-	~6D~2 /trunk/InfServer/Protocol/Packets/Game/State/SC_Players.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
-	~6M~2 /trunk/InfServer.DBComm
-	~6M~2 /trunk/InfServer/Database/Logic/Player.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Sysop/Server.cs
-	~6M~2 /trunk/InfServer/InfServer.csproj
-	~6M~2 /trunk/InfServer.DBComm/InfServer.DBComm.csproj
-	~6M~2 /trunk/InfServer.DBComm/Structures/Zone.cs
-	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Query.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Stats/Stats.cs
-	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Mod
-	~6M~2 /trunk/InfServer/Protocol/Packets/State/SC_ZoneList.cs
-	~6M~2 /trunk/InfServer/Logic/Packets/Login/Login.cs
-	~6M~2 /trunk/InfServer.DBComm/Helpers/PacketIDs.cs
-	~6D~2 /trunk/InfServer.DBComm/InfServer.DBComm.csproj.user
-	~6M~2 /trunk/InfServer.DBComm/Packets/Login/CS_PlayerLogin.cs
-	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/SC_Find.cs
-	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Find.cs
-	~6M~2 /trunk/InfServer.DBComm/C2SFactory.cs
-	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
-	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/SC_Online.cs
-	~6D~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Online.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Mod/Account.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 307
-										Sunday, June 17th, 2012
-										6:33 PM~2
-~BNotes:~B Players with PermissionMode = Normal no longer get notified of others using generic commands (such as *help)
-Some updates to *environment, hopefully this will stop that annoying client crash bug and it will also be easier to read through
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Commands/Sysop/Server.cs
-	~6M~2 /trunk/InfServer/Logic/Helpers/Permit.cs
-	~6M~2 /trunk/InfServer/Game/Arena/ArenaSocial.cs
-	~6A~2 /trunk/InfServer/Logic/Helpers/Text.cs
-	~6M~2 /trunk/InfServer/Logic/Packets/Security/Security.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 306
-										Sunday, June 17th, 2012
-										4:26 PM~2
-~BNotes:~B Added Player.EnterArena event (called when a player enters the arena)
-Added ?email command (to update email associated with your account), usage: ?email password,newemail
-Added new message for those still using the old launcher for them to update
-Added a temporary message to everybody who joins an arena to update their email account. This will be removed soon
+Added:
+Missing breaks in directory json responder
+Communication commands parsing
+Banlist command
 
 ~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
-	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
-	~6M~2 /trunk/InfServer.DBComm/Helpers/PacketIDs.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
-	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
-	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_Query.cs
-	~6M~2 /trunk/bin/scripts/GameTypes/Dodgeball/Dodgeball.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 305
-										Sunday, June 17th, 2012
-										1:32 PM~2
-~BNotes:~B CS_AllowSpectator packet definition
-~BModifications~B
-	~6A~2 /trunk/InfServer/Protocol/Packets/Game/Action/CS_AllowSpectator.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 304
-										Sunday, June 17th, 2012
-										1:29 PM~2
-~BNotes:~B Added ability to enable/disable spectators (Esc. Menu -> Options -> Misc Options -> Allow spectators)
-~BModifications~B
-	~6D~2 /trunk/InfServer/Protocol/Packets/Game/Update/SC_PlayerStopSpectate.cs
-	~6D~2 /branches/InfCompress/InfCompress/InfCompress.suo
-	~6M~2 /trunk/InfServer/Protocol/Factory.cs
-	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
-	~6M~2 /trunk/InfServer/Protocol/Helpers/PacketIDs.cs
-	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
-	~6M~2 /trunk/InfServer/InfServer.csproj
-	~6M~2 /trunk/InfServer/Protocol/Helpers/Player.cs
-	~6M~2 /trunk/InfServer/Logic/Packets/Update/Game.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 303
-										Sunday, June 17th, 2012
-										11:48 AM~2
-~BNotes:~B Asset loader was skipping Icon graphic.
-~BModifications~B
-	~6M~2 /trunk/Assets/Itm/ItmInfo.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 302
-										Sunday, June 17th, 2012
-										11:31 AM~2
-~BNotes:~B Small addition just to make debugging on the server easier. Asset manager is still freaking out once in a while :s
-~BModifications~B
-	~6M~2 /trunk/Assets/Veh/VehInfo.cs
-	~6M~2 /trunk/InfServer/Game/Assets/AssetManager.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 301
-										Saturday, June 16th, 2012
-										12:09 PM~2
-~BNotes:~B Added *ticker [message],[index],[optional=color],[optional=timer]
-Fixed *kill all
-Added exception handling to team command. I don't know why it's breaking, but it is and it's getting annoying... so yeah. Until I find out what's wrong with it... that'll be there.
-Fixed some more SKCTF gametype stuff.
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/Blank/Blank.cs
 	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
-	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 300
-										Saturday, June 16th, 2012
-										11:12 AM~2
-~BNotes:~B SKCTF GameType (CTF/Ticketing system) completed. Should work on any zone. Employs flags so your zone must have flags.
-~BModifications~B
-	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 299
-										Saturday, June 16th, 2012
-										10:17 AM~2
-~BNotes:~B Really dumb mistake for player renaming...
-~BModifications~B
-	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
-	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 298
-										Saturday, June 16th, 2012
-										9:27 AM~2
-~BNotes:~B Some fixes to Ticketing system.
-Added DesiredTeams to return list of teams that are "desired"
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
-	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
-	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects/Tickets.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 297
-										Saturday, June 16th, 2012
-										9:18 AM~2
-~BNotes:~B Oops
-~BModifications~B
-	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects/Tickets.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 296
-										Saturday, June 16th, 2012
-										9:07 AM~2
-~BNotes:~B Added some exception handling to relative ID tracker for zones with invalid relative ID's to give slightly more detailed error messages
-Created a ticketing system gametype called SKCTF (much like Battlefields ticket system for CTF). Not finished, but mostly done.
-Fixed some weird bug with SC_PlayerLogin packet?
-~BModifications~B
-	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects
-	~6M~2 /trunk/InfServer/Game/Arena/ArenaLio.cs
-	~6M~2 /trunk/InfServer.DBComm/Packets/Login/SC_PlayerLogin.cs
-	~6M~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
-	~6M~2 /trunk/bin/scripts/Scripts.csproj
-	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF/Objects/Tickets.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 295
-										Saturday, June 16th, 2012
-										12:42 AM~2
-~BNotes:~B 
-~BModifications~B
-	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF/SKCTF.cs
-	~6A~2 /trunk/bin/scripts/GameTypes/SKCTF
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 294
-										Friday, June 15th, 2012
-										8:49 PM~2
-~BNotes:~B Database server being a jerk and not reflecting submitted zone info changes for some reason... ugly way of fixing it, don't even know why it works but it does. :/
-~BModifications~B
-	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 293
-										Friday, June 15th, 2012
-										8:19 PM~2
-~BNotes:~B 
-~BModifications~B
-	~6M~2 /trunk/InfServer/Logic/Packets/Login/Login.cs
-	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
-	~6M~2 /trunk/InfServer.DBComm/Packets/Login/SC_PlayerLogin.cs
-	~6M~2 /trunk/InfServer/Database/Logic/Player.cs
-	~6M~2 /trunk/InfServer.Database/Server/Objects/Zone.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 292
-										Friday, June 15th, 2012
-										5:45 PM~2
-~BNotes:~B Changing alias casing removed
-Added moderator spec locking (::*lock)
-Made some database structure adjustments
-Added a spec overload to avoid confusion
-Mods/SMods/SysOps have access to permission only zones without requirement of being permitted first
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
-	~6M~2 /trunk/InfServer.Database/Infantry.dbml
-	~6M~2 /trunk/bin/scripts/GameTypes/HQ/Events.cs
-	~6M~2 /trunk/InfServer/Logic/Packets/Login/Login.cs
-	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
-	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
-	~6M~2 /trunk/InfServer.Database/Infantry1.designer.cs
-	~6M~2 /trunk/InfServer.Database/Server/Objects/Zone.cs
-	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
-	~6M~2 /trunk/InfServer/Logic/Helpers/Permit.cs
-	~6M~2 /trunk/InfServer.Database/Infantry.dbml.layout
-	~6M~2 /trunk/bin/scripts/GameTypes/CTF/CTF_OvD/OvD.cs
-	~6M~2 /trunk/InfServer/Game/Arena/Arena.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 291
-										Tuesday, June 12th, 2012
-										8:07 PM~2
-~BNotes:~B *vehicle [id],[amount]. Give it a try :D it's fun.
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Commands/Mod/Vehicles.cs
-	~6M~2 /trunk/InfServer/Database/Logic/Social/Chats.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 290
-										Tuesday, June 12th, 2012
-										3:25 PM~2
-~BNotes:~B 
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 289
-										Thursday, June 7th, 2012
-										7:30 PM~2
-~BNotes:~B I love not testing updates before committing them. :/
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 288
-										Thursday, June 7th, 2012
-										7:28 PM~2
-~BNotes:~B 
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
-~BCommited by:~B nebezb
-
-
-~B~4Revision:~B 287
-										Thursday, June 7th, 2012
-										7:13 PM~2
-~BNotes:~B Implemented *shutup.
-Fixed ?summon/summon ignoring to work properly.
-~BModifications~B
-	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
-	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
-	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
-	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/InfServer.DirectoryServer/Directory/Protocol/HttpJsonResponder.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SL/SLTDM.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Registrar.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Communication.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/USL/Events/GamePlay.cs
 	~6M~2 /trunk/InfServer/Logic/Packets/Social/Chat.cs
-~BCommited by:~B nebezb
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/Libs/smartirc4net-1.0/bin/release/Meebey.SmartIrc4net.dll
+	~6M~2 /trunk/bin/scripts/GameTypes/USL/USLMain.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Account.cs
+~BCommited by:~B mizzouse
 
 
-~B~4Revision:~B 286
-										Tuesday, June 5th, 2012
-										6:32 AM~2
-~BNotes:~B Changed all active/dynamic list enumerations to enumerate a duplicated list (.ToList()). Hopefully this will stop all the errors with enumerating a modified list, but it will drastically slow down the script. If it doesn't work, it'll be reverted.
+~B~4Revision:~B 526
+										Tuesday, June 12th, 2018
+										4:24 PM~2
+~BNotes:~B Updated: CTF script
+
+Changed: Flags and switches have a range of 130 pixels now instead of 100 to match the clients range.
+
+Fixed: squad related commands, some of the commands weren't transferring ownership correctly because a squad owner was in the list as well and first() was called.
+Arena current game stats were throwing an error when a player's turret was active but the player wasn't in the arena anymore.
 ~BModifications~B
-	~6M~2 /trunk/bin/scripts/GameTypes/ZombieZone/ZombieZone.cs
-~BCommited by:~B nebezb
+	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_ChartQuery.cs
+	~6M~2 /trunk/InfServer/Protocol/Packets/Game/State/CS_PlayerDisconnected.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaLio.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Social/Banners.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Mod/CS_ModQuery.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_ChatQuery.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SoccerBrawl/SoccerBrawl.cs
+	~6M~2 /trunk/InfServer/Protocol/Factory.cs
+	~6M~2 /trunk/InfServer.DBComm/Helpers/PacketIDs.cs
+	~6M~2 /trunk/InfServer/Protocol/Helpers/PacketIDs.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/InfServer/Game/Objects/PlayerStats.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Stats/CS_StatsUpdate.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Mod.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/CTF/CTF.cs
+	~6M~2 /trunk/Libs/smartirc4net-1.0/bin/release/Meebey.SmartIrc4net.dll
+~BCommited by:~B mizzouse
 
 
-~B~4Revision:~B 285
-										Monday, June 4th, 2012
-										4:00 AM~2
-~BNotes:~B 
+~B~4Revision:~B 525
+										Saturday, June 2nd, 2018
+										2:01 AM~2
+~BNotes:~B Fixed: All ball related zones
+Ball drop packet fully reversed.
+SC_BallState sent correctly now.
+Updated all ball scripts to reflect this.
+Made ball handling nanoseconds faster
+
+Added: By request, when leaving a squad as the captain, have ownership transfer automatically.
+A check for a player leaving the arena or speccing out while holding a ball.
 ~BModifications~B
-	~6M~2 /trunk/bin/scripts/GameTypes/HQ/Headquarters.cs
-~BCommited by:~B nebezb
+	~6M~2 /trunk/InfServer/Protocol/Packets/Game/Soccer/CS_BallDrop.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SoccerBrawl/SoccerBrawl.cs
+	~6M~2 /trunk/InfServer.sln
+	~6M~2 /trunk/bin/scripts/GameTypes/BoomBall/BoomBall.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BasketBall/Bball.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Ball.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/GravBall/Gravball.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/InfServer/Protocol/Packets/Game/Soccer/SC_BallState.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 524
+										Wednesday, May 30th, 2018
+										4:21 PM~2
+~BNotes:~B Added: In Mini Account Server, sending their email back when requesting an account recovery which is partially hidden.
+Added a CS_ZoneUpdate packet used to update the database (Currently telling the server we have shutdown) 
+
+Fixed: 
+More modifications to the multiScript. All scripts initialize properly now.
+Fixed victory notifications from being spammed and timer now counts backwards.
+Reworked the whole Skirmish League script.
+Fixed an issue with squad joining, the captain if moved would have ownership of 2 squads at the same time causing weird errors.
+In client.cs, an action completed call was never removed so it'll keep firing the completion call back till the packet is removed hence duplication names when someone enters an arena will happen.
+
+Reverted:
+Adding the zone entry to the database, old way seemed faster.
+~BModifications~B
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Database/DatabaseClient.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/TDM.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Team.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Main.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SL/SLTDM.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/InfServer.DBComm/InfServer.DBComm.csproj
+	~6M~2 /trunk/InfServer.DBComm/Packets/Zone/Disconnect.cs
+	~6M~2 /trunk/InfServer.Network/Network/Client.cs
+	~6M~2 /trunk/InfServer/Protocol/Helpers/Player.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Listener.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Vote/VoteSystem.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SoccerBrawl/SoccerBrawl.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Settings.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
+	~6A~2 /trunk/InfServer.DBComm/Packets/Zone/CS_ZoneUpdate.cs
+	~6M~2 /trunk/InfServer.DBComm/Helpers/PacketIDs.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/KOTH.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/Gladiator.cs
+	~6M~2 /trunk/InfServer/Game/ZoneServer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /trunk/InfServer/Logic/General/Assets.Events.cs
+	~6M~2 /trunk/InfServer.DBComm/C2SFactory.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Mod.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/CTF.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/Libs/smartirc4net-1.0/bin/release/Meebey.SmartIrc4net.dll
+	~6M~2 /trunk/InfServer/Game/Arena/Arena.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 523
+										Thursday, May 10th, 2018
+										8:05 PM~2
+~BNotes:~B Small update to the launcher. 
+Realm suggested an auto fill function for registering.
+
+~BModifications~B
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/RegisterForm.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 522
+										Wednesday, May 9th, 2018
+										8:32 PM~2
+~BNotes:~B Optimized zone scripts
+Updated the blank.cs script.
+Fixed the slow sql database zone editing.
+Fixed the spec player doubling issue when there's server lag.
+Added to zone disconnecting a bool check for shutdowns which updates the sql database and sets the zone inactive.
+Added a shutdown command.
+Made shutdowns and recycling faster by a bool check.
+~BModifications~B
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Sysop/Server.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Zone/Disconnect.cs
+	~6M~2 /trunk/InfServer/Game/Objects/Player.cs
+	~6M~2 /trunk/InfServer/Protocol/Helpers/Player.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/USL/Events/GamePlay.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Commands/Chat/CS_ChatQuery.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Social/CS_ModCommand.cs
+	~6M~2 /trunk/InfServer.DBComm/Packets/Social/CS_ChatCommand.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/Blank/Blank.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Login.cs
+	~6M~2 /trunk/InfServer/Game/ZoneServer.cs
+	~6M~2 /trunk/InfServer/Game/Objects/PlayerStats.cs
+	~6M~2 /trunk/bin/Database/admins.xml
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/Libs/smartirc4net-1.0/bin/release/Meebey.SmartIrc4net.dll
+	~6M~2 /trunk/InfServer.Network/Logic/Connection.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 521
+										Monday, May 7th, 2018
+										10:55 PM~2
+~BNotes:~B Updated the burnt multi-script adding in CTF.
+~BModifications~B
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Settings.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/TDM.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/KOTH.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Main.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/Gladiator.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/CTF.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Vote/VoteSystem.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 520
+										Friday, May 4th, 2018
+										11:46 PM~2
+~BNotes:~B Forgot to add this file.
+~BModifications~B
+	~6A~2 /trunk/InfServer/Game/Commands/Chat/Communication.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 519
+										Friday, May 4th, 2018
+										6:18 PM~2
+~BNotes:~B Added a way to store current game stats while a player left/dc's and comes back.
+Updated the server and scripts to reflect this.
+Fixed minor bugs in the multi-script.
+
+~BModifications~B
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Settings.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/SoccerBrawl/SoccerBrawl.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/TDM.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/KOTH.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Main.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
+	~6M~2 /trunk/InfServer/Game/Objects/PlayerStats.cs
+	~6M~2 /trunk/InfServer/Game/ZoneArenas.cs
+	~6M~2 /trunk/InfServer/InfServer.csproj
+	~6M~2 /trunk/bin/scripts/GameTypes/BugHunt/BugHunt.cs
+	~6M~2 /trunk/Libs/smartirc4net-1.0/bin/release/Meebey.SmartIrc4net.dll
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Vote/VoteSystem.cs
+	~6M~2 /trunk/InfServer/Game/Arena/Arena.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 518
+										Monday, April 23rd, 2018
+										6:55 PM~2
+~BNotes:~B Minor fixes with the patcher.exe project and infantry launcher.
+Added a bypass signal from the patcher to the launcher to prevent upgrade loops.
+Added a check for player communication commands using % signs.(requested by players)
+Fixed a script error with burnts tdm script. Never ended game properly with a draw.
+~BModifications~B
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaUpdate.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/BurntMultiAss/Gametypes/TDM.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ScriptArena.cs
+	~6M~2 /branches/Patcher/Patcher/Logger/Log.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Registrar.cs
+	~6M~2 /branches/Patcher/Patcher/Patcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Program.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaSocial.cs
+	~6M~2 /branches/Patcher/Patcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Patcher/Patcher/Program.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 517
+										Sunday, April 15th, 2018
+										9:40 PM~2
+~BNotes:~B Added a check to bypass existing .png files for customed graphics.
+~BModifications~B
+	~6M~2 /branches/Patcher/Patcher/Protocol/AssetDownloader.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 516
+										Sunday, April 15th, 2018
+										8:43 PM~2
+~BNotes:~B Fixed a small bug with logging in and saving it to the .ini file.
+Added passwordLength to the registry, retrieves this for accuracy when having passwords saved.
+Added a check for the return values for logins.
+Did a roll back on the version of .net framework to run on xp machines.
+
+
+~BModifications~B
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/App.config
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/AccountServer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Controllers/AccountController.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Helpers/Register.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.Designer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Resources/Newtonsoft.Json.dll
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 515
+										Saturday, April 7th, 2018
+										2:07 AM~2
+~BNotes:~B Added:
+In case a file is missing, check in zones/Bin/assets folder before sending an error
+Usl script can now auto update its season number by checking the usl site
+Updated the server to allow someone to reset their password from the launcher
+
+Changed:
+Socket reading to async socket reading
+Player silencing set to arena based AND zone based
+
+Removed:
+Removed ?duelbot from usl scripting and instead made it its own command globally
+it will check to see if duelbots are available before attempting to spawn one
+Removed old stat server coding
+
+Fixed:
+Fixed the *history command to properly do aliases (Thanks to Sabotage for the coding)
+~BModifications~B
+	~6M~2 /trunk/InfServer.Network/Utility/Config/XmlConfig.cs
+	~6M~2 /trunk/InfServer/Game/Arena/ArenaState.cs
+	~6M~2 /trunk/InfServer.Network/Network/Server.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Chat/Commands.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Sysop/Server.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Bots.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/USL/Events/GamePlay.cs
+	~6M~2 /trunk/bin/scripts/GameTypes/USL/USLMain.cs
+	~6M~2 /trunk/InfServer.Database/Infantry.dbml
+	~6M~2 /trunk/Assets/AssetFiles/AssetFileFactory.cs
+	~6M~2 /trunk/InfServer/Game/Commands/Mod/Basic.cs
+	~6M~2 /trunk/InfServer.Database/Server/Objects/Zone.cs
+	~6M~2 /trunk/InfServer.Database/Infantry1.designer.cs
+	~6M~2 /trunk/InfServer.Database/Logic/Commands/Chat.cs
+	~6M~2 /trunk/InfServer/Logic/Packets/Social/Chat.cs
+	~6M~2 /trunk/InfServer/Logic/Helpers/FileExport.cs
+	~6M~2 /trunk/InfServer.Database/Infantry.dbml.layout
+	~6M~2 /trunk/InfServer/Game/ZoneIRC.cs
+	~6M~2 /trunk/Libs/smartirc4net-1.0/bin/release/Meebey.SmartIrc4net.dll
+	~6M~2 /trunk/InfServer/Game/Arena/Arena.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 514
+										Thursday, April 5th, 2018
+										7:47 PM~2
+~BNotes:~B Updated error checking for important files missing, reports it to the user.
+~BModifications~B
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 513
+										Thursday, April 5th, 2018
+										12:59 AM~2
+~BNotes:~B Fixed IniCompare to check in more detail for file version and credentials
+Added Newtonsoft.Json.dll to the resources, now compiles with it.
+Took out left over debuggers
+~BModifications~B
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+	~6A~2 /branches/Infantry Launcher/Infantry Launcher/Resources/Newtonsoft.Json.dll
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 512
+										Wednesday, April 4th, 2018
+										12:35 AM~2
+~BNotes:~B Fixed an error with status messages being shown.
+Added a check to the updater if the file version currently owned is higher than the sites.
+
+~BModifications~B
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Controllers/AssetDownloadController.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.Designer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 511
+										Thursday, August 17th, 2017
+										11:14 PM~2
+~BNotes:~B Floor Selection now does bounds checking.
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor.Rendering/MapRenderer.cs
+~BCommited by:~B jovan92647
+
+
+~B~4Revision:~B 510
+										Thursday, August 17th, 2017
+										11:06 PM~2
+~BNotes:~B Palette now resets scroll position when switching between them.
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteControl.cs
+~BCommited by:~B jovan92647
+
+
+~B~4Revision:~B 509
+										Thursday, August 17th, 2017
+										11:03 PM~2
+~BNotes:~B Palette Control now scrolls smoothly.
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteControl.cs
+~BCommited by:~B jovan92647
+
+
+~B~4Revision:~B 508
+										Thursday, August 17th, 2017
+										9:49 PM~2
+~BNotes:~B Map Renderer now handles resizing.
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor.Rendering/Renderers/FloorRenderer.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor.Rendering/MapRenderer.cs
+~BCommited by:~B jovan92647
+
+
+~B~4Revision:~B 507
+										Thursday, August 17th, 2017
+										9:33 PM~2
+~BNotes:~B Improved speed of floor rendering (way less nonsense being rendered now, not the best but it will do.)
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor.Rendering/Renderers/FloorRenderer.cs
+~BCommited by:~B jovan92647
+
+
+~B~4Revision:~B 506
+										Thursday, August 17th, 2017
+										9:24 PM~2
+~BNotes:~B Palette Renderer now only renders the items that are visible.
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor.Rendering/PaletteRenderer.cs
+~BCommited by:~B jovan92647
+
+
+~B~4Revision:~B 505
+										Thursday, August 17th, 2017
+										8:54 PM~2
+~BNotes:~B Implemented Palette for the map editor.
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteLayoutControl.resx
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/MainForm.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteControl.resx
+	~6M~2 /branches/InfMapEditor/InfMapEditor/InfMapEditor.csproj
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteLayoutControl.Designer.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor.DataStructures/BlobImage.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteLayoutControl.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteControl.Designer.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteControl.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor.Rendering/MapRenderer.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor.Rendering/PaletteRenderer.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor.Rendering/Renderers/SelectionRenderer.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Controllers/MapViewController.cs
+	~6D~2 /branches/InfMapEditor/InfMapEditor.Rendering/Renderer.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor.Rendering/InfMapEditor.Rendering.csproj
+~BCommited by:~B jovan92647
+
+
+~B~4Revision:~B 504
+										Wednesday, August 2nd, 2017
+										8:26 PM~2
+~BNotes:~B Updating map editor
+~BModifications~B
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/MainForm.resx
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Helpers/BlobLoader.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/new.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/redo.ico
+	~6M~2 /branches/InfMapEditor/InfMapEditor.FileFormats/Infantry/SpriteFile.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/cut.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/open folder.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/bulletAdd.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Palettes/MainPalette.Designer.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Properties/Resources.resx
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/bulletArrowUp.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/modern undo.ico
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/MainForm.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/paste.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteLayoutControl.Designer.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Palettes/MainPalette.resx
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Properties/Resources.Designer.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/cross.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteLayoutControl.resx
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/infantry.ico
+	~6M~2 /branches/InfMapEditor/InfMapEditor/InfMapEditor.csproj
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/save.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/modern redo.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/app.config
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Palettes/MainPalette.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Listener.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/undo.ico
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Views/Main/MainForm.Designer.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/copy.ico
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Properties/Settings.Designer.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Views/Main/Partials/PaletteLayoutControl.cs
+	~6M~2 /branches/InfMapEditor/InfMapEditor/Controllers/MainController.cs
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/find.ico
+	~6A~2 /branches/InfMapEditor/InfMapEditor/Resources/external.ico
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 503
+										Thursday, July 20th, 2017
+										5:20 PM~2
+~BNotes:~B Re-enabling the download sequence.
+Making error messages a bit more detailed.
+~BModifications~B
+	~6M~2 /branches/AssetFetch/AssetFetch/Protocol/AssetDownloader.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 502
+										Tuesday, July 18th, 2017
+										4:36 PM~2
+~BNotes:~B Changed the INI matching sequence
+~BModifications~B
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Helpers/IniSection.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 501
+										Monday, July 17th, 2017
+										7:23 PM~2
+~BNotes:~B More updates to the launcher
+Bug fixes and more status messages
+~BModifications~B
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/AssetDownloader.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/ReminderForm.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Controllers/AssetDownloadController.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.Designer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/RegisterForm.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 500
+										Friday, July 14th, 2017
+										6:33 PM~2
+~BNotes:~B Updated launcher and patcher
+~BModifications~B
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Database/DatabaseClient.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Helpers/IniFile.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Controllers/AssetDownloadController.cs
+	~6M~2 /branches/Patcher/Patcher/Protocol/AssetDownloader.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/AccountServer.cs
+	~6M~2 /branches/Patcher/Patcher/Logger/Log.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Helpers/MD5.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Helpers/Crypto.cs
+	~6M~2 /branches/Patcher/Patcher/Program.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Listener.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.Designer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/AssetDownloader.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Controllers/AccountController.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Program.cs
+	~6M~2 /branches/Patcher/Patcher/Protocol/Helpers/MD5.cs
+~BCommited by:~B mizzouse
+
+
+~B~4Revision:~B 499
+										Monday, July 10th, 2017
+										8:44 PM~2
+~BNotes:~B Update to the new launcher and other required programs
+~BModifications~B
+	~6A~2 /branches/Infantry Launcher/Infantry Launcher/Forms/ReminderForm.cs
+	~6A~2 /branches/Patcher/Patcher/Protocol
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Helpers/IniFile.cs
+	~6A~2 /branches/Patcher/Patcher/Protocol/Helpers
+	~6A~2 /branches/Patcher/Patcher/Logger/Log.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/AccountServer.cs
+	~6A~2 /branches/Infantry Launcher/Infantry Launcher/Forms/RecoveryForm.resx
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/AssemblyInfo.cs
+	~6A~2 /branches/Patcher/Patcher/Protocol/Helpers/Assets.cs
+	~6M~2 /branches/AssetFetch/AssetFetch/Protocol/AssetDownloader.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/Settings.Designer.cs
+	~6M~2 /branches/Patcher/Patcher/Program.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/RegisterForm.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/Helpers/IStatus.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/AssetDownloader.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/MiniAccountServer.csproj
+	~6M~2 /branches/Patcher/Patcher/Patcher.csproj
+	~6A~2 /branches/MiniAccountServer/MiniAccountServer/Helpers/Config/XmlConfig.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Controllers/AccountController.cs
+	~6A~2 /branches/MiniAccountServer/MiniAccountServer/Helpers
+	~6A~2 /branches/Infantry Launcher/Infantry Launcher/Forms/RecoveryForm.Designer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Infantry Launcher.csproj
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MessageBoxForm.cs
+	~6A~2 /branches/Infantry Launcher/Infantry Launcher/Forms/RecoveryForm.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.resx
+	~6A~2 /branches/Patcher/Patcher/Protocol/Helpers/MD5.cs
+	~6A~2 /branches/Infantry Launcher/Infantry Launcher/Forms/ReminderForm.Designer.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Database/DatabaseClient.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/App.config
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Protocol/Helpers/XmlParser.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Controllers/AssetDownloadController.cs
+	~6A~2 /branches/MiniAccountServer/MiniAccountServer/Helpers/Config/ConfigSetting.cs
+	~6A~2 /branches/Patcher/Patcher/Protocol/AssetDownloader.cs
+	~6M~2 /branches/InfXmlGenerator/InfXmlGenerator/Program.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Models/Account.cs
+	~6A~2 /branches/MiniAccountServer/MiniAccountServer/app.config
+	~6A~2 /branches/MiniAccountServer/MiniAccountServer/Helpers/Crypto.cs
+	~6M~2 /trunk/InfServer.DirectoryServer/Program.cs
+	~6A~2 /branches/Infantry Launcher/Infantry Launcher/Forms/ReminderForm.resx
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.Designer.cs
+	~6M~2 /branches/MiniAccountServer/MiniAccountServer/Listener.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MainForm.cs
+	~6A~2 /branches/Patcher/Patcher/Logger
+	~6A~2 /branches/Patcher/Patcher/Protocol/Helpers/XmlParser.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Properties/Resources.Designer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Forms/MessageBoxForm.Designer.cs
+	~6M~2 /branches/Infantry Launcher/Infantry Launcher/Program.cs
+	~6A~2 /branches/MiniAccountServer/MiniAccountServer/Helpers/Config
+~BCommited by:~B mizzouse
