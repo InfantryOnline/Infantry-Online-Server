@@ -12,10 +12,19 @@ namespace Infantry_Launcher.Helpers
         {
             if (line.Length == 0)
                 return;
-            int length = line.IndexOf('=');
-            if (length == -1)
-                throw new Exception("Keys must have an equal sign.");
-            base.Add(line.Substring(0, length), line.Substring(length + 1, line.Length - length - 1));
+            if (line.StartsWith(";")) // ; == comment line
+            {
+                base.Add(line, ""); // Just add the comment
+            }
+            else
+            {
+                int length = line.IndexOf('=');
+                if (length == -1)
+                {
+                    throw new Exception("Keys must have an equal sign.\n\n" + line);
+                }
+                base.Add(line.Substring(0, length), line.Substring(length + 1, line.Length - length - 1));
+            }
         }
 
         /// <summary>
