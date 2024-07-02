@@ -32,6 +32,12 @@ namespace InfServer.Game
             //Gather config settings
             Arena.maxItems = _config["arena/maxArenaItems"].intValue;
             Arena.maxVehicles = _config["arena/maxArenaVehicles"].intValue;
+
+            if (_config.Exists("arena/allowArenaCreation"))
+            {
+                Arena.allowArenaCreation = _config["arena/allowArenaCreation"].boolValue;
+            }
+
             if (_config["arena"].GetNamedChildrenCount("maxArenaBalls") > 0) //Exists
                 Arena.maxBalls = _config["arena/maxArenaBalls"].intValue;
             else

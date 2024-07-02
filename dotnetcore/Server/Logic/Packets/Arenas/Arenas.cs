@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using InfServer.Protocol;
 using InfServer.Game;
+using System.Threading;
 
 namespace InfServer.Logic
 {	// Logic_Arenas Class
@@ -24,19 +25,53 @@ namespace InfServer.Logic
 				return;
 			}
 
-			//If he's in an arena, get him out of it
-			if (player._arena != null)
-				player.leftArena();
+            var currentArena = player._arena;
 
-			//Does he have a specific arena to join?
-			Arena match = null;
+            //Does he have a specific arena to join?
+            Arena match = null;
+
+            //If he's in an arena, get him out of it
+            if (player._arena != null)
+            {
+                player.leftArena();
+            }
+
+            bool unableToCreate = false;
 
 			if (pkt.ArenaName != "" && pkt.ArenaName != "-2")
-				match = player._server.playerJoinArena(player, pkt.ArenaName);
+            {
+                const int minHour = 23; // 11 PM
+                const int maxHour = 11; // 11 AM
 
-			if (match == null)
-				//We need to find our player an arena to inhabit..
-				match = player._server.allocatePlayer(player);
+                var currentUtcTime = DateTime.UtcNow;
+                TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(currentUtcTime, easternZone);
+
+                var playerCanCreate = player.PermissionLevel == Data.PlayerPermission.HeadModAdmin || Arena.allowArenaCreation;
+                var arenaExists = player._server._arenas.Keys.FirstOrDefault(name => name.ToLower() == pkt.ArenaName.ToLower()) != null;
+                var withinPermittableCreationTime = easternTime.Hour >= minHour || easternTime.Hour < maxHour;
+
+                if (playerCanCreate || arenaExists || withinPermittableCreationTime)
+                {
+                    match = player._server.playerJoinArena(player, pkt.ArenaName);
+                }
+                else
+                {
+                    // Keep the player in the current arena.
+                    if (currentArena != null)
+                    {
+                        match = player._server.playerJoinArena(player, currentArena._name);
+                    }
+
+                    unableToCreate = true;
+                }
+            }
+
+            if (match == null)
+            {
+                //We need to find our player an arena to inhabit..
+                match = player._server.allocatePlayer(player);
+            }
 
 			//If we're unable to find an arena, abort
 			if (match == null)
@@ -48,6 +83,11 @@ namespace InfServer.Logic
 
 			//Add him to the arena
 			match.newPlayer(player);
+
+            if (unableToCreate)
+            {
+                player.sendMessage(-1, "Unable to create arenas at the moment.");
+            }
             
             //TODO: Compare to the server's checksum instead.
             if (player._assetCS == 0)

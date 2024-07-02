@@ -86,6 +86,7 @@ namespace InfServer.Game
         //Settings
         static public int maxVehicles;					//The maximum amount of vehicles we can have active
         static public int maxItems;						//The maximum amount of items we can have laying about
+        static public bool allowArenaCreation;          //True if we can create an arena at any time of the day.
         static public int maxBalls;                     //The maxium amount of playing balls we can have
 
         static public int gameCheckInterval;			//The frequency at which we check basic game state
