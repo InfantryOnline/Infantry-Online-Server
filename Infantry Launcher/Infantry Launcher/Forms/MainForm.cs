@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
+using Microsoft.Win32;
+using Microsoft.VisualBasic;
 
 using Infantry_Launcher.Helpers;
 using Infantry_Launcher.Controllers;
@@ -78,6 +81,14 @@ namespace Infantry_Launcher
         {
             string settingsIni = (Path.Combine(currentDirectory, "settings.ini"));
             string defaultIni = (Path.Combine(currentDirectory, "default.ini"));
+            string ddrawIniPath = (Path.Combine(currentDirectory, "ddraw.ini"));
+
+            if (File.Exists(ddrawIniPath))
+            {
+                ddrawIni = new IniFile(ddrawIniPath);
+                ddrawIni.Load();
+            }
+
             if (File.Exists(settingsIni))
             {   //Do a quick ini comparison to see if there hasn't been an ini update
                 IniCompare();
@@ -138,6 +149,8 @@ namespace Infantry_Launcher
                 catch //If they still dont exist just continue
                 { }
             }
+
+            SetDefaultRegistryKeys(false);
 
             LoadUserSettings();
             AcceptButton = PlayButton;
@@ -228,15 +241,15 @@ namespace Infantry_Launcher
             if (ServerInactive || isDownloading)
             { return; }
 
-            if (string.IsNullOrWhiteSpace(UsernameBox.Text))
+            if (string.IsNullOrWhiteSpace(UsernameBox.Text.Trim()))
             {
-                MessageBox.Show("Username cannot be blank.", "Infantry Online");
+                MessageBox.Show("Username cannot be blank.", "FreeInfantry");
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(PasswordBox.Text))
+            if (string.IsNullOrWhiteSpace(PasswordBox.Text.Trim()))
             {
-                MessageBox.Show("Password cannot be blank.", "Infantry Online");
+                MessageBox.Show("Password cannot be blank.", "FreeInfantry");
                 return;
             }
 
@@ -254,8 +267,10 @@ namespace Infantry_Launcher
                 case CheckState.Checked:
                     //Was the text changed? We don't overwrite till neccessary
                     if (pswdTextChanged == true)
-                    { settings["Credentials"]["Password"] = Md5.Hash(PasswordBox.Text.Trim()); }
-                    Register.WriteAddressKey("PasswordLength", "Launcher", PasswordBox.Text.Length.ToString());
+                    {
+                        settings["Credentials"]["Password"] = Md5.Hash(PasswordBox.Text.Trim());
+                        Register.WriteAddressKey("PasswordLength", "Launcher", (PasswordBox.Text.Trim()).Length.ToString());
+                    }
                     break;
 
                 case CheckState.Unchecked:
@@ -278,7 +293,7 @@ namespace Infantry_Launcher
             string[] response = AccountController.LoginServer(UsernameBox.Text.Trim(), pswd);
             if (response != null)
             {
-                if (MissingFile("infantry.exe"))
+                if (MissingFile("FreeInfantry.exe"))
                 { return; }
 
                 //Success, launch the game
@@ -286,7 +301,7 @@ namespace Infantry_Launcher
                 {
                     StartInfo =
                     {
-                        FileName = Path.Combine(Environment.CurrentDirectory, "infantry.exe"),
+                        FileName = Path.Combine(Environment.CurrentDirectory, "FreeInfantry.exe"),
                         Arguments = string.Format("/ticket:{0} /name:{1}", response[0], response[1])
                     }
                 }.Start();
@@ -323,6 +338,373 @@ namespace Infantry_Launcher
             pswdTextChanged = true;
         }
 
+        private void SetSingleHKCURegistryKey(string path, string valueName, object value, Boolean forceOverride = false)
+        {
+            RegistryKey currentUserRegistry = Registry.CurrentUser;
+
+            // Try to open the Requested Path
+            var reg = currentUserRegistry.OpenSubKey(path, true);
+            // If the Path does NOT exist
+            if (reg == null)
+            {
+                // Create the Path
+                reg = currentUserRegistry.CreateSubKey(path);
+            }
+
+            // If the Property does not exist OR if there is a forceOverride requested
+            if ((reg.GetValue(valueName) == null) || (forceOverride))
+            {
+                // Then set the value given (object takes any value, a number will be a DWORD and a string will be a STRING
+                reg.SetValue(valueName, value);
+            }
+
+            reg.Close();
+        }
+
+        private void SetDefaultRegistryKeys(Boolean forceOverride = false, string whichSection = "All")
+        {
+            // WINE ddraw override (Steam Deck, Steam Proton, Linux, Mac) (useless/harmless on Windows)
+            SetSingleHKCURegistryKey("Software\\Wine\\DllOverrides", "ddraw", "native,builtin", true);
+
+            string basePath = "Software\\HarmlessGames\\Infantry\\";
+
+            // MISC DEFAULTS
+            SetSingleHKCURegistryKey(basePath + "Misc", "Accepted", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "BL", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "BP", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "GlobalNewsCrc", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "HighPriority", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "LastProfile", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "LastVersionExecuted", 156, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "ReleaseNotesCrc", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "SC", 0, true);
+            SetSingleHKCURegistryKey(basePath + "Misc", "ST", 0, true);
+
+            // PROFILE DEFAULTS
+            for (int i = 0; i < 6; i++)
+            {
+                string baseProfilePath = basePath + "Profile" + i + "\\";
+
+                if ((whichSection == "All") || (whichSection == "Login") || (whichSection == "Profile"+(i+1)))
+                {
+                    SetSingleHKCURegistryKey(baseProfilePath + "Login", "name", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Login", "ParentName", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Login", "ServerName", "", forceOverride);
+                }
+
+                if ((whichSection == "All") || (whichSection == "Channels") || (whichSection == "Profile" + (i + 1)))
+                {
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel0", "newbies", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel1", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel2", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel3", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel4", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel5", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel6", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel7", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Chat", "Channel8", "", forceOverride);
+                }
+
+                if ((whichSection == "All") || (whichSection == "Zoom") || (whichSection == "Profile" + (i + 1)))
+                {
+                    SetSingleHKCURegistryKey(baseProfilePath + "HiddenOptions", "ZoomMax", 1000, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "HiddenOptions", "ZoomTime", 400, forceOverride);
+                }
+
+                if ((whichSection == "All") || (whichSection == "Controls") || (whichSection == "Profile" + (i + 1)))
+                {
+                    bool newControls = true;
+
+                    if (newControls) {
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "0", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "1", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "2", 22806528, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "3", 21757952, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "4", 32505856, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "5", 32768000, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "6", 17039360, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "7", 17825792, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "8", 4238848, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "9", 4236800, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "10", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "11", 262144, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "12", 524288, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "13", 18087936, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "14", 21233664, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "15", 23592960, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "16", 23068672, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "17", 17563648, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "18", 22544384, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "19", 21495808, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "20", 12845056, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "21", 13107200, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "22", 13369344, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "23", 13631488, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "24", 18350080, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "25", 1048576, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "26", 17301504, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "27", 0, forceOverride); // 2359296
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "28", 23330816, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "29", 22020096, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "30", 57933824, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "31", 57409536, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "32", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "33", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "34", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "35", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "36", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "37", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "38", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "39", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "40", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "41", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "42", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "43", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "44", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "45", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "46", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "47", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "48", 0, forceOverride); // 29884416
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "49", 31195136, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "50", 30932992, forceOverride); // 19660800
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "51", 30670848, forceOverride); // 19922944
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "52", 22282240, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "53", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "54", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "55", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "56", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "57", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "58", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "59", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "60", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "61", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "62", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "63", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "64", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "65", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "66", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "67", 18874368, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "68", 18612224, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "69", 1310720, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisDeadzone", 8000, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisRotate", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisStrafe", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisThrust", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "EnterForMessages", 1, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "LeftRight", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MouseLeft", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MouseMiddle", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MouseRight", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MovementMode", 3, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "ReservedFirstLetters", "~ `+-", forceOverride);
+                    } else {
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "0", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "1", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "2", 22806528, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "3", 21757952, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "4", 12845056, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "5", 13107200, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "6", 17039360, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "7", 17825792, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "8", 4238848, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "9", 4236800, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "10", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "11", 262144, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "12", 1048576, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "13", 524288, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "14", 21233664, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "15", 18087936, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "16", 4456448, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "17", 21495808, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "18", 18350080, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "19", 8388608, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "20", 18612224, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "21", 18874368, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "22", 9437184, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "23", 18874368, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "24", 22020096, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "25", 23330816, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "26", 22282240, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "27", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "28", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "29", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "30", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "31", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "32", 4718592, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "33", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "34", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "35", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "36", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "37", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "38", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "39", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "40", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "41", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "42", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "43", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "44", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "45", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "46", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "47", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "48", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "49", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "50", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "51", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "52", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "53", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "54", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "55", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "56", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "57", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "58", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "59", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "60", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "61", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "62", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "63", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "64", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "65", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "66", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "67", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "68", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "69", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisDeadzone", 8000, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisRotate", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisStrafe", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "AxisThrust", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "EnterForMessages", 1, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "LeftRight", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MouseLeft", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MouseMiddle", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MouseRight", 0, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "MovementMode", 3, forceOverride);
+                        SetSingleHKCURegistryKey(baseProfilePath + "Keyboard", "ReservedFirstLetters", "~ `+-", forceOverride);
+                    }
+                }
+
+                if ((whichSection == "All") || (whichSection == "Chat") || (whichSection == "Profile" + (i + 1)))
+                {
+
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "Alarm", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "Entering", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterChat", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterKill", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterPopup", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterPrivate", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterPublic", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterPublicMacro", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterSquad", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterSystem", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FilterTeam", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "FixCase", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "Height", 84, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "Leaving", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Message", "NameWidth", 84, forceOverride);
+                }
+
+                if ((whichSection == "All") || (whichSection == "Interface") || (whichSection == "Profile" + (i + 1)))
+                {
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "AdjustSoundDelay", 5, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "AlternateClock", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "AutoLogMessages", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "AvoidPageFlipping", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "BannerCacheSize", 500, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "BlockObscene2", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ChatChannelEntering", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "CoordinateMode", 3, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "DeathMessageMode", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "DetailLevel", 2, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "DisableJoystick", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "DisplayLosAlpha", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "DisplayLosMode", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "DisplayMapGrid", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "EnergyPercent", 600, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "EnvironmentAudio", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "FakeAlpha", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "HideSmartTrans", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "IsAllowSpectators", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "MainRectBottom", 1199, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "MainRectLeft", 38, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "MainRectRight", 1052, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "MainRectTop", 632, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "NotepadLastWidth", 160, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "NotepadWidth", 160, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "PlayerListHeightPercent", 3506, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "PlayerSortMode", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RadarGammaPercent", 1000, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RenderBackground", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RenderParallax", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RenderStarfield", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RollMode", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RotateRampTime", 25, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RotationCount", 64, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "RotationSounds", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "SDirectoryAddress", "infdir1.aaerox.com", true); // FORCED
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "SDirectoryAddressBackup", "infdir2.aaerox.com", true); // FORCED
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowAimingTick", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowBallTrails", 500, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowBanners", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowClock", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowDifficultyLevel", 100, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowEnemyThrust", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowEnergyBar", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowFrameRate", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowHealthGuage", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowKeystrokes", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowLogo", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowMessageType", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowPhysics", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowSelfName", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowTerrain", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowTrails", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowVehiclePhysics", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ShowVision", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "SkipSplash", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "Sound3d", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "SoundVolume", 10, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "Squad", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "SquadPassword", "", forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ThrustSounds", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "TipOfDay", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "TipOfDayPosition", 12, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "TransparentMessageArea", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "TransparentNotepad", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "TripleBuffer", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "UseSystemBackBuffer", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "UseSystemVirtualBuffer", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "UseSystemZoomBuffer", 0, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "VertSync", 1, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ViewPercentToEdge", 500, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ViewSpeed", 5, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ZoneSpecificMacros", 0, forceOverride);
+                }
+
+                if ((whichSection == "All") || (whichSection == "Resolution") || (whichSection == "Profile" + (i + 1)))
+                {
+                    // Set Next Values to Current Monitor Resolution
+                    Screen myScreen = Screen.PrimaryScreen; //Screen.FromControl(UsernameBox);
+                    Rectangle area = myScreen.Bounds;
+
+                    int defaultWidth = area.Width;
+                    int defaultHeight = area.Height;
+
+                    /*
+                    if (defaultWidth > 1920)
+                    {
+                        defaultWidth = 1920;
+                    }
+                    if (defaultHeight > 1080)
+                    {
+                        defaultHeight = 1080;
+                    }
+                    */
+
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ResolutionX", defaultWidth, forceOverride);
+                    SetSingleHKCURegistryKey(baseProfilePath + "Options", "ResolutionY", defaultHeight, forceOverride);
+                }
+            }
+        }
+
         private void LoadUserSettings()
         {
             string user = settings.Get("Credentials","Username");
@@ -340,7 +722,10 @@ namespace Infantry_Launcher
             string test = string.Empty;
             int length;
             if (string.IsNullOrEmpty(data) || !int.TryParse(data, out length))
-            { return; }
+            {
+                length = 8; // IF WE DON'T KNOW HOW LONG, JUST PUT IN 8 ASTERISKS.
+                //return;
+            }
 
             for (int c = 0; c < length; c++)
             { test += "*"; }
@@ -385,16 +770,40 @@ namespace Infantry_Launcher
         /// </summary>
         private void CheckForUpdates()
         {
+
+            UpdateStatusMsg("Checking for server message...", true);
+
+            try
+            {
+            string launcherAlertMessage = new System.Net.WebClient().DownloadString(settings.Get("Launcher", "LauncherAssets") + "alert.txt");
+
+                if (!string.IsNullOrWhiteSpace(launcherAlertMessage.Trim()))
+                {
+                    MessageBox.Show(launcherAlertMessage, "Launcher Alert");
+                }
+            }
+            catch
+            { /* do nothing, okay to skip */ }
+
+
+            // Creating a FAT installer/launcher without Auto Asset Downloading
+            /*
             //Check to see if we are bypassing
             if (BypassDownload)
             { //We are, bypass downloading
+            */
                 UpdateComplete();
                 return;
+            /*
             }
+            */
 
+            // Removing Launcher "Auto-Update"
+            /*
             UpdateStatusMsg("Checking for launcher updates...", true);
             AssetDownloadController.CurrentDirectory = currentDirectory;
             AssetDownloadController.SetForm(this);
+
             try
             {
                 string version = settings.Get("Launcher","Version");
@@ -414,6 +823,8 @@ namespace Infantry_Launcher
             }
             catch
             { UpdateStatusMsg("Cannot download launcher updates....Skipping."); }
+
+            */
 
             UpdateFiles();
         }
@@ -478,7 +889,9 @@ namespace Infantry_Launcher
         /// </summary>
         private void UpdateComplete()
         {
-            UpdateStatusMsg("Updating complete...");
+            // Creating a FAT installer/launcher without Auto Asset Downloading
+            UpdateStatusMsg("Game is up to date. Sign in and press Play!");
+            //UpdateStatusMsg("Updating complete...");
             PlayButton.Enabled = true;
             isDownloading = false;
 
@@ -724,11 +1137,367 @@ namespace Infantry_Launcher
         #endregion
 
         private IniFile settings;
+        private IniFile ddrawIni;
         private string currentDirectory;
         private Image imgBtnOff;
         private Image imgBtnOn;
         private bool serverInactive;
         private bool isDownloading;
         private bool pswdTextChanged;
+        private ContextMenu buttonMenu;
+        private string currentZoomSpeed = "400";
+
+        private void setupGearButtonMenu()
+        {
+
+            // TODO: clear memory if already initialized...
+
+            string zoomTimeDataGet = Register.GetKeyData("ZoomTime", "Profile0\\HiddenOptions");
+
+            // MessageBox.Show("zoomTimeDataGet = " + zoomTimeDataGet);
+
+            if (!string.IsNullOrEmpty(zoomTimeDataGet)) {
+                currentZoomSpeed = zoomTimeDataGet;
+            }
+
+            MenuItem advancedMenu = new MenuItem("Advanced");
+
+            // TODO: check if ddrawIni loaded correctly!
+            bool ddrawIniExists = (ddrawIni != null);
+
+            if (ddrawIniExists) {
+                string currentDDrawRenderer = ddrawIni.Get("ddraw", "renderer");
+                //string currentResolutionsNumber = ddrawIni.Get("infantry", "resolutions"); // ("FreeInfantry", "resolutions")
+                string currentMouseIsUnlocked = ddrawIni.Get("ddraw", "devmode");
+                
+                MenuItem ddrawMenu = new MenuItem("cnc-ddraw");
+                MenuItem ddrawMenuRendererAuto = new MenuItem("Set renderer to auto (dx9/opengl)", gear_action_ddraw_change);
+                ddrawMenuRendererAuto.Checked = (currentDDrawRenderer == "auto");
+                ddrawMenu.MenuItems.Add(ddrawMenuRendererAuto);
+                MenuItem ddrawMenuRendererDx9 = new MenuItem("Set renderer to dx9", gear_action_ddraw_change);
+                ddrawMenuRendererDx9.Checked = (currentDDrawRenderer == "direct3d9");
+                ddrawMenu.MenuItems.Add(ddrawMenuRendererDx9);
+                MenuItem ddrawMenuRendererOpenGL = new MenuItem("Set renderer to opengl", gear_action_ddraw_change);
+                ddrawMenuRendererOpenGL.Checked = (currentDDrawRenderer == "opengl");
+                ddrawMenu.MenuItems.Add(ddrawMenuRendererOpenGL);
+                ddrawMenu.MenuItems.Add(new MenuItem("-"));
+                MenuItem ddrawMenuMouseSetLocked = new MenuItem("Lock Mouse to Game Window", gear_action_ddraw_change);
+                ddrawMenuMouseSetLocked.Checked = (currentMouseIsUnlocked == "false");
+                ddrawMenu.MenuItems.Add(ddrawMenuMouseSetLocked);
+                MenuItem ddrawMenuMouseSetUnlocked = new MenuItem("Unlock Mouse from Game Window", gear_action_ddraw_change);
+                ddrawMenuMouseSetUnlocked.Checked = (currentMouseIsUnlocked == "true");
+                ddrawMenu.MenuItems.Add(ddrawMenuMouseSetUnlocked);
+                /*
+                ddrawMenu.MenuItems.Add(new MenuItem("-"));
+                MenuItem ddrawMenuResolutionsFull = new MenuItem("Set resolutions to 2 (Full List)", gear_action_ddraw_change);
+                ddrawMenuResolutionsFull.Checked = (currentResolutionsNumber == "2");
+                ddrawMenu.MenuItems.Add(ddrawMenuResolutionsFull);
+                MenuItem ddrawMenuResolutionsSmall = new MenuItem("Set resolutions to 0 (Small List)", gear_action_ddraw_change);
+                ddrawMenuResolutionsSmall.Checked = (currentResolutionsNumber == "0");
+                ddrawMenu.MenuItems.Add(ddrawMenuResolutionsSmall);
+                */
+
+                advancedMenu.MenuItems.Add(ddrawMenu);
+            }
+
+
+            // Zoom Speed 
+            MenuItem zoomSpeedMenu = new MenuItem("Zoom Speed ("+currentZoomSpeed+")");
+            MenuItem zoomSpeedSetTo400 = new MenuItem("Reset to default: 400", gear_action_zoomspeed_change);
+            MenuItem zoomSpeedSetToOther = new MenuItem("Set to other...", gear_action_zoomspeed_change);
+
+            if (currentZoomSpeed != "400") {
+                zoomSpeedMenu.MenuItems.Add(zoomSpeedSetTo400);
+            }
+            zoomSpeedMenu.MenuItems.Add(zoomSpeedSetToOther);
+
+            advancedMenu.MenuItems.Add(zoomSpeedMenu);
+
+            // FPS Drawing
+            MenuItem fpsLimitMenu = new MenuItem("FPS Drawing Limit");
+            MenuItem fpfLimitMenuProfiles = new MenuItem("Settings Profile");
+            MenuItem[] fpfLimitMenuProfilesEach = new MenuItem[6];
+            for (int i = 0; i < fpfLimitMenuProfilesEach.Length; i++)
+            {
+                // TODO: check if set to 60 or unlimited currently...
+                // TODO, check ddraw setting
+                // TODO: check registry settings for limiting...
+
+                fpfLimitMenuProfilesEach[i] = new MenuItem("Profile #" + (i + 1));
+
+                MenuItem fpfLimitMenuProfilesEachSetTo60 = new MenuItem("Set Profile #" + (i + 1) + " FPS limit to: 60", gear_action_fpslimit_change);
+                //fpfLimitMenuProfilesEachSetTo60.Checked = (currentFPSLimit == 60);
+                fpfLimitMenuProfilesEach[i].MenuItems.Add(fpfLimitMenuProfilesEachSetTo60);
+
+                MenuItem fpfLimitMenuProfilesEachSetToUnlimited = new MenuItem("Set Profile #" + (i + 1) + " FPS limit to: UNLIMITED", gear_action_fpslimit_change);
+                //fpfLimitMenuProfilesEachSetTo60.Checked = (currentFPSLimit == 60);
+                fpfLimitMenuProfilesEach[i].MenuItems.Add(fpfLimitMenuProfilesEachSetToUnlimited);
+
+                fpfLimitMenuProfiles.MenuItems.Add(fpfLimitMenuProfilesEach[i]);
+            }
+            fpsLimitMenu.MenuItems.Add(fpfLimitMenuProfiles);
+            MenuItem fpsLimitMenuSetTo60 = new MenuItem("Set all FPS to: 60", gear_action_fpslimit_change);
+            //fpsLimitMenuSetTo60.Checked = (currentFPSLimit == 60);
+            fpsLimitMenu.MenuItems.Add(fpsLimitMenuSetTo60);
+            MenuItem fpsLimitMenuSetToUnlimited = new MenuItem("Set all FPS to: UNLIMITED", gear_action_fpslimit_change);
+            //fpsLimitMenuSetToUnlimited.Checked = (currentFPSLimit == 0);
+            fpsLimitMenu.MenuItems.Add(fpsLimitMenuSetToUnlimited);
+
+            advancedMenu.MenuItems.Add(fpsLimitMenu);
+
+            MenuItem resetMenu = new MenuItem("Reset/Clear");
+            MenuItem specificSettingsProfile = new MenuItem("Settings Profile");
+            for (int i = 0; i < 6; i++)
+            {
+                specificSettingsProfile.MenuItems.Add(new MenuItem("Reset Profile #" + (i + 1) + "...", gear_action_clear_settings));
+            }
+            resetMenu.MenuItems.Add(specificSettingsProfile);
+            resetMenu.MenuItems.Add(new MenuItem("Saved Login...", gear_action_clear_settings));
+            //resetMenu.MenuItems.Add(new MenuItem("All Key/Mouse Controls...", gear_action_clear_settings));
+            resetMenu.MenuItems.Add(new MenuItem("All Registry Settings...", gear_action_clear_settings));
+
+            MenuItem[] menuItems = new MenuItem[] { resetMenu, advancedMenu, new MenuItem("Close") };
+
+            buttonMenu = new ContextMenu(menuItems);
+        }
+
+
+        private void GearButton_Click(object sender, EventArgs e)
+        {
+            setupGearButtonMenu();
+            buttonMenu.Show(GearButton, new System.Drawing.Point(11, 11));
+        }
+
+        private void set_fpslimit_for_profile(int profileNumber, int fpslimit = 60)
+        {
+            if (ddrawIni != null)
+            {
+                ddrawIni["ddraw"]["maxgameticks"] = "0";
+                ddrawIni.Save();
+            }
+
+            string basePath = "Software\\HarmlessGames\\Infantry\\";
+            string baseProfilePath = basePath + "Profile" + (profileNumber-1) + "\\";
+
+            if (fpslimit == -1) // -1 = unlimited...
+            {
+                SetSingleHKCURegistryKey(baseProfilePath + "Options", "AvoidPageFlipping", 1, true);
+                SetSingleHKCURegistryKey(baseProfilePath + "Options", "UseSystemBackBuffer", 1, true);
+                SetSingleHKCURegistryKey(baseProfilePath + "Options", "UseSystemVirtualBuffer", 1, true);
+            }
+            else
+            {
+                SetSingleHKCURegistryKey(baseProfilePath + "Options", "AvoidPageFlipping", 0, true);
+                SetSingleHKCURegistryKey(baseProfilePath + "Options", "UseSystemBackBuffer", 0, true);
+                SetSingleHKCURegistryKey(baseProfilePath + "Options", "UseSystemVirtualBuffer", 0, true);
+            }
+        }
+
+        private void gear_action_zoomspeed_change(object sender, EventArgs e)
+        {
+            MenuItem sentMenuItem = sender as MenuItem;
+
+            // TODO!
+            if (sentMenuItem.Text == "Reset to default: 400")
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    string basePath = "Software\\HarmlessGames\\Infantry\\";
+                    string baseProfilePath = basePath + "Profile" + i + "\\";
+                    SetSingleHKCURegistryKey(baseProfilePath + "HiddenOptions", "ZoomTime", 400, true);
+                }
+            }
+            else
+            {
+
+                string input = 
+                    Interaction.InputBox("From 100 to 1000, default 400.", 
+                                                            "Set ZoomSpeed", 
+                                                            currentZoomSpeed,
+                                                            -1, -1); // TODO: set to CURRENT SETTING
+                if (input != "") {
+                    int requestedZoomSpeed;
+                    bool success = int.TryParse(input, out requestedZoomSpeed);
+
+                    if (success)
+                    {
+                        if ((requestedZoomSpeed >= 100) && (requestedZoomSpeed <= 1000)) {
+                            for (int i = 0; i < 6; i++)
+                            {
+                                string basePath = "Software\\HarmlessGames\\Infantry\\";
+                                string baseProfilePath = basePath + "Profile" + i + "\\";
+                                SetSingleHKCURegistryKey(baseProfilePath + "HiddenOptions", "ZoomTime", requestedZoomSpeed, true);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void gear_action_fpslimit_change(object sender, EventArgs e)
+        {
+            MenuItem sentMenuItem = sender as MenuItem;
+            if (sentMenuItem.Text == "Set all FPS to: 60")
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    set_fpslimit_for_profile((i + 1), 60);
+                }
+                MessageBox.Show("All Profiles '" + sentMenuItem.Text + "' is complete.");
+            }
+            else if (sentMenuItem.Text == "Set all FPS to: UNLIMITED")
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    set_fpslimit_for_profile((i + 1), -1); // -1 = unlimited...
+                }
+                MessageBox.Show("All Profiles '" + sentMenuItem.Text + "' is complete.");
+            }
+            else if (sentMenuItem.Text.Contains("Set Profile #"))
+            {
+                string profileNumberString = Regex.Match(sentMenuItem.Text, @"\d+").Value; // Will grab FIRST number it finds...
+                if (sentMenuItem.Text.Contains("UNLIMITED")) {
+                    set_fpslimit_for_profile(Int32.Parse(profileNumberString), -1); // -1 = unlimited...
+
+                } else {
+                    //string fpslimitNumberString = profileNumberString.NextMatch();
+                    set_fpslimit_for_profile(Int32.Parse(profileNumberString), 60); // TODO: add more options than 60
+
+                }
+                MessageBox.Show("'"+sentMenuItem.Text + "' is complete.");
+            }
+            else
+            {
+                Console.WriteLine("Unknown fpfLimit MenuItem: " + sentMenuItem.Text);
+                return;
+            }
+        }
+
+        private void gear_action_ddraw_change(object sender, EventArgs e)
+        {
+            MenuItem sentMenuItem = sender as MenuItem;
+            // MessageBox.Show(sentMenuItem.Text);
+            if (sentMenuItem.Text == "Set renderer to auto (dx9/opengl)")
+            {
+                ddrawIni["ddraw"]["renderer"] = "auto";
+                ddrawIni.Save();
+            }
+            else if (sentMenuItem.Text == "Set renderer to dx9")
+            {
+                ddrawIni["ddraw"]["renderer"] = "direct3d9";
+                ddrawIni.Save();
+            }
+            else if (sentMenuItem.Text == "Set renderer to opengl")
+            {
+                ddrawIni["ddraw"]["renderer"] = "opengl";
+                ddrawIni.Save();
+            }
+            else if (sentMenuItem.Text == "Lock Mouse to Game Window")
+            {
+                ddrawIni["ddraw"]["devmode"] = "false";
+                ddrawIni.Save();
+            }
+            else if (sentMenuItem.Text == "Unlock Mouse from Game Window")
+            {
+                ddrawIni["ddraw"]["devmode"] = "true";
+                ddrawIni.Save();
+            }
+            else if (sentMenuItem.Text == "Set resolutions to 2 (Full List)")
+            {
+                //ddrawIni["infantry"]["resolutions"] = "2"; // ddrawIni["FreeInfantry"]["resolutions"]
+                //ddrawIni.Save();
+            }
+            else if (sentMenuItem.Text == "Set resolutions to 0 (Small List)")
+            {
+                //ddrawIni["infantry"]["resolutions"] = "0"; // ddrawIni["FreeInfantry"]["resolutions"]
+                //ddrawIni.Save();
+            }
+            else
+            {
+                Console.WriteLine("Unknown ddraw MenuItem: "+sentMenuItem.Text);
+                return;
+            }
+
+        }
+        private void gear_action_clear_settings(object sender, EventArgs e)
+        {
+
+            MenuItem sentMenuItem = sender as MenuItem;
+
+            string whatToReset= "";
+            string alertMessage= "";
+            string alertTitle= "Confirm Reset";
+
+            if (sentMenuItem.Text == "Reset Profile #1...")
+            {
+                whatToReset= "Profile1";
+                alertMessage= "Are you sure to reset \"Settings Profile #1\" controls & settings to defaults?";
+            }
+            else if (sentMenuItem.Text == "Reset Profile #2...")
+            {
+                whatToReset= "Profile2";
+                alertMessage= "Are you sure to reset \"Settings Profile #2\" controls & settings to defaults?";
+            }
+            else if (sentMenuItem.Text == "Reset Profile #3...")
+            {
+                whatToReset= "Profile3";
+                alertMessage= "Are you sure to reset \"Settings Profile #3\" controls & settings to defaults?";
+            }
+            else if (sentMenuItem.Text == "Reset Profile #4...")
+            {
+                whatToReset= "Profile4";
+                alertMessage= "Are you sure to reset \"Settings Profile #4\" controls & settings to defaults?";
+            }
+            else if (sentMenuItem.Text == "Reset Profile #5...")
+            {
+                whatToReset= "Profile5";
+                alertMessage= "Are you sure to reset \"Settings Profile #5\" controls & settings to defaults?";
+            }
+            else if (sentMenuItem.Text == "Reset Profile #6...")
+            {
+                whatToReset= "Profile6";
+                alertMessage= "Are you sure to reset \"Settings Profile #6\" controls & settings to defaults?";
+            }
+            else if (sentMenuItem.Text == "Saved Login...")
+            {
+                whatToReset= "savedLogin";
+                alertMessage= "Are you sure to clear the saved login?";
+            }
+            else if (sentMenuItem.Text == "All Registry Settings...")
+            {
+                whatToReset= "All";
+                alertMessage= "Are you sure to reset all FreeInfantry controls & settings to defaults?";
+            }
+            else
+            {
+                Console.WriteLine("Unknown Reset MenuItem: "+sentMenuItem.Text);
+                return;
+            }
+
+            if (whatToReset != "") {
+                var confirmResult =  MessageBox.Show(alertMessage+"\r\n\r\nTHERE IS NO UNDO.",
+                                        alertTitle,
+                                        MessageBoxButtons.YesNo);
+                if (confirmResult == DialogResult.Yes)
+                {
+                    if (whatToReset == "savedLogin")
+                    {
+                        settings["Credentials"]["Username"] = "";
+                        settings["Credentials"]["Password"] = "";
+                        settings["Credentials"]["Reminder"] = "";
+                        settings.Save();
+                        UsernameBox.Text = "";
+                        PasswordBox.Text = "";
+                        RememberPwd.Checked = false;
+                        UsernameBox.Select();
+                    }
+                    else
+                    {
+                        SetDefaultRegistryKeys(true, whatToReset); // True for forcing...
+                        MessageBox.Show("Reset '" + sentMenuItem.Text + "' is complete.");
+                    }
+                }
+            }
+        }
     }
 }

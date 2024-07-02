@@ -42,6 +42,7 @@
             this.DiscordLink = new System.Windows.Forms.LinkLabel();
             this.DonateLink = new System.Windows.Forms.LinkLabel();
             this.PswdHint = new System.Windows.Forms.LinkLabel();
+            this.GearButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // WebsiteLink
@@ -151,6 +152,7 @@
             this.ProgressBar.Size = new System.Drawing.Size(272, 23);
             this.ProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.ProgressBar.TabIndex = 0;
+            this.ProgressBar.Visible = false;
             // 
             // Status
             // 
@@ -158,7 +160,7 @@
             this.Status.BackColor = System.Drawing.Color.Transparent;
             this.Status.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Status.ForeColor = System.Drawing.Color.White;
-            this.Status.Location = new System.Drawing.Point(9, 366);
+            this.Status.Location = new System.Drawing.Point(12, 393);
             this.Status.Name = "Status";
             this.Status.Size = new System.Drawing.Size(0, 13);
             this.Status.TabIndex = 7;
@@ -228,10 +230,8 @@
             this.DonateLink.LinkColor = System.Drawing.Color.Silver;
             this.DonateLink.Location = new System.Drawing.Point(160, 38);
             this.DonateLink.Name = "DonateLink";
-            this.DonateLink.Size = new System.Drawing.Size(58, 16);
+            this.DonateLink.Size = new System.Drawing.Size(0, 16);
             this.DonateLink.TabIndex = 2;
-            this.DonateLink.TabStop = true;
-            this.DonateLink.Text = "Donate";
             this.DonateLink.UseWaitCursor = true;
             this.DonateLink.VisitedLinkColor = System.Drawing.Color.Red;
             this.DonateLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.DonateLink_LinkClicked);
@@ -257,6 +257,29 @@
             this.PswdHint.VisitedLinkColor = System.Drawing.Color.Silver;
             this.PswdHint.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PswdHint_LinkClicked);
             // 
+            // GearButton
+            // 
+            this.GearButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.GearButton.BackColor = System.Drawing.Color.Transparent;
+            this.GearButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("GearButton.BackgroundImage")));
+            this.GearButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+            this.GearButton.CausesValidation = false;
+            this.GearButton.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.GearButton.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.GearButton.FlatAppearance.BorderSize = 0;
+            this.GearButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
+            this.GearButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
+            this.GearButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.GearButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.GearButton.ForeColor = System.Drawing.Color.Silver;
+            this.GearButton.Location = new System.Drawing.Point(14, 328);
+            this.GearButton.Name = "GearButton";
+            this.GearButton.Size = new System.Drawing.Size(22, 22);
+            this.GearButton.TabIndex = 11;
+            this.GearButton.UseMnemonic = false;
+            this.GearButton.UseVisualStyleBackColor = false;
+            this.GearButton.Click += new System.EventHandler(this.GearButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -264,6 +287,7 @@
             this.BackColor = System.Drawing.SystemColors.GrayText;
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.ClientSize = new System.Drawing.Size(378, 423);
+            this.Controls.Add(this.GearButton);
             this.Controls.Add(this.PswdHint);
             this.Controls.Add(this.DonateLink);
             this.Controls.Add(this.DiscordLink);
@@ -282,7 +306,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Infantry Online";
+            this.Text = "FreeInfantry";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -304,6 +328,7 @@
         private System.Windows.Forms.LinkLabel DiscordLink;
         private System.Windows.Forms.LinkLabel DonateLink;
         private System.Windows.Forms.LinkLabel PswdHint;
+        private System.Windows.Forms.Button GearButton;
     }
 }
 
