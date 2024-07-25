@@ -349,6 +349,15 @@ namespace InfServer.Game
             if (from.StatsCurrentGame == null)
                 Log.write(TLog.Error, "Player {0} has no stats.", from);
 
+            //Display Game Length
+
+            if (_tickGameStarted == 0) //First breakdown of the arena
+            {
+                _tickGameStarted = Environment.TickCount + (_server._zoneConfig.flag.startDelay * 1000);
+            }            
+            int minutes = ((Environment.TickCount - _tickGameStarted) / 1000) / 60;
+            from.sendMessage(0, String.Format("&Game Length: {0} minutes", minutes));
+
             //Give the script a chance to take over
             if ((bool)callsync("Player.Breakdown", false, from, bCurrent))
                 return;
