@@ -233,6 +233,12 @@ namespace InfServer.Game.Commands.Mod
                     payload = string.Format("[Arena] {0}", payload);
                 }
 
+                if (player.PermissionLevelLocal < Data.PlayerPermission.ManagerSysop)
+                {
+                    bool detected;
+                    payload = SwearFilter.Filter(payload, out detected);
+                }
+
                 player._arena.sendArenaMessage(payload, bong);
             }
         }

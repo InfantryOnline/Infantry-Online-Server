@@ -238,6 +238,12 @@ namespace InfServer.Logic
                     && player.IsSpectator)
                     Allowed = false;
 
+                if (player.PermissionLevelLocal < Data.PlayerPermission.ManagerSysop)
+                {
+                    bool detected;
+                    pkt.message = SwearFilter.Filter(pkt.message, out detected);
+                }
+
                 //What sort of chat has occured?
                 switch (pkt.chatType)
                 {
@@ -266,9 +272,7 @@ namespace InfServer.Logic
                                     return;
                                 }
 
-                                bool detected;
-                                pkt.bong = 0;
-                                pkt.message = SwearFilter.Filter(pkt.message, out detected);
+                                pkt.bong = 0;                               
                                 player._arena.playerArenaChat(player, pkt);
                             }
                         );
