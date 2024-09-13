@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -248,12 +248,9 @@ namespace InfServer.Bots
             {
                 Log.write(TLog.Warning, "Encountered excessive bot delta of {0}", delta);
 
-                _movement.freezeMovement(10);
+                _movement.freezeMovement(100);
                 _movement.stop();
-                _movement.updateState(0);
-
-                _tickLastUpdate = tickCount;
-
+                
                 return false;
             }
 

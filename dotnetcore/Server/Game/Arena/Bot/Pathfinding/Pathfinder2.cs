@@ -52,7 +52,7 @@ namespace InfServer.Bots
             }
 
             rawGrid = new StaticGrid(lvlInfo.Width, lvlInfo.Height, clearances);
-            rawJpParam = new JumpPointParam(rawGrid, EndNodeUnWalkableTreatment.ALLOW, DiagonalMovement.Always);
+            rawJpParam = new JumpPointParam(rawGrid, EndNodeUnWalkableTreatment.DISALLOW, DiagonalMovement.Always);
 
             // Give a 2-tile "clearance" around blocked tiles for larger vehicles.
 
@@ -79,7 +79,7 @@ namespace InfServer.Bots
             }
 
             clearanceGrid = new StaticGrid(lvlInfo.Width, lvlInfo.Height, clearances);
-            clearanceJpParam = new JumpPointParam(clearanceGrid, EndNodeUnWalkableTreatment.ALLOW, DiagonalMovement.Always);
+            clearanceJpParam = new JumpPointParam(clearanceGrid, EndNodeUnWalkableTreatment.DISALLOW, DiagonalMovement.Always);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace InfServer.Bots
                 //Add to logcounter
                 logcounter++;
 
-                //write single log for combined count of 50
+                //write single log for combined count of 20
                 if (logcounter == 20)
                 {
                     Log.write(TLog.Warning, "Excessive pathing queue count: " + pathingQueue.Count);
