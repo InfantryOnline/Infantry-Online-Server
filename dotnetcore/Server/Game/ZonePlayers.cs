@@ -94,25 +94,13 @@ namespace InfServer.Game
                 _players[pk] = newPlayer;
 
                 //Lets setup the players silence list
-                if (_playerSilenced.ContainsKey(c._ipe.Address))
+                var silenceEntry = _playerSilenced.FirstOrDefault(sp => sp.IPAddress.Equals(c._ipe.Address) || sp.Alias == newPlayer._alias);
+
+                if (silenceEntry != null)
                 {
-                    //Lets check his current silence time
-                    int numberKey = _playerSilenced[c._ipe.Address].Keys.Count;
-                    int numberValue = _playerSilenced[c._ipe.Address].Values.Count;
-                    if (numberKey > 0)
-                    {
-                        foreach (int length in _playerSilenced[c._ipe.Address].Keys)
-                        {
-                            //Lets find the last one then set it
-                            newPlayer._lengthOfSilence = length;
-                            newPlayer._bSilenced = true;
-                        }
-                    }
-                    if (numberValue > 0)
-                    {
-                        foreach (DateTime stamp in _playerSilenced[c._ipe.Address].Values)
-                            newPlayer._timeOfSilence = stamp;
-                    }
+                    newPlayer._lengthOfSilence = silenceEntry.DurationMinutes;
+                    newPlayer._timeOfSilence = silenceEntry.SilencedAt;
+                    newPlayer._bSilenced = true;
                 }
 
                 return newPlayer;
@@ -136,24 +124,6 @@ namespace InfServer.Game
                 {	//Notify and discontinue
                     Log.write(TLog.Error, "Lost player '{0}' who wasn't present in the ZoneServer list.", player);
                     return;
-                }
-
-                //Lets update the players silence list
-                if (player._client._ipe.Address != null)
-                {
-                    IPAddress addy = player._client._ipe.Address;
-                    if ((_playerSilenced.ContainsKey(addy)) && _playerSilenced[addy].Keys.Count > 0)
-                    {
-                        int min = 0; DateTime time = DateTime.Now;
-                        foreach (int length in _playerSilenced[addy].Keys)
-                            min = length;
-                        if (_playerSilenced[addy].Values.Count > 0)
-                            foreach (DateTime timer in _playerSilenced[addy].Values)
-                                time = timer;
-                        _playerSilenced.Remove(addy);
-                        _playerSilenced.Add(addy, new Dictionary<int, DateTime>());
-                        _playerSilenced[addy].Add(min, time);
-                    }
                 }
 
                 //He's gone!

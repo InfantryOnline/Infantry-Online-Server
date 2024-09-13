@@ -131,8 +131,8 @@ namespace InfServer.Game
                 bScriptLoad = false;
             }
 
-            //Populate the class
             Arena arena;
+
             if (bScriptLoad)
                 arena = new ScriptArena(this, invokerType);
             else
@@ -144,6 +144,12 @@ namespace InfServer.Game
                 arena._bIsNamed = true;
 
             arena._name = name;
+
+            if (_config.Exists("server/forceAllowSpec"))
+            {
+                arena._allowSpec = _config["server/forceAllowSpec"].boolValue;
+            }
+
             if (arena._name.StartsWith("Arena") || namedArena)
                 arena._bIsPublic = true;
             else

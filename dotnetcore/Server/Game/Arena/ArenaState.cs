@@ -309,13 +309,10 @@ namespace InfServer.Game
             }
 
             //Are we zone silenced or arena silenced?
-            if (!this._server._playerSilenced.ContainsKey(player._ipAddress))
-            {   //Since we are not in the zone list, check the arena list
-                if (!this._silencedPlayers.ContainsKey(player._alias))
-                    player._bSilenced = false;
-                else
-                    player._bSilenced = true;
-            }
+            var arenaEntry = _silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias == player._alias);
+            var serverEntry = _server._playerSilenced.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias == player._alias);
+
+            player._bSilenced = arenaEntry != null || serverEntry != null;
 
             //Initialize the player's state
             Helpers.Player_StateInit(player,

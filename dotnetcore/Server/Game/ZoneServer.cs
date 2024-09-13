@@ -57,7 +57,7 @@ namespace InfServer.Game
         private ClientPingResponder _pingResponder;
         public Dictionary<IPAddress, DateTime> _connections;
 
-        public Dictionary<IPAddress, Dictionary<int, DateTime>> _playerSilenced; //Self explanitory
+        public List<SilencedPlayer> _playerSilenced = new List<SilencedPlayer>(); //Self explanitory
 
         /// <summary>
         /// Compiled game events that have been pulled out of the zone's cfg file.
@@ -358,7 +358,6 @@ namespace InfServer.Game
             Log.write("Asset Checksum: " + _assets.checkSum());
 
             //Create a new player silenced list
-            _playerSilenced = new Dictionary<IPAddress, Dictionary<int, DateTime>>();
 
             //InitializeGameEventsDictionary();
 
@@ -721,7 +720,25 @@ namespace InfServer.Game
                                                     token[0], token[1], token[2], token[3]
                                                 };
 
-                            _socket.SendTo(buffer, client);
+                            try
+                            {
+                                _socket.SendTo(buffer, client);
+                            }
+                            catch (SocketException ex)
+                            {
+                                var ipEp = client as IPEndPoint;
+
+                                Log.write(TLog.Exception, ex.ToString());
+
+                                if (ipEp != null)
+                                {
+                                    Log.write(TLog.Error, $"ClientPingResponder::Listen encountered exception with client: {ipEp.Address}:{ipEp.Port}");
+                                }
+                                else
+                                {
+                                    Log.write(TLog.Error, $"ClientPingResponder::Listen encountered exception with client - could not resolve to IPEndPoint.");
+                                }
+                            }
                         }
                     }
 

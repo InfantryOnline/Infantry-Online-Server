@@ -226,8 +226,14 @@ namespace InfServer.Logic
                     player._bSilenced = true;
                     player._lengthOfSilence = duration;
                     player._timeOfSilence = DateTime.Now;
-                    if (!player._arena._silencedPlayers.ContainsKey(player._alias))
-                        player._arena._silencedPlayers.Add(player._alias, duration);
+
+                    var arenaEntry = player._arena._silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias == player._alias);
+
+                    if (arenaEntry == null)
+                    {
+                        arenaEntry = new SilencedPlayer { IPAddress = player._ipAddress, DurationMinutes = duration, SilencedAt = DateTime.Now };
+                        player._arena._silencedPlayers.Add(arenaEntry);
+                    }
 
                     return;
                 }
