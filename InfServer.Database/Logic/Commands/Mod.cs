@@ -64,7 +64,7 @@ namespace InfServer.Logic
 
                             // Remove all players under this alias
 
-                            foreach(var p in players)
+                            foreach (var p in players)
                             {
                                 if (p.squad != null)
                                 {
@@ -268,8 +268,8 @@ namespace InfServer.Logic
 
                             //Lets get all account related info
                             InfServer.Database.player player = (from plyr in db.players
-                                                     where string.Compare(plyr.alias1.name, pkt.query, true) == 0 && plyr.zone1 == zone._zone
-                                                     select plyr).FirstOrDefault();
+                                                                where string.Compare(plyr.alias1.name, pkt.query, true) == 0 && plyr.zone1 == zone._zone
+                                                                select plyr).FirstOrDefault();
                             if (player == null)
                             {
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -477,6 +477,48 @@ namespace InfServer.Logic
                             if (!found)
                                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
                         }
+                        break;
+
+                    case CS_ModQuery<Zone>.QueryType.globalsilence:
+                        if (string.IsNullOrWhiteSpace(pkt.query))
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, "Payload cannot be empty.");
+                            return;
+                        }
+
+                        var data = pkt.query.Split(':');
+                        long silencedDuration;
+
+                        if (data.Length != 2 || !Int64.TryParse(data[1], out silencedDuration))
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, "Badly formatted packet. Please follow <alias>:<minutes> pattern.  0 minutes will unsilence upon next login.");
+                            return;
+                        }
+
+                        var silencedAlias = db.alias.FirstOrDefault(a => a.name.ToLower() == data[0].ToLower());
+
+                        if (silencedAlias == null)
+                        {
+                            zone._server.sendMessage(zone, pkt.sender, $"Alias \"{data[0]}\" not found.");
+                            return;
+                        }
+
+                        var silencedAccount = db.accounts.First(t => t.id == silencedAlias.account);
+
+                        if (silencedDuration < 0)
+                        {
+                            silencedDuration = 0;
+                        }
+
+                        var silencedTime = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds();
+
+                        silencedAccount.SilencedDuration = silencedDuration;
+                        silencedAccount.SilencedAtMillisecondsUnix = silencedDuration == 0 ? 0 : silencedTime;
+
+                        db.SubmitChanges();
+
+                        // TODO: Alert all zones that the player is silenced.
+
                         break;
                 }
             }

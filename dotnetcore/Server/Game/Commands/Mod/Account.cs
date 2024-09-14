@@ -118,6 +118,43 @@ namespace InfServer.Game.Commands.Mod
             }
         }
 
+        public static void globalsilence(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
+                return;
+            }
+
+            long minutes = 0;
+            string alias = "";
+
+            if (recipient != null)
+            {
+                alias = recipient._alias;
+                Int64.TryParse(payload, out minutes);
+            }
+            else
+            {
+                var split = payload.Split(':');
+
+                if (split.Length != 2)
+                {
+                    return;
+                }
+
+                alias = split[0];
+                Int64.TryParse(split[1], out minutes);
+            }
+
+            CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+            query.queryType = CS_ModQuery<Data.Database>.QueryType.globalsilence;
+            query.sender = player._alias;
+            query.query = $"{alias}:{minutes}";
+            //Send it!
+            player._server._db.send(query);
+        }
+
         /// <summary>
         /// Alias transfers between accounts
         /// </summary>
@@ -1083,6 +1120,11 @@ namespace InfServer.Game.Commands.Mod
                 "Displays account related information about a player or IP address",
                 "*whois [ipaddress/alias/#id] or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
                 InfServer.Data.PlayerPermission.ManagerSysop, false);
+
+            yield return new HandlerDescriptor(globalsilence, "globalsilence",
+                "Silences an account across all zones.",
+                "*globalsilence alias:time where time is duration in minutes, or 0, -1 etc to clear the silence.",
+                InfServer.Data.PlayerPermission.SuperMod, false);
         }
     }
 }

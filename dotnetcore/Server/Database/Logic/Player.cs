@@ -59,6 +59,21 @@ namespace InfServer.Logic
             player._alias = pkt.alias;
             player._squad = pkt.squad;
             player._squadID = pkt.squadID;
+
+            if (pkt.silencedDurationMinutes > 0)
+            {
+                var silenceDateTime = DateTimeOffset.FromUnixTimeMilliseconds(pkt.silencedAtUnixMilliseconds).LocalDateTime;
+
+                var silencedPlayer = new SilencedPlayer
+                {
+                    Alias = player._alias,
+                    IPAddress = player._ipAddress,
+                    DurationMinutes = (int)pkt.silencedDurationMinutes,
+                    SilencedAt = silenceDateTime
+                };
+
+                db._server._playerSilenced.Add(silencedPlayer);
+            }
         }
 
         /// <summary>

@@ -127,14 +127,22 @@ namespace InfServer.Game.Commands.Chat
 
             player.sendMessage(0, String.Format("{0} {1}", player._squadID, player._squad));
 
-            chart.rows.Add(String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
+            if (!player.IsStealth)
+            {
+                chart.rows.Add(String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
                         player._alias, player._squad, player._arena._name));
+            }
 
             foreach (Arena arena in player._server._arenas.Values.ToList())
             {
                 foreach (Player p in arena.Players)
                 {
                     if (p.IsStealth)
+                    {
+                        continue;
+                    }
+
+                    if (p._id == player._id)
                     {
                         continue;
                     }

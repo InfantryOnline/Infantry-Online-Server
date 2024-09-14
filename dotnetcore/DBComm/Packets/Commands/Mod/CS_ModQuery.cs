@@ -35,6 +35,7 @@ namespace InfServer.Protocol
             squadjoin,
             powered,
             find,
+            globalsilence
         }
 
 

@@ -30,9 +30,6 @@ namespace InfServer.Database
 		
     #region Extensibility Method Definitions
     partial void OnCreated();
-    partial void Insertaccount(account instance);
-    partial void Updateaccount(account instance);
-    partial void Deleteaccount(account instance);
     partial void InsertstatsYearly(statsYearly instance);
     partial void UpdatestatsYearly(statsYearly instance);
     partial void DeletestatsYearly(statsYearly instance);
@@ -81,6 +78,9 @@ namespace InfServer.Database
     partial void Insertalias(alias instance);
     partial void Updatealias(alias instance);
     partial void Deletealias(alias instance);
+    partial void Insertaccount(account instance);
+    partial void Updateaccount(account instance);
+    partial void Deleteaccount(account instance);
     #endregion
 		
 		public InfantryDataContext() : 
@@ -111,14 +111,6 @@ namespace InfServer.Database
 				base(connection, mappingSource)
 		{
 			OnCreated();
-		}
-		
-		public System.Data.Linq.Table<account> accounts
-		{
-			get
-			{
-				return this.GetTable<account>();
-			}
 		}
 		
 		public System.Data.Linq.Table<statsYearly> statsYearlies
@@ -248,339 +240,13 @@ namespace InfServer.Database
 				return this.GetTable<alias>();
 			}
 		}
-	}
-	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.account")]
-	public partial class account : INotifyPropertyChanging, INotifyPropertyChanged
-	{
 		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private long _id;
-		
-		private string _name;
-		
-		private string _password;
-		
-		private string _ticket;
-		
-		private System.DateTime _dateCreated;
-		
-		private System.DateTime _lastAccess;
-		
-		private int _permission;
-		
-		private string _email;
-		
-		private string _IPAddress;
-		
-		private long _forumID;
-		
-		private EntitySet<resetToken> _resetTokens;
-		
-		private EntitySet<alias> _alias;
-		
-    #region Extensibility Method Definitions
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnidChanging(long value);
-    partial void OnidChanged();
-    partial void OnnameChanging(string value);
-    partial void OnnameChanged();
-    partial void OnpasswordChanging(string value);
-    partial void OnpasswordChanged();
-    partial void OnticketChanging(string value);
-    partial void OnticketChanged();
-    partial void OndateCreatedChanging(System.DateTime value);
-    partial void OndateCreatedChanged();
-    partial void OnlastAccessChanging(System.DateTime value);
-    partial void OnlastAccessChanged();
-    partial void OnpermissionChanging(int value);
-    partial void OnpermissionChanged();
-    partial void OnemailChanging(string value);
-    partial void OnemailChanged();
-    partial void OnIPAddressChanging(string value);
-    partial void OnIPAddressChanged();
-    partial void OnforumIDChanging(long value);
-    partial void OnforumIDChanged();
-    #endregion
-		
-		public account()
-		{
-			this._resetTokens = new EntitySet<resetToken>(new Action<resetToken>(this.attach_resetTokens), new Action<resetToken>(this.detach_resetTokens));
-			this._alias = new EntitySet<alias>(new Action<alias>(this.attach_alias), new Action<alias>(this.detach_alias));
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public long id
+		public System.Data.Linq.Table<account> accounts
 		{
 			get
 			{
-				return this._id;
+				return this.GetTable<account>();
 			}
-			set
-			{
-				if ((this._id != value))
-				{
-					this.OnidChanging(value);
-					this.SendPropertyChanging();
-					this._id = value;
-					this.SendPropertyChanged("id");
-					this.OnidChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_name", DbType="VarChar(64) NOT NULL", CanBeNull=false)]
-		public string name
-		{
-			get
-			{
-				return this._name;
-			}
-			set
-			{
-				if ((this._name != value))
-				{
-					this.OnnameChanging(value);
-					this.SendPropertyChanging();
-					this._name = value;
-					this.SendPropertyChanged("name");
-					this.OnnameChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_password", DbType="VarChar(64) NOT NULL", CanBeNull=false)]
-		public string password
-		{
-			get
-			{
-				return this._password;
-			}
-			set
-			{
-				if ((this._password != value))
-				{
-					this.OnpasswordChanging(value);
-					this.SendPropertyChanging();
-					this._password = value;
-					this.SendPropertyChanged("password");
-					this.OnpasswordChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ticket", DbType="VarChar(128)")]
-		public string ticket
-		{
-			get
-			{
-				return this._ticket;
-			}
-			set
-			{
-				if ((this._ticket != value))
-				{
-					this.OnticketChanging(value);
-					this.SendPropertyChanging();
-					this._ticket = value;
-					this.SendPropertyChanged("ticket");
-					this.OnticketChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_dateCreated", DbType="DateTime NOT NULL")]
-		public System.DateTime dateCreated
-		{
-			get
-			{
-				return this._dateCreated;
-			}
-			set
-			{
-				if ((this._dateCreated != value))
-				{
-					this.OndateCreatedChanging(value);
-					this.SendPropertyChanging();
-					this._dateCreated = value;
-					this.SendPropertyChanged("dateCreated");
-					this.OndateCreatedChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_lastAccess", DbType="DateTime NOT NULL")]
-		public System.DateTime lastAccess
-		{
-			get
-			{
-				return this._lastAccess;
-			}
-			set
-			{
-				if ((this._lastAccess != value))
-				{
-					this.OnlastAccessChanging(value);
-					this.SendPropertyChanging();
-					this._lastAccess = value;
-					this.SendPropertyChanged("lastAccess");
-					this.OnlastAccessChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_permission", DbType="Int NOT NULL")]
-		public int permission
-		{
-			get
-			{
-				return this._permission;
-			}
-			set
-			{
-				if ((this._permission != value))
-				{
-					this.OnpermissionChanging(value);
-					this.SendPropertyChanging();
-					this._permission = value;
-					this.SendPropertyChanged("permission");
-					this.OnpermissionChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_email", DbType="VarChar(256) NOT NULL", CanBeNull=false)]
-		public string email
-		{
-			get
-			{
-				return this._email;
-			}
-			set
-			{
-				if ((this._email != value))
-				{
-					this.OnemailChanging(value);
-					this.SendPropertyChanging();
-					this._email = value;
-					this.SendPropertyChanged("email");
-					this.OnemailChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IPAddress", DbType="VarChar(20)")]
-		public string IPAddress
-		{
-			get
-			{
-				return this._IPAddress;
-			}
-			set
-			{
-				if ((this._IPAddress != value))
-				{
-					this.OnIPAddressChanging(value);
-					this.SendPropertyChanging();
-					this._IPAddress = value;
-					this.SendPropertyChanged("IPAddress");
-					this.OnIPAddressChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_forumID", DbType="BigInt NOT NULL")]
-		public long forumID
-		{
-			get
-			{
-				return this._forumID;
-			}
-			set
-			{
-				if ((this._forumID != value))
-				{
-					this.OnforumIDChanging(value);
-					this.SendPropertyChanging();
-					this._forumID = value;
-					this.SendPropertyChanged("forumID");
-					this.OnforumIDChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_resetToken", Storage="_resetTokens", ThisKey="id", OtherKey="account")]
-		public EntitySet<resetToken> resetTokens
-		{
-			get
-			{
-				return this._resetTokens;
-			}
-			set
-			{
-				this._resetTokens.Assign(value);
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alia", Storage="_alias", ThisKey="id", OtherKey="account")]
-		public EntitySet<alias> alias
-		{
-			get
-			{
-				return this._alias;
-			}
-			set
-			{
-				this._alias.Assign(value);
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-		
-		private void attach_resetTokens(resetToken entity)
-		{
-			this.SendPropertyChanging();
-			entity.account1 = this;
-		}
-		
-		private void detach_resetTokens(resetToken entity)
-		{
-			this.SendPropertyChanging();
-			entity.account1 = null;
-		}
-		
-		private void attach_alias(alias entity)
-		{
-			this.SendPropertyChanging();
-			entity.account1 = this;
-		}
-		
-		private void detach_alias(alias entity)
-		{
-			this.SendPropertyChanging();
-			entity.account1 = null;
 		}
 	}
 	
@@ -2819,7 +2485,7 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alia_player", Storage="_alias1", ThisKey="alias", OtherKey="id", IsForeignKey=true, DeleteOnNull=true, DeleteRule="CASCADE")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alias_player", Storage="_alias1", ThisKey="alias", OtherKey="id", IsForeignKey=true, DeleteOnNull=true, DeleteRule="CASCADE")]
 		public alias alias1
 		{
 			get
@@ -7563,7 +7229,7 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alia_player", Storage="_players", ThisKey="id", OtherKey="alias")]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="alias_player", Storage="_players", ThisKey="id", OtherKey="alias")]
 		public EntitySet<player> players
 		{
 			get
@@ -7576,7 +7242,7 @@ namespace InfServer.Database
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alia", Storage="_account1", ThisKey="account", OtherKey="id", IsForeignKey=true)]
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alias", Storage="_account1", ThisKey="account", OtherKey="id", IsForeignKey=true)]
 		public account account1
 		{
 			get
@@ -7640,6 +7306,388 @@ namespace InfServer.Database
 		{
 			this.SendPropertyChanging();
 			entity.alias1 = null;
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.account")]
+	public partial class account : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private long _id;
+		
+		private string _name;
+		
+		private string _password;
+		
+		private string _ticket;
+		
+		private System.DateTime _dateCreated;
+		
+		private System.DateTime _lastAccess;
+		
+		private int _permission;
+		
+		private string _email;
+		
+		private string _IPAddress;
+		
+		private long _forumID;
+		
+		private long _SilencedAtMillisecondsUnix;
+		
+		private long _SilencedDuration;
+		
+		private EntitySet<resetToken> _resetTokens;
+		
+		private EntitySet<alias> _alias;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(long value);
+    partial void OnidChanged();
+    partial void OnnameChanging(string value);
+    partial void OnnameChanged();
+    partial void OnpasswordChanging(string value);
+    partial void OnpasswordChanged();
+    partial void OnticketChanging(string value);
+    partial void OnticketChanged();
+    partial void OndateCreatedChanging(System.DateTime value);
+    partial void OndateCreatedChanged();
+    partial void OnlastAccessChanging(System.DateTime value);
+    partial void OnlastAccessChanged();
+    partial void OnpermissionChanging(int value);
+    partial void OnpermissionChanged();
+    partial void OnemailChanging(string value);
+    partial void OnemailChanged();
+    partial void OnIPAddressChanging(string value);
+    partial void OnIPAddressChanged();
+    partial void OnforumIDChanging(long value);
+    partial void OnforumIDChanged();
+    partial void OnSilencedAtMillisecondsUnixChanging(long value);
+    partial void OnSilencedAtMillisecondsUnixChanged();
+    partial void OnSilencedDurationChanging(long value);
+    partial void OnSilencedDurationChanged();
+    #endregion
+		
+		public account()
+		{
+			this._resetTokens = new EntitySet<resetToken>(new Action<resetToken>(this.attach_resetTokens), new Action<resetToken>(this.detach_resetTokens));
+			this._alias = new EntitySet<alias>(new Action<alias>(this.attach_alias), new Action<alias>(this.detach_alias));
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="BigInt NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public long id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_name", DbType="VarChar(64) NOT NULL", CanBeNull=false)]
+		public string name
+		{
+			get
+			{
+				return this._name;
+			}
+			set
+			{
+				if ((this._name != value))
+				{
+					this.OnnameChanging(value);
+					this.SendPropertyChanging();
+					this._name = value;
+					this.SendPropertyChanged("name");
+					this.OnnameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_password", DbType="VarChar(64) NOT NULL", CanBeNull=false)]
+		public string password
+		{
+			get
+			{
+				return this._password;
+			}
+			set
+			{
+				if ((this._password != value))
+				{
+					this.OnpasswordChanging(value);
+					this.SendPropertyChanging();
+					this._password = value;
+					this.SendPropertyChanged("password");
+					this.OnpasswordChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ticket", DbType="VarChar(128)")]
+		public string ticket
+		{
+			get
+			{
+				return this._ticket;
+			}
+			set
+			{
+				if ((this._ticket != value))
+				{
+					this.OnticketChanging(value);
+					this.SendPropertyChanging();
+					this._ticket = value;
+					this.SendPropertyChanged("ticket");
+					this.OnticketChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_dateCreated", DbType="DateTime NOT NULL")]
+		public System.DateTime dateCreated
+		{
+			get
+			{
+				return this._dateCreated;
+			}
+			set
+			{
+				if ((this._dateCreated != value))
+				{
+					this.OndateCreatedChanging(value);
+					this.SendPropertyChanging();
+					this._dateCreated = value;
+					this.SendPropertyChanged("dateCreated");
+					this.OndateCreatedChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_lastAccess", DbType="DateTime NOT NULL")]
+		public System.DateTime lastAccess
+		{
+			get
+			{
+				return this._lastAccess;
+			}
+			set
+			{
+				if ((this._lastAccess != value))
+				{
+					this.OnlastAccessChanging(value);
+					this.SendPropertyChanging();
+					this._lastAccess = value;
+					this.SendPropertyChanged("lastAccess");
+					this.OnlastAccessChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_permission", DbType="Int NOT NULL")]
+		public int permission
+		{
+			get
+			{
+				return this._permission;
+			}
+			set
+			{
+				if ((this._permission != value))
+				{
+					this.OnpermissionChanging(value);
+					this.SendPropertyChanging();
+					this._permission = value;
+					this.SendPropertyChanged("permission");
+					this.OnpermissionChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_email", DbType="VarChar(256) NOT NULL", CanBeNull=false)]
+		public string email
+		{
+			get
+			{
+				return this._email;
+			}
+			set
+			{
+				if ((this._email != value))
+				{
+					this.OnemailChanging(value);
+					this.SendPropertyChanging();
+					this._email = value;
+					this.SendPropertyChanged("email");
+					this.OnemailChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IPAddress", DbType="VarChar(20)")]
+		public string IPAddress
+		{
+			get
+			{
+				return this._IPAddress;
+			}
+			set
+			{
+				if ((this._IPAddress != value))
+				{
+					this.OnIPAddressChanging(value);
+					this.SendPropertyChanging();
+					this._IPAddress = value;
+					this.SendPropertyChanged("IPAddress");
+					this.OnIPAddressChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_forumID", DbType="BigInt NOT NULL")]
+		public long forumID
+		{
+			get
+			{
+				return this._forumID;
+			}
+			set
+			{
+				if ((this._forumID != value))
+				{
+					this.OnforumIDChanging(value);
+					this.SendPropertyChanging();
+					this._forumID = value;
+					this.SendPropertyChanged("forumID");
+					this.OnforumIDChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SilencedAtMillisecondsUnix", DbType="BigInt NOT NULL")]
+		public long SilencedAtMillisecondsUnix
+		{
+			get
+			{
+				return this._SilencedAtMillisecondsUnix;
+			}
+			set
+			{
+				if ((this._SilencedAtMillisecondsUnix != value))
+				{
+					this.OnSilencedAtMillisecondsUnixChanging(value);
+					this.SendPropertyChanging();
+					this._SilencedAtMillisecondsUnix = value;
+					this.SendPropertyChanged("SilencedAtMillisecondsUnix");
+					this.OnSilencedAtMillisecondsUnixChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_SilencedDuration", DbType="BigInt NOT NULL")]
+		public long SilencedDuration
+		{
+			get
+			{
+				return this._SilencedDuration;
+			}
+			set
+			{
+				if ((this._SilencedDuration != value))
+				{
+					this.OnSilencedDurationChanging(value);
+					this.SendPropertyChanging();
+					this._SilencedDuration = value;
+					this.SendPropertyChanged("SilencedDuration");
+					this.OnSilencedDurationChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_resetToken", Storage="_resetTokens", ThisKey="id", OtherKey="account")]
+		public EntitySet<resetToken> resetTokens
+		{
+			get
+			{
+				return this._resetTokens;
+			}
+			set
+			{
+				this._resetTokens.Assign(value);
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="account_alias", Storage="_alias", ThisKey="id", OtherKey="account")]
+		public EntitySet<alias> alias
+		{
+			get
+			{
+				return this._alias;
+			}
+			set
+			{
+				this._alias.Assign(value);
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+		
+		private void attach_resetTokens(resetToken entity)
+		{
+			this.SendPropertyChanging();
+			entity.account1 = this;
+		}
+		
+		private void detach_resetTokens(resetToken entity)
+		{
+			this.SendPropertyChanging();
+			entity.account1 = null;
+		}
+		
+		private void attach_alias(alias entity)
+		{
+			this.SendPropertyChanging();
+			entity.account1 = this;
+		}
+		
+		private void detach_alias(alias entity)
+		{
+			this.SendPropertyChanging();
+			entity.account1 = null;
 		}
 	}
 }

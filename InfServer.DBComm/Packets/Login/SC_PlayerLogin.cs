@@ -30,7 +30,10 @@ namespace InfServer.Protocol
         public bool admin;                          //Are we an admin?
 		public bool stealth;
 
-		public bool bFirstTimeSetup;				//Is it the first time the player is setting up inventory?
+        public long silencedAtUnixMilliseconds;
+        public long silencedDurationMinutes;
+
+        public bool bFirstTimeSetup;				//Is it the first time the player is setting up inventory?
 		public Data.PlayerStats stats;				//The player's statistics
 
 		public byte[] banner;						//The player's stored banner information
@@ -105,7 +108,10 @@ namespace InfServer.Protocol
             Write(admin);
 			Write(stealth);
 
-			Write(bFirstTimeSetup);
+            Write(silencedAtUnixMilliseconds);
+            Write(silencedDurationMinutes);
+
+            Write(bFirstTimeSetup);
 			
 			//If it's a first time, then no need to init rest of the stats
 			if (bFirstTimeSetup)
@@ -146,7 +152,10 @@ namespace InfServer.Protocol
             admin = _contentReader.ReadBoolean();
 			stealth = _contentReader.ReadBoolean();
 
-			bFirstTimeSetup = _contentReader.ReadBoolean();
+            silencedAtUnixMilliseconds = _contentReader.ReadInt64();
+            silencedDurationMinutes = _contentReader.ReadInt64();
+
+            bFirstTimeSetup = _contentReader.ReadBoolean();
 
 			//If it's a first time, then no need to init rest of the stats
 			if (bFirstTimeSetup)

@@ -414,6 +414,9 @@ namespace InfServer.Logic
                     plog.stats.skills = new List<PlayerStats.SkillStat>();
                     plog.stealth = alias.stealth == 1;
 
+                    plog.silencedAtUnixMilliseconds = account.SilencedAtMillisecondsUnix;
+                    plog.silencedDurationMinutes = account.SilencedDuration;
+
                     //Convert the binary inventory/skill data
                     if (player.inventory != null)
                         DBHelpers.binToInventory(plog.stats.inventory, player.inventory);

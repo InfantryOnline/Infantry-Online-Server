@@ -706,7 +706,7 @@ namespace InfServer.Game
                     if (queue != null && queue.Count != 0)
                     {
                         // May not be synchronized, but that's okay, the client requests often.
-                        byte[] playerCount = BitConverter.GetBytes(_players.Count);
+                        byte[] playerCount = BitConverter.GetBytes(_players.Where(p => !p.Value.IsStealth).Count());
 
                         foreach (var entry in queue)
                         {

@@ -1,21 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?><Database Name="Data" Class="InfantryDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
   <Connection Mode="AppSettings" ConnectionString="Data Source=JOVAN\SQLEXPRESS01;Initial Catalog=Data;Integrated Security=True;Trust Server Certificate=True" SettingsObjectName="InfServer.Database.Properties.Settings" SettingsPropertyName="DataConnectionString" Provider="System.Data.SqlClient" />
-  <Table Name="dbo.account" Member="accounts">
-    <Type Name="account">
-      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
-      <Column Name="password" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
-      <Column Name="ticket" Type="System.String" DbType="VarChar(128)" CanBeNull="true" />
-      <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
-      <Column Name="permission" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="email" Type="System.String" DbType="VarChar(256) NOT NULL" CanBeNull="false" />
-      <Column Name="IPAddress" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
-      <Column Name="forumID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
-      <Association Name="account_resetToken" Member="resetTokens" ThisKey="id" OtherKey="account" Type="resetToken" />
-      <Association Name="account_alia" Member="alias" ThisKey="id" OtherKey="account" Type="alias" />
-    </Type>
-  </Table>
   <Table Name="dbo.statsYearly" Member="statsYearlies">
     <Type Name="statsYearly">
       <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -120,7 +104,7 @@
       <Association Name="squad_player" Member="squad1" ThisKey="squad" OtherKey="id" Type="squad" IsForeignKey="true" />
       <Association Name="stats_player" Member="stats1" ThisKey="stats" OtherKey="id" Type="stats" IsForeignKey="true" />
       <Association Name="zone_player" Member="zone1" ThisKey="zone" OtherKey="id" Type="zone" IsForeignKey="true" />
-      <Association Name="alia_player" Member="alias1" ThisKey="alias" OtherKey="id" Type="alias" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
+      <Association Name="alias_player" Member="alias1" ThisKey="alias" OtherKey="id" Type="alias" IsForeignKey="true" DeleteRule="CASCADE" DeleteOnNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.resetToken" Member="resetTokens">
@@ -332,8 +316,26 @@
       <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="timeplayed" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
       <Column Name="stealth" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Association Name="alia_player" Member="players" ThisKey="id" OtherKey="alias" Type="player" />
-      <Association Name="account_alia" Member="account1" ThisKey="account" OtherKey="id" Type="account" IsForeignKey="true" />
+      <Association Name="alias_player" Member="players" ThisKey="id" OtherKey="alias" Type="player" />
+      <Association Name="account_alias" Member="account1" ThisKey="account" OtherKey="id" Type="account" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.account" Member="accounts">
+    <Type Name="account">
+      <Column Name="id" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="name" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
+      <Column Name="password" Type="System.String" DbType="VarChar(64) NOT NULL" CanBeNull="false" />
+      <Column Name="ticket" Type="System.String" DbType="VarChar(128)" CanBeNull="true" />
+      <Column Name="dateCreated" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="lastAccess" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="permission" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="email" Type="System.String" DbType="VarChar(256) NOT NULL" CanBeNull="false" />
+      <Column Name="IPAddress" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="forumID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="SilencedAtMillisecondsUnix" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="SilencedDuration" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Association Name="account_resetToken" Member="resetTokens" ThisKey="id" OtherKey="account" Type="resetToken" />
+      <Association Name="account_alias" Member="alias" ThisKey="id" OtherKey="account" Type="alias" />
     </Type>
   </Table>
 </Database>
