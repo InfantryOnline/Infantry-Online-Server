@@ -1084,10 +1084,13 @@ namespace InfServer.Logic
                                 if (squadmates.Count() == 1)
                                 {
                                     //He's the only one left on the squad... dissolve it!
-                                    db.squads.DeleteOnSubmit(dbplayer.squad1);
-                                    db.SubmitChanges();
+                                    var squad = dbplayer.squad1;
                                     dbplayer.squad1 = null;
                                     dbplayer.squad = null;
+                                    db.squads.DeleteOnSubmit(squad);
+
+                                    db.SubmitChanges();
+
                                     zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
                                 }
                                 else
@@ -1095,11 +1098,10 @@ namespace InfServer.Logic
                                     //Transfer ownership automatically
                                     InfServer.Database.player transfer = squadmates.FirstOrDefault(p => p.id != dbplayer.id);
                                     dbplayer.squad1.owner = transfer.id;
-                                    db.SubmitChanges();
-
                                     //Leave the squad...
                                     dbplayer.squad1 = null;
                                     dbplayer.squad = null;
+                                    db.SubmitChanges();
                                     zone._server.sendMessage(zone, pkt.alias, string.Format("You have left your squad while giving ownership to {0}. Please relog to complete this process.", transfer.alias1.name));
                                     zone._server.sendMessage(zone, transfer.alias1.name, "You have been promoted to squad captain of " + transfer.squad1.name);
 
@@ -1147,15 +1149,17 @@ namespace InfServer.Logic
                             {   //We might need to dissolve the team!
                                 if (squadmates.Count() == 1)
                                 {   //He's the only one left on the squad... dissolve it!
-                                    db.squads.DeleteOnSubmit(dbplayer.squad1);
-                                    db.SubmitChanges();
+                                    var squad = dbplayer.squad1;
                                     dbplayer.squad1 = null;
                                     dbplayer.squad = null;
+                                    db.squads.DeleteOnSubmit(squad);
+                                    db.SubmitChanges();
+                                    
                                     zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
                                 }
                                 else
                                 {   //There are other people on the squad, lets kick them off
-                                    foreach (InfServer.Database.player P in squadmates.Reverse())
+                                    foreach (InfServer.Database.player P in squadmates)
                                     {
                                         if (P.id == dbplayer.id)
                                             continue;
@@ -1165,10 +1169,13 @@ namespace InfServer.Logic
                                         zone._server.sendMessage(zone, P.alias1.name, "Your squad has been dissolved.");
                                     }
                                     //Everyone was kicked, lets dissolve
-                                    db.squads.DeleteOnSubmit(dbplayer.squad1);
-                                    db.SubmitChanges();
+                                    var squad = dbplayer.squad1;
                                     dbplayer.squad1 = null;
                                     dbplayer.squad = null;
+                                    db.squads.DeleteOnSubmit(squad);
+
+                                    db.SubmitChanges();
+
                                     zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
                                     break;
                                 }

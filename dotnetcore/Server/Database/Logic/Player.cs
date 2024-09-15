@@ -6,6 +6,7 @@ using System.Text;
 using InfServer.Protocol;
 using InfServer.Data;
 using InfServer.Game;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace InfServer.Logic
 {	// Logic_Player Class
@@ -64,15 +65,27 @@ namespace InfServer.Logic
             {
                 var silenceDateTime = DateTimeOffset.FromUnixTimeMilliseconds(pkt.silencedAtUnixMilliseconds).LocalDateTime;
 
-                var silencedPlayer = new SilencedPlayer
+                if (player._ipAddress == null)
                 {
-                    Alias = player._alias,
-                    IPAddress = player._ipAddress,
-                    DurationMinutes = (int)pkt.silencedDurationMinutes,
-                    SilencedAt = silenceDateTime
-                };
+                    Log.write(TLog.Warning, "IP Address is null in CS_Handle_PlayerLogin.");
+                }
+                else
+                {
+                    var silencedPlayer = new SilencedPlayer
+                    {
+                        Alias = player._alias,
+                        IPAddress = player._ipAddress,
+                        DurationMinutes = (int)pkt.silencedDurationMinutes,
+                        SilencedAt = silenceDateTime
+                    };
 
-                db._server._playerSilenced.Add(silencedPlayer);
+                    db._server._playerSilenced.Add(silencedPlayer);
+
+                    player._bSilenced = true;
+
+                    player._timeOfSilence = silenceDateTime;
+                    player._lengthOfSilence = (int)pkt.silencedDurationMinutes;
+                }   
             }
         }
 

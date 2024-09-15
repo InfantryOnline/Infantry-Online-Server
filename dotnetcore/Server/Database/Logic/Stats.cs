@@ -21,7 +21,7 @@ namespace InfServer.Logic
 			Player player = db._server.getPlayer(pkt.player);
 			if (player == null)
 			{
-				Log.write(TLog.Warning, "Received statistics response for unknown player instance.");
+				Log.write(TLog.Warning, $"Received statistics response for unknown player instance. ID: {pkt.player.id} / Magic: {pkt.player.magic}");
 				return;
 			}
 

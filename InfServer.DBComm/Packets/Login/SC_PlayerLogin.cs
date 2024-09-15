@@ -108,8 +108,8 @@ namespace InfServer.Protocol
             Write(admin);
 			Write(stealth);
 
-            Write(silencedAtUnixMilliseconds);
-            Write(silencedDurationMinutes);
+            //Write(silencedAtUnixMilliseconds);
+            //Write(silencedDurationMinutes);
 
             Write(bFirstTimeSetup);
 			
@@ -152,8 +152,8 @@ namespace InfServer.Protocol
             admin = _contentReader.ReadBoolean();
 			stealth = _contentReader.ReadBoolean();
 
-            silencedAtUnixMilliseconds = _contentReader.ReadInt64();
-            silencedDurationMinutes = _contentReader.ReadInt64();
+            //silencedAtUnixMilliseconds = _contentReader.ReadInt64();
+            //silencedDurationMinutes = _contentReader.ReadInt64();
 
             bFirstTimeSetup = _contentReader.ReadBoolean();
 

@@ -1891,6 +1891,10 @@ namespace InfServer.Game.Commands.Chat
                 "Leaves (or dissolves) current squad",
                 "?squadleave");
 
+            yield return new HandlerDescriptor(squaddissolve, "squaddissolve",
+                "Dissolves current squad",
+                "?squaddissolve");
+
             yield return new HandlerDescriptor(squadlist, "squadlist",
                 "Lists all players of current squad or a specific squad",
                 "?squadlist or ?squadlist [squadname]");

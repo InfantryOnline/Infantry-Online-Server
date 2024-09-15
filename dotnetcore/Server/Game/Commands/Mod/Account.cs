@@ -127,7 +127,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             long minutes = 0;
-            string alias = "";
+            string alias;
 
             if (recipient != null)
             {
@@ -153,6 +153,48 @@ namespace InfServer.Game.Commands.Mod
             query.query = $"{alias}:{minutes}";
             //Send it!
             player._server._db.send(query);
+
+            if (recipient != null)
+            {
+                if (minutes > 0)
+                {
+                    if (recipient._ipAddress == null)
+                    {
+                        Log.write(TLog.Warning, "IP Address is null in globalsilence.");
+                    }
+                    else
+                    {
+                        recipient._bSilenced = true;
+
+                        recipient._timeOfSilence = DateTime.Now;
+                        recipient._lengthOfSilence = (int)minutes;
+
+                        var silencedPlayer = new SilencedPlayer
+                        {
+                            Alias = alias,
+                            IPAddress = recipient._ipAddress,
+                            DurationMinutes = (int)minutes,
+                            SilencedAt = DateTime.Now
+                        };
+
+                        player._server._playerSilenced.Add(silencedPlayer);
+                    }
+                }
+                else
+                {
+                    recipient._bSilenced = false;
+                    recipient._lengthOfSilence = 0;
+                }
+            }
+
+            if (minutes > 0)
+            {
+                player.sendMessage(0, alias + " has been globally silenced for " + minutes + " minutes.");
+            }
+            else
+            {
+                player.sendMessage(0, alias + " has been globally unsilenced.");
+            }
         }
 
         /// <summary>

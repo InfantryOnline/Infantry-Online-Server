@@ -367,10 +367,12 @@ namespace InfServer.Logic
                                 {   //We might need to dissolve the team!
                                     if (squadmates.Count() == 1)
                                     {   //He's the only one left on the squad... dissolve it!
-                                        db.squads.DeleteOnSubmit(dbplayer.squad1);
-                                        db.SubmitChanges();
+                                        var s1 = dbplayer.squad1;
                                         dbplayer.squad1 = null;
                                         dbplayer.squad = null;
+                                        db.squads.DeleteOnSubmit(s1);
+
+                                        db.SubmitChanges();
                                     }
                                     else
                                     {   //There are other people on the squad, transfer it to someone

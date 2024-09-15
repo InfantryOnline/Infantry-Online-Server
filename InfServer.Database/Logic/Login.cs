@@ -417,6 +417,23 @@ namespace InfServer.Logic
                     plog.silencedAtUnixMilliseconds = account.SilencedAtMillisecondsUnix;
                     plog.silencedDurationMinutes = account.SilencedDuration;
 
+                    if (plog.silencedDurationMinutes > 0)
+                    {
+                        var silenceDateTime = DateTimeOffset
+                        .FromUnixTimeMilliseconds(account.SilencedAtMillisecondsUnix)
+                        .LocalDateTime
+                        .AddMinutes(account.SilencedDuration);
+
+                        if (silenceDateTime < DateTime.Now)
+                        {
+                            plog.silencedAtUnixMilliseconds = 0;
+                            plog.silencedDurationMinutes = 0;
+
+                            account.SilencedAtMillisecondsUnix = 0;
+                            account.SilencedDuration = 0;
+                        }
+                    }
+
                     //Convert the binary inventory/skill data
                     if (player.inventory != null)
                         DBHelpers.binToInventory(plog.stats.inventory, player.inventory);
