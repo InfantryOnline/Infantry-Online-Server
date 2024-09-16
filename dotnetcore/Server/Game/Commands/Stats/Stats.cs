@@ -112,6 +112,8 @@ namespace InfServer.Game.Commands.Chat
                 query.alias = player._alias;
 
                 player._server._db.send(query);
+
+                player.sendMessage(0, "Loading chatchart...");
             }
         }
 
@@ -119,40 +121,48 @@ namespace InfServer.Game.Commands.Chat
         /// Displays a chart containing info reguarding each players squad
         /// </summary>
         public static void squadchart(Player player, Player recipient, string payload, int bong)
-        {   //Set the title and colums
+        {
+            if (string.IsNullOrWhiteSpace(player._squad) && string.IsNullOrWhiteSpace(payload))
+            {
+                player.sendMessage(-1, "You are not in a squad.");
+                return;
+            }
+
+            //Set the title and colums
             SC_Chart chart = new SC_Chart();
 
             chart.title = "Online Squad Chart Information";
             chart.columns = "-Name:14,-Squad:14,-Arena:14";
 
-            player.sendMessage(0, String.Format("{0} {1}", player._squadID, player._squad));
+            //if (!player.IsStealth)
+            //{
+            //    chart.rows.Add(String.Format("\"{0}\",\"{1}\",\"{2}\"", player._alias, player._squad, player._arena._name));
+            //}
 
-            if (!player.IsStealth)
-            {
-                chart.rows.Add(String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
-                        player._alias, player._squad, player._arena._name));
-            }
+            var squadName = (string.IsNullOrWhiteSpace(payload) ? player._squad : payload).ToLower();
 
             foreach (Arena arena in player._server._arenas.Values.ToList())
             {
                 foreach (Player p in arena.Players)
                 {
-                    if (p.IsStealth)
+                    if (p.IsStealth || String.IsNullOrWhiteSpace(p._squad))
                     {
                         continue;
                     }
 
-                    if (p._id == player._id)
+                    //if (p._id == player._id)
+                    //{
+                    //    continue;
+                    //}
+
+                    if (p._squad.ToLower() != squadName)
                     {
                         continue;
                     }
 
-                    //Append his stats
-                    if (String.IsNullOrWhiteSpace(p._squad))
-                        continue;
+                    var arenaName = p._arena.isVisibleToPlayer(player) || (p._arena._name == player._arena._name) ? p._arena._name : "(private)";
 
-                    string row = String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\"",
-                        p._alias, p._squad, p._arena._name);
+                    string row = String.Format("\"{0}\",\"{1}\",\"{2}\"", p._alias, p._squad, arenaName);
                     chart.rows.Add(row);
                 }
             }

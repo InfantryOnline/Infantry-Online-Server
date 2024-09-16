@@ -65,6 +65,7 @@ namespace InfServer.Logic
         static public void Handle_SC_ChartResponse(SC_ChartResponse<Database> pkt, Database db)
         {   //Find the player in question
             Player player = db._server.getPlayer(pkt.alias);
+
             if (player == null)
                 return;
 
@@ -77,9 +78,13 @@ namespace InfServer.Logic
             chart.title = pkt.title;
             chart.columns = pkt.columns;
 
-            string[] chats = pkt.data.Split('\n');
-            foreach (string str in chats)
+            string[] rows = pkt.data.Split('\n');
+
+            foreach (string str in rows)
+            {
                 chart.rows.Add(str);
+            }
+                
 
             player._client.sendReliable(chart, 1);
         }

@@ -189,6 +189,10 @@ namespace InfServer.Data
                     packet = new CS_ChatQuery<T>(typeID, buffer, offset, size);
                     break;
 
+                case CS_ChartQuery<T>.TypeID:
+                    packet = new CS_ChartQuery<T>(typeID, buffer, offset, size);
+                    break;
+
                 case Disconnect<T>.TypeID:
                     packet = new Disconnect<T>(typeID, buffer, offset, size);
                     break;

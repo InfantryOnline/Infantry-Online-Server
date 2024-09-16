@@ -169,6 +169,10 @@ namespace InfServer.Data
                     packet = new SC_Chat<T>(typeID, buffer, offset, size);
                     break;
 
+                case SC_ChartResponse<T>.TypeID:
+                    packet = new SC_ChartResponse<T>(typeID, buffer, offset, size);
+                    break;
+
                 case SC_Zones<T>.TypeID:
                     packet = new SC_Zones<T>(typeID, buffer, offset, size);
                     break;

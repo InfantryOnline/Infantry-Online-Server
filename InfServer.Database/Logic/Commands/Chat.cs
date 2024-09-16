@@ -1388,62 +1388,65 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ChartQuery(CS_ChartQuery<Zone> pkt, Zone zone)
         {
-            using (InfServer.Database.InfantryDataContext db = zone._server.getContext())
+            using (InfantryDataContext db = zone._server.getContext())
             {
                 switch (pkt.type)
                 {
                     case CS_ChartQuery<Zone>.ChartType.chatchart:
                         {
-                            KeyValuePair<int, Zone.Player> from = zone._players.SingleOrDefault(p => string.Compare(p.Value.alias, pkt.alias, true) == 0);
-                            if (from.Value == null)
-                                return;
+                            zone._server.sendMessage(zone, pkt.alias, "Getting chatchart.");
+
+                            var zpKvp = zone._server._zones.SelectMany(z => z._players).FirstOrDefault(p => p.Value.alias == pkt.alias);
+
+                            if (zpKvp.Equals(default(KeyValuePair<int, Zone.Player>)))
+                            {
+                                zone._server.sendMessage(zone, pkt.alias, "Alias not found.");
+                            }
+
+                            var zonePlayer = zpKvp.Value;
 
                             var results = new Dictionary<string, Zone.Player>();
-                            List<string> chats = new List<string>();
-                            bool update = false;
-                            //Check chats
-                            foreach (Zone z in zone._server._zones)
-                                foreach (KeyValuePair<int, Zone.Player> player in z._players)
+
+                            foreach(var chat in zonePlayer.chats)
+                            {
+                                foreach (Zone z in zone._server._zones)
                                 {
-                                    if (player.Value == null)
-                                        continue;
-
-                                    if (player.Value.chats.Count < 1)
-                                        continue;
-
-                                    //Player has a chat, lets check it with ours
-                                    foreach (string chat in player.Value.chats)
+                                    foreach (var kvpPlayer in z._players)
                                     {
-                                        //He/she does
-                                        if (from.Value.chats.Contains(chat))
+                                        var zp = kvpPlayer.Value;
+
+                                        if (zp == null || zp.alias == zonePlayer.alias)
                                         {
-                                            chats.Add(chat);
-                                            update = true;
+                                            continue;
+                                        }
+
+                                        if (zp.chats.Contains(chat))
+                                        {
+                                            results.Add(chat, zp);
                                         }
                                     }
-
-                                    if (update)
-                                    {
-                                        results.Add((String.Join(",", chats)), player.Value);
-                                        update = false;
-                                    }
                                 }
-
-                            if (results.Count > 0)
-                            {
-                                SC_ChartResponse<Zone> respond = new SC_ChartResponse<Zone>();
-                                respond.alias = pkt.alias;
-                                respond.type = CS_ChartQuery<Zone>.ChartType.chatchart;
-                                respond.title = pkt.title;
-                                respond.columns = pkt.columns;
-                                foreach (KeyValuePair<string, Zone.Player> p in results)
-                                {
-                                    respond.data += String.Format("\"{0}\"\",\"\"{1}\"\",\"\"{2}\"\",\"\"{3}\"\"",
-                                        p.Value.alias, p.Value.zone._zone.name, p.Value.arena, p.Key);
-                                    respond.data += "\n";
-                                }
-                                zone._client.sendReliable(respond);
                             }
+
+                            SC_ChartResponse<Zone> respond = new SC_ChartResponse<Zone>();
+                            respond.alias = pkt.alias;
+                            respond.type = CS_ChartQuery<Zone>.ChartType.chatchart;
+                            respond.title = pkt.title;
+                            respond.columns = pkt.columns;
+
+                            foreach (var p in results)
+                            {
+                                var arenaName = p.Value.arena;
+
+                                if (p.Value.arena.StartsWith("#") && zonePlayer.arena != p.Value.arena)
+                                {
+                                    arenaName = "(private)";
+                                }
+
+                                respond.data += String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"\n", p.Value.alias, p.Value.zone._zone.name, arenaName, p.Key);
+                            }
+
+                            zone._client.sendReliable(respond);
                         }
                         break;
                 }
