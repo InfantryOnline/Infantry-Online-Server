@@ -1404,9 +1404,9 @@ namespace InfServer.Logic
 
                             var zonePlayer = zpKvp.Value;
 
-                            var results = new Dictionary<string, Zone.Player>();
+                            var results = new List<Tuple<string, Zone.Player>>();
 
-                            foreach(var chat in zonePlayer.chats)
+                            foreach (var chat in zonePlayer.chats)
                             {
                                 foreach (Zone z in zone._server._zones)
                                 {
@@ -1419,9 +1419,9 @@ namespace InfServer.Logic
                                             continue;
                                         }
 
-                                        if (zp.chats.Contains(chat))
+                                        if (zp.chats.Contains(chat, StringComparer.OrdinalIgnoreCase))
                                         {
-                                            results.Add(chat, zp);
+                                            results.Add(Tuple.Create(chat, zp));
                                         }
                                     }
                                 }
@@ -1432,17 +1432,18 @@ namespace InfServer.Logic
                             respond.type = CS_ChartQuery<Zone>.ChartType.chatchart;
                             respond.title = pkt.title;
                             respond.columns = pkt.columns;
+                            respond.data = String.Empty;
 
                             foreach (var p in results)
                             {
-                                var arenaName = p.Value.arena;
+                                var arenaName = p.Item2.arena;
 
-                                if (p.Value.arena.StartsWith("#") && zonePlayer.arena != p.Value.arena)
+                                if (p.Item2.arena.StartsWith("#") && zonePlayer.arena != p.Item2.arena)
                                 {
                                     arenaName = "(private)";
                                 }
 
-                                respond.data += String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"\n", p.Value.alias, p.Value.zone._zone.name, arenaName, p.Key);
+                                respond.data += String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"\n", p.Item2.alias, p.Item2.zone._zone.name, arenaName, p.Item1);
                             }
 
                             zone._client.sendReliable(respond);
