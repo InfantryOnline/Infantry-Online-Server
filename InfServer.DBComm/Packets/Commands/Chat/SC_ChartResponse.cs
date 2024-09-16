@@ -20,7 +20,7 @@ namespace InfServer.Protocol
 
         public string title;
         public string columns;
-        public string data;
+        public List<string> rows = new List<string>();
 
         //Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.ChartResponse;
@@ -70,7 +70,12 @@ namespace InfServer.Protocol
             Write(title, 0);
             Write(columns, 0);
 
-            Write(data, 0);
+            Write(rows.Count);
+
+            foreach(var r in rows)
+            {
+                Write(r, 0);
+            }
         }
 
         /// <summary>
@@ -84,7 +89,14 @@ namespace InfServer.Protocol
             title = ReadNullString();
             columns = ReadNullString();
 
-            data = ReadNullString();
+            var count = _contentReader.ReadInt32();
+
+            rows.Clear();
+
+            for (var i = 0; i < count; i++)
+            {
+                rows.Add(ReadNullString());
+            }
         }
 
         /// <summary>

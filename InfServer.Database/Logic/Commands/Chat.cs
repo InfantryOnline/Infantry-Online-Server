@@ -1432,10 +1432,11 @@ namespace InfServer.Logic
                             respond.type = CS_ChartQuery<Zone>.ChartType.chatchart;
                             respond.title = pkt.title;
                             respond.columns = pkt.columns;
-                            respond.data = String.Empty;
 
-                            foreach (var p in results)
+                            for(var i = 0; i < results.Count; i++)
                             {
+                                var p = results[i];
+
                                 var arenaName = p.Item2.arena;
 
                                 if (p.Item2.arena.StartsWith("#") && zonePlayer.arena != p.Item2.arena)
@@ -1443,10 +1444,12 @@ namespace InfServer.Logic
                                     arenaName = "(private)";
                                 }
 
-                                respond.data += String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"\n", p.Item2.alias, p.Item2.zone._zone.name, arenaName, p.Item1);
+                                var row = String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", p.Item2.alias, p.Item2.zone._zone.name, arenaName, p.Item1);
+
+                                respond.rows.Add(row);
                             }
 
-                            zone._client.sendReliable(respond);
+                            zone._client.sendReliable(respond, 1);
                         }
                         break;
                 }

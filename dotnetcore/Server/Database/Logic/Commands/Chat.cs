@@ -69,7 +69,7 @@ namespace InfServer.Logic
             if (player == null)
                 return;
 
-            if (String.IsNullOrEmpty(pkt.data))
+            if (pkt.rows.Count == 0)
                 return;
 
             //Form and send a response
@@ -78,9 +78,7 @@ namespace InfServer.Logic
             chart.title = pkt.title;
             chart.columns = pkt.columns;
 
-            string[] rows = pkt.data.Split('\n');
-
-            foreach (string str in rows)
+            foreach (string str in pkt.rows)
             {
                 chart.rows.Add(str);
             }
