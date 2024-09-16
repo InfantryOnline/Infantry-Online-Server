@@ -933,6 +933,30 @@ namespace InfServer.Game.Commands.Chat
         /// <summary>
         /// Sends help request to moderators..
         /// </summary>
+        public static void commands(Player player, Player recipient, string payload, int bong)
+        {
+            SC_Chart chart = new SC_Chart();
+
+            chart.title = "Command Listing";
+            chart.columns = "-Command:52,-Description:140";
+
+            var cmds = player._arena._commandRegistrar._chatCommands.Values.OrderBy(s => s.usage).ToList();
+
+            foreach (var cmd in cmds)
+            {
+                if (!cmd.isDevCommand && cmd.permissionLevel == Data.PlayerPermission.Normal)
+                {
+                    string row = String.Format("\"{0}\",\"{1}\"", cmd.usage, cmd.commandDescription);
+                    chart.rows.Add(row);
+                }
+            }
+
+            player._client.sendReliable(chart, 1);
+        }
+
+        /// <summary>
+        /// Sends help request to moderators..
+        /// </summary>
         public static void help(Player player, Player recipient, string payload, int bong)
         {
             //payload empty?
@@ -1842,6 +1866,10 @@ namespace InfServer.Game.Commands.Chat
             yield return new HandlerDescriptor(help, "help",
                 "Asks moderator for help.",
                 "?help question");
+
+            yield return new HandlerDescriptor(commands, "commands",
+                "Displays this chart of commands.",
+                "?commands");
 
             yield return new HandlerDescriptor(info, "info",
                 "Displays lag statistics for you or another player",
