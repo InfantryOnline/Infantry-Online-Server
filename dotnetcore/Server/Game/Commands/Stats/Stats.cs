@@ -112,8 +112,6 @@ namespace InfServer.Game.Commands.Chat
                 query.alias = player._alias;
 
                 player._server._db.send(query);
-
-                player.sendMessage(0, "Loading chatchart...");
             }
         }
 

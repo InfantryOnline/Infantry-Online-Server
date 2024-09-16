@@ -1394,13 +1394,12 @@ namespace InfServer.Logic
                 {
                     case CS_ChartQuery<Zone>.ChartType.chatchart:
                         {
-                            zone._server.sendMessage(zone, pkt.alias, "Getting chatchart.");
-
                             var zpKvp = zone._server._zones.SelectMany(z => z._players).FirstOrDefault(p => p.Value.alias == pkt.alias);
 
                             if (zpKvp.Equals(default(KeyValuePair<int, Zone.Player>)))
                             {
-                                zone._server.sendMessage(zone, pkt.alias, "Alias not found.");
+                                zone._server.sendMessage(zone, pkt.alias, "Critical: Alias not found.");
+                                return;
                             }
 
                             var zonePlayer = zpKvp.Value;
