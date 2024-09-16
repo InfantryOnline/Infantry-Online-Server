@@ -86,7 +86,7 @@ namespace InfServer.Game.Commands.Chat
                 SC_Chart chart = new SC_Chart();
 
                 chart.title = "Online Chat Information Chart";
-                chart.columns = "-Name:14,-Zone:14,-Arena:14,-Chats:28";
+                chart.columns = "-Name:32,-Zone:32,-Arena:32,-Chats:28";
 
                 foreach (Player p in player._arena.Players)
                 {
@@ -108,7 +108,7 @@ namespace InfServer.Game.Commands.Chat
                 CS_ChartQuery<Data.Database> query = new CS_ChartQuery<Data.Database>();
                 query.type = CS_ChartQuery<Data.Database>.ChartType.chatchart;
                 query.title = "Online Chat Information Chart";
-                query.columns = "-Name:14,-Zone:14,-Arena:14,-Chats:28";
+                query.columns = "-Name:32,-Zone:32,-Arena:32,-Chats:28";
                 query.alias = player._alias;
 
                 player._server._db.send(query);
