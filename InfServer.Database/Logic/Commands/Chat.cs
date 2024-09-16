@@ -1433,10 +1433,8 @@ namespace InfServer.Logic
                             respond.title = pkt.title;
                             respond.columns = pkt.columns;
 
-                            for(var i = 0; i < results.Count; i++)
+                            foreach(var p in results)
                             {
-                                var p = results[i];
-
                                 var arenaName = p.Item2.arena;
 
                                 if (p.Item2.arena.StartsWith("#") && zonePlayer.arena != p.Item2.arena)
