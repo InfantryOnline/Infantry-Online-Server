@@ -482,12 +482,14 @@ namespace InfServer.Logic
                             {
                                 foreach (Zone z in zone._server._zones.Where(zn => zn._zone.active == 1))
                                 {
-                                    int playercount;
+                                    int playercount = z._players.Count;
+
                                     //Invert player count of our current zone
                                     if (z._zone.port == Convert.ToInt32(pkt.payload))
+                                    {
                                         playercount = -z._players.Count;
-                                    else
-                                        playercount = z._players.Count;
+                                    }
+
                                     //Add it to our list
                                     zoneList.Add(new ZoneInstance(0,
                                         z._zone.name,
@@ -1442,7 +1444,7 @@ namespace InfServer.Logic
                                     arenaName = "(private)";
                                 }
 
-                                var row = String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\"", p.Item2.alias, p.Item2.zone._zone.name, arenaName, p.Item1);
+                                var row = String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\",\" \"", p.Item2.alias, p.Item2.zone._zone.name, arenaName, p.Item1);
 
                                 respond.rows.Add(row);
                             }

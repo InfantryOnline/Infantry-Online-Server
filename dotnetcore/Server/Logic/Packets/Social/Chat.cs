@@ -23,6 +23,19 @@ namespace InfServer.Logic
                 return;
             }
 
+            var server = player._server;
+
+            if (server._config["server/logchat"].boolValue)
+            {
+                if (player._arena != null)
+                {
+                    using (LogAssume.Assume(player._arena._logger))
+                    {
+                        Log.write(TLog.Normal, $"{player._alias} ({player._client._ipe})> {pkt.message}");
+                    }
+                }
+            }                  
+
             if (pkt.message == "?diag")
             {
                 // Raw diagnostic output.
