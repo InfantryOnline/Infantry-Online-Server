@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -477,12 +477,18 @@ namespace InfServer.Protocol
             }
         }
 
+        private bool SequenceNumberLessThan(ushort s1, ushort s2)
+        {
+            return s1 != s2 && ((ushort)(s2 - s1)) < 0x8000;
+        }
+
         /// <summary>
         /// Ensures that the client is receiving all reliable packets sent
         /// </summary>
         /// <remarks>Also is the only function that sends reliable packets.</remarks>
+
         private void ensureReliable(Client.StreamState stream)
-        {	//Compare times
+        {
             int currentTick = Environment.TickCount;
 
             //Do we need to send an out of sync notification?
@@ -500,139 +506,73 @@ namespace InfServer.Protocol
 
             //Do we have any bandwidth available?
             int bytesLeft = _rateThreshold - _bytesWritten;
-            if (bytesLeft < 0)
+            if (bytesLeft <= 0)
                 return;
 
-            var n = stream.S2C_Reliable;
-            var m = stream.S2C_ReliableConfirmed;
+            ushort current = stream.S2C_ReliableConfirmed;
 
-            // Take care of uint16 wraparound.
-            if (n < m)
+            while (SequenceNumberLessThan(current, stream.S2C_Reliable))
             {
-                while (n != m)
-                {
-                    ReliableInfo ri;
-
-                    if (!stream.reliablePackets.TryGetValue(n, out ri))
-                    {
-                        n++;
-                        continue;
-                    }
-
-                    //Has it been delayed too long?
-                    if (currentTick - ri.timeSent < 1000)
-                    {
-                        n++;
-                        continue;
-                    }
-
-                    //Resend it
-                    _packetQueue.Enqueue(ri.packet);
-
-                    //Was it a reattempt?
-                    if (ri.timeSent != 0)
-                    {
-                        ri.attempts++;
-
-                        //Log.write(TLog.Warning, "Reliable packet #" + ri.rid + " lost. (" + ri.attempts + ")");
-                    }
-
-                    ri.timeSent = Environment.TickCount;
-
-                    //Don't go over the bandwidth limit or we'll just complicate things
-                    bytesLeft -= ri.packet._size;
-                    if (bytesLeft < 0)
-                        break;
-
-                    n++;
-                }
-            }
-
-            //We want to start with the first sent packet
-            for (n = stream.S2C_ReliableConfirmed; n < stream.S2C_Reliable; ++n)
-            {	//Does it exist?
                 ReliableInfo ri;
-
-                if (!stream.reliablePackets.TryGetValue(n, out ri))
-                    continue;
-
-                //Has it been delayed too long?
-                if (currentTick - ri.timeSent < 1000)
-                    continue;
-
-                //Resend it
-                _packetQueue.Enqueue(ri.packet);
-
-                //Was it a reattempt?
-                if (ri.timeSent != 0)
+                if (stream.reliablePackets.TryGetValue(current, out ri))
                 {
-                    ri.attempts++;
+                    //Has it been delayed too long?
+                    if (currentTick - ri.timeSent >= 1000)
+                    {
+                        //Resend it
+                        _packetQueue.Enqueue(ri.packet);
 
-                    //Log.write(TLog.Warning, "Reliable packet #" + ri.rid + " lost. (" + ri.attempts + ")");
+                        //Was it a reattempt?
+                        if (ri.timeSent != 0)
+                        {
+                            ri.attempts++;
+                            //Log.write(TLog.Warning, $"Reliable packet #{ri.rid} lost. Attempts: {ri.attempts}, StreamID: {stream.streamID}");
+                        }
+
+                        ri.timeSent = currentTick;
+
+                        //Don't go over the bandwidth limit or we'll just complicate things
+                        bytesLeft -= ri.packet._size;
+                        if (bytesLeft <= 0)
+                            break;
+                    }
                 }
 
-                ri.timeSent = Environment.TickCount;
-
-                //Don't go over the bandwidth limit or we'll just complicate things
-                bytesLeft -= ri.packet._size;
-                if (bytesLeft < 0)
-                    break;
+                current = (ushort)(current + 1);
             }
         }
 
-        /// <summary>
-        /// Confirms that a reliable packet has been received by the client.
-        /// Note that a higher rID than the lowest expected indicates that all 
-        /// previous reliable packets were received.
-        /// </summary>
         public void confirmReliable(ushort rID, int streamID)
-        {	//Great!
+        {
             using (DdMonitor.Lock(_sync))
-            {	//Get the relevant stream
+            {
                 Client.StreamState stream = _streams[streamID];
+                ushort current = stream.S2C_ReliableConfirmed;
+                ushort end = (ushort)(rID + 1);
 
-                if (stream.S2C_ReliableConfirmed == ushort.MaxValue)
+                while (SequenceNumberLessThan(current, end))
                 {
-                    Log.write(TLog.Warning, $"confirmReliable: Reached MaxValue. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
-                }
-
-                if (stream.S2C_ReliableConfirmed == ushort.MaxValue - 1)
-                {
-                    Log.write(TLog.Warning, $"confirmReliable: Reached MaxValue - 1. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
-                }
-
-                //This satisfies all packets inbetween
-                for (ushort i = stream.S2C_ReliableConfirmed; i <= rID; ++i)
-                {   //Get our associated info
                     ReliableInfo ri;
-
-                    if (!stream.reliablePackets.TryGetValue(i, out ri))
-                        continue;
-
-                    stream.reliablePackets.Remove(i);
-
-                    //Part of a data stream?
-                    if (ri.streamParent != null)
+                    if (stream.reliablePackets.TryGetValue(current, out ri))
                     {
-                        if (ri.streamParent.lastPacket == ri.packet)
-                            ri.streamParent.onCompleted();
+                        stream.reliablePackets.Remove(current);
+
+                        // Handle completion callbacks
+                        if (ri.streamParent != null)
+                        {
+                            if (ri.streamParent.lastPacket == ri.packet)
+                                ri.streamParent.onCompleted();
+                        }
+                        else
+                        {
+                            ri.onCompleted();
+                        }
                     }
-                    else
-                        ri.onCompleted();
+
+                    current = (ushort)(current + 1);
                 }
 
-                // Forces a rollover once it reaches the MaxValue.
-                stream.S2C_ReliableConfirmed = (ushort)(rID + 1);
-
-                if (stream.S2C_ReliableConfirmed == ushort.MaxValue - 1)
-                {
-                    Log.write(TLog.Warning, $"confirmReliable: Advanced to MaxValue - 1. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
-                }
-
-                if (stream.S2C_ReliableConfirmed == ushort.MaxValue)
-                {
-                    Log.write(TLog.Warning, $"confirmReliable: Advanced to MaxValue. S2C_ReliableConfirmed: {stream.S2C_ReliableConfirmed}, rID: {rID}");
-                }
+                stream.S2C_ReliableConfirmed = end;
             }
         }
 
