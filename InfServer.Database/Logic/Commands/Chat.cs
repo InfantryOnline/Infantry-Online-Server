@@ -710,7 +710,7 @@ namespace InfServer.Logic
                                 }
                                 else // No, check dev powers
                                 {   
-                                    var player = db.zones.First(zones => zones.id == z._zone.id).players.First(p => p.alias1 == alias);
+                                    var player = db.zones.First(zones => zones.id == zone._zone.id).players.First(p => p.alias1 == alias);
                                     if (player != null && player.permission > 0)
                                         zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
                                 }
