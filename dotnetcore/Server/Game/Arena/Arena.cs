@@ -14,6 +14,7 @@ using Assets;
 using static Assets.CfgInfo;
 using InfServer.Game.Commands.Chat;
 using System.ComponentModel;
+using System.Xml.Linq;
 
 namespace InfServer.Game
 {
@@ -41,6 +42,8 @@ namespace InfServer.Game
         public List<string> _bAllowed;                  //When arena lock is enabled, these players are allowed
         public bool _aLocked;                           //Is this private arena locked?
 
+        public Dictionary<string, string> _aliasDictionary;
+
         public string _name;							//The name of this arena
 
         public Random _rand;							//Our random seed
@@ -62,6 +65,9 @@ namespace InfServer.Game
         public BreakdownSettings _breakdownSettings;
         private int _bountyTick;                        //Last time AutoBounty ticked
         public List<ItemDrop> _condemnedItems;
+        
+        //Loaded list of item ID allowed for granted players through prize command.
+        public List<int> _prizeItems;
 
         public PollSettings _poll;						//For our poll command
 
@@ -89,6 +95,13 @@ namespace InfServer.Game
         static public bool allowArenaCreation;          //True if we can create an arena at any time of the day.
         static public int maxBalls;                     //The maxium amount of playing balls we can have
 
+        //CFG variables to allow for script changes on the fly. Max per team, private teams allowed etc.
+        public bool _allowPrivate;                      //Arena allow private teams on or off.
+        public int _maxPerteam;
+        public int _maxPerPrivateTeam;
+        public bool _allowprize;
+
+
         static public int gameCheckInterval;			//The frequency at which we check basic game state
 
         static public int routeRange;					//The range at which all update packets are routed
@@ -99,6 +112,7 @@ namespace InfServer.Game
         static public int routeRadarRangeFarFactor;		//The factor at which the far packets are routed
 
         public delegate void LogMessage(string message);
+
 
         #region EventObject
         /// <summary>
@@ -455,6 +469,12 @@ namespace InfServer.Game
 
             recycling = _server._recycling;
             _scramble = _server._zoneConfig.arena.scrambleTeams > 0 ? true : false;
+            _allowPrivate = _server._zoneConfig.arena.allowPrivateFrequencies;
+            _maxPerPrivateTeam = _server._zoneConfig.arena.maxPerPrivateFrequency < 1 ? _server._zoneConfig.arena.maxPerFrequency : _server._zoneConfig.arena.maxPerPrivateFrequency;
+            _maxPerteam = _server._zoneConfig.arena.maxPerFrequency;
+            _allowprize = _server._zoneConfig.owner.prize;
+
+            _prizeItems = new List<int>();
 
             //Instance our tiles array
             LvlInfo lvl = server._assets.Level;
@@ -479,6 +499,9 @@ namespace InfServer.Game
         {	//Initialize our subsections
             initState();
             initLio();
+
+            //load in list of allowed items for granted players
+            initLists();
 
             //Initialize our breakdown settings
             _breakdownSettings = new BreakdownSettings();
@@ -1125,6 +1148,30 @@ namespace InfServer.Game
 
             return objArea;
         }
+        //Setting of CFG variables through script
+        public virtual void setPrivateTeams(bool Private)
+        {
+            if(_allowPrivate != Private)
+                _allowPrivate = Private;
+        }
+
+        public virtual void setMaxPerTeam(int max)
+        {
+            if (_maxPerteam != max) 
+                _maxPerteam = max;
+        }
+
+        public virtual void setMaxPerPrivateTeam(int max)
+        { 
+            if (_maxPerPrivateTeam != max)
+                _maxPerPrivateTeam = max;
+        }
+
+        public virtual void setPrize(bool Private)
+        {
+            if(_allowprize != Private)
+                _allowprize = Private;
+        }
         #endregion
 
         #region Locators
@@ -1399,6 +1446,28 @@ namespace InfServer.Game
         public virtual void gameReset()
         { }
 
+        #endregion
+
+        #region Granted Item List
+        public virtual void initLists()
+        {
+            string filePath = Path.Combine(System.Environment.CurrentDirectory + "/Assets/", "PrizeItems.xml");
+
+            if (File.Exists(filePath))
+            {
+                // Load XML file
+                XDocument xDoc = XDocument.Load(filePath);
+
+                // Extract IDs into a List<int>
+                _prizeItems = xDoc.Descendants("Item")
+                                        .Select(x => (int)x.Attribute("ID"))
+                                        .ToList();
+            }
+            else
+            {
+                Console.WriteLine("File not found: " + filePath);
+            }
+        }
         #endregion
     }
 }
