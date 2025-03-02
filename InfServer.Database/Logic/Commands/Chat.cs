@@ -690,28 +690,31 @@ namespace InfServer.Logic
                     case CS_ChatQuery<Zone>.QueryType.modChat:
                         {
                             if (String.IsNullOrEmpty(pkt.payload))
+                            {
                                 return;
+                            }
 
-                            string pAlias;
-                            foreach (Zone z in zone._server._zones)
-                                foreach (KeyValuePair<int, Zone.Player> Player in z._players)
+                            foreach (KeyValuePair<int, Zone.Player> Player in zone._players)
+                            {
+                                string pAlias = Player.Value.alias;
+                                var alias = db.alias.SingleOrDefault(p => p.name == pAlias);
+
+                                if (alias == null || alias.name == pkt.sender)
                                 {
-                                    pAlias = Player.Value.alias;
-                                    var alias = db.alias.SingleOrDefault(p => p.name == pAlias);
-                                    if (alias == null)
-                                        continue;
-                                    if (alias.name == pkt.sender)
-                                        continue;
-                                    //Are they a global mod?
-                                    if (alias.account1.permission > 0)
-                                        zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
-                                    else
-                                    {   //No, check dev powers
-                                        var player = db.zones.First(zones => zones.id == z._zone.id).players.First(p => p.alias1 == alias);
-                                        if (player != null && player.permission > 0)
-                                            z._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
-                                    }
+                                    continue;
                                 }
+
+                                if (alias.account1.permission > 0) //Are they a global mod?
+                                {
+                                    zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                                }
+                                else // No, check dev powers
+                                {   
+                                    var player = db.zones.First(zones => zones.id == z._zone.id).players.First(p => p.alias1 == alias);
+                                    if (player != null && player.permission > 0)
+                                        zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                                }
+                            }
                         }
                         break;
 
