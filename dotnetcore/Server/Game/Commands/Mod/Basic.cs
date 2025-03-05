@@ -679,7 +679,7 @@ namespace InfServer.Game.Commands.Mod
         /// Finds a skill within the zone
         /// </summary>
         static public void findSkill(Player player, Player recipient, string payload, int bong)
-		{
+        {
             if (string.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: *findskill [skill ID or skill Name]");
@@ -706,26 +706,26 @@ namespace InfServer.Game.Commands.Mod
                 //Lets try a semi match
                 List<Assets.SkillInfo> skills = player._server._assets.getSkillInfos;
                 if (skills == null)
-				{
+                {
                     player.sendMessage(-1, "That skill doesn't exist.");
                     return;
-				}
+                }
 
                 int count = 0;
-                foreach(Assets.SkillInfo sk in skills)
-				{
+                foreach (Assets.SkillInfo sk in skills)
+                {
                     if (sk.Name.Contains(payload))
-					{
+                    {
                         player.sendMessage(0, string.Format("[{0}] {1}", sk.SkillId, sk.Name));
                         count++;
-					}
-				}
+                    }
+                }
 
                 if (count == 0)
-				{
+                {
                     player.sendMessage(-1, "That skill doesn't exist.");
                     return;
-				}
+                }
 
                 return;
             }
@@ -1143,7 +1143,7 @@ namespace InfServer.Game.Commands.Mod
                 string[] result = payload.Split(':');
                 timer = Convert.ToInt32(result.ElementAt(1));
                 int index = player._arena.playtimeTickerIdx > 1 ? 1 : 2;
-                player._arena.setTicker(1, index, timer * 100, result.ElementAt(0), delegate() { player._arena.pollQuestion(player._arena, true); });
+                player._arena.setTicker(1, index, timer * 100, result.ElementAt(0), delegate () { player._arena.pollQuestion(player._arena, true); });
                 player._arena.sendArenaMessage(string.Format("&A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), result.ElementAt(0)));
                 player._arena.sendArenaMessage("&Type ?poll yes or ?poll no to participate");
             }
@@ -1180,7 +1180,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if(!player._arena._allowprize)
+            if (!player._arena._allowprize)
             {
                 player.sendMessage(-1, "This arena does not allow *prize to be used.");
                 return;
@@ -1217,9 +1217,9 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Check if player is a granted player and compare item selected to list of allowed items.
-            if(level == (int)Data.PlayerPermission.GrantedPlayer)
+            if (level == (int)Data.PlayerPermission.GrantedPlayer)
             {
-                if(!player._arena._prizeItems.Contains(item.id))
+                if (!player._arena._prizeItems.Contains(item.id))
                 {
                     player.sendMessage(-1, "You do not have permission to prize this item.");
                     return;
@@ -2338,7 +2338,7 @@ namespace InfServer.Game.Commands.Mod
 
                     if (minutes > 0 || seconds > 0)
                     {   //Timer works on increments of 10ms, excludes negative timers
-                        player._arena.setTicker(1, player._arena.playtimeTickerIdx, minutes * 6000 + seconds * 100, "Time Remaining: ", delegate()
+                        player._arena.setTicker(1, player._arena.playtimeTickerIdx, minutes * 6000 + seconds * 100, "Time Remaining: ", delegate ()
                         { player._arena.gameEnd(); });
                     }
                     else
@@ -3690,7 +3690,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(allowprivate, "allowprivate",
                 "Toggles if arena allows private teams.",
-                "*allowprivate true/false",
+                "*allowprivate",
                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(maxprivfreq, "maxprivfreq",
@@ -3705,7 +3705,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(allowprize, "allowprize",
                 "Toggles if arena allows prize.",
-                "*allowprize true/false",
+                "*allowprize",
                InfServer.Data.PlayerPermission.Mod, true);
         }
     }
