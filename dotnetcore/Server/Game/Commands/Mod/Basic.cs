@@ -679,7 +679,7 @@ namespace InfServer.Game.Commands.Mod
         /// Finds a skill within the zone
         /// </summary>
         static public void findSkill(Player player, Player recipient, string payload, int bong)
-		{
+        {
             if (string.IsNullOrEmpty(payload))
             {
                 player.sendMessage(-1, "Syntax: *findskill [skill ID or skill Name]");
@@ -706,26 +706,26 @@ namespace InfServer.Game.Commands.Mod
                 //Lets try a semi match
                 List<Assets.SkillInfo> skills = player._server._assets.getSkillInfos;
                 if (skills == null)
-				{
+                {
                     player.sendMessage(-1, "That skill doesn't exist.");
                     return;
-				}
+                }
 
                 int count = 0;
-                foreach(Assets.SkillInfo sk in skills)
-				{
+                foreach (Assets.SkillInfo sk in skills)
+                {
                     if (sk.Name.Contains(payload))
-					{
+                    {
                         player.sendMessage(0, string.Format("[{0}] {1}", sk.SkillId, sk.Name));
                         count++;
-					}
-				}
+                    }
+                }
 
                 if (count == 0)
-				{
+                {
                     player.sendMessage(-1, "That skill doesn't exist.");
                     return;
-				}
+                }
 
                 return;
             }
@@ -1143,7 +1143,7 @@ namespace InfServer.Game.Commands.Mod
                 string[] result = payload.Split(':');
                 timer = Convert.ToInt32(result.ElementAt(1));
                 int index = player._arena.playtimeTickerIdx > 1 ? 1 : 2;
-                player._arena.setTicker(1, index, timer * 100, result.ElementAt(0), delegate() { player._arena.pollQuestion(player._arena, true); });
+                player._arena.setTicker(1, index, timer * 100, result.ElementAt(0), delegate () { player._arena.pollQuestion(player._arena, true); });
                 player._arena.sendArenaMessage(string.Format("&A Poll has been started by {0}." + " Topic: {1}", (player.IsStealth ? "Unknown" : player._alias), result.ElementAt(0)));
                 player._arena.sendArenaMessage("&Type ?poll yes or ?poll no to participate");
             }
@@ -1169,7 +1169,7 @@ namespace InfServer.Game.Commands.Mod
 
             //Get players mod level first
             int level;
-            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevelLocal == Data.PlayerPermission.GrantedPlayer)
                 level = (int)player.PermissionLevelLocal;
             else
                 level = (int)player.PermissionLevel;
@@ -1177,6 +1177,12 @@ namespace InfServer.Game.Commands.Mod
             if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
+                return;
+            }
+
+            if (!player._arena._allowprize)
+            {
+                player.sendMessage(-1, "This arena does not allow *prize to be used.");
                 return;
             }
             /*
@@ -1210,6 +1216,16 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
+            //Check if player is a granted player and compare item selected to list of allowed items.
+            if (level == (int)Data.PlayerPermission.GrantedPlayer)
+            {
+                if (!player._arena._prizeItems.Contains(item.id))
+                {
+                    player.sendMessage(-1, "You do not have permission to prize this item.");
+                    return;
+                }
+            }
+
             //Is it targetted?
             if (recipient == null)
             {	//We are to spawn it on the ground
@@ -1218,7 +1234,6 @@ namespace InfServer.Game.Commands.Mod
             else
             {	//Modify the recipient inventory
                 recipient.inventoryModify(item, quantity);
-
             }
         }
 
@@ -2323,7 +2338,7 @@ namespace InfServer.Game.Commands.Mod
 
                     if (minutes > 0 || seconds > 0)
                     {   //Timer works on increments of 10ms, excludes negative timers
-                        player._arena.setTicker(1, player._arena.playtimeTickerIdx, minutes * 6000 + seconds * 100, "Time Remaining: ", delegate()
+                        player._arena.setTicker(1, player._arena.playtimeTickerIdx, minutes * 6000 + seconds * 100, "Time Remaining: ", delegate ()
                         { player._arena.gameEnd(); });
                     }
                     else
@@ -3366,6 +3381,38 @@ namespace InfServer.Game.Commands.Mod
 
         }
 
+        static public void allowprivate(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._arena._allowPrivate != bool.Parse(payload))
+            {
+                player._arena._allowPrivate = bool.Parse(payload);
+            }
+        }
+
+        static public void maxprivfreq(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._arena._maxPerPrivateTeam != int.Parse(payload))
+            {
+                player._arena._maxPerPrivateTeam = int.Parse(payload);
+            }
+        }
+
+        static public void maxperfreq(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._arena._maxPerteam != int.Parse(payload))
+            {
+                player._arena._maxPerteam = int.Parse(payload);
+            }
+        }
+
+        static public void allowprize(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._arena._allowprize != bool.Parse(payload))
+            {
+                player._arena._allowprize = bool.Parse(payload);
+            }
+        }
+
         /// <summary>
         /// Registers all handlers
         /// </summary>
@@ -3519,7 +3566,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(prize, "prize",
                 "Spawns an item on the ground or in a player's inventory",
                 "*prize item:amount or ::*prize item:amount",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.GrantedPlayer, true);
 
             yield return new HandlerDescriptor(profile, "profile",
                 "Displays a player's inventory.",
@@ -3639,6 +3686,26 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(zone, "zone",
                 "Send a zone-wide system message.",
                 "*zone message",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(allowprivate, "allowprivate",
+                "Toggles if arena allows private teams.",
+                "*allowprivate",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(maxprivfreq, "maxprivfreq",
+                "Set the maximum amount of players per private teams.",
+                "*maxprivfreq number",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(maxperfreq, "maxperfreq",
+                "Set the maximum amount of players per public team.",
+                "*maxperfreq number",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(allowprize, "allowprize",
+                "Toggles if arena allows prize.",
+                "*allowprize",
                InfServer.Data.PlayerPermission.Mod, true);
         }
     }

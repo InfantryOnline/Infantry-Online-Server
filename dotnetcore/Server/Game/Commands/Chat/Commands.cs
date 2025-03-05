@@ -1582,7 +1582,7 @@ namespace InfServer.Game.Commands.Chat
                     else
                     {
                         //Team they're trying to join doesn't exist
-                        if (!player._arena._server._zoneConfig.arena.allowPrivateFrequencies)
+                        if (!player._arena._allowPrivate)
                         {
                             //Private Frequencies are disabled
                             player.sendMessage(-1, "Private teams are disabled");
