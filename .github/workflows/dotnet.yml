@@ -27,7 +27,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-windows
-        path: ./release-windows/*  
+        path: ./releases/windows/*  
     
   build-linux:
     runs-on: ubuntu-latest
@@ -41,6 +41,12 @@ jobs:
         
     - name: Build Linux
       run: dotnet build ./dotnetcore/InfServerNetCore.sln --output ./releases/linux -c Release
+
+    - name: Upload Linux Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-linux
+        path: ./releases/linux/*  
 
   build-publish:
     runs-on: ubuntu-latest
