@@ -57,17 +57,19 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: release-windows
+        path: ./releases-windows
         
     - name: Download linux artifact
       uses: actions/download-artifact@v4
       with:
         name: release-linux
+        path: ./releases-linux
 
     - name: Zip Windows Artifact
-      run: zip release-windows.zip ./release-windows/*
+      run: zip release-windows.zip ./releases-windows/*
 
     - name: Zip Linux Artifact
-      run: zip release-linux.zip ./release-linux/*
+      run: zip release-linux.zip ./releases-linux/*
     
     - name: Upload Windows Artifact
       uses: actions/upload-artifact@v4
