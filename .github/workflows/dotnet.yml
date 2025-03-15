@@ -10,9 +10,8 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  build-windows:
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -22,13 +21,23 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Build Windows
-      run: dotnet build ./dotnetcore/InfServerNetCore.sln --output ./releases/windows -c Release -r win-x64
+      run: dotnet build ./dotnetcore/InfServerNetCore.sln --output ./releases/windows -c Release
 
-    - name: Build Linux
-      run: dotnet build ./dotnetcore/InfServerNetCore.sln --output ./releases/linux -c Release -r linux-x64
-      
     - name: Zip Windows Artifact
       run: zip release-windows.zip ./releases/windows/*
+    
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Build Linux
+      run: dotnet build ./dotnetcore/InfServerNetCore.sln --output ./releases/linux -c Release
 
     - name: Zip Linux Artifact
       run: zip release-linux.zip ./releases/linux/*
