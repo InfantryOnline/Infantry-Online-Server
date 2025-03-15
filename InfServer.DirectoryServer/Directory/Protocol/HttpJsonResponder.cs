@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
@@ -45,8 +46,9 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                                    {
                                        /*httpListener.IgnoreWriteExceptions = true;*/
                                        httpListener.Start();
+                                       _bOperating = true;
 
-                                       while (httpListener.IsListening)
+                                       while (httpListener.IsListening && _bOperating)
                                        {
                                            try
                                            {
@@ -71,8 +73,14 @@ namespace InfServer.DirectoryServer.Directory.Protocol
             {
                 if (httpListener != null)
                     httpListener.Close();
-                _listenerThread.Abort();
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    _listenerThread.Abort();
+                }
             }
+
+            _bOperating = false;
         }
 
         #region Private Implementation and Helpers
@@ -91,6 +99,11 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         /// <param name="context">Listening context</param>
         private void HandleRequest(HttpListenerContext context)
         {
+            if (!_bOperating)
+            {
+                return;
+            }
+
             var request = context.Request;
             var response = context.Response;
 
@@ -163,6 +176,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol
         private readonly HttpListener httpListener;
         private readonly DirectoryServer directoryServer;
         private Thread _listenerThread;
+        private volatile bool _bOperating;
 
         #endregion
     }

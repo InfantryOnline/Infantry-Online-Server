@@ -95,9 +95,19 @@ namespace InfServer.Network
         public void end()
         {
             if (_listenThread.IsAlive)
-                _listenThread.Abort();
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    _listenThread.Abort();
+                }
+            }
+
             if (_sock != null)
+            {
                 _sock.Close();
+            }
+
+            _bOperating = false;
         }
 
         /// <summary>

@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 
 using InfServer.Protocol;
+using System.Runtime.InteropServices;
 
 namespace InfServer.Network
 {
@@ -88,7 +89,14 @@ namespace InfServer.Network
 
             //Close our current listener thread
             if (_listenThread != null)
-                _listenThread.Abort();
+            {
+                _bOperating = false;
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    _listenThread.Abort();
+                }
+            }
 
             //Create a new client object
             if (_client != null)
@@ -211,7 +219,12 @@ namespace InfServer.Network
         private void onClientDestroy(NetworkClient client)
         {	//We're no longer operating
             if (_listenThread != null)
-                _listenThread.Abort();
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    _listenThread.Abort();
+                }
+            }
 
             _client = null;
             _bOperating = false;
