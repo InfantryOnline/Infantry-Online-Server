@@ -53,6 +53,15 @@ jobs:
     needs: [build-windows, build-linux]
 
     steps:
+    - name: Download windows artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: release-windows
+        
+    - name: Download linux artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: release-linux
 
     - name: Zip Linux Artifact
       run: zip release-windows.zip ./releases/windows/*
