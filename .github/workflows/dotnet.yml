@@ -21,5 +21,12 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Build
-      run: dotnet build ./dotnetcore/InfServerNetCore.sln
+      run: dotnet build ./dotnetcore/InfServerNetCore.sln --output ./releases/windows
+    - name: Zip artifact for deployment
+      run: zip release-windows.zip ./releases/windows/*
+    - name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v2
+      with:
+        name: release-windows
+        path: release-windows.zip
       
