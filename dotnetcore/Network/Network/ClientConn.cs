@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Threading;
 
 using InfServer.Protocol;
+using System.Runtime.InteropServices;
 
 namespace InfServer.Network
 {
@@ -91,7 +92,12 @@ namespace InfServer.Network
             {
                 // FIXME: Time to use cancellation tokens.
 
-                _listenThread.Abort();
+                _bOperating = false;
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    _listenThread.Abort();
+                }
             }
 
             //Create a new client object
@@ -219,7 +225,11 @@ namespace InfServer.Network
             if (_listenThread != null)
             {
                 // FIXME: Time to use cancellation tokens.
-                _listenThread.Abort();
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    _listenThread.Abort();
+                }
             }
 
             _client = null;
