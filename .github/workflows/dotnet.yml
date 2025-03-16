@@ -53,6 +53,12 @@ jobs:
     needs: [build-windows, build-linux]
 
     steps:
+    - name: Get Date Format
+      uses: kaven-universe/github-action-current-date-time@v1.4.0
+      id: timestep,
+      with:
+        format: "YYYY-MM-DD HH-mm-ss-SSS"
+
     - name: Download windows artifact
       uses: actions/download-artifact@v4
       with:
@@ -77,8 +83,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: Release-${{ github.sha }}
-        release_name: Release ${{ github.sha }}
+        tag_name: Release-${{ steps.timestep.outputs.time }}
+        release_name: Release ${{ steps.timestep.outputs.time }}
         draft: false
         prerelease: false
 
