@@ -44,7 +44,7 @@ namespace InfServer.Protocol
 				//Not sure why it does this for each entry
 				Write((byte)TypeID);
 
-				Write(zone._name, 32);
+				Write(zone._name.Substring(0, 31), 32);
                 Write((Int16)zone._playercount);
                 Write(zone._ip + "," + zone._port, 32);
 			}
