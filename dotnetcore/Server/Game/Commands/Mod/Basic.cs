@@ -3383,10 +3383,12 @@ namespace InfServer.Game.Commands.Mod
 
         static public void allowprivate(Player player, Player recipient, string payload, int bong)
         {
-            if (player._arena._allowPrivate != bool.Parse(payload))
-            {
-                player._arena._allowPrivate = bool.Parse(payload);
-            }
+            if (player._arena._allowPrivate)
+                player._arena._allowPrivate = false;
+            else
+                player._arena._allowPrivate = true;
+
+            player._arena.sendArenaMessage("Private teams are now" + (player._arena._allowPrivate ? " allowed!" : " not allowed!"), 0);
         }
 
         static public void maxprivfreq(Player player, Player recipient, string payload, int bong)
@@ -3395,6 +3397,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 player._arena._maxPerPrivateTeam = int.Parse(payload);
             }
+            player._arena.sendArenaMessage("Private teams max players is now set to " + player._arena._maxPerPrivateTeam, 0);
         }
 
         static public void maxperfreq(Player player, Player recipient, string payload, int bong)
@@ -3403,14 +3406,17 @@ namespace InfServer.Game.Commands.Mod
             {
                 player._arena._maxPerteam = int.Parse(payload);
             }
+            player._arena.sendArenaMessage("Public teams max players is now set to " + player._arena._maxPerteam, 0);
         }
 
         static public void allowprize(Player player, Player recipient, string payload, int bong)
         {
-            if (player._arena._allowprize != bool.Parse(payload))
-            {
-                player._arena._allowprize = bool.Parse(payload);
-            }
+            if (player._arena._allowprize)
+                player._arena._allowprize = false;
+            else
+                player._arena._allowprize = true;
+
+            player._arena.sendArenaMessage("Prizing of items is now" + (player._arena._allowprize ? " allowed!" : " not allowed!"), 0);
         }
 
         /// <summary>
