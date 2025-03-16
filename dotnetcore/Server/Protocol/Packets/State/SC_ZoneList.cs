@@ -43,8 +43,15 @@ namespace InfServer.Protocol
 			{
 				//Not sure why it does this for each entry
 				Write((byte)TypeID);
+    
+                var name = zone._name;
 
-				Write(zone._name.Substring(0, 31), 32);
+                if (name.Length > 32)
+                {
+                    name = name.Substring(0, 32);
+                }
+
+				Write(name, 32);
                 Write((Int16)zone._playercount);
                 Write(zone._ip + "," + zone._port, 32);
 			}
