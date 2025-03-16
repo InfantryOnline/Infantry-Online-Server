@@ -55,7 +55,7 @@ jobs:
     steps:
     - name: Get Date Format
       uses: kaven-universe/github-action-current-date-time@v1.4.0
-      id: timestep,
+      id: timestep
       with:
         format: "YYYY-MM-DD HH-mm-ss-SSS"
 
