@@ -122,9 +122,9 @@ namespace InfServer.Game
             get
             {
                 if (_isPrivate || (_id < _server._zoneConfig.arena.desiredFrequencies && _info.maxPlayers == 0))
-                    return _owner._arena._maxPerPrivateTeam;
+                    return _arena._maxPerPrivateTeam;
                 else if (!_isPrivate)
-                    return _owner._arena._maxPerteam;
+                    return _arena._maxPerteam;
                 else
                     return _info.maxPlayers;
             }
