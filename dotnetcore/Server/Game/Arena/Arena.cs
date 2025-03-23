@@ -68,6 +68,7 @@ namespace InfServer.Game
         
         //Loaded list of item ID allowed for granted players through prize command.
         public List<int> _prizeItems;
+        public bool Prizelist;
 
         public PollSettings _poll;						//For our poll command
 
@@ -1462,9 +1463,12 @@ namespace InfServer.Game
                 _prizeItems = xDoc.Descendants("Item")
                                         .Select(x => (int)x.Attribute("ID"))
                                         .ToList();
+
+                Prizelist = true;
             }
             else
             {
+                Prizelist = false;
                 Console.WriteLine("File not found: " + filePath);
             }
         }
