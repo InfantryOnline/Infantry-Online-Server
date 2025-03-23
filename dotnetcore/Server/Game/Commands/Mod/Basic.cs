@@ -9,6 +9,7 @@ using InfServer.Game;
 using InfServer.Bots;
 using InfServer.Protocol;
 using InfServer.Logic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace InfServer.Game.Commands.Mod
 {
@@ -1219,10 +1220,21 @@ namespace InfServer.Game.Commands.Mod
             //Check if player is a granted player and compare item selected to list of allowed items.
             if (level == (int)Data.PlayerPermission.GrantedPlayer)
             {
-                if (!player._arena._prizeItems.Contains(item.id))
+                if (item.buyPrice == 0)
                 {
-                    player.sendMessage(-1, "You do not have permission to prize this item.");
-                    return;
+                    if (player._arena.Prizelist && !player._arena._prizeItems.Contains(item.id))
+                    {
+                        player.sendMessage(-1, "You do not have permission to prize this item. It is unpurchasable in store and not on the permitted list.");
+                        return;
+                    }
+                    else
+                    {
+                        if (!player._arena.Prizelist)
+                        {
+                            player.sendMessage(-1, "Prize item list does not exist, please contact admin.");
+                            return;
+                        }
+                    }
                 }
             }
 
