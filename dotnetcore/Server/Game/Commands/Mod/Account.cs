@@ -1121,12 +1121,12 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(devadd, "devadd",
                 "Gives dev powers to a player, default level is arena mod",
                 "*devadd alias:level(optional) or ::*devadd level(optional) - Note: devadd them in the zone you want",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, true);
 
             yield return new HandlerDescriptor(devremove, "devremove",
                 "Takes dev powers away, default level is player level",
                 "*devremove alias:level(optional) or ::*devremove level(optional) - Note: devremove them in the zone you want",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, true);
 
             yield return new HandlerDescriptor(powered, "powered",
                 "Shows a list of currently powered players.",
@@ -1161,7 +1161,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",
                 "*whois [ipaddress/alias/#id] or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.ManagerSysop, true);
 
             yield return new HandlerDescriptor(globalsilence, "globalsilence",
                 "Silences an account across all zones.",
