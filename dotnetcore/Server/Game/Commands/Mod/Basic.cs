@@ -3699,7 +3699,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(wipe, "wipe",
                 "Wipes a character (or all) within the current zone",
                 "*wipe all yes, *wipe [alias] yes, :alias:*wipe yes",
-                InfServer.Data.PlayerPermission.ManagerSysop, true);
+                InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(zone, "zone",
                 "Send a zone-wide system message.",
