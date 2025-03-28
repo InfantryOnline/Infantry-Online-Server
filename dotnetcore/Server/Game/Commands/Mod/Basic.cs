@@ -3639,7 +3639,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(allowspec, "allowspec",
                 "Toggles the ability for players to disable being spectated. Will not clear player preference of those who already set it, but it will ignore the preference while it is toggled on.",
                 "Syntax: *allowspec",
-                InfServer.Data.PlayerPermission.HeadModAdmin, true);
+                InfServer.Data.PlayerPermission.ManagerSysop, true);
 
             yield return new HandlerDescriptor(stealth, "stealth",
                 "Toggles stealth mode, mods become invisible to arena's",
