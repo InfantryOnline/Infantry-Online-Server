@@ -311,14 +311,14 @@ namespace InfServer.Protocol
                 
                 if (connectionTimeout != -1 && !_bClientConn && now - base._lastPacketRecv > connectionTimeout)
                 {	//Farewell~
-                    Log.write(TLog.Warning, "Client timeout: {0}", this);
+                    Log.write(TLog.Warning, "Client timeout (connectivity): {0}", this);
                     destroy();
                     return;
                 }
 
                 if (_tickDestroy > 0 && now - _tickDestroy > 15000) //15 seconds (gives enough time to send any queued messages)
                 {   //Farewell~
-                    Log.write(TLog.Warning, "Client timeout: {0}", this);
+                    Log.write(TLog.Warning, "Client timeout (expiration): {0}", this);
                     destroy();
                     return;
                 }
