@@ -62,13 +62,18 @@ namespace InfServer.Game
                 {	//If we've reached the maximum, wrap around
                     if (pk == maxPlayers)
                     {
+                        Log.write(TLog.Warning, "Player Key roll-over in newPlayer.");
                         pk = 1;
                         continue;
                     }
 
                     //Does such a player exist?
                     if (_players.ContainsKey(pk))
+                    {
+                        var existingPlayer = _players[pk];
+                        Log.write(TLog.Warning, "Attempted to use an existing player key in newPlayer: {0}: {1}", pk, existingPlayer);
                         continue;
+                    }
 
                     //We have a space!
                     break;
