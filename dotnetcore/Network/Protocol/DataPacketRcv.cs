@@ -75,10 +75,20 @@ namespace InfServer.Protocol
 
             try
             {
-                if (data.Length <= 3)
-                    dataSize = Flip(BitConverter.ToInt16(data, 0));
-                else
+                if (data.Length >= 4)
+                {
                     dataSize = Flip(BitConverter.ToInt32(data, 0));
+                }
+                else if (data.Length >= 2)
+                {
+                    dataSize = Flip(BitConverter.ToInt16(data, 0));
+                }
+                else
+                {
+                    // Not enough data to read size
+                    dataSize = data.Length;
+                    Log.write(TLog.Warning, String.Format("DataPacketRcv: Insufficient data to read size - data.Length = {0}", data.Length));
+                }
             }
             catch (Exception e)
             {
