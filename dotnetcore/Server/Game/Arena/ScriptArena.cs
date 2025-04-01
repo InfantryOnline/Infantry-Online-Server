@@ -1225,7 +1225,6 @@ namespace InfServer.Game
                     return;
                 }
 
-                from.syncInventory();
                 //Does he have it?
                 Player.InventoryItem ii = from.getInventory(info);
                 if (ii == null)
@@ -1233,7 +1232,7 @@ namespace InfServer.Game
                     if (!from.ActiveVehicle._type.InventoryItems.Any(item => item == update.itemID))
                     {
                         Log.write(TLog.Warning, "Player {0} attempted to fire unowned item '{1}'.", from, info.name);
-                        from.syncState();
+                        update.itemID = 0;
                         return;
                     }
                 }
