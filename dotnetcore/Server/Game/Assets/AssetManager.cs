@@ -222,6 +222,36 @@ namespace InfServer.Game
 			_bloList.Add(lower);
 		}
 
+	 /// <summary>
+        /// Downloads latest global news from a specified url
+        /// </summary>	
+        public bool grabGlobalNews(string fileUrl, string fileLocation)
+        {
+            try
+            {
+                System.Net.WebClient dlclient = new System.Net.WebClient();
+                dlclient.DownloadFile(fileUrl, fileLocation);
+                dlclient.Dispose();
+            }
+            catch (Exception)
+            {
+                //Lets try again with a different url
+                try
+                {
+                    System.Net.WebClient dlclient = new System.Net.WebClient();
+                    dlclient.DownloadFile("http://dk-industry.com/files/svn/?count=30", "..\\Global\\global.nws");
+                    dlclient.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Log.write(TLog.Warning, "Error updating global.nws, using most recent version...");
+                    Log.write(TLog.Warning, e.ToString());
+                    return false;
+                }
+            }
+            return true;
+        }
+
         /// <summary>
         /// Loads additional assets specified by assets.xml
         /// </summary>		
