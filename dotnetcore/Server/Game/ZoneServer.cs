@@ -186,7 +186,33 @@ namespace InfServer.Game
                 //Grab the latest global news if specified
                 if (_config["server/updateGlobalNws"].Value.Length > 0)
                 {
-                    Log.write(TLog.Error, "We no longer collect global files this way. Manually update.");
+                    Log.write(TLog.Normal, String.Format("Grabbing latest global news from {0}...", _config["server/updateGlobalNws"].Value));
+                    if (!_assets.grabGlobalNews(_config["server/updateGlobalNws"].Value, $"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws"))
+                    {
+                        try
+                        {
+                            string global;
+                            if ((global = Assets.AssetFileFactory.findAssetFile("global.nws", _config["server/copyServerFrom"].Value)) != null)
+                            {
+                                //We first must delete before copying over
+                                if (System.IO.File.Exists($"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws"))
+                                    System.IO.File.Delete($"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws");
+
+                                System.IO.File.Copy(global, $"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.write(TLog.Warning, e.ToString());
+                        }
+                    }
+                    else
+                    {
+                        //Copy over
+                        if (System.IO.File.Exists(_config["server/copyServerFrom"].Value + $"{Path.DirectorySeparatorChar}global.nws"))
+                            System.IO.File.Delete(_config["server/copyServerFrom"].Value + $"{Path.DirectorySeparatorChar}global.nws");
+                        System.IO.File.Copy($"..{Path.DirectorySeparatorChar}Global{Path.DirectorySeparatorChar}global.nws", _config["server/copyServerFrom"].Value + $"{Path.DirectorySeparatorChar}global.nws");
+                    }
                 }
 
                 if (!_assets.load(_zoneConfig, _config["server/zoneConfig"].Value))
