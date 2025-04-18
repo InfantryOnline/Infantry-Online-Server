@@ -21,7 +21,7 @@ namespace InfServer.Logic
         {
             try
             {
-                Database.Player player = stat.Players.SingleOrDefault(s => s.StatsNavigation.Id == stat.Id);
+                Database.Player player = stat.Players.SingleOrDefault(s => s.Stats == stat.Id);
                 if (player == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "No player found for stat ID {0}.", stat.Id);
@@ -97,7 +97,7 @@ namespace InfServer.Logic
                             var stats = (from st in db.Stats
                                          where st.ZoneNavigation == zone._zone
                                          orderby st.AssistPoints + st.BonusPoints + st.KillPoints descending
-                                         select st).Take(100);
+                                         select st).Take(100).ToList();
 
                             MemoryStream stream = new MemoryStream();
                             foreach (Database.Stat lifetime in stats)
@@ -124,7 +124,7 @@ namespace InfServer.Logic
                             var daily = (from dt in db.StatsDailies
                                          where dt.ZoneNavigation == zone._zone && dt.Date >= now
                                          orderby dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
-                                         select dt).Take(100);
+                                         select dt).Take(100).ToList();
 
                             //Are they requesting a specific date?
                             if (pkt.options != "")
@@ -137,7 +137,7 @@ namespace InfServer.Logic
                                     daily = (from dt in db.StatsDailies
                                              where dt.ZoneNavigation == zone._zone && dt.Date >= now && dt.Date < today
                                              orderby dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
-                                             select dt).Take(100);
+                                             select dt).Take(100).ToList();
                                 }
                                 else //Specific date
                                 {
@@ -157,7 +157,7 @@ namespace InfServer.Logic
                                     daily = (from dt in db.StatsDailies
                                              where dt.ZoneNavigation == zone._zone && dt.Date >= now && dt.Date < add
                                              orderby dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
-                                             select dt).Take(100);
+                                             select dt).Take(100).ToList();
                                 }
                             }
 
@@ -230,7 +230,7 @@ namespace InfServer.Logic
                             var weekly = (from wt in db.StatsWeeklies
                                           where wt.ZoneNavigation == zone._zone && wt.Date >= now
                                           orderby wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
-                                          select wt).Take(100);
+                                          select wt).Take(100).ToList();
 
                             //Are they requesting a specific date?
                             if (pkt.options != "")
@@ -243,7 +243,7 @@ namespace InfServer.Logic
                                     weekly = (from wt in db.StatsWeeklies
                                               where wt.ZoneNavigation == zone._zone && wt.Date >= now && wt.Date < today
                                               orderby wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
-                                              select wt).Take(100);
+                                              select wt).Take(100).ToList();
                                 }
                                 else //Specific date
                                 {
@@ -263,7 +263,7 @@ namespace InfServer.Logic
                                     weekly = (from wt in db.StatsWeeklies
                                               where wt.ZoneNavigation == zone._zone && wt.Date >= now && wt.Date < add
                                               orderby wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
-                                              select wt).Take(100);
+                                              select wt).Take(100).ToList();
                                 }
                             }
 
@@ -336,7 +336,7 @@ namespace InfServer.Logic
                             var monthly = (from mt in db.StatsMonthlies
                                            where mt.ZoneNavigation == zone._zone && mt.Date >= now
                                            orderby mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
-                                           select mt).Take(100);
+                                           select mt).Take(100).ToList();
 
                             //Are they requesting a specific date?
                             if (pkt.options != "")
@@ -349,7 +349,7 @@ namespace InfServer.Logic
                                     monthly = (from mt in db.StatsMonthlies
                                                where mt.ZoneNavigation == zone._zone && mt.Date >= now && mt.Date < today
                                                orderby mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
-                                               select mt).Take(100);
+                                               select mt).Take(100).ToList();
                                 }
                                 else //Specific date
                                 {
@@ -371,7 +371,7 @@ namespace InfServer.Logic
                                     monthly = (from mt in db.StatsMonthlies
                                                where mt.ZoneNavigation == zone._zone && mt.Date >= now && mt.Date < add
                                                orderby mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
-                                               select mt).Take(100);
+                                               select mt).Take(100).ToList();
                                 }
                             }
 
@@ -443,7 +443,7 @@ namespace InfServer.Logic
                             var yearly = (from yt in db.StatsYearlies
                                           where yt.ZoneNavigation == zone._zone && yt.Date >= now
                                           orderby yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
-                                          select yt).Take(100);
+                                          select yt).Take(100).ToList();
 
                             //Are they requesting a specific date?
                             if (pkt.options != "")
@@ -455,7 +455,7 @@ namespace InfServer.Logic
                                     yearly = (from yt in db.StatsYearlies
                                               where yt.ZoneNavigation == zone._zone && yt.Date >= now
                                               orderby yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
-                                              select yt).Take(100);
+                                              select yt).Take(100).ToList();
                                 }
                                 else //Specific date
                                 {
@@ -475,7 +475,7 @@ namespace InfServer.Logic
                                     yearly = (from yt in db.StatsYearlies
                                               where yt.ZoneNavigation == zone._zone && yt.Date >= now && yt.Date <= add
                                               orderby yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
-                                              select yt).Take(100);
+                                              select yt).Take(100).ToList();
                                 }
                             }
 
@@ -553,7 +553,7 @@ namespace InfServer.Logic
                             var daily = (from dt in db.StatsDailies
                                          where dt.ZoneNavigation == zone._zone && dt.Date >= now && dt.Date < today
                                          orderby dt.Date descending
-                                         select dt);
+                                         select dt).ToList();
 
                             MemoryStream stream = new MemoryStream();
                             try
@@ -630,7 +630,7 @@ namespace InfServer.Logic
                             var weekly = (from wt in db.StatsWeeklies
                                           where wt.ZoneNavigation == zone._zone && wt.Date >= now && wt.Date < today
                                           orderby wt.Date descending
-                                          select wt);
+                                          select wt).ToList();
 
                             MemoryStream stream = new MemoryStream();
                             try
@@ -707,7 +707,7 @@ namespace InfServer.Logic
                             var monthly = (from mt in db.StatsMonthlies
                                            where mt.ZoneNavigation == zone._zone && mt.Date >= now && mt.Date < today
                                            orderby mt.Date descending
-                                           select mt);
+                                           select mt).ToList();
 
                             MemoryStream stream = new MemoryStream();
                             try
@@ -784,7 +784,7 @@ namespace InfServer.Logic
                             var yearly = (from yt in db.StatsYearlies
                                           where yt.ZoneNavigation == zone._zone && yt.Date >= now && yt.Date < today
                                           orderby yt.Date descending
-                                          select yt);
+                                          select yt).ToList();
 
                             MemoryStream stream = new MemoryStream();
                             try
