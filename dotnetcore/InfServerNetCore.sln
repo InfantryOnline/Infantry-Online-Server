@@ -19,6 +19,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpSteer", "SharpSteer\Sh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Math", "Math\Math.csproj", "{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database", "Database\Database.csproj", "{A33CBB9D-0821-43FB-9C2D-701F96372D00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseServer", "DatabaseServer\DatabaseServer.csproj", "{DD28866B-ACE6-485D-9985-63176A65BD14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +61,14 @@ Global
 		{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C6FFE71-8F70-4B26-ACB2-F62F52AC6C56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A33CBB9D-0821-43FB-9C2D-701F96372D00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A33CBB9D-0821-43FB-9C2D-701F96372D00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A33CBB9D-0821-43FB-9C2D-701F96372D00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A33CBB9D-0821-43FB-9C2D-701F96372D00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD28866B-ACE6-485D-9985-63176A65BD14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD28866B-ACE6-485D-9985-63176A65BD14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD28866B-ACE6-485D-9985-63176A65BD14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD28866B-ACE6-485D-9985-63176A65BD14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
