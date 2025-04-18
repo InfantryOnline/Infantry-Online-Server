@@ -59,7 +59,10 @@ public partial class DataContext : DbContext
     public virtual DbSet<Zone> Zones { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer(_connectionString);
+        => optionsBuilder
+        .UseLazyLoadingProxies()
+        .UseChangeTrackingProxies()
+        .UseSqlServer(_connectionString);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
