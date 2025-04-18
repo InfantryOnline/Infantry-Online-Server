@@ -30,7 +30,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-windows-infrastructure
-        path: ./releases/windows-infrastructure/* 
+        path: ./releases/windows-infrastructure/
       
   build-windows:
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Build Windows
-      run: dotnet publish ./dotnetcore/InfServerNetCore.sln --output ./releases/windows -c Release -r win-x64
+      run: dotnet publish ./dotnetcore/ZoneServer/ZoneServer.csproj --output ./releases/windows -c Release -r win-x64
 
     - name: Upload Windows Artifact
       uses: actions/upload-artifact@v4
@@ -62,7 +62,7 @@ jobs:
         dotnet-version: 8.0.x
         
     - name: Build Linux
-      run: dotnet publish ./dotnetcore/InfServerNetCore.sln --output ./releases/linux -c Release -r linux-x64
+      run: dotnet publish ./dotnetcore/ZoneServer/ZoneServer.csproj --output ./releases/linux -c Release -r linux-x64
 
     - name: Upload Linux Artifact
       uses: actions/upload-artifact@v4
