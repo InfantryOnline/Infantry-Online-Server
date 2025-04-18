@@ -100,13 +100,13 @@ jobs:
         path: ./releases-linux
 
     - name: Zip Windows Infrastructure Artifact
-      run: zip release-windows-infrastructure.zip ./releases-windows-infrastructure/*
+      run: zip -r release-windows-infrastructure.zip ./releases-windows-infrastructure/*
 
     - name: Zip Windows Artifact
-      run: zip release-windows.zip ./releases-windows/*
+      run: zip -r release-windows.zip ./releases-windows/*
 
     - name: Zip Linux Artifact
-      run: zip release-linux.zip ./releases-linux/*
+      run: zip -r release-linux.zip ./releases-linux/*
 
     - name: Create Release
       id: create_release
