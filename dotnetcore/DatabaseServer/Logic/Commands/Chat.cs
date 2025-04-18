@@ -22,7 +22,7 @@ namespace InfServer.Logic
                 {
                     case CS_ChatQuery<Zone>.QueryType.accountinfo:
                         {
-                            Database.Alias from = db.Aliases.SingleOrDefault(a => string.Compare(a.Name, pkt.sender, true) == 0);
+                            Database.Alias from = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender);
                             var aliases = db.Aliases.Where(a => a.Account == from.Account);
                             zone._server.sendMessage(zone, pkt.sender, "Account Info");
 
@@ -59,7 +59,7 @@ namespace InfServer.Logic
 
                     case CS_ChatQuery<Zone>.QueryType.accountignore:
                         {
-                            Database.Alias player = db.Aliases.SingleOrDefault(a => string.Compare(a.Name, pkt.payload, true) == 0);
+                            Database.Alias player = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
                             if (player != null)
                             {
                                 SC_ChatQuery<Zone> cQuery = new SC_ChatQuery<Zone>();
@@ -93,7 +93,7 @@ namespace InfServer.Logic
                                 }
                                 else
                                 {   //Alias
-                                    Database.Alias who = db.Aliases.SingleOrDefault(a => string.Compare(a.Name, pkt.payload, true) == 0);
+                                    Database.Alias who = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
                                     if (who == null)
                                     {
                                         zone._server.sendMessage(zone, pkt.sender, "That IP, account id or alias doesn't exist.");
@@ -209,7 +209,7 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            Database.Alias sender = db.Aliases.FirstOrDefault(sndr => string.Compare(sndr.Name, pkt.sender, true) == 0);
+                            Database.Alias sender = db.Aliases.FirstOrDefault(sndr => sndr.Name == pkt.sender);
                             if (sender == null)
                                 return;
 
@@ -217,7 +217,7 @@ namespace InfServer.Logic
                             if (!pkt.payload.Contains(','))
                             {
                                 //Lets get all account related info then delete it
-                                Database.Alias palias = db.Aliases.FirstOrDefault(a => string.Compare(a.Name, pkt.payload, true) == 0);
+                                Database.Alias palias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
                                 if (palias == null)
                                 {
                                     zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -297,8 +297,8 @@ namespace InfServer.Logic
 
                                 //foreach (string str in payload)
                                 //{
-                                //    Database.alias palias = db.alias.FirstOrDefault(a => string.Compare(a.name, str, true) == 0);
-                                //    Database.player player = db.players.FirstOrDefault(p => string.Compare(p.alias1.name, str, true) == 0);
+                                //    Database.alias palias = db.alias.FirstOrDefault(a => a.name == str);
+                                //    Database.player player = db.players.FirstOrDefault(p => p.alias1.name == str);
                                 //    if (palias == null)
                                 //    {
                                 //        cannotFind.Add(str);
@@ -384,7 +384,7 @@ namespace InfServer.Logic
                         {
                             zone._server.sendMessage(zone, pkt.sender, "&Email Update");
 
-                            Database.Account account = db.Aliases.SingleOrDefault(a => string.Compare(a.Name, pkt.sender, true) == 0).AccountNavigation;
+                            Database.Account account = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender).AccountNavigation;
 
                             //Update his email
                             account.Email = pkt.payload;
@@ -398,8 +398,8 @@ namespace InfServer.Logic
                             int minlength = 3;
                             var results = new List<KeyValuePair<string, Zone.Player>>();
                             //Get our info
-                            Database.Account pAccount = db.Aliases.FirstOrDefault(f => string.Compare(f.Name, pkt.sender, true) == 0).AccountNavigation;
-                            Database.Player pPlayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => string.Compare(p.AliasNavigation.Name, pkt.sender, true) == 0);
+                            Database.Account pAccount = db.Aliases.FirstOrDefault(f => f.Name == pkt.sender).AccountNavigation;
+                            Database.Player pPlayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => p.AliasNavigation.Name == pkt.sender);
 
                             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                             {
@@ -598,7 +598,7 @@ namespace InfServer.Logic
                             //Alias!
                             else
                             {
-                                Database.Alias who = db.Aliases.SingleOrDefault(a => string.Compare(a.Name, pkt.payload, true) == 0);
+                                Database.Alias who = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
                                 if (who == null)
                                 {
                                     zone._server.sendMessage(zone, pkt.sender, "None");
@@ -787,7 +787,7 @@ namespace InfServer.Logic
                             }
 
                             //Recipient lookup
-                            Database.Alias recipientAlias = db.Aliases.FirstOrDefault(a => string.Compare(a.Name, pkt.payload, true) == 0);
+                            Database.Alias recipientAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
                             Database.Player recipientPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == recipientAlias && p.Zone == dbplayer.Zone);
 
                             if (recipientPlayer == null)
@@ -863,7 +863,7 @@ namespace InfServer.Logic
             using (Database.DataContext db = zone._server.getContext())
             {
                 //Get the associated player making the command
-                Database.Player dbplayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => string.Compare(p.AliasNavigation.Name, pkt.alias, true) == 0);
+                Database.Player dbplayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => p.AliasNavigation.Name == pkt.alias);
 
                 switch (pkt.queryType)
                 {   //Differentiate the type of query
@@ -890,7 +890,7 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            if (db.Squads.Where(s => string.Compare(s.Name, squadname, true) == 0 && s.Zone == zone._zone.Id).Count() > 0)
+                            if (db.Squads.Where(s => s.Name == squadname && s.Zone == zone._zone.Id).Count() > 0)
                             {   //This squad already exists!
                                 zone._server.sendMessage(zone, pkt.alias, "A squad with specified name already exists.");
                                 return;
@@ -958,7 +958,7 @@ namespace InfServer.Logic
                             //Adding or removing a squad invitation?
                             bool bAdd = (sInvite[0].ToLower().Equals("add")) ? true : false;
                             //The target player
-                            Database.Alias inviteAlias = db.Aliases.FirstOrDefault(a => string.Compare(a.Name, sInvite[1], true) == 0);
+                            Database.Alias inviteAlias = db.Aliases.FirstOrDefault(a => a.Name == sInvite[1]);
                             Database.Player invitePlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == inviteAlias && p.Zone == dbplayer.Zone);
                             if (invitePlayer == null)
                             {   //No such player!
@@ -1008,7 +1008,7 @@ namespace InfServer.Logic
                             }
 
                             //The target player
-                            Database.Alias kickAlias = db.Aliases.FirstOrDefault(a => string.Compare(a.Name, pkt.payload, true) == 0);
+                            Database.Alias kickAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
                             Database.Player kickPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == kickAlias && p.Zone == dbplayer.Zone);
                             if (kickPlayer == null)
                             {   //No such player!
@@ -1057,7 +1057,7 @@ namespace InfServer.Logic
                             }
 
                             //The target player
-                            Database.Alias transferAlias = db.Aliases.FirstOrDefault(a => string.Compare(a.Name, pkt.payload, true) == 0);
+                            Database.Alias transferAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
                             Database.Player transferPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == transferAlias && p.Zone == dbplayer.Zone);
                             if (transferPlayer == null || transferPlayer.Squad != dbplayer.Squad)
                             {   //No such player!

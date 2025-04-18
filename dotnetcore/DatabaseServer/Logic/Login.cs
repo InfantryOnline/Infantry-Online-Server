@@ -365,7 +365,7 @@ namespace InfServer.Logic
                     Database.Alias aliasMatch = null;
                     foreach (string str in Logic_Admins.ServerAdmins)
                     {
-                        if ((aliasMatch = db.Aliases.SingleOrDefault(a => string.Compare(a.Name, str, true) == 0)) != null)
+                        if ((aliasMatch = db.Aliases.SingleOrDefault(a => a.Name == str)) != null)
                         {
                             if (account.Id == aliasMatch.Account && account.Permission >= 5)
                             {
