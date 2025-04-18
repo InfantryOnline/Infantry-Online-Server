@@ -10,6 +10,7 @@ using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Data;
 using Database;
+using Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfServer
@@ -192,17 +193,6 @@ namespace InfServer
 
             //Attempt to connect to our database
             _connectionString = _config["database/connectionString"].Value;
-
-            //Does the database exist?
-            //using (DataContext db = getContext())
-            //{
-            //    if (!db.DatabaseExists())
-            //    {	//Create a new one
-            //        Log.write(TLog.Warning, "Database layout doesn't exist, creating..");
-
-            //        db.CreateDatabase();
-            //    }
-            //}
 
             //We're good!
             Log.write("Connected to database.");

@@ -17,11 +17,11 @@ namespace InfServer.Logic
         /// <summary>
         /// Writes a scorechart element to a memory stream
         /// </summary>
-        static private bool writeElementToBuffer(Stat stat, MemoryStream stream)
+        static private bool writeElementToBuffer(Database.Stat stat, MemoryStream stream)
         {
             try
             {
-                Player player = stat.Players.SingleOrDefault(s => s.StatsNavigation.Id == stat.Id);
+                Database.Player player = stat.Players.SingleOrDefault(s => s.StatsNavigation.Id == stat.Id);
                 if (player == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "No player found for stat ID {0}.", stat.Id);
@@ -33,8 +33,7 @@ namespace InfServer.Logic
                 bw.Write(player.AliasNavigation.Name.ToCharArray());
                 bw.Write((byte)0);
 
-                Squad squad = player.SquadNavigation;
-
+                Database.Squad squad = player.SquadNavigation;
                 string squadname = "";
                 if (squad != null)
                     squadname = squad.Name;
@@ -47,6 +46,7 @@ namespace InfServer.Logic
                 bw.Write(stat.VehicleKills);
                 bw.Write(stat.KillPoints);
                 bw.Write(stat.DeathPoints);
+                //bw.Write((int)0); //-Assist Points
                 bw.Write(stat.AssistPoints);
                 bw.Write(stat.BonusPoints);
                 bw.Write(stat.Kills);
@@ -88,7 +88,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {	//What sort of request are we dealing with?
                 switch (pkt.type)
                 {
@@ -100,7 +100,7 @@ namespace InfServer.Logic
                                          select st).Take(100);
 
                             MemoryStream stream = new MemoryStream();
-                            foreach (Stat lifetime in stats)
+                            foreach (Database.Stat lifetime in stats)
                                 if (lifetime != null && writeElementToBuffer(lifetime, stream) == false)
                                     continue;
 
@@ -164,13 +164,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsDaily day in daily)
+                                foreach (Database.StatsDaily day in daily)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(day.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = day.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = day.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -270,13 +270,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsWeekly week in weekly)
+                                foreach (Database.StatsWeekly week in weekly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(week.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = week.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = week.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -369,7 +369,7 @@ namespace InfServer.Logic
                                     DateTime add = now.AddMonths(1);
 
                                     monthly = (from mt in db.StatsMonthlies
-                                               where mt.ZoneNavigation.Id == zone._zone.Id && mt.Date >= now && mt.Date < add
+                                               where mt.ZoneNavigation == zone._zone && mt.Date >= now && mt.Date < add
                                                orderby mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
                                                select mt).Take(100);
                                 }
@@ -378,13 +378,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsMonthly month in monthly)
+                                foreach (Database.StatsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(month.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = month.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = month.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -482,13 +482,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsYearly year in yearly)
+                                foreach (Database.StatsYearly year in yearly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(year.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = year.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = year.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -539,8 +539,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily:
                         {
-                            Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;
 
@@ -558,13 +558,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsDaily day in daily)
+                                foreach (Database.StatsDaily day in daily)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(day.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = day.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = day.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -615,8 +615,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly:
                         {
-                            Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;
 
@@ -635,13 +635,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsWeekly week in weekly)
+                                foreach (Database.StatsWeekly week in weekly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(week.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = week.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = week.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -692,8 +692,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly:
                         {
-                            Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;
 
@@ -712,13 +712,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsMonthly month in monthly)
+                                foreach (Database.StatsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(month.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = month.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = month.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -769,8 +769,8 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly:
                         {
-                            Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;
 
@@ -789,13 +789,13 @@ namespace InfServer.Logic
                             MemoryStream stream = new MemoryStream();
                             try
                             {
-                                foreach (StatsYearly year in yearly)
+                                foreach (Database.StatsYearly year in yearly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
                                     bw.Write(year.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = year.PlayerNavigation.SquadNavigation;
+                                    Database.Squad squad = year.PlayerNavigation.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -854,120 +854,120 @@ namespace InfServer.Logic
         {
             throw new NotImplementedException("Not implemented.");
 
-            ////Find player
-            //Zone.Player player = zone.getPlayer(pkt.player.id);
-            //if (player == null)
-            //{
-            //    Log.write(TLog.Warning, "Ignoring stat update for id {0}, not present in zone mirror.", pkt.player.id);
-            //    return;
-            //}
+            //Find player
+            Zone.Player player = zone.getPlayer(pkt.player.id);
+            if (player == null)
+            {
+                Log.write(TLog.Warning, "Ignoring stat update for id {0}, not present in zone mirror.", pkt.player.id);
+                return;
+            }
 
-            //using (DataContext db = zone._server.getContext())
-            //{
-            //    //Get player entry
-            //    player dbplayer = db.Players.SingleOrDefault(p => p.id == player.dbid);
-            //    if (dbplayer == null)
-            //    {
-            //        Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in database.", player.alias);
-            //        return;
-            //    }
+            using (Database.DataContext db = zone._server.getContext())
+            {
+                //Get player entry
+                Database.Player dbplayer = db.Players.SingleOrDefault(p => p.Id == player.dbid);
+                if (dbplayer == null)
+                {
+                    Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in database.", player.alias);
+                    return;
+                }
 
-            //    DateTime today = DateTime.Today;
-            //    switch (pkt.scoreType)
-            //    {
-            //        case CS_StatsUpdate<Zone>.ScoreType.ScoreDaily:
-            //            {
-            //                //Add to the database
-            //                statsDaily daily = new statsDaily();
+                DateTime today = DateTime.Today;
+                switch (pkt.scoreType)
+                {
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreDaily:
+                        {
+                            //Add to the database
+                            Database.StatsDaily daily = new Database.StatsDaily();
 
-            //                daily.experience = pkt.stats.experience;
-            //                daily.experienceTotal = pkt.stats.experienceTotal;
-            //                daily.kills = pkt.stats.kills;
-            //                daily.deaths = pkt.stats.deaths;
-            //                daily.KillPoints = pkt.stats.KillPoints;
-            //                daily.deathPoints = pkt.stats.deathPoints;
-            //                daily.AssistPoints = pkt.stats.AssistPoints;
-            //                daily.BonusPoints = pkt.stats.BonusPoints;
-            //                daily.vehicleKills = pkt.stats.vehicleKills;
-            //                daily.vehicleDeaths = pkt.stats.vehicleDeaths;
-            //                daily.playSeconds = pkt.stats.playSeconds;
-            //                daily.zone = zone._zone.id;
-            //                daily.Date = pkt.Date;
+                            daily.Experience = pkt.stats.experience;
+                            daily.ExperienceTotal = pkt.stats.experienceTotal;
+                            daily.Kills = pkt.stats.kills;
+                            daily.Deaths = pkt.stats.deaths;
+                            daily.KillPoints = pkt.stats.killPoints;
+                            daily.DeathPoints = pkt.stats.deathPoints;
+                            daily.AssistPoints = pkt.stats.assistPoints;
+                            daily.BonusPoints = pkt.stats.bonusPoints;
+                            daily.VehicleKills = pkt.stats.vehicleKills;
+                            daily.VehicleDeaths = pkt.stats.vehicleDeaths;
+                            daily.PlaySeconds = pkt.stats.playSeconds;
+                            daily.Zone = zone._zone.Id;
+                            daily.Date = pkt.date;
 
-            //                db.SaveChanges();
-            //            }
-            //            break;
+                            db.SaveChanges();
+                        }
+                        break;
 
-            //        case CS_StatsUpdate<Zone>.ScoreType.ScoreWeekly:
-            //            {
-            //                //Add to the database
-            //                statsWeekly weekly = new statsWeekly();
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreWeekly:
+                        {
+                            //Add to the database
+                            Database.StatsWeekly weekly = new Database.StatsWeekly();
 
-            //                weekly.experience = pkt.stats.experience;
-            //                weekly.experienceTotal = pkt.stats.experienceTotal;
-            //                weekly.kills = pkt.stats.kills;
-            //                weekly.deaths = pkt.stats.deaths;
-            //                weekly.KillPoints = pkt.stats.KillPoints;
-            //                weekly.deathPoints = pkt.stats.deathPoints;
-            //                weekly.AssistPoints = pkt.stats.AssistPoints;
-            //                weekly.BonusPoints = pkt.stats.BonusPoints;
-            //                weekly.vehicleKills = pkt.stats.vehicleKills;
-            //                weekly.vehicleDeaths = pkt.stats.vehicleDeaths;
-            //                weekly.playSeconds = pkt.stats.playSeconds;
-            //                weekly.zone = zone._zone.id;
-            //                weekly.Date = pkt.Date;
+                            weekly.Experience = pkt.stats.experience;
+                            weekly.ExperienceTotal = pkt.stats.experienceTotal;
+                            weekly.Kills = pkt.stats.kills;
+                            weekly.Deaths = pkt.stats.deaths;
+                            weekly.KillPoints = pkt.stats.killPoints;
+                            weekly.DeathPoints = pkt.stats.deathPoints;
+                            weekly.AssistPoints = pkt.stats.assistPoints;
+                            weekly.BonusPoints = pkt.stats.bonusPoints;
+                            weekly.VehicleKills = pkt.stats.vehicleKills;
+                            weekly.VehicleDeaths = pkt.stats.vehicleDeaths;
+                            weekly.PlaySeconds = pkt.stats.playSeconds;
+                            weekly.Zone = zone._zone.Id;
+                            weekly.Date = pkt.date;
 
-            //                db.SaveChanges();
-            //            }
-            //            break;
+                            db.SaveChanges();
+                        }
+                        break;
 
-            //        case CS_StatsUpdate<Zone>.ScoreType.ScoreMonthly:
-            //            {
-            //                //Add to the database
-            //                statsMonthly monthly = new statsMonthly();
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreMonthly:
+                        {
+                            //Add to the database
+                            Database.StatsMonthly monthly = new Database.StatsMonthly();
 
-            //                monthly.experience = pkt.stats.experience;
-            //                monthly.experienceTotal = pkt.stats.experienceTotal;
-            //                monthly.kills = pkt.stats.kills;
-            //                monthly.deaths = pkt.stats.deaths;
-            //                monthly.KillPoints = pkt.stats.KillPoints;
-            //                monthly.deathPoints = pkt.stats.deathPoints;
-            //                monthly.AssistPoints = pkt.stats.AssistPoints;
-            //                monthly.BonusPoints = pkt.stats.BonusPoints;
-            //                monthly.vehicleKills = pkt.stats.vehicleKills;
-            //                monthly.vehicleDeaths = pkt.stats.vehicleDeaths;
-            //                monthly.playSeconds = pkt.stats.playSeconds;
-            //                monthly.zone = zone._zone.id;
-            //                monthly.Date = pkt.Date;
+                            monthly.Experience = pkt.stats.experience;
+                            monthly.ExperienceTotal = pkt.stats.experienceTotal;
+                            monthly.Kills = pkt.stats.kills;
+                            monthly.Deaths = pkt.stats.deaths;
+                            monthly.KillPoints = pkt.stats.killPoints;
+                            monthly.DeathPoints = pkt.stats.deathPoints;
+                            monthly.AssistPoints = pkt.stats.assistPoints;
+                            monthly.BonusPoints = pkt.stats.bonusPoints;
+                            monthly.VehicleKills = pkt.stats.vehicleKills;
+                            monthly.VehicleDeaths = pkt.stats.vehicleDeaths;
+                            monthly.PlaySeconds = pkt.stats.playSeconds;
+                            monthly.Zone = zone._zone.Id;
+                            monthly.Date = pkt.date;
 
-            //                db.SaveChanges();
-            //            }
-            //            break;
+                            db.SaveChanges();
+                        }
+                        break;
 
-            //        case CS_StatsUpdate<Zone>.ScoreType.ScoreYearly:
-            //            {
-            //                //Add to the database
-            //                statsYearly yearly = new statsYearly();
+                    case CS_StatsUpdate<Zone>.ScoreType.ScoreYearly:
+                        {
+                            //Add to the database
+                            Database.StatsYearly yearly = new Database.StatsYearly();
 
-            //                yearly.experience = pkt.stats.experience;
-            //                yearly.experienceTotal = pkt.stats.experienceTotal;
-            //                yearly.kills = pkt.stats.kills;
-            //                yearly.deaths = pkt.stats.deaths;
-            //                yearly.KillPoints = pkt.stats.KillPoints;
-            //                yearly.deathPoints = pkt.stats.deathPoints;
-            //                yearly.AssistPoints = pkt.stats.AssistPoints;
-            //                yearly.BonusPoints = pkt.stats.BonusPoints;
-            //                yearly.vehicleKills = pkt.stats.vehicleKills;
-            //                yearly.vehicleDeaths = pkt.stats.vehicleDeaths;
-            //                yearly.playSeconds = pkt.stats.playSeconds;
-            //                yearly.zone = zone._zone.id;
-            //                yearly.Date = pkt.Date;
+                            yearly.Experience = pkt.stats.experience;
+                            yearly.ExperienceTotal = pkt.stats.experienceTotal;
+                            yearly.Kills = pkt.stats.kills;
+                            yearly.Deaths = pkt.stats.deaths;
+                            yearly.KillPoints = pkt.stats.killPoints;
+                            yearly.DeathPoints = pkt.stats.deathPoints;
+                            yearly.AssistPoints = pkt.stats.assistPoints;
+                            yearly.BonusPoints = pkt.stats.bonusPoints;
+                            yearly.VehicleKills = pkt.stats.vehicleKills;
+                            yearly.VehicleDeaths = pkt.stats.vehicleDeaths;
+                            yearly.PlaySeconds = pkt.stats.playSeconds;
+                            yearly.Zone = zone._zone.Id;
+                            yearly.Date = pkt.date;
 
-            //                db.SaveChanges();
-            //            }
-            //            break;
-            //    }
-            //}
+                            db.SaveChanges();
+                        }
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -975,17 +975,17 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_SquadMatch(CS_SquadMatch<Zone> pkt, Zone zone)
         {
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {
-                Squad winner = db.Squads.FirstOrDefault(s => s.Id == pkt.winner);
-                Squad loser = db.Squads.FirstOrDefault(s => s.Id == pkt.loser);
+                Database.Squad winner = db.Squads.FirstOrDefault(s => s.Id == pkt.winner);
+                Database.Squad loser = db.Squads.FirstOrDefault(s => s.Id == pkt.loser);
 
                 //Try to trick me, I dare you, do it.
                 if (winner == null || loser == null)
                     return;
 
-                Squadstat wStats = db.Squadstats.FirstOrDefault(s => s.Squad == winner.Id);
-                Squadstat lStats = db.Squadstats.FirstOrDefault(s => s.Squad == loser.Id);
+                Database.Squadstat wStats = db.Squadstats.FirstOrDefault(s => s.Squad == winner.Id);
+                Database.Squadstat lStats = db.Squadstats.FirstOrDefault(s => s.Squad == loser.Id);
 
                 //Again, try it!
                 if (wStats == null || lStats == null)
@@ -1004,13 +1004,14 @@ namespace InfServer.Logic
                 lStats.Losses++; //Sad trombone.....
 
                 //Grab our associated match.
-                Squadmatch match = db.Squadmatches.FirstOrDefault(m => m.Squad1 == winner.Id | m.Squad2 == winner.Id | m.Squad1 == loser.Id | m.Squad2 == loser.Id);
+                Database.Squadmatch match = db.Squadmatches.FirstOrDefault(m => m.Squad1 == winner.Id | m.Squad2 == winner.Id | m.Squad1 == loser.Id | m.Squad2 == loser.Id);
 
                 //Update it
                 match.Winner = pkt.winner;
                 match.Loser = pkt.loser;
                 match.DateEnd = DateTime.Now;
 
+                //Submit
                 db.SaveChanges();
             }
         }

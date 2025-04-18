@@ -8,6 +8,7 @@ using InfServer.Data;
 using InfServer;
 using System.Globalization;
 using Database;
+using Database;
 
 namespace InfServer.Logic
 {	// Logic_Player Class
@@ -27,9 +28,9 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {	//Get the associated player entry
-                Player dbplayer = db.Players.SingleOrDefault(plyr => plyr.Id == player.dbid);
+                Database.Player dbplayer = db.Players.SingleOrDefault(plyr => plyr.Id == player.dbid);
 
                 if (dbplayer == null)
                 {	//Make a note
@@ -78,7 +79,7 @@ namespace InfServer.Logic
             }
         }
 
-        static private void UpdateDailyWeeklyMonthlyYearlyStats(DataContext db, CS_PlayerUpdate<Zone> pkt, Zone zone, Player player)
+        static private void UpdateDailyWeeklyMonthlyYearlyStats(DataContext db, CS_PlayerUpdate<Zone> pkt, Zone zone, Database.Player player)
         {
             // 1. Get the deltas from the current stats table, and then add it to each of the long-term stat categories.
 
@@ -136,7 +137,7 @@ namespace InfServer.Logic
             daily.Kills += kills;
             daily.Deaths += deaths;
             daily.KillPoints += killPoints;
-            daily.DeathPoints+= deathPoints;
+            daily.DeathPoints += deathPoints;
             daily.AssistPoints += assistPoints;
             daily.BonusPoints += bonusPoints;
             daily.VehicleKills += vehicleKills;
@@ -281,9 +282,9 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {	//Get the associated player entry
-                Player dbplayer = db.Players.SingleOrDefault(plyr => plyr.Id == player.dbid);
+                Database.Player dbplayer = db.Players.SingleOrDefault(plyr => plyr.Id == player.dbid);
                 if (dbplayer == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "Ignoring player banner update for {0}, not present in database.", player.alias);

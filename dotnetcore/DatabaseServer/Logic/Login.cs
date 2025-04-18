@@ -6,8 +6,8 @@ using InfServer.Data;
 using InfServer.Network;
 using InfServer.Protocol;
 using System.Globalization;
-using System.Text.RegularExpressions;
 using Database;
+using System.Text.RegularExpressions;
 
 namespace InfServer.Logic
 {	// Logic_Login Class
@@ -41,7 +41,7 @@ namespace InfServer.Logic
             DBServer server = client._handler as DBServer;
             Database.Zone dbZone;
 
-            using (DataContext db = server.getContext())
+            using (Database.DataContext db = server.getContext())
                 dbZone = db.Zones.SingleOrDefault(z => z.Id == pkt.zoneID);
 
             //Does the zone exist?
@@ -85,7 +85,7 @@ namespace InfServer.Logic
 
             client.sendReliable(success);
 
-            using (DataContext db = server.getContext())
+            using (Database.DataContext db = server.getContext())
             {
                 //Update and activate the zone for our directory server
                 Database.Zone zoneentry = db.Zones.SingleOrDefault(z => z.Id == pkt.zoneID);
@@ -141,7 +141,7 @@ namespace InfServer.Logic
             }
 
 
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {
                 Database.Player player = null;
                 Database.Account account = db.Accounts.SingleOrDefault(acct => acct.Ticket.Equals(pkt.ticketid));
@@ -156,7 +156,7 @@ namespace InfServer.Logic
                 }
 
                 //Is there already a player online under this account?
-                if (!DBServer.bAllowMulticlienting && zone._server._zones.Any(z => z.hasAccountPlayer(account.Id)))
+                if (!DBServer.bAllowMulticlienting && zone._server._zones.Any((Func<Zone, bool>)(z => z.hasAccountPlayer(account.Id))))
                 {
                     plog.bSuccess = false;
                     plog.loginMessage = "Account is currently in use.";
@@ -260,11 +260,11 @@ namespace InfServer.Logic
                 }
 
                 //Attempt to find the related alias
-                Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
-                Stat stats = null;
+                Database.Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
+                Database.Stat stats = null;
 
                 //Is there already a player online under this alias?
-                if (alias != null && zone._server._zones.Any(z => z.hasAliasPlayer(alias.Id)))
+                if (alias != null && zone._server._zones.Any((Func<Zone, bool>)(z => z.hasAliasPlayer(alias.Id))))
                 {
                     plog.bSuccess = false;
                     plog.loginMessage = "Alias is currently in use.";
@@ -295,7 +295,7 @@ namespace InfServer.Logic
                 }
                 else if (alias == null && pkt.bCreateAlias)
                 {	//We want to create a new alias!
-                    alias = new Alias();
+                    alias = new Database.Alias();
 
                     alias.Name = pkt.alias;
                     alias.Creation = DateTime.Now;
@@ -327,7 +327,7 @@ namespace InfServer.Logic
 
                 if (player == null)
                 {	//We need to create another!
-                    player = new Player();
+                    player = new Database.Player();
 
                     player.SquadNavigation = null;
                     player.Zone = zone._zone.Id;
@@ -337,7 +337,7 @@ namespace InfServer.Logic
                     player.Permission = 0;
 
                     //Create a blank stats row
-                    stats = new Stat();
+                    stats = new Database.Stat();
 
                     stats.Zone = zone._zone.Id;
                     player.StatsNavigation = stats;
@@ -362,7 +362,7 @@ namespace InfServer.Logic
                         plog.developer = true;
 
                     //Check for admin
-                    Alias aliasMatch = null;
+                    Database.Alias aliasMatch = null;
                     foreach (string str in Logic_Admins.ServerAdmins)
                     {
                         if ((aliasMatch = db.Aliases.SingleOrDefault(a => string.Compare(a.Name, str, true) == 0)) != null)
@@ -511,10 +511,10 @@ namespace InfServer.Logic
             Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.Name);
 
             // Update their playtime
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {
-                Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
-                //alias alias = db.alias.SingleOrDefault(a => a.id == p.aliasid);
+                Database.Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
+                //Database.alias alias = db.alias.SingleOrDefault(a => a.id == p.aliasid);
                 //If person was loaded correctly, save their info
                 if (alias != null)
                 {
@@ -532,7 +532,7 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ZoneUpdate(CS_ZoneUpdate<Zone> pkt, Zone zone)
         {
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {
                 Database.Zone zEntry = db.Zones.SingleOrDefault(z => z.Id == zone._zone.Id);
                 if (zEntry != null)

@@ -4,7 +4,6 @@ using System.Linq;
 
 using InfServer.Protocol;
 using System.Text.RegularExpressions;
-using Database;
 
 namespace InfServer.Logic
 {
@@ -131,9 +130,9 @@ namespace InfServer.Logic
 
         static public void Handle_CS_ModCommand(CS_ModCommand<Zone> pkt, Zone zone)
         {
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {
-                History hist = new History();
+                Database.History hist = new Database.History();
                 hist.Sender = pkt.sender;
                 hist.Recipient = pkt.recipient;
                 hist.Zone = pkt.zone;
@@ -147,9 +146,9 @@ namespace InfServer.Logic
 
         static public void Handle_CS_ChatCommand(CS_ChatCommand<Zone> pkt, Zone zone)
         {
-            using (DataContext db = zone._server.getContext())
+            using (Database.DataContext db = zone._server.getContext())
             {
-                Helpcall help = new Helpcall();
+                Database.Helpcall help = new Database.Helpcall();
                 help.Sender = pkt.sender;
                 help.Zone = pkt.zone;
                 help.Arena = pkt.arena;
