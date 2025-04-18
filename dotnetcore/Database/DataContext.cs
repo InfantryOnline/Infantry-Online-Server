@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 
 namespace Database;
 
 public partial class DataContext : DbContext
 {
+    private readonly string _connectionString;
+
     public DataContext()
     {
     }
@@ -13,6 +16,12 @@ public partial class DataContext : DbContext
     public DataContext(DbContextOptions<DataContext> options)
         : base(options)
     {
+
+    }
+
+    public DataContext(string connectionString)
+    {
+        _connectionString = connectionString;
     }
 
     public virtual DbSet<Account> Accounts { get; set; }
@@ -50,8 +59,7 @@ public partial class DataContext : DbContext
     public virtual DbSet<Zone> Zones { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=JOVAN\\SQLEXPRESS01;Initial Catalog=Data;Trusted_Connection=True;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer(_connectionString);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

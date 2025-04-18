@@ -212,6 +212,8 @@ namespace InfServer
             base.begin(listenPoint);
             Log.write("Server started, now listening..");
 
+            var zones = getContext().Zones.Select(x => x.Name).ToList();
+
             while (true)
                 Thread.Sleep(10);
         }
@@ -221,9 +223,7 @@ namespace InfServer
         /// </summary>
         public DataContext getContext()
         {
-            var opts = SqlServerDbContextOptionsExtensions.UseSqlServer(new DbContextOptionsBuilder<DataContext>(), _connectionString).Options;
-
-            return new DataContext(opts);
+            return new DataContext(_connectionString);
         }
     }
 }
