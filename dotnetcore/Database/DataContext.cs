@@ -61,7 +61,6 @@ public partial class DataContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder
         .UseLazyLoadingProxies()
-        .UseChangeTrackingProxies()
         .UseSqlServer(_connectionString);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
