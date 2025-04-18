@@ -10,6 +10,28 @@ on:
     branches: [ "master" ]
 
 jobs:
+  build-windows-infrastructure:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build Windows Infra DirServ
+      run: dotnet publish ./dotnetcore/DirectoryServer/DirectoryServer.csproj --output ./releases/windows-infrastructure/directory-server -c Release -r win-x64
+
+    - name: Build Windows Infra DbServ
+      run: dotnet publish ./dotnetcore/DatabaseServer/DatabaseServer.csproj --output ./releases/windows-infrastructure/database-server -c Release -r win-x64
+
+    - name: Upload Windows Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-windows-infrastructure
+        path: ./releases/windows-infrastructure/* 
+      
   build-windows:
     runs-on: ubuntu-latest
 
@@ -50,7 +72,7 @@ jobs:
 
   build-publish:
     runs-on: ubuntu-latest
-    needs: [build-windows, build-linux]
+    needs: [build-windows, build-linux, build-windows-infrastructure]
 
     steps:
     - name: Get Date Format
@@ -58,6 +80,12 @@ jobs:
       id: timestep
       with:
         format: "DD-MM-YYYY-HH.mm"
+
+    - name: Download windows infrastructure artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: release-windows-infrastructure
+        path: ./releases-windows-infrastructure
 
     - name: Download windows artifact
       uses: actions/download-artifact@v4
@@ -70,6 +98,9 @@ jobs:
       with:
         name: release-linux
         path: ./releases-linux
+
+    - name: Zip Windows Infrastructure Artifact
+      run: zip release-windows-infrastructure.zip ./releases-windows-infrastructure/*
 
     - name: Zip Windows Artifact
       run: zip release-windows.zip ./releases-windows/*
@@ -87,6 +118,16 @@ jobs:
         release_name: Release ${{ steps.timestep.outputs.time }}
         draft: false
         prerelease: false
+
+    - name: upload windows infrastructure artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release-windows-infrastructure.zip
+        asset_name: release-windows-infrastructure.zip
+        asset_content_type: application/zip
 
     - name: upload windows artifact
       uses: actions/upload-release-asset@v1
