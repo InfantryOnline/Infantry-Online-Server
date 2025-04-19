@@ -9,6 +9,7 @@ using InfServer;
 using System.Globalization;
 using Database;
 using Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace InfServer.Logic
 {	// Logic_Player Class
@@ -30,7 +31,10 @@ namespace InfServer.Logic
 
             using (Database.DataContext db = zone._server.getContext())
             {	//Get the associated player entry
-                Database.Player dbplayer = db.Players.SingleOrDefault(plyr => plyr.Id == player.dbid);
+                Player dbplayer = db.Players
+                    .Include(p => p.StatsNavigation)
+                    .AsSingleQuery()
+                    .SingleOrDefault(s => s.Id == player.dbid);
 
                 if (dbplayer == null)
                 {	//Make a note
@@ -71,8 +75,8 @@ namespace InfServer.Logic
                 stats.ExperienceTotal = pkt.stats.experienceTotal;
 
                 //Convert inventory and skills
-                dbplayer.Inventory = DBHelpers.inventoryToBin(pkt.stats.inventory);
-                dbplayer.Skills = DBHelpers.skillsToBin(pkt.stats.skills);
+                dbplayer.Inventory = DatabaseBinaryUtils.inventoryToBin(pkt.stats.inventory);
+                dbplayer.Skills = DatabaseBinaryUtils.skillsToBin(pkt.stats.skills);
 
                 //Update all changes
                 db.SaveChanges();
@@ -282,9 +286,10 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (Database.DataContext db = zone._server.getContext())
+            using (DataContext db = zone._server.getContext())
             {	//Get the associated player entry
-                Database.Player dbplayer = db.Players.SingleOrDefault(plyr => plyr.Id == player.dbid);
+                Player dbplayer = db.Players.Find(player.dbid);
+
                 if (dbplayer == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "Ignoring player banner update for {0}, not present in database.", player.alias);

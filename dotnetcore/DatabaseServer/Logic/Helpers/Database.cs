@@ -13,10 +13,8 @@ namespace InfServer.Logic
 	/// <summary>
 	/// Provides a series of helpful database functions
 	/// </summary>
-	public partial class DBHelpers
-	{	///////////////////////////////////////////////////
-		// Member Functions
-		//////////////////////////////////////////////////
+	public partial class DatabaseBinaryUtils
+	{
 		/// <summary>
 		/// Converts binary data to a list of inventory items
 		/// </summary>

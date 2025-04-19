@@ -9,6 +9,8 @@ using InfServer.DirectoryServer.Directory.Logic;
 using InfServer.DirectoryServer.Directory.Protocol;
 using InfServer.DirectoryServer.Directory.Protocol.Helpers;
 using InfServer.Network;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace InfServer.DirectoryServer.Directory
 {
@@ -34,6 +36,8 @@ namespace InfServer.DirectoryServer.Directory
         private int zoneUpdateTick = Environment.TickCount;
         private System.Timers.Timer timer;
 
+        private PooledDbContextFactory<DataContext> _dbContextFactory;
+
         /// <summary>
         /// Generic Constructor
         /// </summary>
@@ -58,7 +62,15 @@ namespace InfServer.DirectoryServer.Directory
             //Have to know the URI first
             if (_json)
                 httpJsonResponder = new HttpJsonResponder(this);
-            
+
+            String _connectionString = _config["database/connectionString"].Value;
+
+            var options = new DbContextOptionsBuilder<DataContext>()
+            .UseSqlServer(_connectionString)
+                .Options;
+
+            _dbContextFactory = new PooledDbContextFactory<DataContext>(options);
+
             grabZones();
             return true;
         }
@@ -85,9 +97,7 @@ namespace InfServer.DirectoryServer.Directory
         /// </summary>
         public void grabZones()
         {
-            String _connectionString = _config["database/connectionString"].Value;
-
-            using (var ctx = new DataContext(_connectionString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 var activeZones = ctx.Zones
                     .Where(z => z.Active == 1)

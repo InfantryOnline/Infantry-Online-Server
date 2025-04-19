@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-
+using Database;
 using InfServer.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace InfServer.Logic
 {
@@ -13,6 +14,8 @@ namespace InfServer.Logic
         /// Our list of the current server admins
         /// </summary>
         public static List<string> ServerAdmins;
+
+        public static List<long> ServerAdminAccountIds;
 
         /// <summary>
         /// Populates the admin list
@@ -41,6 +44,18 @@ namespace InfServer.Logic
             }
 
             return;
+        }
+
+        static public void PopulateAdminAccountIds(DBServer server)
+        {
+            using (var ctx = server.getContext())
+            {
+                ServerAdminAccountIds = ctx.Aliases
+                    .Include(a => a.AccountNavigation)
+                    .Where(a => ServerAdmins.Contains(a.Name))
+                    .Select(a => a.AccountNavigation.Id)
+                    .ToList();
+            }
         }
 
         /// <summary>

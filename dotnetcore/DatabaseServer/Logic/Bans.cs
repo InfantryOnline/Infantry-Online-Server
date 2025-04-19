@@ -44,18 +44,21 @@ namespace InfServer.Logic
             Ban.BanType type = Ban.BanType.None;
             DateTime expires = DateTime.Now;
 
-            //Find all associated bans
-            foreach (Database.Ban b in db.Bans.Where(b =>
+            var bans = db.Bans.Where(b =>
                 b.Account == account.Id ||
                 b.IpAddress == pkt.ipaddress ||
-                b.Uid1 == pkt.UID1 && pkt.UID1 != 0 ||
-                b.Uid2 == pkt.UID2 && pkt.UID2 != 0 ||
-                b.Uid3 == pkt.UID3 && pkt.UID3 != 0 ||
-                b.Name == pkt.alias))
+                (b.Uid1 == pkt.UID1 && pkt.UID1 != 0) ||
+                (b.Uid2 == pkt.UID2 && pkt.UID2 != 0) ||
+                (b.Uid3 == pkt.UID3 && pkt.UID3 != 0) ||
+                b.Name == pkt.alias).ToList();
+
+            foreach (var b in bans)
             {
                 //Is it the correct zone?
                 if (b.Zone != null && (b.Type == (int)Ban.BanType.ZoneBan && b.Zone != zoneid))
+                {
                     continue;
+                }
 
                 //Find the highest level ban that hasn't expired yet
                 if (b.Type > (int)type && b.Expires > expires)
@@ -64,6 +67,7 @@ namespace InfServer.Logic
                     type = (Ban.BanType)b.Type;
                 }
             }
+
             return new Ban(type, expires);
         }
     }

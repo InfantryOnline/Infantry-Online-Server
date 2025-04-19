@@ -19,10 +19,10 @@ public partial class DataContext : DbContext
 
     }
 
-    public DataContext(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
+    //public DataContext(string connectionString)
+    //{
+    //    _connectionString = connectionString;
+    //}
 
     public virtual DbSet<Account> Accounts { get; set; }
 
@@ -58,10 +58,14 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<Zone> Zones { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder
-        .UseLazyLoadingProxies()
-        .UseSqlServer(_connectionString);
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //    => optionsBuilder
+    //    .UseLazyLoadingProxies()
+    //    .UseSqlServer(
+    //        _connectionString,
+
+    //        // By default, split queries that contain .Include() joins.
+    //        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

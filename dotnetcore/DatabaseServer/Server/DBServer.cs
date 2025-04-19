@@ -12,6 +12,8 @@ using InfServer.Data;
 using Database;
 using Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace InfServer
 {
@@ -31,7 +33,8 @@ namespace InfServer
 
         public List<KeyValuePair<int, int>> _squadInvites;              //Our history of squad invites pair<squadid, playerid>
 
-        private string _connectionString;		                        //The connectionstring to our database
+        private string _dbConnectionString;		                        
+        private PooledDbContextFactory<DataContext> _dbContextFactory;
 
         static public bool bAllowMulticlienting;                        //Should we allow players to join multiple times under the same account?
 
@@ -50,9 +53,6 @@ namespace InfServer
             _chats = new SortedDictionary<string, Chat>();
             _players = new Dictionary<string, Zone.Player>();
             _squadInvites = new List<KeyValuePair<int, int>>();
-
-            //Populate our server admins
-            Logic.Logic_Admins.PopulateAdmins();
         }
 
         public bool newPlayer(Zone.Player player)
@@ -192,7 +192,17 @@ namespace InfServer
             bAllowMulticlienting = _config["allowMulticlienting"].boolValue;
 
             //Attempt to connect to our database
-            _connectionString = _config["database/connectionString"].Value;
+            _dbConnectionString = _config["database/connectionString"].Value;
+
+            var options = new DbContextOptionsBuilder<DataContext>()
+                .UseSqlServer(_dbConnectionString)
+                .Options;
+
+            _dbContextFactory = new PooledDbContextFactory<DataContext>(options);
+
+            //Populate our server admins
+            Logic.Logic_Admins.PopulateAdmins();
+            Logic.Logic_Admins.PopulateAdminAccountIds(this);
 
             //We're good!
             Log.write("Connected to database.");
@@ -212,8 +222,6 @@ namespace InfServer
             base.begin(listenPoint);
             Log.write("Server started, now listening..");
 
-            var zones = getContext().Zones.Select(x => x.Name).ToList();
-
             while (true)
                 Thread.Sleep(10);
         }
@@ -223,7 +231,7 @@ namespace InfServer
         /// </summary>
         public DataContext getContext()
         {
-            return new DataContext(_connectionString);
+            return _dbContextFactory.CreateDbContext();
         }
     }
 }

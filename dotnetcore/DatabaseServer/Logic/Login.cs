@@ -8,6 +8,7 @@ using InfServer.Protocol;
 using System.Globalization;
 using Database;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace InfServer.Logic
 {	// Logic_Login Class
@@ -41,64 +42,61 @@ namespace InfServer.Logic
             DBServer server = client._handler as DBServer;
             Database.Zone dbZone;
 
-            using (Database.DataContext db = server.getContext())
+            using (var db = server.getContext())
+            {
                 dbZone = db.Zones.SingleOrDefault(z => z.Id == pkt.zoneID);
 
-            //Does the zone exist?
-            if (dbZone == null)
-            {	//Reply with failure
-                SC_Auth<Zone> reply = new SC_Auth<Zone>();
+                //Does the zone exist?
+                if (dbZone == null)
+                {   //Reply with failure
+                    SC_Auth<Zone> reply = new SC_Auth<Zone>();
 
-                reply.result = SC_Auth<Zone>.LoginResult.Failure;
-                reply.message = "Invalid zone.";
-                client.sendReliable(reply);
-                return;
-            }
+                    reply.result = SC_Auth<Zone>.LoginResult.Failure;
+                    reply.message = "Invalid zone.";
+                    client.sendReliable(reply);
+                    return;
+                }
 
-            //Are the passwords a match?
-            if (dbZone.Password != pkt.password)
-            {	//Oh dear.
-                SC_Auth<Zone> reply = new SC_Auth<Zone>();
-                reply.result = SC_Auth<Zone>.LoginResult.BadCredentials;
-                client.sendReliable(reply);
-                return;
-            }
+                //Are the passwords a match?
+                if (dbZone.Password != pkt.password)
+                {   //Oh dear.
+                    SC_Auth<Zone> reply = new SC_Auth<Zone>();
+                    reply.result = SC_Auth<Zone>.LoginResult.BadCredentials;
+                    client.sendReliable(reply);
+                    return;
+                }
 
-            //Great! Escalate our client object to a zone
-            Zone zone = new Zone(client, server, dbZone);
-            client._obj = zone;
-            zone._zone.Active = 1; //Set it as active
+                //Great! Escalate our client object to a zone
+                Zone zone = new Zone(client, server, dbZone);
+                client._obj = zone;
+                zone._zone.Active = 1; //Set it as active
 
-            server._zones.Add(zone);
+                server._zones.Add(zone);
 
-            //Called on connection close / timeout
-            zone._client.Destruct += delegate(NetworkClient nc)
-            {
-                zone.destroy();
-            };
+                //Called on connection close / timeout
+                zone._client.Destruct += delegate (NetworkClient nc)
+                {
+                    zone.destroy();
+                };
 
-            //Success!
-            SC_Auth<Zone> success = new SC_Auth<Zone>();
+                //Success!
+                SC_Auth<Zone> success = new SC_Auth<Zone>();
 
-            success.result = SC_Auth<Zone>.LoginResult.Success;
-            success.message = dbZone.Notice;
+                success.result = SC_Auth<Zone>.LoginResult.Success;
+                success.message = dbZone.Notice;
 
-            client.sendReliable(success);
+                client.sendReliable(success);
 
-            using (Database.DataContext db = server.getContext())
-            {
-                //Update and activate the zone for our directory server
-                Database.Zone zoneentry = db.Zones.SingleOrDefault(z => z.Id == pkt.zoneID);
-
-                zoneentry.Name = pkt.zoneName;
-                zoneentry.Description = pkt.zoneDescription;
-                zoneentry.Ip = pkt.zoneIP;
-                zoneentry.Port = pkt.zonePort;
-                zoneentry.Advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
-                zoneentry.Active = 1;
+                dbZone.Name = pkt.zoneName;
+                dbZone.Description = pkt.zoneDescription;
+                dbZone.Ip = pkt.zoneIP;
+                dbZone.Port = pkt.zonePort;
+                dbZone.Advanced = Convert.ToInt16(pkt.zoneIsAdvanced);
+                dbZone.Active = 1;
 
                 db.SaveChanges();
             }
+
             Log.write("Successful login from {0} ({1})", dbZone.Name, client._ipe);
         }
 
@@ -141,10 +139,10 @@ namespace InfServer.Logic
             }
 
 
-            using (Database.DataContext db = zone._server.getContext())
+            using (var db = zone._server.getContext())
             {
-                Database.Player player = null;
-                Database.Account account = db.Accounts.SingleOrDefault(acct => acct.Ticket.Equals(pkt.ticketid));
+                Player player = null;
+                Account account = db.Accounts.SingleOrDefault(acct => acct.Ticket == pkt.ticketid);
 
                 if (account == null)
                 {	//They're trying to trick us, jim!
@@ -260,8 +258,8 @@ namespace InfServer.Logic
                 }
 
                 //Attempt to find the related alias
-                Database.Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
-                Database.Stat stats = null;
+                Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
+                Stat stats = null;
 
                 //Is there already a player online under this alias?
                 if (alias != null && zone._server._zones.Any((Func<Zone, bool>)(z => z.hasAliasPlayer(alias.Id))))
@@ -322,8 +320,10 @@ namespace InfServer.Logic
                 }
 
                 //Do we have a player row for this zone?
-                player = db.Players.SingleOrDefault(
-                    plyr => plyr.AliasNavigation == alias && plyr.ZoneNavigation == zone._zone);
+                player = db.Players
+                    .Include(p => p.AliasNavigation).ThenInclude(p => p.Account)
+                    .Include(p => p.ZoneNavigation)
+                    .SingleOrDefault(plyr => plyr.AliasNavigation == alias && plyr.ZoneNavigation == zone._zone);
 
                 if (player == null)
                 {	//We need to create another!
@@ -337,7 +337,7 @@ namespace InfServer.Logic
                     player.Permission = 0;
 
                     //Create a blank stats row
-                    stats = new Database.Stat();
+                    stats = new Stat();
 
                     stats.Zone = zone._zone.Id;
                     player.StatsNavigation = stats;
@@ -361,26 +361,34 @@ namespace InfServer.Logic
                         //He's a dev here, set the bool
                         plog.developer = true;
 
-                    //Check for admin
-                    Database.Alias aliasMatch = null;
-                    foreach (string str in Logic_Admins.ServerAdmins)
+                    // Check for admin
+                    foreach (var adminId in Logic_Admins.ServerAdminAccountIds)
                     {
-                        if ((aliasMatch = db.Aliases.SingleOrDefault(a => a.Name == str)) != null)
+                        if (account.Id == adminId && account.Permission > 5)
                         {
-                            if (account.Id == aliasMatch.Account && account.Permission >= 5)
-                            {
-                                plog.admin = true;
-                                break;
-                            }
+                            plog.admin = true;
+                            break;
                         }
                     }
-                    //If he isn't part of the admin list, he doesn't get powers
-                    if (!plog.admin && account.Permission >= 5)
-                    { account.Permission = 0; }
 
-                    plog.squad = (player.SquadNavigation == null) ? "" : player.SquadNavigation.Name;
-                    if (player.SquadNavigation != null)
-                        plog.squadID = player.SquadNavigation.Id;
+                    // If they are not marked as admin, but DB says otherwise
+                    // then treat the admin file as final say.
+                    if (!plog.admin && account.Permission >= 5)
+                    {
+                        account.Permission = 0;
+                    }
+
+                    plog.squadID = player.Squad.GetValueOrDefault();
+
+                    if (plog.squadID != 0)
+                    {
+                        var squad = db.Squads.Find(plog.squadID);
+
+                        if (squad != null)
+                        {
+                            plog.squad = squad.Name;
+                        }
+                    }
 
                     stats = player.StatsNavigation;
 
@@ -436,9 +444,9 @@ namespace InfServer.Logic
 
                     //Convert the binary inventory/skill data
                     if (player.Inventory != null)
-                        DBHelpers.binToInventory(plog.stats.inventory, player.Inventory);
+                        DatabaseBinaryUtils.binToInventory(plog.stats.inventory, player.Inventory);
                     if (player.Skills != null)
-                        DBHelpers.binToSkills(plog.stats.skills, player.Skills);
+                        DatabaseBinaryUtils.binToSkills(plog.stats.skills, player.Skills);
                 }
 
                 //Rename him
@@ -511,10 +519,10 @@ namespace InfServer.Logic
             Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.Name);
 
             // Update their playtime
-            using (Database.DataContext db = zone._server.getContext())
+            using (DataContext db = zone._server.getContext())
             {
-                Database.Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
-                //Database.alias alias = db.alias.SingleOrDefault(a => a.id == p.aliasid);
+                Alias alias = db.Aliases.SingleOrDefault(a => a.Name == pkt.alias);
+
                 //If person was loaded correctly, save their info
                 if (alias != null)
                 {

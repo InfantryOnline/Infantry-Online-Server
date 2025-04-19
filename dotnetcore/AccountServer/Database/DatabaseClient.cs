@@ -10,6 +10,8 @@ using Database;
 
 using Account = AccountServer.Models.Account;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace AccountServer
 {
@@ -20,6 +22,7 @@ namespace AccountServer
     {
         ConfigSetting _config;
         private string _connString;
+        private PooledDbContextFactory<DataContext> _dbContextFactory;
 
         /// <summary>
         /// Creates our client then opens a connection to our database
@@ -29,6 +32,12 @@ namespace AccountServer
             _config = new Xmlconfig("server.xml", false).Settings;
 
             _connString = _config["database/connectionString"].Value;
+
+            var options = new DbContextOptionsBuilder<DataContext>()
+            .UseSqlServer(_connString)
+                .Options;
+
+            _dbContextFactory = new PooledDbContextFactory<DataContext>(options);
         }
 
         /// <summary>
@@ -41,7 +50,7 @@ namespace AccountServer
                 return null;
             }
 
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 var acct = new Database.Account
                 {
@@ -77,7 +86,7 @@ namespace AccountServer
         /// </summary>
         public bool UsernameExists(string username)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 return ctx.Accounts.Any(a => a.Name == username);
             }
@@ -88,7 +97,7 @@ namespace AccountServer
         /// </summary>
         public bool IsAccountValid(string username, string password)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 return ctx.Accounts.Any(a => a.Name == username && a.Password == password);
             }
@@ -99,7 +108,7 @@ namespace AccountServer
         /// </summary>
         public bool EmailExists(string email)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 return ctx.Accounts.Any(a => a.Email == email);
             }
@@ -115,7 +124,7 @@ namespace AccountServer
                 return null;
             }
 
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 var acct = ctx.Accounts.First(s => s.Name == username);
 
@@ -146,7 +155,7 @@ namespace AccountServer
         /// </summary>
         public bool IsResetTokenValid(string token)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 return ctx.ResetTokens.Any(t => t.Token == token);
             }
@@ -157,7 +166,7 @@ namespace AccountServer
         /// </summary>
         public bool WasTokenUsed(string token)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 return ctx.ResetTokens.Any(t => t.Token == token && t.TokenUsed == true);
             }
@@ -168,7 +177,7 @@ namespace AccountServer
         /// </summary>
         public bool HasTokenExpired(string token)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 return ctx.ResetTokens.Any(t => t.Token == token && t.ExpireDate <= DateTime.Now);
             }
@@ -179,7 +188,7 @@ namespace AccountServer
         /// </summary>
         public bool TryGetUsernameFromEmail(string email, out string username)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 var acct = ctx.Accounts.FirstOrDefault(a => a.Email == email);
 
@@ -199,7 +208,7 @@ namespace AccountServer
         /// </summary>
         public bool TryGenerateTokenForAccountReset(string username, out string email, out string token)
         {
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 var acct = ctx.Accounts.FirstOrDefault(a => a.Name == username);
 
@@ -257,7 +266,7 @@ namespace AccountServer
                 return false;
             }
 
-            using (var ctx = new DataContext(_connString))
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 var rt = ctx.ResetTokens.Include(r => r.AccountNavigation).FirstOrDefault(t => t.Token == token);
 
