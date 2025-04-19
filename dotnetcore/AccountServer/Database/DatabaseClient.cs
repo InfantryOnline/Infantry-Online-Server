@@ -123,7 +123,7 @@ namespace AccountServer
 
                 acct.Ticket = ticket.ToString();
                 acct.LastAccess = DateTime.Now;
-                acct.Ipaddress = IPAddress;
+                acct.IpAddress = IPAddress;
 
                 ctx.SaveChanges();
 
