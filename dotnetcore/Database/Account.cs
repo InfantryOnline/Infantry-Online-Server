@@ -21,7 +21,7 @@ public partial class Account
 
     public string Email { get; set; } = null!;
 
-    public string? Ipaddress { get; set; }
+    public string? IpAddress { get; set; }
 
     public long ForumId { get; set; }
 

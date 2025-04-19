@@ -984,8 +984,8 @@ namespace InfServer.Logic
                 if (winner == null || loser == null)
                     return;
 
-                Database.Squadstat wStats = db.Squadstats.FirstOrDefault(s => s.Squad == winner.Id);
-                Database.Squadstat lStats = db.Squadstats.FirstOrDefault(s => s.Squad == loser.Id);
+                Database.SquadStat wStats = db.Squadstats.FirstOrDefault(s => s.Squad == winner.Id);
+                Database.SquadStat lStats = db.Squadstats.FirstOrDefault(s => s.Squad == loser.Id);
 
                 //Again, try it!
                 if (wStats == null || lStats == null)
@@ -1004,7 +1004,7 @@ namespace InfServer.Logic
                 lStats.Losses++; //Sad trombone.....
 
                 //Grab our associated match.
-                Database.Squadmatch match = db.Squadmatches.FirstOrDefault(m => m.Squad1 == winner.Id | m.Squad2 == winner.Id | m.Squad1 == loser.Id | m.Squad2 == loser.Id);
+                Database.SquadMatch match = db.Squadmatches.FirstOrDefault(m => m.Squad1 == winner.Id | m.Squad2 == winner.Id | m.Squad1 == loser.Id | m.Squad2 == loser.Id);
 
                 //Update it
                 match.Winner = pkt.winner;

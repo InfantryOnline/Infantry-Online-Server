@@ -47,7 +47,7 @@ namespace InfServer.Logic
             //Find all associated bans
             foreach (Database.Ban b in db.Bans.Where(b =>
                 b.Account == account.Id ||
-                b.Ipaddress == pkt.ipaddress ||
+                b.IpAddress == pkt.ipaddress ||
                 b.Uid1 == pkt.UID1 && pkt.UID1 != 0 ||
                 b.Uid2 == pkt.UID2 && pkt.UID2 != 0 ||
                 b.Uid3 == pkt.UID3 && pkt.UID3 != 0 ||

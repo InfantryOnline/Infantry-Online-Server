@@ -36,7 +36,8 @@ namespace InfServer
             public string alias;		        //The player's alias
             public Zone zone;                   //The zone he's in.
             public string arena;                //The arena he's in.
-            public int permission;              //His permission level.
+            public int permission;              //Player Permission level.
+            public int accountpermission;        //Account Permission level.
             public List<string> chats;          //The chats they are in
         }
 
@@ -159,11 +160,12 @@ namespace InfServer
 
             player.acctid = dbplayer.AliasNavigation.AccountNavigation.Id;
             player.aliasid = dbplayer.AliasNavigation.Id;
-            player.IPAddress = dbplayer.AliasNavigation.Ipaddress;
+            player.IPAddress = dbplayer.AliasNavigation.IpAddress;
             player.dbid = dbplayer.Id;
             player.alias = alias;
             player.stealth = dbplayer.AliasNavigation.Stealth == 1;
             player.permission = dbplayer.Permission;
+            player.accountpermission = dbplayer.AliasNavigation.AccountNavigation.Permission;
             player.zone = this;
             player.arena = "";
             player.chats = new List<string>();

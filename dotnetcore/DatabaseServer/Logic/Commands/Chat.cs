@@ -33,12 +33,12 @@ namespace InfServer.Logic
                             //Loop through each alias to calculate time played
                             foreach (var alias in aliases)
                             {
-                                TimeSpan timeplayed = TimeSpan.FromMinutes(alias.Timeplayed);
+                                TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
                                 days = (int)timeplayed.Days;
                                 hrs = (int)timeplayed.Hours;
                                 mins = (int)timeplayed.Minutes;
 
-                                total += alias.Timeplayed;
+                                total += alias.TimePlayed;
 
                                 //Send it
                                 zone._server.sendMessage(zone, pkt.sender, string.Format("~{0} ({1}d {2}h {3}m)", alias.Name, days, hrs, mins));
@@ -65,7 +65,7 @@ namespace InfServer.Logic
                                 SC_ChatQuery<Zone> cQuery = new SC_ChatQuery<Zone>();
                                 cQuery.type = pkt.queryType;
                                 cQuery.sender = pkt.sender;
-                                cQuery.payload = string.Format("{0},{1}", player.Name, player.Ipaddress);
+                                cQuery.payload = string.Format("{0},{1}", player.Name, player.IpAddress);
                                 zone._client.sendReliable(cQuery);
                             }
                         }
@@ -86,7 +86,7 @@ namespace InfServer.Logic
                             {   //No we aren't, treat this as general matching
                                 //IP Lookup?
                                 if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ip))
-                                    aliases = db.Aliases.Where(a => a.Ipaddress.Equals(ip.ToString())).ToList();
+                                    aliases = db.Aliases.Where(a => a.IpAddress.Equals(ip.ToString())).ToList();
                                 else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
                                 {   //Account ID
                                     aliases = db.Aliases.Where(a => a.Account == accountID).ToList();
@@ -107,7 +107,7 @@ namespace InfServer.Logic
                                     zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
                                     foreach (var alias in aliases)
                                     {
-                                        TimeSpan timeplayed = TimeSpan.FromMinutes(alias.Timeplayed);
+                                        TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
                                         var days = (int)timeplayed.Days;
                                         var hrs = (int)timeplayed.Hours;
                                         var mins = (int)timeplayed.Minutes;
@@ -115,7 +115,7 @@ namespace InfServer.Logic
                                         zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
                                             alias.Account, // 0
                                             alias.Name, // 1
-                                            alias.Ipaddress, // 2
+                                            alias.IpAddress, // 2
                                             alias.Creation.ToString(), // 3
                                             alias.LastAccess.ToString(), // 4
                                             days, // 5
@@ -160,7 +160,7 @@ namespace InfServer.Logic
                                         if (!str.Trim().Equals("*"))
                                             findIP += str.Trim() + ".";
 
-                                    aliases = db.Aliases.Where(w => w.Ipaddress.Contains(findIP)).ToList();
+                                    aliases = db.Aliases.Where(w => w.IpAddress.Contains(findIP)).ToList();
                                 }
                             }
                             else
@@ -178,7 +178,7 @@ namespace InfServer.Logic
                                 //Loop and display
                                 foreach (var alias in aliases)
                                 {
-                                    TimeSpan timeplayed = TimeSpan.FromMinutes(alias.Timeplayed);
+                                    TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
                                     var days = (int)timeplayed.Days;
                                     var hrs = (int)timeplayed.Hours;
                                     var mins = (int)timeplayed.Minutes;
@@ -186,7 +186,7 @@ namespace InfServer.Logic
                                     zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
                                         alias.Account, // 0
                                         alias.Name, // 1
-                                        alias.Ipaddress, // 2
+                                        alias.IpAddress, // 2
                                         alias.Creation.ToString(), // 3
                                         alias.LastAccess.ToString(), // 4
                                         days, // 5
@@ -503,7 +503,7 @@ namespace InfServer.Logic
 
                             //Check for an ip lookup first
                             if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
-                                aliases = db.Aliases.Where(a => a.Ipaddress.Equals(ipaddress.ToString()));
+                                aliases = db.Aliases.Where(a => a.IpAddress.Equals(ipaddress.ToString()));
                             //Check for an account id
                             else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
                                 aliases = db.Aliases.Where(a => a.Account == accountID);
@@ -525,7 +525,7 @@ namespace InfServer.Logic
                                 {
                                     foreach (Database.Ban b in db.Bans.Where(b =>
                                         b.Account == what.AccountNavigation.Id ||
-                                        b.Ipaddress == what.AccountNavigation.Ipaddress).ToList())
+                                        b.IpAddress == what.AccountNavigation.IpAddress).ToList())
                                     {
                                         //Does the alias match the ban name?
                                         if (string.Compare(b.Name, what.Name, true) != 0) //If it isnt 0, it is false
@@ -809,7 +809,7 @@ namespace InfServer.Logic
                             }
 
                             //Create Some Stats first
-                            Database.Squadstat stats = new Database.Squadstat();
+                            Database.SquadStat stats = new Database.SquadStat();
                             stats.Kills = 0;
                             stats.Deaths = 0;
                             stats.Wins = 0;
@@ -1278,7 +1278,7 @@ namespace InfServer.Logic
                             }
                             else
                             {
-                                Database.Squadstat squadstats = db.Squadstats.FirstOrDefault(s => s.Squad == targetSquad.Id);
+                                Database.SquadStat squadstats = db.Squadstats.FirstOrDefault(s => s.Squad == targetSquad.Id);
                                 if (squadstats != null)
                                 {
                                     zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", targetSquad.Name));

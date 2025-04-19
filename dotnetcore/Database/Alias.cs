@@ -13,11 +13,11 @@ public partial class Alias
 
     public DateTime Creation { get; set; }
 
-    public string Ipaddress { get; set; } = null!;
+    public string IpAddress { get; set; } = null!;
 
     public DateTime LastAccess { get; set; }
 
-    public long Timeplayed { get; set; }
+    public long TimePlayed { get; set; }
 
     public int Stealth { get; set; }
 

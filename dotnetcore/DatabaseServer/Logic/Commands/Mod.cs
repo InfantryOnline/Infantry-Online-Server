@@ -8,6 +8,8 @@ using InfServer.Data;
 using InfServer.Network;
 using System.Xml.Linq;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Database;
 
 namespace InfServer.Logic
 {
@@ -51,8 +53,8 @@ namespace InfServer.Logic
                             if (anyPlayer == null)
                             {
                                 //Since structure doesn't exist, go ahead and transfer
-                                alias.Ipaddress = paliasTo.Ipaddress.Trim();
-                                alias.Timeplayed = 0;
+                                alias.IpAddress = paliasTo.IpAddress.Trim();
+                                alias.TimePlayed = 0;
                                 alias.Account = paliasTo.Account;
                                 alias.AccountNavigation = paliasTo.AccountNavigation;
                                 db.SaveChanges();
@@ -105,8 +107,8 @@ namespace InfServer.Logic
                             }
 
                             //Now lets transfer
-                            alias.Ipaddress = paliasTo.Ipaddress.Trim();
-                            alias.Timeplayed = 0;
+                            alias.IpAddress = paliasTo.IpAddress.Trim();
+                            alias.TimePlayed = 0;
                             alias.Account = paliasTo.Account;
                             alias.AccountNavigation = paliasTo.AccountNavigation;
                             db.SaveChanges();
@@ -402,54 +404,45 @@ namespace InfServer.Logic
 
                             if (pkt.query.Equals("list"))
                             {
-                                Database.Player sender = db.Players.FirstOrDefault(p => p.AliasNavigation.Name == pkt.sender && p.Zone == zone._zone.Id);
-                                if (sender == null)
-                                    return;
+                                var senderPlayer = zone.getPlayer(pkt.sender);
+                                var poweredPlayers = zone._server._players
+                                    .Where(p => p.Value.permission > 0 || p.Value.accountpermission > 0)
+                                    .Select(t => t.Value)
+                                    .ToList();
 
-                                SortedDictionary<string, string> powered = new SortedDictionary<string, string>();
-                                string pAlias;
-                                foreach (Zone z in zone._server._zones)
+                                bool sent = false;
+
+                                foreach (var p in poweredPlayers)
                                 {
-                                    foreach (KeyValuePair<int, Zone.Player> Player in z._players)
+                                    string msg;
+
+                                    if (p.accountpermission > 0)
                                     {
-                                        pAlias = Player.Value.alias;
-                                        var alias = db.Aliases.SingleOrDefault(p => p.Name == pAlias);
-                                        if (alias == null)
-                                            continue;
-                                        if (alias.Name == pkt.sender)
-                                            continue;
-                                        //Are they a global mod?
-                                        if (alias.AccountNavigation.Permission > 0)
+                                        if (p.accountpermission > senderPlayer.accountpermission && p.accountpermission > senderPlayer.permission)
                                         {
-                                            //Are they higher than us?
-                                            if (alias.AccountNavigation.Permission > sender.AliasNavigation.AccountNavigation.Permission
-                                                && alias.AccountNavigation.Permission > sender.Permission)
-                                                continue;
-                                            powered.Add(pAlias, string.Format("*{0} - Lvl({1})", pAlias, alias.AccountNavigation.Permission.ToString()));
+                                            continue;
                                         }
-                                        else
-                                        {
-                                            var player = db.Zones.First(zones => zones.Id == z._zone.Id).Players.First(p => p.AliasNavigation == alias);
-                                            if (player != null && player.Permission > 0)
-                                            {
-                                                //Are they higher than us?
-                                                if (player.Permission > sender.Permission
-                                                    && player.AliasNavigation.AccountNavigation.Permission > sender.AliasNavigation.AccountNavigation.Permission)
-                                                    continue;
-                                                powered.Add(pAlias, string.Format("*{0} - Lvl({1})(dev)", pAlias, player.Permission.ToString()));
-                                            }
-                                        }
+
+                                        msg = string.Format("*{0} - Lvl({1})", p.alias, p.accountpermission.ToString());
                                     }
+                                    else
+                                    {
+                                        if (p.permission > senderPlayer.accountpermission && p.permission > senderPlayer.permission)
+                                        {
+                                            continue;
+                                        }
+
+                                        msg = string.Format("*{0} - Lvl({1})", p.alias, p.permission.ToString());
+                                    }
+
+                                    sent = true;
+                                    zone._server.sendMessage(zone, pkt.sender, msg);
                                 }
 
-                                //Now send it!
-                                if (powered.Count > 0)
+                                if (!sent)
                                 {
-                                    foreach (string str in powered.Values)
-                                        zone._server.sendMessage(zone, pkt.sender, str);
-                                }
-                                else
                                     zone._server.sendMessage(zone, pkt.sender, "Empty.");
+                                }
                             }
                         }
                         break;
@@ -466,7 +459,7 @@ namespace InfServer.Logic
                             }
 
                             bool found = false;
-                            IQueryable<Database.Alias> foundAlias = db.Aliases.Where(d => (d.Ipaddress.Equals(alias.Ipaddress) || d.Account == alias.Account));
+                            IQueryable<Database.Alias> foundAlias = db.Aliases.Where(d => (d.IpAddress.Equals(alias.IpAddress) || d.Account == alias.Account));
                             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
                             {
                                 foreach (Database.Alias p in foundAlias)
@@ -584,7 +577,7 @@ namespace InfServer.Logic
                             newBan.Uid2 = pkt.UID2;
                             newBan.Uid3 = pkt.UID3;
                             newBan.Account = dbplayer.Account;
-                            newBan.Ipaddress = dbplayer.Ipaddress;
+                            newBan.IpAddress = dbplayer.IpAddress;
                             newBan.Zone = zone._zone.Id;
                             newBan.Reason = pkt.reason;
                             newBan.Name = dbplayer.Name;
@@ -603,7 +596,7 @@ namespace InfServer.Logic
                             newBan.Uid2 = pkt.UID2;
                             newBan.Uid3 = pkt.UID3;
                             newBan.Account = dbplayer.Account;
-                            newBan.Ipaddress = dbplayer.Ipaddress;
+                            newBan.IpAddress = dbplayer.IpAddress;
                             newBan.Reason = pkt.reason;
                             newBan.Name = dbplayer.Name;
                         }

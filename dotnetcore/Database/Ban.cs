@@ -11,7 +11,7 @@ public partial class Ban
 
     public long? Account { get; set; }
 
-    public string? Ipaddress { get; set; }
+    public string? IpAddress { get; set; }
 
     public long? Uid1 { get; set; }
 

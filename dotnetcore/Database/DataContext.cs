@@ -34,7 +34,7 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<History> Histories { get; set; }
 
-    public virtual DbSet<Leaguestat> Leaguestats { get; set; }
+    public virtual DbSet<LeagueStat> Leaguestats { get; set; }
 
     public virtual DbSet<Player> Players { get; set; }
 
@@ -42,9 +42,9 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<Squad> Squads { get; set; }
 
-    public virtual DbSet<Squadmatch> Squadmatches { get; set; }
+    public virtual DbSet<SquadMatch> Squadmatches { get; set; }
 
-    public virtual DbSet<Squadstat> Squadstats { get; set; }
+    public virtual DbSet<SquadStat> Squadstats { get; set; }
 
     public virtual DbSet<Stat> Stats { get; set; }
 
@@ -80,7 +80,7 @@ public partial class DataContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("email");
             entity.Property(e => e.ForumId).HasColumnName("forumID");
-            entity.Property(e => e.Ipaddress)
+            entity.Property(e => e.IpAddress)
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("IPAddress");
@@ -113,7 +113,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Creation)
                 .HasColumnType("datetime")
                 .HasColumnName("creation");
-            entity.Property(e => e.Ipaddress)
+            entity.Property(e => e.IpAddress)
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("IPAddress");
@@ -125,7 +125,7 @@ public partial class DataContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("name");
             entity.Property(e => e.Stealth).HasColumnName("stealth");
-            entity.Property(e => e.Timeplayed).HasColumnName("timeplayed");
+            entity.Property(e => e.TimePlayed).HasColumnName("timeplayed");
 
             entity.HasOne(d => d.AccountNavigation).WithMany(p => p.Aliases)
                 .HasForeignKey(d => d.Account)
@@ -145,7 +145,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Expires)
                 .HasColumnType("datetime")
                 .HasColumnName("expires");
-            entity.Property(e => e.Ipaddress)
+            entity.Property(e => e.IpAddress)
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("IPAddress");
@@ -217,7 +217,7 @@ public partial class DataContext : DbContext
                 .HasColumnName("zone");
         });
 
-        modelBuilder.Entity<Leaguestat>(entity =>
+        modelBuilder.Entity<LeagueStat>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_dbo.leaguestats");
 
@@ -328,7 +328,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Zone).HasColumnName("zone");
         });
 
-        modelBuilder.Entity<Squadmatch>(entity =>
+        modelBuilder.Entity<SquadMatch>(entity =>
         {
             entity.ToTable("squadmatch");
 
@@ -349,7 +349,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Zone).HasColumnName("zone");
         });
 
-        modelBuilder.Entity<Squadstat>(entity =>
+        modelBuilder.Entity<SquadStat>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_dbo.squadstats");
 

@@ -300,9 +300,9 @@ namespace InfServer.Logic
                     alias.Name = pkt.alias;
                     alias.Creation = DateTime.Now;
                     alias.AccountNavigation = account;
-                    alias.Ipaddress = pkt.ipaddress;
+                    alias.IpAddress = pkt.ipaddress;
                     alias.LastAccess = DateTime.Now;
-                    alias.Timeplayed = 0;
+                    alias.TimePlayed = 0;
 
                     db.Aliases.Add(alias);
 
@@ -465,7 +465,7 @@ namespace InfServer.Logic
                     Log.write("Player '{0}' logged into zone '{1}'", alias.Name, zone._zone.Name);
 
                     //Modify his alias IP address and access times
-                    alias.Ipaddress = pkt.ipaddress.Trim();
+                    alias.IpAddress = pkt.ipaddress.Trim();
                     alias.LastAccess = DateTime.Now;
 
                     //Change it
@@ -520,7 +520,7 @@ namespace InfServer.Logic
                 {
                     TimeSpan ts = DateTime.Now - alias.LastAccess;
                     Int64 minutes = ts.Minutes;
-                    alias.Timeplayed += minutes;
+                    alias.TimePlayed += minutes;
 
                     db.SaveChanges();
                 }
