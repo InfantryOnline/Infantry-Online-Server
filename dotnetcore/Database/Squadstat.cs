@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Database;
 
-public partial class Squadstat
+public partial class SquadStat
 {
     public long Id { get; set; }
 
