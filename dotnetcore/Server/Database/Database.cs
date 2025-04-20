@@ -156,7 +156,7 @@ namespace InfServer.Data
             if (stats == null)
                 return;
 
-            if (_server.IsStandalone)
+            if (_server.IsStandalone || !player._bDBLoaded)
                 return;
 
             //Create an update packet

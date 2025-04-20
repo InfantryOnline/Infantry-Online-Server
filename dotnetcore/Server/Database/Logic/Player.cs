@@ -61,6 +61,8 @@ namespace InfServer.Logic
             player._squad = pkt.squad;
             player._squadID = pkt.squadID;
 
+            player._bDBLoaded = true;
+
             if (pkt.silencedDurationMinutes > 0)
             {
                 var silenceDateTime = DateTimeOffset.FromUnixTimeMilliseconds(pkt.silencedAtUnixMilliseconds).LocalDateTime;

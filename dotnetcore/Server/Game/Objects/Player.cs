@@ -1637,9 +1637,6 @@ namespace InfServer.Game
             //is set up first.
             if (runEvents)
                 firstTimePlayer = true;
-
-            //Consider him loaded
-            _bDBLoaded = true;
         }
 
         /// <summary>
@@ -1699,9 +1696,6 @@ namespace InfServer.Game
 
                 _skills.Add(stat.skillid, si);
             }
-
-            //Consider him loaded
-            _bDBLoaded = true;
         }
         #endregion
     }

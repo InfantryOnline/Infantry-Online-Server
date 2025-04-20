@@ -477,6 +477,11 @@ namespace InfServer.Game
                                         arena.Value.sendArenaMessage("!WARNING: An attempt to establish a connection to the database failed. Server is in Stand Alone Mode");
                                         arena.Value.sendArenaMessage("!Your stats and inventory will save again when connection is re-established.");
                                     }
+
+                                foreach(var p in _players.Select(p => p.Value))
+                                {
+                                    p._bDBLoaded = false;
+                                }
                             }
                         }
                     }
