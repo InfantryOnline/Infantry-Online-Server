@@ -15,7 +15,6 @@ using Assets;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.InteropServices;
-using InfServer.Game.Commands.Mod;
 
 namespace InfServer.Game
 {
