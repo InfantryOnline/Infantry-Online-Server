@@ -174,7 +174,11 @@ namespace InfServer
         /// Allows the server to preload all assets.
         /// </summary>
         public bool init()
-        {	//Load our server config
+        {
+            //Start up the network
+            _logger = Log.createClient("DBServer");
+            base._logger = Log.createClient("Network");
+
             Log.write(TLog.Normal, "Loading Server Configuration");
             _config = new Xmlconfig("server.xml", false).Settings;
 
@@ -194,11 +198,20 @@ namespace InfServer
             //Attempt to connect to our database
             _dbConnectionString = _config["database/connectionString"].Value;
 
-            var options = new DbContextOptionsBuilder<DataContext>()
-                .UseSqlServer(_dbConnectionString)
-                .Options;
+            var opts = new DbContextOptionsBuilder<DataContext>()
+                .UseSqlServer(_dbConnectionString);
 
-            _dbContextFactory = new PooledDbContextFactory<DataContext>(options);
+            var dbLog = _config["database/log"].boolValue;
+
+            if (dbLog)
+            {
+                opts.LogTo(text =>
+                {
+                    Log.write(TLog.Inane, text, _logger);
+                });
+            }
+
+            _dbContextFactory = new PooledDbContextFactory<DataContext>(opts.Options);
 
             //Populate our server admins
             Logic.Logic_Admins.PopulateAdmins();
@@ -213,10 +226,7 @@ namespace InfServer
         /// Begins all server processes, and starts accepting clients.
         /// </summary>
         public void begin()
-        {	//Start up the network
-            _logger = Log.createClient("DBServer");
-            base._logger = Log.createClient("Network");
-
+        {	
             IPEndPoint listenPoint = new IPEndPoint(
                 IPAddress.Parse(_config["bindIP"].Value), _config["bindPort"].intValue);
             base.begin(listenPoint);

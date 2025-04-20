@@ -109,6 +109,11 @@ namespace InfServer.DirectoryServer.Directory
                         z.Description)
                     ).ToList();
 
+                if (ZoneStream != null)
+                {
+                    ZoneStream.Zones.ForEach(x => x.Close());
+                }
+
                 ZoneStream = new ZoneStream(activeZones);
             }
         }

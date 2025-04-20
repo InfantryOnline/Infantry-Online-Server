@@ -8,6 +8,9 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
 {
     public class Zone
     {
+        IPEndPoint endpoint;
+        UdpClient udpClient;
+
         public Zone(byte[] address, ushort port, string title, bool isAdvanced, string description)
         {
             Address = BitConverter.ToInt32(address, 0);
@@ -16,6 +19,15 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             IsAdvanced = isAdvanced;
             Description = description;
             PlayerCount = 0;
+
+            endpoint = new IPEndPoint(new IPAddress(BitConverter.GetBytes(Address)), Port + 1);
+            udpClient = new UdpClient();
+            udpClient.Connect(endpoint);
+        }
+
+        public void Close()
+        {
+            udpClient.Close();
         }
 
         public byte[] ToBytes()
@@ -49,14 +61,17 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
 
         public void PollServerForPlayers()
         {
-            var endpoint = new IPEndPoint(new IPAddress(BitConverter.GetBytes(Address)), Port + 1);
-            var udpClient = new UdpClient();
             try
             {
                 var data = new UdpData {EndPoint = endpoint, Client = udpClient};
-                udpClient.Connect(endpoint);
+                
                 udpClient.Send(new byte[] {00, 00, 00, 01}, 4);
-                udpClient.BeginReceive(ReadReceivedData, data);
+                var bytes = udpClient.Receive(ref endpoint);
+                PlayerCount = BitConverter.ToInt32(bytes, 0);
+
+                udpClient.Close();
+
+                //udpClient.BeginReceive(ReadReceivedData, data);
             }
             catch(Exception)
             {
@@ -73,10 +88,10 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
                 return;
             }
 
+            var data = (UdpData)ar.AsyncState;
+
             try
             {
-                var data = (UdpData)ar.AsyncState;
-
                 var receiveBytes = data.Client.EndReceive(ar, ref data.EndPoint);
 
                 PlayerCount = BitConverter.ToInt32(receiveBytes, 0);
@@ -85,8 +100,9 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
                 if (data.Client.Client != null)
                     data.Client.Client.Dispose();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                data.Client.Close();
             }
         }
 
