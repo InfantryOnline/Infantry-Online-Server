@@ -321,7 +321,7 @@ namespace InfServer.Logic
 
                 //Do we have a player row for this zone?
                 player = db.Players
-                    .Include(p => p.AliasNavigation).ThenInclude(p => p.Account)
+                    .Include(p => p.AliasNavigation).ThenInclude(p => p.AccountNavigation)
                     .Include(p => p.ZoneNavigation)
                     .SingleOrDefault(plyr => plyr.AliasNavigation == alias && plyr.ZoneNavigation == zone._zone);
 
