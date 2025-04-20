@@ -89,6 +89,8 @@ namespace InfServer.Logic
                     player._lengthOfSilence = (int)pkt.silencedDurationMinutes;
                 }   
             }
+
+            player.syncState();
         }
 
         /// <summary>
