@@ -21,746 +21,846 @@ namespace InfServer.Logic
                 switch (pkt.queryType)
                 {
                     case CS_ChatQuery<Zone>.QueryType.accountinfo:
-                        {
-                            Database.Alias from = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender);
-                            var aliases = db.Aliases.Where(a => a.Account == from.Account);
-                            zone._server.sendMessage(zone, pkt.sender, "Account Info");
-
-                            Int64 total = 0;
-                            int days = 0;
-                            int hrs = 0;
-                            int mins = 0;
-                            //Loop through each alias to calculate time played
-                            foreach (var alias in aliases)
-                            {
-                                TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
-                                days = (int)timeplayed.Days;
-                                hrs = (int)timeplayed.Hours;
-                                mins = (int)timeplayed.Minutes;
-
-                                total += alias.TimePlayed;
-
-                                //Send it
-                                zone._server.sendMessage(zone, pkt.sender, string.Format("~{0} ({1}d {2}h {3}m)", alias.Name, days, hrs, mins));
-                            }
-
-                            //Calculate total time played across all aliases.
-                            if (total != 0)
-                            {
-                                TimeSpan totaltime = TimeSpan.FromMinutes(total);
-                                days = (int)totaltime.Days;
-                                hrs = (int)totaltime.Hours;
-                                mins = (int)totaltime.Minutes;
-                                //Send it
-                                zone._server.sendMessage(zone, pkt.sender, string.Format("!Grand Total: {0}d {1}h {2}m", days, hrs, mins));
-                            }
-                        }
+                        Handle_CS_ChatQuery_AccountInfo(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.accountignore:
-                        {
-                            Database.Alias player = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
-                            if (player != null)
-                            {
-                                SC_ChatQuery<Zone> cQuery = new SC_ChatQuery<Zone>();
-                                cQuery.type = pkt.queryType;
-                                cQuery.sender = pkt.sender;
-                                cQuery.payload = string.Format("{0},{1}", player.Name, player.IpAddress);
-                                zone._client.sendReliable(cQuery);
-                            }
-                        }
+                        Handle_CS_ChatQuery_AccountIgnore(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.whois:
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "&Whois Information");
-                            zone._server.sendMessage(zone, pkt.sender, "*" + pkt.payload);
-
-                            //Query for an IP?
-                            System.Net.IPAddress ip;
-                            long accountID;
-                            List<Alias> aliases;
-
-                            //Are we using wildcards?
-                            if (!pkt.payload.Contains('*'))
-                            {   //No we aren't, treat this as general matching
-                                //IP Lookup?
-                                if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ip))
-                                    aliases = db.Aliases.Where(a => a.IpAddress.Equals(ip.ToString())).ToList();
-                                else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
-                                {   //Account ID
-                                    aliases = db.Aliases.Where(a => a.Account == accountID).ToList();
-                                }
-                                else
-                                {   //Alias
-                                    Database.Alias who = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
-                                    if (who == null)
-                                    {
-                                        zone._server.sendMessage(zone, pkt.sender, "That IP, account id or alias doesn't exist.");
-                                        break;
-                                    }
-                                    aliases = db.Aliases.Where(a => a.Account == who.Account).ToList();
-                                }
-
-                                if (aliases != null && aliases.Count() > 0)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
-                                    foreach (var alias in aliases)
-                                    {
-                                        TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
-                                        var days = (int)timeplayed.Days;
-                                        var hrs = (int)timeplayed.Hours;
-                                        var mins = (int)timeplayed.Minutes;
-    
-                                        zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
-                                            alias.Account, // 0
-                                            alias.Name, // 1
-                                            alias.IpAddress, // 2
-                                            alias.Creation.ToString(), // 3
-                                            alias.LastAccess.ToString(), // 4
-                                            days, // 5
-                                            hrs, // 6
-                                            mins) // 7
-                                            );
-    
-                                    }
-                                }
-                                else
-                                    zone._server.sendMessage(zone, pkt.sender, "That IP, account id or alias doesn't exist.");
-                                break;
-                            }
-
-                            //We are
-                            //IP Wildcard Lookup?
-                            if (pkt.payload.Contains('.'))
-                            {
-                                string[] IP = pkt.payload.Split('.');
-                                string findIP = "";
-                                int result;
-                                bool validated = true;
-
-                                //First check if this is a valid ip and not a person with a period in their name
-                                //We do this by checking conversions
-                                foreach (string str in IP)
-                                    if (!str.Trim().Equals("*") && !Int32.TryParse(str, out result))
-                                        validated = false;
-
-                                if (!validated)
-                                {
-                                    //Failed, must be an alias
-                                    string trimmed = pkt.payload.Replace('*', '%');
-                                    aliases = (from w in db.Aliases
-                                               where EF.Functions.Like(w.Name, trimmed)
-                                               select w).ToList();
-                                }
-                                else
-                                {   //Validated IP
-                                    //Ranged ip parser method, looks for wildcard as a string stopping point
-                                    foreach (string str in IP)
-                                        if (!str.Trim().Equals("*"))
-                                            findIP += str.Trim() + ".";
-
-                                    aliases = db.Aliases.Where(w => w.IpAddress.Contains(findIP)).ToList();
-                                }
-                            }
-                            else
-                            {
-                                //Alias Wildcard Lookup
-                                string trimmed = pkt.payload.Replace('*', '%');
-                                aliases = (from w in db.Aliases
-                                          where EF.Functions.Like(w.Name, trimmed)
-                                          select w).ToList();
-                            }
-
-                            if (aliases != null && aliases.Count() > 0)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
-                                //Loop and display
-                                foreach (var alias in aliases)
-                                {
-                                    TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
-                                    var days = (int)timeplayed.Days;
-                                    var hrs = (int)timeplayed.Hours;
-                                    var mins = (int)timeplayed.Minutes;
-
-                                    zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
-                                        alias.Account, // 0
-                                        alias.Name, // 1
-                                        alias.IpAddress, // 2
-                                        alias.Creation.ToString(), // 3
-                                        alias.LastAccess.ToString(), // 4
-                                        days, // 5
-                                        hrs, // 6
-                                        mins) // 7
-                                        );
-
-                                }
-                            }
-                            else
-                                zone._server.sendMessage(zone, pkt.sender, "No matches found for the given string.");
-                        }
+                        Handle_CS_ChatQuery_Whois(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.deletealias:
-                        {
-                            if (string.IsNullOrWhiteSpace(pkt.payload))
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
-                                return;
-                            }
-
-                            Database.Alias sender = db.Aliases.FirstOrDefault(sndr => sndr.Name == pkt.sender);
-                            if (sender == null)
-                                return;
-
-                            //Single alias
-                            if (!pkt.payload.Contains(','))
-                            {
-                                //Lets get all account related info then delete it
-                                Database.Alias palias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
-                                if (palias == null)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
-                                    return;
-                                }
-
-                                //First and most important, check to see if this alias is on the account
-                                if (palias.Account != sender.Account)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, "You must be on the account that this alias belongs to.");
-                                    return;
-                                }
-
-                                var players = db.Players.Where(t => t.Alias == palias.Id).ToList();
-
-                                foreach(var player in players)
-                                {
-                                    //Check for a squad
-                                    if (player.Squad != null)
-                                    {
-                                        var squadmates = db.Players.Where(plyr => plyr.Zone == player.Zone && plyr.Squad != null && plyr.Squad == player.Squad).ToList();
-                                        if (player.SquadNavigation.Owner == player.Id)
-                                        {
-                                            if (squadmates.Count() > 1)
-                                            {
-                                                Database.Player temp = squadmates.FirstOrDefault(p => p.Id != player.Id);
-                                                //Since the player is the owner, lets just give it to someone else
-                                                temp.SquadNavigation.Owner = temp.Id;
-                                            }
-                                            else if (squadmates.Count() == 1)
-                                            {
-                                                //Lets delete the squad
-                                                db.Squads.Remove(player.SquadNavigation);
-                                            }
-                                        }
-
-                                        player.SquadNavigation = null;
-                                        player.Squad = null;
-                                    }
-
-                                    // Remove the historic stuff too.
-                                    var dailies = db.StatsDailies.Where(s => s.Player == player.Id);
-                                    var weeklies = db.StatsWeeklies.Where(s => s.Player == player.Id);
-                                    var monthlies = db.StatsMonthlies.Where(s => s.Player == player.Id);
-                                    var yearlies = db.StatsYearlies.Where(s => s.Player == player.Id);
-
-                                    db.StatsDailies.RemoveRange(dailies);
-                                    db.StatsWeeklies.RemoveRange(weeklies);
-                                    db.StatsMonthlies.RemoveRange(monthlies);
-                                    db.StatsYearlies.RemoveRange(yearlies);
-
-                                    db.SaveChanges();
-
-                                    var stats = db.Stats.Where(s => s.Id == player.Stats);
-
-                                    db.Stats.RemoveRange(stats);
-                                    db.Players.Remove(player);
-
-                                    db.SaveChanges();
-                                }
-
-                                db.Aliases.Remove(palias);
-
-                                db.SaveChanges();
-                                zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
-                                break;
-                            }
-                            else
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, String.Format("Please remove aliases one at a time."));
-                            }
-                        }
+                        Handle_CS_ChatQuery_DeleteAlias(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.emailupdate:
-                        {
-                            zone._server.sendMessage(zone, pkt.sender, "&Email Update");
-
-                            Database.Account account = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender).AccountNavigation;
-
-                            //Update his email
-                            account.Email = pkt.payload;
-                            db.SaveChanges();
-                            zone._server.sendMessage(zone, pkt.sender, "*Email updated to: " + pkt.payload);
-                        }
+                        Handle_CS_ChatQuery_EmailUpdate(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.find:
-                        {
-                            int minlength = 3;
-                            var results = new List<KeyValuePair<string, Zone.Player>>();
-                            //Get our info
-                            Database.Account pAccount = db.Aliases.FirstOrDefault(f => f.Name == pkt.sender).AccountNavigation;
-                            Database.Player pPlayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => p.AliasNavigation.Name == pkt.sender);
-
-                            foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
-                            {
-                                if (player.Value.stealth && player.Value.permission > pPlayer.Permission)
-                                {
-                                    continue;
-                                }
-
-                                if (player.Key.ToLower() == pkt.payload.ToLower())
-                                {
-                                    //Have they found the exact player they were looking for?
-                                    results.Add(player);
-                                    break;
-                                }
-                                else if (player.Key.ToLower().Contains(pkt.payload.ToLower()) && pkt.payload.Length >= minlength)
-                                    results.Add(player);
-                            }
-
-                            if (results.Count > 0)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "&Search Results");
-                                foreach (KeyValuePair<string, Zone.Player> result in results)
-                                {
-                                    //Are we not powered and in a private arena?
-                                    if (pAccount.Permission < 1 && result.Value.arena.StartsWith("#"))
-                                    {
-                                        //We are, is this the same zone?
-                                        if (result.Value.zone._zone.Id == zone._zone.Id)
-                                        {
-                                            //It is, get the info needed
-                                            Database.Player find = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => p.AliasNavigation.Name == result.Value.alias);
-
-                                            //Are we on the same squad?
-                                            if (find.Squad != pPlayer.Squad || (find.Squad == null && pPlayer.Squad == null))
-                                                zone._server.sendMessage(zone, pkt.sender,
-                                                    string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
-                                                    result.Value.alias, result.Value.zone._zone.Name, "Hidden"));
-                                            else
-                                                zone._server.sendMessage(zone, pkt.sender,
-                                                    string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
-                                                    result.Value.alias, result.Value.zone._zone.Name, result.Value.arena));
-                                        }
-                                        else
-                                            zone._server.sendMessage(zone, pkt.sender,
-                                                string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
-                                                result.Value.alias, result.Value.zone._zone.Name, "Hidden"));
-                                    }
-                                    else
-                                        zone._server.sendMessage(zone, pkt.sender,
-                                            string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
-                                            result.Value.alias, result.Value.zone._zone.Name, result.Value.arena));
-                                }
-                            }
-                            else if (pkt.payload.Length < minlength)
-                                zone._server.sendMessage(zone, pkt.sender, "Search query must contain at least " + minlength + " characters");
-                            else
-                                zone._server.sendMessage(zone, pkt.sender, "Sorry, we couldn't locate any players online by that alias");
-                        }
+                        Handle_CS_ChatQuery_Find(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.online:
-                        {
-                            DBServer server = zone._server;
-
-                            foreach (Zone z in zone._server._zones)
-                            {
-                                if (z._players.Count() < 1)
-                                    continue;
-                                server.sendMessage(zone, pkt.sender, string.Format("~Server={0} Players={1}", z._zone.Name, z._players.Where(p => !p.Value.stealth).Count()));
-                            }
-                            zone._server.sendMessage(zone, pkt.sender, string.Format("Infantry (Total={0}) (Peak={1})", server._players.Where(p => !p.Value.stealth).Count(), server.playerPeak));
-                        }
+                        Handle_CS_ChatQuery_Online(pkt, zone);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.zonelist:
-                        {
-                            //Collect the list of zones and send it over
-                            List<ZoneInstance> zoneList = new List<ZoneInstance>();
-
-                            try
-                            {
-                                foreach (Zone z in zone._server._zones.Where((Func<Zone, bool>)(zn => zn._zone.Active == 1)))
-                                {
-                                    int playercount = z._players.Count;
-
-                                    //Invert player count of our current zone
-                                    if (z._zone.Port == Convert.ToInt32(pkt.payload))
-                                    {
-                                        playercount = -z._players.Count;
-                                    }
-
-                                    //Add it to our list
-                                    zoneList.Add(new ZoneInstance(0,
-                                        z._zone.Name,
-                                        z._zone.Ip,
-                                        Convert.ToInt16(z._zone.Port),
-                                        playercount));
-                                }
-                            }
-                            catch(Exception e)
-                            {
-                                Log.write(TLog.Warning, e.ToString());
-                                zone._server.sendMessage(zone, pkt.sender, "Internal server error, could not generate the zonelist.");
-                                break;
-                            }
-                            SC_Zones<Zone> zl = new SC_Zones<Zone>();
-                            zl.requestee = pkt.sender;
-                            zl.zoneList = zoneList;
-                            zone._client.sendReliable(zl, 1);
-                        }
+                        Handle_CS_ChatQuery_ZoneList(pkt, zone);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.history:
-                        {
-                            const int resultsPerPage = 30;
-                            string[] args = pkt.payload.Split(':');
-                            string name = args[0];
-                            int page = Convert.ToInt32(args[1]);
-                            bool emptyName = string.IsNullOrWhiteSpace(name);
-
-                            zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
-
-                            List<Database.History> commandHistory =
-                                db.Histories.Where(hist => emptyName || hist.Sender.ToLower() == name.ToLower())
-                                    .OrderByDescending(hist => hist.Id)
-                                    .Skip(page * resultsPerPage)
-                                    .Take(resultsPerPage)
-                                    .ToList();
-
-                            //List them
-                            foreach (Database.History h in commandHistory)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
-                                    Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Recipient, h.Command));
-                            }
-                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 2, *history 3, etc to navigate pages OR *history alias:2 *history alias:3 for aliases.");
-                        }
+                        Handle_CS_ChatQuery_History(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.cmdhistory:
-                        {
-                            const int resultsPerPage = 30;
-                            string[] args = pkt.payload.Split(':');
-                            string cmd = args[0];
-                            int page = Convert.ToInt32(args[1]);
-
-                            zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
-
-                            cmd = cmd.ToLower();
-
-                            var commandHistory =
-                                db.Histories.Where(h => h.Command.ToLower().Contains(cmd))
-                                    .OrderByDescending(hist => hist.Id)
-                                    .Skip(page * resultsPerPage)
-                                    .Take(resultsPerPage)
-                                    .ToList();
-
-                            //List them
-                            foreach (var h in commandHistory)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
-                                    Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Recipient, h.Command));
-                            }
-                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *cmdhistory 2, *cmdhistory 3, etc to navigate full history OR *cmdhistory cmd:2 *cmdhistory cmd:3 for command filtering.");
-                        }
+                        Handle_CS_ChatQuery_CommandHistory(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.global:
-                        foreach (Zone z in zone._server._zones)
-                            z._server.sendMessage(z, "*", pkt.payload);
+                        Handle_CS_ChatQuery_GlobalMessage(pkt, zone);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.ban:
-                        {
-                            if (pkt.payload == "")
-                                return;
-
-                            Logic_Bans.Ban.BanType type = Logic_Bans.Ban.BanType.None;
-                            DateTime expires;
-                            DateTime created;
-                            string reason;
-                            bool found = false;
-
-                            System.Net.IPAddress ipaddress;
-                            long accountID;
-                            IQueryable<Database.Alias> aliases = null;
-
-                            zone._server.sendMessage(zone, pkt.sender, "Current Bans for player");
-
-                            //Check for an ip lookup first
-                            if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
-                                aliases = db.Aliases.Where(a => a.IpAddress.Equals(ipaddress.ToString()));
-                            //Check for an account id
-                            else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
-                                aliases = db.Aliases.Where(a => a.Account == accountID);
-                            //Alias!
-                            else
-                            {
-                                Database.Alias who = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
-                                if (who == null)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, "None");
-                                    break;
-                                }
-                                aliases = db.Aliases.Where(a => a.Account == who.Account);
-                            }
-
-                            if (aliases != null)
-                            {
-                                foreach (Database.Alias what in aliases)
-                                {
-                                    foreach (Database.Ban b in db.Bans.Where(b =>
-                                        b.Account == what.AccountNavigation.Id ||
-                                        b.IpAddress == what.AccountNavigation.IpAddress).ToList())
-                                    {
-                                        //Does the alias match the ban name?
-                                        if (string.Compare(b.Name, what.Name, true) != 0) //If it isnt 0, it is false
-                                            continue;
-
-                                        //Is it the correct zone?
-                                        if (b.Zone != null && (b.Type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.Zone != zone._zone.Id))
-                                            continue;
-
-                                        //Find all bans for each alias
-                                        if (b.Type > (int)Logic_Bans.Ban.BanType.None)
-                                        {
-                                            expires = b.Expires.Value;
-                                            type = (Logic_Bans.Ban.BanType)b.Type;
-                                            created = b.Created;
-                                            reason = b.Reason;
-                                            found = true;
-                                            zone._server.sendMessage(zone, pkt.sender, string.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.Name, type, Convert.ToString(created), Convert.ToString(expires), reason));
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (!found)
-                                zone._server.sendMessage(zone, pkt.sender, "None");
-                        }
+                        Handle_CS_ChatQuery_GetBans(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.helpcall:
-                        {
-                            int pageNum = Convert.ToInt32(pkt.payload);
-                            int resultseachpage = 30;
-
-                            zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + pageNum + ")");
-
-                            //Find all commands!
-                            Database.Helpcall end = db.Helpcalls.OrderByDescending(a => a.Id).First();
-                            List<Database.Helpcall> helps;
-
-                            //Check the results first
-                            if (end.Id <= resultseachpage)
-                                helps = db.Helpcalls.Where(e => e.Id <= end.Id).ToList();
-                            else
-                                helps = db.Helpcalls.Where(e =>
-                                    e.Id >= (end.Id - (resultseachpage * (pageNum + 1))) &&
-                                    e.Id < (end.Id - (resultseachpage * pageNum))).ToList();
-
-                            //List them
-                            foreach (Database.Helpcall h in helps)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> {4}",
-                                    Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Reason));
-                            }
-
-                            zone._server.sendMessage(zone, pkt.sender, "End of page, use *helpcall 1, *helpcall 2, etc to navigate previous pages");
-                        }
+                        Handle_CS_ChatQuery_GetHelpCalls(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.alert:
-                        {
-                            string pAlias;
-                            foreach (Zone z in zone._server._zones)
-                                foreach (KeyValuePair<int, Zone.Player> player in z._players)
-                                {
-                                    pAlias = player.Value.alias;
-                                    Database.Alias check = db.Aliases.SingleOrDefault(a => a.Name == pAlias);
-                                    if ((check != null) && check.AccountNavigation.Permission > 0 && player.Value.alias == check.Name)
-                                        z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
-                                    if (player.Value.permission > (int)Data.PlayerPermission.Normal)
-                                        z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
-                                }
-                        }
+                        Handle_CS_ChatQuery_SendAlert(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.modChat:
-                        {
-                            if (String.IsNullOrEmpty(pkt.payload))
-                            {
-                                return;
-                            }
-
-                            foreach (KeyValuePair<int, Zone.Player> Player in zone._players)
-                            {
-                                string pAlias = Player.Value.alias;
-                                var alias = db.Aliases.SingleOrDefault(p => p.Name == pAlias);
-
-                                if (alias == null || alias.Name == pkt.sender)
-                                {
-                                    continue;
-                                }
-
-                                if (alias.AccountNavigation.Permission > 0) //Are they a global mod?
-                                {
-                                    zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
-                                }
-                                else // No, check dev powers
-                                {   
-                                    var player = db.Zones.First(zones => zones.Id == zone._zone.Id).Players.First(p => p.AliasNavigation == alias);
-                                    if (player != null && player.Permission > 0)
-                                        zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
-                                }
-                            }
-                        }
+                        Handle_CS_ChatQuery_ModChat(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.wipe:
-                        {
-                            if (String.IsNullOrWhiteSpace(pkt.payload))
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "Invalid payload.");
-                                return;
-                            }
-
-                            //Get the associated player making the command
-                            Database.Player dbplayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => p.AliasNavigation.Name == pkt.sender);
-                            if (dbplayer == null)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "Cannot find your player structure.");
-                                return;
-                            }
-
-                            Database.Stat stat;
-                            //Sanity checks
-                            if (pkt.payload.Equals("all"))
-                            {
-                                //Change all stats to zero
-                                List<Database.Player> players = db.Players.Where(z => z.Zone == dbplayer.Zone).ToList();
-                                if (players.Count == 0)
-                                {
-                                    zone._server.sendMessage(zone, pkt.sender, "Cannot find any players attached to this zone.");
-                                    return;
-                                }
-
-                                foreach (Database.Player P in players)
-                                {
-                                    P.Inventory = null;
-                                    P.Skills = null;
-
-                                    stat = P.StatsNavigation;
-
-                                    stat.Cash = 0;
-                                    stat.Experience = 0;
-                                    stat.ExperienceTotal = 0;
-                                    stat.Kills = 0;
-                                    stat.Deaths = 0;
-                                    stat.KillPoints = 0;
-                                    stat.DeathPoints = 0;
-                                    stat.AssistPoints = 0;
-                                    stat.BonusPoints = 0;
-                                    stat.VehicleKills = 0;
-                                    stat.VehicleDeaths = 0;
-                                    stat.PlaySeconds = 0;
-
-                                    stat.Zonestat1 = 0;
-                                    stat.Zonestat2 = 0;
-                                    stat.Zonestat3 = 0;
-                                    stat.Zonestat4 = 0;
-                                    stat.Zonestat5 = 0;
-                                    stat.Zonestat6 = 0;
-                                    stat.Zonestat7 = 0;
-                                    stat.Zonestat8 = 0;
-                                    stat.Zonestat9 = 0;
-                                    stat.Zonestat10 = 0;
-                                    stat.Zonestat11 = 0;
-                                    stat.Zonestat12 = 0;
-                                }
-
-                                db.SaveChanges();
-                                zone._server.sendMessage(zone, pkt.sender, "Wipe all has been completed.");
-                                break;
-                            }
-
-                            //Recipient lookup
-                            Database.Alias recipientAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
-                            Database.Player recipientPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == recipientAlias && p.Zone == dbplayer.Zone);
-
-                            if (recipientPlayer == null)
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "No such alias to wipe.");
-                                return;
-                            }
-
-                            recipientPlayer.Skills = null;
-                            recipientPlayer.Inventory = null;
-
-                            //Change all stats to zero
-                            stat = recipientPlayer.StatsNavigation;
-
-                            stat.Cash = 0;
-                            stat.Experience = 0;
-                            stat.ExperienceTotal = 0;
-                            stat.Kills = 0;
-                            stat.Deaths = 0;
-                            stat.KillPoints = 0;
-                            stat.DeathPoints = 0;
-                            stat.AssistPoints = 0;
-                            stat.BonusPoints = 0;
-                            stat.VehicleKills = 0;
-                            stat.VehicleDeaths = 0;
-                            stat.PlaySeconds = 0;
-
-                            stat.Zonestat1 = 0;
-                            stat.Zonestat2 = 0;
-                            stat.Zonestat3 = 0;
-                            stat.Zonestat4 = 0;
-                            stat.Zonestat5 = 0;
-                            stat.Zonestat6 = 0;
-                            stat.Zonestat7 = 0;
-                            stat.Zonestat8 = 0;
-                            stat.Zonestat9 = 0;
-                            stat.Zonestat10 = 0;
-                            stat.Zonestat11 = 0;
-                            stat.Zonestat12 = 0;
-
-                            db.SaveChanges();
-                            zone._server.sendMessage(zone, pkt.sender, "Character wipe has been completed.");
-                        }
+                        Handle_CS_ChatQuery_Wipe(pkt, zone, db);
                         break;
 
                     case CS_ChatQuery<Zone>.QueryType.adminlist:
-                        {
-                            if (string.IsNullOrWhiteSpace(pkt.payload))
-                            {
-                                zone._server.sendMessage(zone, pkt.sender, "Payload cannot be empty.");
-                                return;
-                            }
-
-                            zone._server.sendMessage(zone, pkt.sender, "Current Admin List:");
-
-                            if (pkt.payload.Equals("list"))
-                                zone._server.sendMessage(zone, pkt.sender, Logic_Admins.listAdmins());
-                        }
+                        Handle_CS_ChatQuery_AdminList(pkt, zone);
                         break;
+                }
+            }
+        }
+
+        private static void Handle_CS_ChatQuery_AdminList(CS_ChatQuery<Zone> pkt, Zone zone)
+        {
+            if (string.IsNullOrWhiteSpace(pkt.payload))
+            {
+                zone._server.sendMessage(zone, pkt.sender, "Payload cannot be empty.");
+                return;
+            }
+
+            zone._server.sendMessage(zone, pkt.sender, "Current Admin List:");
+
+            if (pkt.payload.Equals("list"))
+            {
+                zone._server.sendMessage(zone, pkt.sender, Logic_Admins.listAdmins());
+            }
+        }
+
+        private static void Handle_CS_ChatQuery_Wipe(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            if (String.IsNullOrWhiteSpace(pkt.payload))
+            {
+                zone._server.sendMessage(zone, pkt.sender, "Invalid payload.");
+                return;
+            }
+
+            //Get the associated player making the command
+            Player dbplayer = db.Players
+                .Include(p => p.AliasNavigation)
+                .FirstOrDefault(p => p.Zone == zone._zone.Id && p.AliasNavigation.Name == pkt.sender);
+
+            if (dbplayer == null)
+            {
+                zone._server.sendMessage(zone, pkt.sender, "Cannot find your player structure.");
+                return;
+            }
+
+            Stat stat;
+            //Sanity checks
+            if (pkt.payload.Equals("all"))
+            {
+                //Change all stats to zero
+                List<Player> players = db.Players
+                    .Include(p => p.StatsNavigation)
+                    .Where(z => z.Zone == dbplayer.Zone).ToList();
+
+                if (players.Count == 0)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "Cannot find any players attached to this zone.");
+                    return;
+                }
+
+                foreach (var P in players)
+                {
+                    P.Inventory = null;
+                    P.Skills = null;
+
+                    stat = P.StatsNavigation;
+
+                    stat.Cash = 0;
+                    stat.Experience = 0;
+                    stat.ExperienceTotal = 0;
+                    stat.Kills = 0;
+                    stat.Deaths = 0;
+                    stat.KillPoints = 0;
+                    stat.DeathPoints = 0;
+                    stat.AssistPoints = 0;
+                    stat.BonusPoints = 0;
+                    stat.VehicleKills = 0;
+                    stat.VehicleDeaths = 0;
+                    stat.PlaySeconds = 0;
+
+                    stat.Zonestat1 = 0;
+                    stat.Zonestat2 = 0;
+                    stat.Zonestat3 = 0;
+                    stat.Zonestat4 = 0;
+                    stat.Zonestat5 = 0;
+                    stat.Zonestat6 = 0;
+                    stat.Zonestat7 = 0;
+                    stat.Zonestat8 = 0;
+                    stat.Zonestat9 = 0;
+                    stat.Zonestat10 = 0;
+                    stat.Zonestat11 = 0;
+                    stat.Zonestat12 = 0;
+                }
+
+                db.SaveChanges();
+                zone._server.sendMessage(zone, pkt.sender, "Wipe all has been completed.");
+                return;
+            }
+
+            //Recipient lookup
+            Alias recipientAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
+
+            Player recipientPlayer = db.Players
+                .Include(p => p.StatsNavigation)
+                .FirstOrDefault(p => p.Alias == recipientAlias.Id && p.Zone == dbplayer.Zone);
+
+            if (recipientPlayer == null)
+            {
+                zone._server.sendMessage(zone, pkt.sender, "No such alias to wipe.");
+                return;
+            }
+
+            recipientPlayer.Skills = null;
+            recipientPlayer.Inventory = null;
+
+            //Change all stats to zero
+            stat = recipientPlayer.StatsNavigation;
+
+            stat.Cash = 0;
+            stat.Experience = 0;
+            stat.ExperienceTotal = 0;
+            stat.Kills = 0;
+            stat.Deaths = 0;
+            stat.KillPoints = 0;
+            stat.DeathPoints = 0;
+            stat.AssistPoints = 0;
+            stat.BonusPoints = 0;
+            stat.VehicleKills = 0;
+            stat.VehicleDeaths = 0;
+            stat.PlaySeconds = 0;
+
+            stat.Zonestat1 = 0;
+            stat.Zonestat2 = 0;
+            stat.Zonestat3 = 0;
+            stat.Zonestat4 = 0;
+            stat.Zonestat5 = 0;
+            stat.Zonestat6 = 0;
+            stat.Zonestat7 = 0;
+            stat.Zonestat8 = 0;
+            stat.Zonestat9 = 0;
+            stat.Zonestat10 = 0;
+            stat.Zonestat11 = 0;
+            stat.Zonestat12 = 0;
+
+            db.SaveChanges();
+            zone._server.sendMessage(zone, pkt.sender, "Character wipe has been completed.");
+        }
+
+        private static void Handle_CS_ChatQuery_ModChat(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            if (String.IsNullOrEmpty(pkt.payload))
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<int, Zone.Player> Player in zone._players)
+            {
+                string pAlias = Player.Value.alias;
+
+                var alias = db.Aliases
+                    .Include(a => a.AccountNavigation)
+                    .SingleOrDefault(p => p.Name == pAlias);
+
+                if (alias == null || alias.Name == pkt.sender)
+                {
+                    continue;
+                }
+
+                if (alias.AccountNavigation.Permission > 0) //Are they a global mod?
+                {
+                    zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                }
+                else // No, check dev powers
+                {
+                    var player = db.Players
+                        .FirstOrDefault(p => p.Zone == zone._zone.Id && p.Alias == alias.Id);
+
+                    if (player != null && player.Permission > 0)
+                        zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
+                }
+            }
+        }
+
+        private static void Handle_CS_ChatQuery_SendAlert(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            string pAlias;
+            foreach (Zone z in zone._server._zones)
+                foreach (KeyValuePair<int, Zone.Player> player in z._players)
+                {
+                    pAlias = player.Value.alias;
+                    Database.Alias check = db.Aliases
+                        .Include(p => p.AccountNavigation)
+                        .SingleOrDefault(a => a.Name == pAlias);
+
+                    if ((check != null) && check.AccountNavigation.Permission > 0 && player.Value.alias == check.Name)
+                        z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
+                    if (player.Value.permission > (int)Data.PlayerPermission.Normal)
+                        z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
+                }
+        }
+
+        private static void Handle_CS_ChatQuery_GetHelpCalls(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            int pageNum = Convert.ToInt32(pkt.payload);
+            int resultseachpage = 30;
+
+            zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + pageNum + ")");
+
+            //Find all commands!
+            Database.Helpcall end = db.Helpcalls.OrderByDescending(a => a.Id).First();
+            List<Database.Helpcall> helps;
+
+            //Check the results first
+            if (end.Id <= resultseachpage)
+                helps = db.Helpcalls.Where(e => e.Id <= end.Id).ToList();
+            else
+                helps = db.Helpcalls.Where(e =>
+                    e.Id >= (end.Id - (resultseachpage * (pageNum + 1))) &&
+                    e.Id < (end.Id - (resultseachpage * pageNum))).ToList();
+
+            //List them
+            foreach (Database.Helpcall h in helps)
+            {
+                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> {4}",
+                    Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Reason));
+            }
+
+            zone._server.sendMessage(zone, pkt.sender, "End of page, use *helpcall 1, *helpcall 2, etc to navigate previous pages");
+        }
+
+        private static void Handle_CS_ChatQuery_GetBans(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            if (pkt.payload == "")
+                return;
+
+            Logic_Bans.Ban.BanType type = Logic_Bans.Ban.BanType.None;
+            DateTime expires;
+            DateTime created;
+            string reason;
+            bool found = false;
+
+            System.Net.IPAddress ipaddress;
+            long accountID;
+            IQueryable<Database.Alias> aliases = null;
+
+            zone._server.sendMessage(zone, pkt.sender, "Current Bans for player");
+
+            //Check for an ip lookup first
+            if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
+            {
+                aliases = db.Aliases
+                    .Include(a => a.AccountNavigation)
+                    .Where(a => a.IpAddress == ipaddress.ToString());
+            }
+            //Check for an account id
+            else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
+            {
+                aliases = db.Aliases
+                    .Include(a => a.AccountNavigation)
+                    .Where(a => a.Account == accountID);
+            }
+            //Alias!
+            else
+            {
+                Alias who = db.Aliases
+                    .Include(a => a.AccountNavigation)
+                    .SingleOrDefault(a => a.Name == pkt.payload);
+
+                if (who == null)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "None");
+                    return;
+                }
+
+                aliases = db.Aliases
+                    .Include(a => a.AccountNavigation)
+                    .Where(a => a.Account == who.Account);
+            }
+
+            if (aliases != null)
+            {
+                foreach (Database.Alias what in aliases)
+                {
+                    foreach (Database.Ban b in db.Bans.Where(b =>
+                        b.Account == what.AccountNavigation.Id ||
+                        b.IpAddress == what.AccountNavigation.IpAddress).ToList())
+                    {
+                        //Does the alias match the ban name?
+                        if (string.Compare(b.Name, what.Name, true) != 0) //If it isnt 0, it is false
+                            continue;
+
+                        //Is it the correct zone?
+                        if (b.Zone != null && (b.Type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.Zone != zone._zone.Id))
+                            continue;
+
+                        //Find all bans for each alias
+                        if (b.Type > (int)Logic_Bans.Ban.BanType.None)
+                        {
+                            expires = b.Expires.Value;
+                            type = (Logic_Bans.Ban.BanType)b.Type;
+                            created = b.Created;
+                            reason = b.Reason;
+                            found = true;
+                            zone._server.sendMessage(zone, pkt.sender, string.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.Name, type, Convert.ToString(created), Convert.ToString(expires), reason));
+                        }
+                    }
+                }
+            }
+
+            if (!found)
+                zone._server.sendMessage(zone, pkt.sender, "None");
+        }
+
+        private static void Handle_CS_ChatQuery_GlobalMessage(CS_ChatQuery<Zone> pkt, Zone zone)
+        {
+            foreach (Zone z in zone._server._zones)
+                z._server.sendMessage(z, "*", pkt.payload);
+        }
+
+        private static void Handle_CS_ChatQuery_CommandHistory(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            const int resultsPerPage = 30;
+            string[] args = pkt.payload.Split(':');
+            string cmd = args[0];
+            int page = Convert.ToInt32(args[1]);
+
+            zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
+
+            cmd = cmd.ToLower();
+
+            var commandHistory =
+                db.Histories.Where(h => h.Command.ToLower().Contains(cmd))
+                    .OrderByDescending(hist => hist.Id)
+                    .Skip(page * resultsPerPage)
+                    .Take(resultsPerPage)
+                    .ToList();
+
+            //List them
+            foreach (var h in commandHistory)
+            {
+                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                    Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Recipient, h.Command));
+            }
+            zone._server.sendMessage(zone, pkt.sender, "End of page, use *cmdhistory 2, *cmdhistory 3, etc to navigate full history OR *cmdhistory cmd:2 *cmdhistory cmd:3 for command filtering.");
+        }
+
+        private static void Handle_CS_ChatQuery_History(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            const int resultsPerPage = 30;
+            string[] args = pkt.payload.Split(':');
+            string name = args[0];
+            int page = Convert.ToInt32(args[1]);
+            bool emptyName = string.IsNullOrWhiteSpace(name);
+
+            zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
+
+            List<Database.History> commandHistory =
+                db.Histories.Where(hist => emptyName || hist.Sender.ToLower() == name.ToLower())
+                    .OrderByDescending(hist => hist.Id)
+                    .Skip(page * resultsPerPage)
+                    .Take(resultsPerPage)
+                    .ToList();
+
+            //List them
+            foreach (Database.History h in commandHistory)
+            {
+                zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
+                    Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Recipient, h.Command));
+            }
+            zone._server.sendMessage(zone, pkt.sender, "End of page, use *history 2, *history 3, etc to navigate pages OR *history alias:2 *history alias:3 for aliases.");
+        }
+
+        private static void Handle_CS_ChatQuery_ZoneList(CS_ChatQuery<Zone> pkt, Zone zone)
+        {
+            //Collect the list of zones and send it over
+            List<ZoneInstance> zoneList = new List<ZoneInstance>();
+
+            try
+            {
+                foreach (Zone z in zone._server._zones.Where((Func<Zone, bool>)(zn => zn._zone.Active == 1)))
+                {
+                    int playercount = z._players.Count;
+
+                    //Invert player count of our current zone
+                    if (z._zone.Port == Convert.ToInt32(pkt.payload))
+                    {
+                        playercount = -z._players.Count;
+                    }
+
+                    //Add it to our list
+                    zoneList.Add(new ZoneInstance(0,
+                        z._zone.Name,
+                        z._zone.Ip,
+                        Convert.ToInt16(z._zone.Port),
+                        playercount));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.write(TLog.Warning, e.ToString());
+                zone._server.sendMessage(zone, pkt.sender, "Internal server error, could not generate the zonelist.");
+                return;
+            }
+            SC_Zones<Zone> zl = new SC_Zones<Zone>();
+            zl.requestee = pkt.sender;
+            zl.zoneList = zoneList;
+            zone._client.sendReliable(zl, 1);
+        }
+
+        private static void Handle_CS_ChatQuery_Online(CS_ChatQuery<Zone> pkt, Zone zone)
+        {
+            DBServer server = zone._server;
+
+            foreach (Zone z in zone._server._zones)
+            {
+                if (z._players.Count() < 1)
+                    continue;
+                server.sendMessage(zone, pkt.sender, string.Format("~Server={0} Players={1}", z._zone.Name, z._players.Where(p => !p.Value.stealth).Count()));
+            }
+            zone._server.sendMessage(zone, pkt.sender, string.Format("Infantry (Total={0}) (Peak={1})", server._players.Where(p => !p.Value.stealth).Count(), server.playerPeak));
+        }
+
+        private static void Handle_CS_ChatQuery_Find(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            int minlength = 3;
+            var results = new List<KeyValuePair<string, Zone.Player>>();
+            
+            Player pPlayer = db.Players
+                .Include(p => p.AliasNavigation)
+                    .ThenInclude(p => p.AccountNavigation)
+                .First(p => p.AliasNavigation.Name == pkt.sender);
+
+            var pAccount = pPlayer.AliasNavigation.AccountNavigation;
+
+            foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
+            {
+                if (player.Value.stealth && player.Value.permission > pPlayer.Permission)
+                {
+                    continue;
+                }
+
+                if (player.Key.ToLower() == pkt.payload.ToLower())
+                {
+                    //Have they found the exact player they were looking for?
+                    results.Add(player);
+                    break;
+                }
+                else if (player.Key.ToLower().Contains(pkt.payload.ToLower()) && pkt.payload.Length >= minlength)
+                    results.Add(player);
+            }
+
+            if (results.Count > 0)
+            {
+                zone._server.sendMessage(zone, pkt.sender, "&Search Results");
+                foreach (KeyValuePair<string, Zone.Player> result in results)
+                {
+                    //Are we not powered and in a private arena?
+                    if (pAccount.Permission < 1 && result.Value.arena.StartsWith("#"))
+                    {
+                        //We are, is this the same zone?
+                        if (result.Value.zone._zone.Id == zone._zone.Id)
+                        {
+                            //It is, get the info needed
+                            var find = db.Players
+                                .First(p => p.Zone == zone._zone.Id && p.Alias == result.Value.aliasid);
+
+                            //Are we on the same squad?
+                            if (find.Squad != pPlayer.Squad || (find.Squad == null && pPlayer.Squad == null))
+                                zone._server.sendMessage(zone, pkt.sender,
+                                    string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                    result.Value.alias, result.Value.zone._zone.Name, "Hidden"));
+                            else
+                                zone._server.sendMessage(zone, pkt.sender,
+                                    string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                    result.Value.alias, result.Value.zone._zone.Name, result.Value.arena));
+                        }
+                        else
+                            zone._server.sendMessage(zone, pkt.sender,
+                                string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                                result.Value.alias, result.Value.zone._zone.Name, "Hidden"));
+                    }
+                    else
+                        zone._server.sendMessage(zone, pkt.sender,
+                            string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
+                            result.Value.alias, result.Value.zone._zone.Name, result.Value.arena));
+                }
+            }
+            else if (pkt.payload.Length < minlength)
+                zone._server.sendMessage(zone, pkt.sender, "Search query must contain at least " + minlength + " characters");
+            else
+                zone._server.sendMessage(zone, pkt.sender, "Sorry, we couldn't locate any players online by that alias");
+        }
+
+        private static void Handle_CS_ChatQuery_EmailUpdate(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            zone._server.sendMessage(zone, pkt.sender, "&Email Update");
+
+            Database.Account account = db.Aliases
+                .Include(a => a.AccountNavigation)
+                .SingleOrDefault(a => a.Name == pkt.sender).AccountNavigation;
+
+            //Update his email
+            account.Email = pkt.payload;
+            db.SaveChanges();
+            zone._server.sendMessage(zone, pkt.sender, "*Email updated to: " + pkt.payload);
+        }
+
+        private static void Handle_CS_ChatQuery_DeleteAlias(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            if (string.IsNullOrWhiteSpace(pkt.payload))
+            {
+                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                return;
+            }
+
+            Database.Alias sender = db.Aliases.FirstOrDefault(sndr => sndr.Name == pkt.sender);
+            if (sender == null)
+                return;
+
+            //Single alias
+            if (!pkt.payload.Contains(','))
+            {
+                //Lets get all account related info then delete it
+                Database.Alias palias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
+                if (palias == null)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                    return;
+                }
+
+                //First and most important, check to see if this alias is on the account
+                if (palias.Account != sender.Account)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "You must be on the account that this alias belongs to.");
+                    return;
+                }
+
+                var players = db.Players
+                    .Include(p => p.SquadNavigation)
+                    .Where(t => t.Alias == palias.Id).ToList();
+
+                foreach (var player in players)
+                {
+                    //Check for a squad
+                    if (player.Squad != null)
+                    {
+                        if (player.SquadNavigation.Owner == player.Id)
+                        {
+                            var squadmates = db.Players
+                                .Include(p => p.SquadNavigation)
+                                .Where(p => p.Zone == player.Zone
+                                     && p.Squad == player.Squad
+                                     && p.Id != player.Id).ToList();
+
+                            if (squadmates.Count > 0)
+                            {
+                                var sq = squadmates.First();
+
+                                //Since the player is the owner, lets just give it to someone else
+                                sq.SquadNavigation.Owner = sq.Id;
+                            }
+                            else
+                            {
+                                //Lets delete the squad
+                                db.Squads.Remove(player.SquadNavigation);
+                            }
+                        }
+
+                        player.SquadNavigation = null;
+                        player.Squad = null;
+                    }
+
+                    // Remove the historic stuff too.
+                    var dailies = db.StatsDailies.Where(s => s.Player == player.Id);
+                    var weeklies = db.StatsWeeklies.Where(s => s.Player == player.Id);
+                    var monthlies = db.StatsMonthlies.Where(s => s.Player == player.Id);
+                    var yearlies = db.StatsYearlies.Where(s => s.Player == player.Id);
+
+                    db.StatsDailies.RemoveRange(dailies);
+                    db.StatsWeeklies.RemoveRange(weeklies);
+                    db.StatsMonthlies.RemoveRange(monthlies);
+                    db.StatsYearlies.RemoveRange(yearlies);
+
+                    db.SaveChanges();
+
+                    var stats = db.Stats.Where(s => s.Id == player.Stats);
+
+                    db.Stats.RemoveRange(stats);
+                    db.Players.Remove(player);
+
+                    db.SaveChanges();
+                }
+
+                db.Aliases.Remove(palias);
+
+                db.SaveChanges();
+                zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
+            }
+            else
+            {
+                zone._server.sendMessage(zone, pkt.sender, String.Format("Please remove aliases one at a time."));
+            }
+        }
+
+        private static void Handle_CS_ChatQuery_Whois(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            zone._server.sendMessage(zone, pkt.sender, "&Whois Information");
+            zone._server.sendMessage(zone, pkt.sender, "*" + pkt.payload);
+
+            //Query for an IP?
+            System.Net.IPAddress ip;
+            long accountID;
+            List<Alias> aliases;
+
+            //Are we using wildcards?
+            if (!pkt.payload.Contains('*'))
+            {   //No we aren't, treat this as general matching
+                //IP Lookup?
+                if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ip))
+                    aliases = db.Aliases.Where(a => a.IpAddress.Equals(ip.ToString())).ToList();
+                else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
+                {   //Account ID
+                    aliases = db.Aliases.Where(a => a.Account == accountID).ToList();
+                }
+                else
+                {   //Alias
+                    Database.Alias who = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
+                    if (who == null)
+                    {
+                        zone._server.sendMessage(zone, pkt.sender, "That IP, account id or alias doesn't exist.");
+                        return;
+                    }
+                    aliases = db.Aliases.Where(a => a.Account == who.Account).ToList();
+                }
+
+                if (aliases != null && aliases.Count() > 0)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
+                    foreach (var alias in aliases)
+                    {
+                        TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
+                        var days = (int)timeplayed.Days;
+                        var hrs = (int)timeplayed.Hours;
+                        var mins = (int)timeplayed.Minutes;
+
+                        zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
+                            alias.Account, // 0
+                            alias.Name, // 1
+                            alias.IpAddress, // 2
+                            alias.Creation.ToString(), // 3
+                            alias.LastAccess.ToString(), // 4
+                            days, // 5
+                            hrs, // 6
+                            mins) // 7
+                            );
+
+                    }
+                }
+                else
+                    zone._server.sendMessage(zone, pkt.sender, "That IP, account id or alias doesn't exist.");
+
+                return;
+            }
+
+            //We are
+            //IP Wildcard Lookup?
+            if (pkt.payload.Contains('.'))
+            {
+                string[] IP = pkt.payload.Split('.');
+                string findIP = "";
+                int result;
+                bool validated = true;
+
+                //First check if this is a valid ip and not a person with a period in their name
+                //We do this by checking conversions
+                foreach (string str in IP)
+                    if (!str.Trim().Equals("*") && !Int32.TryParse(str, out result))
+                        validated = false;
+
+                if (!validated)
+                {
+                    //Failed, must be an alias
+                    string trimmed = pkt.payload.Replace('*', '%');
+                    aliases = (from w in db.Aliases
+                               where EF.Functions.Like(w.Name, trimmed)
+                               select w).ToList();
+                }
+                else
+                {   //Validated IP
+                    //Ranged ip parser method, looks for wildcard as a string stopping point
+                    foreach (string str in IP)
+                        if (!str.Trim().Equals("*"))
+                            findIP += str.Trim() + ".";
+
+                    aliases = db.Aliases.Where(w => w.IpAddress.Contains(findIP)).ToList();
+                }
+            }
+            else
+            {
+                //Alias Wildcard Lookup
+                string trimmed = pkt.payload.Replace('*', '%');
+                aliases = (from w in db.Aliases
+                           where EF.Functions.Like(w.Name, trimmed)
+                           select w).ToList();
+            }
+
+            if (aliases != null && aliases.Count() > 0)
+            {
+                zone._server.sendMessage(zone, pkt.sender, "&Aliases: " + aliases.Count());
+                //Loop and display
+                foreach (var alias in aliases)
+                {
+                    TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
+                    var days = (int)timeplayed.Days;
+                    var hrs = (int)timeplayed.Hours;
+                    var mins = (int)timeplayed.Minutes;
+
+                    zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
+                        alias.Account, // 0
+                        alias.Name, // 1
+                        alias.IpAddress, // 2
+                        alias.Creation.ToString(), // 3
+                        alias.LastAccess.ToString(), // 4
+                        days, // 5
+                        hrs, // 6
+                        mins) // 7
+                        );
 
                 }
+            }
+            else
+                zone._server.sendMessage(zone, pkt.sender, "No matches found for the given string.");
+        }
+
+        private static void Handle_CS_ChatQuery_AccountIgnore(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            Database.Alias player = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
+            if (player != null)
+            {
+                SC_ChatQuery<Zone> cQuery = new SC_ChatQuery<Zone>();
+                cQuery.type = pkt.queryType;
+                cQuery.sender = pkt.sender;
+                cQuery.payload = string.Format("{0},{1}", player.Name, player.IpAddress);
+                zone._client.sendReliable(cQuery);
+            }
+        }
+
+        private static void Handle_CS_ChatQuery_AccountInfo(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        {
+            Database.Alias from = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender);
+            var aliases = db.Aliases.Where(a => a.Account == from.Account);
+            zone._server.sendMessage(zone, pkt.sender, "Account Info");
+
+            Int64 total = 0;
+            int days = 0;
+            int hrs = 0;
+            int mins = 0;
+            //Loop through each alias to calculate time played
+            foreach (var alias in aliases)
+            {
+                TimeSpan timeplayed = TimeSpan.FromMinutes(alias.TimePlayed);
+                days = (int)timeplayed.Days;
+                hrs = (int)timeplayed.Hours;
+                mins = (int)timeplayed.Minutes;
+
+                total += alias.TimePlayed;
+
+                //Send it
+                zone._server.sendMessage(zone, pkt.sender, string.Format("~{0} ({1}d {2}h {3}m)", alias.Name, days, hrs, mins));
+            }
+
+            //Calculate total time played across all aliases.
+            if (total != 0)
+            {
+                TimeSpan totaltime = TimeSpan.FromMinutes(total);
+                days = (int)totaltime.Days;
+                hrs = (int)totaltime.Hours;
+                mins = (int)totaltime.Minutes;
+                //Send it
+                zone._server.sendMessage(zone, pkt.sender, string.Format("!Grand Total: {0}d {1}h {2}m", days, hrs, mins));
             }
         }
 

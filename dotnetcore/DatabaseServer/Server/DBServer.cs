@@ -202,6 +202,12 @@ namespace InfServer
                 .UseSqlServer(_dbConnectionString);
 
             var dbLog = _config["database/log"].boolValue;
+            var dbLazyLoad = _config["database/lazyload"].boolValue;
+
+            if (dbLazyLoad)
+            {
+                opts.UseLazyLoadingProxies();
+            }
 
             if (dbLog)
             {
