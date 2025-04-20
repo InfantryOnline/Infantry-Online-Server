@@ -364,7 +364,7 @@ namespace InfServer.Logic
                     // Check for admin
                     foreach (var adminId in Logic_Admins.ServerAdminAccountIds)
                     {
-                        if (account.Id == adminId && account.Permission > 5)
+                        if (account.Id == adminId && account.Permission >= 5)
                         {
                             plog.admin = true;
                             break;

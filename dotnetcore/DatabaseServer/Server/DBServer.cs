@@ -207,6 +207,7 @@ namespace InfServer
             if (dbLazyLoad)
             {
                 opts.UseLazyLoadingProxies();
+                Console.WriteLine("Using lazyloading...");
             }
 
             if (dbLog)
