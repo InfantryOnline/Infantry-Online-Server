@@ -1120,7 +1120,7 @@ namespace InfServer.Logic
                                     dbplayer.SquadNavigation = null;
                                     dbplayer.Squad = null;
                                     db.SaveChanges();
-                                    zone._server.sendMessage(zone, pkt.alias, string.Format("You have left your squad while giving ownership to {0}. Please relog to complete this process.", transfer.AliasNavigation.Name));
+                                    zone._server.sendMessage(zone, pkt.alias, string.Format("You have left your squad while giving ownership to {0}. Please rejoin the zone to complete this process.", transfer.AliasNavigation.Name));
                                     zone._server.sendMessage(zone, transfer.AliasNavigation.Name, "You have been promoted to squad captain of " + transfer.SquadNavigation.Name);
 
                                     //Notify his squadmates
@@ -1138,7 +1138,7 @@ namespace InfServer.Logic
                                 //Leave the squad...
                                 dbplayer.SquadNavigation = null;
                                 dbplayer.Squad = null;
-                                zone._server.sendMessage(zone, pkt.alias, "You have left your squad, please relog to complete the process.");
+                                zone._server.sendMessage(zone, pkt.alias, "You have left your squad, please rejoin the zone to complete the process.");
                                 //Notify his squadmates
                                 foreach (Database.Player sm in squadmates)
                                 {

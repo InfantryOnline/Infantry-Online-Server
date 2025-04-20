@@ -83,24 +83,6 @@ namespace InfServer.Logic
                 return;
             }
 
-            //try
-            //{ //Temporary till we find the login bug
-            //    if (!char.IsLetterOrDigit(alias, 0) ||
-            //        char.IsWhiteSpace(alias, 0) ||
-            //        char.IsWhiteSpace(alias, alias.Length - 1) ||
-            //        alias != Logic_Text.RemoveIllegalCharacters(alias))
-            //    {   //Boot him..
-            //        Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, must start with a letter or number and cannot end with a space.");
-            //        return;
-            //    }
-            //}
-            //catch (ArgumentOutOfRangeException)
-            //{
-            //    Log.write(TLog.Warning, "Player login name is {0}", alias);
-            //    Helpers.Login_Response(client, SC_Login.Login_Result.Failed, "Alias contains illegal characters, must start with a letter or number and cannot end with a space.");
-            //    return;
-            //}
-
             if (alias.Length > 64)
             {
                 //Change this if alias.name in the db is changed.. currently at varchar(64)
@@ -135,9 +117,11 @@ namespace InfServer.Logic
             newPlayer._UID1 = pkt.UID1;
             newPlayer._UID2 = pkt.UID2;
             newPlayer._UID3 = pkt.UID3;
+            newPlayer._TicketID = pkt.TicketID;
+            newPlayer._NICInfo = pkt.NICInfo;
 
-			//Are we in standalone mode?
-			if (server.IsStandalone)
+            //Are we in standalone mode?
+            if (server.IsStandalone)
 			{	//Always first time setup in standalone mode
                 newPlayer.assignFirstTimeStats(false);
                

@@ -49,6 +49,8 @@ namespace InfServer.Game
         public uint _UID1;
         public uint _UID2;
         public uint _UID3;
+        public uint _NICInfo;
+        public string _TicketID;
         #endregion
 
         #region Game state

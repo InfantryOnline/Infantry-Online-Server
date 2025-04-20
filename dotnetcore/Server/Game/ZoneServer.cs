@@ -15,6 +15,7 @@ using Assets;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.InteropServices;
+using InfServer.Game.Commands.Mod;
 
 namespace InfServer.Game
 {
@@ -473,7 +474,10 @@ namespace InfServer.Game
                                 _bStandaloneMessage = now;
                                 foreach (var arena in _arenas)
                                     if (arena.Value._bActive)
-                                        arena.Value.sendArenaMessage("!An attempt to establish a connection to the database failed. Server is in Stand Alone Mode.");
+                                    {
+                                        arena.Value.sendArenaMessage("!WARNING: An attempt to establish a connection to the database failed. Server is in Stand Alone Mode");
+                                        arena.Value.sendArenaMessage("!Your stats and inventory will save again when connection is re-established.");
+                                    }
                             }
                         }
                     }
@@ -487,12 +491,32 @@ namespace InfServer.Game
                                 if (arena.Value._bActive)
                                 {
                                     arena.Value.sendArenaMessage("!Connection to the database has been re-established. Server is no longer in Stand Alone Mode.");
-                                    arena.Value.sendArenaMessage("!Please relog so your stats will save again.");
                                 }
                             }
                         }
                         _bStandalone = false;
                         _db._bLoginSuccess = true;
+
+                        //
+                        // Let the DB server know to log all the players back in.
+                        //
+                        foreach(var p in _players.Select(p => p.Value))
+                        {
+                            CS_PlayerLogin<Data.Database> plogin = new CS_PlayerLogin<Data.Database>();
+
+                            plogin.bCreateAlias = false;
+
+                            plogin.player = p.toInstance();
+                            plogin.alias = p._alias;
+                            plogin.ticketid = p._TicketID;
+                            plogin.UID1 = p._UID1;
+                            plogin.UID2 = p._UID2;
+                            plogin.UID3 = p._UID3;
+                            plogin.NICInfo = p._NICInfo;
+                            plogin.ipaddress = p._client._ipe.Address.ToString().Trim();
+
+                            _db.send(plogin);
+                        }
                     }
                 }
             }

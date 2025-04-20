@@ -26,6 +26,10 @@ namespace InfServer.Logic
             if (player == null)
             {	//Make a note
                 Log.write(TLog.Warning, "Ignoring player update for #{0}, not present in zone mirror.", pkt.player.id);
+
+                //
+                // TODO: Send a packet back to zone server.
+                //
                 return;
             }
 

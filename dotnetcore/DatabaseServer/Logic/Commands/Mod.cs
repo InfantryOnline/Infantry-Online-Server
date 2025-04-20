@@ -242,7 +242,7 @@ namespace InfServer.Logic
             dbplayer.Squad = squad.Id;
             db.SaveChanges();
             zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "You have joined " + squad.Name);
-            zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "Please relog to complete the process.");
+            zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "Please rejoin the zone to complete the process.");
             zone._server.sendMessage(zone, pkt.sender, "Squad joining completed.");
         }
 
@@ -289,7 +289,7 @@ namespace InfServer.Logic
             }
             db.SaveChanges();
             zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "You have been promoted to squad captain of " + dbplayer.SquadNavigation.Name);
-            zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "Please relog to complete the process.");
+            zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "Please rejoin the zone to complete the process.");
             zone._server.sendMessage(zone, pkt.sender, "Squad transferring is complete.");
         }
 
