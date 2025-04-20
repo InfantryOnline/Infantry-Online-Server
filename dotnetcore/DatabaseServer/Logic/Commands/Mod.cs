@@ -16,7 +16,7 @@ namespace InfServer.Logic
     class Logic_ModCommands
     {
         /// <summary>
-        /// Handles a query packet
+        /// Handles a mod/admin query.
         /// </summary>
         static public void Handle_CS_ModQuery(CS_ModQuery<Zone> pkt, Zone zone)
         {
@@ -293,7 +293,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "Squad transferring is complete.");
         }
 
-        private static void Handle_CS_ModQuery_DevPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_DevPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, DataContext ctx)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {
@@ -301,24 +301,39 @@ namespace InfServer.Logic
                 return;
             }
 
-            //Lets get all account related info
-            Database.Player player = (from plyr in db.Players
-                                      where plyr.AliasNavigation.Name == pkt.query && plyr.ZoneNavigation == zone._zone
-                                      select plyr).FirstOrDefault();
-            if (player == null)
+            var player = zone.getPlayer(pkt.query);
+
+            if (player != null)
             {
-                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
-                return;
+                player.permission = pkt.level;
+
+                var dbPlayer = ctx.Players.Find(player.dbid);
+                dbPlayer.Permission = (short)pkt.level;
+
+                ctx.SaveChanges();
+            }
+            else
+            {
+                var dbPlayer = ctx.Players
+                    .Include(p => p.AliasNavigation)
+                    .Where(p => p.Zone == zone._zone.Id && p.AliasNavigation.Name == pkt.query)
+                    .FirstOrDefault();
+
+                if (dbPlayer == null)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                    return;
+                }
+
+                dbPlayer.Permission = (short)pkt.level;
+
+                ctx.SaveChanges();
             }
 
-            //Lets mod/de-mod them
-            player.Permission = (short)pkt.level;
-
-            db.SaveChanges();
-            zone._server.sendMessage(zone, pkt.sender, "Changing player " + player.AliasNavigation.Name + "'s dev level to " + pkt.level + " has been completed.");
+            zone._server.sendMessage(zone, pkt.sender, $"Changing player {pkt.query} dev level to {pkt.level} has been completed.");
         }
 
-        private static void Handle_CS_ModQuery_ModPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_ModPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, DataContext ctx)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {
@@ -326,28 +341,37 @@ namespace InfServer.Logic
                 return;
             }
 
-            //Lets get all account related info
-            Database.Alias palias = db.Aliases.FirstOrDefault(a => a.Name == pkt.query);
-            Database.Account account = db.Accounts.FirstOrDefault(p => p.Id == palias.AccountNavigation.Id);
-            if (palias == null)
+            if (zone._server._players.ContainsKey(pkt.query))
             {
-                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
-                return;
-            }
+                var player = zone._server._players[pkt.query];
+                player.accountpermission = pkt.level;
 
-            if (account == null)
+                var dbAccount = ctx.Accounts.Find(player.acctid);
+
+                dbAccount.Permission = pkt.level;
+                ctx.SaveChanges();
+            }
+            else
             {
-                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified account.");
-                return;
-            }
+                Alias dbAlias = ctx.Aliases
+                    .Include(a => a.AccountNavigation)
+                    .FirstOrDefault(a => a.Name == pkt.query);
 
-            //Lets mod/de-mod them
-            account.Permission = pkt.level;
-            db.SaveChanges();
-            zone._server.sendMessage(zone, pkt.sender, "Changing player " + palias.Name + "'s level to " + pkt.level + " has been completed.");
+                if (dbAlias == null)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                    return;
+                }
+
+                dbAlias.AccountNavigation.Permission = pkt.level;
+
+                ctx.SaveChanges();
+            }
+            
+            zone._server.sendMessage(zone, pkt.sender, $"Changing player {pkt.query} level to {pkt.level} has been completed.");
         }
 
-        private static void Handle_CS_ModQuery_AliasRename(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_AliasRename(CS_ModQuery<Zone> pkt, Zone zone, DataContext ctx)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {
@@ -355,43 +379,31 @@ namespace InfServer.Logic
                 return;
             }
 
-            //Get all account related info
-            Database.Alias paliasTo = db.Aliases.FirstOrDefault(aTo => aTo.Name == pkt.aliasTo);
-            Database.Alias alias = db.Aliases.FirstOrDefault(a => a.Name == pkt.query);
-            //Player even alive?
-            if (paliasTo == null)
+            // Renamed for ease of understanding.
+
+            var oldAlias = pkt.aliasTo;
+            var newAlias = pkt.query;        
+
+            var newAliasExists = ctx.Aliases.Any(a => a.Name == newAlias);
+
+            if (newAliasExists)
             {
-                zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                zone._server.sendMessage(zone, pkt.sender, $"Alias {newAlias} already in use.");
                 return;
             }
 
-            string name = paliasTo.Name;
+            Alias dbOldAlias = ctx.Aliases.FirstOrDefault(a => a.Name == oldAlias);
 
-            //Does the payload already exist?
-            if (alias == null)
+            if (dbOldAlias == null)
             {
-                paliasTo.Name = pkt.query;
-                db.SaveChanges();
-                zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.query + " has been completed.");
+                zone._server.sendMessage(zone, pkt.sender, $"Alias {oldAlias} does not exist. Typo?");
                 return;
             }
 
-            if (alias.AccountNavigation != paliasTo.AccountNavigation)
-            {
-                zone._server.sendMessage(zone, pkt.sender, "That alias is already being used.");
-                return;
-            }
+            dbOldAlias.Name = newAlias;
+            ctx.SaveChanges();
 
-            if (alias.Id != paliasTo.Id)
-            {
-                zone._server.sendMessage(zone, pkt.sender, "Cannot change an alias to one already existing on the account.");
-                return;
-            }
-
-            paliasTo.Name = pkt.query;
-            db.SaveChanges();
-
-            zone._server.sendMessage(zone, pkt.sender, "Renamed player " + name + " to " + pkt.query + " has been completed.");
+            zone._server.sendMessage(zone, pkt.sender, $"Renamed: {oldAlias} => {newAlias}");
         }
 
         private static void Handle_CS_ModQuery_AliasRemove(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)

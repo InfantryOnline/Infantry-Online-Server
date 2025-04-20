@@ -278,28 +278,25 @@ namespace InfServer.Logic
         /// Handles a player banner update
         /// </summary>
         static public void Handle_CS_PlayerBanner(CS_PlayerBanner<Zone> pkt, Zone zone)
-        {	//Attempt to find the player in question
-            Zone.Player player = zone.getPlayer(pkt.player.id);
+        {
+            var player = zone.getPlayer(pkt.player.id);
+
             if (player == null)
-            {	//Make a note
-                Log.write(TLog.Warning, "Ignoring player banner update for #{0}, not present in zone mirror.", pkt.player.id);
+            {
+                Log.write(TLog.Warning, $"Ignoring player banner update for #{pkt.player.id}, not present in zone mirror.");
                 return;
             }
 
-            using (DataContext db = zone._server.getContext())
-            {	//Get the associated player entry
-                Player dbplayer = db.Players.Find(player.dbid);
+            using (var ctx = zone._server.getContext())
+            {
+                var results = ctx.Players
+                    .Where(p => p.Id == player.dbid)
+                    .ExecuteUpdate(t => t.SetProperty(p => p.Banner, pkt.banner));
 
-                if (dbplayer == null)
-                {	//Make a note
-                    Log.write(TLog.Warning, "Ignoring player banner update for {0}, not present in database.", player.alias);
-                    return;
+                if (results != 1)
+                {
+                    Log.write(TLog.Warning, $"Ignoring player banner update for {player.alias}, not present in database.");
                 }
-
-                dbplayer.Banner = pkt.banner;
-
-                //Update all changes
-                db.SaveChanges();
             }
         }
 
@@ -327,10 +324,10 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ArenaUpdate(CS_ArenaUpdate<Zone> pkt, Zone zone)
         {
-            //Attempt to find the player in question
             Zone.Player player = zone.getPlayer(pkt.player.id);
+
             if (player == null)
-            {	//Make a note
+            {
                 Log.write(TLog.Warning, "Ignoring arena update for #{0}, not present in zone mirror.", pkt.player.id);
                 return;
             }
