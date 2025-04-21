@@ -547,12 +547,10 @@ namespace InfServer.Logic
                     p.SquadNavigation = null;
                 }
 
+
                 //
                 // Remove them from stats and remove their Player object as well.
-                //
-
-                ctx.Stats.Remove(p.StatsNavigation);
-                ctx.Players.Remove(p);
+                //         
 
                 var dailies = ctx.StatsDailies.Where(s => s.Player == p.Id);
                 var weeklies = ctx.StatsWeeklies.Where(s => s.Player == p.Id);
@@ -563,6 +561,10 @@ namespace InfServer.Logic
                 ctx.StatsWeeklies.RemoveRange(weeklies);
                 ctx.StatsMonthlies.RemoveRange(monthlies);
                 ctx.StatsYearlies.RemoveRange(yearlies);
+
+                // WARNING: FK relationship is wrong here.
+                ctx.Players.Remove(p);
+                ctx.Stats.Remove(p.StatsNavigation);
             }
 
             //
