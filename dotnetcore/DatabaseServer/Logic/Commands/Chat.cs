@@ -671,7 +671,9 @@ namespace InfServer.Logic
 
                     db.SaveChanges();
 
-                    // Order matters because of required FK Constraint.
+                    //
+                    // FK is on wrong table; delete Player first and then stats.
+                    //
 
                     db.Players.Remove(player);
 

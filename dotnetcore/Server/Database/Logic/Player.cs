@@ -90,6 +90,12 @@ namespace InfServer.Logic
                 }   
             }
 
+            //
+            // In case of re-connect (db server is down, then back up)
+            // this ensures that the the latest state database has for
+            // stats/inventory/skills will be applied and sent to the
+            // client.
+            //
             player.syncState();
         }
 
