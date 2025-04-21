@@ -671,10 +671,14 @@ namespace InfServer.Logic
 
                     db.SaveChanges();
 
-                    var stats = db.Stats.Where(s => s.Id == player.Stats);
+                    // Order matters because of required FK Constraint.
 
-                    db.Stats.RemoveRange(stats);
                     db.Players.Remove(player);
+
+                    db.SaveChanges();
+
+                    var stats = db.Stats.Where(s => s.Id == player.Stats);
+                    db.Stats.RemoveRange(stats);
 
                     db.SaveChanges();
                 }
