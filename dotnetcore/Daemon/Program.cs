@@ -7,7 +7,7 @@ namespace Daemon
     /// 
     /// Brief design doc:
     ///     Daemon process is started at system start up, runs at all times. (Load zones up from config, monitor for file changes).
-    ///     Daemon-CLI process talks to the Daemon using IPC (named pipes).
+    ///     Daemon-Controller process talks to the Daemon using IPC (named pipes). Short lived, execute command, finish.
     ///     Daemon starts, stops, talks to the zone servers as needed over the named pipes.
     ///     
     ///     - Need to take special care of redirecting I/O.
