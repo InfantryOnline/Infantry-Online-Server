@@ -29,6 +29,9 @@ jobs:
     - name: Build Windows Infra AcctServer
       run: dotnet publish ./dotnetcore/AccountServer/AccountServer.csproj --output ./releases/windows-infrastructure/account-server -c Release -r win-x64
 
+    - name: Build Windows Infra Daemon Console
+      run: dotnet publish ./dotnetcore/DaemonConsole/DaemonConsole.csproj --output ./releases/windows-infrastructure/daemon-console -c Release -r win-x64
+
     - name: Build Windows Infra Daemon
       run: dotnet publish ./dotnetcore/Daemon/Daemon.csproj --output ./releases/windows-infrastructure/daemon -c Release -r win-x64
 
@@ -57,6 +60,9 @@ jobs:
     - name: Build Linux Infra AcctServer
       run: dotnet publish ./dotnetcore/AccountServer/AccountServer.csproj --output ./releases/linux-infrastructure/account-server -c Release -r linux-x64
 
+    - name: Build Linux Infra Daemon Console
+      run: dotnet publish ./dotnetcore/DaemonConsole/DaemonConsole.csproj --output ./releases/linux-infrastructure/daemon-console -c Release -r linux-x64
+
     - name: Build Linux Infra Daemon
       run: dotnet publish ./dotnetcore/Daemon/Daemon.csproj --output ./releases/linux-infrastructure/daemon -c Release -r linux-x64
 
@@ -77,7 +83,7 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Build Windows
-      run: dotnet publish ./dotnetcore/Server/ZoneServer.csproj --output ./releases/windows -c Release -r win-x64
+      run: dotnet publish ./dotnetcore/ZoneServer/ZoneServer.csproj --output ./releases/windows -c Release -r win-x64
 
     - name: Upload Windows Artifact
       uses: actions/upload-artifact@v4
@@ -96,7 +102,7 @@ jobs:
         dotnet-version: 8.0.x
         
     - name: Build Linux
-      run: dotnet publish ./dotnetcore/Server/ZoneServer.csproj --output ./releases/linux -c Release -r linux-x64
+      run: dotnet publish ./dotnetcore/ZoneServer/ZoneServer.csproj --output ./releases/linux -c Release -r linux-x64
 
     - name: Upload Linux Artifact
       uses: actions/upload-artifact@v4
