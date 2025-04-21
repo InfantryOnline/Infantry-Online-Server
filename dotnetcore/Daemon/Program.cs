@@ -1,83 +1,81 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Configuration;
+using System.IO.Pipes;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Daemon
 {
-    /// <summary>
-    /// TODO: Update this to use Daemon style of communication using UDS/Named Pipes.
-    /// 
-    /// Brief design doc:
-    ///     Daemon process is started at system start up, runs at all times. (Load zones up from config, monitor for file changes).
-    ///     Daemon-Controller process talks to the Daemon using IPC (named pipes). Short lived, execute command, finish.
-    ///     Daemon starts, stops, talks to the zone servers as needed over the named pipes.
-    ///     
-    ///     - Need to take special care of redirecting I/O.
-    /// </summary>
+    internal class ClientConnection
+    {
+        public PipeStream Stream { get; set; }
+    }
     internal class Program
     {
-        static DirectoryInfo newServerDir;
-        static DirectoryInfo curServerDir;
-        static int processID = 0;
+        static BaseConfiguration baseConfiguration = new BaseConfiguration();
 
-        static void Main(string[] args)
+        static async Task HandleClientAsync(PipeStream stream)
         {
-            //Get the commands
-            foreach (string arg in args)
+            var connection = new ClientConnection { Stream = stream };
+
+            using (var sw = new StreamWriter(connection.Stream))
             {
-                string command = arg.Substring(0, 4);
-                switch (command)
-                {
-                    case "-d1:":
-                        newServerDir = new DirectoryInfo(arg.Substring(command.Length, arg.Length - command.Length));
-                        break;
-                    case "-d2:":
-                        curServerDir = new DirectoryInfo(arg.Substring(command.Length, arg.Length - command.Length));
-                        break;
-                    case "-id:":
-                        processID = Convert.ToInt32(arg.Substring(command.Length, arg.Length - command.Length));
-                        break;
-                }
+                sw.AutoFlush = true;
+                sw.WriteLine("Hello there!");
             }
 
-            //Should we wait for the process to end?
-            if (processID > 0)
-            {
-                while (Process.GetProcesses().Any(x => x.Id == processID))
-                {
-                    Console.SetCursorPosition(0, 0);
-                    Console.Write("Waiting for process (id: " + processID + ") to end...");
-                }
-            }
-
-            //Process ended, continue
-            CopyAll(newServerDir, curServerDir);
-
-            //Create the new InfServer process
-            ProcessStartInfo srvProcess = new ProcessStartInfo(Path.Combine(curServerDir.ToString(), "ZoneServer.exe"));
-            srvProcess.WorkingDirectory = curServerDir.ToString();
-            Process.Start(srvProcess);
+            connection.Stream.Close();
         }
 
-        static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        static NamedPipeServerStream CreatePipeServer()
         {
-            // Check if the target directory exists, if not, create it.
-            if (Directory.Exists(target.FullName) == false)
-            {
-                Directory.CreateDirectory(target.FullName);
-            }
+            return new NamedPipeServerStream(
+                    baseConfiguration.DaemonPipeName,
+                    PipeDirection.InOut,
+                    NamedPipeServerStream.MaxAllowedServerInstances,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.Asynchronous);
+        }
 
-            // Copy each file into it’s new directory.
-            foreach (FileInfo fi in source.GetFiles())
-            {
-                Console.WriteLine(@"Copying {0}\{1}", target.FullName, fi.Name);
-                fi.CopyTo(Path.Combine(target.ToString(), fi.Name), true);
-            }
+        static async Task Main(string[] args)
+        {
+            //
+            // Load in configuration.
+            //
 
-            // Copy each subdirectory using recursion.
-            foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
+            var config = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile($"appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
+
+            config.GetSection("Base").Bind(baseConfiguration);
+
+            //
+            // Start the named pipe process to await queries and commands
+            // from the console program as well as the zone servers. And any
+            // other programs that wish to query.
+            //
+
+            var pipeServer = CreatePipeServer();
+
+            Console.WriteLine("Awaiting client connections...");
+
+            while (true)
             {
-                DirectoryInfo nextTargetSubDir =
-                    target.CreateSubdirectory(diSourceSubDir.Name);
-                CopyAll(diSourceSubDir, nextTargetSubDir);
+                try
+                {
+                    await pipeServer.WaitForConnectionAsync();
+
+                    // Now spin off a new Task and handle the client.
+                    var clientPipe = pipeServer;
+
+                    _ = Task.Run(async () => {
+                        await HandleClientAsync(clientPipe);
+                    });
+                }
+                finally
+                {
+                    // Spin off a new pipe for any additional clients.
+                    pipeServer = CreatePipeServer();
+                }
             }
         }
     }
