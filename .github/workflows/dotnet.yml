@@ -152,11 +152,14 @@ jobs:
       run: zip -r release-linux-infrastructure.zip ./releases-linux-infrastructure/*
 
     - name: Zip Windows Artifact
-      run: cd ./release-windows
+      run: |
+           cd ./releases-windows
            zip -r release-windows.zip ./*
 
     - name: Zip Linux Artifact
-      run: zip -r release-linux.zip ./releases-linux/*
+      run: |
+           cd ./releases-linux
+           zip -r release-linux.zip ./*
 
     - name: Create Release
       id: create_release
@@ -195,7 +198,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release-windows/release-windows.zip
+        asset_path: ./releases-windows/release-windows.zip
         asset_name: release-windows.zip
         asset_content_type: application/zip
 
@@ -205,7 +208,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./release-linux.zip
+        asset_path: ./releases-linux/release-linux.zip
         asset_name: release-linux.zip
         asset_content_type: application/zip
       
