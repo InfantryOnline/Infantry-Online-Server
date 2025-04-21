@@ -499,7 +499,10 @@ namespace InfServer.Logic
             }
 
             Alias dbAlias = ctx.Aliases
-                .Include(p => p.Players).ThenInclude(p => p.SquadNavigation)
+                .Include(p => p.Players)
+                    .ThenInclude(p => p.SquadNavigation)
+                .Include(p => p.Players)
+                    .ThenInclude(p => p.StatsNavigation)
                 .FirstOrDefault(a => a.Name == pkt.query);
 
             if (dbAlias == null)
