@@ -324,21 +324,21 @@ namespace InfServer.Logic
 
             System.Net.IPAddress ipaddress;
             long accountID;
-            IQueryable<Database.Alias> aliases = null;
+            IQueryable<Database.Alias> dbAliases;
 
             zone._server.sendMessage(zone, pkt.sender, "Current Bans for player");
 
             //Check for an ip lookup first
             if (pkt.payload.Contains('.') && System.Net.IPAddress.TryParse(pkt.payload, out ipaddress))
             {
-                aliases = db.Aliases
+                dbAliases = db.Aliases
                     .Include(a => a.AccountNavigation)
                     .Where(a => a.IpAddress == ipaddress.ToString());
             }
             //Check for an account id
             else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
             {
-                aliases = db.Aliases
+                dbAliases = db.Aliases
                     .Include(a => a.AccountNavigation)
                     .Where(a => a.Account == accountID);
             }
@@ -355,23 +355,28 @@ namespace InfServer.Logic
                     return;
                 }
 
-                aliases = db.Aliases
+                dbAliases = db.Aliases
                     .Include(a => a.AccountNavigation)
                     .Where(a => a.Account == who.Account);
             }
 
-            if (aliases != null)
+            if (dbAliases != null)
             {
-                foreach (Database.Alias what in aliases)
-                {
-                    foreach (Database.Ban b in db.Bans.Where(b =>
-                        b.Account == what.AccountNavigation.Id ||
-                        b.IpAddress == what.AccountNavigation.IpAddress).ToList())
-                    {
-                        //Does the alias match the ban name?
-                        if (string.Compare(b.Name, what.Name, true) != 0) //If it isnt 0, it is false
-                            continue;
+                //
+                // Materialize to prevent Open Data Reader exception.
+                //
+                var aliases = dbAliases
+                    .Select(a => new { AliasName = a.Name, AccountIp = a.AccountNavigation.IpAddress, AccountId = a.AccountNavigation.Id })
+                    .ToList();
 
+                foreach (var alias in aliases)
+                {
+                    var dbBans = db.Bans
+                        .Where(b => b.Name == alias.AliasName && (b.Account == alias.AccountId || b.IpAddress == alias.AccountIp))
+                        .ToList();
+
+                    foreach (var b in dbBans)
+                    {
                         //Is it the correct zone?
                         if (b.Zone != null && (b.Type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.Zone != zone._zone.Id))
                             continue;
@@ -384,7 +389,7 @@ namespace InfServer.Logic
                             created = b.Created;
                             reason = b.Reason;
                             found = true;
-                            zone._server.sendMessage(zone, pkt.sender, string.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", what.Name, type, Convert.ToString(created), Convert.ToString(expires), reason));
+                            zone._server.sendMessage(zone, pkt.sender, string.Format("Alias: {0} Type: {1} Created: {2} Expires: {3} Reason: {4}", alias.AliasName, type, Convert.ToString(created), Convert.ToString(expires), reason));
                         }
                     }
                 }
