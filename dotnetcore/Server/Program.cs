@@ -33,7 +33,7 @@ namespace InfServer
             }
             else
             {
-                Process.Start(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Server.exe");
+                Process.Start(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}ZoneServer.exe");
                 Stop();
             }
         }
