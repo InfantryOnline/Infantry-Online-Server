@@ -450,8 +450,8 @@ namespace InfServer.Logic
                     p.Squad = null;
                 }
 
-                db.Stats.Remove(p.StatsNavigation);
                 db.Players.Remove(p);
+                db.Stats.Remove(p.StatsNavigation);
 
                 var dailies = db.StatsDailies.Where(s => s.Player == p.Id);
                 var weeklies = db.StatsWeeklies.Where(s => s.Player == p.Id);
