@@ -37,6 +37,8 @@ namespace DaemonConsole
 
             config.GetSection("Base").Bind(baseConfiguration);
 
+            var daemonName = Path.GetFileNameWithoutExtension(baseConfiguration.SystemPaths.DaemonProcessPath);
+
             //
             // Setup command-line parameters (nb. this uses System.CommandLine which is in prerelease and
             // may never come out, but it seems to work just fine for our needs.
@@ -50,6 +52,10 @@ namespace DaemonConsole
             installArg.HelpName = "zone name";
 
             install.AddArgument(installArg);
+
+            var kit = new Option<string>(new[] { "--kit", "-k" }, "Starting kit name (f.e. bhx, ctfpl, ...)");
+
+            install.AddOption(kit);
 
             var start = new Command(
                 "start",
@@ -82,11 +88,15 @@ namespace DaemonConsole
                 "status",
                 "Prints out a summary of all zones with their names and statuses.");
 
-            install.SetHandler(async (string name) => {
+            var killd = new Command(
+                "killd",
+                "Shoots the daemon until it dies.");
 
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "zones", name);
+            install.SetHandler(async (string name, string kitName) =>
+            {
+                var newZonePath = Path.Combine(GetZonesFolderDirectoryPath(), name);
 
-                if (Directory.Exists(path))
+                if (Directory.Exists(newZonePath))
                 {
                     Console.Error.WriteLine($"Error: Specified path already exists: {name}");
                     return;
@@ -97,17 +107,34 @@ namespace DaemonConsole
                 var downloader = new RepositoryDownloader(baseConfiguration);
                 using var zip = await downloader.FetchLatestZoneServerRelease();
 
+                ZipArchive kitZip = null;
+
+                if (!string.IsNullOrWhiteSpace(kitName))
+                {
+                    var kitDownloader = new ZoneKitDownloader(baseConfiguration);
+                    kitZip = await kitDownloader.FetchZoneKitByName(kitName);
+                }
+
                 try
                 {
-                    zip.ExtractToDirectory(path, false);
-                    Console.WriteLine($"Configuration completed. Start the zone by using \"start {name}\" command.");
+                    zip.ExtractToDirectory(newZonePath, false);
+
+                    if (kitZip != null)
+                    {
+                        kitZip.ExtractToDirectory(newZonePath, false);
+                        kitZip.Dispose();
+                    }
+
+                    Console.WriteLine($"Configuration completed.");
+                    Console.WriteLine($"Zone folder location: {newZonePath}");
+                    Console.WriteLine($"Start the zone by using \"start {name}\" command.");
                 }
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine("Error extracting zip archive.");
                     Console.Error.WriteLine(ex.Message);
                 }
-            }, installArg);
+            }, installArg, kit);
 
             start.SetHandler(async (string name) =>
             {
@@ -115,7 +142,7 @@ namespace DaemonConsole
 
                 var pipeClient = new NamedPipeClientStream(
                     localhost,
-                    baseConfiguration.DaemonPipeName,
+                    baseConfiguration.SystemPaths.DaemonPipeName,
                     PipeDirection.InOut,
                     PipeOptions.Asynchronous);
 
@@ -144,9 +171,19 @@ namespace DaemonConsole
 
             status.SetHandler(async () =>
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "zones");
+                var proc = Process.GetProcessesByName(daemonName).FirstOrDefault();
+                if (proc == null)
+                {
+                    Console.Error.WriteLine("Error: Daemon process not found.");
+                }
+                else
+                {
+                    Console.WriteLine($"Daemon process running as {proc.ProcessName} with PID: {proc.Id}");
+                }
 
-                if (!Directory.Exists(path))
+                var zonesPath = GetZonesFolderDirectoryPath();
+
+                if (!Directory.Exists(zonesPath))
                 {
                     Console.WriteLine("No zones installed. Please use \"install [zone name]\" command to install a zone.");
                     return;
@@ -154,10 +191,21 @@ namespace DaemonConsole
 
                 Console.WriteLine("Available Zones:");
 
-                foreach(var dir in Directory.GetDirectories(path))
+                foreach(var dir in Directory.GetDirectories(zonesPath))
                 {
                     var name = Path.GetFileName(dir);
                     Console.WriteLine($"\t{name}");
+                }
+            });
+
+            killd.SetHandler(async () =>
+            {
+                var procs = Process.GetProcessesByName(daemonName);
+
+                foreach (var p in procs)
+                {
+                    p.Kill();
+                    Console.WriteLine($"Terminated {p.ProcessName} with ID: {p.Id}");
                 }
             });
 
@@ -168,12 +216,63 @@ namespace DaemonConsole
             rootCommand.AddCommand(stop);
             rootCommand.AddCommand(restart);
             rootCommand.AddCommand(status);
+            rootCommand.AddCommand(killd);
 
             //
             // Check if daemon process is even running at all.
             //
 
+            var proc = Process.GetProcessesByName(daemonName).FirstOrDefault();
+
+            if (proc == null)
+            {
+                Console.WriteLine("Daemon process not found, starting...");
+
+                var psi = new ProcessStartInfo(baseConfiguration.SystemPaths.DaemonProcessPath);
+
+                psi.UseShellExecute = false;
+                psi.WindowStyle = ProcessWindowStyle.Hidden;
+
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
+
+                proc = new Process();
+                proc.StartInfo = psi;
+
+                proc.OutputDataReceived += (object sender, DataReceivedEventArgs e) => {
+                    Console.WriteLine($"[Daemon]: {e.Data}");
+                };
+
+                proc.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => {
+                    Console.Error.WriteLine($"[Daemon ERROR]: {e.Data}");
+                };
+
+                proc.Start();
+
+                proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
+
+                // Give it a few seconds to start the Daemon up properly before handling anything else.
+                await Task.Delay(5000);
+            }
+
             return await rootCommand.InvokeAsync(args);
+        }
+
+        static string GetZonesFolderDirectoryPath()
+        {
+            string zonesFolderPath;
+
+            if (Path.IsPathRooted(baseConfiguration.SystemPaths.ZonesFolderPath))
+            {
+                zonesFolderPath = baseConfiguration.SystemPaths.ZonesFolderPath;
+            }
+            else
+            {
+                zonesFolderPath = Path.Combine(Directory.GetCurrentDirectory(), baseConfiguration.SystemPaths.ZonesFolderPath);
+            }
+
+            return Path.GetFullPath(zonesFolderPath);
         }
 
         static void Stuff(string[] args)

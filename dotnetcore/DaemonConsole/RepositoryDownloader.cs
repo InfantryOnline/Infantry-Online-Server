@@ -9,13 +9,28 @@ using System.Threading.Tasks;
 
 namespace DaemonConsole
 {
+    /// <summary>
+    /// Allows for downloading of releases for zones and infrastructure files.
+    /// </summary>
+    /// <param name="configuration"></param>
     internal class RepositoryDownloader (BaseConfiguration configuration)
     {
         public async Task<ZipArchive> FetchLatestZoneServerRelease()
         {
-            var assetName = configuration
-                .Repository
-                .ZoneServerWindowsPackageName.ToLower();
+            string assetName;
+
+            if (OperatingSystem.IsWindows())
+            {
+                assetName = configuration
+                    .Repository
+                    .ZoneServerWindowsPackageName.ToLower();
+            }
+            else
+            {
+                assetName = configuration
+                    .Repository
+                    .ZoneServerLinuxPackageName.ToLower();
+            }
 
             return await FetchLatestReleaseAsset(assetName);
         }
@@ -24,7 +39,9 @@ namespace DaemonConsole
         {
             var githubClient = new GitHubClient(new ProductHeaderValue("InfantryDaemon"));
 
-            Console.WriteLine($"Getting latest release...");
+            var osName = OperatingSystem.IsWindows() ? "Windows" : "Linux/Other";
+
+            Console.WriteLine($"Getting latest release (OS Detected: {osName})...");
 
             var release = await githubClient
                 .Repository

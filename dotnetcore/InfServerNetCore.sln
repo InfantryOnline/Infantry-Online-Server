@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DaemonConsole", "DaemonCons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daemon", "Daemon\Daemon.csproj", "{4CD0184E-8126-4FAF-B0DD-587D4457FCD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PipeComm", "PipeComm\PipeComm.csproj", "{FCC68068-9E78-4425-A08B-1E90B8BFD505}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,10 @@ Global
 		{4CD0184E-8126-4FAF-B0DD-587D4457FCD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CD0184E-8126-4FAF-B0DD-587D4457FCD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4CD0184E-8126-4FAF-B0DD-587D4457FCD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCC68068-9E78-4425-A08B-1E90B8BFD505}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCC68068-9E78-4425-A08B-1E90B8BFD505}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCC68068-9E78-4425-A08B-1E90B8BFD505}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCC68068-9E78-4425-A08B-1E90B8BFD505}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,6 +122,7 @@ Global
 		{B954050B-C30A-46C4-A51E-22350C9308BA} = {5E580B30-EECD-4E7C-AF9C-29EDD68D9963}
 		{A51D8E2D-F535-42DA-A535-989392567EEA} = {5E580B30-EECD-4E7C-AF9C-29EDD68D9963}
 		{4CD0184E-8126-4FAF-B0DD-587D4457FCD3} = {5E580B30-EECD-4E7C-AF9C-29EDD68D9963}
+		{FCC68068-9E78-4425-A08B-1E90B8BFD505} = {408D7480-78BA-47EF-BEBD-C1400867DAD5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFEFCB98-3E47-49A2-98FF-DA2892EF2FCC}

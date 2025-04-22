@@ -8,12 +8,28 @@ namespace DaemonConsole
 {
     public class BaseConfiguration
     {
-        public string DaemonPipeName { get; set; }
+        public SystemPathsConfiguration SystemPaths { get; set; } = new SystemPathsConfiguration();
 
-        public Repository Repository { get; set; } = new Repository();
+        public RepositoryConfiguration Repository { get; set; } = new RepositoryConfiguration();
+
+        public ZoneKitConfiguration ZoneKit { get; set; } = new ZoneKitConfiguration();
     }
 
-    public class Repository
+    public class ZoneKitConfiguration
+    {
+        public string BaseUrl { get; set; }
+    }
+
+    public class SystemPathsConfiguration
+    {
+        public string DaemonPipeName { get; set; }
+
+        public string DaemonProcessPath { get; set; }
+
+        public string ZonesFolderPath { get; set; }
+    }
+
+    public class RepositoryConfiguration
     {
         public string GitHubOwnerName { get; set; }
 

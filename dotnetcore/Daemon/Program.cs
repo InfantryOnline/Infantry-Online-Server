@@ -19,7 +19,7 @@ namespace Daemon
             using (var sw = new StreamWriter(connection.Stream))
             {
                 sw.AutoFlush = true;
-                sw.WriteLine("Hello there!");
+                sw.WriteLine("Hello from Daemon proc!");
             }
 
             connection.Stream.Close();
