@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
+using PipeComm;
 using System.IO.Pipes;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace Daemon
 {
@@ -16,11 +18,34 @@ namespace Daemon
         {
             var connection = new ClientConnection { Stream = stream };
 
-            using (var sw = new StreamWriter(connection.Stream))
-            {
-                sw.AutoFlush = true;
-                sw.WriteLine("Hello from Daemon proc!");
-            }
+            var ss = new StreamReader(connection.Stream);
+
+            var data = new char[4];
+
+            await ss.ReadAsync(data, 0, 4);
+
+            var type = (PacketTypes)int.Parse(data);
+
+            await ss.ReadAsync(data, 0, 4);
+
+            var length = int.Parse(data);
+
+            var json = new char[length];
+
+            await ss.ReadAsync(json, 0, length);
+
+            var sw = new StreamWriter(connection.Stream);
+
+            sw.AutoFlush = true;
+
+            var messagePacket = new Message { Text = "Hello there!" };
+            var payload = JsonSerializer.Serialize(messagePacket);
+
+            sw.Write((int)PacketTypes.ConsoleMessage);
+            sw.Write(payload.Length);
+            sw.Write(payload);
+
+            sw.Flush();
 
             connection.Stream.Close();
         }

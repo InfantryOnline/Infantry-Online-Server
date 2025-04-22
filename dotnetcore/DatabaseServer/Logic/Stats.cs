@@ -7,6 +7,8 @@ using System.IO;
 using InfServer.Protocol;
 using InfServer.Data;
 using Database;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace InfServer.Logic
 {	// Logic_Stats Class
@@ -87,6 +89,8 @@ namespace InfServer.Logic
                 Log.write(TLog.Warning, "Ignoring player stats request for #{0}, not present in zone mirror.", pkt.player.id);
                 return;
             }
+
+            var watch = Stopwatch.StartNew();
 
             using (Database.DataContext db = zone._server.getContext())
             {	//What sort of request are we dealing with?
@@ -845,6 +849,13 @@ namespace InfServer.Logic
                         break;
                 }
             }
+
+            watch.Stop();
+
+            if (watch.Elapsed.Milliseconds > 500)
+            {
+                Log.write(TLog.Warning, $"Slow query detected for packet type: {pkt}");
+            }
         }
 
         /// <summary>
@@ -977,15 +988,21 @@ namespace InfServer.Logic
         {
             using (Database.DataContext db = zone._server.getContext())
             {
-                Database.Squad winner = db.Squads.FirstOrDefault(s => s.Id == pkt.winner);
-                Database.Squad loser = db.Squads.FirstOrDefault(s => s.Id == pkt.loser);
+                var ids = new[] { pkt.winner, pkt.loser };
+
+                var dbSquads = db.Squads.Where(s => ids.Contains(s.Id)).ToList();
+
+                var winner = dbSquads.FirstOrDefault(t => t.Id == pkt.winner);
+                var loser = dbSquads.FirstOrDefault(t => t.Id == pkt.loser);
 
                 //Try to trick me, I dare you, do it.
                 if (winner == null || loser == null)
                     return;
 
-                Database.SquadStat wStats = db.Squadstats.FirstOrDefault(s => s.Squad == winner.Id);
-                Database.SquadStat lStats = db.Squadstats.FirstOrDefault(s => s.Squad == loser.Id);
+                var dbSquadStats = db.Squadstats.Where(s => ids.Contains(s.Id)).ToList();
+
+                var wStats = dbSquadStats.FirstOrDefault(s => s.Squad == winner.Id);
+                var lStats = dbSquadStats.FirstOrDefault(s => s.Squad == loser.Id);
 
                 //Again, try it!
                 if (wStats == null || lStats == null)

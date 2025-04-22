@@ -6,13 +6,18 @@ using System.Threading.Tasks;
 
 namespace PipeComm
 {
-    public enum ZonePacketTypes
+    public enum PacketTypes
     {
+        ConsoleHealth = 1,
+        ConsoleStatus,
+        ConsoleMessage,
+        ConsoleStart,
+        ConsoleStop,
+        ConsoleRestart,
 
-    }
-
-    public enum ConsolePacketTypes
-    {
-
+        ZoneRestart,
+        ZoneMessage,
+        ZoneStatus,
+        ZoneHealth
     }
 }

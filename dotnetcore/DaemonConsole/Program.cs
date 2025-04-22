@@ -2,7 +2,10 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.IO.Pipes;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
+using PipeComm;
 
 namespace DaemonConsole
 {
@@ -138,21 +141,37 @@ namespace DaemonConsole
 
             start.SetHandler(async (string name) =>
             {
-                var localhost = ".";
+                var pipeClient = await CreatePipeClient();
 
-                var pipeClient = new NamedPipeClientStream(
-                    localhost,
-                    baseConfiguration.SystemPaths.DaemonPipeName,
-                    PipeDirection.InOut,
-                    PipeOptions.Asynchronous);
+                var startPacket = new Start { Name = name };
+                var payload = JsonSerializer.Serialize(startPacket);
 
-                await pipeClient.ConnectAsync();
+                var sw = new StreamWriter(pipeClient);
+                var ss = new StreamReader(pipeClient);
+                
+                sw.AutoFlush = true;
 
-                using (var ss = new StreamReader(pipeClient))
-                {
-                    var line = ss.ReadLine();
-                    Console.WriteLine($"Server sent: {line}");
-                }
+                sw.Write((int)PacketTypes.ConsoleStart);
+                sw.Write(payload.Length);
+                sw.Write(payload);
+
+                sw.Flush();
+
+                var data = new char[4];
+
+                await ss.ReadAsync(data, 0, 4);
+
+                var type = (PacketTypes)int.Parse(data);
+
+                await ss.ReadAsync(data, 0, 4);
+
+                var length = int.Parse(data);
+
+                var json = new char[length];
+
+                await ss.ReadAsync(json, 0, length);
+
+                Console.WriteLine(json);
 
                 pipeClient.Close();
 
@@ -172,6 +191,7 @@ namespace DaemonConsole
             status.SetHandler(async () =>
             {
                 var proc = Process.GetProcessesByName(daemonName).FirstOrDefault();
+
                 if (proc == null)
                 {
                     Console.Error.WriteLine("Error: Daemon process not found.");
@@ -257,6 +277,19 @@ namespace DaemonConsole
             }
 
             return await rootCommand.InvokeAsync(args);
+        }
+
+        static async Task<NamedPipeClientStream> CreatePipeClient()
+        {
+            var pipeClient = new NamedPipeClientStream(
+                    ".",
+                    baseConfiguration.SystemPaths.DaemonPipeName,
+                    PipeDirection.InOut,
+                    PipeOptions.Asynchronous);
+
+            await pipeClient.ConnectAsync();
+
+            return pipeClient;
         }
 
         static string GetZonesFolderDirectoryPath()

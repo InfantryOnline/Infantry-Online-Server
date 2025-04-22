@@ -6,6 +6,7 @@ using InfServer.Protocol;
 using InfServer.Data;
 using Database;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace InfServer.Logic
 {
@@ -16,6 +17,8 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ChatQuery(CS_ChatQuery<Zone> pkt, Zone zone)
         {
+            var watch = Stopwatch.StartNew();
+
             using (Database.DataContext db = zone._server.getContext())
             {
                 switch (pkt.queryType)
@@ -88,6 +91,13 @@ namespace InfServer.Logic
                         Handle_CS_ChatQuery_AdminList(pkt, zone);
                         break;
                 }
+            }
+
+            watch.Stop();
+
+            if (watch.Elapsed.Milliseconds > 500)
+            {
+                Log.write(TLog.Warning, $"Slow query detected for packet type: {pkt}");
             }
         }
 
@@ -1417,69 +1427,66 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ChartQuery(CS_ChartQuery<Zone> pkt, Zone zone)
         {
-            using (DataContext db = zone._server.getContext())
+            switch (pkt.type)
             {
-                switch (pkt.type)
-                {
-                    case CS_ChartQuery<Zone>.ChartType.chatchart:
+                case CS_ChartQuery<Zone>.ChartType.chatchart:
+                    {
+                        var zpKvp = zone._server._zones.SelectMany(z => z._players).FirstOrDefault(p => p.Value.alias == pkt.alias);
+
+                        if (zpKvp.Equals(default(KeyValuePair<int, Zone.Player>)))
                         {
-                            var zpKvp = zone._server._zones.SelectMany(z => z._players).FirstOrDefault(p => p.Value.alias == pkt.alias);
+                            zone._server.sendMessage(zone, pkt.alias, "Critical: Alias not found.");
+                            return;
+                        }
 
-                            if (zpKvp.Equals(default(KeyValuePair<int, Zone.Player>)))
+                        var zonePlayer = zpKvp.Value;
+
+                        var results = new List<Tuple<string, Zone.Player>>();
+
+                        foreach (var chat in zonePlayer.chats)
+                        {
+                            foreach (Zone z in zone._server._zones)
                             {
-                                zone._server.sendMessage(zone, pkt.alias, "Critical: Alias not found.");
-                                return;
-                            }
-
-                            var zonePlayer = zpKvp.Value;
-
-                            var results = new List<Tuple<string, Zone.Player>>();
-
-                            foreach (var chat in zonePlayer.chats)
-                            {
-                                foreach (Zone z in zone._server._zones)
+                                foreach (var kvpPlayer in z._players)
                                 {
-                                    foreach (var kvpPlayer in z._players)
+                                    var zp = kvpPlayer.Value;
+
+                                    if (zp == null || zp.alias == zonePlayer.alias)
                                     {
-                                        var zp = kvpPlayer.Value;
+                                        continue;
+                                    }
 
-                                        if (zp == null || zp.alias == zonePlayer.alias)
-                                        {
-                                            continue;
-                                        }
-
-                                        if (zp.chats.Contains(chat, StringComparer.OrdinalIgnoreCase))
-                                        {
-                                            results.Add(Tuple.Create(chat, zp));
-                                        }
+                                    if (zp.chats.Contains(chat, StringComparer.OrdinalIgnoreCase))
+                                    {
+                                        results.Add(Tuple.Create(chat, zp));
                                     }
                                 }
                             }
+                        }
 
-                            SC_ChartResponse<Zone> respond = new SC_ChartResponse<Zone>();
-                            respond.alias = pkt.alias;
-                            respond.type = CS_ChartQuery<Zone>.ChartType.chatchart;
-                            respond.title = pkt.title;
-                            respond.columns = pkt.columns;
+                        SC_ChartResponse<Zone> respond = new SC_ChartResponse<Zone>();
+                        respond.alias = pkt.alias;
+                        respond.type = CS_ChartQuery<Zone>.ChartType.chatchart;
+                        respond.title = pkt.title;
+                        respond.columns = pkt.columns;
 
-                            foreach(var p in results)
+                        foreach (var p in results)
+                        {
+                            var arenaName = p.Item2.arena;
+
+                            if (p.Item2.arena.StartsWith("#") && zonePlayer.arena != p.Item2.arena)
                             {
-                                var arenaName = p.Item2.arena;
-
-                                if (p.Item2.arena.StartsWith("#") && zonePlayer.arena != p.Item2.arena)
-                                {
-                                    arenaName = "(private)";
-                                }
-
-                                var row = String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\",\" \"", p.Item2.alias, p.Item2.zone._zone.Name, arenaName, p.Item1);
-
-                                respond.rows.Add(row);
+                                arenaName = "(private)";
                             }
 
-                            zone._client.sendReliable(respond, 1);
+                            var row = String.Format("\"{0}\",\"{1}\",\"{2}\",\"{3}\",\" \"", p.Item2.alias, p.Item2.zone._zone.Name, arenaName, p.Item1);
+
+                            respond.rows.Add(row);
                         }
-                        break;
-                }
+
+                        zone._client.sendReliable(respond, 1);
+                    }
+                    break;
             }
         }
 

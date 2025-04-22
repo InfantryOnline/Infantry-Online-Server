@@ -130,7 +130,7 @@ namespace InfServer.Logic
 
         static public void Handle_CS_ModCommand(CS_ModCommand<Zone> pkt, Zone zone)
         {
-            using (Database.DataContext db = zone._server.getContext())
+            using (var ctx = zone._server.getContext())
             {
                 Database.History hist = new Database.History();
                 hist.Sender = pkt.sender;
@@ -139,23 +139,23 @@ namespace InfServer.Logic
                 hist.Arena = pkt.arena;
                 hist.Command = pkt.command;
                 hist.Date = DateTime.Now;
-                db.Histories.Add(hist);
-                db.SaveChanges();
+                ctx.Histories.Add(hist);
+                ctx.SaveChanges();
             }
         }
 
         static public void Handle_CS_ChatCommand(CS_ChatCommand<Zone> pkt, Zone zone)
         {
-            using (Database.DataContext db = zone._server.getContext())
+            using (var ctx = zone._server.getContext())
             {
-                Database.Helpcall help = new Database.Helpcall();
+                var help = new Database.Helpcall();
                 help.Sender = pkt.sender;
                 help.Zone = pkt.zone;
                 help.Arena = pkt.arena;
                 help.Reason = pkt.reason;
                 help.Date = DateTime.Now;
-                db.Helpcalls.Add(help);
-                db.SaveChanges();
+                ctx.Helpcalls.Add(help);
+                ctx.SaveChanges();
             }
         }
 

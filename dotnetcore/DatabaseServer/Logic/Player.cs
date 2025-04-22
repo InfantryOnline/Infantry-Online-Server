@@ -37,7 +37,6 @@ namespace InfServer.Logic
             {	//Get the associated player entry
                 Player dbplayer = db.Players
                     .Include(p => p.StatsNavigation)
-                    .AsSingleQuery()
                     .SingleOrDefault(s => s.Id == player.dbid);
 
                 if (dbplayer == null)

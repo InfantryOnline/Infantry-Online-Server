@@ -19,6 +19,7 @@
     <ProjectReference Include="..\DBComm\DBComm.csproj" />
     <ProjectReference Include="..\EpPathFinding.cs\EpPathFinding.cs.csproj" />
     <ProjectReference Include="..\Network\Network.csproj" />
+    <ProjectReference Include="..\PipeComm\PipeComm.csproj" />
     <ProjectReference Include="..\SharpSteer\SharpSteer.csproj" />
   </ItemGroup>
 
