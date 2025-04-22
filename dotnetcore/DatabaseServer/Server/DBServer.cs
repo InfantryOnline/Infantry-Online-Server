@@ -53,6 +53,8 @@ namespace InfServer
             _chats = new SortedDictionary<string, Chat>();
             _players = new Dictionary<string, Zone.Player>();
             _squadInvites = new List<KeyValuePair<int, int>>();
+
+            _bLogPacketProcessDuration = true;
         }
 
         public bool newPlayer(Zone.Player player)

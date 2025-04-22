@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace InfServer.Network
 {
@@ -47,6 +48,8 @@ namespace InfServer.Network
 
         //Settings
         public bool _bLogPackets;
+
+        public bool _bLogPacketProcessDuration;
 
 
         ///////////////////////////////////////////////////
@@ -186,8 +189,29 @@ namespace InfServer.Network
                 if (packets != null)
                 {	//Predispatch, then handle each packet
                     foreach (PacketBase packet in packets)
+                    {
                         if (packet._client.predispatchCheck(packet))
+                        {
+                            Stopwatch watch = null;
+
+                            if (_bLogPacketProcessDuration)
+                            {
+                                watch = Stopwatch.StartNew();
+                            }
+
                             routePacket(packet);
+
+                            if (watch != null)
+                            {
+                                watch.Stop();
+
+                                if (watch.Elapsed.Milliseconds > 500)
+                                {
+                                    Log.write(TLog.Warning, $"[{watch.Elapsed.Seconds}s] Packet taking too long: {packet}");
+                                }
+                            }
+                        }
+                    }                        
                 }
 
                 //Poll each active network client
@@ -432,10 +456,6 @@ namespace InfServer.Network
         {
             return _factory;
         }
-        #endregion
-
-        #region Statistics
-
         #endregion
     }
 }
