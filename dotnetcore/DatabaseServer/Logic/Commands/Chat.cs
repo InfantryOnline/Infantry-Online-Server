@@ -97,7 +97,7 @@ namespace InfServer.Logic
 
             if (watch.Elapsed.Milliseconds > 500)
             {
-                Log.write(TLog.Warning, $"Slow query detected for packet type: {pkt}");
+                Log.write(TLog.Warning, $"[{watch.Elapsed.Seconds}s] Slow query detected for packet type: {pkt}. Time elapsed");
             }
         }
 
