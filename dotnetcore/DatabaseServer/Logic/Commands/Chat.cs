@@ -896,64 +896,56 @@ namespace InfServer.Logic
         {
             //Clean up the payload to Infantry standards (dont use clean payload for anything involving aliases/player names)
             string cleanPayload = Logic_Chats.CleanIllegalCharacters(pkt.payload);
-            using (Database.DataContext db = zone._server.getContext())
+            switch (pkt.queryType)
             {
-                //Get the associated player making the command
-                Database.Player dbplayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => p.AliasNavigation.Name == pkt.alias);
+                case CS_Squads<Zone>.QueryType.create:
+                    CS_Squads_QueryType_CreateSquad(pkt, zone, cleanPayload);
+                    break;
 
-                switch (pkt.queryType)
-                {
-                    case CS_Squads<Zone>.QueryType.create:
-                        CS_Squads_QueryType_CreateSquad(pkt, zone, cleanPayload);
-                        break;
+                case CS_Squads<Zone>.QueryType.invite:
+                    CS_Squads_QueryType_Invite(pkt, zone);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.invite:
-                        CS_Squads_QueryType_Invite(pkt, zone);
-                        break;
+                case CS_Squads<Zone>.QueryType.kick:
+                    CS_Squads_QueryType_Kick(pkt, zone);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.kick:
-                        CS_Squads_QueryType_Kick(pkt, zone);
-                        break;
+                case CS_Squads<Zone>.QueryType.transfer:
+                    CS_Squads_QueryType_TransferSquad(pkt, zone);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.transfer:
-                        CS_Squads_QueryType_TransferSquad(pkt, zone);
-                        break;
+                case CS_Squads<Zone>.QueryType.leave:
+                    CS_Squads_QueryType_LeaveSquad(pkt, zone);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.leave:
-                        CS_Squads_QueryType_LeaveSquad(pkt, zone);
-                        break;
+                case CS_Squads<Zone>.QueryType.dissolve:
+                    CS_Squads_QueryType_DissolveSquad(pkt, zone);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.dissolve:
-                        CS_Squads_QueryType_DissolveSquad(pkt, zone);
-                        break;
+                case CS_Squads<Zone>.QueryType.online:
+                    CS_Squads_QueryType_Online(pkt, zone, cleanPayload);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.online:
-                        CS_Squads_QueryType_Online(pkt, zone, cleanPayload);
-                        break;
+                case CS_Squads<Zone>.QueryType.list:
+                    CS_Squads_QueryType_List(pkt, zone, cleanPayload);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.list:
-                        CS_Squads_QueryType_List(pkt, zone, cleanPayload);
-                        break;
+                case CS_Squads<Zone>.QueryType.invitessquad:
+                    CS_Squads_QueryType_SquadInvites(pkt, zone, db);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.invitessquad:
-                        CS_Squads_QueryType_SquadInvites(pkt, zone, db, dbplayer);
-                        break;
+                case CS_Squads<Zone>.QueryType.invitesplayer:
+                    CS_Squads_QueryType_PlayerInvites(pkt, zone, cleanPayload);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.invitesplayer:
-                        CS_Squads_QueryType_PlayerInvites(pkt, zone, cleanPayload, db, dbplayer);
-                        break;
+                case CS_Squads<Zone>.QueryType.invitesreponse:
+                    CS_Squads_QueryType_InviteResponse(pkt, zone, cleanPayload);
+                    break;
 
-                    case CS_Squads<Zone>.QueryType.invitesreponse:
-                        CS_Squads_QueryType_InviteResponse(pkt, zone, cleanPayload, db, dbplayer);
-                        break;
-
-                    case CS_Squads<Zone>.QueryType.stats:
-                        CS_Squads_QueryType_Stats(pkt, zone);
-                        break;
-                }
-
-                //Save our changes to the database!
-                db.SaveChanges();
+                case CS_Squads<Zone>.QueryType.stats:
+                    CS_Squads_QueryType_Stats(pkt, zone);
+                    break;
+            }
             }
         }
 
@@ -1012,8 +1004,14 @@ namespace InfServer.Logic
             }
         }
 
-        private static void CS_Squads_QueryType_InviteResponse(CS_Squads<Zone> pkt, Zone zone, string cleanPayload, DataContext db, Player dbplayer)
+        private static void CS_Squads_QueryType_InviteResponse(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
         {
+            var player = zone.getPlayer(pkt.alias);
+            using var db = zone._server.getContext();
+            var dbplayer = db.Players
+                .Include(p => p.SquadNavigation)
+                .Where(p => p.Id == player.dbid);
+
             if (string.IsNullOrWhiteSpace(cleanPayload) || !cleanPayload.Contains(':'))
             {
                 zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadIresponse [accept/reject]:[squadname]");
@@ -1059,8 +1057,15 @@ namespace InfServer.Logic
             }
         }
 
-        private static void CS_Squads_QueryType_PlayerInvites(CS_Squads<Zone> pkt, Zone zone, string cleanPayload, DataContext db, Player dbplayer)
+        private static void CS_Squads_QueryType_PlayerInvites(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
         {
+            var player = zone.getPlayer(pkt.alias);
+            using var db = zone._server.getContext();
+            
+            var dbplayer = db.Players
+                .Include(p => p.SquadNavigation)
+                .Where(p => p.Id == player.dbid);
+
             //Is the zone asking?
             if (cleanPayload == "zone")
             {
@@ -1091,8 +1096,14 @@ namespace InfServer.Logic
                 zone._server.sendMessage(zone, pkt.alias, "&None.");
         }
 
-        private static void CS_Squads_QueryType_SquadInvites(CS_Squads<Zone> pkt, Zone zone, DataContext db, Player dbplayer)
+        private static void CS_Squads_QueryType_SquadInvites(CS_Squads<Zone> pkt, Zone zone)
         {
+            var player = zone.getPlayer(pkt.alias);
+            using var db = zone._server.getContext();
+            var dbplayer = db.Players
+                .Include(p => p.SquadNavigation)
+                .Where(p => p.Id == player.dbid);
+            
             //Lists the players squads outstanding invitations
             if (dbplayer.Squad == null || dbplayer.SquadNavigation.Owner != dbplayer.Id)
             {   //No squad found!
