@@ -207,7 +207,7 @@ namespace InfServer.Network
 
                                 if (watch.Elapsed.Milliseconds > 200)
                                 {
-                                    Log.write(TLog.Warning, $"[{watch.Elapsed.Seconds}s] Packet taking too long: {packet}");
+                                    Log.write(TLog.Warning, $"[{watch.Elapsed.Milliseconds} ms] Packet taking too long: {packet}");
                                 }
                             }
                         }
