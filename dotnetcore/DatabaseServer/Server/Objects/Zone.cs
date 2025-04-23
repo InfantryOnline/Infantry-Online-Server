@@ -3,6 +3,7 @@ using System.Linq;
 
 using InfServer.Network;
 using InfServer.Protocol;
+using Microsoft.Identity.Client;
 
 namespace InfServer
 {
@@ -30,6 +31,8 @@ namespace InfServer
         {
             public long acctid;			        //The player's account id
             public long aliasid;		        //The player's alias id
+            public long? squadid;               //The player's squad (optional)
+            public long statsid;                //The player's stats id.
             public string IPAddress;            //The player's ip address
             public bool stealth;
             public long dbid;			        //The player's id in the database
@@ -162,6 +165,8 @@ namespace InfServer
             player.aliasid = dbplayer.AliasNavigation.Id;
             player.IPAddress = dbplayer.AliasNavigation.IpAddress;
             player.dbid = dbplayer.Id;
+            player.squadid = dbplayer.Squad;
+            player.statsid = dbplayer.Stats;
             player.alias = alias;
             player.stealth = dbplayer.AliasNavigation.Stealth == 1;
             player.permission = dbplayer.Permission;

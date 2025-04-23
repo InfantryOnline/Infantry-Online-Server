@@ -7,9 +7,12 @@ using InfServer.Data;
 using Database;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace InfServer.Logic
 {
+    using SquadAliasQuery = Microsoft.EntityFrameworkCore.Query.IIncludableQueryable<Squad, Alias>;
+
     class Logic_ChatCommands
     {
         /// <summary>
@@ -899,526 +902,678 @@ namespace InfServer.Logic
                 Database.Player dbplayer = db.Zones.First(z => z.Id == zone._zone.Id).Players.First(p => p.AliasNavigation.Name == pkt.alias);
 
                 switch (pkt.queryType)
-                {   //Differentiate the type of query
+                {
                     case CS_Squads<Zone>.QueryType.create:
-                        {
-                            //Sanity checks
-                            if (dbplayer.Squad != null)
-                            {   //traitor is already in a squad
-                                zone._server.sendMessage(zone, pkt.alias, "You cannot create a squad if you are already in one (" + dbplayer.SquadNavigation.Name + ").");
-                                return;
-                            }
-
-                            if (!cleanPayload.Contains(':'))
-                            {   //invalid payload
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadcreate [squadname]:[squadpassword]");
-                                return;
-                            }
-
-                            string squadname = cleanPayload.Split(':').ElementAt(0);
-                            string squadpassword = cleanPayload.Split(':').ElementAt(1);
-                            if (!char.IsLetterOrDigit(squadname[0]) || squadname.Length == 0 || squadname.Length >= 32)
-                            {   //invalid name
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid squad name, must start with a letter or number and be less than 32 characters long.");
-                                return;
-                            }
-
-                            if (db.Squads.Where(s => s.Name == squadname && s.Zone == zone._zone.Id).Count() > 0)
-                            {   //This squad already exists!
-                                zone._server.sendMessage(zone, pkt.alias, "A squad with specified name already exists.");
-                                return;
-                            }
-
-                            //Create Some Stats first
-                            Database.SquadStat stats = new Database.SquadStat();
-                            stats.Kills = 0;
-                            stats.Deaths = 0;
-                            stats.Wins = 0;
-                            stats.Losses = 0;
-                            stats.Rating = 0;
-                            stats.Points = 0;
-
-                            db.Squadstats.Add(stats);
-                            db.SaveChanges();
-
-                            //Create the new squad
-                            Database.Squad newsquad = new Database.Squad();
-
-                            newsquad.Name = squadname;
-                            newsquad.Password = squadpassword;
-                            newsquad.Owner = dbplayer.Id;
-                            newsquad.DateCreated = DateTime.Now;
-                            newsquad.Zone = zone._zone.Id;
-                            stats.Squad = newsquad.Id;
-
-                            db.Squads.Add(newsquad);
-
-                            //We need to submit changes now to obtain squad ID and assign it to our creator
-                            db.SaveChanges();
-                            dbplayer.Squad = newsquad.Id;
-
-                            zone._server.sendMessage(zone, pkt.alias, "Successfully created squad: " + newsquad.Name + ". Quit and rejoin to be able to use # to squad chat.");
-                            Log.write(TLog.Normal, "Player {0} created squad {1} in zone {2}", pkt.alias, newsquad.Name, zone._zone.Name);
-                        }
+                        CS_Squads_QueryType_CreateSquad(pkt, zone, cleanPayload);
                         break;
 
                     case CS_Squads<Zone>.QueryType.invite:
-                        {
-                            //Sanity checks
-                            if (dbplayer.Squad == null)
-                                return;
-
-                            if (dbplayer.SquadNavigation.Owner != dbplayer.Id)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may send or revoke squad invitations");
-                                return;
-                            }
-
-                            if (string.IsNullOrWhiteSpace(pkt.payload) || !pkt.payload.Contains(':'))
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadinvite [add/remove]:[playername]:[squadname]");
-                                return;
-                            }
-
-                            //We dont want to use the clean payload since players have crazy names!
-                            string[] sInvite = pkt.payload.Split(':');
-                            if (sInvite.Count() != 3)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadinvite [add/remove]:[playername]:[squadname]");
-                                return;
-                            }
-
-                            //Adding or removing a squad invitation?
-                            bool bAdd = (sInvite[0].ToLower().Equals("add")) ? true : false;
-                            //The target player
-                            Database.Alias inviteAlias = db.Aliases.FirstOrDefault(a => a.Name == sInvite[1]);
-                            Database.Player invitePlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == inviteAlias && p.Zone == dbplayer.Zone);
-                            if (invitePlayer == null)
-                            {   //No such player!
-                                zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias.");
-                                return;
-                            }
-
-                            KeyValuePair<int, int> squadInvite = new KeyValuePair<int, int>((int)dbplayer.Squad, (int)invitePlayer.Id);
-                            if (bAdd)
-                            {   //Send a squad invite
-                                if (zone._server._squadInvites.Contains(squadInvite))
-                                {   //Exists
-                                    zone._server.sendMessage(zone, pkt.alias, "You have already sent a squad invite to " + invitePlayer.AliasNavigation.Name);
-                                }
-                                else
-                                {   //Doesn't exist
-                                    zone._server._squadInvites.Add(squadInvite);
-                                    zone._server.sendMessage(zone, pkt.alias, "Squad invite sent to " + invitePlayer.AliasNavigation.Name);
-                                    zone._server.sendMessage(zone, invitePlayer.AliasNavigation.Name, "You have been invited to join a squad: " + dbplayer.SquadNavigation.Name);
-                                }
-                            }
-                            else
-                            {   //Remove a squad invite
-                                if (zone._server._squadInvites.Contains(squadInvite))
-                                {   //Exists
-                                    zone._server._squadInvites.Remove(squadInvite);
-                                    zone._server.sendMessage(zone, pkt.alias, "Revoked squad invitation from " + invitePlayer.AliasNavigation.Name);
-                                }
-                                else
-                                {   //Doesn't exist
-                                    zone._server.sendMessage(zone, pkt.alias, "Found no squad invititations sent to " + invitePlayer.AliasNavigation.Name);
-                                }
-                            }
-                        }
+                        CS_Squads_QueryType_Invite(pkt, zone);
                         break;
 
                     case CS_Squads<Zone>.QueryType.kick:
-                        {
-                            //Sanity checks
-                            if (dbplayer.Squad == null)
-                                return;
-
-                            if (dbplayer.SquadNavigation.Owner != dbplayer.Id)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may kick players.");
-                                return;
-                            }
-
-                            //The target player
-                            Database.Alias kickAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
-                            Database.Player kickPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == kickAlias && p.Zone == dbplayer.Zone);
-                            if (kickPlayer == null)
-                            {   //No such player!
-                                zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias.");
-                                return;
-                            }
-
-                            if (kickPlayer.Squad == null || kickPlayer.Squad != dbplayer.Squad)
-                            {   //Liar!
-                                zone._server.sendMessage(zone, pkt.alias, "You may only kick players from your own squad.");
-                                return;
-                            }
-
-                            if (kickPlayer == dbplayer)
-                            {   //crazy
-                                zone._server.sendMessage(zone, pkt.alias, "You can't kick yourself");
-                                return;
-                            }
-
-                            //Kick him!
-                            kickPlayer.Squad = null;
-                            zone._server.sendMessage(zone, pkt.alias, "You have kicked " + kickPlayer.AliasNavigation.Name + " from your squad.");
-                            zone._server.sendMessage(zone, kickPlayer.AliasNavigation.Name, "You have been kicked from squad " + dbplayer.SquadNavigation.Name);
-                        }
+                        CS_Squads_QueryType_Kick(pkt, zone);
                         break;
 
                     case CS_Squads<Zone>.QueryType.transfer:
-                        {
-                            //Sanity checks
-                            if (string.IsNullOrEmpty(pkt.payload))
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Who are you transferring it to?");
-                                return;
-                            }
-
-                            if (dbplayer.Squad == null)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
-                                return;
-                            }
-
-                            if (dbplayer.SquadNavigation.Owner != dbplayer.Id)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may transfer squad ownership.");
-                                return;
-                            }
-
-                            //The target player
-                            Database.Alias transferAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
-                            Database.Player transferPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == transferAlias && p.Zone == dbplayer.Zone);
-                            if (transferPlayer == null || transferPlayer.Squad != dbplayer.Squad)
-                            {   //No such player!
-                                zone._server.sendMessage(zone, pkt.alias, "No player found in your squad by that alias.");
-                                return;
-                            }
-
-                            //Transfer ownership to him
-                            transferPlayer.SquadNavigation.Owner = transferPlayer.Id;
-                            zone._server.sendMessage(zone, pkt.alias, "You have promoted " + transferPlayer.AliasNavigation.Name + " to squad captain.");
-                            zone._server.sendMessage(zone, transferPlayer.AliasNavigation.Name, "You have been promoted to squad captain of " + transferPlayer.SquadNavigation.Name);
-                        }
+                        CS_Squads_QueryType_TransferSquad(pkt, zone);
                         break;
 
                     case CS_Squads<Zone>.QueryType.leave:
-                        {
-                            //Sanity checks
-                            if (dbplayer.Squad == null)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
-                                return;
-                            }
-
-                            //Get his squad brothers! (if any...)
-                            IQueryable<Database.Player> squadmates = db.Players.Where(p => p.Zone == dbplayer.Zone && p.Squad != null && p.Squad == dbplayer.Squad);
-
-                            //Is he the captain?
-                            if (dbplayer.SquadNavigation.Owner == dbplayer.Id)
-                            {   //We might need to dissolve the team!
-                                if (squadmates.Count() == 1)
-                                {
-                                    //He's the only one left on the squad... dissolve it!
-                                    var squad = dbplayer.SquadNavigation;
-                                    dbplayer.SquadNavigation = null;
-                                    dbplayer.Squad = null;
-                                    db.Squads.Remove(squad);
-
-                                    db.SaveChanges();
-
-                                    zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
-                                }
-                                else
-                                {   //There are other people on the squad!
-                                    //Transfer ownership automatically
-                                    Database.Player transfer = squadmates.FirstOrDefault(p => p.Id != dbplayer.Id);
-                                    dbplayer.SquadNavigation.Owner = transfer.Id;
-                                    //Leave the squad...
-                                    dbplayer.SquadNavigation = null;
-                                    dbplayer.Squad = null;
-                                    db.SaveChanges();
-                                    zone._server.sendMessage(zone, pkt.alias, string.Format("You have left your squad while giving ownership to {0}. Please rejoin the zone to complete this process.", transfer.AliasNavigation.Name));
-                                    zone._server.sendMessage(zone, transfer.AliasNavigation.Name, "You have been promoted to squad captain of " + transfer.SquadNavigation.Name);
-
-                                    //Notify his squadmates
-                                    foreach (Database.Player sm in squadmates)
-                                    {
-                                        if (sm.Id == dbplayer.Id)
-                                            continue;
-                                        zone._server.sendMessage(zone, sm.AliasNavigation.Name, pkt.alias + " has left your squad.");
-                                    }
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                //Leave the squad...
-                                dbplayer.SquadNavigation = null;
-                                dbplayer.Squad = null;
-                                zone._server.sendMessage(zone, pkt.alias, "You have left your squad, please rejoin the zone to complete the process.");
-                                //Notify his squadmates
-                                foreach (Database.Player sm in squadmates)
-                                {
-                                    if (sm.Id == dbplayer.Id)
-                                        continue;
-                                    zone._server.sendMessage(zone, sm.AliasNavigation.Name, pkt.alias + " has left your squad.");
-                                }
-                            }
-                        }
+                        CS_Squads_QueryType_LeaveSquad(pkt, zone);
                         break;
 
                     case CS_Squads<Zone>.QueryType.dissolve:
-                        {
-                            //Sanity checks
-                            if (dbplayer.Squad == null)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
-                                return;
-                            }
-
-                            //Get his squad brothers! (if any...)
-                            var squadmates = db.Players.Where(p => p.Zone == dbplayer.Zone && p.Squad != null && p.Squad == dbplayer.Squad).ToList();
-
-                            //Is he the captain?
-                            if (dbplayer.SquadNavigation.Owner == dbplayer.Id)
-                            {   //We might need to dissolve the team!
-                                if (squadmates.Count() == 1)
-                                {   //He's the only one left on the squad... dissolve it!
-                                    var squad = dbplayer.SquadNavigation;
-                                    dbplayer.SquadNavigation = null;
-                                    dbplayer.Squad = null;
-                                    db.Squads.Remove(squad);
-                                    db.SaveChanges();
-                                    
-                                    zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
-                                }
-                                else
-                                {   //There are other people on the squad, lets kick them off
-                                    foreach (Database.Player P in squadmates)
-                                    {
-                                        if (P.Id == dbplayer.Id)
-                                            continue;
-
-                                        P.SquadNavigation = null;
-                                        P.Squad = null;
-                                        zone._server.sendMessage(zone, P.AliasNavigation.Name, "Your squad has been dissolved.");
-                                    }
-                                    //Everyone was kicked, lets dissolve
-                                    var squad = dbplayer.SquadNavigation;
-                                    dbplayer.SquadNavigation = null;
-                                    dbplayer.Squad = null;
-                                    db.Squads.Remove(squad);
-
-                                    db.SaveChanges();
-
-                                    zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
-                                    break;
-                                }
-                            }
-                            else
-                                zone._server.sendMessage(zone, pkt.alias, "You cannot dissolve a squad you are not captain of!");
-                        }
+                        CS_Squads_QueryType_DissolveSquad(pkt, zone);
                         break;
 
                     case CS_Squads<Zone>.QueryType.online:
-                        {
-                            //Do we list his own squad or another?
-                            Database.Squad targetSquadOnline;
-                            if (cleanPayload == "")
-                                targetSquadOnline = db.Squads.FirstOrDefault(s => s.Id == dbplayer.Squad && s.Zone == zone._zone.Id);
-                            else
-                                targetSquadOnline = db.Squads.FirstOrDefault(s => s.Name == cleanPayload && s.Zone == zone._zone.Id);
-
-                            if (targetSquadOnline == null)
-                            {   //No squad found!
-                                zone._server.sendMessage(zone, pkt.alias, "No squad found.");
-                                return;
-                            }
-
-                            //List his online squadmates!
-                            zone._server.sendMessage(zone, pkt.alias, "&Squad Online List: " + dbplayer.SquadNavigation.Name);
-                            zone._server.sendMessage(zone, pkt.alias, "&Captain: " + db.Players.First(p => p.Id == dbplayer.SquadNavigation.Owner).AliasNavigation.Name);
-                            List<string> sonline = new List<string>();
-                            foreach (Player smate in db.Players.Where(p => p.Squad == targetSquadOnline.Id).ToList())
-                                //Make sure he's online!
-                                if (zone.getPlayer(smate.AliasNavigation.Name) != null)
-                                    sonline.Add(smate.AliasNavigation.Name);
-                            zone._server.sendMessage(zone, pkt.alias, "*" + string.Join(", ", sonline));
-                        }
+                        CS_Squads_QueryType_Online(pkt, zone, cleanPayload);
                         break;
 
                     case CS_Squads<Zone>.QueryType.list:
-                        {
-                            Squad targetSquadList;
-                            if (cleanPayload == "")
-                                targetSquadList = db.Squads.FirstOrDefault(s => s.Id == dbplayer.Squad && s.Zone == zone._zone.Id);
-                            else
-                                targetSquadList = db.Squads.FirstOrDefault(s => s.Name == cleanPayload && s.Zone == zone._zone.Id);
-
-                            if (targetSquadList == null)
-                            {   //No squad found!
-                                zone._server.sendMessage(zone, pkt.alias, "No squad found.");
-                                return;
-                            }
-
-                            //List the squad name, captain, and members!
-                            zone._server.sendMessage(zone, pkt.alias, "&Squad List: " + targetSquadList.Name);
-                            zone._server.sendMessage(zone, pkt.alias, "&Captain: " + db.Players.First(p => p.Id == targetSquadList.Owner).AliasNavigation.Name);
-                            zone._server.sendMessage(zone, pkt.alias, "Players: ");
-                            List<string> splayers = new List<string>();
-                            foreach (Player splayer in db.Players.Where(p => p.Squad == targetSquadList.Id).ToList())
-                                splayers.Add(splayer.AliasNavigation.Name);
-                            zone._server.sendMessage(zone, pkt.alias, string.Join(", ", splayers));
-                        }
+                        CS_Squads_QueryType_List(pkt, zone, cleanPayload);
                         break;
 
                     case CS_Squads<Zone>.QueryType.invitessquad:
-                        {
-                            //Lists the players squads outstanding invitations
-                            if (dbplayer.Squad == null || dbplayer.SquadNavigation.Owner != dbplayer.Id)
-                            {   //No squad found!
-                                zone._server.sendMessage(zone, pkt.alias, "You aren't the owner of a squad.");
-                                return;
-                            }
-                            zone._server.sendMessage(zone, pkt.alias, "&Outstanding Player Invitations:");
-                            bool found = false;
-                            foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
-                            {
-                                if (invite.Key == dbplayer.Squad)
-                                {
-                                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Players.First(p => p.Id == invite.Value).AliasNavigation.Name);
-                                    found = true;
-                                }
-                            }
-
-                            if (!found)
-                                zone._server.sendMessage(zone, pkt.alias, "&None.");
-                        }
+                        CS_Squads_QueryType_SquadInvites(pkt, zone, db, dbplayer);
                         break;
 
                     case CS_Squads<Zone>.QueryType.invitesplayer:
-                        {
-                            //Is the zone asking?
-                            if (cleanPayload == "zone")
-                            {
-                                foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
-                                {
-                                    if (invite.Value == dbplayer.Id)
-                                    {
-                                        Database.Squad sq = db.Squads.First(s => s.Id == invite.Key && s.Zone == zone._zone.Id);
-                                        if (sq != null)
-                                            zone._server.sendMessage(zone, pkt.alias, string.Format("You have been invited to join a squad: {0}", sq.Name));
-                                    }
-                                }
-                                break;
-                            }
-
-                            zone._server.sendMessage(zone, pkt.alias, "&Current Squad Invitations:");
-                            bool found = true;
-                            foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
-                            {
-                                if (invite.Value == dbplayer.Id)
-                                {
-                                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Squads.First(s => s.Id == invite.Key && s.Zone == zone._zone.Id).Name);
-                                    found = true;
-                                }
-                            }
-
-                            if (!found)
-                                zone._server.sendMessage(zone, pkt.alias, "&None.");
-                        }
+                        CS_Squads_QueryType_PlayerInvites(pkt, zone, cleanPayload, db, dbplayer);
                         break;
 
                     case CS_Squads<Zone>.QueryType.invitesreponse:
-                        {
-                            if (string.IsNullOrWhiteSpace(cleanPayload) || !cleanPayload.Contains(':'))
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadIresponse [accept/reject]:[squadname]");
-                                return;
-                            }
-
-                            //Response to a squad invitation
-                            string[] sResponse = cleanPayload.Split(':');
-                            //Sanity checks
-                            if (sResponse.Count() != 2)
-                            {   //Invalid syntax
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadIresponse [accept/reject]:[squadname]");
-                                return;
-                            }
-
-                            bool bAccept = (sResponse[0].ToLower() == "accept") ? true : false;
-                            Database.Squad responseSquad = db.Squads.FirstOrDefault(s => s.Name == sResponse[1] && s.Zone == zone._zone.Id);
-                            KeyValuePair<int, int> responsePair = new KeyValuePair<int, int>((int)responseSquad.Id, (int)dbplayer.Id);
-
-                            if (responseSquad == null || !zone._server._squadInvites.Contains(responsePair))
-                            {   //Either squad doesn't exist... or he's a filthy liar
-                                zone._server.sendMessage(zone, pkt.alias, "Invalid squad invitation response.");
-                                return;
-                            }
-
-                            if (bAccept)
-                            {   //Acceptance! Get in there, buddy
-                                if (dbplayer.Squad != null)
-                                {
-                                    zone._server.sendMessage(zone, pkt.alias, "You can't accept squad invites if you're already in a squad.");
-                                    return;
-                                }
-
-                                //Add him to the squad!
-                                dbplayer.Squad = responseSquad.Id;
-                                zone._server.sendMessage(zone, pkt.alias, "You've joined " + dbplayer.SquadNavigation.Name + "! Quit and rejoin to be able to use # to squad chat.");
-                                zone._server._squadInvites.Remove(responsePair);
-                            }
-                            else
-                            {   //He's getting rid of a squad invite...
-                                zone._server._squadInvites.Remove(responsePair);
-                                zone._server.sendMessage(zone, pkt.alias, "Revoked squad invitation from " + responseSquad.Name);
-                            }
-                        }
+                        CS_Squads_QueryType_InviteResponse(pkt, zone, cleanPayload, db, dbplayer);
                         break;
 
                     case CS_Squads<Zone>.QueryType.stats:
-                        {
-                            Database.Squad targetSquad;
-                            if (pkt.payload.Length > 0)
-                            {
-                                targetSquad = db.Squads.FirstOrDefault(s => s.Name == pkt.payload && s.Zone == zone._zone.Id);
-                            }
-                            else
-                            {
-                                targetSquad = db.Squads.FirstOrDefault(s => s.Id == dbplayer.Squad && s.Zone == zone._zone.Id);
-                            }
-
-                            if (targetSquad == null)
-                            {
-                                zone._server.sendMessage(zone, pkt.alias, "Squad not found or you are not in a squad.");
-                            }
-                            else
-                            {
-                                Database.SquadStat squadstats = db.Squadstats.FirstOrDefault(s => s.Squad == targetSquad.Id);
-                                if (squadstats != null)
-                                {
-                                    zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", targetSquad.Name));
-                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Kills={0}", squadstats.Kills));
-                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Deaths={0}", squadstats.Deaths));
-                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Points={0}", squadstats.Points));
-                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Wins={0}", squadstats.Wins));
-                                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Losses={0}", squadstats.Losses));
-                                    zone._server.sendMessage(zone, pkt.alias, String.Format("&--Rating={0}", squadstats.Rating));
-                                }
-                                else
-                                    zone._server.sendMessage(zone, pkt.alias, "This squad has no stats for this zone.");
-                            }
-                        }
+                        CS_Squads_QueryType_Stats(pkt, zone);
                         break;
                 }
 
                 //Save our changes to the database!
                 db.SaveChanges();
+            }
+        }
+
+        private static void CS_Squads_QueryType_Stats(CS_Squads<Zone> pkt, Zone zone)
+        {
+            var player = zone.getPlayer(pkt.alias);
+
+            using var ctx = zone._server.getContext();
+
+            string name = null;
+            long? id = null;
+
+            if (!string.IsNullOrWhiteSpace(pkt.payload))
+            {
+                var found = ctx.Squads.Where(s => s.Name == pkt.payload && s.Zone == zone._zone.Id).Select(s => new { s.Id, s.Name }).FirstOrDefault();
+
+                if (found != null)
+                {
+                    id = found.Id;
+                    name = found.Name;
+                }
+            }
+            else
+            {
+                if (player.squadid != null)
+                {
+                    var found = ctx.Squads.Where(s => s.Name == pkt.payload && s.Zone == zone._zone.Id).Select(s => new { s.Id, s.Name }).FirstOrDefault();
+
+                    id = found.Id;
+                    name = found.Name;
+                }
+            }
+
+            if (id == null)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Squad not found or you are not in a squad.");
+                return;
+            }
+
+            else
+            {
+                Database.SquadStat squadstats = ctx.Squadstats.FirstOrDefault(s => s.Squad == id);
+
+                if (squadstats != null)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", name));
+                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Kills={0}", squadstats.Kills));
+                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Deaths={0}", squadstats.Deaths));
+                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Points={0}", squadstats.Points));
+                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Wins={0}", squadstats.Wins));
+                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Losses={0}", squadstats.Losses));
+                    zone._server.sendMessage(zone, pkt.alias, String.Format("&--Rating={0}", squadstats.Rating));
+                }
+                else
+                    zone._server.sendMessage(zone, pkt.alias, "This squad has no stats for this zone.");
+            }
+        }
+
+        private static void CS_Squads_QueryType_InviteResponse(CS_Squads<Zone> pkt, Zone zone, string cleanPayload, DataContext db, Player dbplayer)
+        {
+            if (string.IsNullOrWhiteSpace(cleanPayload) || !cleanPayload.Contains(':'))
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadIresponse [accept/reject]:[squadname]");
+                return;
+            }
+
+            //Response to a squad invitation
+            string[] sResponse = cleanPayload.Split(':');
+            //Sanity checks
+            if (sResponse.Count() != 2)
+            {   //Invalid syntax
+                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadIresponse [accept/reject]:[squadname]");
+                return;
+            }
+
+            bool bAccept = (sResponse[0].ToLower() == "accept") ? true : false;
+            Database.Squad responseSquad = db.Squads.FirstOrDefault(s => s.Name == sResponse[1] && s.Zone == zone._zone.Id);
+            KeyValuePair<int, int> responsePair = new KeyValuePair<int, int>((int)responseSquad.Id, (int)dbplayer.Id);
+
+            if (responseSquad == null || !zone._server._squadInvites.Contains(responsePair))
+            {   //Either squad doesn't exist... or he's a filthy liar
+                zone._server.sendMessage(zone, pkt.alias, "Invalid squad invitation response.");
+                return;
+            }
+
+            if (bAccept)
+            {   //Acceptance! Get in there, buddy
+                if (dbplayer.Squad != null)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "You can't accept squad invites if you're already in a squad.");
+                    return;
+                }
+
+                //Add him to the squad!
+                dbplayer.Squad = responseSquad.Id;
+                zone._server.sendMessage(zone, pkt.alias, "You've joined " + dbplayer.SquadNavigation.Name + "! Quit and rejoin to be able to use # to squad chat.");
+                zone._server._squadInvites.Remove(responsePair);
+            }
+            else
+            {   //He's getting rid of a squad invite...
+                zone._server._squadInvites.Remove(responsePair);
+                zone._server.sendMessage(zone, pkt.alias, "Revoked squad invitation from " + responseSquad.Name);
+            }
+        }
+
+        private static void CS_Squads_QueryType_PlayerInvites(CS_Squads<Zone> pkt, Zone zone, string cleanPayload, DataContext db, Player dbplayer)
+        {
+            //Is the zone asking?
+            if (cleanPayload == "zone")
+            {
+                foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
+                {
+                    if (invite.Value == dbplayer.Id)
+                    {
+                        Database.Squad sq = db.Squads.First(s => s.Id == invite.Key && s.Zone == zone._zone.Id);
+                        if (sq != null)
+                            zone._server.sendMessage(zone, pkt.alias, string.Format("You have been invited to join a squad: {0}", sq.Name));
+                    }
+                }
+                return;
+            }
+
+            zone._server.sendMessage(zone, pkt.alias, "&Current Squad Invitations:");
+            bool found = true;
+            foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
+            {
+                if (invite.Value == dbplayer.Id)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Squads.First(s => s.Id == invite.Key && s.Zone == zone._zone.Id).Name);
+                    found = true;
+                }
+            }
+
+            if (!found)
+                zone._server.sendMessage(zone, pkt.alias, "&None.");
+        }
+
+        private static void CS_Squads_QueryType_SquadInvites(CS_Squads<Zone> pkt, Zone zone, DataContext db, Player dbplayer)
+        {
+            //Lists the players squads outstanding invitations
+            if (dbplayer.Squad == null || dbplayer.SquadNavigation.Owner != dbplayer.Id)
+            {   //No squad found!
+                zone._server.sendMessage(zone, pkt.alias, "You aren't the owner of a squad.");
+                return;
+            }
+            zone._server.sendMessage(zone, pkt.alias, "&Outstanding Player Invitations:");
+            bool found = false;
+            foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
+            {
+                if (invite.Key == dbplayer.Squad)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Players.First(p => p.Id == invite.Value).AliasNavigation.Name);
+                    found = true;
+                }
+            }
+
+            if (!found)
+                zone._server.sendMessage(zone, pkt.alias, "&None.");
+        }
+
+        private static void CS_Squads_QueryType_List(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
+        {
+            var player = zone.getPlayer(pkt.alias);
+
+            using var ctx = zone._server.getContext();
+
+            //
+            // Chain the query. We are using the `SquadAliasChainedQuery` type alias here because it is ugly to read otherwise.
+            //
+
+            var results = ctx.Squads.Include(s => s.Players).ThenInclude(p => p.AliasNavigation);
+
+            if (!string.IsNullOrWhiteSpace(cleanPayload))
+            {
+                results = (SquadAliasQuery)results.Where(s => s.Name == cleanPayload && s.Zone == zone._zone.Id);
+            }
+            else
+            {
+                if (player.squadid == null)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "No squad found.");
+                    return;
+                    
+                }
+
+                results = (SquadAliasQuery)results.Where(s => s.Id == player.squadid);
+            }
+
+            var squad = results.Select(s => new
+            {
+                s.Name,
+                Players = s.Players.Select(p => new { p.AliasNavigation.Name, Owner = p.Id == s.Owner })
+            }).FirstOrDefault();
+
+            if (squad == null)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "No squad found.");
+                return;
+            }
+
+            zone._server.sendMessage(zone, pkt.alias, $"&Squad Online List: {squad.Name}");
+            zone._server.sendMessage(zone, pkt.alias, $"&Captain: {squad.Players.First(p => p.Owner).Name}");
+            zone._server.sendMessage(zone, pkt.alias, "*" + string.Join(", ", squad.Players.Where(p => !p.Owner).Select(p => p.Name)));
+        }
+
+        private static void CS_Squads_QueryType_Online(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
+        {
+            var player = zone.getPlayer(pkt.alias);
+
+            Squad? squad = null;
+            string? owner = null;
+
+            using var ctx = zone._server.getContext();
+
+            if (!string.IsNullOrWhiteSpace(cleanPayload))
+            {
+                squad = ctx.Squads.Where(s => s.Name == cleanPayload && s.Zone == zone._zone.Id).FirstOrDefault();
+            }
+            else
+            {
+                if (player.squadid != null)
+                {
+                    squad = ctx.Squads.Find(player.squadid);
+
+                    if (squad.Owner == player.dbid)
+                    {
+                        owner = player.alias;
+                    }
+                }
+            }
+
+            if (squad == null)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "No squad found.");
+                return;
+            }
+
+            if (owner == null)
+            {
+                owner = ctx.Players
+                    .Include(p => p.AliasNavigation)
+                    .Where(p => p.Id == squad.Owner)
+                    .Select(p => p.AliasNavigation.Name)
+                    .FirstOrDefault();
+            }
+
+            zone._server.sendMessage(zone, pkt.alias, $"&Squad Online List: {squad.Name}");
+            zone._server.sendMessage(zone, pkt.alias, $"&Captain: {owner}");
+
+            var onlineSquadmates = zone._players.Where(p => p.Value.squadid == player.squadid).Select(s => s.Value.alias);
+
+            zone._server.sendMessage(zone, pkt.alias, "*" + string.Join(", ", onlineSquadmates));
+        }
+
+        private static void CS_Squads_QueryType_DissolveSquad(CS_Squads<Zone> pkt, Zone zone)
+        {
+            var player = zone.getPlayer(pkt.payload);
+
+            if (player.squadid == null)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
+                return;
+            }
+
+            using var ctx = zone._server.getContext();
+
+            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+
+            if (!isSquadOwner)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "You cannot dissolve a squad you are not captain of!");
+                return;
+            }
+
+            ctx.Players
+                .Where(p => p.Squad == player.squadid)
+                .ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+
+            ctx.Squads
+                .Where(s => s.Id == player.squadid)
+                .ExecuteDelete();
+
+            // Alert any online teammates.
+            var squadmates = zone._players.Where(p => p.Value.squadid == player.squadid);
+
+            foreach(var sm in squadmates)
+            {
+                sm.Value.squadid = null;
+                zone._server.sendMessage(zone, sm.Value.alias, "Your squad has been dissolved.");
+            }
+        }
+
+        private static void CS_Squads_QueryType_LeaveSquad(CS_Squads<Zone> pkt, Zone zone)
+        {
+            var player = zone.getPlayer(pkt.alias);
+
+            //Sanity checks
+            if (player.squadid == null)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
+                return;
+            }
+
+            using var ctx = zone._server.getContext();
+
+            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+
+            if (isSquadOwner)
+            {
+                var dbSquadmates = ctx.Players
+                    .Include(p => p.AliasNavigation)
+                    .Where(p => p.Squad == player.squadid && p.Id != player.dbid)
+                    .Select(p => new { p.AliasNavigation.Name, p.Id })
+                    .ToList();
+
+                ctx.Players.Where(p => p.Id == player.dbid).ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+
+                if (dbSquadmates.Count == 0)
+                {
+                    // Dissolve the squad.
+                    ctx.Squads.Where(s => s.Id == player.squadid).ExecuteDelete();
+                    zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
+                }
+                else
+                {
+                    // Transfer to next player.
+                    var sm = dbSquadmates[0];
+                    ctx.Squads.Where(s => s.Id == player.squadid).ExecuteUpdate(setters => setters.SetProperty(s => s.Owner, sm.Id));
+
+                    zone._server.sendMessage(zone, pkt.alias, string.Format("You have left your squad while giving ownership to {0}. Please rejoin the zone to complete this process.", sm.Name));
+                    zone._server.sendMessage(zone, sm.Name, "You have been promoted to squad captain of " + sm.Name);
+                }
+            }
+            else
+            {
+                ctx.Players.Where(p => p.Id == player.dbid).ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+            }
+
+            // Alert any online teammates.
+            var squadmates = zone._players.Where(p => p.Value.squadid == player.squadid && p.Value.dbid != player.dbid);
+
+            foreach (var s in squadmates)
+            {
+                zone._server.sendMessage(zone, s.Value.alias, $"{pkt.alias} has left your squad.");
+            }
+
+            player.squadid = null;
+
+            zone._server.sendMessage(zone, pkt.alias, "You have left your squad, please rejoin the zone to complete the process.");
+        }
+
+        private static void CS_Squads_QueryType_TransferSquad(CS_Squads<Zone> pkt, Zone zone)
+        {
+            //Sanity checks
+            if (string.IsNullOrEmpty(pkt.payload))
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Who are you transferring it to?");
+                return;
+            }
+
+            var player = zone.getPlayer(pkt.alias);
+
+            if (player.squadid == null)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
+                return;
+            }
+
+            using var ctx = zone._server.getContext();
+
+            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+
+            if (!isSquadOwner)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may transfer squad ownership.");
+                return;
+            }
+
+            var targetPlayer = ctx.Players
+                .Include(p => p.AliasNavigation)
+                .Include(p => p.SquadNavigation)
+                .Where(p => p.AliasNavigation.Name == pkt.payload && p.Squad == player.squadid && p.Zone == zone._zone.Id)
+                .Select(p => new { p.Id, p.AliasNavigation.Name, SquadName = p.SquadNavigation.Name })
+                .FirstOrDefault();
+
+            if (targetPlayer == null)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "No player found in your squad by that alias.");
+                return;
+            }
+
+            ctx.Squads
+                .Where(s => s.Id == player.squadid)
+                .ExecuteUpdate(setters => setters.SetProperty(s => s.Owner, targetPlayer.Id));
+
+            zone._server.sendMessage(zone, pkt.alias, "You have promoted " + targetPlayer.Name + " to squad captain.");
+            zone._server.sendMessage(zone, targetPlayer.Name, "You have been promoted to squad captain of " + targetPlayer.SquadName);
+        }
+
+        private static void CS_Squads_QueryType_Kick(CS_Squads<Zone> pkt, Zone zone)
+        {
+            var player = zone.getPlayer(pkt.alias);
+
+            if (player.squadid == null)
+            {
+                return;
+            }
+
+            using var ctx = zone._server.getContext();
+
+            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+
+            if (!isSquadOwner)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may kick players.");
+                return;
+            }
+
+            //
+            // See if player is online first, and elide the db call.
+            //
+
+            var targetPlayer = zone._server.getPlayer(pkt.payload);
+
+            long targetPlayerId;
+
+            if (targetPlayer != null)
+            {
+                if (targetPlayer.dbid == player.dbid)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "You can't kick yourself");
+                    return;
+                }
+
+                if (targetPlayer.squadid != player.squadid)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "You may only kick players from your own squad.");
+                    return;
+                }
+
+                targetPlayerId = targetPlayer.dbid;
+                targetPlayer.squadid = null;
+            }
+            else
+            {
+                var dbTargetPlayer = ctx.Players
+                    .Include(p => p.AliasNavigation)
+                    .Include(p => p.SquadNavigation)
+                    .Where(p => p.AliasNavigation.Name == pkt.payload && p.Zone == zone._zone.Id && p.Squad == player.squadid)
+                    .Select(p => new { p.Id, AliasName = p.AliasNavigation.Name, SquadName = p.SquadNavigation.Name})
+                    .FirstOrDefault();
+
+                if (dbTargetPlayer == null)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias within your squad.");
+                    return;
+                }
+
+                zone._server.sendMessage(zone, pkt.alias, "You have kicked " + dbTargetPlayer.AliasName + " from your squad.");
+                zone._server.sendMessage(zone, dbTargetPlayer.AliasName, "You have been kicked from squad " + dbTargetPlayer.SquadName);
+
+                targetPlayerId = dbTargetPlayer.Id;
+            }
+
+            ctx.Players
+                .Where(p => p.Id == targetPlayerId)
+                .ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+        }
+
+        private static void CS_Squads_QueryType_Invite(CS_Squads<Zone> pkt, Zone zone)
+        {
+            var player = zone.getPlayer(pkt.alias);
+
+            if (player.squadid == null)
+            {
+                return;
+            }
+
+            using var ctx = zone._server.getContext();
+
+            var squad = ctx.Squads.Where(s => s.Id == player.squadid).Select(s => new { s.Owner }).FirstOrDefault();
+
+            if (squad.Owner != player.squadid)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Only squad owners may send or revoke squad invitations");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(pkt.payload) || !pkt.payload.Contains(':'))
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadinvite [add/remove]:[playername]:[squadname]");
+                return;
+            }
+
+            //We dont want to use the clean payload since players have crazy names!
+            string[] sInvite = pkt.payload.Split(':');
+            if (sInvite.Count() != 3)
+            {
+                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadinvite [add/remove]:[playername]:[squadname]");
+                return;
+            }
+
+            //Adding or removing a squad invitation?
+            bool bAdd = (sInvite[0].ToLower().Equals("add")) ? true : false;
+
+            var invitedPlayer = ctx.Players
+                .Include(p => p.AliasNavigation)
+                .Where(p => p.AliasNavigation.Name == sInvite[1] && p.Zone == zone._zone.Id)
+                .Select(p => new { p.Id, p.AliasNavigation.Name })
+                .FirstOrDefault();
+
+            if (invitedPlayer == null)
+            {   //No such player!
+                zone._server.sendMessage(zone, pkt.alias, "No player found in this zone by that alias.");
+                return;
+            }
+
+            var squadName = ctx.Squads.Where(s => s.Id == player.squadid).Select(s => s.Name).FirstOrDefault();
+
+            KeyValuePair<int, int> squadInvite = new KeyValuePair<int, int>((int)player.squadid, (int)invitedPlayer.Id);
+            if (bAdd)
+            {   //Send a squad invite
+                if (zone._server._squadInvites.Contains(squadInvite))
+                {   //Exists
+                    zone._server.sendMessage(zone, pkt.alias, "You have already sent a squad invite to " + invitedPlayer.Name);
+                }
+                else
+                {   //Doesn't exist
+                    zone._server._squadInvites.Add(squadInvite);
+                    zone._server.sendMessage(zone, pkt.alias, "Squad invite sent to " + invitedPlayer.Name);
+                    zone._server.sendMessage(zone, invitedPlayer.Name, "You have been invited to join a squad: " + squadName);
+                }
+            }
+            else
+            {   //Remove a squad invite
+                if (zone._server._squadInvites.Contains(squadInvite))
+                {   //Exists
+                    zone._server._squadInvites.Remove(squadInvite);
+                    zone._server.sendMessage(zone, pkt.alias, "Revoked squad invitation from " + invitedPlayer.Name);
+                }
+                else
+                {   //Doesn't exist
+                    zone._server.sendMessage(zone, pkt.alias, "Found no squad invititations sent to " + invitedPlayer.Name);
+                }
+            }
+        }
+
+        private static void CS_Squads_QueryType_CreateSquad(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
+        {
+            var player = zone.getPlayer(pkt.alias);
+
+            if (player.squadid != null)
+            {
+                using var ctx = zone._server.getContext();
+
+                var squadName = ctx.Squads.Where(s => s.Id == player.squadid).Select(s => s.Name).FirstOrDefault();
+                zone._server.sendMessage(zone, pkt.alias, $"You cannot create a squad if you are already in one ({squadName}.");
+            }
+
+            if (!cleanPayload.Contains(':'))
+            {   //invalid payload
+                zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadcreate [squadname]:[squadpassword]");
+                return;
+            }
+
+            string squadname = cleanPayload.Split(':').ElementAt(0);
+            string squadpassword = cleanPayload.Split(':').ElementAt(1);
+
+            if (!char.IsLetterOrDigit(squadname[0]) || squadname.Length == 0 || squadname.Length >= 32)
+            {   //invalid name
+                zone._server.sendMessage(zone, pkt.alias, "Invalid squad name, must start with a letter or number and be less than 32 characters long.");
+                return;
+            }
+
+            using (var ctx = zone._server.getContext())
+            {
+                var exists = ctx.Squads.Any(s => s.Name == squadname && s.Zone == zone._zone.Id);
+
+                if (exists)
+                {
+                    zone._server.sendMessage(zone, pkt.alias, "A squad with specified name already exists.");
+                    return;
+                }
+            }
+
+            using (var ctx = zone._server.getContext())
+            {
+                //Create Some Stats first
+                Database.SquadStat stats = new Database.SquadStat();
+                stats.Kills = 0;
+                stats.Deaths = 0;
+                stats.Wins = 0;
+                stats.Losses = 0;
+                stats.Rating = 0;
+                stats.Points = 0;
+
+                ctx.Squadstats.Add(stats);
+                ctx.SaveChanges();
+
+                //Create the new squad
+                Database.Squad newsquad = new Database.Squad();
+
+                newsquad.Name = squadname;
+                newsquad.Password = squadpassword;
+                newsquad.Owner = player.dbid;
+                newsquad.DateCreated = DateTime.Now;
+                newsquad.Zone = zone._zone.Id;
+                stats.Squad = newsquad.Id;
+
+                ctx.Squads.Add(newsquad);
+                ctx.SaveChanges();
+
+                ctx.Players
+                    .Where(p => p.Id == player.dbid)
+                    .ExecuteUpdate(p => p.SetProperty(s => s.Squad, newsquad.Id));
+
+                player.squadid = newsquad.Id;
+
+                zone._server.sendMessage(zone, pkt.alias, "Successfully created squad: " + newsquad.Name + ". Quit and rejoin to be able to use # to squad chat.");
+                Log.write(TLog.Normal, "Player {0} created squad {1} in zone {2}", pkt.alias, newsquad.Name, zone._zone.Name);
             }
         }
 

@@ -149,7 +149,7 @@ namespace InfServer.Network
                 _sock.Bind(_listenPoint);
 
                 //Begin listening for packets
-                _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, _sock);
+                _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataReceived, _sock);
             }
             catch (SocketException se)
             {	//Failure!
@@ -205,7 +205,7 @@ namespace InfServer.Network
                             {
                                 watch.Stop();
 
-                                if (watch.Elapsed.Milliseconds > 500)
+                                if (watch.Elapsed.Milliseconds > 200)
                                 {
                                     Log.write(TLog.Warning, $"[{watch.Elapsed.Seconds}s] Packet taking too long: {packet}");
                                 }
@@ -227,7 +227,7 @@ namespace InfServer.Network
         /// <summary>
         /// Delegate for asynchronously receiving UDP packets
         /// </summary>
-        private void onDataRecieved(IAsyncResult asyn)
+        private void onDataReceived(IAsyncResult asyn)
         {
             var socket = asyn.AsyncState as Socket;
 
@@ -351,7 +351,7 @@ namespace InfServer.Network
 
                 try
                 {	//Wait for more data
-                    _currentAsyncResult = socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataRecieved, socket);
+                    _currentAsyncResult = socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataReceived, socket);
                 }
                 catch (SocketException se)
                 {	//Store the exception and exit
