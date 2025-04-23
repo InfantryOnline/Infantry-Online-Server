@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -931,7 +931,7 @@ namespace InfServer.Logic
                     break;
 
                 case CS_Squads<Zone>.QueryType.invitessquad:
-                    CS_Squads_QueryType_SquadInvites(pkt, zone, db);
+                    CS_Squads_QueryType_SquadInvites(pkt, zone);
                     break;
 
                 case CS_Squads<Zone>.QueryType.invitesplayer:
@@ -1009,7 +1009,8 @@ namespace InfServer.Logic
             using var db = zone._server.getContext();
             var dbplayer = db.Players
                 .Include(p => p.SquadNavigation)
-                .Where(p => p.Id == player.dbid);
+                .Where(p => p.Id == player.dbid)
+                .FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(cleanPayload) || !cleanPayload.Contains(':'))
             {
@@ -1060,10 +1061,10 @@ namespace InfServer.Logic
         {
             var player = zone.getPlayer(pkt.alias);
             using var db = zone._server.getContext();
-            
             var dbplayer = db.Players
                 .Include(p => p.SquadNavigation)
-                .Where(p => p.Id == player.dbid);
+                .Where(p => p.Id == player.dbid)
+                .FirstOrDefault();
 
             //Is the zone asking?
             if (cleanPayload == "zone")
@@ -1101,8 +1102,9 @@ namespace InfServer.Logic
             using var db = zone._server.getContext();
             var dbplayer = db.Players
                 .Include(p => p.SquadNavigation)
-                .Where(p => p.Id == player.dbid);
-            
+                .Where(p => p.Id == player.dbid)
+                .FirstOrDefault();
+
             //Lists the players squads outstanding invitations
             if (dbplayer.Squad == null || dbplayer.SquadNavigation.Owner != dbplayer.Id)
             {   //No squad found!
