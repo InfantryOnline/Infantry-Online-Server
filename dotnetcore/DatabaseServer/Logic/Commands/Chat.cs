@@ -946,7 +946,6 @@ namespace InfServer.Logic
                     CS_Squads_QueryType_Stats(pkt, zone);
                     break;
             }
-            }
         }
 
         private static void CS_Squads_QueryType_Stats(CS_Squads<Zone> pkt, Zone zone)
