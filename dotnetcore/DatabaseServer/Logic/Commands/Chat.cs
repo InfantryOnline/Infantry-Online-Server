@@ -11,8 +11,6 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
 namespace InfServer.Logic
 {
-    using SquadAliasQuery = Microsoft.EntityFrameworkCore.Query.IIncludableQueryable<Squad, Alias>;
-
     class Logic_ChatCommands
     {
         /// <summary>
@@ -1133,14 +1131,14 @@ namespace InfServer.Logic
             using var ctx = zone._server.getContext();
 
             //
-            // Chain the query. We are using the `SquadAliasChainedQuery` type alias here because it is ugly to read otherwise.
+            // Chain the query. We are using the IQueryable type explicitly due to the chain.
             //
 
-            var results = ctx.Squads.Include(s => s.Players).ThenInclude(p => p.AliasNavigation);
+            IQueryable<Squad> results = ctx.Squads.Include(s => s.Players).ThenInclude(p => p.AliasNavigation);
 
             if (!string.IsNullOrWhiteSpace(cleanPayload))
             {
-                results = (SquadAliasQuery)results.Where(s => s.Name == cleanPayload && s.Zone == zone._zone.Id);
+                results = results.Where(s => s.Name == cleanPayload && s.Zone == zone._zone.Id);
             }
             else
             {
@@ -1151,7 +1149,7 @@ namespace InfServer.Logic
                     
                 }
 
-                results = (SquadAliasQuery)results.Where(s => s.Id == player.squadid);
+                results = results.Where(s => s.Id == player.squadid);
             }
 
             var squad = results.Select(s => new

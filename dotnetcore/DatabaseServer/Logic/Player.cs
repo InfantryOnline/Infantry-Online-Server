@@ -21,101 +21,112 @@ namespace InfServer.Logic
         /// Handles a player update request
         /// </summary>
         static public void Handle_CS_PlayerUpdate(CS_PlayerUpdate<Zone> pkt, Zone zone)
-        {	//Attempt to find the player in question
-            Zone.Player player = zone.getPlayer(pkt.player.id);
-            if (player == null)
-            {	//Make a note
-                Log.write(TLog.Warning, "Ignoring player update for #{0}, not present in zone mirror.", pkt.player.id);
+        {
+            var player = zone.getPlayer(pkt.player.id);
 
-                //
-                // TODO: Send a packet back to zone server.
-                //
+            if (player == null)
+            {
+                Log.write(TLog.Warning, "Ignoring player update for #{0}, not present in zone mirror.", pkt.player.id);
                 return;
             }
 
-            using (Database.DataContext db = zone._server.getContext())
-            {	//Get the associated player entry
-                Player dbplayer = db.Players
-                    .Include(p => p.StatsNavigation)
-                    .SingleOrDefault(s => s.Id == player.dbid);
+            using var ctx = zone._server.getContext();
 
-                if (dbplayer == null)
-                {	//Make a note
-                    Log.write(TLog.Warning, "Ignoring player update for {0}, not present in database.", player.alias);
-                    return;
-                }
+            //
+            // Query the current stats. Yes, we need to make a query to get the stats for purposes of substraction.
+            // While we could keep the most recent stats in memory, we'll omit that for now and incur this call.
+            //
 
-                UpdateDailyWeeklyMonthlyYearlyStats(db, pkt, zone, dbplayer);
+            var previousStat = ctx.Stats
+                .AsNoTracking()
+                .Where(s => s.Id == player.statsid)
+                .First();
 
-                // Write the new stats to the stats table.
-                Stat stats = dbplayer.StatsNavigation;
+            // Now update.
 
-                stats.Zonestat1 = pkt.stats.zonestat1;
-                stats.Zonestat2 = pkt.stats.zonestat2;
-                stats.Zonestat3 = pkt.stats.zonestat3;
-                stats.Zonestat4 = pkt.stats.zonestat4;
-                stats.Zonestat5 = pkt.stats.zonestat5;
-                stats.Zonestat6 = pkt.stats.zonestat6;
-                stats.Zonestat7 = pkt.stats.zonestat7;
-                stats.Zonestat8 = pkt.stats.zonestat8;
-                stats.Zonestat9 = pkt.stats.zonestat9;
-                stats.Zonestat10 = pkt.stats.zonestat10;
-                stats.Zonestat11 = pkt.stats.zonestat11;
-                stats.Zonestat12 = pkt.stats.zonestat12;
+            var statUpdateRowCount = ctx.Stats
+                .Where(s => s.Id == player.statsid)
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(s => s.Zonestat1, pkt.stats.zonestat1)
+                    .SetProperty(s => s.Zonestat2, pkt.stats.zonestat2)
+                    .SetProperty(s => s.Zonestat3, pkt.stats.zonestat3)
+                    .SetProperty(s => s.Zonestat4, pkt.stats.zonestat4)
+                    .SetProperty(s => s.Zonestat5, pkt.stats.zonestat5)
+                    .SetProperty(s => s.Zonestat6, pkt.stats.zonestat6)
+                    .SetProperty(s => s.Zonestat7, pkt.stats.zonestat7)
+                    .SetProperty(s => s.Zonestat8, pkt.stats.zonestat8)
+                    .SetProperty(s => s.Zonestat9, pkt.stats.zonestat9)
+                    .SetProperty(s => s.Zonestat10, pkt.stats.zonestat10)
+                    .SetProperty(s => s.Zonestat11, pkt.stats.zonestat11)
+                    .SetProperty(s => s.Zonestat12, pkt.stats.zonestat12)
 
-                stats.Kills = pkt.stats.kills;
-                stats.Deaths = pkt.stats.deaths;
-                stats.KillPoints = pkt.stats.killPoints;
-                stats.DeathPoints = pkt.stats.deathPoints;
-                stats.AssistPoints = pkt.stats.assistPoints;
-                stats.BonusPoints = pkt.stats.bonusPoints;
-                stats.VehicleKills = pkt.stats.vehicleKills;
-                stats.VehicleDeaths = pkt.stats.vehicleDeaths;
-                stats.PlaySeconds = pkt.stats.playSeconds;
+                    .SetProperty(s => s.Kills, pkt.stats.kills)
+                    .SetProperty(s => s.Deaths, pkt.stats.deaths)
+                    .SetProperty(s => s.KillPoints, pkt.stats.killPoints)
+                    .SetProperty(s => s.DeathPoints, pkt.stats.deathPoints)
+                    .SetProperty(s => s.AssistPoints, pkt.stats.assistPoints)
+                    .SetProperty(s => s.BonusPoints, pkt.stats.bonusPoints)
+                    .SetProperty(s => s.VehicleKills, pkt.stats.vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, pkt.stats.vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, pkt.stats.playSeconds)
+                    .SetProperty(s => s.Cash, pkt.stats.cash)
+                    .SetProperty(s => s.Experience, pkt.stats.experience)
+                    .SetProperty(s => s.ExperienceTotal, pkt.stats.experienceTotal));
 
-                stats.Cash = pkt.stats.cash;
-                stats.Experience = pkt.stats.experience;
-                stats.ExperienceTotal = pkt.stats.experienceTotal;
+            //
+            // Sanity check, make sure that we actually have a record. Maybe not needed
+            // but the previous code had it so we'll keep it for now.
+            //
 
-                //Convert inventory and skills
-                dbplayer.Inventory = DatabaseBinaryUtils.inventoryToBin(pkt.stats.inventory);
-                dbplayer.Skills = DatabaseBinaryUtils.skillsToBin(pkt.stats.skills);
-
-                //Update all changes
-                db.SaveChanges();
+            if (statUpdateRowCount == 0)
+            {
+                Log.write(TLog.Warning, "Ignoring player update for {0}, not present in database.", player.alias);
+                return;
             }
+
+            ctx.Players
+                .Where(p => p.Id == player.dbid)
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(p => p.Inventory, DatabaseBinaryUtils.inventoryToBin(pkt.stats.inventory))
+                    .SetProperty(p => p.Skills, DatabaseBinaryUtils.skillsToBin(pkt.stats.skills)));
+
+
+            UpdateDailyWeeklyMonthlyYearlyStats(pkt, zone, player, ctx, previousStat);
         }
 
-        static private void UpdateDailyWeeklyMonthlyYearlyStats(DataContext db, CS_PlayerUpdate<Zone> pkt, Zone zone, Database.Player player)
+        static private void UpdateDailyWeeklyMonthlyYearlyStats(CS_PlayerUpdate<Zone> pkt, Zone zone, Zone.Player player, DataContext ctx, Database.Stat previousStat)
         {
-            // 1. Get the deltas from the current stats table, and then add it to each of the long-term stat categories.
+            //
+            // Subtract to get the delta from our previous stats,
+            // and then proceed to add this delta to the accruals.
+            //
 
-            Stat stats = player.StatsNavigation;
+            var zs1 = pkt.stats.zonestat1 - previousStat.Zonestat1;
+            var zs2 = pkt.stats.zonestat2 - previousStat.Zonestat2;
+            var zs3 = pkt.stats.zonestat3 - previousStat.Zonestat3;
+            var zs4 = pkt.stats.zonestat4 - previousStat.Zonestat4;
+            var zs5 = pkt.stats.zonestat5 - previousStat.Zonestat5;
+            var zs6 = pkt.stats.zonestat6 - previousStat.Zonestat6;
+            var zs7 = pkt.stats.zonestat7 - previousStat.Zonestat7;
+            var zs8 = pkt.stats.zonestat8 - previousStat.Zonestat8;
+            var zs9 = pkt.stats.zonestat9 - previousStat.Zonestat9;
+            var zs10 = pkt.stats.zonestat10 - previousStat.Zonestat10;
+            var zs11 = pkt.stats.zonestat11 - previousStat.Zonestat11;
+            var zs12 = pkt.stats.zonestat12 - previousStat.Zonestat12;
 
-            var zs1 = pkt.stats.zonestat1 - stats.Zonestat1;
-            var zs2 = pkt.stats.zonestat2 - stats.Zonestat2;
-            var zs3 = pkt.stats.zonestat3 - stats.Zonestat3;
-            var zs4 = pkt.stats.zonestat4 - stats.Zonestat4;
-            var zs5 = pkt.stats.zonestat5 - stats.Zonestat5;
-            var zs6 = pkt.stats.zonestat6 - stats.Zonestat6;
-            var zs7 = pkt.stats.zonestat7 - stats.Zonestat7;
-            var zs8 = pkt.stats.zonestat8 - stats.Zonestat8;
-            var zs9 = pkt.stats.zonestat9 - stats.Zonestat9;
-            var zs10 = pkt.stats.zonestat10 - stats.Zonestat10;
-            var zs11 = pkt.stats.zonestat11 - stats.Zonestat11;
-            var zs12 = pkt.stats.zonestat12 - stats.Zonestat12;
+            var kills = pkt.stats.kills - previousStat.Kills;
+            var deaths = pkt.stats.deaths - previousStat.Deaths;
+            var killPoints = pkt.stats.killPoints - previousStat.KillPoints;
+            var deathPoints = pkt.stats.deathPoints - previousStat.DeathPoints;
+            var assistPoints = pkt.stats.assistPoints - previousStat.AssistPoints;
+            var bonusPoints = pkt.stats.bonusPoints - previousStat.BonusPoints;
+            var vehicleKills = pkt.stats.vehicleKills - previousStat.VehicleKills;
+            var vehicleDeaths = pkt.stats.vehicleDeaths - previousStat.VehicleDeaths;
+            var playSeconds = pkt.stats.playSeconds - previousStat.PlaySeconds;
 
-            var kills = pkt.stats.kills - stats.Kills;
-            var deaths = pkt.stats.deaths - stats.Deaths;
-            var killPoints = pkt.stats.killPoints - stats.KillPoints;
-            var deathPoints = pkt.stats.deathPoints - stats.DeathPoints;
-            var assistPoints = pkt.stats.assistPoints - stats.AssistPoints;
-            var bonusPoints = pkt.stats.bonusPoints - stats.BonusPoints;
-            var vehicleKills = pkt.stats.vehicleKills - stats.VehicleKills;
-            var vehicleDeaths = pkt.stats.vehicleDeaths - stats.VehicleDeaths;
-            var playSeconds = pkt.stats.playSeconds - stats.PlaySeconds;
-
-            // 2. For each type of stat, we need to query and see if it exists. Be mindful of the logic used for date filtering.
+            //
+            // Create a date object for each type of stat.
+            //
 
             var day = DateTime.Today;
             var week = DateTime.Today;
@@ -127,153 +138,265 @@ namespace InfServer.Logic
                 week = week.AddDays(-(int)week.DayOfWeek);
             }
 
-            // Update Daily
+            // Update or Insert Daily
 
-            var daily = db.StatsDailies.FirstOrDefault(s => s.Date == day && s.Player == player.Id);
+            var dailyRowsUpdated = ctx.StatsDailies
+                .Where(s => s.Date == day && s.Player == player.dbid)
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + pkt.stats.zonestat3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + pkt.stats.zonestat4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + pkt.stats.zonestat5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + pkt.stats.zonestat6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + pkt.stats.zonestat7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + pkt.stats.zonestat8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + pkt.stats.zonestat9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + pkt.stats.zonestat10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + pkt.stats.zonestat11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + pkt.stats.zonestat12)
 
-            if (daily == null)
+                    .SetProperty(s => s.Kills, s => s.Kills + pkt.stats.kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths + pkt.stats.deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints + pkt.stats.killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + pkt.stats.deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + pkt.stats.assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + pkt.stats.bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + pkt.stats.vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + pkt.stats.vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + pkt.stats.playSeconds)
+                    .SetProperty(s => s.Experience, s => s.Experience + pkt.stats.experience)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal + pkt.stats.experienceTotal));
+
+            if (dailyRowsUpdated == 0)
             {
-                daily = new StatsDaily();
-                daily.Zone = player.Zone;
-                daily.Player = player.Id;
-                daily.Date = day;
+                var stat = new StatsDaily();
 
-                db.StatsDailies.Add(daily);
+                stat.Zone = zone._zone.Id;
+                stat.Date = day;
+                stat.Player = player.dbid;
+
+                stat.Kills += kills;
+                stat.Deaths += deaths;
+                stat.KillPoints += killPoints;
+                stat.DeathPoints += deathPoints;
+                stat.AssistPoints += assistPoints;
+                stat.BonusPoints += bonusPoints;
+                stat.VehicleKills += vehicleKills;
+                stat.VehicleDeaths += vehicleDeaths;
+                stat.PlaySeconds += playSeconds;
+
+                stat.Zonestat1 += zs1;
+                stat.Zonestat2 += zs2;
+                stat.Zonestat3 += zs3;
+                stat.Zonestat4 += zs4;
+                stat.Zonestat5 += zs5;
+                stat.Zonestat6 += zs6;
+                stat.Zonestat7 += zs7;
+                stat.Zonestat8 += zs8;
+                stat.Zonestat9 += zs9;
+                stat.Zonestat10 += zs10;
+                stat.Zonestat11 += zs11;
+                stat.Zonestat12 += zs12;
+
+                ctx.StatsDailies.Add(stat);
+                ctx.SaveChanges();
             }
 
-            daily.Kills += kills;
-            daily.Deaths += deaths;
-            daily.KillPoints += killPoints;
-            daily.DeathPoints += deathPoints;
-            daily.AssistPoints += assistPoints;
-            daily.BonusPoints += bonusPoints;
-            daily.VehicleKills += vehicleKills;
-            daily.VehicleDeaths += vehicleDeaths;
-            daily.PlaySeconds += playSeconds;
+            // Update or Insert Weekly
 
-            daily.Zonestat1 += zs1;
-            daily.Zonestat2 += zs2;
-            daily.Zonestat3 += zs3;
-            daily.Zonestat4 += zs4;
-            daily.Zonestat5 += zs5;
-            daily.Zonestat6 += zs6;
-            daily.Zonestat7 += zs7;
-            daily.Zonestat8 += zs8;
-            daily.Zonestat9 += zs9;
-            daily.Zonestat10 += zs10;
-            daily.Zonestat11 += zs11;
-            daily.Zonestat12 += zs12;
+            var weeklyRowsUpdated = ctx.StatsDailies
+                .Where(s => s.Date == week && s.Player == player.dbid)
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + pkt.stats.zonestat3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + pkt.stats.zonestat4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + pkt.stats.zonestat5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + pkt.stats.zonestat6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + pkt.stats.zonestat7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + pkt.stats.zonestat8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + pkt.stats.zonestat9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + pkt.stats.zonestat10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + pkt.stats.zonestat11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + pkt.stats.zonestat12)
 
-            // Update Weekly
+                    .SetProperty(s => s.Kills, s => s.Kills + pkt.stats.kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths + pkt.stats.deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints + pkt.stats.killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + pkt.stats.deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + pkt.stats.assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + pkt.stats.bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + pkt.stats.vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + pkt.stats.vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + pkt.stats.playSeconds)
+                    .SetProperty(s => s.Experience, s => s.Experience + pkt.stats.experience)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal + pkt.stats.experienceTotal));
 
-            var weekly = db.StatsWeeklies.FirstOrDefault(s => s.Date == week && s.Player == player.Id);
-
-            if (weekly == null)
+            if (weeklyRowsUpdated == 0)
             {
-                weekly = new StatsWeekly();
-                weekly.Zone = player.Zone;
-                weekly.Player = player.Id;
-                weekly.Date = week;
+                var stat = new StatsWeekly();
 
-                db.StatsWeeklies.Add(weekly);
+                stat.Zone = zone._zone.Id;
+                stat.Date = week;
+                stat.Player = player.dbid;
+
+                stat.Kills += kills;
+                stat.Deaths += deaths;
+                stat.KillPoints += killPoints;
+                stat.DeathPoints += deathPoints;
+                stat.AssistPoints += assistPoints;
+                stat.BonusPoints += bonusPoints;
+                stat.VehicleKills += vehicleKills;
+                stat.VehicleDeaths += vehicleDeaths;
+                stat.PlaySeconds += playSeconds;
+
+                stat.Zonestat1 += zs1;
+                stat.Zonestat2 += zs2;
+                stat.Zonestat3 += zs3;
+                stat.Zonestat4 += zs4;
+                stat.Zonestat5 += zs5;
+                stat.Zonestat6 += zs6;
+                stat.Zonestat7 += zs7;
+                stat.Zonestat8 += zs8;
+                stat.Zonestat9 += zs9;
+                stat.Zonestat10 += zs10;
+                stat.Zonestat11 += zs11;
+                stat.Zonestat12 += zs12;
+
+                ctx.StatsWeeklies.Add(stat);
+                ctx.SaveChanges();
             }
 
-            weekly.Kills += kills;
-            weekly.Deaths += deaths;
-            weekly.KillPoints += killPoints;
-            weekly.DeathPoints += deathPoints;
-            weekly.AssistPoints += assistPoints;
-            weekly.BonusPoints += bonusPoints;
-            weekly.VehicleKills += vehicleKills;
-            weekly.VehicleDeaths += vehicleDeaths;
-            weekly.PlaySeconds += playSeconds;
+            // Update or Insert Monthly
 
-            weekly.Zonestat1 += zs1;
-            weekly.Zonestat2 += zs2;
-            weekly.Zonestat3 += zs3;
-            weekly.Zonestat4 += zs4;
-            weekly.Zonestat5 += zs5;
-            weekly.Zonestat6 += zs6;
-            weekly.Zonestat7 += zs7;
-            weekly.Zonestat8 += zs8;
-            weekly.Zonestat9 += zs9;
-            weekly.Zonestat10 += zs10;
-            weekly.Zonestat11 += zs11;
-            weekly.Zonestat12 += zs12;
+            var monthlyRowsUpdated = ctx.StatsMonthlies
+                .Where(s => s.Date == month && s.Player == player.dbid)
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + pkt.stats.zonestat3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + pkt.stats.zonestat4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + pkt.stats.zonestat5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + pkt.stats.zonestat6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + pkt.stats.zonestat7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + pkt.stats.zonestat8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + pkt.stats.zonestat9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + pkt.stats.zonestat10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + pkt.stats.zonestat11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + pkt.stats.zonestat12)
 
-            // Update Monthly
+                    .SetProperty(s => s.Kills, s => s.Kills + pkt.stats.kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths + pkt.stats.deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints + pkt.stats.killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + pkt.stats.deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + pkt.stats.assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + pkt.stats.bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + pkt.stats.vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + pkt.stats.vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + pkt.stats.playSeconds)
+                    .SetProperty(s => s.Experience, s => s.Experience + pkt.stats.experience)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal + pkt.stats.experienceTotal));
 
-            var monthly = db.StatsMonthlies.FirstOrDefault(s => s.Date == month && s.Player == player.Id);
-
-            if (monthly == null)
+            if (monthlyRowsUpdated == 0)
             {
-                monthly = new StatsMonthly();
-                monthly.Zone = player.Zone;
-                monthly.Player = player.Id;
-                monthly.Date = month;
+                var stat = new StatsMonthly();
 
-                db.StatsMonthlies.Add(monthly);
+                stat.Zone = zone._zone.Id;
+                stat.Date = month;
+                stat.Player = player.dbid;
+
+                stat.Kills += kills;
+                stat.Deaths += deaths;
+                stat.KillPoints += killPoints;
+                stat.DeathPoints += deathPoints;
+                stat.AssistPoints += assistPoints;
+                stat.BonusPoints += bonusPoints;
+                stat.VehicleKills += vehicleKills;
+                stat.VehicleDeaths += vehicleDeaths;
+                stat.PlaySeconds += playSeconds;
+
+                stat.Zonestat1 += zs1;
+                stat.Zonestat2 += zs2;
+                stat.Zonestat3 += zs3;
+                stat.Zonestat4 += zs4;
+                stat.Zonestat5 += zs5;
+                stat.Zonestat6 += zs6;
+                stat.Zonestat7 += zs7;
+                stat.Zonestat8 += zs8;
+                stat.Zonestat9 += zs9;
+                stat.Zonestat10 += zs10;
+                stat.Zonestat11 += zs11;
+                stat.Zonestat12 += zs12;
+
+                ctx.StatsMonthlies.Add(stat);
+                ctx.SaveChanges();
             }
 
-            monthly.Kills += kills;
-            monthly.Deaths += deaths;
-            monthly.KillPoints += killPoints;
-            monthly.DeathPoints += deathPoints;
-            monthly.AssistPoints += assistPoints;
-            monthly.BonusPoints += bonusPoints;
-            monthly.VehicleKills += vehicleKills;
-            monthly.VehicleDeaths += vehicleDeaths;
-            monthly.PlaySeconds += playSeconds;
+            // Update or Insert Monthly
 
-            monthly.Zonestat1 += zs1;
-            monthly.Zonestat2 += zs2;
-            monthly.Zonestat3 += zs3;
-            monthly.Zonestat4 += zs4;
-            monthly.Zonestat5 += zs5;
-            monthly.Zonestat6 += zs6;
-            monthly.Zonestat7 += zs7;
-            monthly.Zonestat8 += zs8;
-            monthly.Zonestat9 += zs9;
-            monthly.Zonestat10 += zs10;
-            monthly.Zonestat11 += zs11;
-            monthly.Zonestat12 += zs12;
+            var yearlyRowsUpdated = ctx.StatsYearlies
+                .Where(s => s.Date == year && s.Player == player.dbid)
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + pkt.stats.zonestat3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + pkt.stats.zonestat4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + pkt.stats.zonestat5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + pkt.stats.zonestat6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + pkt.stats.zonestat7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + pkt.stats.zonestat8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + pkt.stats.zonestat9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + pkt.stats.zonestat10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + pkt.stats.zonestat11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + pkt.stats.zonestat12)
 
-            // Update Yearly
+                    .SetProperty(s => s.Kills, s => s.Kills + pkt.stats.kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths + pkt.stats.deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints + pkt.stats.killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + pkt.stats.deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + pkt.stats.assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + pkt.stats.bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + pkt.stats.vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + pkt.stats.vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + pkt.stats.playSeconds)
+                    .SetProperty(s => s.Experience, s => s.Experience + pkt.stats.experience)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal + pkt.stats.experienceTotal));
 
-            var yearly = db.StatsYearlies.FirstOrDefault(s => s.Date == year && s.Player == player.Id);
-
-            if (yearly == null)
+            if (yearlyRowsUpdated == 0)
             {
-                yearly = new StatsYearly();
-                yearly.Zone = player.Zone;
-                yearly.Player = player.Id;
-                yearly.Date = year;
+                var stat = new StatsYearly();
 
-                db.StatsYearlies.Add(yearly);
+                stat.Zone = zone._zone.Id;
+                stat.Date = year;
+                stat.Player = player.dbid;
+
+                stat.Kills += kills;
+                stat.Deaths += deaths;
+                stat.KillPoints += killPoints;
+                stat.DeathPoints += deathPoints;
+                stat.AssistPoints += assistPoints;
+                stat.BonusPoints += bonusPoints;
+                stat.VehicleKills += vehicleKills;
+                stat.VehicleDeaths += vehicleDeaths;
+                stat.PlaySeconds += playSeconds;
+
+                stat.Zonestat1 += zs1;
+                stat.Zonestat2 += zs2;
+                stat.Zonestat3 += zs3;
+                stat.Zonestat4 += zs4;
+                stat.Zonestat5 += zs5;
+                stat.Zonestat6 += zs6;
+                stat.Zonestat7 += zs7;
+                stat.Zonestat8 += zs8;
+                stat.Zonestat9 += zs9;
+                stat.Zonestat10 += zs10;
+                stat.Zonestat11 += zs11;
+                stat.Zonestat12 += zs12;
+
+                ctx.StatsYearlies.Add(stat);
+                ctx.SaveChanges();
             }
-
-            yearly.Kills += kills;
-            yearly.Deaths += deaths;
-            yearly.KillPoints += killPoints;
-            yearly.DeathPoints += deathPoints;
-            yearly.AssistPoints += assistPoints;
-            yearly.BonusPoints += bonusPoints;
-            yearly.VehicleKills += vehicleKills;
-            yearly.VehicleDeaths += vehicleDeaths;
-            yearly.PlaySeconds += playSeconds;
-
-            yearly.Zonestat1 += zs1;
-            yearly.Zonestat2 += zs2;
-            yearly.Zonestat3 += zs3;
-            yearly.Zonestat4 += zs4;
-            yearly.Zonestat5 += zs5;
-            yearly.Zonestat6 += zs6;
-            yearly.Zonestat7 += zs7;
-            yearly.Zonestat8 += zs8;
-            yearly.Zonestat9 += zs9;
-            yearly.Zonestat10 += zs10;
-            yearly.Zonestat11 += zs11;
-            yearly.Zonestat12 += zs12;
         }
 
 
