@@ -18,8 +18,6 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ChatQuery(CS_ChatQuery<Zone> pkt, Zone zone)
         {
-            var watch = Stopwatch.StartNew();
-
             using (Database.DataContext db = zone._server.getContext())
             {
                 switch (pkt.queryType)
@@ -92,13 +90,6 @@ namespace InfServer.Logic
                         Handle_CS_ChatQuery_AdminList(pkt, zone);
                         break;
                 }
-            }
-
-            watch.Stop();
-
-            if (watch.Elapsed.Milliseconds > 500)
-            {
-                Log.write(TLog.Warning, $"[{watch.Elapsed.Seconds}s] Slow query detected for packet type: {pkt}. Time elapsed");
             }
         }
 

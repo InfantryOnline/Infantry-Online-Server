@@ -90,8 +90,6 @@ namespace InfServer.Logic
                 return;
             }
 
-            var watch = Stopwatch.StartNew();
-
             using (Database.DataContext db = zone._server.getContext())
             {	//What sort of request are we dealing with?
                 switch (pkt.type)
@@ -848,13 +846,6 @@ namespace InfServer.Logic
                         }
                         break;
                 }
-            }
-
-            watch.Stop();
-
-            if (watch.Elapsed.Milliseconds > 500)
-            {
-                Log.write(TLog.Warning, $"[{watch.Elapsed.Seconds}s] Slow query detected for packet type: {pkt}. Time elapsed");
             }
         }
 
