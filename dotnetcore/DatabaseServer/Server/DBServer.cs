@@ -14,6 +14,7 @@ using Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.VisualBasic;
 
 namespace InfServer
 {
@@ -144,32 +145,83 @@ namespace InfServer
             return player;
         }
 
+        private IEnumerable<string> ChunkBy(string str, int chunkSize)
+        {
+            if (string.IsNullOrEmpty(str))
+                yield break;
+
+            if (chunkSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(chunkSize), "Chunk size must be greater than zero.");
+
+            for (int i = 0; i < str.Length; i += chunkSize)
+            {
+                yield return str.Substring(i, Math.Min(chunkSize, str.Length - i));
+            }
+        }
+
         public void sendMessage(Zone zone, string player, string message)
         {
             //297 bytes is the maximum size of a chat message that can be sent without crashing the client
-            int maxSize = 297;
-            int size = message.Length;
+            int maxSize = 256;
 
-            int idx = 0;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                return;
+            }
+            
+            //
+            // In case we split the message up into multiple independent ones,
+            // preserve the special character (color code?) across each one.
+            //
+
+            var specialCharacters = new char[] { '*', '!', '*', '&', '^' };
+            var prefixSpecialCharacter = "";
+            
+            if (specialCharacters.Contains(message[0]))
+            {
+                prefixSpecialCharacter = message[0].ToString();
+            }
+
+            var parts = ChunkBy(message, maxSize - 1).ToList();
+
+            for (var i = 0; i < parts.Count; i++)
+            {
+                SC_Chat<Zone> pkt = new SC_Chat<Zone>();
+
+                pkt.recipient = player;
+
+                if (i == 0)
+                {
+                    pkt.message = parts[i];
+                }
+                else
+                {
+                    // TODO: Once we split, what should we do if we land on a special character?
+                    //       Maybe rewrite split so that it finds nearest next non-special character.
+                    pkt.message = prefixSpecialCharacter + parts[i];
+                }
+
+                zone._client.send(pkt);
+            }
 
             //Make sure that the message won't crash our player!
             //TODO: FIXME: Less Gheto
-            StringBuilder sb = new StringBuilder(maxSize);
-            while (size - idx > 0)
-            {
-                SC_Chat<Zone> msg = new SC_Chat<Zone>();
-                sb.Clear();
+            //StringBuilder sb = new StringBuilder(maxSize);
+            //while (size - idx > 0)
+            //{
+            //    SC_Chat<Zone> msg = new SC_Chat<Zone>();
+            //    sb.Clear();
 
-                while ((size - idx > 0) && (sb.Length < maxSize))
-                {
-                    sb.Append(message[idx]);
-                    idx++;
-                }
+            //    while ((size - idx > 0) && (sb.Length < maxSize))
+            //    {
+            //        sb.Append(message[idx]);
+            //        idx++;
+            //    }
 
-                msg.recipient = player;
-                msg.message = sb.ToString();
-                zone._client.send(msg);
-            }
+            //    msg.recipient = player;
+            //    msg.message = sb.ToString();
+            //    zone._client.send(msg);
+            //}
         }
 
         /// <summary>
