@@ -205,7 +205,7 @@ namespace InfServer.Logic
 
             // Update or Insert Weekly
 
-            var weeklyRowsUpdated = ctx.StatsDailies
+            var weeklyRowsUpdated = ctx.StatsWeeklies
                 .Where(s => s.Date == week && s.Player == player.dbid && s.Zone == zone._zone.Id)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
