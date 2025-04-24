@@ -141,7 +141,7 @@ namespace InfServer.Logic
             // Update or Insert Daily
 
             var dailyRowsUpdated = ctx.StatsDailies
-                .Where(s => s.Date == day && s.Player == player.dbid)
+                .Where(s => s.Date == day && s.Player == player.dbid && s.Zone == zone._zone.Id)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
@@ -206,7 +206,7 @@ namespace InfServer.Logic
             // Update or Insert Weekly
 
             var weeklyRowsUpdated = ctx.StatsDailies
-                .Where(s => s.Date == week && s.Player == player.dbid)
+                .Where(s => s.Date == week && s.Player == player.dbid && s.Zone == zone._zone.Id)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
@@ -271,7 +271,7 @@ namespace InfServer.Logic
             // Update or Insert Monthly
 
             var monthlyRowsUpdated = ctx.StatsMonthlies
-                .Where(s => s.Date == month && s.Player == player.dbid)
+                .Where(s => s.Date == month && s.Player == player.dbid && s.Zone == zone._zone.Id)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
@@ -336,7 +336,7 @@ namespace InfServer.Logic
             // Update or Insert Monthly
 
             var yearlyRowsUpdated = ctx.StatsYearlies
-                .Where(s => s.Date == year && s.Player == player.dbid)
+                .Where(s => s.Date == year && s.Player == player.dbid && s.Zone == zone._zone.Id)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + pkt.stats.zonestat1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + pkt.stats.zonestat2)
