@@ -32,7 +32,6 @@ namespace InfServer
             public long acctid;			        //The player's account id
             public long aliasid;		        //The player's alias id
             public long? squadid;               //The player's squad (optional)
-            public long statsid;                //The player's stats id.
             public string IPAddress;            //The player's ip address
             public bool stealth;
             public long dbid;			        //The player's id in the database
@@ -40,8 +39,10 @@ namespace InfServer
             public Zone zone;                   //The zone he's in.
             public string arena;                //The arena he's in.
             public int permission;              //Player Permission level.
-            public int accountpermission;        //Account Permission level.
+            public int accountpermission;       //Account Permission level.
             public List<string> chats;          //The chats they are in
+            public Database.Stat stats;         //Stats (updated on every Stat Update packet).
+            public long statsid { get { return stats.Id; } }
         }
 
         ///////////////////////////////////////////////////
@@ -166,7 +167,7 @@ namespace InfServer
             player.IPAddress = dbplayer.AliasNavigation.IpAddress;
             player.dbid = dbplayer.Id;
             player.squadid = dbplayer.Squad;
-            player.statsid = dbplayer.Stats;
+            player.stats = dbplayer.StatsNavigation;
             player.alias = alias;
             player.stealth = dbplayer.AliasNavigation.Stealth == 1;
             player.permission = dbplayer.Permission;

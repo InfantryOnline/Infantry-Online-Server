@@ -33,16 +33,8 @@ namespace InfServer.Logic
             using var ctx = zone._server.getContext();
 
             //
-            // Query the current stats. Yes, we need to make a query to get the stats for purposes of substraction.
-            // While we could keep the most recent stats in memory, we'll omit that for now and incur this call.
+            // Update current stats, and then update historic (accrued) stats.
             //
-
-            var previousStat = ctx.Stats
-                .AsNoTracking()
-                .Where(s => s.Id == player.statsid)
-                .First();
-
-            // Now update.
 
             var statUpdateRowCount = ctx.Stats
                 .Where(s => s.Id == player.statsid)
@@ -91,10 +83,44 @@ namespace InfServer.Logic
                     .SetProperty(p => p.Skills, DatabaseBinaryUtils.skillsToBin(pkt.stats.skills)));
 
 
-            UpdateDailyWeeklyMonthlyYearlyStats(pkt, zone, player, ctx, previousStat);
+            //
+            // Update the accrued statistics using the existing stats as a baseline.
+            //
+            UpdateDailyWeeklyMonthlyYearlyStats(pkt, zone, player, ctx, player.stats);
+
+            //
+            // Lastly, write the saved stats back to the cached stats object.
+            //
+
+            player.stats.Zonestat1 = pkt.stats.zonestat1;
+            player.stats.Zonestat2 = pkt.stats.zonestat2;
+            player.stats.Zonestat3 = pkt.stats.zonestat3;
+            player.stats.Zonestat4 = pkt.stats.zonestat4;
+            player.stats.Zonestat5 = pkt.stats.zonestat5;
+            player.stats.Zonestat6 = pkt.stats.zonestat6;
+            player.stats.Zonestat7 = pkt.stats.zonestat7;
+            player.stats.Zonestat8 = pkt.stats.zonestat8;
+            player.stats.Zonestat9 = pkt.stats.zonestat9;
+            player.stats.Zonestat10 = pkt.stats.zonestat10;
+            player.stats.Zonestat11 = pkt.stats.zonestat11;
+            player.stats.Zonestat12 = pkt.stats.zonestat12;
+
+            player.stats.Kills = pkt.stats.kills;
+            player.stats.Deaths = pkt.stats.deaths;
+            player.stats.KillPoints = pkt.stats.killPoints;
+            player.stats.DeathPoints = pkt.stats.deathPoints;
+            player.stats.AssistPoints = pkt.stats.assistPoints;
+            player.stats.BonusPoints = pkt.stats.bonusPoints;
+            player.stats.VehicleKills = pkt.stats.vehicleKills;
+            player.stats.VehicleDeaths = pkt.stats.vehicleDeaths;
+            player.stats.PlaySeconds = pkt.stats.playSeconds;
+
+            player.stats.Cash = pkt.stats.cash;
+            player.stats.Experience = pkt.stats.experience;
+            player.stats.ExperienceTotal = pkt.stats.experienceTotal;
         }
 
-        static private void UpdateDailyWeeklyMonthlyYearlyStats(CS_PlayerUpdate<Zone> pkt, Zone zone, Zone.Player player, DataContext ctx, Database.Stat previousStat)
+        static private void UpdateDailyWeeklyMonthlyYearlyStats(CS_PlayerUpdate<Zone> pkt, Zone zone, Zone.Player player, DataContext ctx, Stat previousStat)
         {
             //
             // Subtract to get the delta from our previous stats,
@@ -327,7 +353,7 @@ namespace InfServer.Logic
                 ctx.SaveChanges();
             }
 
-            // Update or Insert Monthly
+            // Update or Insert Yearly
 
             var yearlyRowsUpdated = ctx.StatsYearlies
                 .Where(s => s.Date == year && s.Player == player.dbid && s.Zone == zone._zone.Id)
