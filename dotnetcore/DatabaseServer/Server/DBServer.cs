@@ -5,16 +5,12 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-
 using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Data;
 using Database;
-using Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.VisualBasic;
 
 namespace InfServer
 {
@@ -25,7 +21,7 @@ namespace InfServer
     {	// Member variables
         ///////////////////////////////////////////////////
         public ConfigSetting _config;			                        //Our server config
-        public new LogClient _logger;			                        //Our zone server log
+        public new LogClient? _logger;			                        //Our zone server log
         public SortedDictionary<string, Chat> _chats;
         public Dictionary<string, Zone.Player> _players;                //A list of every connected player
         public int playerPeak;
@@ -34,8 +30,8 @@ namespace InfServer
 
         public List<KeyValuePair<int, int>> _squadInvites;              //Our history of squad invites pair<squadid, playerid>
 
-        private string _dbConnectionString;		                        
-        private PooledDbContextFactory<DataContext> _dbContextFactory;
+        private string? _dbConnectionString;		                        
+        private PooledDbContextFactory<DataContext>? _dbContextFactory;
 
         static public bool bAllowMulticlienting;                        //Should we allow players to join multiple times under the same account?
 

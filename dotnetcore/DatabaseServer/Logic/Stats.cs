@@ -83,7 +83,8 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_PlayerStatsRequest(CS_PlayerStatsRequest<Zone> pkt, Zone zone)
         {	//Attempt to find the player in question
-            Zone.Player player = zone.getPlayer(pkt.player.id);
+            var player = zone.getPlayer(pkt.player.id);
+
             if (player == null)
             {	//Make a note
                 Log.write(TLog.Warning, "Ignoring player stats request for #{0}, not present in zone mirror.", pkt.player.id);
@@ -797,7 +798,7 @@ namespace InfServer.Logic
                                     bw.Write(year.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Database.Squad squad = year.PlayerNavigation.SquadNavigation;
+                                    var squad = year!.PlayerNavigation!.SquadNavigation;
                                     string squadname = "";
                                     if (squad != null)
                                         squadname = squad.Name;
@@ -850,129 +851,6 @@ namespace InfServer.Logic
         }
 
         /// <summary>
-        /// Handles a player's update stat request
-        /// </summary>
-        static public void Handle_CS_StatsUpdate(CS_StatsUpdate<Zone> pkt, Zone zone)
-        {
-            throw new NotImplementedException("Not implemented.");
-
-            //Find player
-            Zone.Player player = zone.getPlayer(pkt.player.id);
-            if (player == null)
-            {
-                Log.write(TLog.Warning, "Ignoring stat update for id {0}, not present in zone mirror.", pkt.player.id);
-                return;
-            }
-
-            using (Database.DataContext db = zone._server.getContext())
-            {
-                //Get player entry
-                Database.Player dbplayer = db.Players.SingleOrDefault(p => p.Id == player.dbid);
-                if (dbplayer == null)
-                {
-                    Log.write(TLog.Warning, "Ignoring stat update for {0}, not present in database.", player.alias);
-                    return;
-                }
-
-                DateTime today = DateTime.Today;
-                switch (pkt.scoreType)
-                {
-                    case CS_StatsUpdate<Zone>.ScoreType.ScoreDaily:
-                        {
-                            //Add to the database
-                            Database.StatsDaily daily = new Database.StatsDaily();
-
-                            daily.Experience = pkt.stats.experience;
-                            daily.ExperienceTotal = pkt.stats.experienceTotal;
-                            daily.Kills = pkt.stats.kills;
-                            daily.Deaths = pkt.stats.deaths;
-                            daily.KillPoints = pkt.stats.killPoints;
-                            daily.DeathPoints = pkt.stats.deathPoints;
-                            daily.AssistPoints = pkt.stats.assistPoints;
-                            daily.BonusPoints = pkt.stats.bonusPoints;
-                            daily.VehicleKills = pkt.stats.vehicleKills;
-                            daily.VehicleDeaths = pkt.stats.vehicleDeaths;
-                            daily.PlaySeconds = pkt.stats.playSeconds;
-                            daily.Zone = zone._zone.Id;
-                            daily.Date = pkt.date;
-
-                            db.SaveChanges();
-                        }
-                        break;
-
-                    case CS_StatsUpdate<Zone>.ScoreType.ScoreWeekly:
-                        {
-                            //Add to the database
-                            Database.StatsWeekly weekly = new Database.StatsWeekly();
-
-                            weekly.Experience = pkt.stats.experience;
-                            weekly.ExperienceTotal = pkt.stats.experienceTotal;
-                            weekly.Kills = pkt.stats.kills;
-                            weekly.Deaths = pkt.stats.deaths;
-                            weekly.KillPoints = pkt.stats.killPoints;
-                            weekly.DeathPoints = pkt.stats.deathPoints;
-                            weekly.AssistPoints = pkt.stats.assistPoints;
-                            weekly.BonusPoints = pkt.stats.bonusPoints;
-                            weekly.VehicleKills = pkt.stats.vehicleKills;
-                            weekly.VehicleDeaths = pkt.stats.vehicleDeaths;
-                            weekly.PlaySeconds = pkt.stats.playSeconds;
-                            weekly.Zone = zone._zone.Id;
-                            weekly.Date = pkt.date;
-
-                            db.SaveChanges();
-                        }
-                        break;
-
-                    case CS_StatsUpdate<Zone>.ScoreType.ScoreMonthly:
-                        {
-                            //Add to the database
-                            Database.StatsMonthly monthly = new Database.StatsMonthly();
-
-                            monthly.Experience = pkt.stats.experience;
-                            monthly.ExperienceTotal = pkt.stats.experienceTotal;
-                            monthly.Kills = pkt.stats.kills;
-                            monthly.Deaths = pkt.stats.deaths;
-                            monthly.KillPoints = pkt.stats.killPoints;
-                            monthly.DeathPoints = pkt.stats.deathPoints;
-                            monthly.AssistPoints = pkt.stats.assistPoints;
-                            monthly.BonusPoints = pkt.stats.bonusPoints;
-                            monthly.VehicleKills = pkt.stats.vehicleKills;
-                            monthly.VehicleDeaths = pkt.stats.vehicleDeaths;
-                            monthly.PlaySeconds = pkt.stats.playSeconds;
-                            monthly.Zone = zone._zone.Id;
-                            monthly.Date = pkt.date;
-
-                            db.SaveChanges();
-                        }
-                        break;
-
-                    case CS_StatsUpdate<Zone>.ScoreType.ScoreYearly:
-                        {
-                            //Add to the database
-                            Database.StatsYearly yearly = new Database.StatsYearly();
-
-                            yearly.Experience = pkt.stats.experience;
-                            yearly.ExperienceTotal = pkt.stats.experienceTotal;
-                            yearly.Kills = pkt.stats.kills;
-                            yearly.Deaths = pkt.stats.deaths;
-                            yearly.KillPoints = pkt.stats.killPoints;
-                            yearly.DeathPoints = pkt.stats.deathPoints;
-                            yearly.AssistPoints = pkt.stats.assistPoints;
-                            yearly.BonusPoints = pkt.stats.bonusPoints;
-                            yearly.VehicleKills = pkt.stats.vehicleKills;
-                            yearly.VehicleDeaths = pkt.stats.vehicleDeaths;
-                            yearly.PlaySeconds = pkt.stats.playSeconds;
-                            yearly.Zone = zone._zone.Id;
-                            yearly.Date = pkt.date;
-
-                            db.SaveChanges();
-                        }
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
         /// Handles a player update request
         /// </summary>
         static public void Handle_CS_SquadMatch(CS_SquadMatch<Zone> pkt, Zone zone)
@@ -1012,7 +890,14 @@ namespace InfServer.Logic
                 lStats.Losses++; //Sad trombone.....
 
                 //Grab our associated match.
-                Database.SquadMatch match = db.Squadmatches.FirstOrDefault(m => m.Squad1 == winner.Id | m.Squad2 == winner.Id | m.Squad1 == loser.Id | m.Squad2 == loser.Id);
+                var match = db.Squadmatches.FirstOrDefault(m => m.Squad1 == winner.Id | m.Squad2 == winner.Id | m.Squad1 == loser.Id | m.Squad2 == loser.Id);
+
+                if (match == null)
+                {
+                    // TODO: Log, this is a critical error.
+
+                    return;
+                }
 
                 //Update it
                 match.Winner = pkt.winner;
@@ -1031,7 +916,7 @@ namespace InfServer.Logic
         static public void Register()
         {
             CS_PlayerStatsRequest<Zone>.Handlers += Handle_CS_PlayerStatsRequest;
-            CS_StatsUpdate<Zone>.Handlers += Handle_CS_StatsUpdate;
+            // CS_StatsUpdate<Zone>.Handlers += Handle_CS_StatsUpdate;
             CS_SquadMatch<Zone>.Handlers += Handle_CS_SquadMatch;
         }
     }

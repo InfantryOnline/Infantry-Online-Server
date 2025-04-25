@@ -1119,6 +1119,11 @@ namespace InfServer.Logic
         {
             var player = zone.getPlayer(pkt.alias);
 
+            if (player == null)
+            {
+                return;
+            }
+
             using var ctx = zone._server.getContext();
 
             //
@@ -1164,6 +1169,11 @@ namespace InfServer.Logic
         {
             var player = zone.getPlayer(pkt.alias);
 
+            if (player == null)
+            {
+                return;
+            }
+
             Squad? squad = null;
             string? owner = null;
 
@@ -1179,7 +1189,7 @@ namespace InfServer.Logic
                 {
                     squad = ctx.Squads.Find(player.squadid);
 
-                    if (squad.Owner == player.dbid)
+                    if (squad!.Owner == player.dbid)
                     {
                         owner = player.alias;
                     }
@@ -1213,7 +1223,7 @@ namespace InfServer.Logic
         {
             var player = zone.getPlayer(pkt.payload);
 
-            if (player.squadid == null)
+            if (player == null || player.squadid == null)
             {
                 zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
                 return;
@@ -1252,7 +1262,7 @@ namespace InfServer.Logic
             var player = zone.getPlayer(pkt.alias);
 
             //Sanity checks
-            if (player.squadid == null)
+            if (player == null || player.squadid == null)
             {
                 zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
                 return;
@@ -1317,7 +1327,7 @@ namespace InfServer.Logic
 
             var player = zone.getPlayer(pkt.alias);
 
-            if (player.squadid == null)
+            if (player == null || player.squadid == null)
             {
                 zone._server.sendMessage(zone, pkt.alias, "You aren't in a squad.");
                 return;
@@ -1337,7 +1347,7 @@ namespace InfServer.Logic
                 .Include(p => p.AliasNavigation)
                 .Include(p => p.SquadNavigation)
                 .Where(p => p.AliasNavigation.Name == pkt.payload && p.Squad == player.squadid && p.Zone == zone._zone.Id)
-                .Select(p => new { p.Id, p.AliasNavigation.Name, SquadName = p.SquadNavigation.Name })
+                .Select(p => new { p.Id, p.AliasNavigation.Name, SquadName = p.SquadNavigation!.Name })
                 .FirstOrDefault();
 
             if (targetPlayer == null)
@@ -1358,7 +1368,7 @@ namespace InfServer.Logic
         {
             var player = zone.getPlayer(pkt.alias);
 
-            if (player.squadid == null)
+            if (player == null || player.squadid == null)
             {
                 return;
             }
@@ -1404,7 +1414,7 @@ namespace InfServer.Logic
                     .Include(p => p.AliasNavigation)
                     .Include(p => p.SquadNavigation)
                     .Where(p => p.AliasNavigation.Name == pkt.payload && p.Zone == zone._zone.Id && p.Squad == player.squadid)
-                    .Select(p => new { p.Id, AliasName = p.AliasNavigation.Name, SquadName = p.SquadNavigation.Name})
+                    .Select(p => new { p.Id, AliasName = p.AliasNavigation.Name, SquadName = p.SquadNavigation!.Name})
                     .FirstOrDefault();
 
                 if (dbTargetPlayer == null)
@@ -1428,7 +1438,7 @@ namespace InfServer.Logic
         {
             var player = zone.getPlayer(pkt.alias);
 
-            if (player.squadid == null)
+            if (player == null || player.squadid == null)
             {
                 return;
             }
@@ -1437,7 +1447,7 @@ namespace InfServer.Logic
 
             var squad = ctx.Squads.Where(s => s.Id == player.squadid).Select(s => new { s.Owner }).FirstOrDefault();
 
-            if (squad.Owner != player.squadid)
+            if (squad == null || (squad.Owner != player.squadid))
             {
                 zone._server.sendMessage(zone, pkt.alias, "Only squad owners may send or revoke squad invitations");
                 return;
@@ -1505,6 +1515,12 @@ namespace InfServer.Logic
         private static void CS_Squads_QueryType_CreateSquad(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
         {
             var player = zone.getPlayer(pkt.alias);
+
+            if (player == null)
+            {
+                // Bad.
+                return;
+            }
 
             if (player.squadid != null)
             {

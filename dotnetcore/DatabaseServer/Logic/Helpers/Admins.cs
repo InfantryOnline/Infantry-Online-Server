@@ -13,9 +13,9 @@ namespace InfServer.Logic
         /// <summary>
         /// Our list of the current server admins
         /// </summary>
-        public static List<string> ServerAdmins;
+        public static List<string> ServerAdmins = new List<string>();
 
-        public static List<long> ServerAdminAccountIds;
+        public static List<long> ServerAdminAccountIds = new List<long>();
 
         /// <summary>
         /// Populates the admin list

@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using InfServer.Protocol;
 using InfServer.Data;
 using InfServer;
 using System.Globalization;
-using Database;
 using Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -468,7 +466,7 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ArenaUpdate(CS_ArenaUpdate<Zone> pkt, Zone zone)
         {
-            Zone.Player player = zone.getPlayer(pkt.player.id);
+            var player = zone.getPlayer(pkt.player.id);
 
             if (player == null)
             {

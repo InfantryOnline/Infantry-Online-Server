@@ -82,7 +82,7 @@ namespace InfServer
         /// <summary>
         /// Retrieves a player with the given id
         /// </summary>
-        public Player getPlayer(int id)
+        public Player? getPlayer(int id)
         {	//Attempt to get him..
             if (id == 0)
             {
@@ -99,7 +99,7 @@ namespace InfServer
         /// <summary>
         /// Retrieves a player with the given alias
         /// </summary>
-        public Player getPlayer(string alias)
+        public Player? getPlayer(string alias)
         {
             if (string.IsNullOrWhiteSpace(alias))
             {
