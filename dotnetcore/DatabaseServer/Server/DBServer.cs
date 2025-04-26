@@ -197,7 +197,7 @@ namespace InfServer
                     pkt.message = prefixSpecialCharacter + parts[i];
                 }
 
-                zone._client.send(pkt);
+                zone._client.sendReliable(pkt);
             }
 
             //Make sure that the message won't crash our player!
