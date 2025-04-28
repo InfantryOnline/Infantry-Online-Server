@@ -1036,8 +1036,14 @@ namespace InfServer.Logic
 
                 //Add him to the squad!
                 dbplayer.Squad = responseSquad.Id;
-                zone._server.sendMessage(zone, pkt.alias, "You've joined " + dbplayer.SquadNavigation.Name + "! Quit and rejoin to be able to use # to squad chat.");
+                zone._server.sendMessage(zone, pkt.alias, "You've joined " + responseSquad.Name + "! Quit and rejoin to be able to use # to squad chat.");
                 zone._server._squadInvites.Remove(responsePair);
+
+                //
+                // TODO: Add player to squad chats without them having to rejoin.
+                //
+
+                db.SaveChanges();
             }
             else
             {   //He's getting rid of a squad invite...
