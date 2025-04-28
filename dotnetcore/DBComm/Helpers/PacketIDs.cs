@@ -65,7 +65,8 @@ namespace InfServer.Protocol
                 Disconnect = 17,
                 ChartResponse = 24,
                 ChatQuery = 25,
-                DisconnectPlayer = 26
+                DisconnectPlayer = 26,
+                GlobalSilence = 27
             }
         }
     }

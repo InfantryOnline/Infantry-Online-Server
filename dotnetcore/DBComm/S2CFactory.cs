@@ -185,6 +185,10 @@ namespace InfServer.Data
                     packet = new Disconnect<T>(typeID, buffer, offset, size);
                     break;
 
+				case SC_Silence<T>.TypeID:
+					packet = new SC_Silence<T>(typeID, buffer, offset, size);
+					break;
+
 				default:
 					//An undefined packet.
 					packet = new PacketDummy(typeID, buffer, offset, size);

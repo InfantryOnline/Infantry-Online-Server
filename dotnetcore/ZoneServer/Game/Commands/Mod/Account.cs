@@ -126,13 +126,13 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            long minutes = 0;
+            int minutes;
             string alias;
 
             if (recipient != null)
             {
                 alias = recipient._alias;
-                Int64.TryParse(payload, out minutes);
+                Int32.TryParse(payload, out minutes);
             }
             else
             {
@@ -144,7 +144,9 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 alias = split[0];
-                Int64.TryParse(split[1], out minutes);
+                Int32.TryParse(split[1], out minutes);
+
+                recipient = player._server.getPlayer(alias);
             }
 
             CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
@@ -184,6 +186,13 @@ namespace InfServer.Game.Commands.Mod
                 {
                     recipient._bSilenced = false;
                     recipient._lengthOfSilence = 0;
+
+                    var silencedPlayer = player._server._playerSilenced.FirstOrDefault(p => p.Alias == recipient._alias);
+
+                    if (silencedPlayer != null)
+                    {
+                        player._server._playerSilenced.Remove(silencedPlayer);
+                    }
                 }
             }
 

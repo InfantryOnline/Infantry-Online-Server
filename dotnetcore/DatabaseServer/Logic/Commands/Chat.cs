@@ -1088,7 +1088,9 @@ namespace InfServer.Logic
         private static void CS_Squads_QueryType_SquadInvites(CS_Squads<Zone> pkt, Zone zone)
         {
             var player = zone.getPlayer(pkt.alias);
+
             using var db = zone._server.getContext();
+
             var dbplayer = db.Players
                 .Include(p => p.SquadNavigation)
                 .Where(p => p.Id == player.dbid)
@@ -1445,9 +1447,12 @@ namespace InfServer.Logic
 
             using var ctx = zone._server.getContext();
 
-            var squad = ctx.Squads.Where(s => s.Id == player.squadid).Select(s => new { s.Owner }).FirstOrDefault();
+            var squad = ctx.Squads
+                .Where(s => s.Id == player.squadid)
+                .Select(s => new { s.Owner })
+                .FirstOrDefault();
 
-            if (squad == null || (squad.Owner != player.squadid))
+            if (squad == null || squad.Owner != player.dbid)
             {
                 zone._server.sendMessage(zone, pkt.alias, "Only squad owners may send or revoke squad invitations");
                 return;

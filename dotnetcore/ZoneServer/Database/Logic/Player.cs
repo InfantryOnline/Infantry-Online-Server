@@ -159,10 +159,63 @@ namespace InfServer.Logic
             }
         }
 
-		/// <summary>
-		/// Registers all handlers
-		/// </summary>
-		[Logic.RegistryFunc]
+        static public void Handle_SC_Silence(SC_Silence<Database> pkt, Database db)
+        {
+            var player = db._server.getPlayer(pkt.alias);
+
+            // Only apply to player if they are in the zone, otherwise it doesn't matter.
+
+            if (player == null)
+            {
+                return;
+            }
+
+            var existingSilencedPlayer = db._server._playerSilenced.FirstOrDefault(p => p.Alias == pkt.alias);
+
+            //
+            // Player wasn't silenced to begin with? Might be an error.
+            //
+            if (existingSilencedPlayer == null && pkt.minutes <= 0)
+            {
+                return;
+            }
+
+            if (existingSilencedPlayer != null)
+            {
+                existingSilencedPlayer.DurationMinutes += pkt.minutes;
+            }
+            else
+            {
+                existingSilencedPlayer = new SilencedPlayer
+                {
+                    Alias = player._alias,
+                    IPAddress = player._ipAddress,
+                    SilencedAt = DateTime.Now,
+                    DurationMinutes = pkt.minutes,
+                };
+
+                db._server._playerSilenced.Add(existingSilencedPlayer);
+            }
+
+            if (pkt.minutes <= 0 || existingSilencedPlayer.DurationMinutes <= 0)
+            {
+                player._bSilenced = false;
+                db._server._playerSilenced.Remove(existingSilencedPlayer);
+            }
+            else
+            {
+                player._bSilenced = true;
+            }
+
+            //
+            // TODO: Maybe we want to send out a message to the player saying they are no longer silenced.
+            //
+        }
+
+        /// <summary>
+        /// Registers all handlers
+        /// </summary>
+        [Logic.RegistryFunc]
 		static public void Register()
 		{
 			SC_PlayerLogin<Database>.Handlers += Handle_SC_PlayerLogin;
@@ -170,6 +223,7 @@ namespace InfServer.Logic
             SC_Chat<Database>.Handlers += Handle_DB_Chat;
             SC_Zones<Database>.Handlers += Handle_SC_ZoneList;
             SC_DisconnectPlayer<Database>.Handlers += Handle_SC_DisconnectPlayer;
+            SC_Silence<Database>.Handlers += Handle_SC_Silence;
 		}
 	}
 }

@@ -76,23 +76,27 @@ namespace InfServer.Logic
             }
 
             var data = pkt.query.Split(':');
-            long silencedDuration;
+            int silencedDuration;
 
-            if (data.Length != 2 || !Int64.TryParse(data[1], out silencedDuration))
+            if (data.Length != 2 || !int.TryParse(data[1], out silencedDuration))
             {
                 zone._server.sendMessage(zone, pkt.sender, "Badly formatted packet. Please follow <alias>:<minutes> pattern.  0 minutes will unsilence upon next login.");
                 return;
             }
 
-            var silencedAlias = db.Aliases.FirstOrDefault(a => a.Name.ToLower() == data[0].ToLower());
+            var targetAlias = data[0];
 
-            if (silencedAlias == null)
+            var dbAlias = db.Aliases
+                .Include(a => a.AccountNavigation)
+                .FirstOrDefault(a => a.Name == targetAlias);
+
+            if (dbAlias == null)
             {
                 zone._server.sendMessage(zone, pkt.sender, $"Alias \"{data[0]}\" not found.");
                 return;
             }
 
-            var silencedAccount = db.Accounts.First(t => t.Id == silencedAlias.Account);
+            var silencedAccount = db.Accounts.First(t => t.Id == dbAlias.Account);
 
             if (silencedDuration < 0)
             {
@@ -106,7 +110,16 @@ namespace InfServer.Logic
 
             db.SaveChanges();
 
-            // TODO: Alert all zones that the player is silenced.
+            var silencePkt = new SC_Silence<Zone>
+            {
+                alias = targetAlias,
+                minutes = silencedDuration
+            };
+
+            foreach(var z in zone._server._zones)
+            {
+                
+            }
         }
 
         private static void Handle_CS_ModQuery_Find(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
