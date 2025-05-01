@@ -47,8 +47,8 @@ namespace InfServer
         {
             _config = ConfigSetting.Blank;
             _zones = new List<Zone>();
-            _chats = new SortedDictionary<string, Chat>();
-            _players = new Dictionary<string, Zone.Player>();
+            _chats = new SortedDictionary<string, Chat>(StringComparer.InvariantCultureIgnoreCase);
+            _players = new Dictionary<string, Zone.Player>(StringComparer.InvariantCultureIgnoreCase);
             _squadInvites = new List<KeyValuePair<int, int>>();
 
             _bLogPacketProcessDuration = true;
