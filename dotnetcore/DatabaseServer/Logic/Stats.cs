@@ -542,7 +542,7 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily:
                         {
-                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
                             Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;
@@ -618,7 +618,7 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly:
                         {
-                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
                             Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;
@@ -695,7 +695,7 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly:
                         {
-                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
                             Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;
@@ -772,7 +772,7 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly:
                         {
-                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name.Equals(pkt.options));
+                            Database.Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
                             Database.Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.Zone == zone._zone.Id);
                             if (getPlayer == null)
                                 return;

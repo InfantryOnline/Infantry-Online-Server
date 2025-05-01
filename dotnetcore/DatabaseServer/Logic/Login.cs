@@ -258,7 +258,7 @@ namespace InfServer.Logic
                 }
 
                 //Attempt to find the related alias
-                Alias alias = db.Aliases.SingleOrDefault(a => a.Name.Equals(pkt.alias));
+                Alias alias = db.Aliases.SingleOrDefault(a => a.Name == pkt.alias);
                 Stat stats = null;
 
                 //Is there already a player online under this alias?
