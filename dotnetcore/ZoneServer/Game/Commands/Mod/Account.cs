@@ -219,7 +219,7 @@ namespace InfServer.Game.Commands.Mod
 
             if (String.IsNullOrEmpty(payload))
             {
-                player.sendMessage(-1, "Syntax: either *transferalias aliasGoingTo:alias in question OR :playerGoingTo:*transferalias aliastotransfer");
+                player.sendMessage(-1, "Syntax: either *transferalias [alias in question]:[alias going to] in question OR :[alias going to]:*transferalias [alias in question]");
                 return;
             }
 
@@ -232,14 +232,15 @@ namespace InfServer.Game.Commands.Mod
             {   //Nope
                 if (!payload.Contains(':'))
                 {
-                    player.sendMessage(-1, "Syntax: *transferalias aliasGoingTo:alias in question");
+                    player.sendMessage(-1, "Syntax: *transferalias [alias in question]:[alias going to]");
                     return;
                 }
 
                 param = payload.Split(':');
-                aliasTo = param[0];
-                if ((recipient = player._arena.getPlayerByName(param[1])) != null
-                    || (recipient = player._server.getPlayer(param[1])) != null)
+                aliasTo = param[1];
+
+                if ((recipient = player._arena.getPlayerByName(param[0])) != null
+                    || (recipient = player._server.getPlayer(param[0])) != null)
                 {
                     alias = recipient._alias;
                     //The alias is playing, dc them
@@ -247,7 +248,7 @@ namespace InfServer.Game.Commands.Mod
                     recipient.disconnect();
                 }
                 else
-                    alias = param[1];
+                    alias = param[0];
             }
             else
             {
@@ -1159,7 +1160,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(transferalias, "transferalias",
                 "Transfers aliases between characters",
-                "*transferalias aliasGoingTo:alias in question OR :playerGoingTo:*transferalias alias in question",
+                "*transferalias [alias in question]:[alias going to] OR :[alias going to]:*transferalias [alias in question]",
                 InfServer.Data.PlayerPermission.ManagerSysop, false);
 
             yield return new HandlerDescriptor(transfersquad, "transfersquad",
