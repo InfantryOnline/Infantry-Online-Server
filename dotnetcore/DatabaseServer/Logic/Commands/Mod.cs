@@ -134,15 +134,18 @@ namespace InfServer.Logic
             }
 
             bool found = false;
-            IQueryable<Database.Alias> foundAlias = db.Aliases.Where(d => (d.IpAddress.Equals(alias.IpAddress) || d.Account == alias.Account));
+            var foundAlias = db.Aliases.Where(d => (d.IpAddress.Equals(alias.IpAddress) || d.Account == alias.Account)).ToList();
+
             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
             {
                 foreach (Database.Alias p in foundAlias)
-                    if (player.Value.alias.Equals(p.Name))
+                {
+                    if (player.Value.alias.Equals(p.Name, StringComparison.OrdinalIgnoreCase))
                     {
                         zone._server.sendMessage(zone, pkt.sender, string.Format("*Found: {0} Zone: {1} Arena: {2}", p.Name, player.Value.zone._zone.Name, !String.IsNullOrWhiteSpace(player.Value.arena) ? player.Value.arena : "Unknown Arena"));
                         found = true;
                     }
+                }
             }
             if (!found)
                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");

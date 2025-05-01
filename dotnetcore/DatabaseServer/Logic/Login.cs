@@ -450,8 +450,7 @@ namespace InfServer.Logic
                         DatabaseBinaryUtils.binToSkills(plog.stats.skills, player.Skills);
                 }
 
-                //Rename him
-                plog.alias = alias.Name;
+                plog.alias = pkt.alias;
 
                 //Try and submit any new rows before we try and use them
                 try
