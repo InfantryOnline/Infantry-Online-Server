@@ -308,14 +308,8 @@ namespace InfServer.Game.Commands.Mod
 
                 if (maxVal == 0)
                 {
-                    if (player._arena._server._zoneConfig.arena.maxPrivatePlayers == 0)
-                    {
-                        maxVal = player._arena._server._zoneConfig.arena.maxPlayers;
-                    }
-                    else
-                    {
-                        maxVal = player._arena._server._zoneConfig.arena.maxPrivatePlayers;
-                    }
+                    var arenaConfig = player._arena._server._zoneConfig.arena;
+                    maxVal = arenaConfig.maxPrivatePlayers != 0 ? arenaConfig.maxPrivatePlayers : arenaConfig.maxPlayers;
                 }
 
                 player._arena._maxPrivatePop = maxVal;
