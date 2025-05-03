@@ -3503,7 +3503,7 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(maxpop, "maxpop",
                 "Gets or sets the maximum player count (excluding mods/admins) in the arena. Does not kick existing players out. 0 value resets.",
-                "*maxpop [value or 0]",
+                "*maxpop [optional: value or 0]",
                 Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(auth, "auth",
