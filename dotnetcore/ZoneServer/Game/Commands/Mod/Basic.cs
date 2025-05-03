@@ -288,7 +288,7 @@ namespace InfServer.Game.Commands.Mod
         {
             if (!player._arena.IsPrivate)
             {
-                player.sendMessage(-1, "Cannot use this command in public arenas.");
+                player.sendMessage(-1, "This command is only usable in private arenas.");
                 return;
             }
 
