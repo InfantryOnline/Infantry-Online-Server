@@ -286,7 +286,7 @@ namespace InfServer.Game.Commands.Mod
 
         static public void maxpop(Player player, Player recipient, string payload, int bong)
         {
-            if (player._arena._bIsPublic)
+            if (!player._arena.IsPrivate)
             {
                 player.sendMessage(-1, "Cannot use this command in public arenas.");
                 return;
