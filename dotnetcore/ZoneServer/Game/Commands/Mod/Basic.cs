@@ -284,6 +284,45 @@ namespace InfServer.Game.Commands.Mod
             player._arena.sendArenaMessage(string.Format("Arena is now {0}.", player._arena._aLocked ? "locked" : "unlocked"));
         }
 
+        static public void maxpop(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._arena._bIsPublic)
+            {
+                player.sendMessage(-1, "Cannot use this command in public arenas.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(payload))
+            {
+                player.sendMessage(-1, $"Max pop for current arena is {player._arena._maxPrivatePop}");
+            }
+            else
+            {
+                int maxVal;
+
+                if (!Int32.TryParse(payload, out maxVal) || maxVal < 0)
+                {
+                    player.sendMessage(-1, "Malformed value. Please specify a positive integer.");
+                    return;
+                }
+
+                if (maxVal == 0)
+                {
+                    if (player._arena._server._zoneConfig.arena.maxPrivatePlayers == 0)
+                    {
+                        maxVal = player._arena._server._zoneConfig.arena.maxPlayers;
+                    }
+                    else
+                    {
+                        maxVal = player._arena._server._zoneConfig.arena.maxPrivatePlayers;
+                    }
+                }
+
+                player._arena._maxPrivatePop = maxVal;
+                player.sendMessage(-1, $"Max pop for current arena updated to {maxVal}");
+            }
+        }
+
         /// <summary>
         /// Log the player in. Stand-Alone Mode only.
         /// </summary>
@@ -3461,6 +3500,11 @@ namespace InfServer.Game.Commands.Mod
                 "Locks or unlocks an arena from outsiders. Note: will kick out any non powered players in spec and only mods or admins can join/stay.",
                 "*arenalock",
                 InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(maxpop, "maxpop",
+                "Gets or sets the maximum player count (excluding mods/admins) in the arena. Does not kick existing players out. 0 value resets.",
+                "*maxpop [value or 0]",
+                Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(auth, "auth",
                 "Log in during Stand-Alone Mode",

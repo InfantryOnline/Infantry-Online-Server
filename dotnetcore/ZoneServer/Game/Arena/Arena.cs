@@ -99,6 +99,7 @@ namespace InfServer.Game
         //CFG variables to allow for script changes on the fly. Max per team, private teams allowed etc.
         public bool _allowPrivate;                      //Arena allow private teams on or off.
         public int _maxPerteam;
+        public int _maxPrivatePop;
         public int _maxPerPrivateTeam;
         public bool _allowprize;
 
@@ -474,6 +475,8 @@ namespace InfServer.Game
             _maxPerPrivateTeam = _server._zoneConfig.arena.maxPerPrivateFrequency < 1 ? _server._zoneConfig.arena.maxPerFrequency : _server._zoneConfig.arena.maxPerPrivateFrequency;
             _maxPerteam = _server._zoneConfig.arena.maxPerFrequency;
             _allowprize = _server._zoneConfig.owner.prize;
+
+            _maxPrivatePop = _server._zoneConfig.arena.maxPrivatePlayers > 0 ? _server._zoneConfig.arena.maxPrivatePlayers : _server._zoneConfig.arena.maxPlayers;
 
             _prizeItems = new List<int>();
 

@@ -41,32 +41,6 @@ namespace InfServer.Logic
 			if (pkt.ArenaName != "" && pkt.ArenaName != "-2")
             {
                 match = player._server.playerJoinArena(player, pkt.ArenaName);
-
-                //const int minHour = 23; // 11 PM
-                //const int maxHour = 11; // 11 AM
-
-                //var currentUtcTime = DateTime.UtcNow;
-                //TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                //DateTime easternTime = TimeZoneInfo.ConvertTimeFromUtc(currentUtcTime, easternZone);
-
-                //var playerCanCreate = player.PermissionLevel == Data.PlayerPermission.HeadModAdmin || Arena.allowArenaCreation;
-                //var arenaExists = player._server._arenas.Keys.FirstOrDefault(name => name.ToLower() == pkt.ArenaName.ToLower()) != null;
-                //var withinPermittableCreationTime = easternTime.Hour >= minHour || easternTime.Hour < maxHour;
-
-                //if (playerCanCreate || arenaExists || withinPermittableCreationTime)
-                //{
-                //    match = player._server.playerJoinArena(player, pkt.ArenaName);
-                //}
-                //else
-                //{
-                //    // Keep the player in the current arena.
-                //    if (currentArena != null)
-                //    {
-                //        match = player._server.playerJoinArena(player, currentArena._name);
-                //    }
-
-                //    unableToCreate = true;
-                //}
             }
 
             if (match == null)

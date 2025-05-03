@@ -281,6 +281,12 @@ namespace InfServer.Game
                 }
             }
 
+            if (arena.IsPrivate && (player.PermissionLevel < Data.PlayerPermission.Mod) && (arena.TotalPlayerCount >= arena._maxPrivatePop))
+            {
+                player.sendMessage(-1, "Arena is full.");
+                return null;
+            }
+
             //Is it full?
             if (arena.TotalPlayerCount >= _zoneConfig.arena.maxPlayers)
             {

@@ -34,6 +34,7 @@ namespace Assets
             public int minimumKeepScorePrivate;
             public bool allowManualTeamSwitch;
             public int maxPlayers;
+            public int maxPrivatePlayers;
             public int playingMax;
             public int playingDesired;
             public int scrambleTeams;
@@ -100,6 +101,7 @@ namespace Assets
                 minimumKeepScorePrivate = Parser.GetInt("MinimumKeepScorePrivate");
                 allowManualTeamSwitch = Parser.GetBool("AllowManualTeamSwitch");
                 maxPlayers = Parser.GetInt("MaxPlayers");
+                maxPrivatePlayers = Parser.GetInt("MaxPrivatePlayers");
                 playingMax = Parser.GetInt("PlayingMax");
                 playingDesired = Parser.GetInt("PlayingDesired");
                 scrambleTeams = Parser.GetInt("ScrambleTeams");
