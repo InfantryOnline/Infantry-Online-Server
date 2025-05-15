@@ -189,7 +189,7 @@ namespace InfServer.Logic
                             continue;
                         }
 
-                        msg = string.Format("*{0} - Lvl({1})", p.alias, p.permission.ToString());
+                        msg = string.Format("*{0} - Lvl({1}) (dev)", p.alias, p.permission.ToString());
                     }
 
                     sent = true;
