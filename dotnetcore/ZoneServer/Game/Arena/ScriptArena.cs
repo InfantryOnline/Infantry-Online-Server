@@ -2492,6 +2492,10 @@ namespace InfServer.Game
                                     return;
                                 }
 
+                                //Don't allow repairing spectator vehicles
+                                if (target._type.Type == VehInfo.Types.Spectator)
+                                    return;
+
                                 //Is it in range?
                                 if (!Helpers.isInRange(item.repairDistance, target._state, player._state))
                                     return;
@@ -2508,6 +2512,10 @@ namespace InfServer.Game
                                     if (v._team != player._team)
                                         continue;
 
+                                    //Skip spectator vehicles
+                                    if (v._type.Type == VehInfo.Types.Spectator)
+                                        continue;
+
                                     //Can we self heal?
                                     if (v._inhabitant == player && !item.repairSelf)
                                         continue;
@@ -2522,6 +2530,10 @@ namespace InfServer.Game
                                         if (child._inhabitant == player && !item.repairSelf)
                                             continue;
 
+                                        //Skip spectator vehicles
+                                        if (child._type.Type == VehInfo.Types.Spectator)
+                                            continue;
+
                                         child.heal(player, item);
                                     }
 
@@ -2530,7 +2542,7 @@ namespace InfServer.Game
                             else
                             {	//A self heal! Sure you can!
                                 Vehicle target = _vehicles.getObjByID(targetVehicle);
-                                if (target != null)
+                                if (target != null && target._type.Type != VehInfo.Types.Spectator)
                                     target.heal(player, item);
                             }
                         }
