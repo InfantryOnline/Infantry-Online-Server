@@ -2496,6 +2496,10 @@ namespace InfServer.Game
                                 if (!Helpers.isInRange(item.repairDistance, target._state, player._state))
                                     return;
 
+                                //Don't allow repairing spectator vehicles
+                                if (target.IsSpectator)
+                                    return;
+
                                 target.heal(player, item);
                             }
                             else if (item.repairDistance < 0)
@@ -2506,6 +2510,10 @@ namespace InfServer.Game
                                 foreach (Vehicle v in vehicles)
                                 {	//Is it on the correct team? (temporary or not)
                                     if (v._team != player._team)
+                                        continue;
+
+                                    //Skip spectator vehicles
+                                    if (v.IsSpectator)
                                         continue;
 
                                     //Can we self heal?
@@ -2522,6 +2530,10 @@ namespace InfServer.Game
                                         if (child._inhabitant == player && !item.repairSelf)
                                             continue;
 
+                                        //Skip spectator vehicles
+                                        if (child.IsSpectator)
+                                            continue;
+
                                         child.heal(player, item);
                                     }
 
@@ -2530,7 +2542,7 @@ namespace InfServer.Game
                             else
                             {	//A self heal! Sure you can!
                                 Vehicle target = _vehicles.getObjByID(targetVehicle);
-                                if (target != null)
+                                if (target != null && !target.IsSpectator)
                                     target.heal(player, item);
                             }
                         }
