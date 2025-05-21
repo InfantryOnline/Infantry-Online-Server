@@ -2530,10 +2530,6 @@ namespace InfServer.Game
                                         if (child._inhabitant == player && !item.repairSelf)
                                             continue;
 
-                                        //Skip spectator vehicles
-                                        if (child.IsSpectator)
-                                            continue;
-
                                         child.heal(player, item);
                                     }
 
