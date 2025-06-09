@@ -13,7 +13,9 @@ namespace InfServer.Protocol
     {
         public string alias { get; set; }
 
-        public int minutes { get; set; }
+        public long silencedAtUnixMs { get; set; }
+
+        public long minutes { get; set; }
 
         //Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.S2C.GlobalSilence;
@@ -61,6 +63,7 @@ namespace InfServer.Protocol
             Write((byte)TypeID);
 
             Write(alias, 0);
+            Write(silencedAtUnixMs);
             Write(minutes);
         }
 
@@ -70,7 +73,8 @@ namespace InfServer.Protocol
         public override void Deserialize()
         {
             alias = ReadNullString();
-            minutes = _contentReader.ReadInt32();
+            silencedAtUnixMs = _contentReader.ReadInt64();
+            minutes = _contentReader.ReadInt64();
         }
 
         /// <summary>

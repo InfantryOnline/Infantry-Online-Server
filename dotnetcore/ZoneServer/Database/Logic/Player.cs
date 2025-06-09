@@ -180,9 +180,14 @@ namespace InfServer.Logic
                 return;
             }
 
+            // Get local time from the unix timestamp.
+
+            var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            var silencedAt = unixEpoch.AddSeconds(pkt.silencedAtUnixMs).ToLocalTime();
+
             if (existingSilencedPlayer != null)
             {
-                existingSilencedPlayer.DurationMinutes += pkt.minutes;
+                existingSilencedPlayer.DurationMinutes += (int)pkt.minutes;
             }
             else
             {
@@ -190,8 +195,8 @@ namespace InfServer.Logic
                 {
                     Alias = player._alias,
                     IPAddress = player._ipAddress,
-                    SilencedAt = DateTime.Now,
-                    DurationMinutes = pkt.minutes,
+                    SilencedAt = silencedAt,
+                    DurationMinutes = (int)pkt.minutes,
                 };
 
                 db._server._playerSilenced.Add(existingSilencedPlayer);
@@ -200,10 +205,13 @@ namespace InfServer.Logic
             if (pkt.minutes <= 0 || existingSilencedPlayer.DurationMinutes <= 0)
             {
                 player._bSilenced = false;
+                player._lengthOfSilence = 0;
                 db._server._playerSilenced.Remove(existingSilencedPlayer);
             }
             else
             {
+                player._timeOfSilence = silencedAt;
+                player._lengthOfSilence = (int)pkt.minutes;
                 player._bSilenced = true;
             }
 

@@ -166,20 +166,20 @@ namespace InfServer.Game.Commands.Mod
                     }
                     else
                     {
-                        recipient._bSilenced = true;
+                        //recipient._bSilenced = true;
 
-                        recipient._timeOfSilence = DateTime.Now;
-                        recipient._lengthOfSilence = (int)minutes;
+                        //recipient._timeOfSilence = DateTime.Now;
+                        //recipient._lengthOfSilence = (int)minutes;
 
-                        var silencedPlayer = new SilencedPlayer
-                        {
-                            Alias = alias,
-                            IPAddress = recipient._ipAddress,
-                            DurationMinutes = (int)minutes,
-                            SilencedAt = DateTime.Now
-                        };
+                        //var silencedPlayer = new SilencedPlayer
+                        //{
+                        //    Alias = alias,
+                        //    IPAddress = recipient._ipAddress,
+                        //    DurationMinutes = (int)minutes,
+                        //    SilencedAt = DateTime.Now
+                        //};
 
-                        player._server._playerSilenced.Add(silencedPlayer);
+                        //player._server._playerSilenced.Add(silencedPlayer);
                     }
                 }
                 else

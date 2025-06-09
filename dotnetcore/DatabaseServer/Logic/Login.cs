@@ -441,6 +441,17 @@ namespace InfServer.Logic
                             account.SilencedAtMillisecondsUnix = 0;
                             account.SilencedDuration = 0;
                         }
+                        else
+                        {
+                            var silencePkt = new SC_Silence<Zone>
+                            {
+                                alias = plog.alias,
+                                silencedAtUnixMs = account.SilencedAtMillisecondsUnix,
+                                minutes = account.SilencedDuration
+                            };
+
+                            zone._client.sendReliable(silencePkt);
+                        }
                     }
 
                     //Convert the binary inventory/skill data

@@ -113,12 +113,18 @@ namespace InfServer.Logic
             var silencePkt = new SC_Silence<Zone>
             {
                 alias = targetAlias,
-                minutes = silencedDuration
+                minutes = silencedDuration,
+                silencedAtUnixMs = silencedTime
             };
 
             foreach(var z in zone._server._zones)
             {
-                
+                if (z == null)
+                {
+                    continue; // hack?
+                }
+
+                z._client.sendReliable(silencePkt);
             }
         }
 
