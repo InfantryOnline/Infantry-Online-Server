@@ -182,8 +182,7 @@ namespace InfServer.Logic
 
             // Get local time from the unix timestamp.
 
-            var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            var silencedAt = unixEpoch.AddSeconds(pkt.silencedAtUnixMs).ToLocalTime();
+            var silencedAt = DateTimeOffset.FromUnixTimeMilliseconds(pkt.silencedAtUnixMs).LocalDateTime;
 
             if (existingSilencedPlayer != null)
             {
