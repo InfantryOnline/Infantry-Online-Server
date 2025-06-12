@@ -7,6 +7,7 @@ using InfServer.Protocol;
 using InfServer.Data;
 using InfServer.Game;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using DBComm.Enums;
 
 namespace InfServer.Logic
 {	// Logic_Player Class
@@ -44,6 +45,7 @@ namespace InfServer.Logic
             {	//Assign the player stats
                 player.assignStats(pkt.stats);
                 player._bannerData = pkt.banner;
+                player.bannerMode = (BannerMode)pkt.bannermode;
             }
             else
             {
