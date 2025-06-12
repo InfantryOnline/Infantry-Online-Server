@@ -9,6 +9,7 @@ using Assets;
 using InfServer.Game;
 using InfServer.Bots;
 using InfServer.Protocol;
+using DBComm.Enums;
 
 namespace InfServer.Game.Commands.Mod
 {
@@ -24,7 +25,7 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
             }
-            
+
             if (String.IsNullOrEmpty(payload) && recipient == null)
             {
                 player.sendMessage(-1, "Recipient/payload can not be empty. (*whois alias, *whois #id or *whois ipaddress(with or without wildcard *) or ::*whois)");
@@ -204,6 +205,59 @@ namespace InfServer.Game.Commands.Mod
             {
                 player.sendMessage(0, alias + " has been globally unsilenced.");
             }
+        }
+
+        public static void bannermode(Player player, Player recipient, string payload, int bong)
+        {
+            byte bannerModeValue;
+
+            if (recipient != null)
+            {
+                if(!byte.TryParse(payload, out bannerModeValue))
+                {
+                    player.sendMessage(0, "Invalid format. Missing bannermode value.");
+                }
+            }
+            else
+            {
+                var parts = payload.Split(':');
+
+                if (parts.Length != 2)
+                {
+                    var players = player._server._arenas
+                        .SelectMany(s => s.Value.Players)
+                        .Where(p => p.bannerMode == BannerMode.Hidden)
+                        .Select(p => p._alias);
+
+                    var joined = string.Join(", ", players);
+
+                    player.sendMessage(0, $"Hidden Banners: {joined}");
+                    return;
+                }
+                else
+                {
+                    recipient = player._server.getPlayer(parts[0]);
+
+                    if (!byte.TryParse(parts[1], out bannerModeValue))
+                    {
+                        player.sendMessage(0, "Invalid format. Missing bannermode value.");
+                    }
+                }
+            }
+
+            if (recipient != null)
+            {
+                recipient.bannerMode = (BannerMode)bannerModeValue;
+
+                Helpers.Social_ArenaBanners(recipient._arena.Players, recipient);
+            }
+
+            if (player._server.IsStandalone)
+            {
+                return;
+            }
+
+            // TODO: Send bannermode to db.
         }
 
         /// <summary>
@@ -1176,6 +1230,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(globalsilence, "globalsilence",
                 "Silences an account across all zones.",
                 "*globalsilence alias:time where time is duration in minutes, or 0, -1 etc to clear the silence.",
+                InfServer.Data.PlayerPermission.SuperMod, false);
+
+            yield return new HandlerDescriptor(bannermode, "bannermode",
+                "Sets or gets banner mode.",
+                "*bannermode alias:mode where 0 is Normal and 1 is Hidden. Omit alias to get list of Hidden for zone.",
                 InfServer.Data.PlayerPermission.SuperMod, false);
         }
     }

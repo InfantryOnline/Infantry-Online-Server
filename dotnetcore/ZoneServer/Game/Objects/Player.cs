@@ -11,6 +11,7 @@ using InfServer.Protocol;
 using InfServer.Logic;
 
 using Assets;
+using DBComm.Enums;
 
 
 namespace InfServer.Game
@@ -63,6 +64,8 @@ namespace InfServer.Game
         public bool _bSilenced;                 //Is the player currently silenced?
         public DateTime _timeOfSilence;         //When he was silenced
         public int _lengthOfSilence;            //For how long...
+
+        public BannerMode bannerMode;
 
         public bool _bLocked;                   //Is the player locked in spec?
         public bool _bAllowSpectator;           //Is the player allowing spectators?

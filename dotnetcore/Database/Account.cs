@@ -29,6 +29,8 @@ public partial class Account
 
     public long SilencedDuration { get; set; }
 
+    public byte BannerMode { get; set; }
+
     public virtual ICollection<Alias> Aliases { get; set; } = new List<Alias>();
 
     public virtual ICollection<ResetToken> ResetTokens { get; set; } = new List<ResetToken>();

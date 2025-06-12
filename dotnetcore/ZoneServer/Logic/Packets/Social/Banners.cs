@@ -20,7 +20,9 @@ namespace InfServer.Logic
 
 			//Inform everyone in the arena
 			if (player._arena != null)
-				Helpers.Social_ArenaBanners(player._arena.Players, player);
+            {
+                Helpers.Social_ArenaBanners(player._arena.Players, player);
+            }
 
 			//Shall we send it to the database?
 			if (!player._arena._server.IsStandalone)

@@ -17,6 +17,7 @@ namespace InfServer.Protocol
 
 		public const ushort TypeID = (ushort)Helpers.PacketIDs.S2C.BannerInfo;
 
+		public static byte[] EmptyBanner = new byte[432];
 
 		///////////////////////////////////////////////////
 		// Member Functions
@@ -37,7 +38,14 @@ namespace InfServer.Protocol
 			Write((byte)TypeID);
 			Write((int)player._id);
 
-			Write(player._bannerData);
+			if (player.bannerMode == DBComm.Enums.BannerMode.Normal)
+			{
+                Write(player._bannerData);
+            }
+			else
+			{
+                Write(EmptyBanner);
+            }
 		}
 
 		/// <summary>

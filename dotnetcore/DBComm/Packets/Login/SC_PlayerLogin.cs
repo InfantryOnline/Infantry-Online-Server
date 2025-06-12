@@ -34,8 +34,9 @@ namespace InfServer.Protocol
 		public long silencedDurationMinutes;
 
 		public bool bFirstTimeSetup;				//Is it the first time the player is setting up inventory?
-		public Data.PlayerStats stats;				//The player's statistics
+		public Data.PlayerStats stats;              //The player's statistics
 
+		public byte bannermode;
 		public byte[] banner;						//The player's stored banner information
 
 		//Packet routing
@@ -107,9 +108,7 @@ namespace InfServer.Protocol
             Write(developer);
             Write(admin);
 			Write(stealth);
-
-			//Write(silencedAtUnixMilliseconds);
-   //         Write(silencedDurationMinutes);
+            Write(bannermode);
 
             Write(bFirstTimeSetup);
 			
@@ -151,9 +150,7 @@ namespace InfServer.Protocol
             developer = _contentReader.ReadBoolean();
             admin = _contentReader.ReadBoolean();
             stealth = _contentReader.ReadBoolean();
-
-            //silencedAtUnixMilliseconds = _contentReader.ReadInt64();
-            //silencedDurationMinutes = _contentReader.ReadInt64();
+			bannermode = _contentReader.ReadByte();
 
             bFirstTimeSetup = _contentReader.ReadBoolean();
 

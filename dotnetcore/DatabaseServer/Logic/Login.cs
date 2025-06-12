@@ -354,8 +354,9 @@ namespace InfServer.Logic
                     if (player.Banner != null)
                     {
                         plog.banner = player.Banner.ToArray();
-                    }    
+                    }
 
+                    plog.bannermode = account.BannerMode;
                     plog.permission = (PlayerPermission)Math.Max(player.Permission, (int)plog.permission);
 
                     if (player.Permission > account.Permission)

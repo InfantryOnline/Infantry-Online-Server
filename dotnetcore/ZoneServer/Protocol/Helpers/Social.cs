@@ -112,7 +112,7 @@ namespace InfServer.Protocol
 		/// Sends a player banner update to a list of players
 		/// </summary>
 		static public void Social_ArenaBanners(IEnumerable<Player> players, Player player)
-		{	//Got a banner?
+		{	//Got a banner? 
             if (player._bannerData == null)
                 return;
 
@@ -121,8 +121,12 @@ namespace InfServer.Protocol
 			banner.player = player;
 
 			foreach (Player plyr in player._arena.Players)
+			{
                 if (plyr != player)
+				{
                     plyr._client.sendReliable(banner);
+                }
+            }                
 		}
 
 		/// <summary>
