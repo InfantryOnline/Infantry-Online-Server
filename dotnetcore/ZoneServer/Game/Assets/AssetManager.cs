@@ -85,8 +85,18 @@ namespace InfServer.Game
 			if (itms == null || lios == null || rpgs == null || vehs == null || lvl == null)
 			{	//Missing a core file
 				foreach (string missing in AssetFileFactory._missingFiles)
-					Log.write(TLog.Error, "Missing file: {0}", missing);
-				return false;
+                {
+                    Log.write(TLog.Error, "Missing file: {0}", missing);
+                }
+
+                Log.write(TLog.Error, "Searched locations:");
+
+                foreach (var loc in AssetFileFactory.AssetFolderPaths)
+                {
+                    Log.write(TLog.Error, loc);
+                }
+
+                return false;
 			}
 
 			Level = lvl.Data;
@@ -139,26 +149,27 @@ namespace InfServer.Game
 
             //Make vehicle map
             _idToVehicle = new SortedDictionary<int, VehInfo>();
+
             foreach (VehInfo it in vehs.Data)
             {
                 _idToVehicle.Add(it.Id, it);
                 foreach (string blo in it.blofiles)
                     loadBloFile(blo + ".blo");
             }
+
 			foreach (string blo in _bloList)
-			{	//Attempt to load it
+			{
                 BloFile blof = AssetFileFactory.LoadBlobFromFile<BloFile>(blo);
 				if (blof != null)
-					addAssetData(blof);
+                {
+                    addAssetData(blof);
+                }
 			}
 
             //For debugging
             _bloList.Sort();
             _bloListFileName = "bloList_" + configFilename + ".txt";
             System.IO.File.WriteAllLines(string.Format("{0}/{1}", Environment.CurrentDirectory, _bloListFileName), _bloList);
-
-            //Update our asset server
-            //sendDataToDirectory();
 
 			//Initialize our lio data
 			Lios = new Lio(this);
@@ -183,7 +194,17 @@ namespace InfServer.Game
 			if (AssetFileFactory.IsIncomplete)
 			{	//Missing a core file
 				foreach (string missing in AssetFileFactory._missingFiles)
-					Log.write(TLog.Error, "Missing file: {0}", missing);
+                {
+                    Log.write(TLog.Error, "Missing file: {0}", missing);
+                }
+
+                Log.write(TLog.Error, "Searched locations:");
+
+                foreach (var loc in AssetFileFactory.AssetFolderPaths)
+                {
+                    Log.write(TLog.Error, loc);
+                }
+                
 				return false;
 			}
 

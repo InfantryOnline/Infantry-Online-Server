@@ -156,25 +156,40 @@ namespace InfServer.Game
             Log.write(TLog.Normal, "Loading Server Configuration");
             _config = new Xmlconfig("server.xml", false).Settings;
 
-            string assetsPath = $"assets{Path.DirectorySeparatorChar}";
+            // Load all of the asset folders from the config.
+            foreach(var location in _config["assets"].GetNamedChildren("location"))
+            {
+                AssetFileFactory.AssetFolderPaths.Add(location.Value);
+            }
+
+            if (AssetFileFactory.AssetFolderPaths.Count == 0)
+            {
+                Log.write(TLog.Normal, "No asset locations provided, will default to using \"assets\" subfolder. Consider grouping shared assets in one folder.");
+                AssetFileFactory.AssetFolderPaths.Add("assets");
+            }
 
             //Load our zone config
             Log.write(TLog.Normal, "Loading Zone Configuration");
 
-            if (!System.IO.Directory.Exists(assetsPath))
+            string cfgFilePath = null;
+
+            foreach(var location in AssetFileFactory.AssetFolderPaths)
             {
-                Log.write(TLog.Error, "Unable to find assets directory '" + assetsPath + "'.");
+                cfgFilePath = AssetFileFactory.findAssetFile(_config["server/zoneConfig"].Value, location);
+
+                if (!string.IsNullOrWhiteSpace(cfgFilePath))
+                {
+                    break;
+                }
+            }
+
+            if (cfgFilePath == null)
+            {
+                Log.write(TLog.Error, $"Unable to find config file {_config["server/zoneConfig"].Value}");
                 return false;
             }
 
-            string filePath = AssetFileFactory.findAssetFile(_config["server/zoneConfig"].Value, assetsPath);
-            if (filePath == null)
-            {
-                Log.write(TLog.Error, "Unable to find config file '" + assetsPath + _config["server/zoneConfig"].Value + "'.");
-                return false;
-            }
-
-            _zoneConfig = CfgInfo.Load(filePath);
+            _zoneConfig = CfgInfo.Load(cfgFilePath);
 
             //Load assets from zone config and populate AssMan
             try

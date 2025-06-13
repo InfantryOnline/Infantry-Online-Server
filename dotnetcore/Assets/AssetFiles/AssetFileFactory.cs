@@ -11,9 +11,14 @@ namespace Assets
     public static class AssetFileFactory
     {
 		/// <summary>
-		/// Contains a list of missing files
+		/// Contains a list of missing files.
 		/// </summary>
 		static public List<string> _missingFiles = new List<string>();
+
+        /// <summary>
+        /// Contains a list of search locations for assets (order matters!).
+        /// </summary>
+        static public List<string> AssetFolderPaths = new List<string>();
 
 		/// <summary>
 		/// Were any files marked as incomplete?
@@ -38,16 +43,23 @@ namespace Assets
             if (filename == null)
                 throw new ArgumentNullException("Null filename.");
 
+            string filePath = null;
+
 			//Attempt to find the file in the directory structure
-			string filePath = findAssetFile(filename, $"assets{Path.DirectorySeparatorChar}");
-            if (filePath == null)
+            foreach(var assetFolder in AssetFolderPaths)
             {
-                filePath = findAssetFile(filename, $"..{Path.DirectorySeparatorChar}BIN{Path.DirectorySeparatorChar}assets{Path.DirectorySeparatorChar}");
+                filePath = findAssetFile(filename, assetFolder);
+
+                if (!string.IsNullOrWhiteSpace(filePath))
+                {
+                    break;
+                }
             }
 
-			if (filePath == null)
-			{	//It's missing!
+            if (filePath == null)
+            {
 				_missingFiles.Add(filename);
+
 				return null;
 			}
 
@@ -69,14 +81,20 @@ namespace Assets
                 throw new ArgumentNullException("Null filename.");
 
             //Attempt to find the file in the directory structure
-            string filePath = findAssetFile(filename, $"..{Path.DirectorySeparatorChar}Blobs{Path.DirectorySeparatorChar}");
-            if (filePath == null)
+            string filePath = null;
+
+            foreach(var assetFolder in AssetFolderPaths)
             {
-                filePath = findAssetFile(filename, $".{Path.DirectorySeparatorChar}Assets{Path.DirectorySeparatorChar}");
+                filePath = findAssetFile(filename, assetFolder);
+
+                if (!string.IsNullOrWhiteSpace(filePath))
+                {
+                    break;
+                }
             }
 
             if (filePath == null)
-            {	//It's missing!
+            {
                 _missingFiles.Add(filename);
                 return null;
             }
@@ -123,8 +141,11 @@ namespace Assets
 			foreach (string dir in Directory.GetDirectories(path))
 			{
 				filePath = findAssetFile(filename, dir);
+
 				if (filePath != null)
-					return filePath;
+                {
+                    return filePath;
+                }
 			}
 
 			return null;
