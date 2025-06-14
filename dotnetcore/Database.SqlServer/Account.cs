@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class Account
 {
-    public long Id { get; set; }
+    public long AccountId { get; set; }
 
     public string Name { get; set; } = null!;
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using Database;
+using Database.SqlServer;
 using InfServer.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,7 +53,7 @@ namespace InfServer.Logic
                 ServerAdminAccountIds = ctx.Aliases
                     .Include(a => a.AccountNavigation)
                     .Where(a => ServerAdmins.Contains(a.Name))
-                    .Select(a => a.AccountNavigation.Id)
+                    .Select(a => a.AccountNavigation.AccountId)
                     .ToList();
             }
         }

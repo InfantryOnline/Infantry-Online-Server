@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class Ban
 {
-    public long Id { get; set; }
+    public long BanId { get; set; }
 
     public short Type { get; set; }
 
-    public long? Account { get; set; }
+    public long? AccountId { get; set; }
 
     public string? IpAddress { get; set; }
 
@@ -23,7 +23,7 @@ public partial class Ban
 
     public DateTime? Expires { get; set; }
 
-    public long? Zone { get; set; }
+    public long? ZoneId { get; set; }
 
     public string? Reason { get; set; }
 

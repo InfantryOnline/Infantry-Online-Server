@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
-public partial class StatsDaily
+public partial class Stat
 {
-    public long Id { get; set; }
+    public long StatId { get; set; }
 
-    public long Zone { get; set; }
+    public long ZoneId { get; set; }
+
+    public int Cash { get; set; }
 
     public int Experience { get; set; }
 
@@ -30,10 +32,6 @@ public partial class StatsDaily
     public int VehicleDeaths { get; set; }
 
     public int PlaySeconds { get; set; }
-
-    public DateTime Date { get; set; }
-
-    public long Player { get; set; }
 
     public int Zonestat1 { get; set; }
 
@@ -59,7 +57,7 @@ public partial class StatsDaily
 
     public int Zonestat12 { get; set; }
 
-    public virtual Player PlayerNavigation { get; set; } = null!;
+    public virtual ICollection<Player> Players { get; set; } = new List<Player>();
 
     public virtual Zone ZoneNavigation { get; set; } = null!;
 }

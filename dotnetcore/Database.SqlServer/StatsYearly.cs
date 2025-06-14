@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
-public partial class StatsMonthly
+public partial class StatsYearly
 {
-    public long Id { get; set; }
+    public long StatsYearlyId { get; set; }
 
-    public long Zone { get; set; }
+    public long ZoneId { get; set; }
 
     public int Experience { get; set; }
 
@@ -33,7 +33,7 @@ public partial class StatsMonthly
 
     public DateTime Date { get; set; }
 
-    public long Player { get; set; }
+    public long PlayerId { get; set; }
 
     public int Zonestat1 { get; set; }
 

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class StatsWeekly
 {
-    public long Id { get; set; }
+    public long StatsWeeklyId { get; set; }
 
-    public long Zone { get; set; }
+    public long ZoneId { get; set; }
 
     public int Experience { get; set; }
 
@@ -33,7 +33,7 @@ public partial class StatsWeekly
 
     public int AssistPoints { get; set; }
 
-    public long Player { get; set; }
+    public long PlayerId { get; set; }
 
     public int Zonestat1 { get; set; }
 

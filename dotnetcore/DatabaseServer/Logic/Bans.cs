@@ -6,7 +6,7 @@ using System.Text;
 using InfServer.Protocol;
 using InfServer.Data;
 using InfServer;
-using Database;
+using Database.SqlServer;
 
 namespace InfServer.Logic
 {
@@ -39,13 +39,13 @@ namespace InfServer.Logic
         /// <summary>
         /// Queries the database and finds bans associated with accounts, IPs and UIDs
         /// </summary>
-        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, DataContext db, Database.Account account, long zoneid)
+        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, DataContext db, Account account, long zoneid)
         {
             Ban.BanType type = Ban.BanType.None;
             DateTime expires = DateTime.Now;
 
             var bans = db.Bans.Where(b =>
-                b.Account == account.Id ||
+                b.AccountId == account.AccountId ||
                 b.IpAddress == pkt.ipaddress ||
                 (b.Uid1 == pkt.UID1 && pkt.UID1 != 0) ||
                 (b.Uid2 == pkt.UID2 && pkt.UID2 != 0) ||
@@ -55,7 +55,7 @@ namespace InfServer.Logic
             foreach (var b in bans)
             {
                 //Is it the correct zone?
-                if (b.Zone != null && (b.Type == (int)Ban.BanType.ZoneBan && b.Zone != zoneid))
+                if (b.ZoneId != null && (b.Type == (int)Ban.BanType.ZoneBan && b.ZoneId != zoneid))
                 {
                     continue;
                 }

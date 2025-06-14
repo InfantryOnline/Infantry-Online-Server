@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class SquadStat
 {
-    public long Id { get; set; }
+    public long SquadStatId { get; set; }
 
     public int Kills { get; set; }
 
@@ -21,5 +21,5 @@ public partial class SquadStat
 
     public int? Season { get; set; }
 
-    public long? Squad { get; set; }
+    public long? SquadId { get; set; }
 }

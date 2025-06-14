@@ -6,7 +6,7 @@ using InfServer.Data;
 using InfServer.Network;
 using InfServer.Protocol;
 using System.Globalization;
-using Database;
+using Database.SqlServer;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 
@@ -40,11 +40,11 @@ namespace InfServer.Logic
 
             //Attempt to find the associated zone
             DBServer server = client._handler as DBServer;
-            Database.Zone dbZone;
+            Database.SqlServer.Zone dbZone;
 
             using (var db = server.getContext())
             {
-                dbZone = db.Zones.SingleOrDefault(z => z.Id == pkt.zoneID);
+                dbZone = db.Zones.SingleOrDefault(z => z.ZoneId == pkt.zoneID);
 
                 //Does the zone exist?
                 if (dbZone == null)
@@ -154,7 +154,7 @@ namespace InfServer.Logic
                 }
 
                 //Is there already a player online under this account?
-                if (!DBServer.bAllowMulticlienting && zone._server._zones.Any((Func<Zone, bool>)(z => z.hasAccountPlayer(account.Id))))
+                if (!DBServer.bAllowMulticlienting && zone._server._zones.Any((Func<Zone, bool>)(z => z.hasAccountPlayer(account.AccountId))))
                 {
                     plog.bSuccess = false;
                     plog.loginMessage = "Account is currently in use.";
@@ -164,7 +164,7 @@ namespace InfServer.Logic
                 }
 
                 //Check for IP and UID bans
-                Logic_Bans.Ban banned = Logic_Bans.checkBan(pkt, db, account, zone._zone.Id);
+                Logic_Bans.Ban banned = Logic_Bans.checkBan(pkt, db, account, zone._zone.ZoneId);
 
                 if (banned.type == Logic_Bans.Ban.BanType.GlobalBan)
                 {   //We don't respond to globally banned player requests
@@ -262,7 +262,7 @@ namespace InfServer.Logic
                 Stat stats = null;
 
                 //Is there already a player online under this alias?
-                if (alias != null && zone._server._zones.Any((Func<Zone, bool>)(z => z.hasAliasPlayer(alias.Id))))
+                if (alias != null && zone._server._zones.Any((Func<Zone, bool>)(z => z.hasAliasPlayer(alias.AliasId))))
                 {
                     plog.bSuccess = false;
                     plog.loginMessage = "Alias is currently in use.";
@@ -293,7 +293,7 @@ namespace InfServer.Logic
                 }
                 else if (alias == null && pkt.bCreateAlias)
                 {	//We want to create a new alias!
-                    alias = new Database.Alias();
+                    alias = new Database.SqlServer.Alias();
 
                     alias.Name = pkt.alias;
                     alias.Creation = DateTime.Now;
@@ -328,10 +328,10 @@ namespace InfServer.Logic
 
                 if (player == null)
                 {	//We need to create another!
-                    player = new Database.Player();
+                    player = new Database.SqlServer.Player();
 
                     player.SquadNavigation = null;
-                    player.Zone = zone._zone.Id;
+                    player.ZoneId = zone._zone.ZoneId;
                     player.AliasNavigation = alias;
 
                     player.LastAccess = DateTime.Now;
@@ -340,7 +340,7 @@ namespace InfServer.Logic
                     //Create a blank stats row
                     stats = new Stat();
 
-                    stats.Zone = zone._zone.Id;
+                    stats.ZoneId = zone._zone.ZoneId;
                     player.StatsNavigation = stats;
 
                     db.Stats.Add(stats);
@@ -366,7 +366,7 @@ namespace InfServer.Logic
                     // Check for admin
                     foreach (var adminId in Logic_Admins.ServerAdminAccountIds)
                     {
-                        if (account.Id == adminId && account.Permission >= 5)
+                        if (account.AccountId == adminId && account.Permission >= 5)
                         {
                             plog.admin = true;
                             break;
@@ -380,7 +380,7 @@ namespace InfServer.Logic
                         account.Permission = 0;
                     }
 
-                    plog.squadID = player.Squad.GetValueOrDefault();
+                    plog.squadID = player.SquadId.GetValueOrDefault();
 
                     if (plog.squadID != 0)
                     {
@@ -552,9 +552,9 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ZoneUpdate(CS_ZoneUpdate<Zone> pkt, Zone zone)
         {
-            using (Database.DataContext db = zone._server.getContext())
+            using (DataContext db = zone._server.getContext())
             {
-                Database.Zone zEntry = db.Zones.SingleOrDefault(z => z.Id == zone._zone.Id);
+                Database.SqlServer.Zone zEntry = db.Zones.SingleOrDefault(z => z.ZoneId == zone._zone.ZoneId);
                 if (zEntry != null)
                 {
                     //Update the zone for our directory server

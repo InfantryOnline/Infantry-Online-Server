@@ -4,6 +4,7 @@ using System.Linq;
 
 using InfServer.Protocol;
 using System.Text.RegularExpressions;
+using Database.SqlServer;
 
 namespace InfServer.Logic
 {
@@ -132,7 +133,7 @@ namespace InfServer.Logic
         {
             using (var ctx = zone._server.getContext())
             {
-                Database.History hist = new Database.History();
+                History hist = new History();
                 hist.Sender = pkt.sender;
                 hist.Recipient = pkt.recipient;
                 hist.Zone = pkt.zone;
@@ -148,7 +149,7 @@ namespace InfServer.Logic
         {
             using (var ctx = zone._server.getContext())
             {
-                var help = new Database.Helpcall();
+                var help = new Helpcall();
                 help.Sender = pkt.sender;
                 help.Zone = pkt.zone;
                 help.Arena = pkt.arena;

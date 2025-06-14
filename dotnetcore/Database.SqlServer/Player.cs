@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class Player
 {
-    public long Id { get; set; }
+    public long PlayerId { get; set; }
 
-    public long Alias { get; set; }
+    public long AliasId { get; set; }
 
-    public long Zone { get; set; }
+    public long ZoneId { get; set; }
 
-    public long? Squad { get; set; }
+    public long? SquadId { get; set; }
 
-    public long Stats { get; set; }
+    public long StatsId { get; set; }
 
     public short Permission { get; set; }
 

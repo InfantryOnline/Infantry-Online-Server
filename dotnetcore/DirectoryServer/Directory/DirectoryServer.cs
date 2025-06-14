@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
 using System.Timers;
-using Database;
+using Database.SqlServer;
 using InfServer.DirectoryServer.Directory.Assets;
 using InfServer.DirectoryServer.Directory.Logic;
 using InfServer.DirectoryServer.Directory.Protocol;

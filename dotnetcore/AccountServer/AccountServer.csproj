@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="..\Database.SqlServer\Database.SqlServer.csproj" />
     <ProjectReference Include="..\Network\Network.csproj" />
   </ItemGroup>
 

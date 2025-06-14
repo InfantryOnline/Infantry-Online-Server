@@ -4,7 +4,7 @@ using System.Linq;
 
 using InfServer.Protocol;
 using InfServer.Data;
-using Database;
+using Database.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
@@ -18,7 +18,7 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ChatQuery(CS_ChatQuery<Zone> pkt, Zone zone)
         {
-            using (Database.DataContext db = zone._server.getContext())
+            using (DataContext db = zone._server.getContext())
             {
                 switch (pkt.queryType)
                 {
@@ -120,7 +120,7 @@ namespace InfServer.Logic
             //Get the associated player making the command
             Player dbplayer = db.Players
                 .Include(p => p.AliasNavigation)
-                .FirstOrDefault(p => p.Zone == zone._zone.Id && p.AliasNavigation.Name == pkt.sender);
+                .FirstOrDefault(p => p.ZoneId == zone._zone.ZoneId && p.AliasNavigation.Name == pkt.sender);
 
             if (dbplayer == null)
             {
@@ -135,7 +135,7 @@ namespace InfServer.Logic
                 //Change all stats to zero
                 List<Player> players = db.Players
                     .Include(p => p.StatsNavigation)
-                    .Where(z => z.Zone == dbplayer.Zone).ToList();
+                    .Where(z => z.ZoneId == dbplayer.ZoneId).ToList();
 
                 if (players.Count == 0)
                 {
@@ -187,7 +187,7 @@ namespace InfServer.Logic
 
             Player recipientPlayer = db.Players
                 .Include(p => p.StatsNavigation)
-                .FirstOrDefault(p => p.Alias == recipientAlias.Id && p.Zone == dbplayer.Zone);
+                .FirstOrDefault(p => p.AliasId == recipientAlias.AliasId && p.ZoneId == dbplayer.ZoneId);
 
             if (recipientPlayer == null)
             {
@@ -258,7 +258,7 @@ namespace InfServer.Logic
                 else // No, check dev powers
                 {
                     var player = db.Players
-                        .FirstOrDefault(p => p.Zone == zone._zone.Id && p.Alias == alias.Id);
+                        .FirstOrDefault(p => p.ZoneId == zone._zone.ZoneId && p.AliasId == alias.AliasId);
 
                     if (player != null && player.Permission > 0)
                         zone._server.sendMessage(Player.Value.zone, Player.Value.alias, pkt.payload);
@@ -273,7 +273,7 @@ namespace InfServer.Logic
                 foreach (KeyValuePair<int, Zone.Player> player in z._players)
                 {
                     pAlias = player.Value.alias;
-                    Database.Alias check = db.Aliases
+                    Alias check = db.Aliases
                         .Include(p => p.AccountNavigation)
                         .SingleOrDefault(a => a.Name == pAlias);
 
@@ -292,19 +292,19 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "!Command Help History (" + pageNum + ")");
 
             //Find all commands!
-            Database.Helpcall end = db.Helpcalls.OrderByDescending(a => a.Id).First();
-            List<Database.Helpcall> helps;
+            Helpcall end = db.Helpcalls.OrderByDescending(a => a.HelpCallId).First();
+            List<Helpcall> helps;
 
             //Check the results first
-            if (end.Id <= resultseachpage)
-                helps = db.Helpcalls.Where(e => e.Id <= end.Id).ToList();
+            if (end.HelpCallId <= resultseachpage)
+                helps = db.Helpcalls.Where(e => e.HelpCallId <= end.HelpCallId).ToList();
             else
                 helps = db.Helpcalls.Where(e =>
-                    e.Id >= (end.Id - (resultseachpage * (pageNum + 1))) &&
-                    e.Id < (end.Id - (resultseachpage * pageNum))).ToList();
+                    e.HelpCallId >= (end.HelpCallId - (resultseachpage * (pageNum + 1))) &&
+                    e.HelpCallId < (end.HelpCallId - (resultseachpage * pageNum))).ToList();
 
             //List them
-            foreach (Database.Helpcall h in helps)
+            foreach (Helpcall h in helps)
             {
                 zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> {4}",
                     Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Reason));
@@ -326,7 +326,7 @@ namespace InfServer.Logic
 
             System.Net.IPAddress ipaddress;
             long accountID;
-            IQueryable<Database.Alias> dbAliases;
+            IQueryable<Alias> dbAliases;
 
             zone._server.sendMessage(zone, pkt.sender, "Current Bans for player");
 
@@ -342,7 +342,7 @@ namespace InfServer.Logic
             {
                 dbAliases = db.Aliases
                     .Include(a => a.AccountNavigation)
-                    .Where(a => a.Account == accountID);
+                    .Where(a => a.AccountId == accountID);
             }
             //Alias!
             else
@@ -359,7 +359,7 @@ namespace InfServer.Logic
 
                 dbAliases = db.Aliases
                     .Include(a => a.AccountNavigation)
-                    .Where(a => a.Account == who.Account);
+                    .Where(a => a.AccountId == who.AccountId);
             }
 
             if (dbAliases != null)
@@ -368,19 +368,19 @@ namespace InfServer.Logic
                 // Materialize to prevent Open Data Reader exception.
                 //
                 var aliases = dbAliases
-                    .Select(a => new { AliasName = a.Name, AccountIp = a.AccountNavigation.IpAddress, AccountId = a.AccountNavigation.Id })
+                    .Select(a => new { AliasName = a.Name, AccountIp = a.AccountNavigation.IpAddress, AccountId = a.AccountNavigation.AccountId })
                     .ToList();
 
                 foreach (var alias in aliases)
                 {
                     var dbBans = db.Bans
-                        .Where(b => b.Name == alias.AliasName && (b.Account == alias.AccountId || b.IpAddress == alias.AccountIp))
+                        .Where(b => b.Name == alias.AliasName && (b.AccountId == alias.AccountId || b.IpAddress == alias.AccountIp))
                         .ToList();
 
                     foreach (var b in dbBans)
                     {
                         //Is it the correct zone?
-                        if (b.Zone != null && (b.Type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.Zone != zone._zone.Id))
+                        if (b.ZoneId != null && (b.Type == (int)Logic_Bans.Ban.BanType.ZoneBan && b.ZoneId != zone._zone.ZoneId))
                             continue;
 
                         //Find all bans for each alias
@@ -420,7 +420,7 @@ namespace InfServer.Logic
 
             var commandHistory =
                 db.Histories.Where(h => h.Command.ToLower().Contains(cmd))
-                    .OrderByDescending(hist => hist.Id)
+                    .OrderByDescending(hist => hist.HistoryId)
                     .Skip(page * resultsPerPage)
                     .Take(resultsPerPage)
                     .ToList();
@@ -444,15 +444,15 @@ namespace InfServer.Logic
 
             zone._server.sendMessage(zone, pkt.sender, "Command History (" + (page + 1) + ")"); //We use + 1 because indexing starts at 0
 
-            List<Database.History> commandHistory =
+            List<History> commandHistory =
                 db.Histories.Where(hist => emptyName || hist.Sender.ToLower() == name.ToLower())
-                    .OrderByDescending(hist => hist.Id)
+                    .OrderByDescending(hist => hist.HistoryId)
                     .Skip(page * resultsPerPage)
                     .Take(resultsPerPage)
                     .ToList();
 
             //List them
-            foreach (Database.History h in commandHistory)
+            foreach (History h in commandHistory)
             {
                 zone._server.sendMessage(zone, pkt.sender, string.Format("!{0} [{1}:{2}] {3}> :{4}: {5}",
                     Convert.ToString(h.Date), h.Zone, h.Arena, h.Sender, h.Recipient, h.Command));
@@ -548,14 +548,14 @@ namespace InfServer.Logic
                     if (pAccount.Permission < 1 && result.Value.arena.StartsWith("#"))
                     {
                         //We are, is this the same zone?
-                        if (result.Value.zone._zone.Id == zone._zone.Id)
+                        if (result.Value.zone._zone.ZoneId == zone._zone.ZoneId)
                         {
                             //It is, get the info needed
                             var find = db.Players
-                                .First(p => p.Zone == zone._zone.Id && p.Alias == result.Value.aliasid);
+                                .First(p => p.ZoneId == zone._zone.ZoneId && p.AliasId == result.Value.aliasid);
 
                             //Are we on the same squad?
-                            if (find.Squad != pPlayer.Squad || (find.Squad == null && pPlayer.Squad == null))
+                            if (find.SquadId != pPlayer.SquadId || (find.SquadId == null && pPlayer.SquadId == null))
                                 zone._server.sendMessage(zone, pkt.sender,
                                     string.Format("*Found: {0} (Zone: {1}) (Arena:{2})",
                                     result.Value.alias, result.Value.zone._zone.Name, "Hidden"));
@@ -585,7 +585,7 @@ namespace InfServer.Logic
         {
             zone._server.sendMessage(zone, pkt.sender, "&Email Update");
 
-            Database.Account account = db.Aliases
+            Account account = db.Aliases
                 .Include(a => a.AccountNavigation)
                 .SingleOrDefault(a => a.Name == pkt.sender).AccountNavigation;
 
@@ -603,7 +603,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            Database.Alias sender = db.Aliases.FirstOrDefault(sndr => sndr.Name == pkt.sender);
+            Alias sender = db.Aliases.FirstOrDefault(sndr => sndr.Name == pkt.sender);
             if (sender == null)
                 return;
 
@@ -611,7 +611,7 @@ namespace InfServer.Logic
             if (!pkt.payload.Contains(','))
             {
                 //Lets get all account related info then delete it
-                Database.Alias palias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
+                Alias palias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
                 if (palias == null)
                 {
                     zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
@@ -619,7 +619,7 @@ namespace InfServer.Logic
                 }
 
                 //First and most important, check to see if this alias is on the account
-                if (palias.Account != sender.Account)
+                if (palias.AccountId != sender.AccountId)
                 {
                     zone._server.sendMessage(zone, pkt.sender, "You must be on the account that this alias belongs to.");
                     return;
@@ -627,27 +627,27 @@ namespace InfServer.Logic
 
                 var players = db.Players
                     .Include(p => p.SquadNavigation)
-                    .Where(t => t.Alias == palias.Id).ToList();
+                    .Where(t => t.AliasId == palias.AliasId).ToList();
 
                 foreach (var player in players)
                 {
                     //Check for a squad
-                    if (player.Squad != null)
+                    if (player.SquadId != null)
                     {
-                        if (player.SquadNavigation.Owner == player.Id)
+                        if (player.SquadNavigation.OwnerPlayerId == player.PlayerId)
                         {
                             var squadmates = db.Players
                                 .Include(p => p.SquadNavigation)
-                                .Where(p => p.Zone == player.Zone
-                                     && p.Squad == player.Squad
-                                     && p.Id != player.Id).ToList();
+                                .Where(p => p.ZoneId == player.ZoneId
+                                     && p.SquadId == player.SquadId
+                                     && p.PlayerId != player.PlayerId).ToList();
 
                             if (squadmates.Count > 0)
                             {
                                 var sq = squadmates.First();
 
                                 //Since the player is the owner, lets just give it to someone else
-                                sq.SquadNavigation.Owner = sq.Id;
+                                sq.SquadNavigation.OwnerPlayerId = sq.PlayerId;
                             }
                             else
                             {
@@ -657,14 +657,14 @@ namespace InfServer.Logic
                         }
 
                         player.SquadNavigation = null;
-                        player.Squad = null;
+                        player.SquadId = null;
                     }
 
                     // Remove the historic stuff too.
-                    var dailies = db.StatsDailies.Where(s => s.Player == player.Id);
-                    var weeklies = db.StatsWeeklies.Where(s => s.Player == player.Id);
-                    var monthlies = db.StatsMonthlies.Where(s => s.Player == player.Id);
-                    var yearlies = db.StatsYearlies.Where(s => s.Player == player.Id);
+                    var dailies = db.StatsDailies.Where(s => s.PlayerId == player.PlayerId);
+                    var weeklies = db.StatsWeeklies.Where(s => s.PlayerId == player.PlayerId);
+                    var monthlies = db.StatsMonthlies.Where(s => s.PlayerId == player.PlayerId);
+                    var yearlies = db.StatsYearlies.Where(s => s.PlayerId == player.PlayerId);
 
                     db.StatsDailies.RemoveRange(dailies);
                     db.StatsWeeklies.RemoveRange(weeklies);
@@ -681,7 +681,7 @@ namespace InfServer.Logic
 
                     db.SaveChanges();
 
-                    var stats = db.Stats.Where(s => s.Id == player.Stats);
+                    var stats = db.Stats.Where(s => s.StatId == player.StatsId);
                     db.Stats.RemoveRange(stats);
 
                     db.SaveChanges();
@@ -716,17 +716,17 @@ namespace InfServer.Logic
                     aliases = db.Aliases.Where(a => a.IpAddress.Equals(ip.ToString())).ToList();
                 else if (pkt.payload.StartsWith("#") && Int64.TryParse(pkt.payload.TrimStart('#'), out accountID))
                 {   //Account ID
-                    aliases = db.Aliases.Where(a => a.Account == accountID).ToList();
+                    aliases = db.Aliases.Where(a => a.AccountId == accountID).ToList();
                 }
                 else
                 {   //Alias
-                    Database.Alias who = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
+                    Alias who = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
                     if (who == null)
                     {
                         zone._server.sendMessage(zone, pkt.sender, "That IP, account id or alias doesn't exist.");
                         return;
                     }
-                    aliases = db.Aliases.Where(a => a.Account == who.Account).ToList();
+                    aliases = db.Aliases.Where(a => a.AccountId == who.AccountId).ToList();
                 }
 
                 if (aliases != null && aliases.Count() > 0)
@@ -740,7 +740,7 @@ namespace InfServer.Logic
                         var mins = (int)timeplayed.Minutes;
 
                         zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
-                            alias.Account, // 0
+                            alias.AccountId, // 0
                             alias.Name, // 1
                             alias.IpAddress, // 2
                             alias.Creation.ToString(), // 3
@@ -812,7 +812,7 @@ namespace InfServer.Logic
                     var mins = (int)timeplayed.Minutes;
 
                     zone._server.sendMessage(zone, pkt.sender, string.Format("*[{0}] {1} (IP={2} Created={3} LastAccess={4} TimePlayed={5}d {6}h {7}m)",
-                        alias.Account, // 0
+                        alias.AccountId, // 0
                         alias.Name, // 1
                         alias.IpAddress, // 2
                         alias.Creation.ToString(), // 3
@@ -830,7 +830,7 @@ namespace InfServer.Logic
 
         private static void Handle_CS_ChatQuery_AccountIgnore(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
         {
-            Database.Alias player = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
+            Alias player = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
             if (player != null)
             {
                 SC_ChatQuery<Zone> cQuery = new SC_ChatQuery<Zone>();
@@ -843,8 +843,8 @@ namespace InfServer.Logic
 
         private static void Handle_CS_ChatQuery_AccountInfo(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
         {
-            Database.Alias from = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender);
-            var aliases = db.Aliases.Where(a => a.Account == from.Account);
+            Alias from = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender);
+            var aliases = db.Aliases.Where(a => a.AccountId == from.AccountId);
             zone._server.sendMessage(zone, pkt.sender, "Account Info");
 
             Int64 total = 0;
@@ -948,11 +948,11 @@ namespace InfServer.Logic
 
             if (!string.IsNullOrWhiteSpace(pkt.payload))
             {
-                var found = ctx.Squads.Where(s => s.Name == pkt.payload && s.Zone == zone._zone.Id).Select(s => new { s.Id, s.Name }).FirstOrDefault();
+                var found = ctx.Squads.Where(s => s.Name == pkt.payload && s.ZoneId == zone._zone.ZoneId).Select(s => new { s.SquadId, s.Name }).FirstOrDefault();
 
                 if (found != null)
                 {
-                    id = found.Id;
+                    id = found.SquadId;
                     name = found.Name;
                 }
             }
@@ -960,9 +960,9 @@ namespace InfServer.Logic
             {
                 if (player.squadid != null)
                 {
-                    var found = ctx.Squads.Where(s => s.Name == pkt.payload && s.Zone == zone._zone.Id).Select(s => new { s.Id, s.Name }).FirstOrDefault();
+                    var found = ctx.Squads.Where(s => s.Name == pkt.payload && s.ZoneId == zone._zone.ZoneId).Select(s => new { s.SquadId, s.Name }).FirstOrDefault();
 
-                    id = found.Id;
+                    id = found.SquadId;
                     name = found.Name;
                 }
             }
@@ -975,7 +975,7 @@ namespace InfServer.Logic
 
             else
             {
-                Database.SquadStat squadstats = ctx.Squadstats.FirstOrDefault(s => s.Squad == id);
+                SquadStat squadstats = ctx.Squadstats.FirstOrDefault(s => s.SquadId == id);
 
                 if (squadstats != null)
                 {
@@ -998,7 +998,7 @@ namespace InfServer.Logic
             using var db = zone._server.getContext();
             var dbplayer = db.Players
                 .Include(p => p.SquadNavigation)
-                .Where(p => p.Id == player.dbid)
+                .Where(p => p.PlayerId == player.dbid)
                 .FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(cleanPayload) || !cleanPayload.Contains(':'))
@@ -1017,8 +1017,8 @@ namespace InfServer.Logic
             }
 
             bool bAccept = (sResponse[0].ToLower() == "accept") ? true : false;
-            Database.Squad responseSquad = db.Squads.FirstOrDefault(s => s.Name == sResponse[1] && s.Zone == zone._zone.Id);
-            KeyValuePair<int, int> responsePair = new KeyValuePair<int, int>((int)responseSquad.Id, (int)dbplayer.Id);
+            Squad responseSquad = db.Squads.FirstOrDefault(s => s.Name == sResponse[1] && s.ZoneId == zone._zone.ZoneId);
+            KeyValuePair<int, int> responsePair = new KeyValuePair<int, int>((int)responseSquad.SquadId, (int)dbplayer.PlayerId);
 
             if (responseSquad == null || !zone._server._squadInvites.Contains(responsePair))
             {   //Either squad doesn't exist... or he's a filthy liar
@@ -1028,14 +1028,14 @@ namespace InfServer.Logic
 
             if (bAccept)
             {   //Acceptance! Get in there, buddy
-                if (dbplayer.Squad != null)
+                if (dbplayer.SquadId != null)
                 {
                     zone._server.sendMessage(zone, pkt.alias, "You can't accept squad invites if you're already in a squad.");
                     return;
                 }
 
                 //Add him to the squad!
-                dbplayer.Squad = responseSquad.Id;
+                dbplayer.SquadId = responseSquad.SquadId;
                 zone._server.sendMessage(zone, pkt.alias, "You've joined " + responseSquad.Name + "! Quit and rejoin to be able to use # to squad chat.");
                 zone._server._squadInvites.Remove(responsePair);
 
@@ -1058,7 +1058,7 @@ namespace InfServer.Logic
             using var db = zone._server.getContext();
             var dbplayer = db.Players
                 .Include(p => p.SquadNavigation)
-                .Where(p => p.Id == player.dbid)
+                .Where(p => p.PlayerId == player.dbid)
                 .FirstOrDefault();
 
             //Is the zone asking?
@@ -1066,9 +1066,9 @@ namespace InfServer.Logic
             {
                 foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
                 {
-                    if (invite.Value == dbplayer.Id)
+                    if (invite.Value == dbplayer.PlayerId)
                     {
-                        Database.Squad sq = db.Squads.First(s => s.Id == invite.Key && s.Zone == zone._zone.Id);
+                        Squad sq = db.Squads.First(s => s.SquadId == invite.Key && s.ZoneId == zone._zone.ZoneId);
                         if (sq != null)
                             zone._server.sendMessage(zone, pkt.alias, string.Format("You have been invited to join a squad: {0}", sq.Name));
                     }
@@ -1080,9 +1080,9 @@ namespace InfServer.Logic
             bool found = true;
             foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
             {
-                if (invite.Value == dbplayer.Id)
+                if (invite.Value == dbplayer.PlayerId)
                 {
-                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Squads.First(s => s.Id == invite.Key && s.Zone == zone._zone.Id).Name);
+                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Squads.First(s => s.SquadId == invite.Key && s.ZoneId == zone._zone.ZoneId).Name);
                     found = true;
                 }
             }
@@ -1099,11 +1099,11 @@ namespace InfServer.Logic
 
             var dbplayer = db.Players
                 .Include(p => p.SquadNavigation)
-                .Where(p => p.Id == player.dbid)
+                .Where(p => p.PlayerId == player.dbid)
                 .FirstOrDefault();
 
             //Lists the players squads outstanding invitations
-            if (dbplayer.Squad == null || dbplayer.SquadNavigation.Owner != dbplayer.Id)
+            if (dbplayer.SquadId == null || dbplayer.SquadNavigation.OwnerPlayerId != dbplayer.PlayerId)
             {   //No squad found!
                 zone._server.sendMessage(zone, pkt.alias, "You aren't the owner of a squad.");
                 return;
@@ -1112,9 +1112,9 @@ namespace InfServer.Logic
             bool found = false;
             foreach (KeyValuePair<int, int> invite in zone._server._squadInvites)
             {
-                if (invite.Key == dbplayer.Squad)
+                if (invite.Key == dbplayer.SquadId)
                 {
-                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Players.First(p => p.Id == invite.Value).AliasNavigation.Name);
+                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Players.First(p => p.PlayerId == invite.Value).AliasNavigation.Name);
                     found = true;
                 }
             }
@@ -1142,7 +1142,7 @@ namespace InfServer.Logic
 
             if (!string.IsNullOrWhiteSpace(cleanPayload))
             {
-                results = results.Where(s => s.Name == cleanPayload && s.Zone == zone._zone.Id);
+                results = results.Where(s => s.Name == cleanPayload && s.ZoneId == zone._zone.ZoneId);
             }
             else
             {
@@ -1153,13 +1153,13 @@ namespace InfServer.Logic
                     
                 }
 
-                results = results.Where(s => s.Id == player.squadid);
+                results = results.Where(s => s.SquadId == player.squadid);
             }
 
             var squad = results.Select(s => new
             {
                 s.Name,
-                Players = s.Players.Select(p => new { p.AliasNavigation.Name, Owner = p.Id == s.Owner })
+                Players = s.Players.Select(p => new { p.AliasNavigation.Name, Owner = p.PlayerId == s.OwnerPlayerId })
             }).FirstOrDefault();
 
             if (squad == null)
@@ -1189,7 +1189,7 @@ namespace InfServer.Logic
 
             if (!string.IsNullOrWhiteSpace(cleanPayload))
             {
-                squad = ctx.Squads.Where(s => s.Name == cleanPayload && s.Zone == zone._zone.Id).FirstOrDefault();
+                squad = ctx.Squads.Where(s => s.Name == cleanPayload && s.ZoneId == zone._zone.ZoneId).FirstOrDefault();
             }
             else
             {
@@ -1197,7 +1197,7 @@ namespace InfServer.Logic
                 {
                     squad = ctx.Squads.Find(player.squadid);
 
-                    if (squad!.Owner == player.dbid)
+                    if (squad!.OwnerPlayerId == player.dbid)
                     {
                         owner = player.alias;
                     }
@@ -1214,7 +1214,7 @@ namespace InfServer.Logic
             {
                 owner = ctx.Players
                     .Include(p => p.AliasNavigation)
-                    .Where(p => p.Id == squad.Owner)
+                    .Where(p => p.PlayerId == squad.OwnerPlayerId)
                     .Select(p => p.AliasNavigation.Name)
                     .FirstOrDefault();
             }
@@ -1239,7 +1239,7 @@ namespace InfServer.Logic
 
             using var ctx = zone._server.getContext();
 
-            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+            var isSquadOwner = ctx.Squads.Any(s => s.ZoneId == zone._zone.ZoneId && s.OwnerPlayerId == player.dbid);
 
             if (!isSquadOwner)
             {
@@ -1248,11 +1248,11 @@ namespace InfServer.Logic
             }
 
             ctx.Players
-                .Where(p => p.Squad == player.squadid)
-                .ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+                .Where(p => p.SquadId == player.squadid)
+                .ExecuteUpdate(setters => setters.SetProperty(p => p.SquadId, (int?)null));
 
             ctx.Squads
-                .Where(s => s.Id == player.squadid)
+                .Where(s => s.SquadId == player.squadid)
                 .ExecuteDelete();
 
             // Alert any online teammates.
@@ -1278,29 +1278,29 @@ namespace InfServer.Logic
 
             using var ctx = zone._server.getContext();
 
-            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+            var isSquadOwner = ctx.Squads.Any(s => s.ZoneId == zone._zone.ZoneId && s.OwnerPlayerId == player.dbid);
 
             if (isSquadOwner)
             {
                 var dbSquadmates = ctx.Players
                     .Include(p => p.AliasNavigation)
-                    .Where(p => p.Squad == player.squadid && p.Id != player.dbid)
-                    .Select(p => new { p.AliasNavigation.Name, p.Id })
+                    .Where(p => p.SquadId == player.squadid && p.PlayerId != player.dbid)
+                    .Select(p => new { p.AliasNavigation.Name, p.PlayerId })
                     .ToList();
 
-                ctx.Players.Where(p => p.Id == player.dbid).ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+                ctx.Players.Where(p => p.PlayerId == player.dbid).ExecuteUpdate(setters => setters.SetProperty(p => p.SquadId, (int?)null));
 
                 if (dbSquadmates.Count == 0)
                 {
                     // Dissolve the squad.
-                    ctx.Squads.Where(s => s.Id == player.squadid).ExecuteDelete();
+                    ctx.Squads.Where(s => s.SquadId == player.squadid).ExecuteDelete();
                     zone._server.sendMessage(zone, pkt.alias, "Your squad has been dissolved.");
                 }
                 else
                 {
                     // Transfer to next player.
                     var sm = dbSquadmates[0];
-                    ctx.Squads.Where(s => s.Id == player.squadid).ExecuteUpdate(setters => setters.SetProperty(s => s.Owner, sm.Id));
+                    ctx.Squads.Where(s => s.SquadId == player.squadid).ExecuteUpdate(setters => setters.SetProperty(s => s.OwnerPlayerId, sm.PlayerId));
 
                     zone._server.sendMessage(zone, pkt.alias, string.Format("You have left your squad while giving ownership to {0}. Please rejoin the zone to complete this process.", sm.Name));
                     zone._server.sendMessage(zone, sm.Name, "You have been promoted to squad captain of " + sm.Name);
@@ -1308,7 +1308,7 @@ namespace InfServer.Logic
             }
             else
             {
-                ctx.Players.Where(p => p.Id == player.dbid).ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+                ctx.Players.Where(p => p.PlayerId == player.dbid).ExecuteUpdate(setters => setters.SetProperty(p => p.SquadId, (int?)null));
             }
 
             // Alert any online teammates.
@@ -1343,7 +1343,7 @@ namespace InfServer.Logic
 
             using var ctx = zone._server.getContext();
 
-            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+            var isSquadOwner = ctx.Squads.Any(s => s.ZoneId == zone._zone.ZoneId && s.OwnerPlayerId == player.dbid);
 
             if (!isSquadOwner)
             {
@@ -1354,8 +1354,8 @@ namespace InfServer.Logic
             var targetPlayer = ctx.Players
                 .Include(p => p.AliasNavigation)
                 .Include(p => p.SquadNavigation)
-                .Where(p => p.AliasNavigation.Name == pkt.payload && p.Squad == player.squadid && p.Zone == zone._zone.Id)
-                .Select(p => new { p.Id, p.AliasNavigation.Name, SquadName = p.SquadNavigation!.Name })
+                .Where(p => p.AliasNavigation.Name == pkt.payload && p.SquadId == player.squadid && p.ZoneId == zone._zone.ZoneId)
+                .Select(p => new { p.PlayerId, p.AliasNavigation.Name, SquadName = p.SquadNavigation!.Name })
                 .FirstOrDefault();
 
             if (targetPlayer == null)
@@ -1365,8 +1365,8 @@ namespace InfServer.Logic
             }
 
             ctx.Squads
-                .Where(s => s.Id == player.squadid)
-                .ExecuteUpdate(setters => setters.SetProperty(s => s.Owner, targetPlayer.Id));
+                .Where(s => s.SquadId == player.squadid)
+                .ExecuteUpdate(setters => setters.SetProperty(s => s.OwnerPlayerId, targetPlayer.PlayerId));
 
             zone._server.sendMessage(zone, pkt.alias, "You have promoted " + targetPlayer.Name + " to squad captain.");
             zone._server.sendMessage(zone, targetPlayer.Name, "You have been promoted to squad captain of " + targetPlayer.SquadName);
@@ -1383,7 +1383,7 @@ namespace InfServer.Logic
 
             using var ctx = zone._server.getContext();
 
-            var isSquadOwner = ctx.Squads.Any(s => s.Zone == zone._zone.Id && s.Owner == player.dbid);
+            var isSquadOwner = ctx.Squads.Any(s => s.ZoneId == zone._zone.ZoneId && s.OwnerPlayerId == player.dbid);
 
             if (!isSquadOwner)
             {
@@ -1421,8 +1421,8 @@ namespace InfServer.Logic
                 var dbTargetPlayer = ctx.Players
                     .Include(p => p.AliasNavigation)
                     .Include(p => p.SquadNavigation)
-                    .Where(p => p.AliasNavigation.Name == pkt.payload && p.Zone == zone._zone.Id && p.Squad == player.squadid)
-                    .Select(p => new { p.Id, AliasName = p.AliasNavigation.Name, SquadName = p.SquadNavigation!.Name})
+                    .Where(p => p.AliasNavigation.Name == pkt.payload && p.ZoneId == zone._zone.ZoneId && p.SquadId == player.squadid)
+                    .Select(p => new { p.PlayerId, AliasName = p.AliasNavigation.Name, SquadName = p.SquadNavigation!.Name})
                     .FirstOrDefault();
 
                 if (dbTargetPlayer == null)
@@ -1434,12 +1434,12 @@ namespace InfServer.Logic
                 zone._server.sendMessage(zone, pkt.alias, "You have kicked " + dbTargetPlayer.AliasName + " from your squad.");
                 zone._server.sendMessage(zone, dbTargetPlayer.AliasName, "You have been kicked from squad " + dbTargetPlayer.SquadName);
 
-                targetPlayerId = dbTargetPlayer.Id;
+                targetPlayerId = dbTargetPlayer.PlayerId;
             }
 
             ctx.Players
-                .Where(p => p.Id == targetPlayerId)
-                .ExecuteUpdate(setters => setters.SetProperty(p => p.Squad, (int?)null));
+                .Where(p => p.PlayerId == targetPlayerId)
+                .ExecuteUpdate(setters => setters.SetProperty(p => p.SquadId, (int?)null));
         }
 
         private static void CS_Squads_QueryType_Invite(CS_Squads<Zone> pkt, Zone zone)
@@ -1454,11 +1454,11 @@ namespace InfServer.Logic
             using var ctx = zone._server.getContext();
 
             var squad = ctx.Squads
-                .Where(s => s.Id == player.squadid)
-                .Select(s => new { s.Owner })
+                .Where(s => s.SquadId == player.squadid)
+                .Select(s => new { s.OwnerPlayerId })
                 .FirstOrDefault();
 
-            if (squad == null || squad.Owner != player.dbid)
+            if (squad == null || squad.OwnerPlayerId != player.dbid)
             {
                 zone._server.sendMessage(zone, pkt.alias, "Only squad owners may send or revoke squad invitations");
                 return;
@@ -1483,8 +1483,8 @@ namespace InfServer.Logic
 
             var invitedPlayer = ctx.Players
                 .Include(p => p.AliasNavigation)
-                .Where(p => p.AliasNavigation.Name == sInvite[1] && p.Zone == zone._zone.Id)
-                .Select(p => new { p.Id, p.AliasNavigation.Name })
+                .Where(p => p.AliasNavigation.Name == sInvite[1] && p.ZoneId == zone._zone.ZoneId)
+                .Select(p => new { p.PlayerId, p.AliasNavigation.Name })
                 .FirstOrDefault();
 
             if (invitedPlayer == null)
@@ -1493,9 +1493,9 @@ namespace InfServer.Logic
                 return;
             }
 
-            var squadName = ctx.Squads.Where(s => s.Id == player.squadid).Select(s => s.Name).FirstOrDefault();
+            var squadName = ctx.Squads.Where(s => s.SquadId == player.squadid).Select(s => s.Name).FirstOrDefault();
 
-            KeyValuePair<int, int> squadInvite = new KeyValuePair<int, int>((int)player.squadid, (int)invitedPlayer.Id);
+            KeyValuePair<int, int> squadInvite = new KeyValuePair<int, int>((int)player.squadid, (int)invitedPlayer.PlayerId);
             if (bAdd)
             {   //Send a squad invite
                 if (zone._server._squadInvites.Contains(squadInvite))
@@ -1537,7 +1537,7 @@ namespace InfServer.Logic
             {
                 using var ctx = zone._server.getContext();
 
-                var squadName = ctx.Squads.Where(s => s.Id == player.squadid).Select(s => s.Name).FirstOrDefault();
+                var squadName = ctx.Squads.Where(s => s.SquadId == player.squadid).Select(s => s.Name).FirstOrDefault();
                 zone._server.sendMessage(zone, pkt.alias, $"You cannot create a squad if you are already in one ({squadName}.");
             }
 
@@ -1558,7 +1558,7 @@ namespace InfServer.Logic
 
             using (var ctx = zone._server.getContext())
             {
-                var exists = ctx.Squads.Any(s => s.Name == squadname && s.Zone == zone._zone.Id);
+                var exists = ctx.Squads.Any(s => s.Name == squadname && s.ZoneId == zone._zone.ZoneId);
 
                 if (exists)
                 {
@@ -1570,7 +1570,7 @@ namespace InfServer.Logic
             using (var ctx = zone._server.getContext())
             {
                 //Create Some Stats first
-                Database.SquadStat stats = new Database.SquadStat();
+                SquadStat stats = new SquadStat();
                 stats.Kills = 0;
                 stats.Deaths = 0;
                 stats.Wins = 0;
@@ -1582,23 +1582,23 @@ namespace InfServer.Logic
                 ctx.SaveChanges();
 
                 //Create the new squad
-                Database.Squad newsquad = new Database.Squad();
+                Squad newsquad = new Squad();
 
                 newsquad.Name = squadname;
                 newsquad.Password = squadpassword;
-                newsquad.Owner = player.dbid;
+                newsquad.OwnerPlayerId = player.dbid;
                 newsquad.DateCreated = DateTime.Now;
-                newsquad.Zone = zone._zone.Id;
-                stats.Squad = newsquad.Id;
+                newsquad.ZoneId = zone._zone.ZoneId;
+                stats.SquadId = newsquad.SquadId;
 
                 ctx.Squads.Add(newsquad);
                 ctx.SaveChanges();
 
                 ctx.Players
-                    .Where(p => p.Id == player.dbid)
-                    .ExecuteUpdate(p => p.SetProperty(s => s.Squad, newsquad.Id));
+                    .Where(p => p.PlayerId == player.dbid)
+                    .ExecuteUpdate(p => p.SetProperty(s => s.SquadId, newsquad.SquadId));
 
-                player.squadid = newsquad.Id;
+                player.squadid = newsquad.SquadId;
 
                 zone._server.sendMessage(zone, pkt.alias, "Successfully created squad: " + newsquad.Name + ". Quit and rejoin to be able to use # to squad chat.");
                 Log.write(TLog.Normal, "Player {0} created squad {1} in zone {2}", pkt.alias, newsquad.Name, zone._zone.Name);

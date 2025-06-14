@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class ResetToken
 {
-    public long Id { get; set; }
+    public long ResetTokenId { get; set; }
 
-    public long Account { get; set; }
+    public long AccountId { get; set; }
 
     public string Name { get; set; } = null!;
 

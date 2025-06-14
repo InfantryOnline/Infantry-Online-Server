@@ -6,7 +6,7 @@ using InfServer.Protocol;
 using InfServer.Data;
 using InfServer;
 using System.Globalization;
-using Database;
+using Database.SqlServer;
 using Microsoft.EntityFrameworkCore;
 
 namespace InfServer.Logic
@@ -35,7 +35,7 @@ namespace InfServer.Logic
             //
 
             var statUpdateRowCount = ctx.Stats
-                .Where(s => s.Id == player.statsid)
+                .Where(s => s.StatId == player.statsid)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, pkt.stats.zonestat1)
                     .SetProperty(s => s.Zonestat2, pkt.stats.zonestat2)
@@ -75,7 +75,7 @@ namespace InfServer.Logic
             }
 
             ctx.Players
-                .Where(p => p.Id == player.dbid)
+                .Where(p => p.PlayerId == player.dbid)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(p => p.Inventory, DatabaseBinaryUtils.inventoryToBin(pkt.stats.inventory))
                     .SetProperty(p => p.Skills, DatabaseBinaryUtils.skillsToBin(pkt.stats.skills)));
@@ -165,7 +165,7 @@ namespace InfServer.Logic
             // Update or Insert Daily
 
             var dailyRowsUpdated = ctx.StatsDailies
-                .Where(s => s.Date == day && s.Player == player.dbid && s.Zone == zone._zone.Id)
+                .Where(s => s.Date == day && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
@@ -194,9 +194,9 @@ namespace InfServer.Logic
             {
                 var stat = new StatsDaily();
 
-                stat.Zone = zone._zone.Id;
+                stat.ZoneId = zone._zone.ZoneId;
                 stat.Date = day;
-                stat.Player = player.dbid;
+                stat.PlayerId = player.dbid;
 
                 stat.Kills += kills;
                 stat.Deaths += deaths;
@@ -228,7 +228,7 @@ namespace InfServer.Logic
             // Update or Insert Weekly
 
             var weeklyRowsUpdated = ctx.StatsWeeklies
-                .Where(s => s.Date == week && s.Player == player.dbid && s.Zone == zone._zone.Id)
+                .Where(s => s.Date == week && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
@@ -257,9 +257,9 @@ namespace InfServer.Logic
             {
                 var stat = new StatsWeekly();
 
-                stat.Zone = zone._zone.Id;
+                stat.ZoneId = zone._zone.ZoneId;
                 stat.Date = week;
-                stat.Player = player.dbid;
+                stat.PlayerId = player.dbid;
 
                 stat.Kills += kills;
                 stat.Deaths += deaths;
@@ -291,7 +291,7 @@ namespace InfServer.Logic
             // Update or Insert Monthly
 
             var monthlyRowsUpdated = ctx.StatsMonthlies
-                .Where(s => s.Date == month && s.Player == player.dbid && s.Zone == zone._zone.Id)
+                .Where(s => s.Date == month && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
@@ -320,9 +320,9 @@ namespace InfServer.Logic
             {
                 var stat = new StatsMonthly();
 
-                stat.Zone = zone._zone.Id;
+                stat.ZoneId = zone._zone.ZoneId;
                 stat.Date = month;
-                stat.Player = player.dbid;
+                stat.PlayerId = player.dbid;
 
                 stat.Kills += kills;
                 stat.Deaths += deaths;
@@ -354,7 +354,7 @@ namespace InfServer.Logic
             // Update or Insert Yearly
 
             var yearlyRowsUpdated = ctx.StatsYearlies
-                .Where(s => s.Date == year && s.Player == player.dbid && s.Zone == zone._zone.Id)
+                .Where(s => s.Date == year && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
                     .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
                     .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
@@ -383,9 +383,9 @@ namespace InfServer.Logic
             {
                 var stat = new StatsYearly();
 
-                stat.Zone = zone._zone.Id;
+                stat.ZoneId = zone._zone.ZoneId;
                 stat.Date = year;
-                stat.Player = player.dbid;
+                stat.PlayerId = player.dbid;
 
                 stat.Kills += kills;
                 stat.Deaths += deaths;
@@ -432,7 +432,7 @@ namespace InfServer.Logic
             using (var ctx = zone._server.getContext())
             {
                 var results = ctx.Players
-                    .Where(p => p.Id == player.dbid)
+                    .Where(p => p.PlayerId == player.dbid)
                     .ExecuteUpdate(t => t.SetProperty(p => p.Banner, pkt.banner));
 
                 if (results != 1)

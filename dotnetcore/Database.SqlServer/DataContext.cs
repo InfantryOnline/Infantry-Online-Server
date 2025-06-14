@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class DataContext : DbContext
 {
@@ -34,15 +34,11 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<History> Histories { get; set; }
 
-    public virtual DbSet<LeagueStat> Leaguestats { get; set; }
-
     public virtual DbSet<Player> Players { get; set; }
 
     public virtual DbSet<ResetToken> ResetTokens { get; set; }
 
     public virtual DbSet<Squad> Squads { get; set; }
-
-    public virtual DbSet<SquadMatch> Squadmatches { get; set; }
 
     public virtual DbSet<SquadStat> Squadstats { get; set; }
 
@@ -71,11 +67,11 @@ public partial class DataContext : DbContext
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.account");
+            entity.HasKey(e => e.AccountId).HasName("PK_dbo.account");
 
             entity.ToTable("account");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.AccountId).HasColumnName("id");
             entity.Property(e => e.DateCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("dateCreated");
@@ -108,12 +104,12 @@ public partial class DataContext : DbContext
 
         modelBuilder.Entity<Alias>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.alias");
+            entity.HasKey(e => e.AliasId).HasName("PK_dbo.alias");
 
             entity.ToTable("alias");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Account).HasColumnName("account");
+            entity.Property(e => e.AliasId).HasColumnName("id");
+            entity.Property(e => e.AccountId).HasColumnName("account");
             entity.Property(e => e.Creation)
                 .HasColumnType("datetime")
                 .HasColumnName("creation");
@@ -132,7 +128,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.TimePlayed).HasColumnName("timeplayed");
 
             entity.HasOne(d => d.AccountNavigation).WithMany(p => p.Aliases)
-                .HasForeignKey(d => d.Account)
+                .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AliasAccount");
         });
@@ -141,8 +137,8 @@ public partial class DataContext : DbContext
         {
             entity.ToTable("ban");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Account).HasColumnName("account");
+            entity.Property(e => e.BanId).HasColumnName("id");
+            entity.Property(e => e.AccountId).HasColumnName("account");
             entity.Property(e => e.Created)
                 .HasColumnType("datetime")
                 .HasColumnName("created");
@@ -163,14 +159,14 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Uid1).HasColumnName("uid1");
             entity.Property(e => e.Uid2).HasColumnName("uid2");
             entity.Property(e => e.Uid3).HasColumnName("uid3");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
         });
 
         modelBuilder.Entity<Helpcall>(entity =>
         {
             entity.ToTable("helpcall");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.HelpCallId).HasColumnName("id");
             entity.Property(e => e.Arena)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -195,7 +191,7 @@ public partial class DataContext : DbContext
         {
             entity.ToTable("history");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.HistoryId).HasColumnName("id");
             entity.Property(e => e.Arena)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -221,33 +217,14 @@ public partial class DataContext : DbContext
                 .HasColumnName("zone");
         });
 
-        modelBuilder.Entity<LeagueStat>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.leaguestats");
-
-            entity.ToTable("leaguestats");
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.AssistPoints).HasColumnName("assistPoints");
-            entity.Property(e => e.BonusPoints).HasColumnName("bonusPoints");
-            entity.Property(e => e.DeathPoints).HasColumnName("deathPoints");
-            entity.Property(e => e.Deaths).HasColumnName("deaths");
-            entity.Property(e => e.KillPoints).HasColumnName("killPoints");
-            entity.Property(e => e.Kills).HasColumnName("kills");
-            entity.Property(e => e.Match).HasColumnName("match");
-            entity.Property(e => e.PlaySeconds).HasColumnName("playSeconds");
-            entity.Property(e => e.Player).HasColumnName("player");
-            entity.Property(e => e.Zone).HasColumnName("zone");
-        });
-
         modelBuilder.Entity<Player>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.player");
+            entity.HasKey(e => e.PlayerId).HasName("PK_dbo.player");
 
             entity.ToTable("player");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Alias).HasColumnName("alias");
+            entity.Property(e => e.PlayerId).HasColumnName("id");
+            entity.Property(e => e.AliasId).HasColumnName("alias");
             entity.Property(e => e.Banner)
                 .HasMaxLength(8000)
                 .HasColumnName("banner");
@@ -261,25 +238,25 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Skills)
                 .HasMaxLength(512)
                 .HasColumnName("skills");
-            entity.Property(e => e.Squad).HasColumnName("squad");
-            entity.Property(e => e.Stats).HasColumnName("stats");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.SquadId).HasColumnName("squad");
+            entity.Property(e => e.StatsId).HasColumnName("stats");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
 
             entity.HasOne(d => d.AliasNavigation).WithMany(p => p.Players)
-                .HasForeignKey(d => d.Alias)
+                .HasForeignKey(d => d.AliasId)
                 .HasConstraintName("alias_player");
 
             entity.HasOne(d => d.SquadNavigation).WithMany(p => p.Players)
-                .HasForeignKey(d => d.Squad)
+                .HasForeignKey(d => d.SquadId)
                 .HasConstraintName("FK_PlayerSquad");
 
             entity.HasOne(d => d.StatsNavigation).WithMany(p => p.Players)
-                .HasForeignKey(d => d.Stats)
+                .HasForeignKey(d => d.StatsId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("stats_player");
 
             entity.HasOne(d => d.ZoneNavigation).WithMany(p => p.Players)
-                .HasForeignKey(d => d.Zone)
+                .HasForeignKey(d => d.ZoneId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("zone_player");
         });
@@ -288,8 +265,8 @@ public partial class DataContext : DbContext
         {
             entity.ToTable("resetToken");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Account).HasColumnName("account");
+            entity.Property(e => e.ResetTokenId).HasColumnName("id");
+            entity.Property(e => e.AccountId).HasColumnName("account");
             entity.Property(e => e.ExpireDate)
                 .HasColumnType("datetime")
                 .HasColumnName("expireDate");
@@ -304,18 +281,18 @@ public partial class DataContext : DbContext
             entity.Property(e => e.TokenUsed).HasColumnName("tokenUsed");
 
             entity.HasOne(d => d.AccountNavigation).WithMany(p => p.ResetTokens)
-                .HasForeignKey(d => d.Account)
+                .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("account_resetToken");
         });
 
         modelBuilder.Entity<Squad>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.squad");
+            entity.HasKey(e => e.SquadId).HasName("PK_dbo.squad");
 
             entity.ToTable("squad");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.SquadId).HasColumnName("id");
             entity.Property(e => e.DateCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("dateCreated");
@@ -323,43 +300,22 @@ public partial class DataContext : DbContext
                 .HasMaxLength(64)
                 .IsUnicode(false)
                 .HasColumnName("name");
-            entity.Property(e => e.Owner).HasColumnName("owner");
+            entity.Property(e => e.OwnerPlayerId).HasColumnName("owner");
             entity.Property(e => e.Password)
                 .HasMaxLength(64)
                 .IsUnicode(false)
                 .HasColumnName("password");
-            entity.Property(e => e.Stats).HasColumnName("stats");
-            entity.Property(e => e.Zone).HasColumnName("zone");
-        });
-
-        modelBuilder.Entity<SquadMatch>(entity =>
-        {
-            entity.ToTable("squadmatch");
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.DateBegin)
-                .HasColumnType("datetime")
-                .HasColumnName("dateBegin");
-            entity.Property(e => e.DateEnd)
-                .HasColumnType("datetime")
-                .HasColumnName("dateEnd");
-            entity.Property(e => e.Loser).HasColumnName("loser");
-            entity.Property(e => e.Season).HasColumnName("season");
-            entity.Property(e => e.Squad1).HasColumnName("squad1");
-            entity.Property(e => e.Squad2).HasColumnName("squad2");
-            entity.Property(e => e.Winner).HasColumnName("winner");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.SquadStatsId).HasColumnName("stats");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
         });
 
         modelBuilder.Entity<SquadStat>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.squadstats");
+            entity.HasKey(e => e.SquadStatId).HasName("PK_dbo.squadstats");
 
             entity.ToTable("squadstats");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.SquadStatId).HasColumnName("id");
             entity.Property(e => e.Deaths).HasColumnName("deaths");
             entity.Property(e => e.Kills).HasColumnName("kills");
             entity.Property(e => e.Losses).HasColumnName("losses");
@@ -368,17 +324,17 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Season)
                 .HasDefaultValue(0)
                 .HasColumnName("season");
-            entity.Property(e => e.Squad).HasColumnName("squad");
+            entity.Property(e => e.SquadId).HasColumnName("squad");
             entity.Property(e => e.Wins).HasColumnName("wins");
         });
 
         modelBuilder.Entity<Stat>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.stats");
+            entity.HasKey(e => e.StatId).HasName("PK_dbo.stats");
 
             entity.ToTable("stats");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StatId).HasColumnName("id");
             entity.Property(e => e.AssistPoints).HasColumnName("assistPoints");
             entity.Property(e => e.BonusPoints).HasColumnName("bonusPoints");
             entity.Property(e => e.Cash).HasColumnName("cash");
@@ -391,7 +347,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.PlaySeconds).HasColumnName("playSeconds");
             entity.Property(e => e.VehicleDeaths).HasColumnName("vehicleDeaths");
             entity.Property(e => e.VehicleKills).HasColumnName("vehicleKills");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
             entity.Property(e => e.Zonestat1).HasColumnName("zonestat1");
             entity.Property(e => e.Zonestat10).HasColumnName("zonestat10");
             entity.Property(e => e.Zonestat11).HasColumnName("zonestat11");
@@ -406,7 +362,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Zonestat9).HasColumnName("zonestat9");
 
             entity.HasOne(d => d.ZoneNavigation).WithMany(p => p.Stats)
-                .HasForeignKey(d => d.Zone)
+                .HasForeignKey(d => d.ZoneId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("zone_stats");
         });
@@ -415,7 +371,7 @@ public partial class DataContext : DbContext
         {
             entity.ToTable("statsDaily");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StatsDailyId).HasColumnName("id");
             entity.Property(e => e.AssistPoints).HasColumnName("assistPoints");
             entity.Property(e => e.BonusPoints).HasColumnName("bonusPoints");
             entity.Property(e => e.Date)
@@ -428,10 +384,10 @@ public partial class DataContext : DbContext
             entity.Property(e => e.KillPoints).HasColumnName("killPoints");
             entity.Property(e => e.Kills).HasColumnName("kills");
             entity.Property(e => e.PlaySeconds).HasColumnName("playSeconds");
-            entity.Property(e => e.Player).HasColumnName("player");
+            entity.Property(e => e.PlayerId).HasColumnName("player");
             entity.Property(e => e.VehicleDeaths).HasColumnName("vehicleDeaths");
             entity.Property(e => e.VehicleKills).HasColumnName("vehicleKills");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
             entity.Property(e => e.Zonestat1).HasColumnName("zonestat1");
             entity.Property(e => e.Zonestat10).HasColumnName("zonestat10");
             entity.Property(e => e.Zonestat11).HasColumnName("zonestat11");
@@ -446,12 +402,12 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Zonestat9).HasColumnName("zonestat9");
 
             entity.HasOne(d => d.PlayerNavigation).WithMany(p => p.StatsDailies)
-                .HasForeignKey(d => d.Player)
+                .HasForeignKey(d => d.PlayerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_StatsDailyPlayer");
 
             entity.HasOne(d => d.ZoneNavigation).WithMany(p => p.StatsDailies)
-                .HasForeignKey(d => d.Zone)
+                .HasForeignKey(d => d.ZoneId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("zone_statsDaily");
         });
@@ -460,7 +416,7 @@ public partial class DataContext : DbContext
         {
             entity.ToTable("statsMonthly");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StatsMonthlyId).HasColumnName("id");
             entity.Property(e => e.AssistPoints).HasColumnName("assistPoints");
             entity.Property(e => e.BonusPoints).HasColumnName("bonusPoints");
             entity.Property(e => e.Date)
@@ -473,10 +429,10 @@ public partial class DataContext : DbContext
             entity.Property(e => e.KillPoints).HasColumnName("killPoints");
             entity.Property(e => e.Kills).HasColumnName("kills");
             entity.Property(e => e.PlaySeconds).HasColumnName("playSeconds");
-            entity.Property(e => e.Player).HasColumnName("player");
+            entity.Property(e => e.PlayerId).HasColumnName("player");
             entity.Property(e => e.VehicleDeaths).HasColumnName("vehicleDeaths");
             entity.Property(e => e.VehicleKills).HasColumnName("vehicleKills");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
             entity.Property(e => e.Zonestat1).HasColumnName("zonestat1");
             entity.Property(e => e.Zonestat10).HasColumnName("zonestat10");
             entity.Property(e => e.Zonestat11).HasColumnName("zonestat11");
@@ -491,12 +447,12 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Zonestat9).HasColumnName("zonestat9");
 
             entity.HasOne(d => d.PlayerNavigation).WithMany(p => p.StatsMonthlies)
-                .HasForeignKey(d => d.Player)
+                .HasForeignKey(d => d.PlayerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_StatsMonthlyPlayer");
 
             entity.HasOne(d => d.ZoneNavigation).WithMany(p => p.StatsMonthlies)
-                .HasForeignKey(d => d.Zone)
+                .HasForeignKey(d => d.ZoneId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("zone_statsMonthly");
         });
@@ -505,7 +461,7 @@ public partial class DataContext : DbContext
         {
             entity.ToTable("statsWeekly");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StatsWeeklyId).HasColumnName("id");
             entity.Property(e => e.AssistPoints).HasColumnName("assistPoints");
             entity.Property(e => e.BonusPoints).HasColumnName("bonusPoints");
             entity.Property(e => e.Date)
@@ -518,10 +474,10 @@ public partial class DataContext : DbContext
             entity.Property(e => e.KillPoints).HasColumnName("killPoints");
             entity.Property(e => e.Kills).HasColumnName("kills");
             entity.Property(e => e.PlaySeconds).HasColumnName("playSeconds");
-            entity.Property(e => e.Player).HasColumnName("player");
+            entity.Property(e => e.PlayerId).HasColumnName("player");
             entity.Property(e => e.VehicleDeaths).HasColumnName("vehicleDeaths");
             entity.Property(e => e.VehicleKills).HasColumnName("vehicleKills");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
             entity.Property(e => e.Zonestat1).HasColumnName("zonestat1");
             entity.Property(e => e.Zonestat10).HasColumnName("zonestat10");
             entity.Property(e => e.Zonestat11).HasColumnName("zonestat11");
@@ -536,12 +492,12 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Zonestat9).HasColumnName("zonestat9");
 
             entity.HasOne(d => d.PlayerNavigation).WithMany(p => p.StatsWeeklies)
-                .HasForeignKey(d => d.Player)
+                .HasForeignKey(d => d.PlayerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_StatsWeeklyPlayer");
 
             entity.HasOne(d => d.ZoneNavigation).WithMany(p => p.StatsWeeklies)
-                .HasForeignKey(d => d.Zone)
+                .HasForeignKey(d => d.ZoneId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("zone_statsWeekly");
         });
@@ -550,7 +506,7 @@ public partial class DataContext : DbContext
         {
             entity.ToTable("statsYearly");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StatsYearlyId).HasColumnName("id");
             entity.Property(e => e.AssistPoints).HasColumnName("assistPoints");
             entity.Property(e => e.BonusPoints).HasColumnName("bonusPoints");
             entity.Property(e => e.Date)
@@ -563,10 +519,10 @@ public partial class DataContext : DbContext
             entity.Property(e => e.KillPoints).HasColumnName("killPoints");
             entity.Property(e => e.Kills).HasColumnName("kills");
             entity.Property(e => e.PlaySeconds).HasColumnName("playSeconds");
-            entity.Property(e => e.Player).HasColumnName("player");
+            entity.Property(e => e.PlayerId).HasColumnName("player");
             entity.Property(e => e.VehicleDeaths).HasColumnName("vehicleDeaths");
             entity.Property(e => e.VehicleKills).HasColumnName("vehicleKills");
-            entity.Property(e => e.Zone).HasColumnName("zone");
+            entity.Property(e => e.ZoneId).HasColumnName("zone");
             entity.Property(e => e.Zonestat1).HasColumnName("zonestat1");
             entity.Property(e => e.Zonestat10).HasColumnName("zonestat10");
             entity.Property(e => e.Zonestat11).HasColumnName("zonestat11");
@@ -581,23 +537,23 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Zonestat9).HasColumnName("zonestat9");
 
             entity.HasOne(d => d.PlayerNavigation).WithMany(p => p.StatsYearlies)
-                .HasForeignKey(d => d.Player)
+                .HasForeignKey(d => d.PlayerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_StatsYearlyPlayer");
 
             entity.HasOne(d => d.ZoneNavigation).WithMany(p => p.StatsYearlies)
-                .HasForeignKey(d => d.Zone)
+                .HasForeignKey(d => d.ZoneId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("zone_statsYearly");
         });
 
         modelBuilder.Entity<Zone>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK_dbo.zone");
+            entity.HasKey(e => e.ZoneId).HasName("PK_dbo.zone");
 
             entity.ToTable("zone");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ZoneId).HasColumnName("id");
             entity.Property(e => e.Active).HasColumnName("active");
             entity.Property(e => e.Advanced).HasColumnName("advanced");
             entity.Property(e => e.Description)

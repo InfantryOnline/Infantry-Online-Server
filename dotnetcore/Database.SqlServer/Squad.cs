@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class Squad
 {
-    public long Id { get; set; }
+    public long SquadId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -13,11 +13,11 @@ public partial class Squad
 
     public DateTime DateCreated { get; set; }
 
-    public long Owner { get; set; }
+    public long OwnerPlayerId { get; set; }
 
-    public long Zone { get; set; }
+    public long ZoneId { get; set; }
 
-    public long Stats { get; set; }
+    public long SquadStatsId { get; set; }
 
     public virtual ICollection<Player> Players { get; set; } = new List<Player>();
 }

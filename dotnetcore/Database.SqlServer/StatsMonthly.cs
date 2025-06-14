@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace Database.SqlServer;
 
-namespace Database;
-
-public partial class Stat
+public partial class StatsMonthly
 {
-    public long Id { get; set; }
+    public long StatsMonthlyId { get; set; }
 
-    public long Zone { get; set; }
-
-    public int Cash { get; set; }
+    public long ZoneId { get; set; }
 
     public int Experience { get; set; }
 
@@ -32,6 +27,10 @@ public partial class Stat
     public int VehicleDeaths { get; set; }
 
     public int PlaySeconds { get; set; }
+
+    public DateTime Date { get; set; }
+
+    public long PlayerId { get; set; }
 
     public int Zonestat1 { get; set; }
 
@@ -57,7 +56,7 @@ public partial class Stat
 
     public int Zonestat12 { get; set; }
 
-    public virtual ICollection<Player> Players { get; set; } = new List<Player>();
+    public virtual Player PlayerNavigation { get; set; } = null!;
 
     public virtual Zone ZoneNavigation { get; set; } = null!;
 }

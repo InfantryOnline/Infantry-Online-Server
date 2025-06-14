@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class Zone
 {
-    public long Id { get; set; }
+    public long ZoneId { get; set; }
 
     public string Password { get; set; } = null!;
 

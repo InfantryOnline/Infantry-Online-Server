@@ -8,7 +8,7 @@ using System.Threading;
 using InfServer.Network;
 using InfServer.Protocol;
 using InfServer.Data;
-using Database;
+using Database.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 

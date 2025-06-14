@@ -6,7 +6,7 @@ using AccountServer.Helpers;
 using System.Net.Mail;
 using InfServer;
 using InfServer.Protocol;
-using Database;
+using Database.SqlServer;
 
 using Account = AccountServer.Models.Account;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +52,7 @@ namespace AccountServer
 
             using (var ctx = _dbContextFactory.CreateDbContext())
             {
-                var acct = new Database.Account
+                var acct = new Database.SqlServer.Account
                 {
                     Name = username,
                     Password = password,
@@ -69,7 +69,7 @@ namespace AccountServer
 
                 return new Account
                 {
-                    Id = acct.Id,
+                    Id = acct.AccountId,
                     DateCreated = dateCreated,
                     LastAccessed = lastAccess,
                     SessionId = Guid.Parse(ticket),
@@ -138,7 +138,7 @@ namespace AccountServer
 
                 return new Account
                 {
-                    Id = acct.Id,
+                    Id = acct.AccountId,
                     Username = acct.Name,
                     Password = acct.Password, // TODO: I wouldn't return the password or have it be exposed in Account model at all.
                     SessionId = ticket,
@@ -239,7 +239,7 @@ namespace AccountServer
                     var rt = new ResetToken
                     {
                         Name = username,
-                        Account = acct.Id,
+                        AccountId = acct.AccountId,
                         Token = token,
                         ExpireDate = DateTime.Now.AddHours(48),
                         TokenUsed = false,

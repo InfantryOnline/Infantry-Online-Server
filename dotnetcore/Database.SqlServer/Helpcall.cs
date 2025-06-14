@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database;
+namespace Database.SqlServer;
 
 public partial class Helpcall
 {
-    public long Id { get; set; }
+    public long HelpCallId { get; set; }
 
     public string Sender { get; set; } = null!;
 

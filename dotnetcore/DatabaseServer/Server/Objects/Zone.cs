@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-
+using Database.SqlServer;
 using InfServer.Network;
 using InfServer.Protocol;
 using Microsoft.Identity.Client;
@@ -16,7 +16,7 @@ namespace InfServer
         public Client _client;								//Our connection to the zone server
         public DBServer _server;							//The server we work for!
 
-        public Database.Zone _zone;							//Our zone database entry
+        public Database.SqlServer.Zone _zone;				//Our zone database entry
 
         public Dictionary<int, Player> _players;			//The players present in our zone
 
@@ -41,8 +41,8 @@ namespace InfServer
             public int permission;              //Player Permission level.
             public int accountpermission;       //Account Permission level.
             public List<string> chats;          //The chats they are in
-            public Database.Stat stats;         //Stats (updated on every Stat Update packet).
-            public long statsid { get { return stats.Id; } }
+            public Stat stats;         //Stats (updated on every Stat Update packet).
+            public long statsid { get { return stats.StatId; } }
         }
 
         ///////////////////////////////////////////////////
@@ -51,7 +51,7 @@ namespace InfServer
         /// <summary>
         /// Generic constructor
         /// </summary>
-        public Zone(Client client, DBServer server, Database.Zone zone)
+        public Zone(Client client, DBServer server, Database.SqlServer.Zone zone)
         {
             _client = client;
             _server = server;
@@ -143,7 +143,7 @@ namespace InfServer
         /// <summary>
         /// Indicates that a player has joined the zone server
         /// </summary>
-        public bool newPlayer(int id, string alias, Database.Player dbplayer)
+        public bool newPlayer(int id, string alias, Database.SqlServer.Player dbplayer)
         {
             if (string.IsNullOrWhiteSpace(alias))
             {
@@ -162,11 +162,11 @@ namespace InfServer
 
             Player player = new Player();
 
-            player.acctid = dbplayer.AliasNavigation.AccountNavigation.Id;
-            player.aliasid = dbplayer.AliasNavigation.Id;
+            player.acctid = dbplayer.AliasNavigation.AccountNavigation.AccountId;
+            player.aliasid = dbplayer.AliasNavigation.AliasId;
             player.IPAddress = dbplayer.AliasNavigation.IpAddress;
-            player.dbid = dbplayer.Id;
-            player.squadid = dbplayer.Squad;
+            player.dbid = dbplayer.PlayerId;
+            player.squadid = dbplayer.SquadId;
             player.stats = dbplayer.StatsNavigation;
             player.alias = alias;
             player.stealth = dbplayer.AliasNavigation.Stealth == 1;
