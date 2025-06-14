@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CS-Script" Version="4.8.14" />
+    <PackageReference Include="CS-Script" Version="4.9.7" />
     <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
   </ItemGroup>
 

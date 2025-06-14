@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="C5" Version="2.5.3" />
+    <PackageReference Include="C5" Version="3.0.0" />
   </ItemGroup>
 
 </Project>
