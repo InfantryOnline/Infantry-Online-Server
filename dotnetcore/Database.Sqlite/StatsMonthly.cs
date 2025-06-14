@@ -2,7 +2,7 @@
 
 namespace Database.Sqlite;
 
-[Index(nameof(PlayerId), nameof(Date))]
+[Index(nameof(PlayerId), nameof(Date), IsUnique = true)]
 public partial class StatsMonthly
 {
     public long StatsMonthlyId { get; set; }

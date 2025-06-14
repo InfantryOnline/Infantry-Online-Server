@@ -681,7 +681,7 @@ namespace InfServer.Logic
 
                     db.SaveChanges();
 
-                    var stats = db.Stats.Where(s => s.StatId == player.StatsId);
+                    var stats = db.Stats.Where(s => s.StatId == player.StatId);
                     db.Stats.RemoveRange(stats);
 
                     db.SaveChanges();

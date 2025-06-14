@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Database.Sqlite;
 
-[Index(nameof(PlayerId), nameof(Date))]
+[Index(nameof(PlayerId), nameof(Date), IsUnique = true)]
 public partial class StatsWeekly
 {
     public long StatsWeeklyId { get; set; }

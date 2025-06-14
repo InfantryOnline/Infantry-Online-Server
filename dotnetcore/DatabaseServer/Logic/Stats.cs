@@ -23,7 +23,7 @@ namespace InfServer.Logic
         {
             try
             {
-                Player player = stat.Players.SingleOrDefault(s => s.StatsId == stat.StatId);
+                Player player = stat.Players.SingleOrDefault(s => s.StatId == stat.StatId);
                 if (player == null)
                 {	//Make a note
                     Log.write(TLog.Warning, "No player found for stat ID {0}.", stat.StatId);

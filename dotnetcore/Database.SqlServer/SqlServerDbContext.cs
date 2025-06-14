@@ -237,7 +237,7 @@ public partial class SqlServerDbContext : DbContext
                 .HasMaxLength(512)
                 .HasColumnName("skills");
             entity.Property(e => e.SquadId).HasColumnName("squad");
-            entity.Property(e => e.StatsId).HasColumnName("stats");
+            entity.Property(e => e.StatId).HasColumnName("stats");
             entity.Property(e => e.ZoneId).HasColumnName("zone");
 
             entity.HasOne(d => d.AliasNavigation).WithMany(p => p.Players)
@@ -249,7 +249,7 @@ public partial class SqlServerDbContext : DbContext
                 .HasConstraintName("FK_PlayerSquad");
 
             entity.HasOne(d => d.StatsNavigation).WithMany(p => p.Players)
-                .HasForeignKey(d => d.StatsId)
+                .HasForeignKey(d => d.StatId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("stats_player");
 

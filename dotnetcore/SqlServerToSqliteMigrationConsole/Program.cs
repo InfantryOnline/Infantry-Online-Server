@@ -47,6 +47,30 @@ namespace SqlServerToSqliteMigrationConsole
 
                 cfg.CreateMap<Database.SqlServer.Ban, Database.Sqlite.Ban>()
                     .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.Helpcall, Database.Sqlite.Helpcall>()
+                    .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.Stat, Database.Sqlite.Stat>()
+                    .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.StatsDaily, Database.Sqlite.StatsDaily>()
+                    .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.StatsWeekly, Database.Sqlite.StatsWeekly>()
+                    .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.StatsMonthly, Database.Sqlite.StatsMonthly>()
+                    .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.StatsYearly, Database.Sqlite.StatsYearly>()
+                    .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.ResetToken, Database.Sqlite.ResetToken>()
+                    .IgnoreAllVirtual();
+
+                cfg.CreateMap<Database.SqlServer.History, Database.Sqlite.History>()
+                    .IgnoreAllVirtual();
             });
 
             return config.CreateMapper();
@@ -58,7 +82,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             using (var ctx = new SqliteDbContext())
             {
-                ctx.Database.EnsureCreated();
+                // ctx.Database.EnsureCreated();
                 ctx.Database.Migrate();
 
                 if (ctx.Accounts.Count() > 0)
@@ -74,8 +98,14 @@ namespace SqlServerToSqliteMigrationConsole
             List<Database.SqlServer.Player> oldPlayers;
             List<Database.SqlServer.Ban> oldBans;
             List<Database.SqlServer.History> oldHistory;
+            List<Database.SqlServer.ResetToken> oldResetTokens;
+            List<Database.SqlServer.Helpcall> oldHelpCalls;
             List<Database.SqlServer.Squad> oldSquads;
             List<Database.SqlServer.Stat> oldStats;
+            List<Database.SqlServer.StatsDaily> oldStatsDaily;
+            List<Database.SqlServer.StatsWeekly> oldStatsWeekly;
+            List<Database.SqlServer.StatsMonthly> oldStatsMonthly;
+            List<Database.SqlServer.StatsYearly> oldStatsYearly;
             List<Database.SqlServer.Zone> oldZones;
 
             var options = new DbContextOptionsBuilder<SqlServerDbContext>()
@@ -94,6 +124,12 @@ namespace SqlServerToSqliteMigrationConsole
                 oldSquads = ctx.Squads.ToList();
                 oldStats = ctx.Stats.ToList();
                 oldZones = ctx.Zones.ToList();
+                oldResetTokens = ctx.ResetTokens.ToList();
+                oldHelpCalls = ctx.Helpcalls.ToList();
+                oldStatsDaily = ctx.StatsDailies.ToList();
+                oldStatsWeekly = ctx.StatsWeeklies.ToList();
+                oldStatsMonthly = ctx.StatsMonthlies.ToList();
+                oldStatsYearly = ctx.StatsYearlies.ToList();
             }
 
             Console.WriteLine("Loaded old database records.");
@@ -110,6 +146,8 @@ namespace SqlServerToSqliteMigrationConsole
                 foreach (var acc in oldAccounts)
                 {
                     var newAcc = mapper.Map<Database.Sqlite.Account>(acc);
+
+                    newAcc.AccountId = 0;
 
                     ctx.Accounts.Add(newAcc);
 
@@ -139,7 +177,7 @@ namespace SqlServerToSqliteMigrationConsole
                 {
                     var newAl = mapper.Map<Database.Sqlite.Alias>(oldAl);
 
-                    newAl.Name = oldAl.Name;
+                    newAl.AliasId = 0;
 
                     // Map accounts over to aliases.
                     if (accMap.ContainsKey(oldAl.AccountId))
@@ -176,6 +214,8 @@ namespace SqlServerToSqliteMigrationConsole
                 {
                     var newZ = mapper.Map<Database.Sqlite.Zone>(oldZ);
 
+                    newZ.ZoneId = 0;
+
                     zoneMap.Add(oldZ.ZoneId, newZ);
 
                     ctx.Zones.Add(newZ);
@@ -205,6 +245,7 @@ namespace SqlServerToSqliteMigrationConsole
                 {
                     var newS = mapper.Map<Database.Sqlite.Stat>(oldS);
 
+                    newS.StatId = 0;
                     newS.ZoneId = zoneMap[oldS.ZoneId].ZoneId;
 
                     statsMap.Add(oldS.StatId, newS);
@@ -236,9 +277,12 @@ namespace SqlServerToSqliteMigrationConsole
                 {
                     var newP = mapper.Map<Database.Sqlite.Player>(oldP);
 
+                    newP.PlayerId = 0;
                     newP.AliasId = aliasMap[oldP.AliasId].AliasId;
-                    newP.StatsId = statsMap[oldP.StatsId].StatId;
+                    newP.StatId = statsMap[oldP.StatId].StatId;
                     newP.ZoneId = zoneMap[oldP.ZoneId].ZoneId;
+
+                    newP.SquadId = null; // Set as null; we will update it when we load squads in.
 
                     playerMap.Add(oldP.PlayerId, newP);
 
@@ -250,9 +294,72 @@ namespace SqlServerToSqliteMigrationConsole
 
             #endregion
 
+            #region Create Historic Stats
+
+            Console.WriteLine("6. Creating history stats...");
+
+            using (var ctx = new SqliteDbContext())
+            {
+                foreach (var oldS in oldStatsDaily)
+                {
+                    var newS = mapper.Map<Database.Sqlite.StatsDaily>(oldS);
+
+                    newS.StatsDailyId = 0;
+                    newS.ZoneId = zoneMap[oldS.ZoneId].ZoneId;
+                    newS.PlayerId = playerMap[oldS.PlayerId].PlayerId;
+
+                    ctx.StatsDailies.Add(newS);
+                }
+
+                oldStatsDaily.Clear();
+
+                foreach (var oldS in oldStatsWeekly)
+                {
+                    var newS = mapper.Map<Database.Sqlite.StatsWeekly>(oldS);
+
+                    newS.StatsWeeklyId = 0;
+                    newS.ZoneId = zoneMap[oldS.ZoneId].ZoneId;
+                    newS.PlayerId = playerMap[oldS.PlayerId].PlayerId;
+
+                    ctx.StatsWeeklies.Add(newS);
+                }
+
+                oldStatsWeekly.Clear();
+
+                foreach (var oldS in oldStatsMonthly)
+                {
+                    var newS = mapper.Map<Database.Sqlite.StatsMonthly>(oldS);
+
+                    newS.StatsMonthlyId = 0;
+                    newS.ZoneId = zoneMap[oldS.ZoneId].ZoneId;
+                    newS.PlayerId = playerMap[oldS.PlayerId].PlayerId;
+
+                    ctx.StatsMonthlies.Add(newS);
+                }
+
+                oldStatsMonthly.Clear();
+
+                foreach (var oldS in oldStatsYearly)
+                {
+                    var newS = mapper.Map<Database.Sqlite.StatsYearly>(oldS);
+
+                    newS.StatsYearlyId = 0;
+                    newS.ZoneId = zoneMap[oldS.ZoneId].ZoneId;
+                    newS.PlayerId = playerMap[oldS.PlayerId].PlayerId;
+
+                    ctx.StatsYearlies.Add(newS);
+                }
+
+                oldStatsYearly.Clear();
+
+                ctx.SaveChanges();
+            }
+
+            #endregion
+
             #region Create Squads
 
-            Console.WriteLine("6. Creating squads...");
+            Console.WriteLine("7. Creating squads...");
 
             var squadMap = new Dictionary<long, Database.Sqlite.Squad>();
 
@@ -267,6 +374,7 @@ namespace SqlServerToSqliteMigrationConsole
                 {
                     var newS = mapper.Map<Database.Sqlite.Squad>(oldS);
 
+                    newS.SquadId = 0;
                     newS.ZoneId = zoneMap[oldS.ZoneId].ZoneId;
 
                     if (playerMap.ContainsKey(oldS.OwnerPlayerId))
@@ -282,7 +390,7 @@ namespace SqlServerToSqliteMigrationConsole
                 ctx.SaveChanges();
             }
 
-            Console.WriteLine("6a. Saving Squads->Players...");
+            Console.WriteLine("7a. Saving Squads->Players...");
 
             using (var ctx = new SqliteDbContext())
             {
@@ -303,6 +411,97 @@ namespace SqlServerToSqliteMigrationConsole
             oldPlayers.Clear();
 
             #endregion
+
+            #region Create Bans
+
+            Console.WriteLine("8. Creating bans...");
+
+            using (var ctx = new SqliteDbContext())
+            {
+                foreach (var ob in oldBans)
+                {
+                    var nb = mapper.Map<Database.Sqlite.Ban>(ob);
+
+                    nb.BanId = 0;
+                    nb.ZoneId = ob.ZoneId.HasValue ? zoneMap[ob.ZoneId.Value].ZoneId : null;
+                    nb.AccountId = ob.AccountId.HasValue ? accMap[ob.AccountId.Value].AccountId : null;
+
+                    ctx.Bans.Add(nb);
+                }
+
+                ctx.SaveChanges();
+            }
+
+            oldBans.Clear();
+
+            #endregion
+
+            #region Create History
+
+            Console.WriteLine("9. Creating history logs...");
+
+            using (var ctx = new SqliteDbContext())
+            {
+                foreach (var oh in oldHistory)
+                {
+                    var nh = mapper.Map<Database.Sqlite.History>(oh);
+
+                    nh.HistoryId = 0;
+
+                    ctx.Histories.Add(nh);
+                }
+
+                ctx.SaveChanges();
+            }
+
+            oldHistory.Clear();
+
+            #endregion
+
+            #region Create Help Calls
+
+            Console.WriteLine("10. Creating help calls...");
+
+            using (var ctx = new SqliteDbContext())
+            {
+                foreach(var ohc in oldHelpCalls)
+                {
+                    var nhc = mapper.Map<Database.Sqlite.Helpcall>(ohc);
+
+                    nhc.HelpCallId = 0;
+
+                    ctx.Helpcalls.Add(nhc);
+                }
+
+                ctx.SaveChanges();
+            }
+
+            #endregion
+
+            #region Create Reset Tokens
+
+            Console.WriteLine("11. Creating reset tokens...");
+
+            using (var ctx = new SqliteDbContext())
+            {
+                foreach(var ort in oldResetTokens)
+                {
+                    var nrt = mapper.Map<Database.Sqlite.ResetToken>(ort);
+
+                    nrt.ResetTokenId = 0;
+                    nrt.AccountId = accMap[ort.AccountId].AccountId;
+
+                    ctx.ResetTokens.Add(nrt);
+                }
+
+                ctx.SaveChanges();
+            }
+
+            oldResetTokens.Clear();
+
+            #endregion
+
+            Console.WriteLine("Migration successfully completed.");
         }
     }
 }

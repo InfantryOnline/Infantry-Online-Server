@@ -15,7 +15,7 @@ public partial class Player
 
     public long? SquadId { get; set; }
 
-    public long StatsId { get; set; }
+    public long StatId { get; set; }
 
     public short Permission { get; set; }
 
