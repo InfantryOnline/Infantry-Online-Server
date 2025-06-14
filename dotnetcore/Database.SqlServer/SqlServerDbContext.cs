@@ -40,8 +40,6 @@ public partial class SqlServerDbContext : DbContext
 
     public virtual DbSet<Squad> Squads { get; set; }
 
-    public virtual DbSet<SquadStat> Squadstats { get; set; }
-
     public virtual DbSet<Stat> Stats { get; set; }
 
     public virtual DbSet<StatsDaily> StatsDailies { get; set; }
@@ -305,27 +303,7 @@ public partial class SqlServerDbContext : DbContext
                 .HasMaxLength(64)
                 .IsUnicode(false)
                 .HasColumnName("password");
-            entity.Property(e => e.SquadStatsId).HasColumnName("stats");
             entity.Property(e => e.ZoneId).HasColumnName("zone");
-        });
-
-        modelBuilder.Entity<SquadStat>(entity =>
-        {
-            entity.HasKey(e => e.SquadStatId).HasName("PK_dbo.squadstats");
-
-            entity.ToTable("squadstats");
-
-            entity.Property(e => e.SquadStatId).HasColumnName("id");
-            entity.Property(e => e.Deaths).HasColumnName("deaths");
-            entity.Property(e => e.Kills).HasColumnName("kills");
-            entity.Property(e => e.Losses).HasColumnName("losses");
-            entity.Property(e => e.Points).HasColumnName("points");
-            entity.Property(e => e.Rating).HasColumnName("rating");
-            entity.Property(e => e.Season)
-                .HasDefaultValue(0)
-                .HasColumnName("season");
-            entity.Property(e => e.SquadId).HasColumnName("squad");
-            entity.Property(e => e.Wins).HasColumnName("wins");
         });
 
         modelBuilder.Entity<Stat>(entity =>

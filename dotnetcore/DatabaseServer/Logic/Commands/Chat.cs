@@ -973,23 +973,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            else
-            {
-                SquadStat squadstats = ctx.Squadstats.FirstOrDefault(s => s.SquadId == id);
-
-                if (squadstats != null)
-                {
-                    zone._server.sendMessage(zone, pkt.alias, String.Format("#~~{0} Stats", name));
-                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Kills={0}", squadstats.Kills));
-                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Deaths={0}", squadstats.Deaths));
-                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Points={0}", squadstats.Points));
-                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Wins={0}", squadstats.Wins));
-                    zone._server.sendMessage(zone, pkt.alias, String.Format("*--Losses={0}", squadstats.Losses));
-                    zone._server.sendMessage(zone, pkt.alias, String.Format("&--Rating={0}", squadstats.Rating));
-                }
-                else
-                    zone._server.sendMessage(zone, pkt.alias, "This squad has no stats for this zone.");
-            }
+            zone._server.sendMessage(zone, pkt.alias, "This squad has no stats for this zone.");
         }
 
         private static void CS_Squads_QueryType_InviteResponse(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
@@ -1569,18 +1553,6 @@ namespace InfServer.Logic
 
             using (var ctx = zone._server.getContext())
             {
-                //Create Some Stats first
-                SquadStat stats = new SquadStat();
-                stats.Kills = 0;
-                stats.Deaths = 0;
-                stats.Wins = 0;
-                stats.Losses = 0;
-                stats.Rating = 0;
-                stats.Points = 0;
-
-                ctx.Squadstats.Add(stats);
-                ctx.SaveChanges();
-
                 //Create the new squad
                 Squad newsquad = new Squad();
 
@@ -1589,7 +1561,6 @@ namespace InfServer.Logic
                 newsquad.OwnerPlayerId = player.dbid;
                 newsquad.DateCreated = DateTime.Now;
                 newsquad.ZoneId = zone._zone.ZoneId;
-                stats.SquadId = newsquad.SquadId;
 
                 ctx.Squads.Add(newsquad);
                 ctx.SaveChanges();
