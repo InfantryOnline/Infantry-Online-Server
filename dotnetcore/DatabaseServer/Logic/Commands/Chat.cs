@@ -18,7 +18,7 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ChatQuery(CS_ChatQuery<Zone> pkt, Zone zone)
         {
-            using (DataContext db = zone._server.getContext())
+            using (SqlServerDbContext db = zone._server.getContext())
             {
                 switch (pkt.queryType)
                 {
@@ -109,7 +109,7 @@ namespace InfServer.Logic
             }
         }
 
-        private static void Handle_CS_ChatQuery_Wipe(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_Wipe(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (String.IsNullOrWhiteSpace(pkt.payload))
             {
@@ -231,7 +231,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "Character wipe has been completed.");
         }
 
-        private static void Handle_CS_ChatQuery_ModChat(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_ModChat(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (String.IsNullOrEmpty(pkt.payload))
             {
@@ -266,7 +266,7 @@ namespace InfServer.Logic
             }
         }
 
-        private static void Handle_CS_ChatQuery_SendAlert(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_SendAlert(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             string pAlias;
             foreach (Zone z in zone._server._zones)
@@ -284,7 +284,7 @@ namespace InfServer.Logic
                 }
         }
 
-        private static void Handle_CS_ChatQuery_GetHelpCalls(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_GetHelpCalls(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             int pageNum = Convert.ToInt32(pkt.payload);
             int resultseachpage = 30;
@@ -313,7 +313,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "End of page, use *helpcall 1, *helpcall 2, etc to navigate previous pages");
         }
 
-        private static void Handle_CS_ChatQuery_GetBans(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_GetBans(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (pkt.payload == "")
                 return;
@@ -407,7 +407,7 @@ namespace InfServer.Logic
                 z._server.sendMessage(z, "*", pkt.payload);
         }
 
-        private static void Handle_CS_ChatQuery_CommandHistory(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_CommandHistory(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             const int resultsPerPage = 30;
             string[] args = pkt.payload.Split(':');
@@ -434,7 +434,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "End of page, use *cmdhistory 2, *cmdhistory 3, etc to navigate full history OR *cmdhistory cmd:2 *cmdhistory cmd:3 for command filtering.");
         }
 
-        private static void Handle_CS_ChatQuery_History(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_History(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             const int resultsPerPage = 30;
             string[] args = pkt.payload.Split(':');
@@ -510,7 +510,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, string.Format("Infantry (Total={0}) (Peak={1})", server._players.Where(p => !p.Value.stealth).Count(), server.playerPeak));
         }
 
-        private static void Handle_CS_ChatQuery_Find(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_Find(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             int minlength = 3;
             var results = new List<KeyValuePair<string, Zone.Player>>();
@@ -581,7 +581,7 @@ namespace InfServer.Logic
                 zone._server.sendMessage(zone, pkt.sender, "Sorry, we couldn't locate any players online by that alias");
         }
 
-        private static void Handle_CS_ChatQuery_EmailUpdate(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_EmailUpdate(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             zone._server.sendMessage(zone, pkt.sender, "&Email Update");
 
@@ -595,7 +595,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "*Email updated to: " + pkt.payload);
         }
 
-        private static void Handle_CS_ChatQuery_DeleteAlias(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_DeleteAlias(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (string.IsNullOrWhiteSpace(pkt.payload))
             {
@@ -698,7 +698,7 @@ namespace InfServer.Logic
             }
         }
 
-        private static void Handle_CS_ChatQuery_Whois(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_Whois(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             zone._server.sendMessage(zone, pkt.sender, "&Whois Information");
             zone._server.sendMessage(zone, pkt.sender, "*" + pkt.payload);
@@ -828,7 +828,7 @@ namespace InfServer.Logic
                 zone._server.sendMessage(zone, pkt.sender, "No matches found for the given string.");
         }
 
-        private static void Handle_CS_ChatQuery_AccountIgnore(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_AccountIgnore(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             Alias player = db.Aliases.SingleOrDefault(a => a.Name == pkt.payload);
             if (player != null)
@@ -841,7 +841,7 @@ namespace InfServer.Logic
             }
         }
 
-        private static void Handle_CS_ChatQuery_AccountInfo(CS_ChatQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ChatQuery_AccountInfo(CS_ChatQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             Alias from = db.Aliases.SingleOrDefault(a => a.Name == pkt.sender);
             var aliases = db.Aliases.Where(a => a.AccountId == from.AccountId);

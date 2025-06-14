@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.SqlServer.Infrastructure.Internal;
 
 namespace Database.SqlServer;
 
-public partial class DataContext : DbContext
+public partial class SqlServerDbContext : DbContext
 {
     private readonly string _connectionString;
 
-    public DataContext()
+    public SqlServerDbContext()
     {
     }
 
-    public DataContext(DbContextOptions<DataContext> options)
+    public SqlServerDbContext(DbContextOptions<SqlServerDbContext> options)
         : base(options)
     {
 

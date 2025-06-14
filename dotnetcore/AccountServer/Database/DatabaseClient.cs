@@ -22,7 +22,7 @@ namespace AccountServer
     {
         ConfigSetting _config;
         private string _connString;
-        private PooledDbContextFactory<DataContext> _dbContextFactory;
+        private PooledDbContextFactory<SqlServerDbContext> _dbContextFactory;
 
         /// <summary>
         /// Creates our client then opens a connection to our database
@@ -33,11 +33,11 @@ namespace AccountServer
 
             _connString = _config["database/connectionString"].Value;
 
-            var options = new DbContextOptionsBuilder<DataContext>()
+            var options = new DbContextOptionsBuilder<SqlServerDbContext>()
             .UseSqlServer(_connString)
                 .Options;
 
-            _dbContextFactory = new PooledDbContextFactory<DataContext>(options);
+            _dbContextFactory = new PooledDbContextFactory<SqlServerDbContext>(options);
         }
 
         /// <summary>

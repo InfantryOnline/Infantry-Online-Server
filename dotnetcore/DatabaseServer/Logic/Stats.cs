@@ -91,7 +91,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (DataContext db = zone._server.getContext())
+            using (SqlServerDbContext db = zone._server.getContext())
             {	//What sort of request are we dealing with?
                 switch (pkt.type)
                 {

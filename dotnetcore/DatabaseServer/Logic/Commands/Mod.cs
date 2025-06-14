@@ -16,7 +16,7 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ModQuery(CS_ModQuery<Zone> pkt, Zone zone)
         {
-            using (DataContext db = zone._server.getContext())
+            using (SqlServerDbContext db = zone._server.getContext())
             {
                 switch (pkt.queryType)
                 {
@@ -63,7 +63,7 @@ namespace InfServer.Logic
             }
         }
 
-        private static void Handle_CS_ModQuery_GlobalSilence(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_GlobalSilence(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (string.IsNullOrWhiteSpace(pkt.query))
             {
@@ -124,7 +124,7 @@ namespace InfServer.Logic
             }
         }
 
-        private static void Handle_CS_ModQuery_Find(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_Find(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             zone._server.sendMessage(zone, pkt.sender, "&Search Results:");
 
@@ -205,7 +205,7 @@ namespace InfServer.Logic
             }
         }
 
-        private static void Handle_CS_ModQuery_SquadJoin(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_SquadJoin(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (string.IsNullOrWhiteSpace(pkt.aliasTo) || string.IsNullOrWhiteSpace(pkt.query))
             {
@@ -264,7 +264,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "Squad joining completed.");
         }
 
-        private static void Handle_CS_ModQuery_SquadTransfer(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_SquadTransfer(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (string.IsNullOrEmpty(pkt.aliasTo) || string.IsNullOrEmpty(pkt.query))
             {
@@ -311,7 +311,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "Squad transferring is complete.");
         }
 
-        private static void Handle_CS_ModQuery_DevPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, DataContext ctx)
+        private static void Handle_CS_ModQuery_DevPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {
@@ -351,7 +351,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, $"Changing player {pkt.query} dev level to {pkt.level} has been completed.");
         }
 
-        private static void Handle_CS_ModQuery_ModPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, DataContext ctx)
+        private static void Handle_CS_ModQuery_ModPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {
@@ -389,7 +389,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, $"Changing player {pkt.query} level to {pkt.level} has been completed.");
         }
 
-        private static void Handle_CS_ModQuery_AliasRename(CS_ModQuery<Zone> pkt, Zone zone, DataContext ctx)
+        private static void Handle_CS_ModQuery_AliasRename(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {
@@ -424,7 +424,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, $"Renamed: {oldAlias} => {newAlias}");
         }
 
-        private static void Handle_CS_ModQuery_AliasRemove(CS_ModQuery<Zone> pkt, Zone zone, DataContext db)
+        private static void Handle_CS_ModQuery_AliasRemove(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext db)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {
@@ -489,7 +489,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
         }
 
-        private static void Handle_CS_ModQuery_AliasTransfer(CS_ModQuery<Zone> pkt, Zone zone, DataContext ctx)
+        private static void Handle_CS_ModQuery_AliasTransfer(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)
         {
             //
             // SQL Optimization TODO:

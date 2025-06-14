@@ -36,7 +36,7 @@ namespace InfServer.DirectoryServer.Directory
         private int zoneUpdateTick = Environment.TickCount;
         private System.Timers.Timer timer;
 
-        private PooledDbContextFactory<DataContext> _dbContextFactory;
+        private PooledDbContextFactory<SqlServerDbContext> _dbContextFactory;
 
         /// <summary>
         /// Generic Constructor
@@ -65,11 +65,11 @@ namespace InfServer.DirectoryServer.Directory
 
             String _connectionString = _config["database/connectionString"].Value;
 
-            var options = new DbContextOptionsBuilder<DataContext>()
+            var options = new DbContextOptionsBuilder<SqlServerDbContext>()
             .UseSqlServer(_connectionString)
                 .Options;
 
-            _dbContextFactory = new PooledDbContextFactory<DataContext>(options);
+            _dbContextFactory = new PooledDbContextFactory<SqlServerDbContext>(options);
 
             grabZones();
             return true;

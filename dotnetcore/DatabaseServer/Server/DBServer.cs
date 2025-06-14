@@ -31,7 +31,7 @@ namespace InfServer
         public List<KeyValuePair<int, int>> _squadInvites;              //Our history of squad invites pair<squadid, playerid>
 
         private string? _dbConnectionString;		                        
-        private PooledDbContextFactory<DataContext>? _dbContextFactory;
+        private PooledDbContextFactory<SqlServerDbContext>? _dbContextFactory;
 
         static public bool bAllowMulticlienting;                        //Should we allow players to join multiple times under the same account?
 
@@ -248,7 +248,7 @@ namespace InfServer
             //Attempt to connect to our database
             _dbConnectionString = _config["database/connectionString"].Value;
 
-            var opts = new DbContextOptionsBuilder<DataContext>()
+            var opts = new DbContextOptionsBuilder<SqlServerDbContext>()
                 .UseSqlServer(_dbConnectionString);
 
             var dbLog = _config["database/log"].boolValue;
@@ -268,7 +268,7 @@ namespace InfServer
                 });
             }
 
-            _dbContextFactory = new PooledDbContextFactory<DataContext>(opts.Options);
+            _dbContextFactory = new PooledDbContextFactory<SqlServerDbContext>(opts.Options);
 
             //Populate our server admins
             Logic.Logic_Admins.PopulateAdmins();
@@ -296,7 +296,7 @@ namespace InfServer
         /// <summary>
         /// Creates a new data context to connect to the database
         /// </summary>
-        public DataContext getContext()
+        public SqlServerDbContext getContext()
         {
             return _dbContextFactory.CreateDbContext();
         }

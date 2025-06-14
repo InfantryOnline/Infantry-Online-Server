@@ -39,7 +39,7 @@ namespace InfServer.Logic
         /// <summary>
         /// Queries the database and finds bans associated with accounts, IPs and UIDs
         /// </summary>
-        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, DataContext db, Account account, long zoneid)
+        public static Ban checkBan(CS_PlayerLogin<Zone> pkt, SqlServerDbContext db, Account account, long zoneid)
         {
             Ban.BanType type = Ban.BanType.None;
             DateTime expires = DateTime.Now;
