@@ -7,6 +7,7 @@ using System.IO;
 using InfServer.Protocol;
 using InfServer.Data;
 using Database.SqlServer;
+using Database;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 

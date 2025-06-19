@@ -250,14 +250,26 @@ namespace InfServer.Game.Commands.Mod
                 recipient.bannerMode = (BannerMode)bannerModeValue;
 
                 Helpers.Social_ArenaBanners(recipient._arena.Players, recipient);
-            }
 
-            if (player._server.IsStandalone)
+                if (player._server.IsStandalone)
+                {
+                    return;
+                }
+
+                // Update database with new bannermode value.
+
+                var pbanner = new CS_PlayerBanner<Data.Database>();
+
+                pbanner.player = recipient.toInstance();
+                pbanner.banner = recipient._bannerData;
+                pbanner.BannerMode = recipient.bannerMode;
+
+                player._arena._server._db.send(pbanner);
+            }
+            else
             {
-                return;
+                player.sendMessage(0, "Recipient not found in this zone.");
             }
-
-            // TODO: Send bannermode to db.
         }
 
         /// <summary>

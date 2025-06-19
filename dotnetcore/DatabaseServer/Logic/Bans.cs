@@ -6,6 +6,7 @@ using System.Text;
 using InfServer.Protocol;
 using InfServer.Data;
 using InfServer;
+using Database;
 using Database.SqlServer;
 
 namespace InfServer.Logic

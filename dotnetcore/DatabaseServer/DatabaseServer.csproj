@@ -13,7 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Database.Sqlite\Database.Sqlite.csproj" />
     <ProjectReference Include="..\Database.SqlServer\Database.SqlServer.csproj" />
+    <ProjectReference Include="..\Database\Database.csproj" />
     <ProjectReference Include="..\DBComm\DBComm.csproj" />
     <ProjectReference Include="..\Network\Network.csproj" />
   </ItemGroup>

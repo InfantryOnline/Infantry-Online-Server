@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Database;
 using InfServer.Data;
 using InfServer.Network;
 using InfServer.Protocol;
@@ -40,7 +40,7 @@ namespace InfServer.Logic
 
             //Attempt to find the associated zone
             DBServer server = client._handler as DBServer;
-            Database.SqlServer.Zone dbZone;
+            Database.Zone dbZone;
 
             using (var db = server.getContext())
             {
@@ -293,7 +293,7 @@ namespace InfServer.Logic
                 }
                 else if (alias == null && pkt.bCreateAlias)
                 {	//We want to create a new alias!
-                    alias = new Database.SqlServer.Alias();
+                    alias = new Database.Alias();
 
                     alias.Name = pkt.alias;
                     alias.Creation = DateTime.Now;
@@ -328,7 +328,7 @@ namespace InfServer.Logic
 
                 if (player == null)
                 {	//We need to create another!
-                    player = new Database.SqlServer.Player();
+                    player = new Database.Player();
 
                     player.SquadNavigation = null;
                     player.ZoneId = zone._zone.ZoneId;
@@ -554,7 +554,7 @@ namespace InfServer.Logic
         {
             using (SqlServerDbContext db = zone._server.getContext())
             {
-                Database.SqlServer.Zone zEntry = db.Zones.SingleOrDefault(z => z.ZoneId == zone._zone.ZoneId);
+                Database.Zone zEntry = db.Zones.SingleOrDefault(z => z.ZoneId == zone._zone.ZoneId);
                 if (zEntry != null)
                 {
                     //Update the zone for our directory server

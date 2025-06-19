@@ -3,6 +3,7 @@ using System.Linq;
 using Database.SqlServer;
 using InfServer.Network;
 using InfServer.Protocol;
+using Database;
 using Microsoft.Identity.Client;
 
 namespace InfServer
@@ -16,7 +17,7 @@ namespace InfServer
         public Client _client;								//Our connection to the zone server
         public DBServer _server;							//The server we work for!
 
-        public Database.SqlServer.Zone _zone;				//Our zone database entry
+        public Database.Zone _zone;				//Our zone database entry
 
         public Dictionary<int, Player> _players;			//The players present in our zone
 
@@ -51,7 +52,7 @@ namespace InfServer
         /// <summary>
         /// Generic constructor
         /// </summary>
-        public Zone(Client client, DBServer server, Database.SqlServer.Zone zone)
+        public Zone(Client client, DBServer server, Database.Zone zone)
         {
             _client = client;
             _server = server;
@@ -143,7 +144,7 @@ namespace InfServer
         /// <summary>
         /// Indicates that a player has joined the zone server
         /// </summary>
-        public bool newPlayer(int id, string alias, Database.SqlServer.Player dbplayer)
+        public bool newPlayer(int id, string alias, Database.Player dbplayer)
         {
             if (string.IsNullOrWhiteSpace(alias))
             {

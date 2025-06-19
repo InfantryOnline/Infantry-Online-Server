@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 
-namespace Database.SqlServer;
+namespace Database;
 
+[Index(nameof(PlayerId), nameof(Date), IsUnique = true)]
 public partial class StatsYearly
 {
     public long StatsYearlyId { get; set; }

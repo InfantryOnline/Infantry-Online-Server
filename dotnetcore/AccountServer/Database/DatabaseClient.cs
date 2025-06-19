@@ -12,6 +12,7 @@ using Account = AccountServer.Models.Account;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
+using Database;
 
 namespace AccountServer
 {
@@ -52,7 +53,7 @@ namespace AccountServer
 
             using (var ctx = _dbContextFactory.CreateDbContext())
             {
-                var acct = new Database.SqlServer.Account
+                var acct = new Database.Account
                 {
                     Name = username,
                     Password = password,

@@ -1,15 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Database.Sqlite;
+namespace Database;
 
-[Index(nameof(PlayerId), nameof(Date), IsUnique = true)]
-public partial class StatsYearly
+public partial class Stat
 {
-    public long StatsYearlyId { get; set; }
+    public long StatId { get; set; }
 
     public long ZoneId { get; set; }
+
+    public int Cash { get; set; }
 
     public int Experience { get; set; }
 
@@ -32,10 +32,6 @@ public partial class StatsYearly
     public int VehicleDeaths { get; set; }
 
     public int PlaySeconds { get; set; }
-
-    public DateTime Date { get; set; }
-
-    public long PlayerId { get; set; }
 
     public int Zonestat1 { get; set; }
 
@@ -61,7 +57,7 @@ public partial class StatsYearly
 
     public int Zonestat12 { get; set; }
 
-    public virtual Player PlayerNavigation { get; set; } = null!;
+    public virtual ICollection<Player> Players { get; set; } = new List<Player>();
 
     public virtual Zone ZoneNavigation { get; set; } = null!;
 }

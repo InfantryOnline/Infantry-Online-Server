@@ -17,7 +17,7 @@ namespace Database.Sqlite.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.6");
 
-            modelBuilder.Entity("Database.Sqlite.Account", b =>
+            modelBuilder.Entity("Database.Account", b =>
                 {
                     b.Property<long>("AccountId")
                         .ValueGeneratedOnAdd()
@@ -67,7 +67,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Accounts");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Alias", b =>
+            modelBuilder.Entity("Database.Alias", b =>
                 {
                     b.Property<long>("AliasId")
                         .ValueGeneratedOnAdd()
@@ -106,7 +106,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Aliases");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Ban", b =>
+            modelBuilder.Entity("Database.Ban", b =>
                 {
                     b.Property<long>("BanId")
                         .ValueGeneratedOnAdd()
@@ -150,7 +150,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Bans");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Helpcall", b =>
+            modelBuilder.Entity("Database.Helpcall", b =>
                 {
                     b.Property<long>("HelpCallId")
                         .ValueGeneratedOnAdd()
@@ -179,7 +179,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Helpcalls");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.History", b =>
+            modelBuilder.Entity("Database.History", b =>
                 {
                     b.Property<long>("HistoryId")
                         .ValueGeneratedOnAdd()
@@ -213,7 +213,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Histories");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Player", b =>
+            modelBuilder.Entity("Database.Player", b =>
                 {
                     b.Property<long>("PlayerId")
                         .ValueGeneratedOnAdd()
@@ -259,7 +259,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Players");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.ResetToken", b =>
+            modelBuilder.Entity("Database.ResetToken", b =>
                 {
                     b.Property<long>("ResetTokenId")
                         .ValueGeneratedOnAdd()
@@ -289,7 +289,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("ResetTokens");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Squad", b =>
+            modelBuilder.Entity("Database.Squad", b =>
                 {
                     b.Property<long>("SquadId")
                         .ValueGeneratedOnAdd()
@@ -317,7 +317,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Squads");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Stat", b =>
+            modelBuilder.Entity("Database.Stat", b =>
                 {
                     b.Property<long>("StatId")
                         .ValueGeneratedOnAdd()
@@ -405,7 +405,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Stats");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsDaily", b =>
+            modelBuilder.Entity("Database.StatsDaily", b =>
                 {
                     b.Property<long>("StatsDailyId")
                         .ValueGeneratedOnAdd()
@@ -499,7 +499,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("StatsDailies");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsMonthly", b =>
+            modelBuilder.Entity("Database.StatsMonthly", b =>
                 {
                     b.Property<long>("StatsMonthlyId")
                         .ValueGeneratedOnAdd()
@@ -593,7 +593,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("StatsMonthlies");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsWeekly", b =>
+            modelBuilder.Entity("Database.StatsWeekly", b =>
                 {
                     b.Property<long>("StatsWeeklyId")
                         .ValueGeneratedOnAdd()
@@ -687,7 +687,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("StatsWeeklies");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsYearly", b =>
+            modelBuilder.Entity("Database.StatsYearly", b =>
                 {
                     b.Property<long>("StatsYearlyId")
                         .ValueGeneratedOnAdd()
@@ -781,7 +781,7 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("StatsYearlies");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Zone", b =>
+            modelBuilder.Entity("Database.Zone", b =>
                 {
                     b.Property<long>("ZoneId")
                         .ValueGeneratedOnAdd()
@@ -820,9 +820,9 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("Zones");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Alias", b =>
+            modelBuilder.Entity("Database.Alias", b =>
                 {
-                    b.HasOne("Database.Sqlite.Account", "AccountNavigation")
+                    b.HasOne("Database.Account", "AccountNavigation")
                         .WithMany("Aliases")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -831,25 +831,25 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("AccountNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Player", b =>
+            modelBuilder.Entity("Database.Player", b =>
                 {
-                    b.HasOne("Database.Sqlite.Alias", "AliasNavigation")
+                    b.HasOne("Database.Alias", "AliasNavigation")
                         .WithMany("Players")
                         .HasForeignKey("AliasId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Sqlite.Squad", "SquadNavigation")
+                    b.HasOne("Database.Squad", "SquadNavigation")
                         .WithMany("Players")
                         .HasForeignKey("SquadId");
 
-                    b.HasOne("Database.Sqlite.Stat", "StatsNavigation")
+                    b.HasOne("Database.Stat", "StatsNavigation")
                         .WithMany("Players")
                         .HasForeignKey("StatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Sqlite.Zone", "ZoneNavigation")
+                    b.HasOne("Database.Zone", "ZoneNavigation")
                         .WithMany("Players")
                         .HasForeignKey("ZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -864,9 +864,9 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("ZoneNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.ResetToken", b =>
+            modelBuilder.Entity("Database.ResetToken", b =>
                 {
-                    b.HasOne("Database.Sqlite.Account", "AccountNavigation")
+                    b.HasOne("Database.Account", "AccountNavigation")
                         .WithMany("ResetTokens")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -875,9 +875,9 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("AccountNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Stat", b =>
+            modelBuilder.Entity("Database.Stat", b =>
                 {
-                    b.HasOne("Database.Sqlite.Zone", "ZoneNavigation")
+                    b.HasOne("Database.Zone", "ZoneNavigation")
                         .WithMany("Stats")
                         .HasForeignKey("ZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -886,15 +886,15 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("ZoneNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsDaily", b =>
+            modelBuilder.Entity("Database.StatsDaily", b =>
                 {
-                    b.HasOne("Database.Sqlite.Player", "PlayerNavigation")
+                    b.HasOne("Database.Player", "PlayerNavigation")
                         .WithMany("StatsDailies")
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Sqlite.Zone", "ZoneNavigation")
+                    b.HasOne("Database.Zone", "ZoneNavigation")
                         .WithMany("StatsDailies")
                         .HasForeignKey("ZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -905,15 +905,15 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("ZoneNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsMonthly", b =>
+            modelBuilder.Entity("Database.StatsMonthly", b =>
                 {
-                    b.HasOne("Database.Sqlite.Player", "PlayerNavigation")
+                    b.HasOne("Database.Player", "PlayerNavigation")
                         .WithMany("StatsMonthlies")
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Sqlite.Zone", "ZoneNavigation")
+                    b.HasOne("Database.Zone", "ZoneNavigation")
                         .WithMany("StatsMonthlies")
                         .HasForeignKey("ZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -924,15 +924,15 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("ZoneNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsWeekly", b =>
+            modelBuilder.Entity("Database.StatsWeekly", b =>
                 {
-                    b.HasOne("Database.Sqlite.Player", "PlayerNavigation")
+                    b.HasOne("Database.Player", "PlayerNavigation")
                         .WithMany("StatsWeeklies")
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Sqlite.Zone", "ZoneNavigation")
+                    b.HasOne("Database.Zone", "ZoneNavigation")
                         .WithMany("StatsWeeklies")
                         .HasForeignKey("ZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -943,15 +943,15 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("ZoneNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.StatsYearly", b =>
+            modelBuilder.Entity("Database.StatsYearly", b =>
                 {
-                    b.HasOne("Database.Sqlite.Player", "PlayerNavigation")
+                    b.HasOne("Database.Player", "PlayerNavigation")
                         .WithMany("StatsYearlies")
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Sqlite.Zone", "ZoneNavigation")
+                    b.HasOne("Database.Zone", "ZoneNavigation")
                         .WithMany("StatsYearlies")
                         .HasForeignKey("ZoneId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -962,19 +962,19 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("ZoneNavigation");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Account", b =>
+            modelBuilder.Entity("Database.Account", b =>
                 {
                     b.Navigation("Aliases");
 
                     b.Navigation("ResetTokens");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Alias", b =>
+            modelBuilder.Entity("Database.Alias", b =>
                 {
                     b.Navigation("Players");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Player", b =>
+            modelBuilder.Entity("Database.Player", b =>
                 {
                     b.Navigation("StatsDailies");
 
@@ -985,17 +985,17 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("StatsYearlies");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Squad", b =>
+            modelBuilder.Entity("Database.Squad", b =>
                 {
                     b.Navigation("Players");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Stat", b =>
+            modelBuilder.Entity("Database.Stat", b =>
                 {
                     b.Navigation("Players");
                 });
 
-            modelBuilder.Entity("Database.Sqlite.Zone", b =>
+            modelBuilder.Entity("Database.Zone", b =>
                 {
                     b.Navigation("Players");
 

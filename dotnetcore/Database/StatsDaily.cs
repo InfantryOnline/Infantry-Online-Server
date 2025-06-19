@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 
-namespace Database.SqlServer;
+namespace Database;
 
-public partial class StatsWeekly
+[Index(nameof(PlayerId), nameof(Date), IsUnique = true)]
+public partial class StatsDaily
 {
-    public long StatsWeeklyId { get; set; }
+    public long StatsDailyId { get; set; }
 
     public long ZoneId { get; set; }
 
@@ -21,6 +23,8 @@ public partial class StatsWeekly
 
     public int DeathPoints { get; set; }
 
+    public int AssistPoints { get; set; }
+
     public int BonusPoints { get; set; }
 
     public int VehicleKills { get; set; }
@@ -30,8 +34,6 @@ public partial class StatsWeekly
     public int PlaySeconds { get; set; }
 
     public DateTime Date { get; set; }
-
-    public int AssistPoints { get; set; }
 
     public long PlayerId { get; set; }
 

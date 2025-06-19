@@ -5,6 +5,7 @@ using System.Text;
 
 using InfServer.Network;
 using InfServer.Data;
+using DBComm.Enums;
 
 namespace InfServer.Protocol
 {	/// <summary>
@@ -17,6 +18,7 @@ namespace InfServer.Protocol
 		public PlayerInstance player;		//The player instance we're referring to
 
 		public byte[] banner;
+		public BannerMode BannerMode;
 
 		//Packet routing
         public const ushort TypeID = (ushort)DBHelpers.PacketIDs.C2S.PlayerBanner;
@@ -68,6 +70,7 @@ namespace InfServer.Protocol
 			Write(player.magic);
 
 			Write(banner);
+			Write((byte)BannerMode);
 		}
 
 		/// <summary>
@@ -79,6 +82,7 @@ namespace InfServer.Protocol
 			player.magic = _contentReader.ReadInt32();
 
 			banner = _contentReader.ReadBytes(432);
+			BannerMode = (BannerMode)_contentReader.ReadByte();
 		}
 
 		/// <summary>

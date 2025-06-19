@@ -37,11 +37,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Daemon", "Daemon\Daemon.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PipeComm", "PipeComm\PipeComm.csproj", "{FCC68068-9E78-4425-A08B-1E90B8BFD505}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.Sqlite", "Database.Sqlite\Database.Sqlite.csproj", "{F7D9EF9F-6B3E-4DE9-BE2A-4A7F2AAB8536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database.Sqlite", "Database.Sqlite\Database.Sqlite.csproj", "{F7D9EF9F-6B3E-4DE9-BE2A-4A7F2AAB8536}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{E2DAD721-F92C-4091-B0A1-3E5E2F88BCB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlServerToSqliteMigrationConsole", "SqlServerToSqliteMigrationConsole\SqlServerToSqliteMigrationConsole.csproj", "{6433B414-8171-4E0C-A12C-3C70098C303A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlServerToSqliteMigrationConsole", "SqlServerToSqliteMigrationConsole\SqlServerToSqliteMigrationConsole.csproj", "{6433B414-8171-4E0C-A12C-3C70098C303A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database", "Database\Database.csproj", "{6B85A576-399B-42E9-B7D8-77A594D00C7D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -117,6 +119,10 @@ Global
 		{6433B414-8171-4E0C-A12C-3C70098C303A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6433B414-8171-4E0C-A12C-3C70098C303A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6433B414-8171-4E0C-A12C-3C70098C303A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B85A576-399B-42E9-B7D8-77A594D00C7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B85A576-399B-42E9-B7D8-77A594D00C7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B85A576-399B-42E9-B7D8-77A594D00C7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B85A576-399B-42E9-B7D8-77A594D00C7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -139,6 +145,7 @@ Global
 		{FCC68068-9E78-4425-A08B-1E90B8BFD505} = {408D7480-78BA-47EF-BEBD-C1400867DAD5}
 		{F7D9EF9F-6B3E-4DE9-BE2A-4A7F2AAB8536} = {408D7480-78BA-47EF-BEBD-C1400867DAD5}
 		{6433B414-8171-4E0C-A12C-3C70098C303A} = {E2DAD721-F92C-4091-B0A1-3E5E2F88BCB8}
+		{6B85A576-399B-42E9-B7D8-77A594D00C7D} = {408D7480-78BA-47EF-BEBD-C1400867DAD5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFEFCB98-3E47-49A2-98FF-DA2892EF2FCC}

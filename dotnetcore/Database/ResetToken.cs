@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database.SqlServer;
+namespace Database;
 
 public partial class ResetToken
 {

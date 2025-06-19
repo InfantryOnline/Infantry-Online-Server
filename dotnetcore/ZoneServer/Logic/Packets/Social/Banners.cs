@@ -31,6 +31,7 @@ namespace InfServer.Logic
 
 				plogin.player = player.toInstance();
 				plogin.banner = player._bannerData;
+                plogin.BannerMode = player.bannerMode;
 
 				player._arena._server._db.send(plogin);
 			}

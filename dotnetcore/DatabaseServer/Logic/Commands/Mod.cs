@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Data.SqlClient;
-
+using Database;
 using InfServer.Protocol;
 using Microsoft.EntityFrameworkCore;
 using Database.SqlServer;

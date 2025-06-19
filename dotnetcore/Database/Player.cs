@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 
-namespace Database.SqlServer;
+namespace Database;
 
+[Index(nameof(AliasId), nameof(ZoneId))]
 public partial class Player
 {
     public long PlayerId { get; set; }

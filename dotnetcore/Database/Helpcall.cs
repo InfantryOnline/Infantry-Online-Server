@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Database.Sqlite;
+namespace Database;
 
 public partial class Helpcall
 {
