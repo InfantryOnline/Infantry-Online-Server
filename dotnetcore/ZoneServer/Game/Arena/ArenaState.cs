@@ -308,11 +308,9 @@ namespace InfServer.Game
                 }
             }
 
-            //Are we zone silenced or arena silenced?
-            var arenaEntry = _silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias == player._alias);
-            var serverEntry = _server._playerSilenced.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias == player._alias);
+            var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias.ToLower() == player._alias.ToLower());
 
-            player._bSilenced = arenaEntry != null || serverEntry != null;
+            player._bSilenced = serverEntry != null;
 
             //Initialize the player's state
             Helpers.Player_StateInit(player,

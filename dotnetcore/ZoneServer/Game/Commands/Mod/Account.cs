@@ -188,11 +188,11 @@ namespace InfServer.Game.Commands.Mod
                     recipient._bSilenced = false;
                     recipient._lengthOfSilence = 0;
 
-                    var silencedPlayer = player._server._playerSilenced.FirstOrDefault(p => p.Alias == recipient._alias);
+                    var silencedPlayer = player._server.SilencedPlayers.FirstOrDefault(p => p.Alias.ToLower() == recipient._alias.ToLower());
 
                     if (silencedPlayer != null)
                     {
-                        player._server._playerSilenced.Remove(silencedPlayer);
+                        player._server.SilencedPlayers.Remove(silencedPlayer);
                     }
                 }
             }

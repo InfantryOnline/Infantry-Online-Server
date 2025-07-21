@@ -424,43 +424,15 @@ namespace InfServer.Logic
                     plog.stats.skills = new List<PlayerStats.SkillStat>();
                     plog.stealth = alias.Stealth == 1;
 
-                    plog.silencedAtUnixMilliseconds = account.SilencedAtMillisecondsUnix;
-                    plog.silencedDurationMinutes = account.SilencedDuration;
-
-                    if (plog.silencedDurationMinutes > 0)
-                    {
-                        var silenceDateTime = DateTimeOffset
-                        .FromUnixTimeMilliseconds(account.SilencedAtMillisecondsUnix)
-                        .LocalDateTime
-                        .AddMinutes(account.SilencedDuration);
-
-                        if (silenceDateTime < DateTime.Now)
-                        {
-                            plog.silencedAtUnixMilliseconds = 0;
-                            plog.silencedDurationMinutes = 0;
-
-                            account.SilencedAtMillisecondsUnix = 0;
-                            account.SilencedDuration = 0;
-                        }
-                        else
-                        {
-                            var silencePkt = new SC_Silence<Zone>
-                            {
-                                alias = plog.alias,
-                                silencedAtUnixMs = account.SilencedAtMillisecondsUnix,
-                                minutes = account.SilencedDuration
-                            };
-
-                            zone._client.sendReliable(silencePkt);
-                        }
-                    }
-
                     //Convert the binary inventory/skill data
                     if (player.Inventory != null)
                         DatabaseBinaryUtils.binToInventory(plog.stats.inventory, player.Inventory);
                     if (player.Skills != null)
                         DatabaseBinaryUtils.binToSkills(plog.stats.skills, player.Skills);
                 }
+
+                plog.silencedAtUnixMilliseconds = account.SilencedAtMillisecondsUnix;
+                plog.silencedDurationMinutes = account.SilencedDuration;
 
                 plog.alias = pkt.alias;
 
@@ -498,8 +470,39 @@ namespace InfServer.Logic
                     Log.write("Failed adding player '{0}' from '{1}'", alias.Name, zone._zone.Name);
                 }
 
-                //Give them an answer
+                // Send off ther player details.
                 zone._client.sendReliable(plog);
+
+                // Deal with global silencing...
+                if (plog.silencedDurationMinutes > 0)
+                {
+                    var silenceDateTime = DateTimeOffset
+                    .FromUnixTimeMilliseconds(account.SilencedAtMillisecondsUnix)
+                    .LocalDateTime
+                    .AddMinutes(account.SilencedDuration);
+
+                    if (silenceDateTime < DateTime.Now)
+                    {
+                        plog.silencedAtUnixMilliseconds = 0;
+                        plog.silencedDurationMinutes = 0;
+
+                        account.SilencedAtMillisecondsUnix = 0;
+                        account.SilencedDuration = 0;
+
+                        db.SaveChanges();
+                    }
+                    else
+                    {
+                        var silencePkt = new SC_Silence<Zone>
+                        {
+                            alias = plog.alias,
+                            silencedAtUnixMs = account.SilencedAtMillisecondsUnix,
+                            minutes = account.SilencedDuration
+                        };
+
+                        zone._client.sendReliable(silencePkt);
+                    }
+                }
             }
         }
 

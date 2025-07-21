@@ -35,8 +35,6 @@ namespace InfServer.Game
         protected ObjTracker<Player> _players;			//The list of players in this arena
         protected ObjTracker<Player> _playersIngame;	//The list of players currently in game
 
-        public List<SilencedPlayer> _silencedPlayers = new List<SilencedPlayer>();//A list of players that were silenced in this arena
-
         public List<string> _owner;                     //The owner's name of this arena - we use a list because we can grant players
         public Dictionary<string, DateTime> _blockedList;//Banned list for owned arenas
         public List<string> _bAllowed;                  //When arena lock is enabled, these players are allowed
@@ -662,17 +660,13 @@ namespace InfServer.Game
                         p._lengthOfSilence = 0;
                         p.sendMessage(-1, "You may speak now.");
 
-                        var arenaEntry = _silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(p._ipAddress)  || sp.Alias == p._alias);
-                        var serverEntry = _server._playerSilenced.FirstOrDefault(sp => sp.IPAddress.Equals(p._ipAddress) || sp.Alias == p._alias);
-
-                        if (arenaEntry != null)
-                        {
-                            _silencedPlayers.Remove(arenaEntry);
-                        }
+                        var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp =>
+                            sp.IPAddress.Equals(p._ipAddress)
+                            || sp.Alias.ToLower() == p._alias.ToLower());
 
                         if (serverEntry != null)
                         {
-                            _server._playerSilenced.Remove(serverEntry);
+                            _server.SilencedPlayers.Remove(serverEntry);
                         }
                     }
                 }

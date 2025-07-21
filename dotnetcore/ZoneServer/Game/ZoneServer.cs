@@ -57,7 +57,7 @@ namespace InfServer.Game
         private ClientPingResponder _pingResponder;
         public Dictionary<IPAddress, DateTime> _connections;
 
-        public List<SilencedPlayer> _playerSilenced = new List<SilencedPlayer>(); //Self explanitory
+        public List<SilencedPlayer> SilencedPlayers = new List<SilencedPlayer>();
 
         /// <summary>
         /// Compiled game events that have been pulled out of the zone's cfg file.

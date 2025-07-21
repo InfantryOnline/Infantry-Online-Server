@@ -1359,9 +1359,7 @@ namespace InfServer.Game.Commands.Mod
 
         static public void silenced(Player player, Player recipient, string payload, int bong)
         {
-            var players = player._arena._server._arenas
-                .SelectMany(s => s.Value._silencedPlayers)
-                .Concat(player._arena._server._playerSilenced)
+            var players = player._arena._server.SilencedPlayers
                 .DistinctBy(sp => sp.IPAddress)
                 .ToList();
 
@@ -1412,17 +1410,17 @@ namespace InfServer.Game.Commands.Mod
             //Are we changing the time?
             if (recipient._bSilenced && minutes > 0)
             {
-                var arenaEntry = recipient._arena._silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias == recipient._alias);
+                var entry = recipient._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
 
-                if (arenaEntry != null)
+                if (entry != null)
                 {
-                    arenaEntry.DurationMinutes = minutes;
+                    entry.DurationMinutes = minutes;
                 }
                 else
                 {
                     var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
 
-                    recipient._arena._silencedPlayers.Add(sp);
+                    recipient._server.SilencedPlayers.Add(sp);
                 }
 
                 recipient._lengthOfSilence = minutes;
@@ -1439,7 +1437,7 @@ namespace InfServer.Game.Commands.Mod
                 recipient._timeOfSilence = DateTime.Now;
                 recipient._lengthOfSilence = minutes;
 
-                var arenaEntry = recipient._arena._silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias == recipient._alias);
+                var arenaEntry = recipient._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 if (arenaEntry != null)
                 {
@@ -1449,20 +1447,20 @@ namespace InfServer.Game.Commands.Mod
                 {
                     var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
 
-                    recipient._arena._silencedPlayers.Add(sp);
+                    recipient._server.SilencedPlayers.Add(sp);
                 }
 
                 player.sendMessage(0, recipient._alias + " has been silenced.");
             }
             else
             {
-                var arenaEntry = recipient._arena._silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias == recipient._alias);
+                var arenaEntry = recipient._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 recipient._lengthOfSilence = 0;
 
                 if (arenaEntry != null)
                 {
-                    recipient._arena._silencedPlayers.Remove(arenaEntry);
+                    recipient._server.SilencedPlayers.Remove(arenaEntry);
                 }
 
                 player.sendMessage(0, recipient._alias + " has been unsilenced.");
@@ -1507,7 +1505,7 @@ namespace InfServer.Game.Commands.Mod
             //Are we changing the time?
             if (recipient._bSilenced && minutes > 0)
             {
-                var serverEntry = recipient._arena._server._playerSilenced.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias == recipient._alias);
+                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 if (serverEntry != null)
                 {
@@ -1517,7 +1515,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
 
-                    recipient._arena._server._playerSilenced.Add(sp);
+                    recipient._arena._server.SilencedPlayers.Add(sp);
                 }
 
                 recipient._lengthOfSilence = minutes;
@@ -1533,7 +1531,7 @@ namespace InfServer.Game.Commands.Mod
             //Notify some people
             if (recipient._bSilenced)
             {
-                var serverEntry = recipient._arena._server._playerSilenced.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias == recipient._alias);
+                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 if (serverEntry != null)
                 {
@@ -1543,7 +1541,7 @@ namespace InfServer.Game.Commands.Mod
                 {
                     var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
 
-                    recipient._arena._server._playerSilenced.Add(sp);
+                    recipient._arena._server.SilencedPlayers.Add(sp);
                 }
 
                 recipient._lengthOfSilence = minutes;
@@ -1555,11 +1553,11 @@ namespace InfServer.Game.Commands.Mod
             {
                 recipient._lengthOfSilence = 0;
 
-                var serverEntry = recipient._arena._server._playerSilenced.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias == recipient._alias);
+                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 if (serverEntry != null)
                 {
-                    recipient._arena._server._playerSilenced.Remove(serverEntry);
+                    recipient._arena._server.SilencedPlayers.Remove(serverEntry);
                 }
 
                 player.sendMessage(0, recipient._alias + " has been unsilenced.");

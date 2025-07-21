@@ -83,7 +83,7 @@ namespace InfServer.Logic
                         SilencedAt = silenceDateTime
                     };
 
-                    db._server._playerSilenced.Add(silencedPlayer);
+                    db._server.SilencedPlayers.Add(silencedPlayer);
 
                     player._bSilenced = true;
 
@@ -172,7 +172,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            var existingSilencedPlayer = db._server._playerSilenced.FirstOrDefault(p => p.Alias == pkt.alias);
+            var existingSilencedPlayer = db._server.SilencedPlayers.FirstOrDefault(p => p.Alias.ToLower() == pkt.alias.ToLower());
 
             //
             // Player wasn't silenced to begin with? Might be an error.
@@ -200,14 +200,14 @@ namespace InfServer.Logic
                     DurationMinutes = (int)pkt.minutes,
                 };
 
-                db._server._playerSilenced.Add(existingSilencedPlayer);
+                db._server.SilencedPlayers.Add(existingSilencedPlayer);
             }
 
             if (pkt.minutes <= 0 || existingSilencedPlayer.DurationMinutes <= 0)
             {
                 player._bSilenced = false;
                 player._lengthOfSilence = 0;
-                db._server._playerSilenced.Remove(existingSilencedPlayer);
+                db._server.SilencedPlayers.Remove(existingSilencedPlayer);
             }
             else
             {

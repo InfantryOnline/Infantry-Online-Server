@@ -240,12 +240,12 @@ namespace InfServer.Logic
                     player._lengthOfSilence = duration;
                     player._timeOfSilence = DateTime.Now;
 
-                    var arenaEntry = player._arena._silencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias == player._alias);
+                    var entry = player._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias.ToLower() == player._alias.ToLower());
 
-                    if (arenaEntry == null)
+                    if (entry == null)
                     {
-                        arenaEntry = new SilencedPlayer { IPAddress = player._ipAddress, DurationMinutes = duration, SilencedAt = DateTime.Now };
-                        player._arena._silencedPlayers.Add(arenaEntry);
+                        entry = new SilencedPlayer { IPAddress = player._ipAddress, DurationMinutes = duration, SilencedAt = DateTime.Now };
+                        player._server.SilencedPlayers.Add(entry);
                     }
 
                     return;
