@@ -1373,101 +1373,6 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
-        /// Toggles a players ability to use the messaging system entirely in a given arena
-        /// </summary>
-        static public void shutup(Player player, Player recipient, string payload, int bong)
-        {
-            //Sanity checks
-            if (recipient == null)
-            {
-                player.sendMessage(-1, "Syntax: :alias:*shutup");
-                return;
-            }
-
-            if (player != recipient && (int)player.PermissionLevelLocal < (int)recipient.PermissionLevel)
-            {
-                player.sendMessage(-1, "Nice try.");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(payload))
-            {
-                player.sendMessage(-1, "Syntax: :alias:*shutup timeinminutes");
-                return;
-            }
-
-            //Convert our payload into a numerical value
-            int minutes = 0;
-            try
-            {
-                minutes = Convert.ToInt32(payload);
-            }
-            catch (OverflowException e)
-            {
-                Log.write(TLog.Warning, e.ToString());
-            }
-
-            //Are we changing the time?
-            if (recipient._bSilenced && minutes > 0)
-            {
-                var entry = recipient._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
-
-                if (entry != null)
-                {
-                    entry.DurationMinutes = minutes;
-                }
-                else
-                {
-                    var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
-
-                    recipient._server.SilencedPlayers.Add(sp);
-                }
-
-                recipient._lengthOfSilence = minutes;
-                player.sendMessage(0, recipient._alias + " has been silenced for " + minutes + " minutes.");
-                return;
-            }
-
-            //Toggle his ability to speak
-            recipient._bSilenced = !recipient._bSilenced;
-
-            //Notify some people
-            if (recipient._bSilenced)
-            {
-                recipient._timeOfSilence = DateTime.Now;
-                recipient._lengthOfSilence = minutes;
-
-                var arenaEntry = recipient._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
-
-                if (arenaEntry != null)
-                {
-                    arenaEntry.DurationMinutes = minutes;
-                }
-                else
-                {
-                    var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
-
-                    recipient._server.SilencedPlayers.Add(sp);
-                }
-
-                player.sendMessage(0, recipient._alias + " has been silenced.");
-            }
-            else
-            {
-                var arenaEntry = recipient._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
-
-                recipient._lengthOfSilence = 0;
-
-                if (arenaEntry != null)
-                {
-                    recipient._server.SilencedPlayers.Remove(arenaEntry);
-                }
-
-                player.sendMessage(0, recipient._alias + " has been unsilenced.");
-            }
-        }
-
-        /// <summary>
         /// Toggles a players ability to use the messaging system entirely across a single zone
         /// </summary>
         static public void silence(Player player, Player recipient, string payload, int bong)
@@ -3645,11 +3550,6 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(silence, "silence",
                "Toggles a players ability to use the messaging system entirely across the zone",
                ":alias:*silence",
-               InfServer.Data.PlayerPermission.Mod, true);
-
-            yield return new HandlerDescriptor(shutup, "shutup",
-               "Toggles a players ability to use the messaging system entirely",
-               ":alias:*shutup",
                InfServer.Data.PlayerPermission.Mod, true);
 
             yield return new HandlerDescriptor(skill, "skill",
