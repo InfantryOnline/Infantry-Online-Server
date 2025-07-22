@@ -434,6 +434,25 @@ namespace InfServer.Logic
                 plog.silencedAtUnixMilliseconds = account.SilencedAtMillisecondsUnix;
                 plog.silencedDurationMinutes = account.SilencedDuration;
 
+                // Deal with global silencing...
+                if (plog.silencedDurationMinutes > 0)
+                {
+                    var silenceDateTime = DateTimeOffset
+                    .FromUnixTimeMilliseconds(account.SilencedAtMillisecondsUnix)
+                    .LocalDateTime
+                    .AddMinutes(account.SilencedDuration);
+
+                    // Do we have an expired silence to clear?
+                    if (silenceDateTime < DateTime.Now)
+                    {
+                        plog.silencedAtUnixMilliseconds = 0;
+                        plog.silencedDurationMinutes = 0;
+
+                        account.SilencedAtMillisecondsUnix = 0;
+                        account.SilencedDuration = 0;
+                    }
+                }
+
                 plog.alias = pkt.alias;
 
                 //Try and submit any new rows before we try and use them
@@ -473,35 +492,16 @@ namespace InfServer.Logic
                 // Send off ther player details.
                 zone._client.sendReliable(plog);
 
-                // Deal with global silencing...
                 if (plog.silencedDurationMinutes > 0)
                 {
-                    var silenceDateTime = DateTimeOffset
-                    .FromUnixTimeMilliseconds(account.SilencedAtMillisecondsUnix)
-                    .LocalDateTime
-                    .AddMinutes(account.SilencedDuration);
-
-                    if (silenceDateTime < DateTime.Now)
+                    var silencePkt = new SC_Silence<Zone>
                     {
-                        plog.silencedAtUnixMilliseconds = 0;
-                        plog.silencedDurationMinutes = 0;
+                        alias = plog.alias,
+                        silencedAtUnixMs = account.SilencedAtMillisecondsUnix,
+                        minutes = account.SilencedDuration
+                    };
 
-                        account.SilencedAtMillisecondsUnix = 0;
-                        account.SilencedDuration = 0;
-
-                        db.SaveChanges();
-                    }
-                    else
-                    {
-                        var silencePkt = new SC_Silence<Zone>
-                        {
-                            alias = plog.alias,
-                            silencedAtUnixMs = account.SilencedAtMillisecondsUnix,
-                            minutes = account.SilencedDuration
-                        };
-
-                        zone._client.sendReliable(silencePkt);
-                    }
+                    zone._client.sendReliable(silencePkt);
                 }
             }
         }
