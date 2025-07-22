@@ -3412,11 +3412,6 @@ namespace InfServer.Game.Commands.Mod
                 "*banlist alias or :alias:*banlist",
                 InfServer.Data.PlayerPermission.Mod, false);
 
-            yield return new HandlerDescriptor(zoneban, "block",
-                "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
-                "*block alias minutes:reason(optional) or :player:*block minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.Mod, true);
-
             yield return new HandlerDescriptor(cash, "cash",
                 "Prizes specified amount of cash to target player",
                 "*cash [amount] or ::*cash [amount]",
