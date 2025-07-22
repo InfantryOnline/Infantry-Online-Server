@@ -385,7 +385,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(recycle, "recycle",
                 "Restarts the current zone",
                 "*recycle",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.SuperMod, true);
 
             yield return new HandlerDescriptor(reloadscripts, "reloadscripts",
                 "Reloads the specified scripts for all arenas in the zoneserver",

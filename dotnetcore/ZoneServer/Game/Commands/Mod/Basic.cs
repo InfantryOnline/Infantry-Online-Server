@@ -3420,7 +3420,7 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(dc, "dc",
                 "Kicks a player from the server",
                 "*dc reason (optional) or dc all",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.HeadModAdmin, true);
 
             yield return new HandlerDescriptor(experience, "experience",
                 "Prizes specified amount of experience to target player",
