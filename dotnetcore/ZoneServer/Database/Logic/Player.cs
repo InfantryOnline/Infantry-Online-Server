@@ -75,15 +75,25 @@ namespace InfServer.Logic
                 }
                 else
                 {
-                    var silencedPlayer = new SilencedPlayer
-                    {
-                        Alias = player._alias,
-                        IPAddress = player._ipAddress,
-                        DurationMinutes = (int)pkt.silencedDurationMinutes,
-                        SilencedAt = silenceDateTime
-                    };
+                    var existingEntry = db._server.SilencedPlayers.FirstOrDefault(p => p.Alias.ToLower() == player._alias.ToLower());
 
-                    db._server.SilencedPlayers.Add(silencedPlayer);
+                    if (existingEntry != null)
+                    {
+                        existingEntry.DurationMinutes = (int)pkt.silencedDurationMinutes;
+                        existingEntry.SilencedAt = silenceDateTime;
+                    }
+                    else
+                    {
+                        var silencedPlayer = new SilencedPlayer
+                        {
+                            Alias = player._alias,
+                            IPAddress = player._ipAddress,
+                            DurationMinutes = (int)pkt.silencedDurationMinutes,
+                            SilencedAt = silenceDateTime
+                        };
+
+                        db._server.SilencedPlayers.Add(silencedPlayer);
+                    }
 
                     player._bSilenced = true;
 
