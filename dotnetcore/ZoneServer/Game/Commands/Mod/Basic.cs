@@ -1364,7 +1364,7 @@ namespace InfServer.Game.Commands.Mod
                 .Select(p => new
                 {
                     p.Alias,
-                    TimeRemaining = (p.SilencedAt.AddMinutes(p.DurationMinutes) - DateTime.Now).Minutes
+                    TimeRemaining = (p.SilencedAt.AddMinutes(p.DurationMinutes) - DateTime.Now).TotalMinutes
                 })
                 .ToList();
 
@@ -1374,7 +1374,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            player.sendMessage(0, string.Join(", ", players.Select(p => $"{p.Alias} ({p.TimeRemaining} mins)")));
+            player.sendMessage(0, string.Join(", ", players.Select(p => $"{p.Alias} ({p.TimeRemaining:N1} mins)")));
         }
 
         /// <summary>
