@@ -188,7 +188,7 @@ namespace InfServer.Logic
 
             if (existingSilencedPlayer != null)
             {
-                existingSilencedPlayer.DurationMinutes += (int)pkt.minutes;
+                existingSilencedPlayer.DurationMinutes = (int)pkt.minutes;
             }
             else
             {
