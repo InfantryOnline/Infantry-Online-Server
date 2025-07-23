@@ -1361,6 +1361,11 @@ namespace InfServer.Game.Commands.Mod
         {
             var players = player._arena._server.SilencedPlayers
                 .DistinctBy(sp => sp.IPAddress)
+                .Select(p => new
+                {
+                    p.Alias,
+                    TimeRemaining = (p.SilencedAt.AddMinutes(p.DurationMinutes) - DateTime.Now).Minutes
+                })
                 .ToList();
 
             if (players.Count == 0)
@@ -1369,7 +1374,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            player.sendMessage(0, string.Join(", ", players.Select(p => $"{p.Alias} ({p.DurationMinutes} mins)")));
+            player.sendMessage(0, string.Join(", ", players.Select(p => $"{p.Alias} ({p.TimeRemaining} mins)")));
         }
 
         /// <summary>
