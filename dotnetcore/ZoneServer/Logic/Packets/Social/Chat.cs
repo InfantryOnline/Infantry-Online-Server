@@ -204,8 +204,9 @@ namespace InfServer.Logic
             }
             else //Must be a regular chat, lets see if they are allowed first
             {
-                //Ignore messages from the silent
-                if (player._bSilenced)
+                var silenceEntry = player._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == player._alias.ToLower());
+
+                if (silenceEntry != null)
                 {
                     player.sendMessage(-1, "You can't speak.");
                     return;

@@ -641,34 +641,6 @@ namespace InfServer.Game
 
                 }
 
-                //Do we have any players that need to be unsilenced?
-                foreach (Player p in _players.ToList())
-                {
-                    if (p == null)
-                        continue;
-
-                    if (!p._bSilenced)
-                        continue;
-
-                    //Check the timediff.
-                    TimeSpan diff = DateTime.Now - p._timeOfSilence;
-
-                    //Okay, unsilence him.
-                    if (diff.Minutes >= p._lengthOfSilence)
-                    {
-                        p._bSilenced = false;
-                        p._lengthOfSilence = 0;
-                        p.sendMessage(-1, "You may speak now.");
-
-                        var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == p._alias.ToLower());
-
-                        if (serverEntry != null)
-                        {
-                            _server.SilencedPlayers.Remove(serverEntry);
-                        }
-                    }
-                }
-
                 if (bMinor)
                 {	//Keep our tickers in line
                     foreach (TickerInfo ticker in _tickers.Values.ToList())

@@ -6,6 +6,7 @@ using System.Threading;
 using Assets;
 using InfServer.Network;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Assets.CfgInfo;
 
 namespace InfServer.Game
 {
@@ -87,6 +88,41 @@ namespace InfServer.Game
                     catch (Exception ex)
                     {
                         Log.write(TLog.Exception, "Exception whilst polling arena {0}:\r\n{1}", arena._name, ex);
+                    }
+                }
+
+                // Unsilence any silenced players.
+                for (int i = SilencedPlayers.Count - 1; i >= 0; i--)
+                {
+                    var sp = SilencedPlayers[i];
+
+                    try
+                    {
+                        var unsilenceAt = sp.SilencedAt.AddMinutes(sp.DurationMinutes);
+
+                        if (unsilenceAt <= DateTime.Now)
+                        {
+                            SilencedPlayers.RemoveAt(i);
+                            var player = getPlayer(sp.Alias);
+
+                            if (player != null)
+                            {
+                                player.sendMessage(-1, "You may speak now.");
+
+                                // Temporary
+                                player._bSilenced = false;
+                                player._lengthOfSilence = 0;
+                                player._timeOfSilence = DateTime.Now;
+                            }
+                            else
+                            {
+                                Log.write(TLog.Warning, $"Tried to unmute a player that no longer exists: {sp.Alias}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.write(TLog.Exception, "Exception while unsilencing player {0}:\r\n{1}", sp.Alias, ex);
                     }
                 }
 
