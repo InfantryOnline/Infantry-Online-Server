@@ -1410,7 +1410,7 @@ namespace InfServer.Game.Commands.Mod
             //Are we changing the time?
             if (recipient._bSilenced && minutes > 0)
             {
-                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
+                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 if (serverEntry != null)
                 {
@@ -1436,7 +1436,7 @@ namespace InfServer.Game.Commands.Mod
             //Notify some people
             if (recipient._bSilenced)
             {
-                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
+                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 if (serverEntry != null)
                 {
@@ -1458,7 +1458,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 recipient._lengthOfSilence = 0;
 
-                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(recipient._ipAddress) || sp.Alias.ToLower() == recipient._alias.ToLower());
+                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == recipient._alias.ToLower());
 
                 if (serverEntry != null)
                 {
