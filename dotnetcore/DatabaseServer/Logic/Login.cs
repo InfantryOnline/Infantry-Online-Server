@@ -356,7 +356,6 @@ namespace InfServer.Logic
                         plog.banner = player.Banner.ToArray();
                     }
 
-                    plog.bannermode = account.BannerMode;
                     plog.permission = (PlayerPermission)Math.Max(player.Permission, (int)plog.permission);
 
                     if (player.Permission > account.Permission)
@@ -453,6 +452,7 @@ namespace InfServer.Logic
                     }
                 }
 
+                plog.bannermode = account.BannerMode;
                 plog.alias = pkt.alias;
 
                 //Try and submit any new rows before we try and use them
