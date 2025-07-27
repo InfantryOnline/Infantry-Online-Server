@@ -108,11 +108,6 @@ namespace InfServer.Game
                             if (player != null)
                             {
                                 player.sendMessage(-1, "You may speak now.");
-
-                                // Temporary
-                                player._bSilenced = false;
-                                player._lengthOfSilence = 0;
-                                player._timeOfSilence = DateTime.Now;
                             }
                             else
                             {

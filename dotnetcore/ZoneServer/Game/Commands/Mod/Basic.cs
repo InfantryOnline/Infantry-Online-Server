@@ -1412,65 +1412,30 @@ namespace InfServer.Game.Commands.Mod
                 Log.write(TLog.Warning, e.ToString());
             }
 
-            //Are we changing the time?
-            if (recipient._bSilenced && minutes > 0)
-            {
-                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == recipient._alias.ToLower());
+            var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == recipient._alias.ToLower());
 
+            if (minutes > 0)
+            {
                 if (serverEntry != null)
                 {
                     serverEntry.DurationMinutes = minutes;
+                    serverEntry.SilencedAt = DateTime.Now;
                 }
                 else
                 {
                     var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
-
                     recipient._arena._server.SilencedPlayers.Add(sp);
                 }
-
-                recipient._lengthOfSilence = minutes;
-                recipient._timeOfSilence = DateTime.Now;
 
                 player.sendMessage(0, recipient._alias + " has been zone silenced for " + minutes + " minutes.");
-                return;
-            }
-
-            //Toggle his ability to speak
-            recipient._bSilenced = !recipient._bSilenced;
-
-            //Notify some people
-            if (recipient._bSilenced)
-            {
-                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == recipient._alias.ToLower());
-
-                if (serverEntry != null)
-                {
-                    serverEntry.DurationMinutes = minutes;
-                }
-                else
-                {
-                    var sp = new SilencedPlayer { IPAddress = recipient._ipAddress, Alias = recipient._alias, DurationMinutes = minutes, SilencedAt = DateTime.Now };
-
-                    recipient._arena._server.SilencedPlayers.Add(sp);
-                }
-
-                recipient._lengthOfSilence = minutes;
-                recipient._timeOfSilence = DateTime.Now;
-
-                player.sendMessage(0, recipient._alias + " has been zone silenced.");
             }
             else
             {
-                recipient._lengthOfSilence = 0;
-
-                var serverEntry = recipient._arena._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == recipient._alias.ToLower());
-
                 if (serverEntry != null)
                 {
                     recipient._arena._server.SilencedPlayers.Remove(serverEntry);
+                    player.sendMessage(0, recipient._alias + " has been unsilenced.");
                 }
-
-                player.sendMessage(0, recipient._alias + " has been unsilenced.");
             }
         }
 

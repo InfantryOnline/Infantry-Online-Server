@@ -237,9 +237,6 @@ namespace InfServer.Logic
                 {//Autosilence
                     int duration = 5; //5 mins
                     player.sendMessage(-1, String.Format("You are being auto-silenced for {0} minutes for spamming.", duration));
-                    player._bSilenced = true;
-                    player._lengthOfSilence = duration;
-                    player._timeOfSilence = DateTime.Now;
 
                     var entry = player._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == player._alias.ToLower());
 

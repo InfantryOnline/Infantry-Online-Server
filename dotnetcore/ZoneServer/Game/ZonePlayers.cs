@@ -98,16 +98,6 @@ namespace InfServer.Game
 
                 _players[pk] = newPlayer;
 
-                //Lets setup the players silence list
-                var silenceEntry = SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == newPlayer._alias.ToLower());
-
-                if (silenceEntry != null)
-                {
-                    newPlayer._lengthOfSilence = silenceEntry.DurationMinutes;
-                    newPlayer._timeOfSilence = silenceEntry.SilencedAt;
-                    newPlayer._bSilenced = true;
-                }
-
                 return newPlayer;
             }
         }

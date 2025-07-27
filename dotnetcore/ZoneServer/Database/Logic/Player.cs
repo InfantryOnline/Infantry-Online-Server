@@ -94,11 +94,6 @@ namespace InfServer.Logic
 
                         db._server.SilencedPlayers.Add(silencedPlayer);
                     }
-
-                    player._bSilenced = true;
-
-                    player._timeOfSilence = silenceDateTime;
-                    player._lengthOfSilence = (int)pkt.silencedDurationMinutes;
                 }   
             }
 
@@ -215,20 +210,10 @@ namespace InfServer.Logic
 
             if (pkt.minutes <= 0 || existingSilencedPlayer.DurationMinutes <= 0)
             {
-                player._bSilenced = false;
-                player._lengthOfSilence = 0;
                 db._server.SilencedPlayers.Remove(existingSilencedPlayer);
             }
-            else
-            {
-                player._timeOfSilence = silencedAt;
-                player._lengthOfSilence = (int)pkt.minutes;
-                player._bSilenced = true;
-            }
 
-            //
-            // TODO: Maybe we want to send out a message to the player saying they are no longer silenced.
-            //
+            player.sendMessage(-1, "You may speak now.");
         }
 
         /// <summary>

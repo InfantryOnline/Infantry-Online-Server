@@ -60,11 +60,6 @@ namespace InfServer.Game
         public bool _bIsStealth;                //Is the mod hidden to player lists?
         public int _level;                      //The players level
 
-        //Player shutup stuff..
-        public bool _bSilenced;                 //Is the player currently silenced?
-        public DateTime _timeOfSilence;         //When he was silenced
-        public int _lengthOfSilence;            //For how long...
-
         public BannerMode bannerMode;
 
         public bool _bLocked;                   //Is the player locked in spec?
