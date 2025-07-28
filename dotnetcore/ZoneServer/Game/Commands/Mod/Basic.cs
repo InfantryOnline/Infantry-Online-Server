@@ -300,9 +300,9 @@ namespace InfServer.Game.Commands.Mod
             {
                 int maxVal;
 
-                if (!Int32.TryParse(payload, out maxVal) || maxVal < 0)
+                if (!Int32.TryParse(payload, out maxVal) || maxVal < -1)
                 {
-                    player.sendMessage(-1, "Malformed value. Please specify a positive integer.");
+                    player.sendMessage(-1, "Malformed value. Please specify a positive integer or -1 to disable entirely.");
                     return;
                 }
 
@@ -1403,6 +1403,7 @@ namespace InfServer.Game.Commands.Mod
 
             //Convert our payload into a numerical value
             int minutes = 0;
+
             try
             {
                 minutes = Convert.ToInt32(payload);

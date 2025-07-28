@@ -474,7 +474,18 @@ namespace InfServer.Game
             _maxPerteam = _server._zoneConfig.arena.maxPerFrequency;
             _allowprize = _server._zoneConfig.owner.prize;
 
-            _maxPrivatePop = _server._zoneConfig.arena.maxPrivatePlayers > 0 ? _server._zoneConfig.arena.maxPrivatePlayers : _server._zoneConfig.arena.maxPlayers;
+            if (_server._zoneConfig.arena.maxPrivatePlayers == -1)
+            {
+                _maxPrivatePop = 0;
+            }
+            else if (_server._zoneConfig.arena.maxPrivatePlayers > 0)
+            {
+                _maxPrivatePop = _server._zoneConfig.arena.maxPrivatePlayers;
+            }
+            else
+            {
+                _maxPrivatePop = _server._zoneConfig.arena.maxPlayers;
+            }
 
             _prizeItems = new List<int>();
 
