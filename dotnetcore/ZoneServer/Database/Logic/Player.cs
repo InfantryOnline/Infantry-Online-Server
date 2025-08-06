@@ -75,25 +75,20 @@ namespace InfServer.Logic
                 }
                 else
                 {
-                    var existingEntry = db._server.SilencedPlayers.FirstOrDefault(p => p.Alias.ToLower() == player._alias.ToLower());
-
-                    if (existingEntry != null)
+                    var silencedPlayer = new SilencedPlayer
                     {
-                        existingEntry.DurationMinutes = (int)pkt.silencedDurationMinutes;
-                        existingEntry.SilencedAt = silenceDateTime;
-                    }
-                    else
-                    {
-                        var silencedPlayer = new SilencedPlayer
-                        {
-                            Alias = player._alias,
-                            IPAddress = player._ipAddress,
-                            DurationMinutes = (int)pkt.silencedDurationMinutes,
-                            SilencedAt = silenceDateTime
-                        };
+                        Alias = player._alias,
+                        IPAddress = player._ipAddress,
+                        DurationMinutes = (int)pkt.silencedDurationMinutes,
+                        SilencedAt = silenceDateTime
+                    };
 
-                        db._server.SilencedPlayers.Add(silencedPlayer);
-                    }
+                    db._server.SilencedPlayers.Add(silencedPlayer);
+
+                    player._bSilenced = true;
+
+                    player._timeOfSilence = silenceDateTime;
+                    player._lengthOfSilence = (int)pkt.silencedDurationMinutes;
                 }   
             }
 
@@ -193,7 +188,7 @@ namespace InfServer.Logic
 
             if (existingSilencedPlayer != null)
             {
-                existingSilencedPlayer.DurationMinutes = (int)pkt.minutes;
+                existingSilencedPlayer.DurationMinutes += (int)pkt.minutes;
             }
             else
             {
@@ -210,10 +205,20 @@ namespace InfServer.Logic
 
             if (pkt.minutes <= 0 || existingSilencedPlayer.DurationMinutes <= 0)
             {
+                player._bSilenced = false;
+                player._lengthOfSilence = 0;
                 db._server.SilencedPlayers.Remove(existingSilencedPlayer);
             }
+            else
+            {
+                player._timeOfSilence = silencedAt;
+                player._lengthOfSilence = (int)pkt.minutes;
+                player._bSilenced = true;
+            }
 
-            player.sendMessage(-1, "You may speak now.");
+            //
+            // TODO: Maybe we want to send out a message to the player saying they are no longer silenced.
+            //
         }
 
         /// <summary>

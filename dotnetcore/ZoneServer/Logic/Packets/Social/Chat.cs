@@ -204,9 +204,8 @@ namespace InfServer.Logic
             }
             else //Must be a regular chat, lets see if they are allowed first
             {
-                var silenceEntry = player._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == player._alias.ToLower());
-
-                if (silenceEntry != null)
+                //Ignore messages from the silent
+                if (player._bSilenced)
                 {
                     player.sendMessage(-1, "You can't speak.");
                     return;
@@ -237,12 +236,15 @@ namespace InfServer.Logic
                 {//Autosilence
                     int duration = 5; //5 mins
                     player.sendMessage(-1, String.Format("You are being auto-silenced for {0} minutes for spamming.", duration));
+                    player._bSilenced = true;
+                    player._lengthOfSilence = duration;
+                    player._timeOfSilence = DateTime.Now;
 
-                    var entry = player._server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == player._alias.ToLower());
+                    var entry = player._server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias.ToLower() == player._alias.ToLower());
 
                     if (entry == null)
                     {
-                        entry = new SilencedPlayer { IPAddress = player._ipAddress, Alias = player._alias, DurationMinutes = duration, SilencedAt = DateTime.Now };
+                        entry = new SilencedPlayer { IPAddress = player._ipAddress, DurationMinutes = duration, SilencedAt = DateTime.Now };
                         player._server.SilencedPlayers.Add(entry);
                     }
 
