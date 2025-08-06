@@ -165,9 +165,29 @@ namespace InfServer.Game.Commands.Mod
                     {
                         Log.write(TLog.Warning, "IP Address is null in globalsilence.");
                     }
+                    else
+                    {
+                        //recipient._bSilenced = true;
+
+                        //recipient._timeOfSilence = DateTime.Now;
+                        //recipient._lengthOfSilence = (int)minutes;
+
+                        //var silencedPlayer = new SilencedPlayer
+                        //{
+                        //    Alias = alias,
+                        //    IPAddress = recipient._ipAddress,
+                        //    DurationMinutes = (int)minutes,
+                        //    SilencedAt = DateTime.Now
+                        //};
+
+                        //player._server._playerSilenced.Add(silencedPlayer);
+                    }
                 }
                 else
                 {
+                    recipient._bSilenced = false;
+                    recipient._lengthOfSilence = 0;
+
                     var silencedPlayer = player._server.SilencedPlayers.FirstOrDefault(p => p.Alias.ToLower() == recipient._alias.ToLower());
 
                     if (silencedPlayer != null)

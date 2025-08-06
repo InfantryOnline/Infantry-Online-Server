@@ -308,7 +308,9 @@ namespace InfServer.Game
                 }
             }
 
-            var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp => sp.Alias.ToLower() == player._alias.ToLower());
+            var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp => sp.IPAddress.Equals(player._ipAddress) || sp.Alias.ToLower() == player._alias.ToLower());
+
+            player._bSilenced = serverEntry != null;
 
             //Initialize the player's state
             Helpers.Player_StateInit(player,

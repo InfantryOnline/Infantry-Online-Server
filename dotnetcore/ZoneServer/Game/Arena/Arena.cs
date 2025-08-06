@@ -6,6 +6,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.IO;
 
 using InfServer.Network;
 using InfServer.Protocol;
@@ -101,6 +102,8 @@ namespace InfServer.Game
         public int _maxPerPrivateTeam;
         public bool _allowprize;
 
+        // Class limits module
+        public Logic.General.Classes ClassesModule;
 
         static public int gameCheckInterval;			//The frequency at which we check basic game state
 
@@ -474,18 +477,7 @@ namespace InfServer.Game
             _maxPerteam = _server._zoneConfig.arena.maxPerFrequency;
             _allowprize = _server._zoneConfig.owner.prize;
 
-            if (_server._zoneConfig.arena.maxPrivatePlayers == -1)
-            {
-                _maxPrivatePop = 0;
-            }
-            else if (_server._zoneConfig.arena.maxPrivatePlayers > 0)
-            {
-                _maxPrivatePop = _server._zoneConfig.arena.maxPrivatePlayers;
-            }
-            else
-            {
-                _maxPrivatePop = _server._zoneConfig.arena.maxPlayers;
-            }
+            _maxPrivatePop = _server._zoneConfig.arena.maxPrivatePlayers > 0 ? _server._zoneConfig.arena.maxPrivatePlayers : _server._zoneConfig.arena.maxPlayers;
 
             _prizeItems = new List<int>();
 
@@ -518,6 +510,49 @@ namespace InfServer.Game
 
             //Initialize our breakdown settings
             _breakdownSettings = new BreakdownSettings();
+
+            // Initialize class limits module
+            bool classLimitsEnabled = false;
+            try
+            {
+                classLimitsEnabled = bool.Parse(_server._config["modules/classlimits"].Value);
+            }
+            catch
+            {
+                // If the config value doesn't exist or is invalid, default to false
+                classLimitsEnabled = false;
+            }
+
+            if (classLimitsEnabled)
+            {
+                // Check if the class_limits.json file exists before instantiating the module
+                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
+                bool fileExists = false;
+                
+                foreach (string path in possiblePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        fileExists = true;
+                        break;
+                    }
+                }
+
+                if (fileExists)
+                {
+                    ClassesModule = new Logic.General.Classes("assets/class_limits.json");
+                    Log.write(TLog.Normal, "Class limits module initialized successfully.");
+                }
+                else
+                {
+                    ClassesModule = null;
+                    Log.write(TLog.Warning, "Class limits module disabled: class_limits.json file not found.");
+                }
+            }
+            else
+            {
+                ClassesModule = null;
+            }
         }
 
         /// <summary>
@@ -650,6 +685,36 @@ namespace InfServer.Game
                         }
                     }
 
+                }
+
+                //Do we have any players that need to be unsilenced?
+                foreach (Player p in _players.ToList())
+                {
+                    if (p == null)
+                        continue;
+
+                    if (!p._bSilenced)
+                        continue;
+
+                    //Check the timediff.
+                    TimeSpan diff = DateTime.Now - p._timeOfSilence;
+
+                    //Okay, unsilence him.
+                    if (diff.Minutes >= p._lengthOfSilence)
+                    {
+                        p._bSilenced = false;
+                        p._lengthOfSilence = 0;
+                        p.sendMessage(-1, "You may speak now.");
+
+                        var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp =>
+                            sp.IPAddress.Equals(p._ipAddress)
+                            || sp.Alias.ToLower() == p._alias.ToLower());
+
+                        if (serverEntry != null)
+                        {
+                            _server.SilencedPlayers.Remove(serverEntry);
+                        }
+                    }
                 }
 
                 if (bMinor)

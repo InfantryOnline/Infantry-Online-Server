@@ -5,6 +5,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.IO;
 
 using InfServer.Network;
 using InfServer.Protocol;
@@ -2988,6 +2989,179 @@ namespace InfServer.Game
         }
         #endregion
 
+        #endregion
+
+        #region Commands
+        /// <summary>
+        /// Command to set arena capacity limits
+        /// </summary>
+        public void arenacap(Player player, string payload)
+        {
+            if (ClassesModule != null)
+            {
+                // Parse the payload to get the new capacity
+                if (int.TryParse(payload, out int newCapacity))
+                {
+                    // Update the arena capacity
+                    _maxPerteam = newCapacity;
+                    player.sendMessage(-1, $"Arena capacity set to {newCapacity} players per team.");
+                }
+                else
+                {
+                    player.sendMessage(-1, "Invalid capacity value. Please provide a number.");
+                }
+            }
+            else
+            {
+                player.sendMessage(-1, "Class limits system not available.");
+                
+                // Check if the file exists
+                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
+                bool fileExists = false;
+                string existingPath = "";
+                
+                foreach (string path in possiblePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        fileExists = true;
+                        existingPath = path;
+                        break;
+                    }
+                }
+                
+                if (fileExists)
+                {
+                    player.sendMessage(-1, $"&File exists at: {existingPath} but module is not loaded.");
+                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml");
+                }
+                else
+                {
+                    player.sendMessage(-1, "#File does not exist at any of the expected locations");
+                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml and assets/class_limits.json exists");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Command to set team capacity limits
+        /// </summary>
+        public void teamcap(Player player, string payload)
+        {
+            if (ClassesModule != null)
+            {
+                // Parse the payload to get the new capacity
+                if (int.TryParse(payload, out int newCapacity))
+                {
+                    // Update the team capacity
+                    _maxPerPrivateTeam = newCapacity;
+                    player.sendMessage(-1, $"Team capacity set to {newCapacity} players per private team.");
+                }
+                else
+                {
+                    player.sendMessage(-1, "Invalid capacity value. Please provide a number.");
+                }
+            }
+            else
+            {
+                player.sendMessage(-1, "Class limits system not available.");
+                
+                // Check if the file exists
+                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
+                bool fileExists = false;
+                string existingPath = "";
+                
+                foreach (string path in possiblePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        fileExists = true;
+                        existingPath = path;
+                        break;
+                    }
+                }
+                
+                if (fileExists)
+                {
+                    player.sendMessage(-1, $"&File exists at: {existingPath} but module is not loaded.");
+                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml");
+                }
+                else
+                {
+                    player.sendMessage(-1, "#File does not exist at any of the expected locations");
+                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml and assets/class_limits.json exists");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Command to debug class limits
+        /// </summary>
+        public void classlimitsdebug(Player player, string payload)
+        {
+            if (ClassesModule != null)
+            {
+                player.sendMessage(-1, "Class limits module is loaded and active.");
+                player.sendMessage(-1, $"Current arena capacity: {_maxPerteam}");
+                player.sendMessage(-1, $"Current team capacity: {_maxPerPrivateTeam}");
+                
+                // Check if the file exists
+                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
+                bool fileExists = false;
+                string existingPath = "";
+                
+                foreach (string path in possiblePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        fileExists = true;
+                        existingPath = path;
+                        break;
+                    }
+                }
+                
+                if (fileExists)
+                {
+                    player.sendMessage(-1, $"&Class limits file found at: {existingPath}");
+                }
+                else
+                {
+                    player.sendMessage(-1, "#Class limits file not found");
+                }
+            }
+            else
+            {
+                player.sendMessage(-1, "ClassesModule is null");
+                player.sendMessage(-1, "  This means either:");
+                player.sendMessage(-1, "  1. 'modules/classlimits' is not set to true in server.xml");
+                player.sendMessage(-1, "  2. assets/class_limits.json file is missing or invalid");
+                player.sendMessage(-1, "  3. There was an error loading the class limits");
+                
+                // Check if the file exists
+                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
+                bool fileExists = false;
+                string existingPath = "";
+                
+                foreach (string path in possiblePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        fileExists = true;
+                        existingPath = path;
+                        break;
+                    }
+                }
+                
+                if (fileExists)
+                {
+                    player.sendMessage(-1, $"&File exists at: {existingPath}");
+                }
+                else
+                {
+                    player.sendMessage(-1, "#File does not exist at any of the expected locations");
+                }
+            }
+        }
         #endregion
 
         #endregion
