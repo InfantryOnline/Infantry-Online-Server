@@ -5,7 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using InfServer.Game;
 
-namespace InfServer.Game.Arena.Modules
+namespace InfServer.Game.Modules
 {
     public class ClassLimit
     {
@@ -113,10 +113,18 @@ namespace InfServer.Game.Arena.Modules
             var limit = _classLimits[classId];
             
             // Arena cap overrides team cap
-            if (limit.PerArenaLimit > 0)
+            if (limit.PerArenaLimit >= 0)
             {
                 int currentArenaCount = arena.PlayersIngame.Count(p => GetPlayerCurrentSkillId(p) == classId);
                 if (currentArenaCount >= limit.PerArenaLimit)
+                    return false;
+            }
+            
+            // If arena cap allows, check team cap
+            if (limit.PerTeamLimit >= 0 && player._team != null)
+            {
+                int currentTeamCount = player._team.ActivePlayers.Count(p => GetPlayerCurrentSkillId(p) == classId);
+                if (currentTeamCount >= limit.PerTeamLimit)
                     return false;
             }
             
@@ -131,7 +139,7 @@ namespace InfServer.Game.Arena.Modules
             var limit = _classLimits[classId];
             
             // Arena cap overrides team cap
-            if (limit.PerArenaLimit > 0)
+            if (limit.PerArenaLimit >= 0)
             {
                 int currentArenaCount = arena.PlayersIngame.Count(p => GetPlayerCurrentSkillId(p) == classId);
                 if (currentArenaCount >= limit.PerArenaLimit)
@@ -139,7 +147,7 @@ namespace InfServer.Game.Arena.Modules
             }
             
             // If arena cap allows, check team cap
-            if (limit.PerTeamLimit > 0 && team != null)
+            if (limit.PerTeamLimit >= 0 && team != null)
             {
                 int currentTeamCount = team.ActivePlayers.Count(p => GetPlayerCurrentSkillId(p) == classId);
                 if (currentTeamCount >= limit.PerTeamLimit)
@@ -161,13 +169,17 @@ namespace InfServer.Game.Arena.Modules
                 // Try to get the skill name from the player's skill list
                 if (player?._skills != null && player._skills.ContainsKey(classId))
                 {
-                    return player._skills[classId].Name;
+                    return player._skills[classId].skill.Name;
                 }
                 
-                // Fallback: try to get from the arena's skill list
-                if (player?._arena?._skills != null && player._arena._skills.ContainsKey(classId))
+                // Fallback: try to get from the server's assets
+                if (player?._server?._assets != null)
                 {
-                    return player._arena._skills[classId].Name;
+                    var skillInfo = player._server._assets.getSkillByID(classId);
+                    if (skillInfo != null)
+                    {
+                        return skillInfo.Name;
+                    }
                 }
             }
             catch (Exception ex)
@@ -188,22 +200,24 @@ namespace InfServer.Game.Arena.Modules
 
             if (!HasClass(classId))
             {
-                // Create new limit entry
+                // Create new limit entry with auto-calculated team cap
+                int autoTeamCap = newCapacity > 0 ? newCapacity / 2 : 0; // Arena cap / 2, rounded down
                 _classLimits[classId] = new ClassLimit
                 {
                     ClassId = classId,
                     ClassName = GetSkillName(player, classId),
                     PerArenaLimit = newCapacity,
-                    PerTeamLimit = 0 // Default to no team limit
+                    PerTeamLimit = autoTeamCap
                 };
             }
             else
             {
+                // Update existing entry - only change arena cap, leave team cap unchanged
                 _classLimits[classId].PerArenaLimit = newCapacity;
             }
 
             // Check if new capacity is lower than current count and warn admin
-            if (newCapacity > 0)
+            if (newCapacity >= 0)
             {
                 int currentCount = arena.PlayersIngame.Count(p => GetPlayerCurrentSkillId(p) == classId);
                 if (currentCount > newCapacity)
@@ -228,28 +242,35 @@ namespace InfServer.Game.Arena.Modules
 
             if (!HasClass(classId))
             {
-                // Create new limit entry
+                // Create new limit entry with auto-calculated arena cap
+                int autoArenaCap = newCapacity * 2; // Team cap * 2
                 _classLimits[classId] = new ClassLimit
                 {
                     ClassId = classId,
                     ClassName = GetSkillName(player, classId),
-                    PerArenaLimit = 0, // Default to no arena limit
+                    PerArenaLimit = autoArenaCap,
                     PerTeamLimit = newCapacity
                 };
             }
             else
             {
+                // Update existing entry - only change team cap, leave arena cap unchanged
                 _classLimits[classId].PerTeamLimit = newCapacity;
             }
 
             // Check if new capacity is lower than current count and warn admin
-            if (newCapacity > 0)
+            if (newCapacity >= 0)
             {
-                int currentCount = arena.PlayersIngame.Count(p => GetPlayerCurrentSkillId(p) == classId);
-                if (currentCount > newCapacity)
+                int currentTeamCount = 0;
+                if (player._team != null)
+                {
+                    currentTeamCount = player._team.ActivePlayers.Count(p => GetPlayerCurrentSkillId(p) == classId);
+                }
+                
+                if (currentTeamCount > newCapacity)
                 {
                     string skillName = GetSkillName(player, classId);
-                    player.sendMessage(0, $"Warning: {skillName} team capacity set to {newCapacity}, but {currentCount} players are currently using this class.");
+                    player.sendMessage(0, $"Warning: {skillName} team capacity set to {newCapacity}, but {currentTeamCount} players are currently using this class in your team.");
                 }
             }
 
@@ -298,20 +319,29 @@ namespace InfServer.Game.Arena.Modules
                 return;
             }
 
-            player.sendMessage(0, "=== Class Limits Debug Info ===");
+            player.sendMessage(0, "=== Class Limits Info ===");
+            player.sendMessage(0, "Class Name (ID) | Arena Count/Limit | Team Count/Limit");
+            player.sendMessage(0, "----------------|------------------|------------------");
             
             foreach (var limit in _classLimits.Values.OrderBy(l => l.ClassName ?? l.ClassId.ToString()))
             {
                 int currentArenaCount = arena.PlayersIngame.Count(p => GetPlayerCurrentSkillId(p) == limit.ClassId);
+                int currentTeamCount = 0;
+                
+                // Calculate current team count for this class
+                if (player._team != null)
+                {
+                    currentTeamCount = player._team.ActivePlayers.Count(p => GetPlayerCurrentSkillId(p) == limit.ClassId);
+                }
                 
                 string className = limit.ClassName ?? $"Class {limit.ClassId}";
-                string arenaInfo = limit.PerArenaLimit > 0 ? $"{currentArenaCount}/{limit.PerArenaLimit}" : "No limit";
-                string teamInfo = limit.PerTeamLimit > 0 ? limit.PerTeamLimit.ToString() : "No limit";
+                string arenaInfo = limit.PerArenaLimit >= 0 ? $"{currentArenaCount}/{limit.PerArenaLimit}" : $"{currentArenaCount}/No limit";
+                string teamInfo = limit.PerTeamLimit >= 0 ? $"{currentTeamCount}/{limit.PerTeamLimit}" : $"{currentTeamCount}/No limit";
                 
-                player.sendMessage(0, $"{className}({limit.ClassId}) - Arena: {arenaInfo}, Team: {teamInfo}");
+                player.sendMessage(0, $"{className}({limit.ClassId}) | {arenaInfo} | {teamInfo}");
             }
             
-            player.sendMessage(0, "=== End Debug Info ===");
+            player.sendMessage(0, "=== End Class Limits Info ===");
         }
 
         public static void GetDebugInfoNotAvailable(Player player)
@@ -353,14 +383,13 @@ namespace InfServer.Game.Arena.Modules
             }
             else
             {
-                // Try to find by name
-                if (arena._skills != null)
+                // Try to find by name using server assets
+                if (player?._server?._assets != null)
                 {
-                    var skill = arena._skills.Values.FirstOrDefault(s => 
-                        s.Name.Equals(classIdentifier, StringComparison.OrdinalIgnoreCase));
+                    var skill = player._server._assets.getSkillByName(classIdentifier);
                     if (skill != null)
                     {
-                        classId = skill.Id;
+                        classId = skill.SkillId;
                     }
                 }
             }
@@ -415,14 +444,13 @@ namespace InfServer.Game.Arena.Modules
             }
             else
             {
-                // Try to find by name
-                if (arena._skills != null)
+                // Try to find by name using server assets
+                if (player?._server?._assets != null)
                 {
-                    var skill = arena._skills.Values.FirstOrDefault(s => 
-                        s.Name.Equals(classIdentifier, StringComparison.OrdinalIgnoreCase));
+                    var skill = player._server._assets.getSkillByName(classIdentifier);
                     if (skill != null)
                     {
-                        classId = skill.Id;
+                        classId = skill.SkillId;
                     }
                 }
             }
@@ -471,9 +499,9 @@ namespace InfServer.Game.Arena.Modules
                 string skillName = "Unknown Class";
                 
                 // Try to get the skill name from the player's arena
-                if (player?._arena?._skills != null && player._arena._skills.ContainsKey(classId))
+                if (player?._skills != null && player._skills.ContainsKey(classId))
                 {
-                    skillName = player._arena._skills[classId].Name;
+                    skillName = player._skills[classId].skill.Name;
                 }
                 
                 return $"Cannot unspec: {skillName} is at capacity limit.";

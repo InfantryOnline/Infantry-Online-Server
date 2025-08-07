@@ -1092,12 +1092,12 @@ namespace InfServer.Game
                 if (exists("Player.JoinGame"))
                 {
                     //Check class limits before allowing the script to process
-                    bool limitcheck = Game.Arena.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, from._team);
+                    bool limitcheck = InfServer.Game.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, from._team);
                     if (!limitcheck)
                     {
                         // Get the player's current skill ID for the error message
-                        int playerSkillId = Game.Arena.Modules.ClassModule.GetPlayerCurrentSkillId(from);
-                        string errorMessage = Game.Arena.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
+                        int playerSkillId = InfServer.Game.Modules.ClassModule.GetPlayerCurrentSkillId(from);
+                        string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
                         from.sendMessage(0, errorMessage);
                         return;
                     }
@@ -1114,11 +1114,11 @@ namespace InfServer.Game
 
                 if (pick != null)
                 {
-                    if (!Game.Arena.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, pick))
+                    if (!InfServer.Game.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, pick))
                     {
                         // Get the player's current skill ID for the error message
-                        int playerSkillId = Game.Arena.Modules.ClassModule.GetPlayerCurrentSkillId(from);
-                        string errorMessage = Game.Arena.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
+                        int playerSkillId = InfServer.Game.Modules.ClassModule.GetPlayerCurrentSkillId(from);
+                        string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
                         from.sendMessage(0, errorMessage);
                         return;
                     }

@@ -3377,7 +3377,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void arenacap(Player player, Player recipient, string payload, int bong)
         {
-            Game.Arena.Modules.ClassModule.ArenaCapCommand(player, player._arena, payload);
+                            InfServer.Game.Modules.ClassModule.ArenaCapCommand(player, player._arena, payload);
         }
 
         /// <summary>
@@ -3385,7 +3385,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void teamcap(Player player, Player recipient, string payload, int bong)
         {
-            Game.Arena.Modules.ClassModule.TeamCapCommand(player, player._arena, payload);
+                            InfServer.Game.Modules.ClassModule.TeamCapCommand(player, player._arena, payload);
         }
 
         /// <summary>
@@ -3393,7 +3393,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void classlimits(Player player, Player recipient, string payload, int bong)
         {
-            Game.Arena.Modules.ClassModule.ClassLimitsCommand(player, player._arena, payload);
+                            InfServer.Game.Modules.ClassModule.ClassLimitsCommand(player, player._arena, payload);
         }
 
         /// <summary>

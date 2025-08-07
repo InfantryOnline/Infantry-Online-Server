@@ -104,7 +104,7 @@ namespace InfServer.Game
         public bool _allowprize;
 
         // Class limits module
-        public Game.Arena.Modules.ClassModule ClassesModule;
+        public InfServer.Game.Modules.ClassModule ClassesModule;
 
         static public int gameCheckInterval;			//The frequency at which we check basic game state
 
@@ -543,7 +543,7 @@ namespace InfServer.Game
 
                 if (fileExists)
                 {
-                    ClassesModule = new Game.Arena.Modules.ClassModule(foundPath);
+                    ClassesModule = new InfServer.Game.Modules.ClassModule(foundPath);
                     Log.write(TLog.Normal, $"Class limits module initialized successfully from {foundPath}.");
                 }
                 else
