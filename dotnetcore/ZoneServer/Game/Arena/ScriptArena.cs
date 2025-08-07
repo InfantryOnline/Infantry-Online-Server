@@ -1011,7 +1011,7 @@ namespace InfServer.Game
         /// Triggered when a player wants to spec or unspec
         /// </summary>
         public override void handlePlayerJoin(Player from, bool bSpec)
-        {
+        {            
             if (from == null)
             {
                 Log.write(TLog.Warning, "handlePlayerJoin(): Called with null player");
@@ -1088,16 +1088,40 @@ namespace InfServer.Game
                     return;
                 }
 
-                //Forward to our script
-                if (exists("Player.JoinGame") && !(bool)callsync("Player.JoinGame", false, from))
+                 //Forward to our script and check class limits
+                if (exists("Player.JoinGame"))
                 {
-                    return;
+                    //Check class limits before allowing the script to process
+                    bool limitcheck = Game.Arena.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, from._team);
+                    if (!limitcheck)
+                    {
+                        // Get the player's current skill ID for the error message
+                        int playerSkillId = Game.Arena.Modules.ClassModule.GetPlayerCurrentSkillId(from);
+                        string errorMessage = Game.Arena.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
+                        from.sendMessage(0, errorMessage);
+                        return;
+                    }
+                    
+                    //If class limits are OK, let the script process
+                    if (!(bool)callsync("Player.JoinGame", false, from))
+                    {
+                        return;
+                    }
                 }
 
                 //Pick a team
                 Team pick = pickAppropriateTeam(from);
+
                 if (pick != null)
                 {
+                    if (!Game.Arena.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, pick))
+                    {
+                        // Get the player's current skill ID for the error message
+                        int playerSkillId = Game.Arena.Modules.ClassModule.GetPlayerCurrentSkillId(from);
+                        string errorMessage = Game.Arena.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
+                        from.sendMessage(0, errorMessage);
+                        return;
+                    }
                     //Great, use it
                     from.unspec(pick);
                     from._lastMovement = Environment.TickCount;
@@ -2989,179 +3013,6 @@ namespace InfServer.Game
         }
         #endregion
 
-        #endregion
-
-        #region Commands
-        /// <summary>
-        /// Command to set arena capacity limits
-        /// </summary>
-        public void arenacap(Player player, string payload)
-        {
-            if (ClassesModule != null)
-            {
-                // Parse the payload to get the new capacity
-                if (int.TryParse(payload, out int newCapacity))
-                {
-                    // Update the arena capacity
-                    _maxPerteam = newCapacity;
-                    player.sendMessage(-1, $"Arena capacity set to {newCapacity} players per team.");
-                }
-                else
-                {
-                    player.sendMessage(-1, "Invalid capacity value. Please provide a number.");
-                }
-            }
-            else
-            {
-                player.sendMessage(-1, "Class limits system not available.");
-                
-                // Check if the file exists
-                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
-                bool fileExists = false;
-                string existingPath = "";
-                
-                foreach (string path in possiblePaths)
-                {
-                    if (File.Exists(path))
-                    {
-                        fileExists = true;
-                        existingPath = path;
-                        break;
-                    }
-                }
-                
-                if (fileExists)
-                {
-                    player.sendMessage(-1, $"&File exists at: {existingPath} but module is not loaded.");
-                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml");
-                }
-                else
-                {
-                    player.sendMessage(-1, "#File does not exist at any of the expected locations");
-                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml and assets/class_limits.json exists");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Command to set team capacity limits
-        /// </summary>
-        public void teamcap(Player player, string payload)
-        {
-            if (ClassesModule != null)
-            {
-                // Parse the payload to get the new capacity
-                if (int.TryParse(payload, out int newCapacity))
-                {
-                    // Update the team capacity
-                    _maxPerPrivateTeam = newCapacity;
-                    player.sendMessage(-1, $"Team capacity set to {newCapacity} players per private team.");
-                }
-                else
-                {
-                    player.sendMessage(-1, "Invalid capacity value. Please provide a number.");
-                }
-            }
-            else
-            {
-                player.sendMessage(-1, "Class limits system not available.");
-                
-                // Check if the file exists
-                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
-                bool fileExists = false;
-                string existingPath = "";
-                
-                foreach (string path in possiblePaths)
-                {
-                    if (File.Exists(path))
-                    {
-                        fileExists = true;
-                        existingPath = path;
-                        break;
-                    }
-                }
-                
-                if (fileExists)
-                {
-                    player.sendMessage(-1, $"&File exists at: {existingPath} but module is not loaded.");
-                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml");
-                }
-                else
-                {
-                    player.sendMessage(-1, "#File does not exist at any of the expected locations");
-                    player.sendMessage(-1, "Check if 'modules/classlimits' is set to true in server.xml and assets/class_limits.json exists");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Command to debug class limits
-        /// </summary>
-        public void classlimitsdebug(Player player, string payload)
-        {
-            if (ClassesModule != null)
-            {
-                player.sendMessage(-1, "Class limits module is loaded and active.");
-                player.sendMessage(-1, $"Current arena capacity: {_maxPerteam}");
-                player.sendMessage(-1, $"Current team capacity: {_maxPerPrivateTeam}");
-                
-                // Check if the file exists
-                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
-                bool fileExists = false;
-                string existingPath = "";
-                
-                foreach (string path in possiblePaths)
-                {
-                    if (File.Exists(path))
-                    {
-                        fileExists = true;
-                        existingPath = path;
-                        break;
-                    }
-                }
-                
-                if (fileExists)
-                {
-                    player.sendMessage(-1, $"&Class limits file found at: {existingPath}");
-                }
-                else
-                {
-                    player.sendMessage(-1, "#Class limits file not found");
-                }
-            }
-            else
-            {
-                player.sendMessage(-1, "ClassesModule is null");
-                player.sendMessage(-1, "  This means either:");
-                player.sendMessage(-1, "  1. 'modules/classlimits' is not set to true in server.xml");
-                player.sendMessage(-1, "  2. assets/class_limits.json file is missing or invalid");
-                player.sendMessage(-1, "  3. There was an error loading the class limits");
-                
-                // Check if the file exists
-                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
-                bool fileExists = false;
-                string existingPath = "";
-                
-                foreach (string path in possiblePaths)
-                {
-                    if (File.Exists(path))
-                    {
-                        fileExists = true;
-                        existingPath = path;
-                        break;
-                    }
-                }
-                
-                if (fileExists)
-                {
-                    player.sendMessage(-1, $"&File exists at: {existingPath}");
-                }
-                else
-                {
-                    player.sendMessage(-1, "#File does not exist at any of the expected locations");
-                }
-            }
-        }
         #endregion
 
         #endregion

@@ -10,7 +10,7 @@ using System.IO;
 
 using InfServer.Network;
 using InfServer.Protocol;
-using InfServer.Logic.General;
+using InfServer.Logic;
 
 using Assets;
 using static Assets.CfgInfo;
@@ -104,7 +104,7 @@ namespace InfServer.Game
         public bool _allowprize;
 
         // Class limits module
-        public Logic.General.Classes ClassesModule;
+        public Game.Arena.Modules.ClassModule ClassesModule;
 
         static public int gameCheckInterval;			//The frequency at which we check basic game state
 
@@ -529,20 +529,22 @@ namespace InfServer.Game
                 // Check if the class_limits.json file exists before instantiating the module
                 string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
                 bool fileExists = false;
+                string foundPath = "";
                 
                 foreach (string path in possiblePaths)
                 {
                     if (File.Exists(path))
                     {
                         fileExists = true;
+                        foundPath = path;
                         break;
                     }
                 }
 
                 if (fileExists)
                 {
-                    ClassesModule = new Logic.General.Classes("assets/class_limits.json");
-                    Log.write(TLog.Normal, "Class limits module initialized successfully.");
+                    ClassesModule = new Game.Arena.Modules.ClassModule(foundPath);
+                    Log.write(TLog.Normal, $"Class limits module initialized successfully from {foundPath}.");
                 }
                 else
                 {
