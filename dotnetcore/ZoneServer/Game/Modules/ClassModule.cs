@@ -34,14 +34,14 @@ namespace InfServer.Game.Modules
                     return;
                 }
 
-                // Try alternative case variations for the assets directory
+                // Try alternative case variations for the Modules directory
                 var directory = Path.GetDirectoryName(jsonPath);
                 var fileName = Path.GetFileName(jsonPath);
                 
                 if (directory != null)
                 {
-                    // Try with "Assets" (capital A)
-                    var alternativePath = Path.Combine(directory.Replace("assets", "Assets"), fileName);
+                    // Try with "modules" (lowercase m)
+                    var alternativePath = Path.Combine(directory.Replace("Modules", "modules"), fileName);
                     if (File.Exists(alternativePath))
                     {
                         var json = File.ReadAllText(alternativePath);
@@ -51,8 +51,8 @@ namespace InfServer.Game.Modules
                         return;
                     }
 
-                    // Try with "assets" (lowercase a)
-                    alternativePath = Path.Combine(directory.Replace("Assets", "assets"), fileName);
+                    // Try with "Modules" (capital M)
+                    alternativePath = Path.Combine(directory.Replace("modules", "Modules"), fileName);
                     if (File.Exists(alternativePath))
                     {
                         var json = File.ReadAllText(alternativePath);
@@ -162,7 +162,7 @@ namespace InfServer.Game.Modules
             return _classLimits.ContainsKey(classId);
         }
 
-        private string GetSkillName(Player player, int classId)
+        public string GetSkillName(Player player, int classId)
         {
             try
             {
@@ -194,7 +194,7 @@ namespace InfServer.Game.Modules
         {
             if (newCapacity < 0)
             {
-                player.sendMessage(0, "Arena capacity cannot be negative.");
+                player.sendMessage(0, "!Arena capacity cannot be negative.");
                 return;
             }
 
@@ -223,20 +223,20 @@ namespace InfServer.Game.Modules
                 if (currentCount > newCapacity)
                 {
                     string skillName = GetSkillName(player, classId);
-                    player.sendMessage(0, $"Warning: {skillName} arena capacity set to {newCapacity}, but {currentCount} players are currently using this class.");
+                    player.sendMessage(0, $"!Warning: {skillName} arena capacity set to {newCapacity}, but {currentCount} players are currently using this class.");
                 }
             }
 
             SaveLimits();
             string skillName2 = GetSkillName(player, classId);
-            player.sendMessage(0, $"Arena capacity for {skillName2} set to {newCapacity}.");
+            player.sendMessage(0, $"$Arena capacity for {skillName2} set to {newCapacity}.");
         }
 
         public void SetTeamCapacity(Player player, Arena arena, int classId, int newCapacity)
         {
             if (newCapacity < 0)
             {
-                player.sendMessage(0, "Team capacity cannot be negative.");
+                player.sendMessage(0, "!Team capacity cannot be negative.");
                 return;
             }
 
@@ -270,13 +270,13 @@ namespace InfServer.Game.Modules
                 if (currentTeamCount > newCapacity)
                 {
                     string skillName = GetSkillName(player, classId);
-                    player.sendMessage(0, $"Warning: {skillName} team capacity set to {newCapacity}, but {currentTeamCount} players are currently using this class in your team.");
+                    player.sendMessage(0, $"!Warning: {skillName} team capacity set to {newCapacity}, but {currentTeamCount} players are currently using this class in your team.");
                 }
             }
 
             SaveLimits();
             string skillName2 = GetSkillName(player, classId);
-            player.sendMessage(0, $"Team capacity for {skillName2} set to {newCapacity}.");
+            player.sendMessage(0, $"$Team capacity for {skillName2} set to {newCapacity}.");
         }
 
         private void SaveLimits()
@@ -286,8 +286,8 @@ namespace InfServer.Game.Modules
                 var limits = _classLimits.Values.ToList();
                 var json = JsonConvert.SerializeObject(limits, Formatting.Indented);
                 
-                // Try to save to the original path first
-                string jsonPath = "assets/class_limits.json";
+                // Try to save to the new Modules path first
+                string jsonPath = "Modules/class_limits.json";
                 if (File.Exists(jsonPath))
                 {
                     File.WriteAllText(jsonPath, json);
@@ -295,14 +295,14 @@ namespace InfServer.Game.Modules
                 }
 
                 // Try alternative case variations
-                if (File.Exists("Assets/class_limits.json"))
+                if (File.Exists("modules/class_limits.json"))
                 {
-                    File.WriteAllText("Assets/class_limits.json", json);
+                    File.WriteAllText("modules/class_limits.json", json);
                     return;
                 }
 
-                // If neither exists, create the assets directory and save
-                Directory.CreateDirectory("assets");
+                // If neither exists, create the Modules directory and save
+                Directory.CreateDirectory("modules");
                 File.WriteAllText(jsonPath, json);
             }
             catch (Exception ex)
@@ -319,9 +319,9 @@ namespace InfServer.Game.Modules
                 return;
             }
 
-            player.sendMessage(0, "=== Class Limits Info ===");
-            player.sendMessage(0, "Class Name (ID) | Arena Count/Limit | Team Count/Limit");
-            player.sendMessage(0, "----------------|------------------|------------------");
+            player.sendMessage(0, "%=== Class Limits Info ===");
+            player.sendMessage(0, "$Class Name (ID) | Arena Count/Limit | Team Count/Limit");
+            player.sendMessage(0, "%----------------|------------------|------------------");
             
             foreach (var limit in _classLimits.Values.OrderBy(l => l.ClassName ?? l.ClassId.ToString()))
             {
@@ -341,27 +341,27 @@ namespace InfServer.Game.Modules
                 player.sendMessage(0, $"{className}({limit.ClassId}) | {arenaInfo} | {teamInfo}");
             }
             
-            player.sendMessage(0, "=== End Class Limits Info ===");
+            player.sendMessage(0, "%=== End Class Limits Info ===");
         }
 
         public static void GetDebugInfoNotAvailable(Player player)
         {
-            player.sendMessage(0, "Class limits module is not available in this arena.");
+            player.sendMessage(0, "!Class limits module is not available in this arena.");
         }
 
         public static void ArenaCapCommand(Player player, Arena arena, string payload)
         {
             if (string.IsNullOrWhiteSpace(payload))
             {
-                player.sendMessage(0, "Usage: *arenacap <class>:<amount> or *arenacap <classid>:<amount>");
-                player.sendMessage(0, "Example: *arenacap Sniper:5 or *arenacap 13:5");
+                player.sendMessage(0, "!Usage: *arenacap <class>:<amount> or *arenacap <classid>:<amount>");
+                player.sendMessage(0, "!Example: *arenacap Sniper:5 or *arenacap 13:5");
                 return;
             }
 
             var parts = payload.Split(':');
             if (parts.Length != 2)
             {
-                player.sendMessage(0, "Invalid format. Use: <class>:<amount> or <classid>:<amount>");
+                player.sendMessage(0, "!Invalid format. Use: <class>:<amount> or <classid>:<amount>");
                 return;
             }
 
@@ -370,7 +370,7 @@ namespace InfServer.Game.Modules
 
             if (!int.TryParse(amountStr, out int amount))
             {
-                player.sendMessage(0, "Invalid capacity, please provide a number.");
+                player.sendMessage(0, "!Invalid capacity, please provide a number.");
                 return;
             }
 
@@ -396,7 +396,7 @@ namespace InfServer.Game.Modules
 
             if (classId == -1)
             {
-                player.sendMessage(0, $"Class '{classIdentifier}' not found.");
+                player.sendMessage(0, $"!Class '{classIdentifier}' not found.");
                 return;
             }
 
@@ -406,7 +406,7 @@ namespace InfServer.Game.Modules
             }
             else
             {
-                player.sendMessage(0, "Class limits module is not available in this arena.");
+                player.sendMessage(0, "!Class limits module is not available in this arena.");
             }
         }
 
@@ -414,15 +414,15 @@ namespace InfServer.Game.Modules
         {
             if (string.IsNullOrWhiteSpace(payload))
             {
-                player.sendMessage(0, "Usage: *teamcap <class>:<amount> or *teamcap <classid>:<amount>");
-                player.sendMessage(0, "Example: *teamcap Sniper:3 or *teamcap 13:3");
+                player.sendMessage(0, "!Usage: *teamcap <class>:<amount> or *teamcap <classid>:<amount>");
+                player.sendMessage(0, "!Example: *teamcap Sniper:3 or *teamcap 13:3");
                 return;
             }
 
             var parts = payload.Split(':');
             if (parts.Length != 2)
             {
-                player.sendMessage(0, "Invalid format. Use: <class>:<amount> or <classid>:<amount>");
+                player.sendMessage(0, "!Invalid format. Use: <class>:<amount> or <classid>:<amount>");
                 return;
             }
 
@@ -431,7 +431,7 @@ namespace InfServer.Game.Modules
 
             if (!int.TryParse(amountStr, out int amount))
             {
-                player.sendMessage(0, "Invalid capacity, please provide a number.");
+                player.sendMessage(0, "!Invalid capacity, please provide a number.");
                 return;
             }
 
@@ -457,7 +457,7 @@ namespace InfServer.Game.Modules
 
             if (classId == -1)
             {
-                player.sendMessage(0, $"Class '{classIdentifier}' not found.");
+                player.sendMessage(0, $"!Class '{classIdentifier}' not found.");
                 return;
             }
 
@@ -467,7 +467,7 @@ namespace InfServer.Game.Modules
             }
             else
             {
-                player.sendMessage(0, "Class limits module is not available in this arena.");
+                player.sendMessage(0, "!Class limits module is not available in this arena.");
             }
         }
 
@@ -492,24 +492,26 @@ namespace InfServer.Game.Modules
             return arena.ClassesModule.CanUnspecToClass(arena, playerSkillId, team);
         }
 
-        public static string GetUnspecBlockedMessage(Player player, int classId)
+        public static string GetUnspecBlockedMessage(Player player, string className)
+        {
+            return GetClassBlockedMessage(player, className, "unspec");
+        }
+
+        public static string GetClassChangeBlockedMessage(Player player, string className)
+        {
+            return GetClassBlockedMessage(player, className, "change class");
+        }
+
+        private static string GetClassBlockedMessage(Player player, string className, string action)
         {
             try
             {
-                string skillName = "Unknown Class";
-                
-                // Try to get the skill name from the player's arena
-                if (player?._skills != null && player._skills.ContainsKey(classId))
-                {
-                    skillName = player._skills[classId].skill.Name;
-                }
-                
-                return $"Cannot unspec: {skillName} is at capacity limit.";
+                return $"!Cannot {action}: {className} is at capacity limit.";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting unspec blocked message: {ex.Message}");
-                return $"Cannot unspec: Class {classId} is at capacity limit.";
+                Console.WriteLine($"!Error getting class blocked message: {ex.Message}");
+                return $"!Cannot {action}: {className} is at capacity limit.";
             }
         }
     }

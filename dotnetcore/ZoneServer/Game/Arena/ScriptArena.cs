@@ -1092,14 +1092,32 @@ namespace InfServer.Game
                 if (exists("Player.JoinGame"))
                 {
                     //Check class limits before allowing the script to process
-                    bool limitcheck = InfServer.Game.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, from._team);
-                    if (!limitcheck)
+                    if (!InfServer.Game.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, from._team))
                     {
+                        string skillname = "Unknown";
                         // Get the player's current skill ID for the error message
                         int playerSkillId = InfServer.Game.Modules.ClassModule.GetPlayerCurrentSkillId(from);
-                        string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
-                        from.sendMessage(0, errorMessage);
-                        return;
+                        // Try to get the skill name from the player's skill list
+                        if (from?._skills != null && from._skills.ContainsKey(playerSkillId))
+                        {
+                            skillname = from._skills[playerSkillId].skill.Name;
+                            string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                            from.sendMessage(0, errorMessage);
+                            return;
+                        }
+
+                        // Fallback: try to get from the server's assets
+                        if (from?._server?._assets != null)
+                        {
+                            var skillInfo = from._server._assets.getSkillByID(playerSkillId);
+                            if (skillInfo != null)
+                            {
+                                skillname = skillInfo.Name;
+                                string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                                from.sendMessage(0, errorMessage);
+                                return;
+                            }
+                        }
                     }
                     
                     //If class limits are OK, let the script process
@@ -1116,10 +1134,30 @@ namespace InfServer.Game
                 {
                     if (!InfServer.Game.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, pick))
                     {
+                        string skillname = "Unknown";
                         // Get the player's current skill ID for the error message
                         int playerSkillId = InfServer.Game.Modules.ClassModule.GetPlayerCurrentSkillId(from);
-                        string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, playerSkillId);
-                        from.sendMessage(0, errorMessage);
+                        // Try to get the skill name from the player's skill list
+                        if (from?._skills != null && from._skills.ContainsKey(playerSkillId))
+                        {
+                            skillname = from._skills[playerSkillId].skill.Name;
+                            string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                            from.sendMessage(0, errorMessage);
+                            return;
+                        }
+
+                        // Fallback: try to get from the server's assets
+                        if (from?._server?._assets != null)
+                        {
+                            var skillInfo = from._server._assets.getSkillByID(playerSkillId);
+                            if (skillInfo != null)
+                            {
+                                skillname = skillInfo.Name;
+                                string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                                from.sendMessage(0, errorMessage);
+                                return;
+                            }
+                        }
                         return;
                     }
                     //Great, use it
@@ -1731,12 +1769,11 @@ namespace InfServer.Game
             }
 
             //Check class limits before allowing skill change
-            if (skill.SkillId > 0 && ClassesModule != null)
+            if (!from._bSpectator && skill.SkillId > 0 && ClassesModule != null)
             {
-                bool limitCheck = ClassesModule.CanChangeClass(this, from, skill.SkillId);
-                if (!limitCheck)
+                if (!ClassesModule.CanChangeClass(this, from, skill.SkillId))
                 {
-                    string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skill.SkillId);
+                    string errorMessage = InfServer.Game.Modules.ClassModule.GetClassChangeBlockedMessage(from, skill.Name);
                     from.sendMessage(0, errorMessage);
                     return;
                 }

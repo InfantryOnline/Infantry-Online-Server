@@ -527,7 +527,7 @@ namespace InfServer.Game
             if (classLimitsEnabled)
             {
                 // Check if the class_limits.json file exists before instantiating the module
-                string[] possiblePaths = { "assets/class_limits.json", "Assets/class_limits.json" };
+                string[] possiblePaths = { "Modules/class_limits.json", "modules/class_limits.json" };
                 bool fileExists = false;
                 string foundPath = "";
                 
