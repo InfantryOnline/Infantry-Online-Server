@@ -1730,6 +1730,18 @@ namespace InfServer.Game
                 return;
             }
 
+            //Check class limits before allowing skill change
+            if (skill.SkillId > 0 && ClassesModule != null)
+            {
+                bool limitCheck = ClassesModule.CanChangeClass(this, from, skill.SkillId);
+                if (!limitCheck)
+                {
+                    string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skill.SkillId);
+                    from.sendMessage(0, errorMessage);
+                    return;
+                }
+            }
+
             //Make sure it's okay with our script...
             if (!exists("Shop.SkillRequest") || (bool)callsync("Shop.SkillRequest", false, from, skill))
                 //Perform the skill modify
