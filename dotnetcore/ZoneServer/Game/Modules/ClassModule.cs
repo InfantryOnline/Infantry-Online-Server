@@ -13,11 +13,15 @@ namespace InfServer.Game.Modules
         public string ClassName { get; set; } // Optional, for reference
         public int PerArenaLimit { get; set; }
         public int PerTeamLimit { get; set; }
+        public bool Dynamic { get; set; } = false; // New: Whether this class uses dynamic limits
+        public int Percent { get; set; } = 0; // New: Percentage of total players allowed for this class
     }
 
     public class ClassModule
     {
         private Dictionary<int, ClassLimit> _classLimits;
+        private int _lastDynamicRecalculation = 0; // Track when we last recalculated dynamic limits
+        private const int DYNAMIC_RECALCULATION_INTERVAL = 60000; // 60 seconds in milliseconds
 
         public ClassModule(string jsonPath)
         {
@@ -75,6 +79,107 @@ namespace InfServer.Game.Modules
             }
         }
 
+        /// <summary>
+        /// Checks if it's time to recalculate dynamic limits and performs the recalculation if needed
+        /// </summary>
+        public void CheckDynamicRecalculation(Arena arena)
+        {
+            int now = Environment.TickCount;
+            
+            // Check if it's time for a recalculation (every minute)
+            if (now - _lastDynamicRecalculation >= DYNAMIC_RECALCULATION_INTERVAL)
+            {
+                RecalculateDynamicLimits(arena);
+                _lastDynamicRecalculation = now;
+            }
+        }
+
+        /// <summary>
+        /// Recalculates dynamic limits based on current player count
+        /// </summary>
+        private void RecalculateDynamicLimits(Arena arena)
+        {
+            int totalPlayers = arena.PlayerCount;
+            
+            // If no players, skip recalculation
+            if (totalPlayers == 0)
+                return;
+
+            bool hasChanges = false;
+            var dynamicClasses = _classLimits.Values.Where(l => l.Dynamic).ToList();
+
+            foreach (var limit in dynamicClasses)
+            {
+                // Calculate new limits based on percentage
+                int newTeamLimit = Math.Max(1, (int)Math.Round((double)totalPlayers * limit.Percent / 100.0));
+                int newArenaLimit = newTeamLimit * 2; // Arena limit is double the team limit
+
+                // Check if limits have changed
+                if (limit.PerTeamLimit != newTeamLimit || limit.PerArenaLimit != newArenaLimit)
+                {
+                    int oldTeamLimit = limit.PerTeamLimit;
+                    int oldArenaLimit = limit.PerArenaLimit;
+                    
+                    limit.PerTeamLimit = newTeamLimit;
+                    limit.PerArenaLimit = newArenaLimit;
+                    
+                    hasChanges = true;
+                    
+                    Console.WriteLine($"Dynamic recalculation for {limit.ClassName ?? $"Class {limit.ClassId}"}: " +
+                                    $"Team limit {oldTeamLimit}->{newTeamLimit}, Arena limit {oldArenaLimit}->{newArenaLimit} " +
+                                    $"(Total players: {totalPlayers}, Percent: {limit.Percent}%)");
+                }
+            }
+
+            // Save changes if any were made
+            if (hasChanges)
+            {
+                SaveLimits();
+            }
+        }
+
+        /// <summary>
+        /// Sets a class to use dynamic limits
+        /// </summary>
+        public void SetDynamicLimits(Player player, Arena arena, int classId, bool dynamic, int percent)
+        {
+            if (!HasClass(classId))
+            {
+                // Create new limit entry
+                _classLimits[classId] = new ClassLimit
+                {
+                    ClassId = classId,
+                    ClassName = GetSkillName(player, classId),
+                    PerArenaLimit = 0,
+                    PerTeamLimit = 0,
+                    Dynamic = dynamic,
+                    Percent = percent
+                };
+            }
+            else
+            {
+                // Update existing entry
+                _classLimits[classId].Dynamic = dynamic;
+                _classLimits[classId].Percent = percent;
+            }
+
+            // If turning off dynamic, set manual limits to current calculated values
+            if (!dynamic)
+            {
+                int totalPlayers = arena.PlayerCount;
+                int calculatedTeamLimit = Math.Max(1, (int)Math.Round((double)totalPlayers * percent / 100.0));
+                int calculatedArenaLimit = calculatedTeamLimit * 2;
+                
+                _classLimits[classId].PerTeamLimit = calculatedTeamLimit;
+                _classLimits[classId].PerArenaLimit = calculatedArenaLimit;
+            }
+
+            SaveLimits();
+            string skillName = GetSkillName(player, classId);
+            string status = dynamic ? "enabled" : "disabled";
+            player.sendMessage(0, $"$Dynamic limits for {skillName} {status} at {percent}%.");
+        }
+
         public static int GetPlayerCurrentClassId(Player player)
         {
             if (player._occupiedVehicle != null)
@@ -107,6 +212,9 @@ namespace InfServer.Game.Modules
 
         public bool CanChangeClass(Arena arena, Player player, int classId)
         {
+            // Check for dynamic recalculation first
+            CheckDynamicRecalculation(arena);
+            
             if (!HasClass(classId))
                 return true; // No limit set for this class
 
@@ -133,6 +241,9 @@ namespace InfServer.Game.Modules
 
         public bool CanUnspecToClass(Arena arena, int classId, Team team)
         {
+            // Check for dynamic recalculation first
+            CheckDynamicRecalculation(arena);
+            
             if (!HasClass(classId))
                 return true; // No limit set for this class
 
@@ -207,13 +318,23 @@ namespace InfServer.Game.Modules
                     ClassId = classId,
                     ClassName = GetSkillName(player, classId),
                     PerArenaLimit = newCapacity,
-                    PerTeamLimit = autoTeamCap
+                    PerTeamLimit = autoTeamCap,
+                    Dynamic = false,
+                    Percent = 0
                 };
             }
             else
             {
                 // Update existing entry - only change arena cap, leave team cap unchanged
                 _classLimits[classId].PerArenaLimit = newCapacity;
+                // Turn off dynamic limits when manual limits are set
+                if (_classLimits[classId].Dynamic)
+                {
+                    _classLimits[classId].Dynamic = false;
+                    _classLimits[classId].Percent = 0;
+                    string skillName = GetSkillName(player, classId);
+                    player.sendMessage(0, $"$Dynamic limits for {skillName} disabled (manual limits set).");
+                }
             }
 
             // Check if new capacity is lower than current count and warn admin
@@ -313,6 +434,9 @@ namespace InfServer.Game.Modules
 
         public void GetDebugInfo(Player player, Arena arena)
         {
+            // Check for dynamic recalculation first
+            CheckDynamicRecalculation(arena);
+            
             if (_classLimits.Count == 0)
             {
                 player.sendMessage(0, "No class limits configured.");
@@ -320,8 +444,8 @@ namespace InfServer.Game.Modules
             }
 
             player.sendMessage(0, "%=== Class Limits Info ===");
-            player.sendMessage(0, "$Class Name (ID) | Arena Count/Limit | Team Count/Limit");
-            player.sendMessage(0, "%----------------|------------------|------------------");
+            player.sendMessage(0, "$Class Name (ID) | Arena Count/Limit | Team Count/Limit | Dynamic");
+            player.sendMessage(0, "%----------------|------------------|------------------|---------");
             
             foreach (var limit in _classLimits.Values.OrderBy(l => l.ClassName ?? l.ClassId.ToString()))
             {
@@ -337,8 +461,9 @@ namespace InfServer.Game.Modules
                 string className = limit.ClassName ?? $"Class {limit.ClassId}";
                 string arenaInfo = limit.PerArenaLimit >= 0 ? $"{currentArenaCount}/{limit.PerArenaLimit}" : $"{currentArenaCount}/No limit";
                 string teamInfo = limit.PerTeamLimit >= 0 ? $"{currentTeamCount}/{limit.PerTeamLimit}" : $"{currentTeamCount}/No limit";
+                string dynamicInfo = limit.Dynamic ? $"Yes ({limit.Percent}%)" : "No";
                 
-                player.sendMessage(0, $"{className}({limit.ClassId}) | {arenaInfo} | {teamInfo}");
+                player.sendMessage(0, $"{className}({limit.ClassId}) | {arenaInfo} | {teamInfo} | {dynamicInfo}");
             }
             
             player.sendMessage(0, "%=== End Class Limits Info ===");
@@ -480,6 +605,106 @@ namespace InfServer.Game.Modules
             else
             {
                 GetDebugInfoNotAvailable(player);
+            }
+        }
+
+        public static void DynamicLimitsCommand(Player player, Arena arena, string payload)
+        {
+            if (string.IsNullOrWhiteSpace(payload))
+            {
+                player.sendMessage(0, "!Usage: *dynamiclimits <class>:<on/off>[:<percent>] or *dynamiclimits <classid>:<on/off>[:<percent>]");
+                player.sendMessage(0, "!Example: *dynamiclimits Sniper:on:10 or *dynamiclimits 13:off");
+                return;
+            }
+
+            var parts = payload.Split(':');
+            if (parts.Length < 2 || parts.Length > 3)
+            {
+                player.sendMessage(0, "!Invalid format. Use: <class>:<on/off>[:<percent>] or <classid>:<on/off>[:<percent>]");
+                return;
+            }
+
+            string classIdentifier = parts[0].Trim();
+            string dynamicStr = parts[1].Trim().ToLower();
+            string percentStr = parts.Length == 3 ? parts[2].Trim() : "0";
+
+            bool dynamic = false;
+            if (dynamicStr == "on" || dynamicStr == "true" || dynamicStr == "1")
+            {
+                dynamic = true;
+            }
+            else if (dynamicStr == "off" || dynamicStr == "false" || dynamicStr == "0")
+            {
+                dynamic = false;
+            }
+            else
+            {
+                player.sendMessage(0, "!Invalid dynamic setting. Use 'on' or 'off'.");
+                return;
+            }
+
+            int percent = 0;
+            if (dynamic)
+            {
+                // When turning dynamic on, percent is required
+                if (parts.Length < 3)
+                {
+                    player.sendMessage(0, "!When turning dynamic on, percent is required. Use: <class>:on:<percent>");
+                    return;
+                }
+                
+                if (!int.TryParse(percentStr, out percent) || percent < 1 || percent > 100)
+                {
+                    player.sendMessage(0, "!Invalid percentage, please provide a number between 1 and 100.");
+                    return;
+                }
+            }
+            else
+            {
+                // When turning dynamic off, percent is optional and defaults to 0
+                if (parts.Length == 3)
+                {
+                    if (!int.TryParse(percentStr, out percent) || percent < 0 || percent > 100)
+                    {
+                        player.sendMessage(0, "!Invalid percentage, please provide a number between 0 and 100.");
+                        return;
+                    }
+                }
+            }
+
+            int classId = -1;
+
+            // Try to parse as class ID first
+            if (int.TryParse(classIdentifier, out int parsedId))
+            {
+                classId = parsedId;
+            }
+            else
+            {
+                // Try to find by name using server assets
+                if (player?._server?._assets != null)
+                {
+                    var skill = player._server._assets.getSkillByName(classIdentifier);
+                    if (skill != null)
+                    {
+                        classId = skill.SkillId;
+                    }
+                }
+            }
+
+            if (classId == -1)
+            {
+                player.sendMessage(0, $"!Class '{classIdentifier}' not found.");
+                return;
+            }
+
+            if (arena.ClassesModule != null)
+            {
+                arena.ClassesModule.SetDynamicLimits(player, arena, classId, dynamic, percent);
+            }
+            else
+            {
+                player.sendMessage(0, "!Class limits module is not available in this arena.");
             }
         }
 

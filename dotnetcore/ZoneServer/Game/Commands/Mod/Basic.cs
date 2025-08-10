@@ -3397,6 +3397,14 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Sets dynamic limits for a specific class
+        /// </summary>
+        static public void dynamiclimits(Player player, Player recipient, string payload, int bong)
+        {
+            InfServer.Game.Modules.ClassModule.DynamicLimitsCommand(player, player._arena, payload);
+        }
+
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ModCommand)]
@@ -3699,6 +3707,11 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(classlimits, "classlimits",
                 "Shows class limits information and debug data.",
                 "*classlimits",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(dynamiclimits, "dynamiclimits",
+                "Sets dynamic limits for a specific class based on player count percentage.",
+                "*dynamiclimits name:on/off:percent or *dynamiclimits id:on/off:percent",
                InfServer.Data.PlayerPermission.Mod, true);
         }
     }

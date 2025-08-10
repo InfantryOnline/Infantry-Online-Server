@@ -866,6 +866,12 @@ namespace InfServer.Game
 
                 //Handle the bots!
                 pollBots();
+
+                // Check for dynamic class limits recalculation
+                if (ClassesModule != null)
+                {
+                    ClassesModule.CheckDynamicRecalculation(this);
+                }
             }
         }
 
