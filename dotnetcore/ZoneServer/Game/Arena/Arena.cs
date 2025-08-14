@@ -709,9 +709,10 @@ namespace InfServer.Game
                         p._lengthOfSilence = 0;
                         p.sendMessage(-1, "You may speak now.");
 
-                        var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp =>
-                            sp.IPAddress.Equals(p._ipAddress)
-                            || sp.Alias.ToLower() == p._alias.ToLower());
+                          var serverEntry = _server.SilencedPlayers.FirstOrDefault(sp =>
+                        sp != null && 
+                        ((sp.IPAddress != null && sp.IPAddress.Equals(p._ipAddress)) ||
+                         (sp.Alias != null && sp.Alias.ToLower() == p._alias.ToLower())));
 
                         if (serverEntry != null)
                         {
