@@ -1742,7 +1742,8 @@ namespace InfServer.Game.Commands.Mod
 
                 //Is he/she on a spectator team?
                 if (target.IsSpectator)
-                {   //Unspec them
+                {   
+                    //Unspec them
                     target.unspec(team1);
 
                     //Was it the same team?
@@ -1793,7 +1794,8 @@ namespace InfServer.Game.Commands.Mod
 
             //Is he/she on a spectator team?
             if (goingIn.IsSpectator)
-            {   //Unspec him/her
+            {   
+                //Unspec him/her
                 goingIn.unspec(team1);
 
                 //Was it the same team?
@@ -2293,7 +2295,8 @@ namespace InfServer.Game.Commands.Mod
 
                 //Is he on a spectator team?
                 if (target.IsSpectator)
-                {   //Unspec him
+                {   
+                    //Unspec him
                     target.unspec(newTeam);
                 }
                 else
@@ -2304,9 +2307,11 @@ namespace InfServer.Game.Commands.Mod
             else
             {
                 //Join next available team
-                if (target._arena.pickAppropriateTeam(target) != null)
-                {   //Great, use it
-                    target.unspec(target._arena.pickAppropriateTeam(target));
+                Team pickedTeam = target._arena.pickAppropriateTeam(target);
+                if (pickedTeam != null)
+                {   
+                    //Great, use it
+                    target.unspec(pickedTeam);
                 }
                 else
                 {
@@ -3339,6 +3344,38 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
+        /// Sets arena capacity for a specific class
+        /// </summary>
+        static public void arenacap(Player player, Player recipient, string payload, int bong)
+        {
+                            InfServer.Game.Modules.ClassModule.ArenaCapCommand(player, player._arena, payload);
+        }
+
+        /// <summary>
+        /// Sets team capacity for a specific class
+        /// </summary>
+        static public void teamcap(Player player, Player recipient, string payload, int bong)
+        {
+                            InfServer.Game.Modules.ClassModule.TeamCapCommand(player, player._arena, payload);
+        }
+
+        /// <summary>
+        /// Shows class limits information
+        /// </summary>
+        static public void classlimits(Player player, Player recipient, string payload, int bong)
+        {
+                            InfServer.Game.Modules.ClassModule.ClassLimitsCommand(player, player._arena, payload);
+        }
+
+        /// <summary>
+        /// Sets dynamic limits for a specific class
+        /// </summary>
+        static public void dynamiclimits(Player player, Player recipient, string payload, int bong)
+        {
+            InfServer.Game.Modules.ClassModule.DynamicLimitsCommand(player, player._arena, payload);
+        }
+
+        /// <summary>
         /// Registers all handlers
         /// </summary>
         [Commands.RegistryFunc(HandlerType.ModCommand)]
@@ -3626,6 +3663,26 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(allowprize, "allowprize",
                 "Toggles if arena allows prize.",
                 "*allowprize",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(arenacap, "arenacap",
+                "Sets arena capacity for a specific class.",
+                "*arenacap name:amount or *arenacap id:amount",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(teamcap, "teamcap",
+                "Sets team capacity for a specific class.",
+                "*teamcap name:amount or *teamcap id:amount",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(classlimits, "classlimits",
+                "Shows class limits information and debug data.",
+                "*classlimits",
+               InfServer.Data.PlayerPermission.Mod, true);
+
+            yield return new HandlerDescriptor(dynamiclimits, "dynamiclimits",
+                "Sets dynamic limits for a specific class based on player count percentage.",
+                "*dynamiclimits name:on/off:percent or *dynamiclimits id:on/off:percent",
                InfServer.Data.PlayerPermission.Mod, true);
         }
     }

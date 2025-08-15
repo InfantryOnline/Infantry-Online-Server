@@ -5,6 +5,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.IO;
 
 using InfServer.Network;
 using InfServer.Protocol;
@@ -1010,7 +1011,7 @@ namespace InfServer.Game
         /// Triggered when a player wants to spec or unspec
         /// </summary>
         public override void handlePlayerJoin(Player from, bool bSpec)
-        {
+        {            
             if (from == null)
             {
                 Log.write(TLog.Warning, "handlePlayerJoin(): Called with null player");
@@ -1087,16 +1088,78 @@ namespace InfServer.Game
                     return;
                 }
 
-                //Forward to our script
-                if (exists("Player.JoinGame") && !(bool)callsync("Player.JoinGame", false, from))
+                 //Forward to our script and check class limits
+                if (exists("Player.JoinGame"))
                 {
-                    return;
+                    //Check class limits before allowing the script to process
+                    if (!InfServer.Game.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, from._team))
+                    {
+                        string skillname = "Unknown";
+                        // Get the player's current skill ID for the error message
+                        int playerSkillId = InfServer.Game.Modules.ClassModule.GetPlayerCurrentSkillId(from);
+                        // Try to get the skill name from the player's skill list
+                        if (from?._skills != null && from._skills.ContainsKey(playerSkillId))
+                        {
+                            skillname = from._skills[playerSkillId].skill.Name;
+                            string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                            from.sendMessage(0, errorMessage);
+                            return;
+                        }
+
+                        // Fallback: try to get from the server's assets
+                        if (from?._server?._assets != null)
+                        {
+                            var skillInfo = from._server._assets.getSkillByID(playerSkillId);
+                            if (skillInfo != null)
+                            {
+                                skillname = skillInfo.Name;
+                                string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                                from.sendMessage(0, errorMessage);
+                                return;
+                            }
+                        }
+                    }
+                    
+                    //If class limits are OK, let the script process
+                    if (!(bool)callsync("Player.JoinGame", false, from))
+                    {
+                        return;
+                    }
                 }
 
                 //Pick a team
                 Team pick = pickAppropriateTeam(from);
+
                 if (pick != null)
                 {
+                    if (!InfServer.Game.Modules.ClassModule.CanPlayerUnspecToCurrentClass(from, this, pick))
+                    {
+                        string skillname = "Unknown";
+                        // Get the player's current skill ID for the error message
+                        int playerSkillId = InfServer.Game.Modules.ClassModule.GetPlayerCurrentSkillId(from);
+                        // Try to get the skill name from the player's skill list
+                        if (from?._skills != null && from._skills.ContainsKey(playerSkillId))
+                        {
+                            skillname = from._skills[playerSkillId].skill.Name;
+                            string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                            from.sendMessage(0, errorMessage);
+                            return;
+                        }
+
+                        // Fallback: try to get from the server's assets
+                        if (from?._server?._assets != null)
+                        {
+                            var skillInfo = from._server._assets.getSkillByID(playerSkillId);
+                            if (skillInfo != null)
+                            {
+                                skillname = skillInfo.Name;
+                                string errorMessage = InfServer.Game.Modules.ClassModule.GetUnspecBlockedMessage(from, skillname);
+                                from.sendMessage(0, errorMessage);
+                                return;
+                            }
+                        }
+                        return;
+                    }
                     //Great, use it
                     from.unspec(pick);
                     from._lastMovement = Environment.TickCount;
@@ -1703,6 +1766,17 @@ namespace InfServer.Game
             {
                 Log.write(TLog.Warning, "Player {0} attempted to buy invalid skill '{1}'", from, skill.Name);
                 return;
+            }
+
+            //Check class limits before allowing skill change
+            if (!from._bSpectator && skill.SkillId > 0 && ClassesModule != null)
+            {
+                if (!ClassesModule.CanChangeClass(this, from, skill.SkillId))
+                {
+                    string errorMessage = InfServer.Game.Modules.ClassModule.GetClassChangeBlockedMessage(from, skill.Name);
+                    from.sendMessage(0, errorMessage);
+                    return;
+                }
             }
 
             //Make sure it's okay with our script...
