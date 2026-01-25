@@ -404,7 +404,7 @@ namespace InfServer.Script.GameType_SLTDM
         public bool gameEnd()
         {
             //Reset flags
-            _arena.flagReset();
+            arena.flagReset();
 
             GameStates = GameState.PostGame;
 
