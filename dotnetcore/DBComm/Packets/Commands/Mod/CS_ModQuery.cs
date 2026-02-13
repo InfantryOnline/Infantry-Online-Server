@@ -36,7 +36,9 @@ namespace InfServer.Protocol
             powered,
             find,
             globalsilence,
-            zmod
+            zmod,
+            //Legacy
+            dev = 3
         }
 
 

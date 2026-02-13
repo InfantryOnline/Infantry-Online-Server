@@ -735,7 +735,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Gives a player dev powers
         /// </summary>
-        static public void devadd(Player player, Player recipient, string payload, int bong)
+        static public void hostadd(Player player, Player recipient, string payload, int bong)
         {
             if (player._server.IsStandalone)
                 player.sendMessage(-1, "Server is in stand-alone mode. Dev powering will be temporary.");
@@ -882,7 +882,7 @@ namespace InfServer.Game.Commands.Mod
         /// <summary>
         /// Takes away a player dev powers
         /// </summary>
-        static public void devremove(Player player, Player recipient, string payload, int bong)
+        static public void hostremove(Player player, Player recipient, string payload, int bong)
         {
             if (player._server.IsStandalone)
                 player.sendMessage(-1, "Server is in stand-alone mode. Dev de-powering will be temporary.");
@@ -1165,23 +1165,23 @@ namespace InfServer.Game.Commands.Mod
         static public IEnumerable<Commands.HandlerDescriptor> Register()
         {
             yield return new HandlerDescriptor(modadd, "modadd",
-                "Gives mod powers to a player, default level is arena mod",
+                "Gives mod permissions to a player, default level is arena mod",
                 "*modadd alias:level(optional) or ::*modadd level(optional)",
                 InfServer.Data.PlayerPermission.Level5, false);
 
             yield return new HandlerDescriptor(modremove, "modremove",
-                "Takes mod powers away, default level is player level",
+                "Takes mod permissions away, default level is player level",
                 "*modremove alias:level(optional) or ::*modremove level(optional)",
                 InfServer.Data.PlayerPermission.Level5, false);
 
-            yield return new HandlerDescriptor(devadd, "devadd",
-                "Gives dev powers to a player, default level is arena mod",
-                "*devadd alias:level(optional) or ::*devadd level(optional) - Note: devadd them in the zone you want",
+            yield return new HandlerDescriptor(hostadd, "hostadd",
+                "Gives host permissions to a player. Defaults to Level 1",
+                "*hostadd alias:level(optional) or ::*hostadd level(optional) - Note: hostadd them in the zone you want",
                 InfServer.Data.PlayerPermission.Level4, true);
 
-            yield return new HandlerDescriptor(devremove, "devremove",
-                "Takes dev powers away, default level is player level",
-                "*devremove alias:level(optional) or ::*devremove level(optional) - Note: devremove them in the zone you want",
+            yield return new HandlerDescriptor(hostremove, "hostremove",
+                "Removes host permissions from a player.",
+                "*hostremove alias:level(optional) or ::*hostremove level(optional) - Note: hostremove them in the zone you want",
                 InfServer.Data.PlayerPermission.Level4, true);
 
             yield return new HandlerDescriptor(powered, "powered",
