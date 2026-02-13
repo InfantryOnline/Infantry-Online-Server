@@ -29,14 +29,14 @@ namespace InfServer.Protocol
             aliasremove,
             mod,
             host,
-            zmod,
             aliasrename,
             squadtransfer,
             squadremove,
             squadjoin,
             powered,
             find,
-            globalsilence
+            globalsilence,
+            zmod
         }
 
 
