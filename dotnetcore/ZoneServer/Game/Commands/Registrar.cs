@@ -152,6 +152,23 @@ namespace InfServer.Game.Commands
 		public MethodInfo method;
 	}
 
+	[Flags]
+	public enum PermissionAuthority
+	{
+		None	= 0,
+		Player  = 1,
+		Host	= 2,
+		Mod		= 4,
+		ZoneMod = 8
+	}
+
+	public class HandlerPermissionRequirement
+	{
+		public PermissionAuthority Authority { get; set; }
+
+		public Data.PlayerPermission PermissionLevel { get; set; }
+	}
+
 	/// <summary>
 	/// Describes a specific chat or mod command handler
 	/// </summary>
@@ -163,9 +180,27 @@ namespace InfServer.Game.Commands
 		public string commandDescription;
 		public string usage;
 
-		public Data.PlayerPermission permissionLevel;
-        public bool isDevCommand;
-      
+		public HandlerPermissionRequirement Permission { get; set; }
+
+		/// <summary>
+		/// Backwards compatibility with scripts. Don't use.
+		/// </summary>
+		[Obsolete("Backwards compatibility with scripts. Don't use")]
+		public Data.PlayerPermission permissionLevel
+		{
+			get { return Permission.PermissionLevel; }
+			set { Permission.PermissionLevel = value; }
+		}
+
+        /// <summary>
+        /// Backwards compatibility with scripts. Don't use.
+        /// </summary>
+        [Obsolete("Backwards compatibility with scripts. Don't use")]
+        public bool isDevCommand
+		{
+			get { return Permission.Authority.HasFlag(PermissionAuthority.Host); }
+			set { Permission.Authority |= PermissionAuthority.Host; }
+		}
 
 		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage)
 		{
@@ -174,7 +209,12 @@ namespace InfServer.Game.Commands
 			commandDescription = _commandDescription;
 			usage = _usage;
 
-			permissionLevel = InfServer.Data.PlayerPermission.Normal;
+            Permission = new HandlerPermissionRequirement
+			{
+				PermissionLevel = Data.PlayerPermission.Normal,
+				Authority = PermissionAuthority.Player
+			};
+
             isDevCommand = false;
 		}
 
@@ -184,10 +224,27 @@ namespace InfServer.Game.Commands
 			handlerCommand = _handlerCommand;
 			commandDescription = _commandDescription;
 			usage = _usage;
-			permissionLevel = _permissionLevel;
 
-            isDevCommand = _isDevCommand;
+            Permission = new HandlerPermissionRequirement
+            {
+                PermissionLevel = _permissionLevel,
+                Authority = PermissionAuthority.Mod | PermissionAuthority.ZoneMod 
+            };
+
+			if (_isDevCommand)
+			{
+				Permission.Authority |= PermissionAuthority.Host;
+			}
 		}
+
+		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage, Data.PlayerPermission _permissionLevel, PermissionAuthority authority)
+		{
+            handler = _handler;
+            handlerCommand = _handlerCommand;
+            commandDescription = _commandDescription;
+            usage = _usage;
+			Permission = new HandlerPermissionRequirement { Authority = authority, PermissionLevel = _permissionLevel };
+        }
 	}
 
 	/// <summary>

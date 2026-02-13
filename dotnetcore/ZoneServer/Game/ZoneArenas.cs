@@ -301,9 +301,9 @@ namespace InfServer.Game
                 //Are we in the list?
                 if (arena._bAllowed.Count == 0 || !arena._bAllowed.Contains(player._alias.ToLower()))
                 {   //We a zone admin?
-                    if (player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+                    if (player.PermissionLevelLocal < Data.PlayerPermission.Level3)
                     {   //We a game mod?
-                        if (player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                        if (player.PermissionLevel < Data.PlayerPermission.Level1)
                         {
                             player.sendMessage(-1, "Arena is locked.");
                             return null;
@@ -312,7 +312,7 @@ namespace InfServer.Game
                 }
             }
 
-            if (arena.IsPrivate && (player.PermissionLevel < Data.PlayerPermission.Mod) && (arena.TotalPlayerCount >= arena._maxPrivatePop))
+            if (arena.IsPrivate && (player.PermissionLevel < Data.PlayerPermission.Level2) && (arena.TotalPlayerCount >= arena._maxPrivatePop))
             {
                 player.sendMessage(-1, "Arena is full.");
                 return null;

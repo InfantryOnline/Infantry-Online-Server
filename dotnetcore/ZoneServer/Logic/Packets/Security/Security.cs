@@ -40,7 +40,7 @@ namespace InfServer.Logic
             {//It was a request by the server
                 //Check the processes
                 foreach (string element in pkt.processes)
-                    if (badPrograms.Contains(Logic_Text.RemoveIllegalCharacters(element).ToLower()) && player._permissionStatic != Data.PlayerPermission.Sysop)
+                    if (badPrograms.Contains(Logic_Text.RemoveIllegalCharacters(element).ToLower()) && player._permissionStatic != Data.PlayerPermission.Level5)
                     {//They have a cheat running or debugger, kick them out and inform mods
                         if (!player._server.IsStandalone)
                         {
@@ -55,7 +55,7 @@ namespace InfServer.Logic
                         else
                         {
                             foreach (Player ppl in player._arena.Players.ToList())
-                                if (ppl.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                                if (ppl.PermissionLevelLocal >= Data.PlayerPermission.Level1)
                                     ppl.sendMessage(-1, String.Format("&ALERT - Player Kicked: (Zone={0}, Arena={1}, Player={2}) Reason=Using a hack or cheat engine. Program={3}", 
                                         player._server.Name, player._arena._name, player._alias, Logic_Text.RemoveIllegalCharacters(element).ToLower()));
                         }
@@ -67,7 +67,7 @@ namespace InfServer.Logic
 
                 //Check the windows
                  foreach (string element in pkt.windows)
-                    if (badPrograms.Contains(Logic_Text.RemoveIllegalCharacters(element).ToLower()) && player._permissionStatic != Data.PlayerPermission.Sysop)
+                    if (badPrograms.Contains(Logic_Text.RemoveIllegalCharacters(element).ToLower()) && player._permissionStatic != Data.PlayerPermission.Level5)
                     {//They have a cheat running or debugger, kick them out and inform mods
 
                         if (!player._server.IsStandalone)
@@ -82,7 +82,7 @@ namespace InfServer.Logic
                         else
                         {
                             foreach (Player ppl in player._arena.Players.ToList())
-                                if (ppl.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                                if (ppl.PermissionLevelLocal >= Data.PlayerPermission.Level1)
                                     ppl.sendMessage(-1, String.Format("&ALERT - Player Kicked: (Zone={0}, Arena={1}, Player={2}) Reason=Using a hack or cheat engine.", player._server.Name, player._arena._name, player._alias));
                         }
 
@@ -135,7 +135,7 @@ namespace InfServer.Logic
                     return;
                 }
                 //Not a mod
-                if (pkt.Unk3 != player._server._reliableChecksum && player._server._reliableChecksum != 0 && player._permissionStatic < Data.PlayerPermission.SuperMod)
+                if (pkt.Unk3 != player._server._reliableChecksum && player._server._reliableChecksum != 0 && player._permissionStatic < Data.PlayerPermission.Level3)
                 {//Mismatch
                     Log.write(TLog.Security, "Checksum mismatch: " + pkt.Unk3 + " vs " + player._server._reliableChecksum);
 
@@ -152,7 +152,7 @@ namespace InfServer.Logic
                     else
                     {
                         foreach (Player ppl in player._arena.Players.ToList())
-                            if (ppl.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                            if (ppl.PermissionLevelLocal >= Data.PlayerPermission.Level1)
                                 ppl.sendMessage(-1, String.Format("&ALERT - Player Kicked: (Zone={0}, Arena={1}, Player={2}, Checksum={3}, Reliable={4}) Reason=Client checksum mismatch.", player._server.Name, player._arena._name, player._alias, pkt.Unk3, player._server._reliableChecksum));
                         player.disconnect();
                     }

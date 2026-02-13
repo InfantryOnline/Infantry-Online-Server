@@ -29,7 +29,7 @@ namespace InfServer.Game.Commands.Mod
         static public void recycle(Player player, Player recipient, string payload, int bong)
         {
             //Power check
-            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.Level3)
             {
                 player.sendMessage(-1, "Only mods or level 3 dev's and higher can use this command.");
                 return;
@@ -59,7 +59,7 @@ namespace InfServer.Game.Commands.Mod
         static public void reloadscripts(Player player, Player recipient, string payload, int bong)
         {
             //Power check
-            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.Level3)
             {
                 player.sendMessage(-1, "Only mods or level 3 dev's and higher can use this command.");
                 return;
@@ -350,62 +350,62 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(admins, "admins",
                 "Currently returns a list of powered admins",
                 "*admins or *admins list",
-                InfServer.Data.PlayerPermission.HeadModAdmin, false);
+                InfServer.Data.PlayerPermission.Level5, false);
 
             yield return new HandlerDescriptor(assets, "assets",
                "secret",
                "?quit",
-               InfServer.Data.PlayerPermission.HeadModAdmin, false);
+               InfServer.Data.PlayerPermission.Level5, false);
 
             yield return new HandlerDescriptor(environment, "environment",
                 "Queries environment information from a player",
                 "::*environment",
-                InfServer.Data.PlayerPermission.HeadModAdmin, false);
+                InfServer.Data.PlayerPermission.Level5, false);
 
             yield return new HandlerDescriptor(history, "history",
                 "Returns a list of mod commands used in every server",
                 "*history [page], *history [name], or *history [name]:[page]",
-                InfServer.Data.PlayerPermission.Mod, false);
+                InfServer.Data.PlayerPermission.Level2, false);
 
             yield return new HandlerDescriptor(cmdhistory, "cmdhistory",
                 "Returns a list of aliases that used the command in every server",
                 "*history [page], *history [cmd], or *history [cmd]:[page]",
-                InfServer.Data.PlayerPermission.Mod, false);
+                InfServer.Data.PlayerPermission.Level2, false);
 
             yield return new HandlerDescriptor(log, "log",
                 "Grabs exception logs for the current zone",
                 "*log",
-                InfServer.Data.PlayerPermission.SuperMod, true);
+                InfServer.Data.PlayerPermission.Level3, true);
 
             yield return new HandlerDescriptor(logpackets, "logpackets",
                 "Toggles logging of packets on/off.",
                 "*logpackets",
-                InfServer.Data.PlayerPermission.SuperMod, true);
+                InfServer.Data.PlayerPermission.Level3, true);
 
             yield return new HandlerDescriptor(recycle, "recycle",
                 "Restarts the current zone",
                 "*recycle",
-                InfServer.Data.PlayerPermission.SuperMod, true);
+                InfServer.Data.PlayerPermission.Level3, true);
 
             yield return new HandlerDescriptor(reloadscripts, "reloadscripts",
                 "Reloads the specified scripts for all arenas in the zoneserver",
                 "*reloadscripts",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(showGif, "showgif",
                 "Sends a gif to the target player",
                 "::*showgif [gif url]",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
             yield return new HandlerDescriptor(shutdown, "shutdown",
                 "Shut downs the current zone server",
                 "*shutdown",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
             yield return new HandlerDescriptor(testPacket, "testpacket",
                 "Sends a test packet to the target player or just sends a packet",
                 "::*testpacket, *testpacket",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
         }
     }

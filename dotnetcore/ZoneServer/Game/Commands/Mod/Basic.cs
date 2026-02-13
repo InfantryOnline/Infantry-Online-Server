@@ -234,7 +234,7 @@ namespace InfServer.Game.Commands.Mod
                     payload = string.Format("[Arena] {0}", payload);
                 }
 
-                if (player.PermissionLevelLocal < Data.PlayerPermission.ManagerSysop)
+                if (player.PermissionLevelLocal < Data.PlayerPermission.Level4)
                 {
                     bool detected;
                     payload = SwearFilter.Filter(payload, out detected);
@@ -332,7 +332,7 @@ namespace InfServer.Game.Commands.Mod
             {
                 if (payload.Trim() == player._server._config["server/managerPassword"].Value)
                 {
-                    player._permissionTemp = Data.PlayerPermission.Sysop;
+                    player._permissionTemp = Data.PlayerPermission.Level5;
                     player._admin = true;
                     player.sendMessage(1, "You have been granted");
                 }
@@ -348,19 +348,19 @@ namespace InfServer.Game.Commands.Mod
 
             //Get players mod level first
             int level;
-            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevelLocal == Data.PlayerPermission.Level1)
                 level = (int)player.PermissionLevelLocal;
             else
                 level = (int)player.PermissionLevel;
 
-            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Level2)
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
             }
 
             if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
-                if (level < (int)Data.PlayerPermission.Mod)
+                if (level < (int)Data.PlayerPermission.Level2)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
                     return;
@@ -393,19 +393,19 @@ namespace InfServer.Game.Commands.Mod
 
             //Get players mod level first
             int level;
-            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevelLocal == Data.PlayerPermission.Level1)
                 level = (int)player.PermissionLevelLocal;
             else
                 level = (int)player.PermissionLevel;
 
-            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Level2)
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
             }
 
             if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
-                if (level < (int)Data.PlayerPermission.Mod)
+                if (level < (int)Data.PlayerPermission.Level2)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
                     return;
@@ -825,7 +825,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (!player._arena.IsGranted(player) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod)
+            if (!player._arena.IsGranted(player) && player.PermissionLevelLocal < Data.PlayerPermission.Level1)
             {
                 player.sendMessage(-1, "You are not granted in this arena.");
                 return;
@@ -833,7 +833,7 @@ namespace InfServer.Game.Commands.Mod
 
             if (recipient != null)
             {
-                if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                if (recipient.PermissionLevel >= Data.PlayerPermission.Level1)
                 {
                     player.sendMessage(-1, "That person doesn't need grant.");
                     return;
@@ -841,7 +841,7 @@ namespace InfServer.Game.Commands.Mod
 
                 if (player._arena.IsGranted(recipient))
                 {
-                    if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.Level1)
                     {
                         player.sendMessage(-1, "You cannot remove this players power.");
                         return;
@@ -856,7 +856,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
-                recipient._permissionTemp = Data.PlayerPermission.ArenaMod;
+                recipient._permissionTemp = Data.PlayerPermission.Level1;
                 player._arena.sendArenaMessage(string.Format("{0} is now granted.", recipient._alias));
                 recipient.sendMessage(0, "You are now granted arena privileges.");
             }
@@ -874,7 +874,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                if (recipient.PermissionLevel >= Data.PlayerPermission.Level1)
                 {
                     player.sendMessage(-1, "That person doesn't need grant.");
                     return;
@@ -882,7 +882,7 @@ namespace InfServer.Game.Commands.Mod
 
                 if (player._arena.IsGranted(recipient))
                 {
-                    if (recipient.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.Level1)
                     {
                         player.sendMessage(-1, "You cannot remove this players power.");
                         return;
@@ -897,7 +897,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
-                recipient._permissionTemp = Data.PlayerPermission.ArenaMod;
+                recipient._permissionTemp = Data.PlayerPermission.Level1;
                 recipient.sendMessage(0, "You are now granted arena privileges.");
             }
 
@@ -916,7 +916,7 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            if (!player._arena.IsGranted(player) && player.PermissionLevelLocal < Data.PlayerPermission.Mod)
+            if (!player._arena.IsGranted(player) && player.PermissionLevelLocal < Data.PlayerPermission.Level2)
             {
                 player.sendMessage(-1, "You are not granted moderator in this arena.");
                 return;
@@ -924,7 +924,7 @@ namespace InfServer.Game.Commands.Mod
 
             if (recipient != null)
             {
-                if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                if (recipient.PermissionLevel >= Data.PlayerPermission.Level2)
                 {
                     player.sendMessage(-1, "That person doesn't need grant.");
                     return;
@@ -932,7 +932,7 @@ namespace InfServer.Game.Commands.Mod
 
                 if (player._arena.IsGranted(recipient))
                 {
-                    if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.Level2)
                     {
                         player.sendMessage(-1, "You cannot remove this players power.");
                         return;
@@ -947,7 +947,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
-                recipient._permissionTemp = Data.PlayerPermission.Mod;
+                recipient._permissionTemp = Data.PlayerPermission.Level2;
                 player._arena.sendArenaMessage(string.Format("{0} is now granted moderator.", recipient._alias));
                 recipient.sendMessage(0, "You are now granted arena privileges.");
             }
@@ -965,7 +965,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
 
-                if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                if (recipient.PermissionLevel >= Data.PlayerPermission.Level2)
                 {
                     player.sendMessage(-1, "That person doesn't need grant.");
                     return;
@@ -973,7 +973,7 @@ namespace InfServer.Game.Commands.Mod
 
                 if (player._arena.IsGranted(recipient))
                 {
-                    if (recipient.PermissionLevel >= Data.PlayerPermission.Mod)
+                    if (recipient.PermissionLevel >= Data.PlayerPermission.Level2)
                     {
                         player.sendMessage(-1, "You cannot remove this players power.");
                         return;
@@ -988,7 +988,7 @@ namespace InfServer.Game.Commands.Mod
                     return;
                 }
                 player._arena._owner.Add(recipient._alias);
-                recipient._permissionTemp = Data.PlayerPermission.Mod;
+                recipient._permissionTemp = Data.PlayerPermission.Level2;
                 recipient.sendMessage(0, "You are now granted arena privileges.");
             }
 
@@ -1010,7 +1010,7 @@ namespace InfServer.Game.Commands.Mod
                 int level;
 
                 //New help list, sorted by level
-                if (player._developer || player._permissionTemp == Data.PlayerPermission.ArenaMod)
+                if (player._developer || player._permissionTemp == Data.PlayerPermission.Level1)
                 {
                     //First set list
                     foreach (HandlerDescriptor cmd in player._arena._commandRegistrar._modCommands.Values)
@@ -1203,12 +1203,12 @@ namespace InfServer.Game.Commands.Mod
 
             //Get players mod level first
             int level;
-            if (player.PermissionLevelLocal == Data.PlayerPermission.GrantedPlayer)
+            if (player.PermissionLevelLocal == Data.PlayerPermission.Level1)
                 level = (int)player.PermissionLevelLocal;
             else
                 level = (int)player.PermissionLevel;
 
-            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Mod)
+            if (player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && level < (int)Data.PlayerPermission.Level2)
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
@@ -1221,7 +1221,7 @@ namespace InfServer.Game.Commands.Mod
             }
             /*
             if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase) && !player._arena.IsPrivate)
-                if (level < (int)Data.PlayerPermission.Mod)
+                if (level < (int)Data.PlayerPermission.Level2)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
                     return;
@@ -1251,7 +1251,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Check if player is a granted player and compare item selected to list of allowed items.
-            if (level == (int)Data.PlayerPermission.GrantedPlayer)
+            if (level == (int)Data.PlayerPermission.Level1)
             {
                 if (item.buyPrice == 0)
                 {
@@ -1300,9 +1300,9 @@ namespace InfServer.Game.Commands.Mod
             player.sendMessage(-3, "&Player Profile Information");
             player.sendMessage(0, "*" + target._alias);
             if (target == player)
-                player.sendMessage(0, "&Permission Level: " + (int)player.PermissionLevel + (player._developer ? "(Dev)" : player._permissionTemp == Data.PlayerPermission.ArenaMod ? "(Granted)" : ""));
+                player.sendMessage(0, "&Permission Level: " + (int)player.PermissionLevel + (player._developer ? "(Dev)" : player._permissionTemp == Data.PlayerPermission.Level1 ? "(Granted)" : ""));
             else if (player.PermissionLevel >= target.PermissionLevel)
-                player.sendMessage(0, "&Permission Level: " + (int)target.PermissionLevel + (target._developer ? "(Dev)" : player._permissionTemp == Data.PlayerPermission.ArenaMod ? "(Granted)" : ""));
+                player.sendMessage(0, "&Permission Level: " + (int)target.PermissionLevel + (target._developer ? "(Dev)" : player._permissionTemp == Data.PlayerPermission.Level1 ? "(Granted)" : ""));
             player.sendMessage(0, "Items");
             foreach (KeyValuePair<int, Player.InventoryItem> itm in target._inventory)
                 player.sendMessage(0, string.Format("~{0}={1}", itm.Value.item.name, itm.Value.quantity));
@@ -1453,14 +1453,14 @@ namespace InfServer.Game.Commands.Mod
             }
 
             int level;
-            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevelLocal == Data.PlayerPermission.Level1)
                 level = (int)player.PermissionLevelLocal;
             else
                 level = (int)player.PermissionLevel;
             /*
             if (!player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase)
                 && !player._arena.IsPrivate)
-                if (level < (int)Data.PlayerPermission.Mod)
+                if (level < (int)Data.PlayerPermission.Level2)
                 {
                     player.sendMessage(-1, "You can only use it in private arena's.");
                     return;
@@ -1654,7 +1654,7 @@ namespace InfServer.Game.Commands.Mod
         /// </summary>
         static public void stealth(Player player, Player recipient, string payload, int bong)
         {
-            if (player._developer || player._permissionTemp >= Data.PlayerPermission.GrantedPlayer)
+            if (player._developer || player._permissionTemp >= Data.PlayerPermission.Level1)
             {
                 player.sendMessage(-1, "You are not authorized to use this command.");
                 return;
@@ -1888,7 +1888,7 @@ namespace InfServer.Game.Commands.Mod
         static public void switchSides(Player player, Player recipient, string payload, int bong)
         {
             //Public arena?
-            if (player._arena._bIsPublic && player.PermissionLevel < Data.PlayerPermission.Mod)
+            if (player._arena._bIsPublic && player.PermissionLevel < Data.PlayerPermission.Level2)
             {
                 player.sendMessage(-1, "This command cannot be used in public arena's.");
                 return;
@@ -2529,7 +2529,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Are we high enough?
-            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.SMod)
+            if (player._developer && player.PermissionLevelLocal < Data.PlayerPermission.Level3)
             {
                 player.sendMessage(-1, "Only mods or level 3 dev's and higher can use this command.");
                 return;
@@ -2557,7 +2557,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             //Check level requirement
-            if (player.PermissionLevel < Data.PlayerPermission.Sysop)
+            if (player.PermissionLevel < Data.PlayerPermission.Level5)
             {
                 player.sendMessage(-1, "Sorry, you are not high enough.");
                 return;
@@ -3132,7 +3132,7 @@ namespace InfServer.Game.Commands.Mod
         static public void dc(Player player, Player recipient, string payload, int bong)
         {
             //Check if they are granted and in a private arena
-            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+            if (player.PermissionLevelLocal == Data.PlayerPermission.Level1 && !player._arena.IsPrivate)
             {
                 player.sendMessage(-1, "Nice try.");
                 return;
@@ -3169,7 +3169,7 @@ namespace InfServer.Game.Commands.Mod
 
             //Get players mod level first
             int level;
-            if (player.PermissionLevelLocal == Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevelLocal == Data.PlayerPermission.Level1)
                 level = (int)player.PermissionLevelLocal;
             else
                 level = (int)player.PermissionLevel;
@@ -3177,13 +3177,13 @@ namespace InfServer.Game.Commands.Mod
             int rLevel = (int)recipient.PermissionLevel;
 
             //Check if they are granted and in a private arena
-            if (level == (int)Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+            if (level == (int)Data.PlayerPermission.Level1 && !player._arena.IsPrivate)
             {
                 player.sendMessage(-1, "Nice try.");
                 return;
             }
 
-            if (level < (int)Data.PlayerPermission.Mod && player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
+            if (level < (int)Data.PlayerPermission.Level2 && player._arena._name.StartsWith("Arena", StringComparison.OrdinalIgnoreCase))
             {
                 player.sendMessage(-1, "You can only use it in non-public arena's.");
                 return;
@@ -3347,32 +3347,32 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(help, "help",
                 "Gives the user help information on a given command.",
                 "*help [commandName]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(addball, "addball",
                 "Adds a ball to the arena.",
                 "*addball",
-               InfServer.Data.PlayerPermission.GrantedPlayer, true);
+               InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(allow, "allow",
                 "Lists, Adds or Removes a player from a private arena list.",
                 "*allow list OR *allow alias",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(arena, "arena",
                 "Send a arena-wide system message.",
                 "*arena message",
-               InfServer.Data.PlayerPermission.GrantedPlayer, true);
+               InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(arenalock, "arenalock",
                 "Locks or unlocks an arena from outsiders. Note: will kick out any non powered players in spec and only mods or admins can join/stay.",
                 "*arenalock",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(maxpop, "maxpop",
                 "Gets or sets the maximum player count (excluding mods/admins) in the arena. Does not kick existing players out. 0 value resets.",
                 "*maxpop [optional: value or 0]",
-                Data.PlayerPermission.Mod, true);
+                Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(auth, "auth",
                 "Log in during Stand-Alone Mode",
@@ -3381,252 +3381,252 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(banlist, "banlist",
                 "Shows a list of bans a player has",
                 "*banlist alias or :alias:*banlist",
-                InfServer.Data.PlayerPermission.Mod, false);
+                InfServer.Data.PlayerPermission.Level2, false);
 
             yield return new HandlerDescriptor(cash, "cash",
                 "Prizes specified amount of cash to target player",
                 "*cash [amount] or ::*cash [amount]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(dc, "dc",
                 "Kicks a player from the server",
                 "*dc reason (optional) or dc all",
-                InfServer.Data.PlayerPermission.HeadModAdmin, true);
+                InfServer.Data.PlayerPermission.Level5, true);
 
             yield return new HandlerDescriptor(experience, "experience",
                 "Prizes specified amount of experience to target player",
                 "*experience [amount] or ::*experience [amount]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(flagSpawn, "flagspawn",
                 "Spawns all or a specific flag at either default location, exact, or coordinate",
                 "*flagspawn <all|id|name>:<default|coord|exacts>",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(find, "find",
                 "Searches for an alias and returns if they are possibly on another name",
                 "*find [alias]",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(findItem, "finditem",
                 "Finds an item within our zone",
                 "*finditem [itemID or item name]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(getball, "getball",
                 "Gets a ball.",
                 "*getball (gets ball ID 0) or *getball # (gets a specific ball ID)",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(global, "global",
                "Sends a global message to every zone connected to current database",
                "*global [message]",
-               InfServer.Data.PlayerPermission.Mod, false);
+               InfServer.Data.PlayerPermission.Level2, false);
 
             yield return new HandlerDescriptor(warp, "goto",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
                 ":alias:*goto or *goto [alias] or *goto A4 (optional team name) or *goto 123,123 (optional team name)",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(grant, "grant",
                 "Gives arena privileges to a player",
                 ":player:*grant or *grant [alias]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(moderator, "moderator",
                 "Gives moderator arena privileges to a player",
                 ":player:*moderator or *moderator [alias]",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(helpcall, "helpcall",
                 "helpcall shows all helpcalls from all zones",
                 "*helpcall  OR *helpcall page - to show a specific page",
-                InfServer.Data.PlayerPermission.Mod, false);
+                InfServer.Data.PlayerPermission.Level2, false);
 
             yield return new HandlerDescriptor(arenaban, "arenaban",
                 "Bans a player from an arena",
                 ":player:*arenaban minutes(Optional) or *arenaban alias minutes(optional)",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(arenabanremove, "arenabanremove",
                 "Removes an active kick for the given alias.",
                 ":player:*arenabanremove or *arenabanremove alias",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(zoneban, "zoneban",
                 "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
                 "*zoneban alias minutes:reason(optional) or :player:*zoneban minutes:reason(optional)",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(zonebanremove, "zonebanremove",
                 "Blocks a player from a specific zone - Note: make sure you are in the zone you want to ban from",
                 "*zonebanremove alias or :player:*zonebanremove",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(ban, "ban",
                 "Bans a player from all zones",
                 "*ban alias minutes:reason(optional) or :player:*ban minutes:reason(optional)",
-                InfServer.Data.PlayerPermission.SuperMod, false);
+                InfServer.Data.PlayerPermission.Level3, false);
 
             yield return new HandlerDescriptor(banremove, "banremove",
                 "Removes a ban from the given alias.",
                 "*banremove alias or :player:*banremove",
-                InfServer.Data.PlayerPermission.SuperMod, false);
+                InfServer.Data.PlayerPermission.Level3, false);
 
             yield return new HandlerDescriptor(speclock, "lock",
                 "*lock will toggle arena lock on or off, using lock in a pm will lock and spec or unlock a player in spec",
                 "*lock OR :target:*lock",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(permit, "permit",
                 "Permits target player to enter, leave, or read an allowed list of a permission-only zone.",
                 "permit [alias] (Type it again to remove them) *permit list",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(poll, "poll",
                 "Starts a poll for a question asked, *poll cancel to stop one, *poll end to end one",
                 "*poll question(Optional: *poll question:timer)",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(prize, "prize",
                 "Spawns an item on the ground or in a player's inventory",
                 "*prize item:amount or ::*prize item:amount",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(profile, "profile",
                 "Displays a player's inventory.",
                 "/*profile or :player:*profile or *profile",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(removeball, "removeball",
                 "Removes a ball from the arena.",
                 "*removeball (by itself, removes ballID 0), *removeball # (removes that ball id)",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(scramble, "scramble",
                 "Scrambles an arena, use on/off to set the arena to scramble automatically.",
                 "::*scramble [on/off(optional)]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(silenced, "silenced",
                "Returns list of silenced players",
                "*silenced",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(silence, "silence",
                "Toggles a players ability to use the messaging system entirely across the zone",
                ":alias:*silence",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(skill, "skill",
                 "Gives or sets a skill to a player",
                 "::*skill id:amount",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(spec, "spec",
                 "Puts a player into spectator mode, optionally on a specified team.",
                 "*spec or ::*spec or ::*spec [team]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(spectate, "spectate",
                 "Forces a player or the whole arena to spectate the specified player.",
                 "Syntax: ::*spectate [player] or *spectate [player]",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
             yield return new HandlerDescriptor(specquiet, "specquiet",
                 "Toggles chatting to spectator only.",
                 "Syntax: :alias:*specquiet (for a specific player) or *specquiet (toggles the whole arena)",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(allowspec, "allowspec",
                 "Toggles the ability for players to disable being spectated. Will not clear player preference of those who already set it, but it will ignore the preference while it is toggled on.",
                 "Syntax: *allowspec",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(stealth, "stealth",
                 "Toggles stealth mode, mods become invisible to arena's",
                 "*stealth",
-                InfServer.Data.PlayerPermission.Mod, false);
+                InfServer.Data.PlayerPermission.Level2, false);
 
             yield return new HandlerDescriptor(substitute, "sub",
                 "Substitutes one player for another.",
                 "*sub aliasComingOut:aliasGoingIn or :aliasComingOut:*sub aliasGoingIn",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(summon, "summon",
                 "Summons a specified player to your location, or all players to your location.",
                 "::*summon, *summon alias, *summon team [teamname], or *summon all",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(switchSides, "switch",
                 "Switches sides with another team.",
                 "*switch, ::*switch or *switch [teamname]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(team, "team",
                 "Puts another player, or yourself, on a specified team",
                 "*team [teamname] or ::*team [teamname]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(teamname, "teamname",
                 "Renames public team names in the arena",
                 "*teamname [teamname1,teamname2,...]",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(ticker, "ticker",
                "Sets a ticker at the specified index with color/timer/message",
                "*ticker [message],[index],[color=optional],[timer=optional]",
-               InfServer.Data.PlayerPermission.GrantedPlayer, true);
+               InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(timer, "timer",
                 "Sets a ticker to display a timer",
                 "Syntax: *timer xx or *timer xx:xx",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(unspec, "unspec",
                 "Takes a player out of spectator mode and puts him on the specified team.",
                 "*unspec [team] or ::*unspec [team] or ::*unspec ..",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(warp, "warp",
                 "Warps you to a specified player, coordinate or exact coordinate. Alternatively, you can warp other players to coordinates or exacts.",
                 "::*warp, *warp alias, *warp A4 (optional team name) or *warp 123,123 (optional team name)",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(watchmod, "watchmod",
                 "Toggles viewing mod commands on or off",
                 "*watchmod",
-                InfServer.Data.PlayerPermission.GrantedPlayer, true);
+                InfServer.Data.PlayerPermission.Level1, true);
 
             yield return new HandlerDescriptor(wipe, "wipe",
                 "Wipes a character (or all) within the current zone",
                 "*wipe all yes, *wipe [alias] yes, :alias:*wipe yes",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
             yield return new HandlerDescriptor(zone, "zone",
                 "Send a zone-wide system message.",
                 "*zone message",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(allowprivate, "allowprivate",
                 "Toggles if arena allows private teams.",
                 "*allowprivate",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(maxprivfreq, "maxprivfreq",
                 "Set the maximum amount of players per private teams.",
                 "*maxprivfreq number",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(maxperfreq, "maxperfreq",
                 "Set the maximum amount of players per public team.",
                 "*maxperfreq number",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(allowprize, "allowprize",
                 "Toggles if arena allows prize.",
                 "*allowprize",
-               InfServer.Data.PlayerPermission.Mod, true);
+               InfServer.Data.PlayerPermission.Level2, true);
         }
     }
 }

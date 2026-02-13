@@ -135,7 +135,7 @@ namespace InfServer.Game
                     if (_server.IsStandalone)
                     {
                         foreach (Player p in Players)
-                            if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                            if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.Level1)
                             {
                                 p.sendMessage(0, String.Format("![ModChat] [{0}]> {1}",
                                     from._alias, payload));
@@ -145,18 +145,12 @@ namespace InfServer.Game
                     {
                         //For arena owners only
                         foreach (Player p in Players)
-                            if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                        {
+                            if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.Level1)
                             {
                                 p.sendMessage(0, String.Format("![ModChat] [{0}]> {1}", from._alias, payload));
                             }
-
-                        //For all other mods
-                        //CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
-                        //pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.modChat;
-                        //pkt.sender = from._alias;
-                        //pkt.payload = String.Format("![ModChat] [{0}]> {1}", from._alias, payload);
-                        ////Send it!
-                        //_server._db.send(pkt);
+                        }
                     }
                 }
                 else
@@ -208,7 +202,7 @@ namespace InfServer.Game
                     //Developer?
                     else if (from._developer)
                     {
-                        if (p.PermissionLevelLocal >= Data.PlayerPermission.Mod && p != from)
+                        if (p.PermissionLevelLocal >= Data.PlayerPermission.Level2 && p != from)
                             p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",
                             from._arena._name,
                             from._alias,
@@ -239,7 +233,7 @@ namespace InfServer.Game
             {
                 //Security hole fix
                 //Lets check their level and their arena
-                if (from.PermissionLevel < Data.PlayerPermission.SMod)
+                if (from.PermissionLevel < Data.PlayerPermission.Level3)
                 {
                     if (recipient != null && !recipient._arena._name.Equals(from._arena._name, StringComparison.OrdinalIgnoreCase))
                     {

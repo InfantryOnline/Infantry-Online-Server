@@ -251,11 +251,11 @@ namespace InfServer.Logic
 
                 //For league matches
                 bool Allowed = true;
-                if (player._arena._isMatch && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod
+                if (player._arena._isMatch && player.PermissionLevelLocal < Data.PlayerPermission.Level1
                     && player.IsSpectator)
                     Allowed = false;
 
-                if (player.PermissionLevelLocal < Data.PlayerPermission.ManagerSysop)
+                if (player.PermissionLevelLocal < Data.PlayerPermission.Level4)
                 {
                     bool detected;
                     pkt.message = SwearFilter.Filter(pkt.message, out detected);
@@ -273,7 +273,7 @@ namespace InfServer.Logic
                             break;
                         }
 
-                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.Level1 && player.IsSpectator)
                         {
                             pkt.chatType = Protocol.Helpers.Chat_Type.Team;
                             Handle_CS_Chat(pkt, player);
@@ -304,7 +304,7 @@ namespace InfServer.Logic
                             break;
                         }
 
-                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.Level1 && player.IsSpectator)
                         {
                             pkt.chatType = Protocol.Helpers.Chat_Type.Team;
                             Handle_CS_Chat(pkt, player);
@@ -327,7 +327,7 @@ namespace InfServer.Logic
 
                         if (!Allowed)
                             break;
-                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                        if ((player._arena._specQuiet || player._specQuiet) && player.PermissionLevelLocal < Data.PlayerPermission.Level1 && player.IsSpectator)
                             break;
 
                         if (!pkt.recipient.Equals(player._alias, StringComparison.OrdinalIgnoreCase))
@@ -364,7 +364,7 @@ namespace InfServer.Logic
                                     break;
                                 if (player._arena._specQuiet || player._specQuiet)
                                 {
-                                    if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod && player.IsSpectator)
+                                    if (player.PermissionLevelLocal < Data.PlayerPermission.Level1 && player.IsSpectator)
                                         break;
                                 }
                             }

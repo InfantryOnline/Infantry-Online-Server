@@ -167,17 +167,17 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(defaultVehicle, "defaultvehicle",
 				"Changes the player's default vehicle.",
 				"*defaultvehicle [vehicleid] or ::*defaultvehicle [vehicleid]", 
-				InfServer.Data.PlayerPermission.Mod, true);
+				InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(findVehicle, "findvehicle",
                 "Finds a vehicle id or name loaded in the zone",
                 "*findvehicle [vehicleID or name]",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
 			yield return new HandlerDescriptor(spawnVehicle, "vehicle",
 				"Spawns a new vehicle in your current location",
 				"*vehicle [vehicleid] or *vehicle [vehicleid],amount", 
-				InfServer.Data.PlayerPermission.Mod, true);
+				InfServer.Data.PlayerPermission.Level2, true);
 		}
 	}
 }

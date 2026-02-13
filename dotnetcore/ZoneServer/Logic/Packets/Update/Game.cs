@@ -437,7 +437,7 @@ namespace InfServer.Logic
             {
                 foreach (Player p in player._spectators.ToList())
                 {
-                    if (p.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                    if (p.PermissionLevel < Data.PlayerPermission.Level1)
                     {
                         p.sendMessage(-1, player._alias + " has disabled spectators.");
                         p._spectating = null;

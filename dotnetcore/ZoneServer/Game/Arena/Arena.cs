@@ -929,7 +929,7 @@ namespace InfServer.Game
         {	//If we're private..
             if (IsPrivate)
             {	//Does the player have enough permission?
-                return (player.PermissionLevel >= Data.PlayerPermission.Mod);
+                return (player.PermissionLevel >= Data.PlayerPermission.Level2);
             }
 
             return true;
@@ -954,7 +954,7 @@ namespace InfServer.Game
         /// </summary>
         public bool IsGranted(Player player)
         {
-            if (IsOwner(player) || player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+            if (IsOwner(player) || player.PermissionLevelLocal >= Data.PlayerPermission.Level1)
                 return true;
             return false;
         }

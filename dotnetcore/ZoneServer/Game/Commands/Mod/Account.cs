@@ -448,7 +448,7 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Server is in stand-alone mode. Mod powering will be temporary.");
 
             string[] param;
-            int level = (int)Data.PlayerPermission.ArenaMod;
+            int level = (int)Data.PlayerPermission.Level1;
 
             //Check if we are pm'ing first
             if (recipient != null)
@@ -475,19 +475,19 @@ namespace InfServer.Game.Commands.Mod
                     switch (level)
                     {
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            recipient._permissionStatic = Data.PlayerPermission.Level4;
                             break;
                         case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            recipient._permissionStatic = Data.PlayerPermission.Level5;
                             break;
                     }
 
@@ -496,7 +496,7 @@ namespace InfServer.Game.Commands.Mod
                 }
                 else //No level provided, use default
                 {
-                    recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                    recipient._permissionStatic = Data.PlayerPermission.Level1;
                     recipient.sendMessage(0, "You have been mod promoted to level " + level + ". Use *help to familiarize yourself with the commands and read the rules.");
                     player.sendMessage(0, "You have mod promoted " + recipient._alias + " to level " + level + ".");
                 }
@@ -553,19 +553,19 @@ namespace InfServer.Game.Commands.Mod
                     switch (level)
                     {
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            recipient._permissionStatic = Data.PlayerPermission.Level4;
                             break;
                         case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            recipient._permissionStatic = Data.PlayerPermission.Level5;
                             break;
                     }
                     recipient.sendMessage(0, "You have been mod promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
@@ -622,19 +622,19 @@ namespace InfServer.Game.Commands.Mod
                             recipient._permissionStatic = Data.PlayerPermission.Normal;
                             break;
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            recipient._permissionStatic = Data.PlayerPermission.Level4;
                             break;
                         case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            recipient._permissionStatic = Data.PlayerPermission.Level5;
                             break;
                     }
 
@@ -702,19 +702,19 @@ namespace InfServer.Game.Commands.Mod
                             recipient._permissionStatic = Data.PlayerPermission.Normal;
                             break;
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            recipient._permissionStatic = Data.PlayerPermission.Level4;
                             break;
                         case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            recipient._permissionStatic = Data.PlayerPermission.Level5;
                             break;
                     }
                     recipient.sendMessage(0, "You have been mod demoted to level " + level + ".");
@@ -741,7 +741,7 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Server is in stand-alone mode. Dev powering will be temporary.");
 
             string[] param;
-            int level = (int)Data.PlayerPermission.ArenaMod;
+            int level = (int)Data.PlayerPermission.Level1;
 
             //Check if we are pm'ing first
             if (recipient != null)
@@ -770,13 +770,13 @@ namespace InfServer.Game.Commands.Mod
                     switch (level)
                     {
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         default:
                             player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-3");
@@ -791,7 +791,7 @@ namespace InfServer.Game.Commands.Mod
                 else //No level provided, use default
                 {
                     recipient._developer = true;
-                    recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                    recipient._permissionStatic = Data.PlayerPermission.Level1;
                     recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands and read the rules.");
                     player.sendMessage(0, "You have dev promoted " + recipient._alias + " to level " + level + ".");
                 }
@@ -799,7 +799,7 @@ namespace InfServer.Game.Commands.Mod
                 //Lets send it to the database
                 //Send it to the db
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
-                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
                 query.sender = player._alias;
                 query.query = recipient._alias;
                 query.level = level;
@@ -849,19 +849,19 @@ namespace InfServer.Game.Commands.Mod
                     switch (level)
                     {
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            recipient._permissionStatic = Data.PlayerPermission.Level4;
                             break;
                         case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            recipient._permissionStatic = Data.PlayerPermission.Level5;
                             break;
                     }
                     recipient._developer = true;
@@ -869,7 +869,7 @@ namespace InfServer.Game.Commands.Mod
                 }
                 //Lets send it off
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
-                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
                 query.sender = player._alias;
                 query.query = payload;
                 query.level = level;
@@ -921,19 +921,19 @@ namespace InfServer.Game.Commands.Mod
                             recipient._developer = false;
                             break;
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            recipient._permissionStatic = Data.PlayerPermission.Level4;
                             break;
                         case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            recipient._permissionStatic = Data.PlayerPermission.Level5;
                             break;
                     }
 
@@ -951,7 +951,7 @@ namespace InfServer.Game.Commands.Mod
                 //Lets send it to the database
                 //Send it to the db
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
-                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
                 query.sender = player._alias;
                 query.query = recipient._alias;
                 query.level = level;
@@ -1005,26 +1005,26 @@ namespace InfServer.Game.Commands.Mod
                             recipient._permissionStatic = Data.PlayerPermission.Normal;
                             break;
                         case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.ArenaMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level1;
                             break;
                         case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Mod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level2;
                             break;
                         case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.SMod;
+                            recipient._permissionStatic = Data.PlayerPermission.Level3;
                             break;
                         case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Manager;
+                            recipient._permissionStatic = Data.PlayerPermission.Level4;
                             break;
                         case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Sysop;
+                            recipient._permissionStatic = Data.PlayerPermission.Level5;
                             break;
                     }
                     recipient.sendMessage(0, "You have been dev demoted to level " + level + ".");
                 }
                 //Lets send it off
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
-                query.queryType = CS_ModQuery<Data.Database>.QueryType.dev;
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
                 query.sender = player._alias;
                 query.query = payload;
                 query.level = level;
@@ -1135,7 +1135,7 @@ namespace InfServer.Game.Commands.Mod
                 //First get granted players, then cycle through mods/dev's
                 foreach (Player p in player._arena.Players)
                 {
-                    if (p._permissionTemp >= Data.PlayerPermission.ArenaMod)
+                    if (p._permissionTemp >= Data.PlayerPermission.Level1)
                     {
                         granted.Add(p._alias, p);
                     }
@@ -1167,67 +1167,67 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(modadd, "modadd",
                 "Gives mod powers to a player, default level is arena mod",
                 "*modadd alias:level(optional) or ::*modadd level(optional)",
-                InfServer.Data.PlayerPermission.HeadModAdmin, false);
+                InfServer.Data.PlayerPermission.Level5, false);
 
             yield return new HandlerDescriptor(modremove, "modremove",
                 "Takes mod powers away, default level is player level",
                 "*modremove alias:level(optional) or ::*modremove level(optional)",
-                InfServer.Data.PlayerPermission.HeadModAdmin, false);
+                InfServer.Data.PlayerPermission.Level5, false);
 
             yield return new HandlerDescriptor(devadd, "devadd",
                 "Gives dev powers to a player, default level is arena mod",
                 "*devadd alias:level(optional) or ::*devadd level(optional) - Note: devadd them in the zone you want",
-                InfServer.Data.PlayerPermission.ManagerSysop, true);
+                InfServer.Data.PlayerPermission.Level4, true);
 
             yield return new HandlerDescriptor(devremove, "devremove",
                 "Takes dev powers away, default level is player level",
                 "*devremove alias:level(optional) or ::*devremove level(optional) - Note: devremove them in the zone you want",
-                InfServer.Data.PlayerPermission.ManagerSysop, true);
+                InfServer.Data.PlayerPermission.Level4, true);
 
             yield return new HandlerDescriptor(powered, "powered",
                 "Shows a list of currently powered players.",
                 "*powered",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(renamealias, "renamealias",
                 "Rename's the current players alias",
                 "::*renamealias newAlias OR *renamealias alias:newAlias - to rename one on the account",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
             yield return new HandlerDescriptor(removealias, "removealias",
                 "Deletes the current players alias",
                 "::*removealias OR *removealias alias - to delete one from the account",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
             yield return new HandlerDescriptor(squadjoin, "squadjoin",
                 "Forces a player to squad join a squad",
                 "::*squadjoin squadname, *squadjoin alias:squadname",
-                InfServer.Data.PlayerPermission.SuperMod, true);
+                InfServer.Data.PlayerPermission.Level3, true);
 
             yield return new HandlerDescriptor(transferalias, "transferalias",
                 "Transfers aliases between characters",
                 "*transferalias [alias in question]:[alias going to] OR :[alias going to]:*transferalias [alias in question]",
-                InfServer.Data.PlayerPermission.ManagerSysop, false);
+                InfServer.Data.PlayerPermission.Level4, false);
 
             yield return new HandlerDescriptor(transfersquad, "transfersquad",
                 "Transfer a squad to a player",
                 "*transfersquad aliasTo:squadname, ::*transfersquad squadname, *transfersquad aliasTo(if already joined), ::*transfersquad(if joined already)",
-                InfServer.Data.PlayerPermission.SuperMod, true);
+                InfServer.Data.PlayerPermission.Level3, true);
 
             yield return new HandlerDescriptor(whois, "whois",
                 "Displays account related information about a player or IP address",
                 "*whois [ipaddress/alias/#id] or ::*whois, wildcard example: *whois alias* or *whois 127.51.2.*",
-                InfServer.Data.PlayerPermission.ManagerSysop, true);
+                InfServer.Data.PlayerPermission.Level4, true);
 
             yield return new HandlerDescriptor(globalsilence, "globalsilence",
                 "Silences an account across all zones.",
                 "*globalsilence alias:time where time is duration in minutes, or 0, -1 etc to clear the silence.",
-                InfServer.Data.PlayerPermission.SuperMod, false);
+                InfServer.Data.PlayerPermission.Level3, false);
 
             yield return new HandlerDescriptor(bannermode, "bannermode",
                 "Sets or gets banner mode.",
                 "*bannermode alias:mode where 0 is Normal and 1 is Hidden. Omit alias to get list of Hidden for zone.",
-                InfServer.Data.PlayerPermission.SuperMod, false);
+                InfServer.Data.PlayerPermission.Level3, false);
         }
     }
 }

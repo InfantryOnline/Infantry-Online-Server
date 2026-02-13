@@ -98,12 +98,12 @@ namespace InfServer.Game.Commands.Mod
             yield return new HandlerDescriptor(startmatch, "startmatch",
                 "Starts a league match and automatically locks an arena",
                 "*startmatch", 
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
 
             yield return new HandlerDescriptor(stopmatch, "stopmatch",
                 "Stops a league match if there is one in progress.",
                 "*stopmatch",
-                InfServer.Data.PlayerPermission.Mod, true);
+                InfServer.Data.PlayerPermission.Level2, true);
         }
     }
 }

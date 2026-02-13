@@ -2337,10 +2337,10 @@ namespace InfServer.Game
         public override void handlePlayerModCommand(Player player, Player recipient, string command, string payload)
         {
             //Do initial checks first before ok'ing it
-            if (player.PermissionLevelLocal < Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevelLocal < Data.PlayerPermission.Level1)
                 return;
 
-            if (player.PermissionLevel < Data.PlayerPermission.Mod)
+            if (player.PermissionLevel < Data.PlayerPermission.Level2)
             {
                 if (recipient != null && !recipient._arena._name.Equals(player._arena._name))
                 {
@@ -2681,7 +2681,7 @@ namespace InfServer.Game
                 return;
 
             //Does the zone allow spectating?
-            if (!target._server._zoneConfig.arena.allowSpectating && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+            if (!target._server._zoneConfig.arena.allowSpectating && player.PermissionLevel < Data.PlayerPermission.Level1)
             {
                 player.sendMessage(-1, "Zone doesn't allow spectating players.");
                 return;
@@ -2690,7 +2690,7 @@ namespace InfServer.Game
             bool forceAllowSpec = target._arena._allowSpec;
 
             //Check spectator permission
-            if (!forceAllowSpec && !target._bAllowSpectator && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+            if (!forceAllowSpec && !target._bAllowSpectator && player.PermissionLevel < Data.PlayerPermission.Level1)
             {
                 player.sendMessage(-1, "Specified player isn't allowing spectators.");
                 return;

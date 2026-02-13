@@ -930,9 +930,7 @@ namespace InfServer.Game.Commands.Chat
         #endregion
 
         #region help
-        /// <summary>
-        /// Sends help request to moderators..
-        /// </summary>
+
         public static void commands(Player player, Player recipient, string payload, int bong)
         {
             SC_Chart chart = new SC_Chart();
@@ -1210,7 +1208,7 @@ namespace InfServer.Game.Commands.Chat
 
             //Remove mods from list of spectators
             List<Player> speclist = target._spectators;
-            speclist.RemoveAll(s => s.PermissionLevel >= Data.PlayerPermission.Mod);
+            speclist.RemoveAll(s => s.PermissionLevel >= Data.PlayerPermission.Level2);
 
             if (speclist.Count == 0)
             {

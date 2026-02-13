@@ -236,11 +236,11 @@ namespace InfServer.Game
             player._client.sendReliable(env);
 
             //Lets check his level and set watchMod
-            if (player.PermissionLevel >= Data.PlayerPermission.ArenaMod)
+            if (player.PermissionLevel >= Data.PlayerPermission.Level1)
                 player._watchMod = true;
 
             //Check if we can use him as a reliable player [check if mod]
-            if (player.PermissionLevel >= Data.PlayerPermission.Sysop)
+            if (player.PermissionLevel >= Data.PlayerPermission.Level5)
                 player.setVar("reliable", player);
 
             //Send a security check for their client asset checksum
@@ -301,9 +301,9 @@ namespace InfServer.Game
             {
                 //Give player required privileges
                 player._arena._owner.Add(player._alias);
-                if (player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                if (player.PermissionLevel < Data.PlayerPermission.Level1)
                 {
-                    player._permissionTemp = Data.PlayerPermission.ArenaMod;
+                    player._permissionTemp = Data.PlayerPermission.Level1;
                     player._watchMod = true;
                 }
             }
@@ -352,7 +352,7 @@ namespace InfServer.Game
                     player.sendMessage(-3, "[Notice] Welcome to FreeInfantry! To get support simply use the discord link located on our website at https://www.freeinfantry.com. Enjoy your stay!");
 
                     //Mod notice
-                    if (player.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod && !player._arena.IsPrivate)
+                    if (player.PermissionLevelLocal >= Data.PlayerPermission.Level1 && !player._arena.IsPrivate)
                     {
                         player.sendMessage(-3, "$[Mod Notice] To see a list of commands, type *help. To specifically get info on a command type *help <command name>");
                     }
@@ -429,8 +429,8 @@ namespace InfServer.Game
                     if (player._alias.Equals(p))
                     {
                         player._arena._owner.Remove(p);
-                        if (player._permissionTemp >= Data.PlayerPermission.ArenaMod
-                            && player.PermissionLevel < Data.PlayerPermission.ArenaMod)
+                        if (player._permissionTemp >= Data.PlayerPermission.Level1
+                            && player.PermissionLevel < Data.PlayerPermission.Level1)
                         {
                             player._permissionTemp = Data.PlayerPermission.Normal;
                         }

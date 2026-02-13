@@ -36,8 +36,8 @@ namespace InfServer.Logic
                         Handle_CS_ModQuery_ModPermissionChange(pkt, zone, db);
                         break;
 
-                    case CS_ModQuery<Zone>.QueryType.dev:
-                        Handle_CS_ModQuery_DevPermissionChange(pkt, zone, db);
+                    case CS_ModQuery<Zone>.QueryType.host:
+                        Handle_CS_ModQuery_HostPermissionChange(pkt, zone, db);
                         break;
 
                     case CS_ModQuery<Zone>.QueryType.squadtransfer:
@@ -311,7 +311,7 @@ namespace InfServer.Logic
             zone._server.sendMessage(zone, pkt.sender, "Squad transferring is complete.");
         }
 
-        private static void Handle_CS_ModQuery_DevPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)
+        private static void Handle_CS_ModQuery_HostPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)
         {
             if (string.IsNullOrEmpty(pkt.query))
             {

@@ -211,9 +211,9 @@ namespace InfServer.Logic
                 //We have the account associated!
                 plog.permission = (PlayerPermission)account.Permission;
 
-                if (account.Permission > (int)PlayerPermission.HeadModAdmin)
+                if (account.Permission > (int)Data.PlayerPermission.Level5)
                 {
-                    plog.permission = PlayerPermission.HeadModAdmin;
+                    plog.permission = Data.PlayerPermission.Level5;
                 }
                    
                 //
@@ -221,7 +221,7 @@ namespace InfServer.Logic
                 //
                 var pktAlias = pkt.alias;
 
-                if (plog.permission != PlayerPermission.HeadModAdmin)
+                if (plog.permission != Data.PlayerPermission.Level5)
                 {
                     try
                     {
@@ -274,7 +274,7 @@ namespace InfServer.Logic
                 if (alias == null && !pkt.bCreateAlias)
                 {	//Prompt him to create a new alias if he has room
                     int maxAliases = 30;
-                    if (plog.permission == PlayerPermission.HeadModAdmin || account.Aliases.Count < maxAliases)
+                    if (plog.permission == Data.PlayerPermission.Level5 || account.Aliases.Count < maxAliases)
                     {   //He has space! Prompt him to make a new alias
                         plog.bSuccess = false;
                         plog.bNewAlias = true;

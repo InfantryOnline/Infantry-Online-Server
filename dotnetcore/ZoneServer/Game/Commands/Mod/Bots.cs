@@ -139,7 +139,7 @@ namespace InfServer.Game.Commands.Mod
 			yield return new HandlerDescriptor(spawnBot, "spawnbot",
 				"Spawns a bot using a specified vehicle type and script.",
 				"*spawnbot [scriptType], [vehicleID] OR *spawnbot [scriptType], [vehicleID], [location](xx,yy OR A4)", 
-				InfServer.Data.PlayerPermission.Mod, true);
+				InfServer.Data.PlayerPermission.Level2, true);
 		}
     }
 }
