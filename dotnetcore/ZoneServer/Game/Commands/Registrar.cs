@@ -199,7 +199,11 @@ namespace InfServer.Game.Commands
         public bool isDevCommand
 		{
 			get { return Permission.Authority.HasFlag(PermissionAuthority.Host); }
-			set { Permission.Authority |= PermissionAuthority.Host; }
+			set
+			{
+				if (value) Permission.Authority |= PermissionAuthority.Host;
+				else Permission.Authority &= ~PermissionAuthority.Host;
+			}
 		}
 
 		public HandlerDescriptor(Action<Player, Player, string, int> _handler, string _handlerCommand, string _commandDescription, string _usage)
