@@ -31,6 +31,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                     //Undefined packet type
                     //TODO: Type 7
                     packet = new PacketDummy(typeID, buffer, index, count);
+                    Console.WriteLine($"{0}: {1}", packet.Dump, packet.DataDump);
                     break;
             }
 
