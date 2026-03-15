@@ -30,7 +30,6 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                 default:
                     //Undefined packet type
                     packet = new PacketDummy(typeID, buffer, index, count);
-                    Console.WriteLine($"{0}: {1}", packet.Dump, packet.DataDump);
                     break;
             }
 
