@@ -39,8 +39,9 @@ namespace InfServer
             public string alias;		        //The player's alias
             public Zone zone;                   //The zone he's in.
             public string arena;                //The arena he's in.
-            public int permission;              //Player Permission level.
+            public int playerpermission;              //Player Permission level.
             public int accountpermission;       //Account Permission level.
+            public int zonepermission;          //Zone permission level.
             public List<string> chats;          //The chats they are in
             public Stat stats;         //Stats (updated on every Stat Update packet).
             public long statsid { get { return stats.StatId; } }
@@ -144,7 +145,7 @@ namespace InfServer
         /// <summary>
         /// Indicates that a player has joined the zone server
         /// </summary>
-        public bool newPlayer(int id, string alias, Database.Player dbplayer)
+        public bool newPlayer(int id, string alias, Database.Player dbplayer, SqlServerDbContext ctx)
         {
             if (string.IsNullOrWhiteSpace(alias))
             {
@@ -171,11 +172,18 @@ namespace InfServer
             player.stats = dbplayer.StatsNavigation;
             player.alias = alias;
             player.stealth = dbplayer.AliasNavigation.Stealth == 1;
-            player.permission = dbplayer.Permission;
+            player.playerpermission = dbplayer.Permission;
             player.accountpermission = dbplayer.AliasNavigation.AccountNavigation.Permission;
             player.zone = this;
             player.arena = "";
             player.chats = new List<string>();
+
+            var zmod = ctx.Zmods.FirstOrDefault(z => z.Zone == _zone.ZoneId && z.Account == player.acctid);
+
+            if (zmod != null)
+            {
+                player.zonepermission = zmod.Level;
+            }
 
             // Add them to the Zone players list
             try

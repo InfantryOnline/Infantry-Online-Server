@@ -10,6 +10,7 @@ using InfServer.Game;
 using InfServer.Bots;
 using InfServer.Protocol;
 using DBComm.Enums;
+using static Assets.CfgInfo;
 
 namespace InfServer.Game.Commands.Mod
 {
@@ -733,71 +734,66 @@ namespace InfServer.Game.Commands.Mod
         }
 
         /// <summary>
-        /// Gives a player dev powers
+        /// Gives the player Host permissions.
         /// </summary>
         static public void hostadd(Player player, Player recipient, string payload, int bong)
         {
             if (player._server.IsStandalone)
+            {
                 player.sendMessage(-1, "Server is in stand-alone mode. Dev powering will be temporary.");
+            }
 
-            string[] param;
             int level = (int)Data.PlayerPermission.Level1;
 
-            //Check if we are pm'ing first
-            if (recipient != null)
+            if (recipient == null) // Using {alias}:{level} syntax instead.
             {
-                //Check for a possible level usage
-                if (payload != "")
+                var chunks = payload.Split(":", StringSplitOptions.RemoveEmptyEntries);
+
+                if (chunks.Length < 1)
                 {
-                    try
-                    {
-                        level = Convert.ToInt16(payload);
-                    }
-                    catch
-                    {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-3");
-                        player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
-                        return;
-                    }
-
-                    if (level < 1 || level > 3)
-                    {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-3");
-                        player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
-                        return;
-                    }
-
-                    switch (level)
-                    {
-                        case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.Level1;
-                            break;
-                        case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Level2;
-                            break;
-                        case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.Level3;
-                            break;
-                        default:
-                            player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-3");
-                            player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
-                            return;
-                    }
-
-                    recipient._developer = true;
-                    recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
-                    player.sendMessage(0, "You have dev promoted " + recipient._alias + " to level " + level + ".");
-                }
-                else //No level provided, use default
-                {
-                    recipient._developer = true;
-                    recipient._permissionStatic = Data.PlayerPermission.Level1;
-                    recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands and read the rules.");
-                    player.sendMessage(0, "You have dev promoted " + recipient._alias + " to level " + level + ".");
+                    player.sendMessage(-1, "[hostadd] malformed.");
+                    return;
                 }
 
-                //Lets send it to the database
-                //Send it to the db
+                recipient = player._server.getPlayer(chunks[0]);
+
+                if (recipient == null)
+                {
+                    player.sendMessage(-1, $"[hostadd] Player not found or malformed alias: {chunks[0]}");
+                    return;
+                }
+
+                if (chunks.Length >= 2 && !Int32.TryParse(chunks[1], out level))
+                {
+                    player.sendMessage(-1, $"[hostadd] Bad level: {chunks[1]}");
+                    return;
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(payload) && !Int32.TryParse(payload, out level))
+                {
+                    player.sendMessage(-1, $"[hostadd] Bad level: {payload}");
+                }
+            }
+
+            if (level < 1 || level > 3)
+            {
+                player.sendMessage(-1, "*hostadd alias:level(optional) OR :alias:*hostadd level(optional) possible levels are 1-3");
+                player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
+
+                return;
+            }
+
+            recipient._permissionStatic = (Data.PlayerPermission)level;
+            recipient._developer = true;
+
+            recipient.sendMessage(0, "You have been Host promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
+            player.sendMessage(0, "You have Host promoted " + recipient._alias + " to level " + level + ".");
+
+            if (!player._server.IsStandalone)
+            {
+                // Save to database.
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
                 query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
                 query.sender = player._alias;
@@ -805,232 +801,153 @@ namespace InfServer.Game.Commands.Mod
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
-                return;
-            }
-            else //We arent
-            {
-                //Get name and possible level
-                Int16 number;
-                if (String.IsNullOrEmpty(payload))
-                {
-                    player.sendMessage(-1, "*devadd alias:level(optional) Note: if using a level, put : before it otherwise defaults to arena mod");
-                    player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
-                    return;
-                }
-
-                if (payload.Contains(':'))
-                {
-                    param = payload.Split(':');
-                    try
-                    {
-                        number = Convert.ToInt16(param[1]);
-                        if (number >= 0)
-                            level = number;
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid level. Possible dev modding levels are 1-5.");
-                        return;
-                    }
-
-                    if (level < 1 || level > 5)
-                    {
-                        player.sendMessage(-1, "*devadd alias:level(optional) OR :alias:*devadd level(optional) possible levels are 1-5");
-                        player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
-                        return;
-                    }
-                    payload = param[0];
-                }
-
-                player.sendMessage(0, "You have dev promoted " + payload + " to level " + level + ".");
-
-                if ((recipient = player._server.getPlayer(payload)) != null)
-                { //They are playing, lets update them
-                    switch (level)
-                    {
-                        case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.Level1;
-                            break;
-                        case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Level2;
-                            break;
-                        case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.Level3;
-                            break;
-                        case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Level4;
-                            break;
-                        case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Level5;
-                            break;
-                    }
-                    recipient._developer = true;
-                    recipient.sendMessage(0, "You have been dev promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
-                }
-                //Lets send it off
-                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
-                query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
-                query.sender = player._alias;
-                query.query = payload;
-                query.level = level;
-                //Send it!
-                player._server._db.send(query);
-                return;
             }
         }
 
         /// <summary>
-        /// Takes away a player dev powers
+        /// Removes Host permissions from player.
         /// </summary>
         static public void hostremove(Player player, Player recipient, string payload, int bong)
         {
             if (player._server.IsStandalone)
-                player.sendMessage(-1, "Server is in stand-alone mode. Dev de-powering will be temporary.");
-
-            string[] param;
-            int level = (int)Data.PlayerPermission.Normal;
-
-            //Check if we are pm'ing first
-            if (recipient != null)
             {
-                //Check for a possible level usage
-                if (payload != "")
+                player.sendMessage(-1, "Server is in stand-alone mode. Dev de-powering will be temporary.");
+            }
+
+            if (recipient == null)
+            {
+                recipient = player._server.getPlayer(payload);
+
+                if (recipient == null)
                 {
-                    try
-                    {
-                        level = Convert.ToInt16(payload);
-                    }
-                    catch
-                    {
-                        player.sendMessage(-1, "*devremove alias:level(optional) OR :alias:*devremove level(optional) possible levels are 0-5");
-                        player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
-                        return;
-                    }
-
-                    if (level < 0 || level > 5)
-                    {
-                        player.sendMessage(-1, "*devremove alias:level(optional) OR :alias:*devremove level(optional) possible levels are 0-5");
-                        player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
-                        return;
-                    }
-
-                    switch (level)
-                    {
-                        case 0:
-                            recipient._permissionStatic = Data.PlayerPermission.Normal;
-                            recipient._developer = false;
-                            break;
-                        case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.Level1;
-                            break;
-                        case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Level2;
-                            break;
-                        case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.Level3;
-                            break;
-                        case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Level4;
-                            break;
-                        case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Level5;
-                            break;
-                    }
-
-                    recipient.sendMessage(0, "You have been dev demoted to level " + level + ".");
-                    player.sendMessage(0, "You have dev demoted " + recipient._alias + " to level " + level + ".");
+                    player.sendMessage(-1, $"[hostremove] Player not found or malformed alias: {payload}");
+                    return;
                 }
-                else //No level provided, use default
-                {
-                    recipient._developer = false;
-                    recipient._permissionStatic = Data.PlayerPermission.Normal;
-                    recipient.sendMessage(0, "You have been dev demoted to level " + level + ".");
-                    player.sendMessage(0, "You have dev demoted " + recipient._alias + " to level " + level + ".");
-                }
+            }
 
-                //Lets send it to the database
-                //Send it to the db
+            recipient._permissionStatic = Data.PlayerPermission.Normal;
+            recipient._developer = false;
+
+            recipient.sendMessage(0, "You have been Host demoted.");
+            player.sendMessage(0, $"You have Host demoted {recipient._alias}.");
+
+            if (!player._server.IsStandalone)
+            {
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
                 query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
+                query.sender = player._alias;
+                query.query = recipient._alias;
+                query.level = (int)Data.PlayerPermission.Normal;
+                player._server._db.send(query);
+            }
+        }
+
+        /// <summary>
+        /// Gives the player Zmod permissions.
+        /// </summary>
+        static public void zmodadd(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode. Dev powering will be temporary.");
+            }
+
+            int level = (int)Data.PlayerPermission.Level1;
+
+            if (recipient == null) // Using {alias}:{level} syntax instead.
+            {
+                var chunks = payload.Split(":", StringSplitOptions.RemoveEmptyEntries);
+
+                if (chunks.Length < 1)
+                {
+                    player.sendMessage(-1, "[zmodadd] malformed.");
+                    return;
+                }
+
+                recipient = player._server.getPlayer(chunks[0]);
+
+                if (recipient == null)
+                {
+                    player.sendMessage(-1, $"[zmodadd] Player not found or malformed alias: {chunks[0]}");
+                    return;
+                }
+
+                if (chunks.Length >= 2 && !Int32.TryParse(chunks[1], out level))
+                {
+                    player.sendMessage(-1, $"[zmodadd] Bad level: {chunks[1]}");
+                    return;
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(payload) && !Int32.TryParse(payload, out level))
+                {
+                    player.sendMessage(-1, $"[zmodadd] Bad level: {payload}");
+                }
+            }
+
+            if (level < 1 || level > 3)
+            {
+                player.sendMessage(-1, "*zmodadd alias:level(optional) OR :alias:*zmodadd level(optional) possible levels are 1-3");
+                player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
+
+                return;
+            }
+
+            recipient._permissionStatic = (Data.PlayerPermission)level;
+            recipient._developer = true;
+
+            recipient.sendMessage(0, "You have been Zone Mod promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
+            player.sendMessage(0, "You have Zone Mod promoted " + recipient._alias + " to level " + level + ".");
+
+            if (!player._server.IsStandalone)
+            {
+                // Save to database.
+                CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.zmod;
                 query.sender = player._alias;
                 query.query = recipient._alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
-                return;
             }
-            else //We arent
+        }
+
+        /// <summary>
+        /// Removes Zmod permissions from player.
+        /// </summary>
+        static public void zmodremove(Player player, Player recipient, string payload, int bong)
+        {
+            if (player._server.IsStandalone)
             {
-                //Get name and possible level
-                Int16 number;
-                if (String.IsNullOrEmpty(payload))
+                player.sendMessage(-1, "Server is in stand-alone mode. Dev de-powering will be temporary.");
+            }
+
+            if (recipient == null)
+            {
+                recipient = player._server.getPlayer(payload);
+
+                if (recipient == null)
                 {
-                    player.sendMessage(-1, "*devremove alias:level(optional) Note: if using a level, put : before it otherwise defaults to a normal player");
-                    player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
+                    player.sendMessage(-1, $"[zmodremove] Player not found or malformed alias: {payload}");
                     return;
                 }
+            }
 
-                if (payload.Contains(':'))
-                {
-                    param = payload.Split(':');
-                    try
-                    {
-                        number = Convert.ToInt16(param[1]);
-                        if (number >= 0)
-                            level = number;
-                    }
-                    catch (OverflowException)
-                    {
-                        player.sendMessage(-1, "That is not a valid level. Possible demotion levels are 0-5.");
-                        return;
-                    }
+            recipient._permissionStatic = Data.PlayerPermission.Normal;
+            recipient._developer = false;
 
-                    if (level < 0 || level > 5)
-                    {
-                        player.sendMessage(-1, "*devremove alias:level(optional) OR :alias:*devremove level(optional) possible levels are 0-5");
-                        player.sendMessage(0, "NOTE: to depower someone, make sure you are in the zone you want them depowered in.");
-                        return;
-                    }
-                    payload = param[0];
-                }
+            recipient.sendMessage(0, "You have been Host demoted.");
+            player.sendMessage(0, $"You have Host demoted {recipient._alias}.");
 
-                player.sendMessage(0, "You have dev demoted " + payload + " to level " + level + ".");
-
-                if ((recipient = player._server.getPlayer(payload)) != null)
-                { //They are playing, lets update them
-                    switch (level)
-                    {
-                        case 0:
-                            recipient._developer = false;
-                            recipient._permissionStatic = Data.PlayerPermission.Normal;
-                            break;
-                        case 1:
-                            recipient._permissionStatic = Data.PlayerPermission.Level1;
-                            break;
-                        case 2:
-                            recipient._permissionStatic = Data.PlayerPermission.Level2;
-                            break;
-                        case 3:
-                            recipient._permissionStatic = Data.PlayerPermission.Level3;
-                            break;
-                        case 4:
-                            recipient._permissionStatic = Data.PlayerPermission.Level4;
-                            break;
-                        case 5:
-                            recipient._permissionStatic = Data.PlayerPermission.Level5;
-                            break;
-                    }
-                    recipient.sendMessage(0, "You have been dev demoted to level " + level + ".");
-                }
-                //Lets send it off
+            if (!player._server.IsStandalone)
+            {
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
-                query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
+                query.queryType = CS_ModQuery<Data.Database>.QueryType.zmod;
                 query.sender = player._alias;
-                query.query = payload;
-                query.level = level;
-                //Send it!
+                query.query = recipient._alias;
+                query.level = (int)Data.PlayerPermission.Normal;
                 player._server._db.send(query);
-                return;
             }
         }
 
@@ -1181,7 +1098,17 @@ namespace InfServer.Game.Commands.Mod
 
             yield return new HandlerDescriptor(hostremove, "hostremove",
                 "Removes host permissions from a player.",
-                "*hostremove alias:level(optional) or ::*hostremove level(optional) - Note: hostremove them in the zone you want",
+                "*hostremove alias or ::*hostremove - Note: hostremove them in the zone you want",
+                InfServer.Data.PlayerPermission.Level4, true);
+
+            yield return new HandlerDescriptor(zmodadd, "zmodadd",
+                "Gives zmod permissions to a player. Defaults to Level 1",
+                "*zmodadd alias:level(optional) or ::*zmodadd level(optional) - Note: zmod them in the zone you want",
+                InfServer.Data.PlayerPermission.Level4, true);
+
+            yield return new HandlerDescriptor(zmodremove, "zmodremove",
+                "Removes zmod permissions from a player.",
+                "*zmodremove alias or ::*zmodremove - Note: zmod them in the zone you want",
                 InfServer.Data.PlayerPermission.Level4, true);
 
             yield return new HandlerDescriptor(powered, "powered",

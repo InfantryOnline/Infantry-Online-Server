@@ -17,7 +17,14 @@ namespace InfServer.Logic
         {	//Has he already been initialized?
             if (client._bInitialized)
             {	//Make a note
-                Log.write(TLog.Error, "Client " + client + " attempted to initialize connection twice.");
+                Log.write(TLog.Error, $"Client {client} attempted to initialize connection twice.");
+                client.destroy();
+                return;
+            }
+
+            if (pkt.udpMaxPacket <= 0 || pkt.udpMaxPacket <= Client.crcLength + 1)
+            {
+                Log.write(TLog.Error, $"Client {client} sent bad udp max packet ({pkt.udpMaxPacket})");
                 client.destroy();
                 return;
             }

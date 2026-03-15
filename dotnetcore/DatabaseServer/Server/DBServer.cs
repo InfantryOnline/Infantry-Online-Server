@@ -234,10 +234,17 @@ namespace InfServer
 
             //Load protocol config settings
             Client.udpMaxSize = _config["protocol/udpMaxSize"].intValue;
+
+            if (Client.udpMaxSize <= 0)
+            {
+                Log.write(TLog.Warning, "UDP Size not provided, defaulting to 1024 bytes.");
+                Client.udpMaxSize = 0x400;
+            }
+
             Client.crcLength = _config["protocol/crcLength"].intValue;
             if (Client.crcLength > 4)
             {
-                Log.write(TLog.Error, "Invalid protocol/crcLength, must be less than 4.");
+                Log.write(TLog.Error, "Invalid protocol/crcLength, must be at most 4 bytes.");
                 return false;
             }
 

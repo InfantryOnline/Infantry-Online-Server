@@ -34,4 +34,6 @@ public partial class Account
     public virtual ICollection<Alias> Aliases { get; set; } = new List<Alias>();
 
     public virtual ICollection<ResetToken> ResetTokens { get; set; } = new List<ResetToken>();
+
+    public virtual ICollection<Zmod> Zmods { get; set; } = new List<Zmod>();
 }

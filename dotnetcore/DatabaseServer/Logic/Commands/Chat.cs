@@ -279,7 +279,7 @@ namespace InfServer.Logic
 
                     if ((check != null) && check.AccountNavigation.Permission > 0 && player.Value.alias == check.Name)
                         z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
-                    if (player.Value.permission > (int)Data.PlayerPermission.Normal)
+                    if (player.Value.playerpermission > (int)Data.PlayerPermission.Normal)
                         z._server.sendMessage(player.Value.zone, player.Value.alias, pkt.payload);
                 }
         }
@@ -524,7 +524,7 @@ namespace InfServer.Logic
 
             foreach (KeyValuePair<string, Zone.Player> player in zone._server._players)
             {
-                if (player.Value.stealth && player.Value.permission > pPlayer.Permission)
+                if (player.Value.stealth && player.Value.playerpermission > pPlayer.Permission)
                 {
                     continue;
                 }

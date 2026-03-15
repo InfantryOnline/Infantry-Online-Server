@@ -15,6 +15,7 @@ namespace InfServer.DirectoryServer.Directory.Protocol.Helpers
             Initiate = 0x01,
             Version = 0x03,
             ZoneList = 0x05,
+            Disconnect = 0x07,
             AckZoneList = 0x0B,
         }
         ///<summary>

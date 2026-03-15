@@ -470,7 +470,7 @@ namespace InfServer.Logic
                 }
 
                 //Add them
-                if (zone.newPlayer(pkt.player.id, alias.Name, player))
+                if (zone.newPlayer(pkt.player.id, alias.Name, player, db))
                 {
                     plog.bSuccess = true;
                     Log.write("Player '{0}' logged into zone '{1}'", alias.Name, zone._zone.Name);

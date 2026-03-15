@@ -155,16 +155,15 @@ namespace InfServer.Game.Commands
 	[Flags]
 	public enum PermissionAuthority
 	{
-		None	= 0,
-		Player  = 1,
-		Host	= 2,
-		Mod		= 4,
-		ZoneMod = 8
+		Player  = 0,
+		Host	= 1 << 0,
+		Mod		= 1 << 1,
+		ZoneMod = 1 << 2
 	}
 
 	public class HandlerPermissionRequirement
 	{
-		public PermissionAuthority Authority { get; set; }
+		public PermissionAuthority AllowedAuthorities { get; set; }
 
 		public Data.PlayerPermission PermissionLevel { get; set; }
 	}
@@ -198,11 +197,11 @@ namespace InfServer.Game.Commands
         [Obsolete("Backwards compatibility with scripts. Don't use")]
         public bool isDevCommand
 		{
-			get { return Permission.Authority.HasFlag(PermissionAuthority.Host); }
+			get { return Permission.AllowedAuthorities.HasFlag(PermissionAuthority.Host); }
 			set
 			{
-				if (value) Permission.Authority |= PermissionAuthority.Host;
-				else Permission.Authority &= ~PermissionAuthority.Host;
+				if (value) Permission.AllowedAuthorities |= PermissionAuthority.Host;
+				else Permission.AllowedAuthorities &= ~PermissionAuthority.Host;
 			}
 		}
 
@@ -216,7 +215,7 @@ namespace InfServer.Game.Commands
             Permission = new HandlerPermissionRequirement
 			{
 				PermissionLevel = Data.PlayerPermission.Normal,
-				Authority = PermissionAuthority.Player
+                AllowedAuthorities = PermissionAuthority.Player
 			};
 
             isDevCommand = false;
@@ -232,12 +231,12 @@ namespace InfServer.Game.Commands
             Permission = new HandlerPermissionRequirement
             {
                 PermissionLevel = _permissionLevel,
-                Authority = PermissionAuthority.Mod | PermissionAuthority.ZoneMod 
+                AllowedAuthorities = PermissionAuthority.Mod | PermissionAuthority.ZoneMod 
             };
 
 			if (_isDevCommand)
 			{
-				Permission.Authority |= PermissionAuthority.Host;
+				Permission.AllowedAuthorities |= PermissionAuthority.Host;
 			}
 		}
 
@@ -247,7 +246,7 @@ namespace InfServer.Game.Commands
             handlerCommand = _handlerCommand;
             commandDescription = _commandDescription;
             usage = _usage;
-			Permission = new HandlerPermissionRequirement { Authority = authority, PermissionLevel = _permissionLevel };
+			Permission = new HandlerPermissionRequirement { AllowedAuthorities = authority, PermissionLevel = _permissionLevel };
         }
 	}
 

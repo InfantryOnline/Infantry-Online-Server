@@ -40,6 +40,10 @@ namespace InfServer.Logic
                         Handle_CS_ModQuery_HostPermissionChange(pkt, zone, db);
                         break;
 
+                    case CS_ModQuery<Zone>.QueryType.zmod:
+                        Handle_CS_ModQuery_ZmodPermissionChange(pkt, zone, db);
+                        break;
+
                     case CS_ModQuery<Zone>.QueryType.squadtransfer:
                         Handle_CS_ModQuery_SquadTransfer(pkt, zone, db);
                         break;
@@ -165,7 +169,7 @@ namespace InfServer.Logic
             {
                 var senderPlayer = zone.getPlayer(pkt.sender);
                 var poweredPlayers = zone._server._players
-                    .Where(p => p.Value.permission > 0 || p.Value.accountpermission > 0)
+                    .Where(p => p.Value.playerpermission > 0 || p.Value.accountpermission > 0)
                     .Select(t => t.Value)
                     .ToList();
 
@@ -177,7 +181,7 @@ namespace InfServer.Logic
 
                     if (p.accountpermission > 0)
                     {
-                        if (p.accountpermission > senderPlayer.accountpermission && p.accountpermission > senderPlayer.permission)
+                        if (p.accountpermission > senderPlayer.accountpermission && p.accountpermission > senderPlayer.playerpermission)
                         {
                             continue;
                         }
@@ -186,12 +190,12 @@ namespace InfServer.Logic
                     }
                     else
                     {
-                        if (p.permission > senderPlayer.accountpermission && p.permission > senderPlayer.permission)
+                        if (p.playerpermission > senderPlayer.accountpermission && p.playerpermission > senderPlayer.playerpermission)
                         {
                             continue;
                         }
 
-                        msg = string.Format("*{0} - Lvl({1}) (dev)", p.alias, p.permission.ToString());
+                        msg = string.Format("*{0} - Lvl({1}) (dev)", p.alias, p.playerpermission.ToString());
                     }
 
                     sent = true;
@@ -323,7 +327,7 @@ namespace InfServer.Logic
 
             if (player != null)
             {
-                player.permission = pkt.level;
+                player.playerpermission = pkt.level;
 
                 var dbPlayer = ctx.Players.Find(player.dbid);
                 dbPlayer.Permission = (short)pkt.level;
@@ -387,6 +391,73 @@ namespace InfServer.Logic
             }
             
             zone._server.sendMessage(zone, pkt.sender, $"Changing player {pkt.query} level to {pkt.level} has been completed.");
+        }
+
+        private static void Handle_CS_ModQuery_ZmodPermissionChange(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)
+        {
+            if (string.IsNullOrEmpty(pkt.query))
+            {
+                zone._server.sendMessage(zone, pkt.sender, "Wrong format typed.");
+                return;
+            }
+
+            if (pkt.level < 0 || pkt.level > 5)
+            {
+                zone._server.sendMessage(zone, pkt.sender, "Wrong level specified.");
+                return;
+            }
+
+            // Locate account from the alias.
+
+            long zoneId = zone._zone.ZoneId;
+            long accountId;
+
+            if (zone._server._players.ContainsKey(pkt.query))
+            {
+                var player = zone._server._players[pkt.query];
+                accountId = player.acctid;
+            }
+            else
+            {
+                Alias dbAlias = ctx.Aliases.FirstOrDefault(a => a.Name == pkt.query);
+
+                if (dbAlias == null)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "Cannot find the specified alias.");
+                    return;
+                }
+
+                accountId = dbAlias.AccountId;
+            }
+
+            var entry = ctx.Zmods.FirstOrDefault(x => x.Account == accountId && x.Zone == zoneId);
+
+            if (pkt.level == 0)
+            {
+                if (entry == null)
+                {
+                    zone._server.sendMessage(zone, pkt.sender, "Account is not zmod powered.");
+                }
+
+                ctx.Zmods.Remove(entry);
+
+                zone._server.sendMessage(zone, pkt.sender, $"Zmod has been removed for {pkt.query}.");
+            }
+            else
+            {
+                if (entry != null)
+                {
+                    entry.Level = pkt.level;
+                }
+                else
+                {
+                    ctx.Zmods.Add(new Zmod { Account = accountId, Zone = zoneId, Level = pkt.level });
+                }
+
+                zone._server.sendMessage(zone, pkt.sender, $"Zmod has been set for {pkt.query} to level {pkt.level}.");
+            }          
+
+            ctx.SaveChanges();
         }
 
         private static void Handle_CS_ModQuery_AliasRename(CS_ModQuery<Zone> pkt, Zone zone, SqlServerDbContext ctx)

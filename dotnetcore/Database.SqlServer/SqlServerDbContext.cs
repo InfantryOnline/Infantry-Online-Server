@@ -50,6 +50,8 @@ public partial class SqlServerDbContext : DbContext
 
     public virtual DbSet<StatsYearly> StatsYearlies { get; set; }
 
+    public virtual DbSet<Zmod> Zmods { get; set; }
+
     public virtual DbSet<Zone> Zones { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -514,6 +516,28 @@ public partial class SqlServerDbContext : DbContext
                 .HasForeignKey(d => d.ZoneId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("zone_statsYearly");
+        });
+
+        modelBuilder.Entity<Zmod>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__zmod__3213E83F6B31E7AA");
+
+            entity.ToTable("zmod");
+
+            entity.HasIndex(e => new { e.Account, e.Zone }, "zmod_uc_account_zone").IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Account).HasColumnName("account");
+            entity.Property(e => e.Level).HasColumnName("level");
+            entity.Property(e => e.Zone).HasColumnName("zone");
+
+            entity.HasOne(d => d.AccountNavigation).WithMany(p => p.Zmods)
+                .HasForeignKey(d => d.Account)
+                .HasConstraintName("zmod_account");
+
+            entity.HasOne(d => d.ZoneNavigation).WithMany(p => p.Zmods)
+                .HasForeignKey(d => d.Zone)
+                .HasConstraintName("zmod_zone");
         });
 
         modelBuilder.Entity<Zone>(entity =>

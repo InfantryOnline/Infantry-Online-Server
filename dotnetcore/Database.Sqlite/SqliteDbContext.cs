@@ -47,6 +47,8 @@ namespace Database.Sqlite
 
         public virtual DbSet<StatsYearly> StatsYearlies { get; set; }
 
+        public virtual DbSet<Zmod> Zmods { get; set; }
+
         public virtual DbSet<Zone> Zones { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)

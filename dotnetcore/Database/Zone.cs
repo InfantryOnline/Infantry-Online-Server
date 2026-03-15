@@ -34,4 +34,6 @@ public partial class Zone
     public virtual ICollection<StatsWeekly> StatsWeeklies { get; set; } = new List<StatsWeekly>();
 
     public virtual ICollection<StatsYearly> StatsYearlies { get; set; } = new List<StatsYearly>();
+
+    public virtual ICollection<Zmod> Zmods { get; set; } = new List<Zmod>();
 }

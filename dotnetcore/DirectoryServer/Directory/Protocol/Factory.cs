@@ -27,9 +27,14 @@ namespace InfServer.DirectoryServer.Directory.Protocol
                     packet = new CS_AckZoneList(typeID, buffer, index, count);
                     break;
 
+                case CS_Disconnect.TypeID:
+                    packet = new PacketDummy(typeID, buffer, index, count);
+                    break;
+
                 default:
                     //Undefined packet type
                     packet = new PacketDummy(typeID, buffer, index, count);
+                    Log.write(TLog.Warning, $"Unknown packet type received: {packet.Dump} {packet.DataDump}");
                     break;
             }
 
