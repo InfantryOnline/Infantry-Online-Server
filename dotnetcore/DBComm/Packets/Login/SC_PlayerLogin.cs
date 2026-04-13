@@ -29,6 +29,9 @@ namespace InfServer.Protocol
         public bool developer;                      //Are we just a dev?
         public bool admin;                          //Are we an admin?
 		public bool stealth;
+		public byte zmodpermission;                  // Zmod level
+		public byte hostpermission;                  // Host level
+		public byte modpermission;					// Mod level
 
 		public long silencedAtUnixMilliseconds;
 		public long silencedDurationMinutes;
@@ -105,6 +108,9 @@ namespace InfServer.Protocol
 			Write(squad, 0);
             Write(squadID);
 			Write((byte)permission);
+			Write(hostpermission);
+			Write(zmodpermission);
+			Write(modpermission);
             Write(developer);
             Write(admin);
 			Write(stealth);
@@ -147,6 +153,9 @@ namespace InfServer.Protocol
 			squad = ReadNullString();
             squadID = _contentReader.ReadInt64();
 			permission = (InfServer.Data.PlayerPermission)_contentReader.ReadByte();
+			hostpermission = _contentReader.ReadByte();
+            zmodpermission = _contentReader.ReadByte();
+            modpermission = _contentReader.ReadByte();
             developer = _contentReader.ReadBoolean();
             admin = _contentReader.ReadBoolean();
             stealth = _contentReader.ReadBoolean();

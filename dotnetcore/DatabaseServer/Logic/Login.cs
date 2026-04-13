@@ -430,6 +430,19 @@ namespace InfServer.Logic
                         DatabaseBinaryUtils.binToSkills(plog.stats.skills, player.Skills);
                 }
 
+                // Write explicit permission levels for now.
+
+                // Write explicit permission levels.
+                plog.hostpermission = (byte)player.Permission;
+                plog.modpermission = (byte)account.Permission;
+
+                var zmodEntry = db.Zmods.FirstOrDefault(x => x.Account == account.AccountId && x.Zone == zone._zone.ZoneId);
+
+                if (zmodEntry != null)
+                {
+                    plog.zmodpermission = (byte)zmodEntry.Level;
+                }
+
                 plog.silencedAtUnixMilliseconds = account.SilencedAtMillisecondsUnix;
                 plog.silencedDurationMinutes = account.SilencedDuration;
 
