@@ -776,9 +776,9 @@ namespace InfServer.Game.Commands.Mod
                 }
             }
 
-            if (level < 1 || level > 3)
+            if (level < 1 || level > 4)
             {
-                player.sendMessage(-1, "*hostadd alias:level(optional) OR :alias:*hostadd level(optional) possible levels are 1-3");
+                player.sendMessage(-1, "*hostadd alias:level(optional) OR :alias:*hostadd level(optional) possible levels are 1-4");
                 player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
 
                 return;
@@ -890,9 +890,9 @@ namespace InfServer.Game.Commands.Mod
                 }
             }
 
-            if (level < 1 || level > 3)
+            if (level < 1 || level > 4)
             {
-                player.sendMessage(-1, "*zmodadd alias:level(optional) OR :alias:*zmodadd level(optional) possible levels are 1-3");
+                player.sendMessage(-1, "*zmodadd alias:level(optional) OR :alias:*zmodadd level(optional) possible levels are 1-4");
                 player.sendMessage(0, "NOTE: to power someone, make sure you are in the zone you want them powered in.");
 
                 return;
