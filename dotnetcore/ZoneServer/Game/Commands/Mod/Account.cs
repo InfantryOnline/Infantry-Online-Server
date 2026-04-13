@@ -744,6 +744,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             int level = (int)Data.PlayerPermission.Level1;
+            string alias = null;
 
             if (recipient == null) // Using {alias}:{level} syntax instead.
             {
@@ -756,12 +757,7 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 recipient = player._server.getPlayer(chunks[0]);
-
-                if (recipient == null)
-                {
-                    player.sendMessage(-1, $"[hostadd] Player not found or malformed alias: {chunks[0]}");
-                    return;
-                }
+                alias = chunks[0];
 
                 if (chunks.Length >= 2 && !Int32.TryParse(chunks[1], out level))
                 {
@@ -771,9 +767,12 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
+                alias = recipient._alias;
+
                 if (!string.IsNullOrWhiteSpace(payload) && !Int32.TryParse(payload, out level))
                 {
                     player.sendMessage(-1, $"[hostadd] Bad level: {payload}");
+                    return;
                 }
             }
 
@@ -785,11 +784,14 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            recipient._permissionStatic = (Data.PlayerPermission)level;
-            recipient._developer = true;
+            if (recipient != null)
+            {
+                recipient._permissionStatic = (Data.PlayerPermission)level;
+                recipient._developer = true;
 
-            recipient.sendMessage(0, "You have been Host promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
-            player.sendMessage(0, "You have Host promoted " + recipient._alias + " to level " + level + ".");
+                recipient.sendMessage(0, "You have been Host promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
+                player.sendMessage(0, "You have Host promoted " + recipient._alias + " to level " + level + ".");
+            }
 
             if (!player._server.IsStandalone)
             {
@@ -797,7 +799,7 @@ namespace InfServer.Game.Commands.Mod
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
                 query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
                 query.sender = player._alias;
-                query.query = recipient._alias;
+                query.query = alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -814,29 +816,33 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Server is in stand-alone mode. Dev de-powering will be temporary.");
             }
 
+            string alias;
+
             if (recipient == null)
             {
                 recipient = player._server.getPlayer(payload);
-
-                if (recipient == null)
-                {
-                    player.sendMessage(-1, $"[hostremove] Player not found or malformed alias: {payload}");
-                    return;
-                }
+                alias = payload;
+            }
+            else
+            {
+                alias = recipient._alias;
             }
 
-            recipient._permissionStatic = Data.PlayerPermission.Normal;
-            recipient._developer = false;
+            if (recipient != null)
+            {
+                recipient._permissionStatic = Data.PlayerPermission.Normal;
+                recipient._developer = false;
 
-            recipient.sendMessage(0, "You have been Host demoted.");
-            player.sendMessage(0, $"You have Host demoted {recipient._alias}.");
+                recipient.sendMessage(0, "You have been Host demoted.");
+                player.sendMessage(0, $"You have Host demoted {recipient._alias}.");
+            }
 
             if (!player._server.IsStandalone)
             {
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
                 query.queryType = CS_ModQuery<Data.Database>.QueryType.host;
                 query.sender = player._alias;
-                query.query = recipient._alias;
+                query.query = alias;
                 query.level = (int)Data.PlayerPermission.Normal;
                 player._server._db.send(query);
             }
@@ -853,6 +859,7 @@ namespace InfServer.Game.Commands.Mod
             }
 
             int level = (int)Data.PlayerPermission.Level1;
+            string alias;
 
             if (recipient == null) // Using {alias}:{level} syntax instead.
             {
@@ -865,12 +872,7 @@ namespace InfServer.Game.Commands.Mod
                 }
 
                 recipient = player._server.getPlayer(chunks[0]);
-
-                if (recipient == null)
-                {
-                    player.sendMessage(-1, $"[zmodadd] Player not found or malformed alias: {chunks[0]}");
-                    return;
-                }
+                alias = chunks[0];
 
                 if (chunks.Length >= 2 && !Int32.TryParse(chunks[1], out level))
                 {
@@ -880,9 +882,11 @@ namespace InfServer.Game.Commands.Mod
             }
             else
             {
+                alias = recipient._alias;
                 if (!string.IsNullOrWhiteSpace(payload) && !Int32.TryParse(payload, out level))
                 {
                     player.sendMessage(-1, $"[zmodadd] Bad level: {payload}");
+                    return;
                 }
             }
 
@@ -894,11 +898,14 @@ namespace InfServer.Game.Commands.Mod
                 return;
             }
 
-            recipient._permissionStatic = (Data.PlayerPermission)level;
-            recipient._developer = true;
+            if (recipient != null)
+            {
+                recipient._permissionStatic = (Data.PlayerPermission)level;
+                recipient._developer = true;
 
-            recipient.sendMessage(0, "You have been Zone Mod promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
-            player.sendMessage(0, "You have Zone Mod promoted " + recipient._alias + " to level " + level + ".");
+                recipient.sendMessage(0, "You have been Zone Mod promoted to level " + level + ". Use *help to familiarize yourself with the commands given and read the rules.");
+                player.sendMessage(0, "You have Zone Mod promoted " + recipient._alias + " to level " + level + ".");
+            }          
 
             if (!player._server.IsStandalone)
             {
@@ -906,7 +913,7 @@ namespace InfServer.Game.Commands.Mod
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
                 query.queryType = CS_ModQuery<Data.Database>.QueryType.zmod;
                 query.sender = player._alias;
-                query.query = recipient._alias;
+                query.query = alias;
                 query.level = level;
                 //Send it!
                 player._server._db.send(query);
@@ -923,29 +930,33 @@ namespace InfServer.Game.Commands.Mod
                 player.sendMessage(-1, "Server is in stand-alone mode. Dev de-powering will be temporary.");
             }
 
+            string alias;
+
             if (recipient == null)
             {
                 recipient = player._server.getPlayer(payload);
-
-                if (recipient == null)
-                {
-                    player.sendMessage(-1, $"[zmodremove] Player not found or malformed alias: {payload}");
-                    return;
-                }
+                alias = payload;
+            }
+            else
+            {
+                alias = recipient._alias;
             }
 
-            recipient._permissionStatic = Data.PlayerPermission.Normal;
-            recipient._developer = false;
+            if (recipient != null)
+            {
+                recipient._permissionStatic = Data.PlayerPermission.Normal;
+                recipient._developer = false;
 
-            recipient.sendMessage(0, "You have been Host demoted.");
-            player.sendMessage(0, $"You have Host demoted {recipient._alias}.");
-
+                recipient.sendMessage(0, "You have been Host demoted.");
+                player.sendMessage(0, $"You have Host demoted {recipient._alias}.");
+            }
+            
             if (!player._server.IsStandalone)
             {
                 CS_ModQuery<Data.Database> query = new CS_ModQuery<Data.Database>();
                 query.queryType = CS_ModQuery<Data.Database>.QueryType.zmod;
                 query.sender = player._alias;
-                query.query = recipient._alias;
+                query.query = alias;
                 query.level = (int)Data.PlayerPermission.Normal;
                 player._server._db.send(query);
             }
