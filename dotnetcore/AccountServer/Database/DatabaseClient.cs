@@ -260,9 +260,7 @@ namespace AccountServer
         /// </summary>
         public bool TryUpdatePasswordWithToken(string token, string password)
         {
-            var hashedPassword = Crypto.Hash(password);
-
-            if (string.IsNullOrWhiteSpace(hashedPassword))
+            if (string.IsNullOrWhiteSpace(password))
             {
                 return false;
             }
@@ -272,7 +270,7 @@ namespace AccountServer
                 var rt = ctx.ResetTokens.Include(r => r.AccountNavigation).FirstOrDefault(t => t.Token == token);
 
                 rt.TokenUsed = true;
-                rt.AccountNavigation.Password = hashedPassword;
+                rt.AccountNavigation.Password = password;
 
                 ctx.SaveChanges();
             }

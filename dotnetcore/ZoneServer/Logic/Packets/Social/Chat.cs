@@ -172,7 +172,9 @@ namespace InfServer.Logic
                 string payload = "";
 
                 if (spcIdx == -1)
+                {
                     command = pkt.message.Substring(1);
+                }
                 else
                 {
                     command = pkt.message.Substring(1, spcIdx - 1);

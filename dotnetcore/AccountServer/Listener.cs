@@ -204,7 +204,7 @@ namespace AccountServer
 		        	    }
 						
                         // Add it to the database, and we're good to go!
-                        var account = client.AccountCreate(regModel.Username, regModel.PasswordHash,
+                        var account = client.AccountCreate(regModel.Username, regModel.PasswordHashSha256,
                                                            Guid.NewGuid().ToString(),
                                                            DateTime.Now, DateTime.Now, 0, regModel.Email);
 
@@ -392,7 +392,7 @@ namespace AccountServer
                             }
 
                             //3. Was the reset successful?
-                            if(!client.TryUpdatePasswordWithToken(resetModel.Token, resetModel.Password))
+                            if(!client.TryUpdatePasswordWithToken(resetModel.Token, resetModel.PasswordHashSha256))
                             {
                                 responseString = Encoding.UTF8.GetBytes("false");
                                 response.StatusCode = 500; //Internal Server Error
@@ -437,7 +437,7 @@ namespace AccountServer
                         }
 
                         // 3b. Are the credentials good?
-                        if (!client.IsAccountValid(loginModel.Username, loginModel.PasswordHash))
+                        if (!client.IsAccountValid(loginModel.Username, loginModel.PasswordHashSha256))
                         {
                             response.StatusCode = 404; //Not Found
                             response.StatusDescription = "Incorrect Password.";
@@ -447,7 +447,7 @@ namespace AccountServer
                         }
 
                         // Try logging in
-                        Account a = client.AccountLogin(loginModel.Username, loginModel.PasswordHash, request.RemoteEndPoint.Address.ToString());
+                        Account a = client.AccountLogin(loginModel.Username, loginModel.PasswordHashSha256, request.RemoteEndPoint.Address.ToString());
 
                         // 4. Was it successful?
                         if (a == null)

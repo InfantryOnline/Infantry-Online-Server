@@ -46,6 +46,32 @@ namespace AccountServer.Helpers
             return hash;
         }
 
+        public static string ComputeSha256Hash(string input)
+        {
+            if (input == null)
+                throw new ArgumentNullException(nameof(input));
+
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // Convert the input string to a byte array and compute the hash.
+                byte[] data = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+                // Create a new Stringbuilder to collect the bytes
+                // and create a string.
+                var sBuilder = new StringBuilder();
+
+                // Loop through each byte of the hashed data
+                // and format each one as a hexadecimal string.
+                for (int i = 0; i < data.Length; i++)
+                {
+                    sBuilder.Append(data[i].ToString("x2"));
+                }
+
+                // Return the hexadecimal string.
+                return sBuilder.ToString();
+            }
+        }
+
         /// <summary>
         /// Extracts 8 bytes from the hashed token then reverses it
         /// </summary>

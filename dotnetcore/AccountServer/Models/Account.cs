@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AccountServer.Helpers;
+using System;
 using System.Text.RegularExpressions;
 
 namespace AccountServer.Models
@@ -85,6 +86,8 @@ namespace AccountServer.Models
             public string PasswordHash { get; set; }
             public string Email { get; set; }
 
+            public string PasswordHashSha256 => Crypto.ComputeSha256Hash(PasswordHash);
+
             public bool IsRequestValid()
             {
                 return (!string.IsNullOrWhiteSpace(Username) 
@@ -116,6 +119,8 @@ namespace AccountServer.Models
             public string Token { get; set; }
             public string Password { get; set; }
 
+            public string PasswordHashSha256 => Crypto.ComputeSha256Hash(Crypto.Hash(Password));
+
             public bool IsRequestValid()
             {
                 return (!string.IsNullOrWhiteSpace(Token) 
@@ -127,6 +132,8 @@ namespace AccountServer.Models
         {
             public string Username { get; set; }
             public string PasswordHash { get; set; }
+
+            public string PasswordHashSha256 => Crypto.ComputeSha256Hash(PasswordHash);
 
             public bool IsRequestValid()
             {
