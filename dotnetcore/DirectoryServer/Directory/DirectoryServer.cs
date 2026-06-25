@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Net;
 using System.Timers;
+using Database;
+using Database.Sqlite;
 using Database.SqlServer;
 using InfServer.DirectoryServer.Directory.Assets;
 using InfServer.DirectoryServer.Directory.Logic;
@@ -36,7 +38,7 @@ namespace InfServer.DirectoryServer.Directory
         private int zoneUpdateTick = Environment.TickCount;
         private System.Timers.Timer timer;
 
-        private PooledDbContextFactory<SqlServerDbContext> _dbContextFactory;
+        private IDbContextFactory<InfantryDbContext> _dbContextFactory;
 
         /// <summary>
         /// Generic Constructor
@@ -63,13 +65,37 @@ namespace InfServer.DirectoryServer.Directory
             if (_json)
                 httpJsonResponder = new HttpJsonResponder(this);
 
-            String _connectionString = _config["database/connectionString"].Value;
+            var _connString = _config["database/connectionString"].Value;
+            var _sqliteString = _config["database/sqlite"].Value;
 
-            var options = new DbContextOptionsBuilder<SqlServerDbContext>()
-            .UseSqlServer(_connectionString)
-                .Options;
+            if (!string.IsNullOrWhiteSpace(_connString))
+            {
+                Console.WriteLine("Connecting to SQL Server...");
 
-            _dbContextFactory = new PooledDbContextFactory<SqlServerDbContext>(options);
+                var options = new DbContextOptionsBuilder<SqlServerDbContext>()
+                    .UseSqlServer(_connString)
+                    .Options;
+
+                var pooledFact = new PooledDbContextFactory<SqlServerDbContext>(options);
+
+                _dbContextFactory = new InfantryDbFactory<SqlServerDbContext>(pooledFact);
+            }
+            else if (!string.IsNullOrWhiteSpace(_sqliteString))
+            {
+                Console.WriteLine("Connecting to SQLite...");
+
+                var options = new DbContextOptionsBuilder<SqliteDbContext>()
+                    .UseSqlite(_sqliteString)
+                    .Options;
+
+                var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);
+
+                _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
+            }
+            else
+            {
+                throw new ApplicationException("No connection string to database found.");
+            }
 
             grabZones();
             return true;

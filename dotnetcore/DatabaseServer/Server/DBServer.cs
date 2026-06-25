@@ -11,6 +11,9 @@ using InfServer.Data;
 using Database.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Database;
+using Database.Sqlite;
+using Microsoft.EntityFrameworkCore.Sqlite.Internal;
 
 namespace InfServer
 {
@@ -31,7 +34,7 @@ namespace InfServer
         public List<KeyValuePair<int, int>> _squadInvites;              //Our history of squad invites pair<squadid, playerid>
 
         private string? _dbConnectionString;		                        
-        private PooledDbContextFactory<SqlServerDbContext>? _dbContextFactory;
+        private IDbContextFactory<InfantryDbContext> _dbContextFactory;
 
         static public bool bAllowMulticlienting;                        //Should we allow players to join multiple times under the same account?
 
@@ -252,30 +255,56 @@ namespace InfServer
 
             bAllowMulticlienting = _config["allowMulticlienting"].boolValue;
 
-            //Attempt to connect to our database
             _dbConnectionString = _config["database/connectionString"].Value;
+            var _sqliteString = _config["database/sqlite"].Value;
 
-            var opts = new DbContextOptionsBuilder<SqlServerDbContext>()
-                .UseSqlServer(_dbConnectionString);
-
-            var dbLog = _config["database/log"].boolValue;
-            var dbLazyLoad = _config["database/lazyload"].boolValue;
-
-            if (dbLazyLoad)
+            if (!string.IsNullOrWhiteSpace(_dbConnectionString))
             {
-                opts.UseLazyLoadingProxies();
-                Console.WriteLine("Using lazyloading...");
-            }
+                Console.WriteLine("Connecting to SQL Server...");
 
-            if (dbLog)
-            {
-                opts.LogTo(text =>
+                //Attempt to connect to our database
+                
+                var opts = new DbContextOptionsBuilder<SqlServerDbContext>()
+                    .UseSqlServer(_dbConnectionString);
+
+                var dbLog = _config["database/log"].boolValue;
+                var dbLazyLoad = _config["database/lazyload"].boolValue;
+
+                if (dbLazyLoad)
                 {
-                    Log.write(TLog.Inane, text, _logger);
-                });
-            }
+                    opts.UseLazyLoadingProxies();
+                    Console.WriteLine("Using lazyloading...");
+                }
 
-            _dbContextFactory = new PooledDbContextFactory<SqlServerDbContext>(opts.Options);
+                if (dbLog)
+                {
+                    opts.LogTo(text =>
+                    {
+                        Log.write(TLog.Inane, text, _logger);
+                    });
+                }
+
+                var pooledFact = new PooledDbContextFactory<SqlServerDbContext>(opts.Options);
+
+                _dbContextFactory = new InfantryDbFactory<SqlServerDbContext>(pooledFact);
+            }
+            else if (!string.IsNullOrWhiteSpace(_sqliteString))
+            {
+                Console.WriteLine("Connecting to SQLite...");
+
+                var options = new DbContextOptionsBuilder<SqliteDbContext>()
+                    .UseSqlite(_sqliteString)
+                    .Options;
+
+                var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);
+
+                _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
+            }
+            else
+            {
+                throw new ApplicationException("No connection string to database found.");
+            }
+           
 
             //Populate our server admins
             Logic.Logic_Admins.PopulateAdmins();
@@ -303,7 +332,7 @@ namespace InfServer
         /// <summary>
         /// Creates a new data context to connect to the database
         /// </summary>
-        public SqlServerDbContext getContext()
+        public InfantryDbContext getContext()
         {
             return _dbContextFactory.CreateDbContext();
         }

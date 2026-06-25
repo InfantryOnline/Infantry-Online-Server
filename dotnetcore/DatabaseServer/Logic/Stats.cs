@@ -92,7 +92,7 @@ namespace InfServer.Logic
                 return;
             }
 
-            using (SqlServerDbContext db = zone._server.getContext())
+            using (var db = zone._server.getContext())
             {	//What sort of request are we dealing with?
                 switch (pkt.type)
                 {

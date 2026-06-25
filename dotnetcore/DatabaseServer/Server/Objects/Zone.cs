@@ -145,7 +145,7 @@ namespace InfServer
         /// <summary>
         /// Indicates that a player has joined the zone server
         /// </summary>
-        public bool newPlayer(int id, string alias, Database.Player dbplayer, SqlServerDbContext ctx)
+        public bool newPlayer(int id, string alias, Database.Player dbplayer, InfantryDbContext ctx)
         {
             if (string.IsNullOrWhiteSpace(alias))
             {

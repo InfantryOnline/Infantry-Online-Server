@@ -119,7 +119,7 @@ namespace InfServer.Logic
             player.stats.ExperienceTotal = pkt.stats.experienceTotal;
         }
 
-        static private void UpdateDailyWeeklyMonthlyYearlyStats(CS_PlayerUpdate<Zone> pkt, Zone zone, Zone.Player player, SqlServerDbContext ctx, Stat previousStat)
+        static private void UpdateDailyWeeklyMonthlyYearlyStats(CS_PlayerUpdate<Zone> pkt, Zone zone, Zone.Player player, InfantryDbContext ctx, Stat previousStat)
         {
             //
             // Subtract to get the delta from our previous stats,

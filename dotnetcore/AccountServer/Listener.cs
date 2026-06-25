@@ -535,8 +535,7 @@ namespace AccountServer
             }
             catch (Exception e)
             {
-                if (e.Message.Contains("SQL"))
-                    Console.WriteLine("Unhandled SQL exception");
+                Console.WriteLine(e);
             }
         }
     }

@@ -83,7 +83,7 @@ namespace SqlServerToSqliteMigrationConsole
             var mapper = InitializeAutoMapper();
 
             var options = new DbContextOptionsBuilder<SqliteDbContext>()
-                    .UseSqlite("database.db")
+                    .UseSqlite("Data Source=database.db;")
                     .Options;
 
             var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);

@@ -547,7 +547,7 @@ namespace InfServer.Logic
             Log.write("Player '{0}' left zone '{1}'", pkt.alias, zone._zone.Name);
 
             // Update their playtime
-            using (SqlServerDbContext db = zone._server.getContext())
+            using (var db = zone._server.getContext())
             {
                 Alias alias = db.Aliases.SingleOrDefault(a => a.Name == pkt.alias);
 
@@ -568,7 +568,7 @@ namespace InfServer.Logic
         /// </summary>
         static public void Handle_CS_ZoneUpdate(CS_ZoneUpdate<Zone> pkt, Zone zone)
         {
-            using (SqlServerDbContext db = zone._server.getContext())
+            using (var db = zone._server.getContext())
             {
                 Database.Zone zEntry = db.Zones.SingleOrDefault(z => z.ZoneId == zone._zone.ZoneId);
                 if (zEntry != null)
