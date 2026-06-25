@@ -8,6 +8,7 @@ using Database.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace InfServer.Logic
 {
@@ -1140,11 +1141,7 @@ namespace InfServer.Logic
                 results = results.Where(s => s.SquadId == player.squadid);
             }
 
-            var squad = results.Select(s => new
-            {
-                s.Name,
-                Players = s.Players.Select(p => new { p.AliasNavigation.Name, Owner = p.PlayerId == s.OwnerPlayerId })
-            }).FirstOrDefault();
+            var squad = results.FirstOrDefault();
 
             if (squad == null)
             {
@@ -1152,9 +1149,12 @@ namespace InfServer.Logic
                 return;
             }
 
+            var captain = squad.Players.FirstOrDefault(p => p.PlayerId == squad.OwnerPlayerId);
+            var members = squad.Players.Where(p => p.PlayerId != squad.OwnerPlayerId);
+
             zone._server.sendMessage(zone, pkt.alias, $"&Squad Online List: {squad.Name}");
-            zone._server.sendMessage(zone, pkt.alias, $"&Captain: {squad.Players.First(p => p.Owner).Name}");
-            zone._server.sendMessage(zone, pkt.alias, "*" + string.Join(", ", squad.Players.Where(p => !p.Owner).Select(p => p.Name)));
+            zone._server.sendMessage(zone, pkt.alias, $"&Captain: {captain?.AliasNavigation.Name}");
+            zone._server.sendMessage(zone, pkt.alias, "*" + string.Join(", ", members.Select(p => p.AliasNavigation.Name)));
         }
 
         private static void CS_Squads_QueryType_Online(CS_Squads<Zone> pkt, Zone zone, string cleanPayload)
