@@ -222,6 +222,35 @@ namespace Database.Sqlite.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Zmods",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Account = table.Column<long>(type: "INTEGER", nullable: false),
+                    Zone = table.Column<long>(type: "INTEGER", nullable: false),
+                    Level = table.Column<int>(type: "INTEGER", nullable: false),
+                    AccountNavigationAccountId = table.Column<long>(type: "INTEGER", nullable: false),
+                    ZoneNavigationZoneId = table.Column<long>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Zmods", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Zmods_Accounts_AccountNavigationAccountId",
+                        column: x => x.AccountNavigationAccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "AccountId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Zmods_Zones_ZoneNavigationZoneId",
+                        column: x => x.ZoneNavigationZoneId,
+                        principalTable: "Zones",
+                        principalColumn: "ZoneId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Players",
                 columns: table => new
                 {
@@ -549,6 +578,16 @@ namespace Database.Sqlite.Migrations
                 name: "IX_StatsYearlies_ZoneId",
                 table: "StatsYearlies",
                 column: "ZoneId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Zmods_AccountNavigationAccountId",
+                table: "Zmods",
+                column: "AccountNavigationAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Zmods_ZoneNavigationZoneId",
+                table: "Zmods",
+                column: "ZoneNavigationZoneId");
         }
 
         /// <inheritdoc />
@@ -577,6 +616,9 @@ namespace Database.Sqlite.Migrations
 
             migrationBuilder.DropTable(
                 name: "StatsYearlies");
+
+            migrationBuilder.DropTable(
+                name: "Zmods");
 
             migrationBuilder.DropTable(
                 name: "Players");

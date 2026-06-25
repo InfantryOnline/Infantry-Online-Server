@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Database;
+using Database.Sqlite;
 
 namespace AccountServer
 {
@@ -22,8 +23,7 @@ namespace AccountServer
     public class DatabaseClient
     {
         ConfigSetting _config;
-        private string _connString;
-        private PooledDbContextFactory<SqlServerDbContext> _dbContextFactory;
+        private IDbContextFactory<InfantryDbContext> _dbContextFactory;
 
         /// <summary>
         /// Creates our client then opens a connection to our database
@@ -32,13 +32,48 @@ namespace AccountServer
         {
             _config = new Xmlconfig("server.xml", false).Settings;
 
-            _connString = _config["database/connectionString"].Value;
+            var _connString = _config["database/connectionString"].Value;
+            var _sqliteString = _config["database/sqlite"].Value;
 
-            var options = new DbContextOptionsBuilder<SqlServerDbContext>()
-            .UseSqlServer(_connString)
-                .Options;
+            if (!string.IsNullOrWhiteSpace(_connString))
+            {
+                Console.WriteLine("Connecting to SQL Server...");
 
-            _dbContextFactory = new PooledDbContextFactory<SqlServerDbContext>(options);
+                var options = new DbContextOptionsBuilder<SqlServerDbContext>()
+                    .UseSqlServer(_connString)
+                    .Options;
+
+                var pooledFact = new PooledDbContextFactory<SqlServerDbContext>(options);
+
+                _dbContextFactory = new InfantryDbFactory<SqlServerDbContext>(pooledFact);
+            }
+            else if (!string.IsNullOrWhiteSpace(_sqliteString))
+            {
+                Console.WriteLine("Connecting to SQLite...");
+
+                var options = new DbContextOptionsBuilder<SqliteDbContext>()
+                    .UseSqlite(_sqliteString)
+                    .Options;
+
+                var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);
+
+                _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
+            }
+            else
+            {
+                throw new ApplicationException("No connection string to database found.");
+            }
+        }
+        
+        public string GetHealthCheck()
+        {
+            using (var ctx = _dbContextFactory.CreateDbContext())
+            {
+                var accounts = ctx.Accounts.Count();
+                var zones = ctx.Zones.Count();
+
+                return $"Accounts: {accounts}, Zones: {zones}";
+            }
         }
 
         /// <summary>

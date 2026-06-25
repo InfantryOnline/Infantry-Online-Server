@@ -5,6 +5,7 @@ using Database.SqlServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Sqlite.Internal;
 
 namespace SqlServerToSqliteMigrationConsole
 {
@@ -81,7 +82,15 @@ namespace SqlServerToSqliteMigrationConsole
         {
             var mapper = InitializeAutoMapper();
 
-            using (var ctx = new SqliteDbContext())
+            var options = new DbContextOptionsBuilder<SqliteDbContext>()
+                    .UseSqlite("database.db")
+                    .Options;
+
+            var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);
+
+            var _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
+
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 // ctx.Database.EnsureCreated();
                 ctx.Database.Migrate();
@@ -109,11 +118,11 @@ namespace SqlServerToSqliteMigrationConsole
             List<Database.StatsYearly> oldStatsYearly;
             List<Database.Zone> oldZones;
 
-            var options = new DbContextOptionsBuilder<SqlServerDbContext>()
+            var opts = new DbContextOptionsBuilder<SqlServerDbContext>()
             .UseSqlServer("Data Source=JOVAN\\SQLEXPRESS01;Database=Data;Trusted_Connection=True;TrustServerCertificate=true")
                 .Options;
 
-            var oldDbCtxFactory = new PooledDbContextFactory<SqlServerDbContext>(options);
+            var oldDbCtxFactory = new PooledDbContextFactory<SqlServerDbContext>(opts);
 
             using (var ctx = oldDbCtxFactory.CreateDbContext())
             {
@@ -142,7 +151,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             var accMap = new Dictionary<long, Database.Account>();
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 foreach (var acc in oldAccounts)
                 {
@@ -167,7 +176,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             var aliasMap = new Dictionary<long, Database.Alias>();
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 if (ctx.Aliases.Count() > 0)
                 {
@@ -204,7 +213,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             var zoneMap = new Dictionary<long, Database.Zone>();
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 if (ctx.Zones.Count() > 0)
                 {
@@ -235,7 +244,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             var statsMap = new Dictionary<long, Database.Stat>();
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 if (ctx.Stats.Count() > 0)
                 {
@@ -267,7 +276,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             var playerMap = new Dictionary<long, Database.Player>();
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 if (ctx.Players.Count() > 0)
                 {
@@ -299,7 +308,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             Console.WriteLine("6. Creating history stats...");
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 foreach (var oldS in oldStatsDaily)
                 {
@@ -364,7 +373,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             var squadMap = new Dictionary<long, Database.Squad>();
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 if (ctx.Squads.Count() > 0)
                 {
@@ -393,7 +402,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             Console.WriteLine("7a. Saving Squads->Players...");
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 foreach (var oldP in oldPlayers)
                 {
@@ -417,7 +426,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             Console.WriteLine("8. Creating bans...");
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 foreach (var ob in oldBans)
                 {
@@ -441,7 +450,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             Console.WriteLine("9. Creating history logs...");
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 foreach (var oh in oldHistory)
                 {
@@ -463,7 +472,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             Console.WriteLine("10. Creating help calls...");
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 foreach(var ohc in oldHelpCalls)
                 {
@@ -483,7 +492,7 @@ namespace SqlServerToSqliteMigrationConsole
 
             Console.WriteLine("11. Creating reset tokens...");
 
-            using (var ctx = new SqliteDbContext())
+            using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 foreach(var ort in oldResetTokens)
                 {

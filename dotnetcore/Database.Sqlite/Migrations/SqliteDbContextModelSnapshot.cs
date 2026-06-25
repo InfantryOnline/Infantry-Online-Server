@@ -781,6 +781,36 @@ namespace Database.Sqlite.Migrations
                     b.ToTable("StatsYearlies");
                 });
 
+            modelBuilder.Entity("Database.Zmod", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Account")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("AccountNavigationAccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Zone")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("ZoneNavigationZoneId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountNavigationAccountId");
+
+                    b.HasIndex("ZoneNavigationZoneId");
+
+                    b.ToTable("Zmods");
+                });
+
             modelBuilder.Entity("Database.Zone", b =>
                 {
                     b.Property<long>("ZoneId")
@@ -962,11 +992,32 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("ZoneNavigation");
                 });
 
+            modelBuilder.Entity("Database.Zmod", b =>
+                {
+                    b.HasOne("Database.Account", "AccountNavigation")
+                        .WithMany("Zmods")
+                        .HasForeignKey("AccountNavigationAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Database.Zone", "ZoneNavigation")
+                        .WithMany("Zmods")
+                        .HasForeignKey("ZoneNavigationZoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AccountNavigation");
+
+                    b.Navigation("ZoneNavigation");
+                });
+
             modelBuilder.Entity("Database.Account", b =>
                 {
                     b.Navigation("Aliases");
 
                     b.Navigation("ResetTokens");
+
+                    b.Navigation("Zmods");
                 });
 
             modelBuilder.Entity("Database.Alias", b =>
@@ -1008,6 +1059,8 @@ namespace Database.Sqlite.Migrations
                     b.Navigation("StatsWeeklies");
 
                     b.Navigation("StatsYearlies");
+
+                    b.Navigation("Zmods");
                 });
 #pragma warning restore 612, 618
         }

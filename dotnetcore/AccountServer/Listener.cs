@@ -10,12 +10,18 @@ using System.Text.Json;
 
 namespace AccountServer
 {
+    public class IpRequestCount
+    {
+        public int Count { get; set; }
+        public DateTime LastRequest { get; set; }
+    }
+
     public class Listener
     {
         private HttpListener httpListener;
         private DatabaseClient client;
 
-        private string[] prefixes = {@"http://0.0.0.0:1437/Account/"};
+        public Dictionary<string, IpRequestCount> requests = new Dictionary<string, IpRequestCount>();
 
         /// <summary>
         /// Generic Constructor
@@ -77,6 +83,43 @@ namespace AccountServer
             HttpListenerResponse response = context.Response;
 
             Console.WriteLine("Request {0}/{1} from {2}", request.RawUrl.ToString(), request.HttpMethod, request.RemoteEndPoint);
+
+            try
+            {
+                var ip = request.RemoteEndPoint.Address.ToString();
+
+                var hasEntry = requests.ContainsKey(ip);
+
+                if (!hasEntry)
+                {
+                    requests.Add(ip, new IpRequestCount { Count = 0, LastRequest = new DateTime(1970, 1, 1) });
+                }
+
+                var entry = requests[ip];
+
+                if (DateTime.Now - entry.LastRequest <= TimeSpan.FromSeconds(5))
+                {
+                    entry.Count++;
+
+                    if (entry.Count > 5)
+                    {
+                        response.StatusCode = 400; //BadRequest
+                        response.OutputStream.Close();
+                        return;
+                    }
+                }
+                else
+                {
+                    entry.Count = 0;
+                }
+
+                entry.LastRequest = DateTime.Now;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
             try
             {
                 // Lets figure out the request...
@@ -85,6 +128,18 @@ namespace AccountServer
                     // Sanity check request
                     case "GET":
                         byte[] responseString;
+
+                        if (request.Url.AbsolutePath.Contains("health-check"))
+                        {
+                            responseString = Encoding.UTF8.GetBytes(client.GetHealthCheck());
+                            response.StatusCode = 200;
+
+                            response.ContentLength64 = responseString.Length;
+                            response.OutputStream.Write(responseString, 0, responseString.Length);
+                            response.OutputStream.Close();
+
+                            break;
+                        }
 
                         //We verifying a password reset token?
                         if (request.Url.AbsolutePath.Contains("verify-token"))
