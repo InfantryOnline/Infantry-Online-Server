@@ -51,41 +51,57 @@ namespace DaemonConsole
                 "install",
                 "Installs a new zone with the given name");
 
-            var installArg = new Argument<string>(null, description: "Name of the zone to install");
+            var installArg = new Argument<string>("zone name")
+            {
+                Description = "Name of the zone to install"
+            };
             installArg.HelpName = "zone name";
 
-            install.AddArgument(installArg);
 
-            var kit = new Option<string>(new[] { "--kit", "-k" }, "Starting kit name (f.e. bhx, ctfpl, ...)");
+            install.Arguments.Add(installArg);
 
-            install.AddOption(kit);
+            var kit = new Option<string>("--kit", "-k")
+            {
+                Description = "Starting kit name (f.e. bhx, ctfpl, ...)"
+            };
+
+            install.Options.Add(kit);
 
             var start = new Command(
                 "start",
                 "Starts the zone server for the given zone name.");
 
-            var startArg = new Argument<string>(null, description: "Name of the zone to start.");
+            var startArg = new Argument<string>("zone name")
+            {
+                Description = "Name of the zone to start."
+            };
             startArg.HelpName = "zone name";
 
-            start.AddArgument(startArg);
+            start.Arguments.Add(startArg);
 
             var stop = new Command(
                 "stop",
                 "Stops the zone server for the given zone name.");
 
-            var stopArg = new Argument<string>(null, description: "Name of the zone to stop.");
+            var stopArg = new Argument<string>("zone name")
+            {
+                Description = "Name of the zone to stop."
+            };
             stopArg.HelpName = "zone name";
 
-            stop.AddArgument(stopArg);
+            stop.Arguments.Add(stopArg);
 
             var restart = new Command(
                 "restart",
                 "Restarts the zone server for the given zone name.");
 
-            var restartArg = new Argument<string>(null, description: "Name of the zone to restart.");
+            var restartArg = new Argument<string>("zone name")
+            {
+                Description = "Name of the zone to restart."
+            };
             restartArg.HelpName = "zone name";
 
-            restart.AddArgument(restartArg);
+            restart.Arguments.Add(restartArg);
 
             var status = new Command(
                 "status",
@@ -95,8 +111,10 @@ namespace DaemonConsole
                 "killd",
                 "Shoots the daemon until it dies.");
 
-            install.SetHandler(async (string name, string kitName) =>
+            install.SetAction(async parseResult =>
             {
+                var name = parseResult.GetValue(installArg);
+                var kitName = parseResult.GetValue(kit);
                 var newZonePath = Path.Combine(GetZonesFolderDirectoryPath(), name);
 
                 if (Directory.Exists(newZonePath))
@@ -137,10 +155,11 @@ namespace DaemonConsole
                     Console.Error.WriteLine("Error extracting zip archive.");
                     Console.Error.WriteLine(ex.Message);
                 }
-            }, installArg, kit);
+            });
 
-            start.SetHandler(async (string name) =>
+            start.SetAction(async parseResult =>
             {
+                var name = parseResult.GetValue(startArg);
                 var pipeClient = await CreatePipeClient();
 
                 var startPacket = new Start { Name = name };
@@ -176,19 +195,21 @@ namespace DaemonConsole
                 pipeClient.Close();
 
                 Console.WriteLine(name);
-            }, startArg);
+            });
 
-            stop.SetHandler(async (string name) =>
+            stop.SetAction(parseResult =>
             {
+                var name = parseResult.GetValue(stopArg);
                 Console.WriteLine(name);
-            }, stopArg);
+            });
 
-            restart.SetHandler(async (string name) =>
+            restart.SetAction(parseResult =>
             {
+                var name = parseResult.GetValue(restartArg);
                 Console.WriteLine(name);
-            }, restartArg);
+            });
 
-            status.SetHandler(async () =>
+            status.SetAction(_ =>
             {
                 var proc = Process.GetProcessesByName(daemonName).FirstOrDefault();
 
@@ -218,7 +239,7 @@ namespace DaemonConsole
                 }
             });
 
-            killd.SetHandler(async () =>
+            killd.SetAction(_ =>
             {
                 var procs = Process.GetProcessesByName(daemonName);
 
@@ -231,12 +252,12 @@ namespace DaemonConsole
 
             var rootCommand = new RootCommand("Infantry Online Daemon");
 
-            rootCommand.AddCommand(install);
-            rootCommand.AddCommand(start);
-            rootCommand.AddCommand(stop);
-            rootCommand.AddCommand(restart);
-            rootCommand.AddCommand(status);
-            rootCommand.AddCommand(killd);
+            rootCommand.Subcommands.Add(install);
+            rootCommand.Subcommands.Add(start);
+            rootCommand.Subcommands.Add(stop);
+            rootCommand.Subcommands.Add(restart);
+            rootCommand.Subcommands.Add(status);
+            rootCommand.Subcommands.Add(killd);
 
             //
             // Check if daemon process is even running at all.
@@ -276,7 +297,7 @@ namespace DaemonConsole
                 await Task.Delay(5000);
             }
 
-            return await rootCommand.InvokeAsync(args);
+            return await rootCommand.Parse(args).InvokeAsync();
         }
 
         static async Task<NamedPipeClientStream> CreatePipeClient()
