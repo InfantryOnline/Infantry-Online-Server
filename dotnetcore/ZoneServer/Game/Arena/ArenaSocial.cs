@@ -124,113 +124,142 @@ namespace InfServer.Game
         /// Handles a moderator command received from a player
         /// </summary>
         public void playerModCommand(Player from, Player recipient, string command, string payload, int bong)
-        {
-            if (!_commandRegistrar._modCommands.TryGetValue(command.ToLower(), out HandlerDescriptor handler))
+        {	//Attempt to find the appropriate handler
+            HandlerDescriptor handler;
+
+            if (!_commandRegistrar._modCommands.TryGetValue(command.ToLower(), out handler))
             {
-                if (String.IsNullOrEmpty(command) && !String.IsNullOrWhiteSpace(payload) && from.PermissionLevelLocal > Data.PlayerPermission.Normal)
+                if (String.IsNullOrEmpty(command) && !String.IsNullOrWhiteSpace(payload)
+                    && from.PermissionLevelLocal > Data.PlayerPermission.Normal)
                 {
-                    //
-                    // Nothing follows the asterisk prefix (so it is not a command) - echo out to Mod Chat as a normal message instead.
-                    //
-                    foreach (Player p in Players)
+                    //Mod chat
+                    if (_server.IsStandalone)
                     {
-                        if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.Level1)
-                        {
-                            p.sendMessage(0, String.Format($"![ModChat] [{from._alias}]> {payload}"));
-                        }
+                        foreach (Player p in Players)
+                            if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                            {
+                                p.sendMessage(0, String.Format("![ModChat] [{0}]> {1}",
+                                    from._alias, payload));
+                            }
+                    }
+                    else
+                    {
+                        //For arena owners only
+                        foreach (Player p in Players)
+                            if (p != from && p.PermissionLevelLocal >= Data.PlayerPermission.ArenaMod)
+                            {
+                                p.sendMessage(0, String.Format("![ModChat] [{0}]> {1}", from._alias, payload));
+                            }
+
+                        //For all other mods
+                        //CS_ChatQuery<Data.Database> pkt = new CS_ChatQuery<Data.Database>();
+                        //pkt.queryType = CS_ChatQuery<Data.Database>.QueryType.modChat;
+                        //pkt.sender = from._alias;
+                        //pkt.payload = String.Format("![ModChat] [{0}]> {1}", from._alias, payload);
+                        ////Send it!
+                        //_server._db.send(pkt);
                     }
                 }
                 else
-                {
-                    //
-                    // Command does not exist in our registrar. Maybe a custom scripted command,
-                    // although we really shouldn't use these.
-                    //
+                    //Possibly a scripted mod command, lets pass it
                     from._arena.handlePlayerModCommand(from, recipient, command, payload);
-
-                    //
-                    // TODO: Emit a warning saying that commands should be registered through
-                    //       the command registrar.
-                    //
-                }
-
                 return;
             }
 
-            //
-            // Extract the permission levels from the command, and from the player; if the player
-            // is allowed to use this command, then go ahead and execute.
-            //
-
-            var minLevel = (sbyte)handler.Permission.PermissionLevel;
-            var aa = handler.Permission.AllowedAuthorities;
-
-            var hasPermission = aa.HasFlag(PermissionAuthority.Player)
-                                || (aa.HasFlag(PermissionAuthority.Mod) && minLevel <= from.modpermission)
-                                || (aa.HasFlag(PermissionAuthority.ZoneMod) && minLevel <= from.zmodpermission)
-                                || (aa.HasFlag(PermissionAuthority.Host) && minLevel <= from.hostpermission);
-
-            if (!hasPermission)
+            //Are they a developer?
+            if (!from._developer)
+            {   //No
+                //Check the permission levels
+                if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
+                {	//Not going to happen.
+                    return;
+                }
+            }
+            else
             {
-                return;
+                //They are, is this a dev command?
+                if (!handler.isDevCommand)
+                    return;
+                //Do they have the power?
+                if ((int)from.PermissionLevelLocal < (int)handler.permissionLevel)
+                    //Nope
+                    return;
             }
 
-            if (minLevel > (sbyte)PlayerPermission.Normal) // Authority-gated command, perform additional checks, and echo command out.
-            {
-                string sRecipient = (recipient != null) ? " :" + recipient._alias + ":" : "(none)";
-
-                foreach (var p in Players)
+            //Command logging (ignore normal player permission commands like *help, etc)
+            if (from.PermissionLevelLocal != Data.PlayerPermission.Normal)
+            {   //Notify his superiors in the arena
+                string sRecipient;
+                foreach (Player p in Players)
                 {
-                    if (p != from && !p._watchMod) { continue; } // Player does not want to be notified.
-
-                    if (p.hostpermission >= from.hostpermission || p.zmodpermission >= from.zmodpermission || p.modpermission >= from.modpermission)
+                    if (p != from && !p._watchMod)
+                        //We have watchmod commands off, bypass this player
+                        continue;
+                    if (p != from && (int)from.PermissionLevelLocal <= (int)p.PermissionLevelLocal)
                     {
-                        p.sendMessage(0, String.Format($"&[Arena: {from._arena._name}] {from._alias}>{sRecipient} *{command} {payload}"));
+                        p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",
+                            from._arena._name,
+                            from._alias,
+                            sRecipient = (recipient != null)
+                                ? " :" + recipient._alias + ":"
+                                : String.Empty,
+                            command,
+                            payload));
+                    }
+                    //Developer?
+                    else if (from._developer)
+                    {
+                        if (p.PermissionLevelLocal >= Data.PlayerPermission.Mod && p != from)
+                            p.sendMessage(0, String.Format("&[Arena: {0}] {1}>{2} *{3} {4}",
+                            from._arena._name,
+                            from._alias,
+                            sRecipient = (recipient != null)
+                                ? " :" + recipient._alias + ":"
+                                : String.Empty,
+                            command,
+                            payload));
                     }
                 }
 
-                var hostPowered = from.modpermission == 0 && from.zmodpermission == 0;
-
-                if (recipient != null && hostPowered)
-                {
-                    if (!Players.Any(p => p._id == recipient._id))
-                    {
-                        from.sendMessage(-1, "You cannot use commands from one arena to another.");
-                        return;
-                    }
-                }
-
-                //
-                // Log usage to the database.
-                //
+                //Log it in the history database
                 if (!_server.IsStandalone)
                 {
                     CS_ModCommand<Data.Database> pkt = new CS_ModCommand<Data.Database>();
                     pkt.sender = from._alias;
-                    pkt.recipient = (recipient != null) ? recipient._alias : "(none)";
+                    pkt.recipient = (recipient != null) ? recipient._alias : "none";
                     pkt.zone = from._server.Name;
                     pkt.arena = from._arena._name;
                     pkt.command = command + " " + payload;
 
+                    //Send it!
                     from._server._db.send(pkt);
                 }
             }
 
             try
             {
-                // Go ahead and execute.
+                //Security hole fix
+                //Lets check their level and their arena
+                if (from.PermissionLevel < Data.PlayerPermission.SMod)
+                {
+                    if (recipient != null && !recipient._arena._name.Equals(from._arena._name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        from.sendMessage(-1, "You cannot use commands from one arena to another.");
+                        return;
+                    }
+                }
+
+                //Handle it!
                 handler.handler(from, recipient, payload, bong);
             }
             catch (Exception ex)
             {
                 if (recipient != null)
-                {
-                    Log.write(TLog.Exception, $"Exception while executing mod command '{command}' from '{from}' to '{recipient}'.\r\nPayload: {payload}\r\n{ex}");
-                }
+                    Log.write(TLog.Exception, "Exception while executing mod command '{0}' from '{1}' to '{2}'.\r\nPayload: {3}\r\n{4}",
+                        command, from, recipient, payload, ex);
                 else
-                {
-                    Log.write(TLog.Exception, $"Exception while executing mod command '{command}' from '{from}'.\r\nPayload: {payload}\r\n{ex}");
-                }
+                    Log.write(TLog.Exception, "Exception while executing mod command '{0}' from '{1}'.\r\nPayload: {2}\r\n{3}",
+                        command, from, payload, ex);
             }
         }
 
