@@ -142,7 +142,7 @@ namespace AccountServer
                     return false;
                 }
 
-                var parts = account.Password.Split('.');
+                var parts = account.Password.Split('.', StringSplitOptions.RemoveEmptyEntries);
 
                 if (parts.Length == 2)
                 {
@@ -396,7 +396,7 @@ namespace AccountServer
                     return;
                 }
 
-                var parts = account.Password.Split('.');
+                var parts = account.Password.Split('.', StringSplitOptions.RemoveEmptyEntries);
 
                 if (parts.Length == 2)
                 {

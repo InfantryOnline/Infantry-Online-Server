@@ -44,7 +44,7 @@ public partial class SqlServerDbContext : InfantryDbContext
                 .IsUnicode(false)
                 .HasColumnName("name");
             entity.Property(e => e.Password)
-                .HasMaxLength(64)
+                .HasMaxLength(256)
                 .IsUnicode(false)
                 .HasColumnName("password");
             entity.Property(e => e.Permission).HasColumnName("permission");

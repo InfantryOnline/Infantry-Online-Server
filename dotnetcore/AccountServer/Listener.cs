@@ -259,7 +259,7 @@ namespace AccountServer
 		        	    }
 						
                         // Add it to the database, and we're good to go!
-                        var account = client.AccountCreate(regModel.Username, regModel.PasswordHashSha256,
+                        var account = client.AccountCreate(regModel.Username, regModel.PasswordHashMd5,
                                                            Guid.NewGuid().ToString(),
                                                            DateTime.Now, DateTime.Now, 0, regModel.Email);
 
@@ -536,6 +536,9 @@ namespace AccountServer
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                response.StatusCode = 500; //Internal Server Error
+                response.StatusDescription = "Server Error.";
+                response.OutputStream.Close();
             }
         }
     }

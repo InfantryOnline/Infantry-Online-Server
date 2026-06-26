@@ -86,7 +86,7 @@ namespace AccountServer.Models
             public string PasswordHash { get; set; }
             public string Email { get; set; }
 
-            public string PasswordHashSha256 => Crypto.ComputeSha256Hash(PasswordHash);
+            public string PasswordHashMd5 => PasswordHash;
 
             public bool IsRequestValid()
             {
