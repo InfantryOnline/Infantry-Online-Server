@@ -119,7 +119,7 @@ namespace AccountServer.Models
             public string Token { get; set; }
             public string Password { get; set; }
 
-            public string PasswordHashSha256 => Crypto.ComputeSha256Hash(Crypto.Hash(Password));
+            public string PasswordMd5Hash => Crypto.ComputeMd5Hash(Password);
 
             public bool IsRequestValid()
             {
@@ -133,7 +133,7 @@ namespace AccountServer.Models
             public string Username { get; set; }
             public string PasswordHash { get; set; }
 
-            public string PasswordHashSha256 => Crypto.ComputeSha256Hash(PasswordHash);
+            public string PasswordMd5Hash => PasswordHash;
 
             public bool IsRequestValid()
             {

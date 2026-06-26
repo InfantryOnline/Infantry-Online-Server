@@ -447,7 +447,7 @@ namespace AccountServer
                             }
 
                             //3. Was the reset successful?
-                            if(!client.TryUpdatePasswordWithToken(resetModel.Token, resetModel.PasswordHashSha256))
+                            if(!client.TryUpdatePasswordWithToken(resetModel.Token, resetModel.PasswordMd5Hash))
                             {
                                 responseString = Encoding.UTF8.GetBytes("false");
                                 response.StatusCode = 500; //Internal Server Error
@@ -492,7 +492,7 @@ namespace AccountServer
                         }
 
                         // 3b. Are the credentials good?
-                        if (!client.IsAccountValid(loginModel.Username, loginModel.PasswordHashSha256))
+                        if (!client.IsAccountValid(loginModel.Username, loginModel.PasswordMd5Hash))
                         {
                             response.StatusCode = 404; //Not Found
                             response.StatusDescription = "Incorrect Password.";
@@ -502,7 +502,7 @@ namespace AccountServer
                         }
 
                         // Try logging in
-                        Account a = client.AccountLogin(loginModel.Username, loginModel.PasswordHashSha256, request.RemoteEndPoint.Address.ToString());
+                        Account a = client.AccountLogin(loginModel.Username, loginModel.PasswordMd5Hash, request.RemoteEndPoint.Address.ToString());
 
                         // 4. Was it successful?
                         if (a == null)

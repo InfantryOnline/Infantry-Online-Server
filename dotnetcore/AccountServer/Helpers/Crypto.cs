@@ -6,10 +6,49 @@ namespace AccountServer.Helpers
 {
     public static class Crypto
     {
+        private const int SaltSize = 16; // 128 bits
+        private const int KeySize = 32;  // 256 bits
+        private const int Iterations = 600_000; // Current OWASP recommended minimum for PBKDF2-SHA256
+        private static readonly HashAlgorithmName HashAlgorithm = HashAlgorithmName.SHA256;
+
+        public static (string Hash, string Salt) HashPassword(string password)
+        {
+            // 1. Generate a cryptographically secure random salt
+            byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
+
+            // 2. Derive the byte array hash using PBKDF2
+            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+                Encoding.UTF8.GetBytes(password),
+                salt,
+                Iterations,
+                HashAlgorithm,
+                KeySize);
+
+            // 3. Convert both to Hex or Base64 strings for database storage
+            return (Convert.ToHexString(hash), Convert.ToHexString(salt));
+        }
+
+        public static bool VerifyPassword(string password, string storedHash, string storedSalt)
+        {
+            byte[] salt = Convert.FromHexString(storedSalt);
+            byte[] hash = Convert.FromHexString(storedHash);
+
+            // Re-hash the input password using the retrieved salt
+            byte[] newHash = Rfc2898DeriveBytes.Pbkdf2(
+                Encoding.UTF8.GetBytes(password),
+                salt,
+                Iterations,
+                HashAlgorithm,
+                KeySize);
+
+            // Use CryptographicOperations.FixedTimeEquals to prevent timing attacks
+            return CryptographicOperations.FixedTimeEquals(hash, newHash);
+        }
+
         /// <summary>
         /// Creates an MD5 has from a specific string
         /// </summary>
-        public static string Hash(string str)
+        public static string ComputeMd5Hash(string str)
         {
             if (string.IsNullOrEmpty(str))
                 return null;

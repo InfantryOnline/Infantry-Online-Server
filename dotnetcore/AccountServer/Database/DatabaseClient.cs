@@ -131,11 +131,26 @@ namespace AccountServer
         /// <summary>
         /// Does the username and password match our records
         /// </summary>
-        public bool IsAccountValid(string username, string password)
+        public bool IsAccountValid(string username, string passwordMd5Hash)
         {
             using (var ctx = _dbContextFactory.CreateDbContext())
             {
-                return ctx.Accounts.Any(a => a.Name == username && a.Password == password);
+                var account = ctx.Accounts.FirstOrDefault(a => a.Name == username);
+
+                if (account == null)
+                {
+                    return false;
+                }
+
+                var parts = account.Password.Split('.');
+
+                if (parts.Length == 2)
+                {
+                    return Crypto.VerifyPassword(passwordMd5Hash, parts[0], parts[1]);
+                }
+
+                // Old-style SHA256 passwords.
+                return account.Password == Crypto.ComputeSha256Hash(passwordMd5Hash);
             }
         }
 
@@ -153,12 +168,14 @@ namespace AccountServer
         /// <summary>
         /// Tries logging in using the given username and pass and returns a parsed account object
         /// </summary>
-        public Account? AccountLogin(string username, string password, string IPAddress)
+        public Account? AccountLogin(string username, string passwordMd5Hash, string IPAddress)
         {
-            if (!IsAccountValid(username, password))
+            if (!IsAccountValid(username, passwordMd5Hash))
             {
                 return null;
             }
+
+            TryUpgradePassword(username, passwordMd5Hash);
 
             using (var ctx = _dbContextFactory.CreateDbContext())
             {
@@ -293,9 +310,9 @@ namespace AccountServer
         /// <summary>
         /// Updates a users password after being reset
         /// </summary>
-        public bool TryUpdatePasswordWithToken(string token, string password)
+        public bool TryUpdatePasswordWithToken(string token, string passwordMd5Hash)
         {
-            if (string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(passwordMd5Hash))
             {
                 return false;
             }
@@ -304,8 +321,10 @@ namespace AccountServer
             {
                 var rt = ctx.ResetTokens.Include(r => r.AccountNavigation).FirstOrDefault(t => t.Token == token);
 
+                var parts = Crypto.HashPassword(passwordMd5Hash);
+
                 rt.TokenUsed = true;
-                rt.AccountNavigation.Password = password;
+                rt.AccountNavigation.Password = $"{parts.Hash}.{parts.Salt}";
 
                 ctx.SaveChanges();
             }
@@ -364,6 +383,32 @@ namespace AccountServer
                 Console.WriteLine(e.ToString());
             }
             return false;
+        }
+
+        private void TryUpgradePassword(string username, string passwordMd5Hash)
+        {
+            using (var ctx = _dbContextFactory.CreateDbContext())
+            {
+                var account = ctx.Accounts.FirstOrDefault(a => a.Name == username);
+
+                if (account == null)
+                {
+                    return;
+                }
+
+                var parts = account.Password.Split('.');
+
+                if (parts.Length == 2)
+                {
+                    // Already upgraded
+                    return;
+                }
+
+                var output = Crypto.HashPassword(passwordMd5Hash);
+
+                account.Password = $"{output.Hash}.{output.Salt}";
+                ctx.SaveChanges();
+            }
         }
 
         /// <summary>
