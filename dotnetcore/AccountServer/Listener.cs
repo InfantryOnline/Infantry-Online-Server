@@ -101,7 +101,7 @@ namespace AccountServer
                 {
                     entry.Count++;
 
-                    if (entry.Count > 5)
+                    if (entry.Count > 8)
                     {
                         response.StatusCode = 400; //BadRequest
                         response.OutputStream.Close();
