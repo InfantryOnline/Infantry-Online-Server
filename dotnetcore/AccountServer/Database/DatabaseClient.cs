@@ -86,12 +86,14 @@ namespace AccountServer
                 return null;
             }
 
+            var pwd = Crypto.HashPassword(password);
+
             using (var ctx = _dbContextFactory.CreateDbContext())
             {
                 var acct = new Database.Account
                 {
                     Name = username,
-                    Password = password,
+                    Password = $"{pwd.Hash}.{pwd.Salt}",
                     Ticket = ticket,
                     DateCreated = dateCreated,
                     LastAccess = lastAccess,
@@ -110,7 +112,7 @@ namespace AccountServer
                     LastAccessed = lastAccess,
                     SessionId = Guid.Parse(ticket),
                     Username = username,
-                    Password = password,
+                    Password = $"{pwd.Hash}.{pwd.Salt}",
                     Permission = permission,
                     Email = email
                 };
