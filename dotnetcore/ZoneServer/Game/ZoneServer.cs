@@ -191,6 +191,9 @@ namespace InfServer.Game
 
             _zoneConfig = CfgInfo.Load(cfgFilePath);
 
+            //Set the global Y scale: isometric levels use 0.7, non-isometric use 1.0
+            Helpers.ZoneLevelYScale = _zoneConfig.level.isometric ? 0.7d : 1.0d;
+
             //Load assets from zone config and populate AssMan
             try
             {
