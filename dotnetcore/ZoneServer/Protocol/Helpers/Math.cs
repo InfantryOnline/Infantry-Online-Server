@@ -14,6 +14,16 @@ namespace InfServer.Protocol
 	/// </summary>
 	public partial class Helpers
 	{	///////////////////////////////////////////////////
+		// Member Variables
+		//////////////////////////////////////////////////
+		/// <summary>
+		/// Global Y-scale used for lead-fire angle calculations.
+		/// Defaults to 0.7; set to 1.0 for non-isometric levels once
+		/// the zone config has been loaded.
+		/// </summary>
+		static public double ZoneLevelYScale = 0.7d;
+
+		///////////////////////////////////////////////////
 		// Member Functions
 		//////////////////////////////////////////////////
 		/// <summary>
@@ -201,7 +211,7 @@ namespace InfServer.Protocol
 
 			//Get the relative position of target at (x_1, x_2) where turret is at 0,0
 			double x_1 = target.positionX - state.positionX;
-			double x_2 = (target.positionY - state.positionY) / 0.7d;		//The Y coordinates are smaller than x, hence 0.7
+			double x_2 = (target.positionY - state.positionY) / ZoneLevelYScale;		//The Y coordinates are smaller than x, hence 0.7
 
 			// Convert velocity (thousandths of pixels per tick) to pixels per tick
 			double v_1 = target.velocityX / 1000.0d;
