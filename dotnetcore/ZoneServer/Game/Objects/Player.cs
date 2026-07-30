@@ -754,49 +754,66 @@ namespace InfServer.Game
         }
 
         /// <summary>
-        /// Checks Held Category logic, returns the amount of items a player may be able to pick up depending on category
+        /// Checks Held Category logic, returns the amount of items a player may be able to pick up depending on category.
+        /// A category exposes two independent caps: 'limit' is the maximum number of distinct item types of the
+        /// category, while 'extendedLimit' is the maximum total quantity across all items of the category combined.
         /// </summary>
         public int heldCategoryCheck(ItemInfo item, int adjust)
         {
-            int result = adjust;
+            //Only applies when picking up items of a valid category
+            if (adjust <= 0 || item.heldCategoryType <= 0)
+                return adjust;
 
-            //Held category checks
-            if (adjust > 0 && item.heldCategoryType > 0)
+            //Maybe they haven't instanced an active vehicle yet?
+            if (ActiveVehicle == null)
+                return 0;
+
+            int idx = item.heldCategoryType - 1;
+
+            //Resolves a held-category cap through the precedence chain:
+            //active vehicle -> base vehicle -> zone cfg. -1 means "no limit".
+            int resolveCap(short[] active, short[] baseVeh, int cfgValue)
             {
-
-                //The amount we already have
-                int alreadyHolding = _inventory
-                    .Where(it => it.Value.item.heldCategoryType == item.heldCategoryType)
-                    .Sum(it => it.Value.quantity);
-
-                //The total amount our player desires
-                int desired = adjust + alreadyHolding;
-
-                //Veh editor says a held category is "maximum number of unique types of items of this category type"
-                //Vehicle hold categories take precedence over the cfg values
-                if (ActiveVehicle == null)
-                    //Maybe they haven't instanced an active vehicle yet?
-                    return 0;
-
-                if (ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
-                {
-                    if (desired > ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
-                        return ActiveVehicle._type.HoldItemLimits[item.heldCategoryType - 1] - alreadyHolding;
-                }
-                else if (ActiveVehicle != _baseVehicle &&
-                    _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1] != -1)
-                {
-                    if (desired > _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1])
-                        return _baseVehicle._type.HoldItemLimits[item.heldCategoryType - 1] - alreadyHolding;
-                }
-                else if (_server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1] != -1)
-                {
-                    if (desired > _server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1])
-                        return _server._zoneConfig.heldCategory.limit[item.heldCategoryType - 1] - alreadyHolding;
-                }
+                if (active[idx] != -1)
+                    return active[idx];
+                if (ActiveVehicle != _baseVehicle && baseVeh[idx] != -1)
+                    return baseVeh[idx];
+                return cfgValue;
             }
 
-            return result;
+            //'limit': maximum number of unique item types of this category
+            int limit = resolveCap(ActiveVehicle._type.HoldItemLimits,
+                                   _baseVehicle._type.HoldItemLimits,
+                                   _server._zoneConfig.heldCategory.limit[idx]);
+
+            //'extendedLimit': maximum total quantity across all items of this category combined
+            int extendedLimit = resolveCap(ActiveVehicle._type.HoldItemExtendedLimits,
+                                           _baseVehicle._type.HoldItemExtendedLimits,
+                                           _server._zoneConfig.heldCategory.extendedLimit[idx]);
+
+            //Items of this category we already hold
+            var categoryItems = _inventory
+                .Where(it => it.Value.item.heldCategoryType == item.heldCategoryType);
+
+            //We can never introduce a brand-new item type once the distinct-type cap is reached
+            if (limit != -1 && !_inventory.ContainsKey(item.id))
+            {
+                if (categoryItems.Count() + 1 > limit)
+                    return 0;
+            }
+
+            int allowed = adjust;
+
+            //The extended limit caps the total quantity we may hold across the whole category
+            if (extendedLimit != -1)
+            {	//Only as much room as the cap leaves us
+                int alreadyHolding = categoryItems.Sum(it => (int)it.Value.quantity);
+                int room = extendedLimit - alreadyHolding;
+                if (allowed > room)
+                    allowed = room;
+            }
+
+            return allowed < 0 ? 0 : allowed;
         }
 
         /// <summary>
