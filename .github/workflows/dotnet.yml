@@ -113,6 +113,7 @@ jobs:
   build-publish:
     runs-on: ubuntu-latest
     needs: [build-windows, build-linux, build-windows-infrastructure, build-linux-infrastructure]
+    if: github.event_name != 'pull_request'
 
     steps:
     - name: Get Date Format
