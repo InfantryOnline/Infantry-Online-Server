@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Assets
 {
@@ -41,7 +42,35 @@ namespace Assets
 
         public static List<VehInfo> Load(string path)
         {
-            return CsvFile<VehInfo>.Load(path, Instantiate, false);
+            return LoadWithResolution(path, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        }
+
+        private static List<VehInfo> LoadWithResolution(string path, HashSet<string> seen)
+        {
+            string dir = Path.GetDirectoryName(path) ?? "";
+            seen.Add(Path.GetFullPath(path));
+
+            List<VehInfo> records = CsvFile<VehInfo>.Load(path, Instantiate, false);
+
+            var result = new List<VehInfo>(records.Count);
+            foreach (VehInfo record in records)
+            {
+                if (record is Nested nested)
+                {
+                    string refPath = Path.GetFullPath(Path.Combine(dir, nested.VehicleFileName));
+
+                    if (!seen.Add(refPath))
+                        continue;
+
+                    result.AddRange(LoadWithResolution(refPath, seen));
+                }
+                else
+                {
+                    result.Add(record);
+                }
+            }
+
+            return result;
         }
 
         public Types Type;
