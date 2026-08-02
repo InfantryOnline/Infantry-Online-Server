@@ -79,7 +79,7 @@ namespace InfServer.Game
 			ItemFile itms = AssetFileFactory.CreateFromFile<ItemFile>(zoneConf.level.itmFile);
 			LioFile lios = AssetFileFactory.CreateFromFile<LioFile>(zoneConf.level.lioFile);
 			SkillFile rpgs = AssetFileFactory.CreateFromFile<SkillFile>(zoneConf.level.rpgFile);
-			VehicleFile vehs = AssetFileFactory.CreateFromFile<VehicleFile>(zoneConf.level.vehFile);
+			VehicleFile vehs = LoadVehicleFiles(zoneConf);
 			LevelFile lvl = AssetFileFactory.CreateFromFile<LevelFile>(zoneConf.level.lvlFile);
 
 			if (itms == null || lios == null || rpgs == null || vehs == null || lvl == null)
@@ -506,6 +506,48 @@ namespace InfServer.Game
 		public List<AssetInfo> getAssetList()
 		{
 			return _assetList;
+		}
+
+		/// <summary>
+		/// Some vehicle files have nested vehicle files within, this will grab all of them as needed.
+		/// </summary>
+		private VehicleFile LoadVehicleFiles(CfgInfo zoneConf)
+		{
+			VehicleFile mainFile = AssetFileFactory.CreateFromFile<VehicleFile>(zoneConf.level.vehFile);
+			if (mainFile == null)
+				return null;
+
+			List<VehicleFile> nestedFiles = new List<VehicleFile>();
+
+			foreach (VehInfo veh in mainFile.Data)
+			{
+				if (veh.Type != VehInfo.Types.Nested)
+					continue;
+
+				VehInfo.Nested nestedVeh = (VehInfo.Nested)veh;
+				if (string.IsNullOrEmpty(nestedVeh.VehicleFileName))
+					continue;
+
+				Log.write(TLog.Normal, "Resolving nested vehicle file: {0}", nestedVeh.VehicleFileName);
+				VehicleFile fileInfo = AssetFileFactory.CreateFromFile<VehicleFile>(nestedVeh.VehicleFileName);
+
+				if (fileInfo == null)
+				{
+					Log.write(TLog.Warning, "Nested vehicle file not found, skipping: {0}", nestedVeh.VehicleFileName);
+					continue;
+				}
+
+				nestedFiles.Add(fileInfo);
+				addAssetData(fileInfo);
+			}
+
+			foreach (VehicleFile nestedFile in nestedFiles)
+				mainFile.Data.AddRange(nestedFile.Data);
+
+			// remove all nested references to prevent duplicate id issues for no reason
+			mainFile.Data.RemoveAll(veh => veh.Type == VehInfo.Types.Nested);
+
+			return mainFile;
 		}
 	}
 }
