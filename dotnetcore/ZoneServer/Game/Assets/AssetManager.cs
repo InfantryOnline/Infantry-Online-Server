@@ -76,7 +76,7 @@ namespace InfServer.Game
 			addAssetData(AssetFileFactory.CreateFromFile<AssetFile>(configFilename));
 
 			//Load shit up
-			ItemFile itms = AssetFileFactory.CreateFromFile<ItemFile>(zoneConf.level.itmFile);
+			ItemFile itms = LoadItemFiles(zoneConf);
 			LioFile lios = AssetFileFactory.CreateFromFile<LioFile>(zoneConf.level.lioFile);
 			SkillFile rpgs = AssetFileFactory.CreateFromFile<SkillFile>(zoneConf.level.rpgFile);
 			VehicleFile vehs = LoadVehicleFiles(zoneConf);
@@ -546,6 +546,48 @@ namespace InfServer.Game
 
 			// remove all nested references to prevent duplicate id issues for no reason
 			mainFile.Data.RemoveAll(veh => veh.Type == VehInfo.Types.Nested);
+
+			return mainFile;
+		}
+
+		/// <summary>
+		/// Some item files have nested item files within, this will grab all of them as needed.
+		/// </summary>
+		private ItemFile LoadItemFiles(CfgInfo zoneConf)
+		{
+			ItemFile mainFile = AssetFileFactory.CreateFromFile<ItemFile>(zoneConf.level.itmFile);
+			if (mainFile == null)
+				return null;
+
+			List<ItemFile> nestedFiles = new List<ItemFile>();
+
+			foreach (ItemInfo item in mainFile.Data)
+			{
+				if (item.itemType != ItemInfo.ItemType.Nested)
+					continue;
+
+				ItemInfo.NestedItem nestedItem = item as ItemInfo.NestedItem;
+				if (nestedItem == null || string.IsNullOrEmpty(nestedItem.location))
+					continue;
+
+				Log.write(TLog.Normal, "Resolving nested item file: {0}", nestedItem.location);
+				ItemFile fileInfo = AssetFileFactory.CreateFromFile<ItemFile>(nestedItem.location);
+
+				if (fileInfo == null)
+				{
+					Log.write(TLog.Warning, "Nested item file not found, skipping: {0}", nestedItem.location);
+					continue;
+				}
+
+				nestedFiles.Add(fileInfo);
+				addAssetData(fileInfo);
+			}
+
+			foreach (ItemFile nestedFile in nestedFiles)
+				mainFile.Data.AddRange(nestedFile.Data);
+
+			// remove all nested references to prevent duplicate id issues for no reason
+			mainFile.Data.RemoveAll(item => item.itemType == ItemInfo.ItemType.Nested);
 
 			return mainFile;
 		}
