@@ -89,6 +89,46 @@ namespace InfServer.Game
             _stats = new Data.PlayerStats();
         }
 
+        private static int ClampStat(long value)
+        {
+            if (value <= 0)
+                return 0;
+
+            if (value >= int.MaxValue)
+                return int.MaxValue;
+
+            return (int)value;
+        }
+
+        private static int SetStat(ref int field, int value, bool allowDecrease)
+        {
+            int normalized = value;
+
+            if (normalized < 0)
+            {
+                normalized = !allowDecrease && field >= 0 ? int.MaxValue : 0;
+            }
+            else if (!allowDecrease && normalized < field)
+            {
+                normalized = field;
+            }
+
+            int diff = normalized - field;
+            field = normalized;
+            return diff;
+        }
+
+        private static void AddStat(ref int field, int diff)
+        {
+            field = ClampStat((long)field + diff);
+        }
+
+        private void AddCurrentGameStat(Action<Data.PlayerStats> add)
+        {
+            if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
+                add(_arena._currentGameStats[_alias]);
+        }
+
         /// <summary>
         /// The player's cash amount
         /// </summary>
@@ -100,20 +140,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.cash;
-
-                _stats.cash = Math.Max(value, 0);
+            {
+                int diff = SetStat(ref _stats.cash, value, true);
 
                 if (_statsSession != null)
-                    _statsSession.cash += diff;
+                    AddStat(ref _statsSession.cash, diff);
 
                 if (_statsGame != null)
-                    _statsGame.cash += diff;
+                    AddStat(ref _statsGame.cash, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].cash += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.cash, diff));
             }
         }
 
@@ -139,34 +175,31 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.experience;
-
-                _stats.experience = Math.Max(value, 0);
+            {
+                int diff = SetStat(ref _stats.experience, value, true);
                 if (diff > 0)
-                    _stats.experienceTotal += diff;
+                    AddStat(ref _stats.experienceTotal, diff);
 
                 if (_statsSession != null)
                 {
-                    _statsSession.experience += diff;
+                    AddStat(ref _statsSession.experience, diff);
                     if (diff > 0)
-                        _statsSession.experienceTotal += diff;
+                        AddStat(ref _statsSession.experienceTotal, diff);
                 }
 
                 if (_statsGame != null)
                 {
-                    _statsGame.experience += diff;
+                    AddStat(ref _statsGame.experience, diff);
                     if (diff > 0)
-                        _statsGame.experienceTotal += diff;
+                        AddStat(ref _statsGame.experienceTotal, diff);
                 }
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
+                AddCurrentGameStat(stats =>
                 {
-                    _arena._currentGameStats[_alias].experience += diff;
+                    AddStat(ref stats.experience, diff);
                     if (diff > 0)
-                        _arena._currentGameStats[_alias].experienceTotal += diff;
-                }
+                        AddStat(ref stats.experienceTotal, diff);
+                });
             }
         }
 
@@ -181,20 +214,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.experienceTotal;
-
-                _stats.experienceTotal = Math.Max(value, 0);
+            {
+                int diff = SetStat(ref _stats.experienceTotal, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.experienceTotal += diff;
+                    AddStat(ref _statsSession.experienceTotal, diff);
 
                 if (_statsGame != null)
-                    _statsGame.experienceTotal += diff;
+                    AddStat(ref _statsGame.experienceTotal, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].experienceTotal += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.experienceTotal, diff));
             }
         }
 
@@ -209,24 +238,20 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.kills;
-
-                _stats.kills = Math.Max(value, 0);
+            {
+                int diff = SetStat(ref _stats.kills, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.kills += diff;
+                    AddStat(ref _statsSession.kills, diff);
 
                 if (_statsGame != null)
-                    _statsGame.kills += diff;
+                    AddStat(ref _statsGame.kills, diff);
 
                 //Update our team stats
                 if (_team != null)
-                    _team._currentGameKills += diff;
+                    _team._currentGameKills = ClampStat((long)_team._currentGameKills + diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].kills += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.kills, diff));
             }
         }
 
@@ -241,24 +266,20 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.deaths;
-
-                _stats.deaths = Math.Max(value, 0);
+            {
+                int diff = SetStat(ref _stats.deaths, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.deaths += diff;
+                    AddStat(ref _statsSession.deaths, diff);
 
                 if (_statsGame != null)
-                    _statsGame.deaths += diff;
+                    AddStat(ref _statsGame.deaths, diff);
 
                 //Update our team stats
                 if (_team != null)
-                    _team._currentGameDeaths += diff;
+                    _team._currentGameDeaths = ClampStat((long)_team._currentGameDeaths + diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].deaths += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.deaths, diff));
             }
         }
 
@@ -273,20 +294,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.killPoints;
-
-                _stats.killPoints = value;
+            {
+                int diff = SetStat(ref _stats.killPoints, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.killPoints += diff;
+                    AddStat(ref _statsSession.killPoints, diff);
 
                 if (_statsGame != null)
-                    _statsGame.killPoints += diff;
+                    AddStat(ref _statsGame.killPoints, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].killPoints += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.killPoints, diff));
             }
         }
 
@@ -301,20 +318,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.deathPoints;
-
-                _stats.deathPoints = value;
+            {
+                int diff = SetStat(ref _stats.deathPoints, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.deathPoints += diff;
+                    AddStat(ref _statsSession.deathPoints, diff);
 
                 if (_statsGame != null)
-                    _statsGame.deathPoints += diff;
+                    AddStat(ref _statsGame.deathPoints, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].deathPoints += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.deathPoints, diff));
             }
         }
 
@@ -329,20 +342,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.bonusPoints;
-
-                _stats.bonusPoints = value;
+            {
+                int diff = SetStat(ref _stats.bonusPoints, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.bonusPoints += diff;
+                    AddStat(ref _statsSession.bonusPoints, diff);
 
                 if (_statsGame != null)
-                    _statsGame.bonusPoints += diff;
+                    AddStat(ref _statsGame.bonusPoints, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].bonusPoints += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.bonusPoints, diff));
             }
         }
 
@@ -357,20 +366,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.assistPoints;
-
-                _stats.assistPoints = value;
+            {
+                int diff = SetStat(ref _stats.assistPoints, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.assistPoints += diff;
+                    AddStat(ref _statsSession.assistPoints, diff);
 
                 if (_statsGame != null)
-                    _statsGame.assistPoints += diff;
+                    AddStat(ref _statsGame.assistPoints, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].assistPoints += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.assistPoints, diff));
             }
         }
 
@@ -385,20 +390,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.vehicleKills;
-
-                _stats.vehicleKills = Math.Max(value, 0);
+            {
+                int diff = SetStat(ref _stats.vehicleKills, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.vehicleKills += diff;
+                    AddStat(ref _statsSession.vehicleKills, diff);
 
                 if (_statsGame != null)
-                    _statsGame.vehicleKills += diff;
+                    AddStat(ref _statsGame.vehicleKills, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].vehicleKills += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.vehicleKills, diff));
             }
         }
 
@@ -413,20 +414,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.vehicleDeaths;
-
-                _stats.vehicleDeaths = Math.Max(value, 0);
+            {
+                int diff = SetStat(ref _stats.vehicleDeaths, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.vehicleDeaths += diff;
+                    AddStat(ref _statsSession.vehicleDeaths, diff);
 
                 if (_statsGame != null)
-                    _statsGame.vehicleDeaths += diff;
+                    AddStat(ref _statsGame.vehicleDeaths, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].vehicleDeaths += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.vehicleDeaths, diff));
             }
         }
 
@@ -441,20 +438,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.playSeconds;
-
-                _stats.playSeconds = value;
+            {
+                int diff = SetStat(ref _stats.playSeconds, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.playSeconds += diff;
+                    AddStat(ref _statsSession.playSeconds, diff);
 
                 if (_statsGame != null)
-                    _statsGame.playSeconds += diff;
+                    AddStat(ref _statsGame.playSeconds, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].playSeconds += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.playSeconds, diff));
             }
         }
 
@@ -469,20 +462,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat1;
-
-                _stats.zonestat1 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat1, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat1 += diff;
+                    AddStat(ref _statsSession.zonestat1, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat1 += diff;
+                    AddStat(ref _statsGame.zonestat1, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat1 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat1, diff));
             }
         }
 
@@ -497,20 +486,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat2;
-
-                _stats.zonestat2 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat2, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat2 += diff;
+                    AddStat(ref _statsSession.zonestat2, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat2 += diff;
+                    AddStat(ref _statsGame.zonestat2, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat2 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat2, diff));
             }
         }
 
@@ -525,20 +510,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat3;
-
-                _stats.zonestat3 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat3, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat3 += diff;
+                    AddStat(ref _statsSession.zonestat3, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat3 += diff;
+                    AddStat(ref _statsGame.zonestat3, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat3 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat3, diff));
             }
         }
 
@@ -553,20 +534,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat4;
-
-                _stats.zonestat4 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat4, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat4 += diff;
+                    AddStat(ref _statsSession.zonestat4, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat4 += diff;
+                    AddStat(ref _statsGame.zonestat4, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat4 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat4, diff));
             }
         }
 
@@ -581,20 +558,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat5;
-
-                _stats.zonestat5 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat5, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat5 += diff;
+                    AddStat(ref _statsSession.zonestat5, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat5 += diff;
+                    AddStat(ref _statsGame.zonestat5, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat5 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat5, diff));
             }
         }
 
@@ -609,20 +582,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat6;
-
-                _stats.zonestat6 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat6, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat6 += diff;
+                    AddStat(ref _statsSession.zonestat6, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat6 += diff;
+                    AddStat(ref _statsGame.zonestat6, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat6 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat6, diff));
             }
         }
 
@@ -637,20 +606,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat7;
-
-                _stats.zonestat7 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat7, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat7 += diff;
+                    AddStat(ref _statsSession.zonestat7, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat7 += diff;
+                    AddStat(ref _statsGame.zonestat7, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat7 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat7, diff));
             }
         }
 
@@ -665,20 +630,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat8;
-
-                _stats.zonestat8 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat8, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat8 += diff;
+                    AddStat(ref _statsSession.zonestat8, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat8 += diff;
+                    AddStat(ref _statsGame.zonestat8, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat8 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat8, diff));
             }
         }
 
@@ -693,20 +654,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat9;
-
-                _stats.zonestat9 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat9, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat9 += diff;
+                    AddStat(ref _statsSession.zonestat9, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat9 += diff;
+                    AddStat(ref _statsGame.zonestat9, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat9 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat9, diff));
             }
         }
 
@@ -721,20 +678,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat10;
-
-                _stats.zonestat10 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat10, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat10 += diff;
+                    AddStat(ref _statsSession.zonestat10, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat10 += diff;
+                    AddStat(ref _statsGame.zonestat10, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat10 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat10, diff));
             }
         }
 
@@ -749,20 +702,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat11;
-
-                _stats.zonestat11 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat11, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat11 += diff;
+                    AddStat(ref _statsSession.zonestat11, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat11 += diff;
+                    AddStat(ref _statsGame.zonestat11, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat11 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat11, diff));
             }
         }
 
@@ -777,20 +726,16 @@ namespace InfServer.Game
             }
 
             set
-            {	//Establish the difference
-                int diff = value - _stats.zonestat12;
-
-                _stats.zonestat12 = value;
+            {
+                int diff = SetStat(ref _stats.zonestat12, value, false);
 
                 if (_statsSession != null)
-                    _statsSession.zonestat12 += diff;
+                    AddStat(ref _statsSession.zonestat12, diff);
 
                 if (_statsGame != null)
-                    _statsGame.zonestat12 += diff;
+                    AddStat(ref _statsGame.zonestat12, diff);
 
-                //Keep track of our current game
-                if (_arena != null && _arena._currentGameStats.ContainsKey(_alias))
-                    _arena._currentGameStats[_alias].zonestat12 += diff;
+                AddCurrentGameStat(stats => AddStat(ref stats.zonestat12, diff));
             }
         }
         #endregion

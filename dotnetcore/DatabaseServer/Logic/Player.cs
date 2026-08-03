@@ -119,6 +119,30 @@ namespace InfServer.Logic
             player.stats.ExperienceTotal = pkt.stats.experienceTotal;
         }
 
+        static private int ClampStat(long value)
+        {
+            if (value <= 0)
+                return 0;
+
+            if (value >= int.MaxValue)
+                return int.MaxValue;
+
+            return (int)value;
+        }
+
+        static private int PositiveDelta(int current, int previous)
+        {
+            if (current <= previous)
+                return 0;
+
+            return ClampStat((long)current - previous);
+        }
+
+        static private int AddStat(int current, int delta)
+        {
+            return ClampStat((long)current + delta);
+        }
+
         static private void UpdateDailyWeeklyMonthlyYearlyStats(CS_PlayerUpdate<Zone> pkt, Zone zone, Zone.Player player, InfantryDbContext ctx, Stat previousStat)
         {
             //
@@ -126,28 +150,29 @@ namespace InfServer.Logic
             // and then proceed to add this delta to the accruals.
             //
 
-            var zs1 = pkt.stats.zonestat1 - previousStat.Zonestat1;
-            var zs2 = pkt.stats.zonestat2 - previousStat.Zonestat2;
-            var zs3 = pkt.stats.zonestat3 - previousStat.Zonestat3;
-            var zs4 = pkt.stats.zonestat4 - previousStat.Zonestat4;
-            var zs5 = pkt.stats.zonestat5 - previousStat.Zonestat5;
-            var zs6 = pkt.stats.zonestat6 - previousStat.Zonestat6;
-            var zs7 = pkt.stats.zonestat7 - previousStat.Zonestat7;
-            var zs8 = pkt.stats.zonestat8 - previousStat.Zonestat8;
-            var zs9 = pkt.stats.zonestat9 - previousStat.Zonestat9;
-            var zs10 = pkt.stats.zonestat10 - previousStat.Zonestat10;
-            var zs11 = pkt.stats.zonestat11 - previousStat.Zonestat11;
-            var zs12 = pkt.stats.zonestat12 - previousStat.Zonestat12;
+            var zs1 = PositiveDelta(pkt.stats.zonestat1, previousStat.Zonestat1);
+            var zs2 = PositiveDelta(pkt.stats.zonestat2, previousStat.Zonestat2);
+            var zs3 = PositiveDelta(pkt.stats.zonestat3, previousStat.Zonestat3);
+            var zs4 = PositiveDelta(pkt.stats.zonestat4, previousStat.Zonestat4);
+            var zs5 = PositiveDelta(pkt.stats.zonestat5, previousStat.Zonestat5);
+            var zs6 = PositiveDelta(pkt.stats.zonestat6, previousStat.Zonestat6);
+            var zs7 = PositiveDelta(pkt.stats.zonestat7, previousStat.Zonestat7);
+            var zs8 = PositiveDelta(pkt.stats.zonestat8, previousStat.Zonestat8);
+            var zs9 = PositiveDelta(pkt.stats.zonestat9, previousStat.Zonestat9);
+            var zs10 = PositiveDelta(pkt.stats.zonestat10, previousStat.Zonestat10);
+            var zs11 = PositiveDelta(pkt.stats.zonestat11, previousStat.Zonestat11);
+            var zs12 = PositiveDelta(pkt.stats.zonestat12, previousStat.Zonestat12);
 
-            var kills = pkt.stats.kills - previousStat.Kills;
-            var deaths = pkt.stats.deaths - previousStat.Deaths;
-            var killPoints = pkt.stats.killPoints - previousStat.KillPoints;
-            var deathPoints = pkt.stats.deathPoints - previousStat.DeathPoints;
-            var assistPoints = pkt.stats.assistPoints - previousStat.AssistPoints;
-            var bonusPoints = pkt.stats.bonusPoints - previousStat.BonusPoints;
-            var vehicleKills = pkt.stats.vehicleKills - previousStat.VehicleKills;
-            var vehicleDeaths = pkt.stats.vehicleDeaths - previousStat.VehicleDeaths;
-            var playSeconds = pkt.stats.playSeconds - previousStat.PlaySeconds;
+            var kills = PositiveDelta(pkt.stats.kills, previousStat.Kills);
+            var deaths = PositiveDelta(pkt.stats.deaths, previousStat.Deaths);
+            var killPoints = PositiveDelta(pkt.stats.killPoints, previousStat.KillPoints);
+            var deathPoints = PositiveDelta(pkt.stats.deathPoints, previousStat.DeathPoints);
+            var assistPoints = PositiveDelta(pkt.stats.assistPoints, previousStat.AssistPoints);
+            var bonusPoints = PositiveDelta(pkt.stats.bonusPoints, previousStat.BonusPoints);
+            var vehicleKills = PositiveDelta(pkt.stats.vehicleKills, previousStat.VehicleKills);
+            var vehicleDeaths = PositiveDelta(pkt.stats.vehicleDeaths, previousStat.VehicleDeaths);
+            var playSeconds = PositiveDelta(pkt.stats.playSeconds, previousStat.PlaySeconds);
+            var experienceTotal = PositiveDelta(pkt.stats.experienceTotal, previousStat.ExperienceTotal);
 
             //
             // Create a date object for each type of stat.
@@ -168,28 +193,29 @@ namespace InfServer.Logic
             var dailyRowsUpdated = ctx.StatsDailies
                 .Where(s => s.Date == day && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
-                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
-                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
-                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + zs3)
-                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + zs4)
-                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + zs5)
-                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + zs6)
-                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + zs7)
-                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + zs8)
-                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + zs9)
-                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + zs10)
-                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + zs11)
-                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + zs12)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal > int.MaxValue - experienceTotal ? int.MaxValue : s.ExperienceTotal + experienceTotal)
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 > int.MaxValue - zs1 ? int.MaxValue : s.Zonestat1 + zs1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 > int.MaxValue - zs2 ? int.MaxValue : s.Zonestat2 + zs2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 > int.MaxValue - zs3 ? int.MaxValue : s.Zonestat3 + zs3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 > int.MaxValue - zs4 ? int.MaxValue : s.Zonestat4 + zs4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 > int.MaxValue - zs5 ? int.MaxValue : s.Zonestat5 + zs5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 > int.MaxValue - zs6 ? int.MaxValue : s.Zonestat6 + zs6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 > int.MaxValue - zs7 ? int.MaxValue : s.Zonestat7 + zs7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 > int.MaxValue - zs8 ? int.MaxValue : s.Zonestat8 + zs8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 > int.MaxValue - zs9 ? int.MaxValue : s.Zonestat9 + zs9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 > int.MaxValue - zs10 ? int.MaxValue : s.Zonestat10 + zs10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 > int.MaxValue - zs11 ? int.MaxValue : s.Zonestat11 + zs11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 > int.MaxValue - zs12 ? int.MaxValue : s.Zonestat12 + zs12)
 
-                    .SetProperty(s => s.Kills, s => s.Kills + kills)
-                    .SetProperty(s => s.Deaths, s => s.Deaths + deaths)
-                    .SetProperty(s => s.KillPoints, s => s.KillPoints + killPoints)
-                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + deathPoints)
-                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + assistPoints)
-                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + bonusPoints)
-                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + vehicleKills)
-                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + vehicleDeaths)
-                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + playSeconds));
+                    .SetProperty(s => s.Kills, s => s.Kills > int.MaxValue - kills ? int.MaxValue : s.Kills + kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths > int.MaxValue - deaths ? int.MaxValue : s.Deaths + deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints > int.MaxValue - killPoints ? int.MaxValue : s.KillPoints + killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints > int.MaxValue - deathPoints ? int.MaxValue : s.DeathPoints + deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints > int.MaxValue - assistPoints ? int.MaxValue : s.AssistPoints + assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints > int.MaxValue - bonusPoints ? int.MaxValue : s.BonusPoints + bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills > int.MaxValue - vehicleKills ? int.MaxValue : s.VehicleKills + vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths > int.MaxValue - vehicleDeaths ? int.MaxValue : s.VehicleDeaths + vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds > int.MaxValue - playSeconds ? int.MaxValue : s.PlaySeconds + playSeconds));
 
             if (dailyRowsUpdated == 0)
             {
@@ -199,28 +225,29 @@ namespace InfServer.Logic
                 stat.Date = day;
                 stat.PlayerId = player.dbid;
 
-                stat.Kills += kills;
-                stat.Deaths += deaths;
-                stat.KillPoints += killPoints;
-                stat.DeathPoints += deathPoints;
-                stat.AssistPoints += assistPoints;
-                stat.BonusPoints += bonusPoints;
-                stat.VehicleKills += vehicleKills;
-                stat.VehicleDeaths += vehicleDeaths;
-                stat.PlaySeconds += playSeconds;
+                stat.ExperienceTotal = AddStat(stat.ExperienceTotal, experienceTotal);
+                stat.Kills = AddStat(stat.Kills, kills);
+                stat.Deaths = AddStat(stat.Deaths, deaths);
+                stat.KillPoints = AddStat(stat.KillPoints, killPoints);
+                stat.DeathPoints = AddStat(stat.DeathPoints, deathPoints);
+                stat.AssistPoints = AddStat(stat.AssistPoints, assistPoints);
+                stat.BonusPoints = AddStat(stat.BonusPoints, bonusPoints);
+                stat.VehicleKills = AddStat(stat.VehicleKills, vehicleKills);
+                stat.VehicleDeaths = AddStat(stat.VehicleDeaths, vehicleDeaths);
+                stat.PlaySeconds = AddStat(stat.PlaySeconds, playSeconds);
 
-                stat.Zonestat1 += zs1;
-                stat.Zonestat2 += zs2;
-                stat.Zonestat3 += zs3;
-                stat.Zonestat4 += zs4;
-                stat.Zonestat5 += zs5;
-                stat.Zonestat6 += zs6;
-                stat.Zonestat7 += zs7;
-                stat.Zonestat8 += zs8;
-                stat.Zonestat9 += zs9;
-                stat.Zonestat10 += zs10;
-                stat.Zonestat11 += zs11;
-                stat.Zonestat12 += zs12;
+                stat.Zonestat1 = AddStat(stat.Zonestat1, zs1);
+                stat.Zonestat2 = AddStat(stat.Zonestat2, zs2);
+                stat.Zonestat3 = AddStat(stat.Zonestat3, zs3);
+                stat.Zonestat4 = AddStat(stat.Zonestat4, zs4);
+                stat.Zonestat5 = AddStat(stat.Zonestat5, zs5);
+                stat.Zonestat6 = AddStat(stat.Zonestat6, zs6);
+                stat.Zonestat7 = AddStat(stat.Zonestat7, zs7);
+                stat.Zonestat8 = AddStat(stat.Zonestat8, zs8);
+                stat.Zonestat9 = AddStat(stat.Zonestat9, zs9);
+                stat.Zonestat10 = AddStat(stat.Zonestat10, zs10);
+                stat.Zonestat11 = AddStat(stat.Zonestat11, zs11);
+                stat.Zonestat12 = AddStat(stat.Zonestat12, zs12);
 
                 ctx.StatsDailies.Add(stat);
                 ctx.SaveChanges();
@@ -231,28 +258,29 @@ namespace InfServer.Logic
             var weeklyRowsUpdated = ctx.StatsWeeklies
                 .Where(s => s.Date == week && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
-                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
-                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
-                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + zs3)
-                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + zs4)
-                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + zs5)
-                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + zs6)
-                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + zs7)
-                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + zs8)
-                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + zs9)
-                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + zs10)
-                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + zs11)
-                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + zs12)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal > int.MaxValue - experienceTotal ? int.MaxValue : s.ExperienceTotal + experienceTotal)
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 > int.MaxValue - zs1 ? int.MaxValue : s.Zonestat1 + zs1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 > int.MaxValue - zs2 ? int.MaxValue : s.Zonestat2 + zs2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 > int.MaxValue - zs3 ? int.MaxValue : s.Zonestat3 + zs3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 > int.MaxValue - zs4 ? int.MaxValue : s.Zonestat4 + zs4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 > int.MaxValue - zs5 ? int.MaxValue : s.Zonestat5 + zs5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 > int.MaxValue - zs6 ? int.MaxValue : s.Zonestat6 + zs6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 > int.MaxValue - zs7 ? int.MaxValue : s.Zonestat7 + zs7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 > int.MaxValue - zs8 ? int.MaxValue : s.Zonestat8 + zs8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 > int.MaxValue - zs9 ? int.MaxValue : s.Zonestat9 + zs9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 > int.MaxValue - zs10 ? int.MaxValue : s.Zonestat10 + zs10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 > int.MaxValue - zs11 ? int.MaxValue : s.Zonestat11 + zs11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 > int.MaxValue - zs12 ? int.MaxValue : s.Zonestat12 + zs12)
 
-                    .SetProperty(s => s.Kills, s => s.Kills + kills)
-                    .SetProperty(s => s.Deaths, s => s.Deaths + deaths)
-                    .SetProperty(s => s.KillPoints, s => s.KillPoints + killPoints)
-                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + deathPoints)
-                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + assistPoints)
-                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + bonusPoints)
-                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + vehicleKills)
-                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + vehicleDeaths)
-                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + playSeconds));
+                    .SetProperty(s => s.Kills, s => s.Kills > int.MaxValue - kills ? int.MaxValue : s.Kills + kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths > int.MaxValue - deaths ? int.MaxValue : s.Deaths + deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints > int.MaxValue - killPoints ? int.MaxValue : s.KillPoints + killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints > int.MaxValue - deathPoints ? int.MaxValue : s.DeathPoints + deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints > int.MaxValue - assistPoints ? int.MaxValue : s.AssistPoints + assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints > int.MaxValue - bonusPoints ? int.MaxValue : s.BonusPoints + bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills > int.MaxValue - vehicleKills ? int.MaxValue : s.VehicleKills + vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths > int.MaxValue - vehicleDeaths ? int.MaxValue : s.VehicleDeaths + vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds > int.MaxValue - playSeconds ? int.MaxValue : s.PlaySeconds + playSeconds));
 
             if (weeklyRowsUpdated == 0)
             {
@@ -262,28 +290,29 @@ namespace InfServer.Logic
                 stat.Date = week;
                 stat.PlayerId = player.dbid;
 
-                stat.Kills += kills;
-                stat.Deaths += deaths;
-                stat.KillPoints += killPoints;
-                stat.DeathPoints += deathPoints;
-                stat.AssistPoints += assistPoints;
-                stat.BonusPoints += bonusPoints;
-                stat.VehicleKills += vehicleKills;
-                stat.VehicleDeaths += vehicleDeaths;
-                stat.PlaySeconds += playSeconds;
+                stat.ExperienceTotal = AddStat(stat.ExperienceTotal, experienceTotal);
+                stat.Kills = AddStat(stat.Kills, kills);
+                stat.Deaths = AddStat(stat.Deaths, deaths);
+                stat.KillPoints = AddStat(stat.KillPoints, killPoints);
+                stat.DeathPoints = AddStat(stat.DeathPoints, deathPoints);
+                stat.AssistPoints = AddStat(stat.AssistPoints, assistPoints);
+                stat.BonusPoints = AddStat(stat.BonusPoints, bonusPoints);
+                stat.VehicleKills = AddStat(stat.VehicleKills, vehicleKills);
+                stat.VehicleDeaths = AddStat(stat.VehicleDeaths, vehicleDeaths);
+                stat.PlaySeconds = AddStat(stat.PlaySeconds, playSeconds);
 
-                stat.Zonestat1 += zs1;
-                stat.Zonestat2 += zs2;
-                stat.Zonestat3 += zs3;
-                stat.Zonestat4 += zs4;
-                stat.Zonestat5 += zs5;
-                stat.Zonestat6 += zs6;
-                stat.Zonestat7 += zs7;
-                stat.Zonestat8 += zs8;
-                stat.Zonestat9 += zs9;
-                stat.Zonestat10 += zs10;
-                stat.Zonestat11 += zs11;
-                stat.Zonestat12 += zs12;
+                stat.Zonestat1 = AddStat(stat.Zonestat1, zs1);
+                stat.Zonestat2 = AddStat(stat.Zonestat2, zs2);
+                stat.Zonestat3 = AddStat(stat.Zonestat3, zs3);
+                stat.Zonestat4 = AddStat(stat.Zonestat4, zs4);
+                stat.Zonestat5 = AddStat(stat.Zonestat5, zs5);
+                stat.Zonestat6 = AddStat(stat.Zonestat6, zs6);
+                stat.Zonestat7 = AddStat(stat.Zonestat7, zs7);
+                stat.Zonestat8 = AddStat(stat.Zonestat8, zs8);
+                stat.Zonestat9 = AddStat(stat.Zonestat9, zs9);
+                stat.Zonestat10 = AddStat(stat.Zonestat10, zs10);
+                stat.Zonestat11 = AddStat(stat.Zonestat11, zs11);
+                stat.Zonestat12 = AddStat(stat.Zonestat12, zs12);
 
                 ctx.StatsWeeklies.Add(stat);
                 ctx.SaveChanges();
@@ -294,28 +323,29 @@ namespace InfServer.Logic
             var monthlyRowsUpdated = ctx.StatsMonthlies
                 .Where(s => s.Date == month && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
-                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
-                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
-                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + zs3)
-                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + zs4)
-                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + zs5)
-                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + zs6)
-                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + zs7)
-                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + zs8)
-                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + zs9)
-                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + zs10)
-                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + zs11)
-                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + zs12)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal > int.MaxValue - experienceTotal ? int.MaxValue : s.ExperienceTotal + experienceTotal)
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 > int.MaxValue - zs1 ? int.MaxValue : s.Zonestat1 + zs1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 > int.MaxValue - zs2 ? int.MaxValue : s.Zonestat2 + zs2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 > int.MaxValue - zs3 ? int.MaxValue : s.Zonestat3 + zs3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 > int.MaxValue - zs4 ? int.MaxValue : s.Zonestat4 + zs4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 > int.MaxValue - zs5 ? int.MaxValue : s.Zonestat5 + zs5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 > int.MaxValue - zs6 ? int.MaxValue : s.Zonestat6 + zs6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 > int.MaxValue - zs7 ? int.MaxValue : s.Zonestat7 + zs7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 > int.MaxValue - zs8 ? int.MaxValue : s.Zonestat8 + zs8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 > int.MaxValue - zs9 ? int.MaxValue : s.Zonestat9 + zs9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 > int.MaxValue - zs10 ? int.MaxValue : s.Zonestat10 + zs10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 > int.MaxValue - zs11 ? int.MaxValue : s.Zonestat11 + zs11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 > int.MaxValue - zs12 ? int.MaxValue : s.Zonestat12 + zs12)
 
-                    .SetProperty(s => s.Kills, s => s.Kills + kills)
-                    .SetProperty(s => s.Deaths, s => s.Deaths + deaths)
-                    .SetProperty(s => s.KillPoints, s => s.KillPoints + killPoints)
-                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + deathPoints)
-                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + assistPoints)
-                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + bonusPoints)
-                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + vehicleKills)
-                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + vehicleDeaths)
-                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + playSeconds));
+                    .SetProperty(s => s.Kills, s => s.Kills > int.MaxValue - kills ? int.MaxValue : s.Kills + kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths > int.MaxValue - deaths ? int.MaxValue : s.Deaths + deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints > int.MaxValue - killPoints ? int.MaxValue : s.KillPoints + killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints > int.MaxValue - deathPoints ? int.MaxValue : s.DeathPoints + deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints > int.MaxValue - assistPoints ? int.MaxValue : s.AssistPoints + assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints > int.MaxValue - bonusPoints ? int.MaxValue : s.BonusPoints + bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills > int.MaxValue - vehicleKills ? int.MaxValue : s.VehicleKills + vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths > int.MaxValue - vehicleDeaths ? int.MaxValue : s.VehicleDeaths + vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds > int.MaxValue - playSeconds ? int.MaxValue : s.PlaySeconds + playSeconds));
 
             if (monthlyRowsUpdated == 0)
             {
@@ -325,28 +355,29 @@ namespace InfServer.Logic
                 stat.Date = month;
                 stat.PlayerId = player.dbid;
 
-                stat.Kills += kills;
-                stat.Deaths += deaths;
-                stat.KillPoints += killPoints;
-                stat.DeathPoints += deathPoints;
-                stat.AssistPoints += assistPoints;
-                stat.BonusPoints += bonusPoints;
-                stat.VehicleKills += vehicleKills;
-                stat.VehicleDeaths += vehicleDeaths;
-                stat.PlaySeconds += playSeconds;
+                stat.ExperienceTotal = AddStat(stat.ExperienceTotal, experienceTotal);
+                stat.Kills = AddStat(stat.Kills, kills);
+                stat.Deaths = AddStat(stat.Deaths, deaths);
+                stat.KillPoints = AddStat(stat.KillPoints, killPoints);
+                stat.DeathPoints = AddStat(stat.DeathPoints, deathPoints);
+                stat.AssistPoints = AddStat(stat.AssistPoints, assistPoints);
+                stat.BonusPoints = AddStat(stat.BonusPoints, bonusPoints);
+                stat.VehicleKills = AddStat(stat.VehicleKills, vehicleKills);
+                stat.VehicleDeaths = AddStat(stat.VehicleDeaths, vehicleDeaths);
+                stat.PlaySeconds = AddStat(stat.PlaySeconds, playSeconds);
 
-                stat.Zonestat1 += zs1;
-                stat.Zonestat2 += zs2;
-                stat.Zonestat3 += zs3;
-                stat.Zonestat4 += zs4;
-                stat.Zonestat5 += zs5;
-                stat.Zonestat6 += zs6;
-                stat.Zonestat7 += zs7;
-                stat.Zonestat8 += zs8;
-                stat.Zonestat9 += zs9;
-                stat.Zonestat10 += zs10;
-                stat.Zonestat11 += zs11;
-                stat.Zonestat12 += zs12;
+                stat.Zonestat1 = AddStat(stat.Zonestat1, zs1);
+                stat.Zonestat2 = AddStat(stat.Zonestat2, zs2);
+                stat.Zonestat3 = AddStat(stat.Zonestat3, zs3);
+                stat.Zonestat4 = AddStat(stat.Zonestat4, zs4);
+                stat.Zonestat5 = AddStat(stat.Zonestat5, zs5);
+                stat.Zonestat6 = AddStat(stat.Zonestat6, zs6);
+                stat.Zonestat7 = AddStat(stat.Zonestat7, zs7);
+                stat.Zonestat8 = AddStat(stat.Zonestat8, zs8);
+                stat.Zonestat9 = AddStat(stat.Zonestat9, zs9);
+                stat.Zonestat10 = AddStat(stat.Zonestat10, zs10);
+                stat.Zonestat11 = AddStat(stat.Zonestat11, zs11);
+                stat.Zonestat12 = AddStat(stat.Zonestat12, zs12);
 
                 ctx.StatsMonthlies.Add(stat);
                 ctx.SaveChanges();
@@ -357,28 +388,29 @@ namespace InfServer.Logic
             var yearlyRowsUpdated = ctx.StatsYearlies
                 .Where(s => s.Date == year && s.PlayerId == player.dbid && s.ZoneId == zone._zone.ZoneId)
                 .ExecuteUpdate(setters => setters
-                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 + zs1)
-                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 + zs2)
-                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 + zs3)
-                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 + zs4)
-                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 + zs5)
-                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 + zs6)
-                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 + zs7)
-                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 + zs8)
-                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 + zs9)
-                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 + zs10)
-                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 + zs11)
-                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 + zs12)
+                    .SetProperty(s => s.ExperienceTotal, s => s.ExperienceTotal > int.MaxValue - experienceTotal ? int.MaxValue : s.ExperienceTotal + experienceTotal)
+                    .SetProperty(s => s.Zonestat1, s => s.Zonestat1 > int.MaxValue - zs1 ? int.MaxValue : s.Zonestat1 + zs1)
+                    .SetProperty(s => s.Zonestat2, s => s.Zonestat2 > int.MaxValue - zs2 ? int.MaxValue : s.Zonestat2 + zs2)
+                    .SetProperty(s => s.Zonestat3, s => s.Zonestat3 > int.MaxValue - zs3 ? int.MaxValue : s.Zonestat3 + zs3)
+                    .SetProperty(s => s.Zonestat4, s => s.Zonestat4 > int.MaxValue - zs4 ? int.MaxValue : s.Zonestat4 + zs4)
+                    .SetProperty(s => s.Zonestat5, s => s.Zonestat5 > int.MaxValue - zs5 ? int.MaxValue : s.Zonestat5 + zs5)
+                    .SetProperty(s => s.Zonestat6, s => s.Zonestat6 > int.MaxValue - zs6 ? int.MaxValue : s.Zonestat6 + zs6)
+                    .SetProperty(s => s.Zonestat7, s => s.Zonestat7 > int.MaxValue - zs7 ? int.MaxValue : s.Zonestat7 + zs7)
+                    .SetProperty(s => s.Zonestat8, s => s.Zonestat8 > int.MaxValue - zs8 ? int.MaxValue : s.Zonestat8 + zs8)
+                    .SetProperty(s => s.Zonestat9, s => s.Zonestat9 > int.MaxValue - zs9 ? int.MaxValue : s.Zonestat9 + zs9)
+                    .SetProperty(s => s.Zonestat10, s => s.Zonestat10 > int.MaxValue - zs10 ? int.MaxValue : s.Zonestat10 + zs10)
+                    .SetProperty(s => s.Zonestat11, s => s.Zonestat11 > int.MaxValue - zs11 ? int.MaxValue : s.Zonestat11 + zs11)
+                    .SetProperty(s => s.Zonestat12, s => s.Zonestat12 > int.MaxValue - zs12 ? int.MaxValue : s.Zonestat12 + zs12)
 
-                    .SetProperty(s => s.Kills, s => s.Kills + kills)
-                    .SetProperty(s => s.Deaths, s => s.Deaths + deaths)
-                    .SetProperty(s => s.KillPoints, s => s.KillPoints + killPoints)
-                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints + deathPoints)
-                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints + assistPoints)
-                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints + bonusPoints)
-                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills + vehicleKills)
-                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths + vehicleDeaths)
-                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds + playSeconds));
+                    .SetProperty(s => s.Kills, s => s.Kills > int.MaxValue - kills ? int.MaxValue : s.Kills + kills)
+                    .SetProperty(s => s.Deaths, s => s.Deaths > int.MaxValue - deaths ? int.MaxValue : s.Deaths + deaths)
+                    .SetProperty(s => s.KillPoints, s => s.KillPoints > int.MaxValue - killPoints ? int.MaxValue : s.KillPoints + killPoints)
+                    .SetProperty(s => s.DeathPoints, s => s.DeathPoints > int.MaxValue - deathPoints ? int.MaxValue : s.DeathPoints + deathPoints)
+                    .SetProperty(s => s.AssistPoints, s => s.AssistPoints > int.MaxValue - assistPoints ? int.MaxValue : s.AssistPoints + assistPoints)
+                    .SetProperty(s => s.BonusPoints, s => s.BonusPoints > int.MaxValue - bonusPoints ? int.MaxValue : s.BonusPoints + bonusPoints)
+                    .SetProperty(s => s.VehicleKills, s => s.VehicleKills > int.MaxValue - vehicleKills ? int.MaxValue : s.VehicleKills + vehicleKills)
+                    .SetProperty(s => s.VehicleDeaths, s => s.VehicleDeaths > int.MaxValue - vehicleDeaths ? int.MaxValue : s.VehicleDeaths + vehicleDeaths)
+                    .SetProperty(s => s.PlaySeconds, s => s.PlaySeconds > int.MaxValue - playSeconds ? int.MaxValue : s.PlaySeconds + playSeconds));
 
             if (yearlyRowsUpdated == 0)
             {
@@ -388,28 +420,29 @@ namespace InfServer.Logic
                 stat.Date = year;
                 stat.PlayerId = player.dbid;
 
-                stat.Kills += kills;
-                stat.Deaths += deaths;
-                stat.KillPoints += killPoints;
-                stat.DeathPoints += deathPoints;
-                stat.AssistPoints += assistPoints;
-                stat.BonusPoints += bonusPoints;
-                stat.VehicleKills += vehicleKills;
-                stat.VehicleDeaths += vehicleDeaths;
-                stat.PlaySeconds += playSeconds;
+                stat.ExperienceTotal = AddStat(stat.ExperienceTotal, experienceTotal);
+                stat.Kills = AddStat(stat.Kills, kills);
+                stat.Deaths = AddStat(stat.Deaths, deaths);
+                stat.KillPoints = AddStat(stat.KillPoints, killPoints);
+                stat.DeathPoints = AddStat(stat.DeathPoints, deathPoints);
+                stat.AssistPoints = AddStat(stat.AssistPoints, assistPoints);
+                stat.BonusPoints = AddStat(stat.BonusPoints, bonusPoints);
+                stat.VehicleKills = AddStat(stat.VehicleKills, vehicleKills);
+                stat.VehicleDeaths = AddStat(stat.VehicleDeaths, vehicleDeaths);
+                stat.PlaySeconds = AddStat(stat.PlaySeconds, playSeconds);
 
-                stat.Zonestat1 += zs1;
-                stat.Zonestat2 += zs2;
-                stat.Zonestat3 += zs3;
-                stat.Zonestat4 += zs4;
-                stat.Zonestat5 += zs5;
-                stat.Zonestat6 += zs6;
-                stat.Zonestat7 += zs7;
-                stat.Zonestat8 += zs8;
-                stat.Zonestat9 += zs9;
-                stat.Zonestat10 += zs10;
-                stat.Zonestat11 += zs11;
-                stat.Zonestat12 += zs12;
+                stat.Zonestat1 = AddStat(stat.Zonestat1, zs1);
+                stat.Zonestat2 = AddStat(stat.Zonestat2, zs2);
+                stat.Zonestat3 = AddStat(stat.Zonestat3, zs3);
+                stat.Zonestat4 = AddStat(stat.Zonestat4, zs4);
+                stat.Zonestat5 = AddStat(stat.Zonestat5, zs5);
+                stat.Zonestat6 = AddStat(stat.Zonestat6, zs6);
+                stat.Zonestat7 = AddStat(stat.Zonestat7, zs7);
+                stat.Zonestat8 = AddStat(stat.Zonestat8, zs8);
+                stat.Zonestat9 = AddStat(stat.Zonestat9, zs9);
+                stat.Zonestat10 = AddStat(stat.Zonestat10, zs10);
+                stat.Zonestat11 = AddStat(stat.Zonestat11, zs11);
+                stat.Zonestat12 = AddStat(stat.Zonestat12, zs12);
 
                 ctx.StatsYearlies.Add(stat);
                 ctx.SaveChanges();

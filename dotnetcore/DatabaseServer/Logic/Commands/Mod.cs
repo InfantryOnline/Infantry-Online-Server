@@ -218,7 +218,10 @@ namespace InfServer.Logic
             }
 
             //Lets find the player first
-            Player dbplayer = db.Zones.First(z => z.ZoneId == zone._zone.ZoneId).Players.FirstOrDefault(p => p.AliasNavigation.Name == pkt.aliasTo);
+            Player dbplayer = db.Players
+                .Include(p => p.AliasNavigation)
+                .Include(p => p.SquadNavigation)
+                .FirstOrDefault(p => p.ZoneId == zone._zone.ZoneId && p.AliasNavigation.Name == pkt.aliasTo);
             if (dbplayer == null)
             {
                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the player.");
@@ -237,7 +240,10 @@ namespace InfServer.Logic
             if (dbplayer.SquadId != null)
             {
                 //Get his squad brothers! (if any...)
-                IQueryable<Player> squadmates = db.Players.Where(p => p.ZoneId == dbplayer.ZoneId && p.SquadId != null && p.SquadId == dbplayer.SquadId);
+                IQueryable<Player> squadmates = db.Players
+                    .Include(p => p.AliasNavigation)
+                    .Include(p => p.SquadNavigation)
+                    .Where(p => p.ZoneId == dbplayer.ZoneId && p.SquadId != null && p.SquadId == dbplayer.SquadId);
 
                 //Is he the captain?
                 if (dbplayer.SquadNavigation.OwnerPlayerId == dbplayer.PlayerId)
@@ -277,7 +283,10 @@ namespace InfServer.Logic
             }
 
             //Lets find the player first
-            Player dbplayer = db.Zones.First(z => z.ZoneId == zone._zone.ZoneId).Players.FirstOrDefault(p => p.AliasNavigation.Name == pkt.aliasTo);
+            Player dbplayer = db.Players
+                .Include(p => p.AliasNavigation)
+                .Include(p => p.SquadNavigation)
+                .FirstOrDefault(p => p.ZoneId == zone._zone.ZoneId && p.AliasNavigation.Name == pkt.aliasTo);
             if (dbplayer == null)
             {
                 zone._server.sendMessage(zone, pkt.sender, "Cannot find the player.");
@@ -307,10 +316,10 @@ namespace InfServer.Logic
             else
             {
                 dbplayer.SquadId = squad.SquadId;
-                dbplayer.SquadNavigation.OwnerPlayerId = dbplayer.PlayerId;
+                squad.OwnerPlayerId = dbplayer.PlayerId;
             }
             db.SaveChanges();
-            zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "You have been promoted to squad captain of " + dbplayer.SquadNavigation.Name);
+            zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "You have been promoted to squad captain of " + squad.Name);
             zone._server.sendMessage(zone, dbplayer.AliasNavigation.Name, "Please rejoin the zone to complete the process.");
             zone._server.sendMessage(zone, pkt.sender, "Squad transferring is complete.");
         }
@@ -512,14 +521,21 @@ namespace InfServer.Logic
                 return;
             }
 
-            var players = db.Players.Where(p => p.AliasId == palias.AliasId).ToList();
+            var players = db.Players
+                .Include(p => p.SquadNavigation)
+                .Include(p => p.StatsNavigation)
+                .Where(p => p.AliasId == palias.AliasId)
+                .ToList();
 
             // Remove all players under this alias
             foreach (var p in players)
             {
                 if (p.SquadId != null)
                 {
-                    var squadmates = db.Players.Where(plyr => plyr.ZoneId == p.ZoneId && plyr.SquadId != null && plyr.SquadId == p.SquadId).ToList();
+                    var squadmates = db.Players
+                        .Include(plyr => plyr.SquadNavigation)
+                        .Where(plyr => plyr.ZoneId == p.ZoneId && plyr.SquadId != null && plyr.SquadId == p.SquadId)
+                        .ToList();
 
                     if (p.SquadNavigation.OwnerPlayerId == p.PlayerId)
                     {

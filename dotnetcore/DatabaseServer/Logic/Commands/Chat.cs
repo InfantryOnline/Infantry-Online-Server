@@ -1099,7 +1099,12 @@ namespace InfServer.Logic
             {
                 if (invite.Key == dbplayer.SquadId)
                 {
-                    zone._server.sendMessage(zone, pkt.alias, "*" + db.Players.First(p => p.PlayerId == invite.Value).AliasNavigation.Name);
+                    var invitedAlias = db.Players
+                        .Where(p => p.PlayerId == invite.Value)
+                        .Select(p => p.AliasNavigation.Name)
+                        .First();
+
+                    zone._server.sendMessage(zone, pkt.alias, "*" + invitedAlias);
                     found = true;
                 }
             }
