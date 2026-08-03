@@ -293,40 +293,15 @@ namespace InfServer.Game.Commands.Chat
                         }
                     }
 
-                    //Held category checks (mirrored in Player#inventoryModify)
-                    if (ii == null && item.heldCategoryType > 0)
+                    //Held category checks (delegates to Player#heldCategoryCheck)
+                    int categoryAllowed = player.heldCategoryCheck(item, buyAmount);
+                    if (categoryAllowed <= 0)
                     {
-                        int alreadyHolding = player._inventory
-                            .Where(it => it.Value.item.heldCategoryType == item.heldCategoryType)
-                            .Sum(it => 1);
-                        //Veh editor says a held category is "maximum number of unique types of items of this category type"
-                        //Vehicle hold categories take precedence over the cfg values
-                        if (player.ActiveVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
-                        {
-                            if (1 + alreadyHolding > player.ActiveVehicle._type.HoldItemLimits[item.heldCategoryType])
-                            {
-                                player.sendMessage(-1, "You are already carrying the maximum amount of items in this category.");
-                                continue;
-                            }
-                        }
-                        else if (player.ActiveVehicle != player._baseVehicle &&
-                            player._baseVehicle._type.HoldItemLimits[item.heldCategoryType] != -1)
-                        {
-                            if (1 + alreadyHolding > player._baseVehicle._type.HoldItemLimits[item.heldCategoryType])
-                            {
-                                player.sendMessage(-1, "You are already carrying the maximum amount of items in this category.");
-                                continue;
-                            }
-                        }
-                        else if (player._server._zoneConfig.heldCategory.limit[item.heldCategoryType] != -1)
-                        {
-                            if (1 + alreadyHolding > player._server._zoneConfig.heldCategory.limit[item.heldCategoryType])
-                            {
-                                player.sendMessage(-1, "You are already carrying the maximum amount of items in this category.");
-                                continue;
-                            }
-                        }
+                        player.sendMessage(-1, "You are already carrying the maximum amount of items in this category.");
+                        continue;
                     }
+                    if (categoryAllowed < buyAmount)
+                        buyAmount = categoryAllowed;
 
                     //Make sure he has enough cash first..
                     int buyPrice = item.buyPrice * buyAmount;
