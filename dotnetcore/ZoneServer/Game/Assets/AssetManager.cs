@@ -76,10 +76,10 @@ namespace InfServer.Game
 			addAssetData(AssetFileFactory.CreateFromFile<AssetFile>(configFilename));
 
 			//Load shit up
-			ItemFile itms = AssetFileFactory.CreateFromFile<ItemFile>(zoneConf.level.itmFile);
+			ItemFile itms = LoadItemFiles(zoneConf);
 			LioFile lios = AssetFileFactory.CreateFromFile<LioFile>(zoneConf.level.lioFile);
 			SkillFile rpgs = AssetFileFactory.CreateFromFile<SkillFile>(zoneConf.level.rpgFile);
-			VehicleFile vehs = AssetFileFactory.CreateFromFile<VehicleFile>(zoneConf.level.vehFile);
+			VehicleFile vehs = LoadVehicleFiles(zoneConf);
 			LevelFile lvl = AssetFileFactory.CreateFromFile<LevelFile>(zoneConf.level.lvlFile);
 
 			if (itms == null || lios == null || rpgs == null || vehs == null || lvl == null)
@@ -506,6 +506,90 @@ namespace InfServer.Game
 		public List<AssetInfo> getAssetList()
 		{
 			return _assetList;
+		}
+
+		/// <summary>
+		/// Some vehicle files have nested vehicle files within, this will grab all of them as needed.
+		/// </summary>
+		private VehicleFile LoadVehicleFiles(CfgInfo zoneConf)
+		{
+			VehicleFile mainFile = AssetFileFactory.CreateFromFile<VehicleFile>(zoneConf.level.vehFile);
+			if (mainFile == null)
+				return null;
+
+			List<VehicleFile> nestedFiles = new List<VehicleFile>();
+
+			foreach (VehInfo veh in mainFile.Data)
+			{
+				if (veh.Type != VehInfo.Types.Nested)
+					continue;
+
+				VehInfo.Nested nestedVeh = (VehInfo.Nested)veh;
+				if (string.IsNullOrEmpty(nestedVeh.VehicleFileName))
+					continue;
+
+				Log.write(TLog.Normal, "Resolving nested vehicle file: {0}", nestedVeh.VehicleFileName);
+				VehicleFile fileInfo = AssetFileFactory.CreateFromFile<VehicleFile>(nestedVeh.VehicleFileName);
+
+				if (fileInfo == null)
+				{
+					Log.write(TLog.Warning, "Nested vehicle file not found, skipping: {0}", nestedVeh.VehicleFileName);
+					continue;
+				}
+
+				nestedFiles.Add(fileInfo);
+				addAssetData(fileInfo);
+			}
+
+			foreach (VehicleFile nestedFile in nestedFiles)
+				mainFile.Data.AddRange(nestedFile.Data);
+
+			// remove all nested references to prevent duplicate id issues for no reason
+			mainFile.Data.RemoveAll(veh => veh.Type == VehInfo.Types.Nested);
+
+			return mainFile;
+		}
+
+		/// <summary>
+		/// Some item files have nested item files within, this will grab all of them as needed.
+		/// </summary>
+		private ItemFile LoadItemFiles(CfgInfo zoneConf)
+		{
+			ItemFile mainFile = AssetFileFactory.CreateFromFile<ItemFile>(zoneConf.level.itmFile);
+			if (mainFile == null)
+				return null;
+
+			List<ItemFile> nestedFiles = new List<ItemFile>();
+
+			foreach (ItemInfo item in mainFile.Data)
+			{
+				if (item.itemType != ItemInfo.ItemType.Nested)
+					continue;
+
+				ItemInfo.NestedItem nestedItem = item as ItemInfo.NestedItem;
+				if (nestedItem == null || string.IsNullOrEmpty(nestedItem.location))
+					continue;
+
+				Log.write(TLog.Normal, "Resolving nested item file: {0}", nestedItem.location);
+				ItemFile fileInfo = AssetFileFactory.CreateFromFile<ItemFile>(nestedItem.location);
+
+				if (fileInfo == null)
+				{
+					Log.write(TLog.Warning, "Nested item file not found, skipping: {0}", nestedItem.location);
+					continue;
+				}
+
+				nestedFiles.Add(fileInfo);
+				addAssetData(fileInfo);
+			}
+
+			foreach (ItemFile nestedFile in nestedFiles)
+				mainFile.Data.AddRange(nestedFile.Data);
+
+			// remove all nested references to prevent duplicate id issues for no reason
+			mainFile.Data.RemoveAll(item => item.itemType == ItemInfo.ItemType.Nested);
+
+			return mainFile;
 		}
 	}
 }

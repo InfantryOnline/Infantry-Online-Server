@@ -2,14 +2,9 @@
 {
     public abstract partial class VehInfo : ICsvParseable
     {
-        /// <summary>
-        /// jello
-        /// </summary>
         public sealed class Nested : VehInfo
         {
-            /*public int Unknown434;
-            public string Unknown3D4;*/
-            public string Unknown5C8;
+            public string VehicleFileName;
 
             public Nested()
             {
@@ -18,11 +13,10 @@
 
             public override void Parse(ICsvParser parser)
             {
-                base.Parse(parser);
-                this.Version = int.Parse(parser.GetString().Substring(1)); // sets version...?
+                this.Version = parser.GetInt('v');
                 this.Id = parser.GetInt();
                 this.Name = parser.GetString();
-                this.Unknown5C8 = parser.GetString();
+                this.VehicleFileName = parser.GetString();
             }
         }
     }
