@@ -1277,8 +1277,16 @@ namespace InfServer.Game.Commands.Mod
                 player._arena.itemSpawn(item, (ushort)quantity, player._state.positionX, player._state.positionY, player);
             }
             else
-            {	//Modify the recipient inventory
-                recipient.inventoryModify(item, quantity);
+            {	//Modify the recipient inventory, respecting held category limits
+                int allowed = recipient.heldCategoryCheck(item, quantity);
+                if (allowed <= 0)
+                {
+                    player.sendMessage(-1, string.Format("{0} is already carrying the maximum amount of items in this category.", recipient._alias));
+                    return;
+                }
+                if (allowed < quantity)
+                    player.sendMessage(-1, string.Format("Held category limit reduced prize from {0} to {1} {2}.", quantity, allowed, item.name));
+                recipient.inventoryModify(item, allowed);
             }
         }
 
