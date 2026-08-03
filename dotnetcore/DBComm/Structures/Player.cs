@@ -102,7 +102,7 @@ namespace InfServer.Data
 		{
 			get
 			{
-				return killPoints + assistPoints + bonusPoints;
+				return (long)killPoints + assistPoints + bonusPoints;
 			}
 		}
 

@@ -158,6 +158,29 @@ namespace InfServer
             }
         }
 
+        private DbContextOptionsBuilder<TContext> ConfigureCommonDbOptions<TContext>(DbContextOptionsBuilder<TContext> opts)
+            where TContext : DbContext
+        {
+            var dbLog = _config["database/log"].boolValue;
+            var dbLazyLoad = _config["database/lazyload"].boolValue;
+
+            if (dbLazyLoad)
+            {
+                opts.UseLazyLoadingProxies();
+                Console.WriteLine("Using lazyloading...");
+            }
+
+            if (dbLog)
+            {
+                opts.LogTo(text =>
+                {
+                    Log.write(TLog.Inane, text, _logger);
+                });
+            }
+
+            return opts;
+        }
+
         public void sendMessage(Zone zone, string player, string message)
         {
             //297 bytes is the maximum size of a chat message that can be sent without crashing the client
@@ -264,25 +287,8 @@ namespace InfServer
 
                 //Attempt to connect to our database
                 
-                var opts = new DbContextOptionsBuilder<SqlServerDbContext>()
+                var opts = ConfigureCommonDbOptions(new DbContextOptionsBuilder<SqlServerDbContext>())
                     .UseSqlServer(_dbConnectionString);
-
-                var dbLog = _config["database/log"].boolValue;
-                var dbLazyLoad = _config["database/lazyload"].boolValue;
-
-                if (dbLazyLoad)
-                {
-                    opts.UseLazyLoadingProxies();
-                    Console.WriteLine("Using lazyloading...");
-                }
-
-                if (dbLog)
-                {
-                    opts.LogTo(text =>
-                    {
-                        Log.write(TLog.Inane, text, _logger);
-                    });
-                }
 
                 var pooledFact = new PooledDbContextFactory<SqlServerDbContext>(opts.Options);
 
@@ -292,11 +298,10 @@ namespace InfServer
             {
                 Console.WriteLine("Connecting to SQLite...");
 
-                var options = new DbContextOptionsBuilder<SqliteDbContext>()
-                    .UseSqlite(_sqliteString)
-                    .Options;
+                var opts = ConfigureCommonDbOptions(new DbContextOptionsBuilder<SqliteDbContext>())
+                    .UseSqlite(_sqliteString);
 
-                var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);
+                var pooledFact = new PooledDbContextFactory<SqliteDbContext>(opts.Options);
 
                 _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
             }
