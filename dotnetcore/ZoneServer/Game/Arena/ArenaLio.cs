@@ -589,7 +589,7 @@ namespace InfServer.Game
          * moved the actual spawning of items/vehs into separate functions
          * try to build the lists we need only once when hidespawn() is called and pass them around
          * check objlevel before the new function is called and try to optimize the check for objs in area (maybe i can cache it somehow)
-         * 
+         * Cluster objects around a random position within the width x height rect
          */
         private bool hideItem(HideState hs, List<RelativeObj> spawnPoints, ItemInfo item, List<ItemDrop> sameItems)
         {
@@ -627,15 +627,21 @@ namespace InfServer.Game
                         continue;
                 }
 
-                //Generate some random coordinates
-                short pX = 0;
-                short pY = 0;
-                int attempts = 0;
+                short anchorX = sp.posX;
+                short anchorY = sp.posY;
+                if (hs.Hide.HideData.ClumpRadius > 0)
+                    Helpers.randomPositionInArea(this, ref anchorX, ref anchorY,
+                        (short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
+
                 int clumpQuantity = (hs.Hide.HideData.ClumpQuantity == 0 ? 1 : hs.Hide.HideData.ClumpQuantity);
+                int attempts = 0;
+                bool spawnedAny = false;
+
                 for (; attempts < 10; attempts++)
                 {
-                    pX = sp.posX;
-                    pY = sp.posY;
+                    short pX = anchorX;
+                    short pY = anchorY;
+
                     if (hs.Hide.HideData.ClumpRadius > 0)
                         //This is not true clustering, it should be a circle around the point but I don't feel like making a new method for it
                         Helpers.randomPositionInArea(this, ref pX, ref pY,
@@ -644,27 +650,24 @@ namespace InfServer.Game
                         Helpers.randomPositionInArea(this, ref pX, ref pY,
                             (short)hs.Hide.GeneralData.Width, (short)hs.Hide.GeneralData.Height);
 
-                    //Is it blocked?
                     if (getTile(pX, pY).Blocked)
-                        //Try again
                         continue;
 
                     itemSpawn(item, (ushort)hs.Hide.HideData.HideQuantity, pX, pY, hs.Hide.HideData.RelativeId, hs.Hide.HideData.AssignFrequency, null);
+                    spawnedAny = true;
 
-                    if (clumpQuantity > 1)
-                    {   //Have more to spawn, so make sure it runs again
-                        clumpQuantity--;
+                    clumpQuantity--;
+                    if (clumpQuantity > 0)
+                    {
                         attempts -= 5;
                         continue;
                     }
 
-
                     break;
                 }
-                if (attempts == 10)
-                    continue;
 
-                return true;
+                if (spawnedAny)
+                    return true;
             }
             return false;
         }
