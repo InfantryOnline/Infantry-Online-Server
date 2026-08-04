@@ -1382,7 +1382,7 @@ namespace InfServer.Game
                             && dep.ChildRotateLeft == 0
                             && dep.ChildRotateRight == 0;
 
-                        if (dep.ChildParentRelativeRotation == 1)
+                        if (dep.ChildParentRelativeRotation == 1 || absoluteConstraint)
                         {
                             var _state = child._parent._state;
 
