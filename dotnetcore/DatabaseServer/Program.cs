@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -23,8 +24,9 @@ namespace InfServer
             server.end();
         }
 
-        static void Main(string[] args)
-        {	//Initialize the logging system
+        async static Task Main(string[] args)
+        {
+            //Initialize the logging system
             Log.init();
             DdMonitor.bNoSync = false;
             DdMonitor.bEnabled = true;

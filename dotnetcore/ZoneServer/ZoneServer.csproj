@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="CS-Script" Version="4.9.7" />
     <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
+    <PackageReference Include="NATS.Net" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>

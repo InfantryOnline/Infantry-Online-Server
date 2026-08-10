@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Sqlite.Internal;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SqlServerToSqliteMigrationConsole
 {
@@ -73,7 +74,7 @@ namespace SqlServerToSqliteMigrationConsole
 
                 cfg.CreateMap<Database.History, Database.History>()
                     .IgnoreAllVirtual();
-            });
+            }, NullLoggerFactory.Instance);
 
             return config.CreateMapper();
         }
