@@ -107,6 +107,15 @@ namespace InfServer.Network
 		}
 
 		/// <summary>
+		/// Tripwire overload - deliberately throws.
+		/// </summary>
+		public void Write(sbyte sbValue)
+		{
+            _contentWriter.Write(sbValue);
+            _size += sizeof(sbyte);
+        }
+
+		/// <summary>
 		/// Writes an array of bytes to the packet.
 		/// </summary>
 		/// <param name="bArray">The array of bytes that should be written to the packet.</param>
