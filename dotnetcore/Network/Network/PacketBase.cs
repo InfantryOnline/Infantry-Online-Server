@@ -107,7 +107,7 @@ namespace InfServer.Network
 		}
 
 		/// <summary>
-		/// Tripwire overload - deliberately throws.
+		/// Writes an sbyte to the packet.
 		/// </summary>
 		public void Write(sbyte sbValue)
 		{
