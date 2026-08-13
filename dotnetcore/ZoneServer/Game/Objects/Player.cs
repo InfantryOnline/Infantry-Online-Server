@@ -43,9 +43,9 @@ namespace InfServer.Game
 
         public Data.PlayerPermission _permissionStatic;	//The player's global permission in this zone
         public Data.PlayerPermission _permissionTemp;	//The player's permission in his current arena
-        public sbyte modpermission;
-        public sbyte zmodpermission;
-        public sbyte hostpermission;
+        public byte modpermission;
+        public byte zmodpermission;
+        public byte hostpermission;
         public bool _developer;                         //Is the player zone powered only?
         public bool _admin;                             //Is the player an admin?
 

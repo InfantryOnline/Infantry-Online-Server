@@ -433,14 +433,14 @@ namespace InfServer.Logic
                 // Write explicit permission levels for now.
 
                 // Write explicit permission levels.
-                plog.hostpermission = (sbyte)player.Permission;
-                plog.modpermission = (sbyte)account.Permission;
+                plog.hostpermission = (byte)player.Permission;
+                plog.modpermission = (byte)account.Permission;
 
                 var zmodEntry = db.Zmods.FirstOrDefault(x => x.Account == account.AccountId && x.Zone == zone._zone.ZoneId);
 
                 if (zmodEntry != null)
                 {
-                    plog.zmodpermission = (sbyte)zmodEntry.Level;
+                    plog.zmodpermission = (byte)zmodEntry.Level;
                 }
 
                 plog.silencedAtUnixMilliseconds = account.SilencedAtMillisecondsUnix;

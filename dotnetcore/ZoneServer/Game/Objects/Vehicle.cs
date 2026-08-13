@@ -199,7 +199,7 @@ namespace InfServer.Game
                         && dep.ChildRotateLeft == 0
                         && dep.ChildRotateRight == 0;
 
-                    if (dep.ChildParentRelativeRotation == 1)
+                    if (dep.ChildParentRelativeRotation == 1 || absoluteConstraint)
                     {
                         child._state.positionX = _state.positionX;
                         child._state.positionY = _state.positionY;
