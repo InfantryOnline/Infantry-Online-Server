@@ -324,6 +324,7 @@ namespace InfServer.Logic
                 //Do we have a player row for this zone?
                 player = db.Players
                     .Include(p => p.StatsNavigation)
+                    .Include(p => p.AliasNavigation).ThenInclude(a => a.AccountNavigation)
                     .SingleOrDefault(plyr => plyr.AliasId == alias.AliasId && plyr.ZoneId == zone._zone.ZoneId);
 
                 if (player == null)

@@ -144,7 +144,7 @@ namespace InfServer.Logic
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreLifetime:
                         {	//Get the top100 stats sorted by points
                             var stats = (from st in IncludeLifetimePlayerInfo(db.Stats)
-                                         where st.ZoneNavigation == zone._zone
+                                         where st.ZoneId == zone._zone.ZoneId
                                          orderby (long)st.AssistPoints + st.BonusPoints + st.KillPoints descending
                                          select st).Take(100).ToList();
 
@@ -171,7 +171,7 @@ namespace InfServer.Logic
                             //Get the top100 stats sorted by points
                             //For today's date
                             var daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
-                                         where dt.ZoneNavigation == zone._zone && dt.Date >= now
+                                         where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now
                                          orderby (long)dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
                                          select dt).Take(100).ToList();
 
@@ -184,7 +184,7 @@ namespace InfServer.Logic
                                     DateTime today = now;
                                     now = now.AddDays(-1);
                                     daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
-                                             where dt.ZoneNavigation == zone._zone && dt.Date >= now && dt.Date < today
+                                             where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now && dt.Date < today
                                              orderby (long)dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
                                              select dt).Take(100).ToList();
                                 }
@@ -204,7 +204,7 @@ namespace InfServer.Logic
                                     DateTime add = now.AddDays(1);
 
                                     daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
-                                             where dt.ZoneNavigation == zone._zone && dt.Date >= now && dt.Date < add
+                                             where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now && dt.Date < add
                                              orderby (long)dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
                                              select dt).Take(100).ToList();
                                 }
@@ -277,7 +277,7 @@ namespace InfServer.Logic
                             //Get the top100 stats sorted by points
                             //For this week
                             var weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
-                                          where wt.ZoneNavigation == zone._zone && wt.Date >= now
+                                          where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now
                                           orderby (long)wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
                                           select wt).Take(100).ToList();
 
@@ -290,7 +290,7 @@ namespace InfServer.Logic
                                     DateTime today = now;
                                     now = now.AddDays(-7);
                                     weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
-                                              where wt.ZoneNavigation == zone._zone && wt.Date >= now && wt.Date < today
+                                              where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now && wt.Date < today
                                               orderby (long)wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
                                               select wt).Take(100).ToList();
                                 }
@@ -310,7 +310,7 @@ namespace InfServer.Logic
                                     DateTime add = now.AddDays(7);
 
                                     weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
-                                              where wt.ZoneNavigation == zone._zone && wt.Date >= now && wt.Date < add
+                                              where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now && wt.Date < add
                                               orderby (long)wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
                                               select wt).Take(100).ToList();
                                 }
@@ -383,7 +383,7 @@ namespace InfServer.Logic
                             //Get the top100 stats sorted by points
                             //For this month
                             var monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
-                                           where mt.ZoneNavigation == zone._zone && mt.Date >= now
+                                           where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now
                                            orderby (long)mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
                                            select mt).Take(100).ToList();
 
@@ -396,7 +396,7 @@ namespace InfServer.Logic
                                     DateTime today = now;
                                     now = now.AddMonths(-1);
                                     monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
-                                               where mt.ZoneNavigation == zone._zone && mt.Date >= now && mt.Date < today
+                                               where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now && mt.Date < today
                                                orderby (long)mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
                                                select mt).Take(100).ToList();
                                 }
@@ -418,7 +418,7 @@ namespace InfServer.Logic
                                     DateTime add = now.AddMonths(1);
 
                                     monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
-                                               where mt.ZoneNavigation == zone._zone && mt.Date >= now && mt.Date < add
+                                               where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now && mt.Date < add
                                                orderby (long)mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
                                                select mt).Take(100).ToList();
                                 }
@@ -490,7 +490,7 @@ namespace InfServer.Logic
 
                             //Get the top100 stats sorted by points
                             var yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                          where yt.ZoneNavigation == zone._zone && yt.Date >= now
+                                          where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now
                                           orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                           select yt).Take(100).ToList();
 
@@ -502,7 +502,7 @@ namespace InfServer.Logic
                                 {
                                     now = now.AddYears(-1);
                                     yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                              where yt.ZoneNavigation == zone._zone && yt.Date >= now
+                                              where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now
                                               orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                               select yt).Take(100).ToList();
                                 }
@@ -522,7 +522,7 @@ namespace InfServer.Logic
                                     DateTime add = now.AddYears(1);
 
                                     yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                              where yt.ZoneNavigation == zone._zone && yt.Date >= now && yt.Date <= add
+                                              where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date <= add
                                               orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                               select yt).Take(100).ToList();
                                 }
@@ -589,9 +589,18 @@ namespace InfServer.Logic
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily:
                         {
                             Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.ZoneId == zone._zone.ZoneId);
-                            if (getPlayer == null)
+                            if (getAlias == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring daily score history request, alias '{0}' not found.", pkt.options);
                                 return;
+                            }
+
+                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasId == getAlias.AliasId && p.ZoneId == zone._zone.ZoneId);
+                            if (getPlayer == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring daily score history request, alias '{0}' has no player row in zone '{1}'.", pkt.options, zone._zone.Name);
+                                return;
+                            }
 
                             //Lets give them a year's worth
                             DateTime now = DateTime.Today;
@@ -600,7 +609,7 @@ namespace InfServer.Logic
 
                             DateTime today = DateTime.Today;
                             var daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
-                                         where dt.ZoneNavigation == zone._zone && dt.Date >= now && dt.Date < today
+                                         where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now && dt.Date < today
                                          orderby dt.Date descending
                                          select dt).ToList();
 
@@ -665,9 +674,18 @@ namespace InfServer.Logic
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly:
                         {
                             Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.ZoneId == zone._zone.ZoneId);
-                            if (getPlayer == null)
+                            if (getAlias == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring weekly score history request, alias '{0}' not found.", pkt.options);
                                 return;
+                            }
+
+                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasId == getAlias.AliasId && p.ZoneId == zone._zone.ZoneId);
+                            if (getPlayer == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring weekly score history request, alias '{0}' has no player row in zone '{1}'.", pkt.options, zone._zone.Name);
+                                return;
+                            }
 
                             //Lets give them a year's worth
                             DateTime now = DateTime.Today;
@@ -677,7 +695,7 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
-                                          where wt.ZoneNavigation == zone._zone && wt.Date >= now && wt.Date < today
+                                          where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now && wt.Date < today
                                           orderby wt.Date descending
                                           select wt).ToList();
 
@@ -742,9 +760,18 @@ namespace InfServer.Logic
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly:
                         {
                             Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.ZoneId == zone._zone.ZoneId);
-                            if (getPlayer == null)
+                            if (getAlias == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring monthly score history request, alias '{0}' not found.", pkt.options);
                                 return;
+                            }
+
+                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasId == getAlias.AliasId && p.ZoneId == zone._zone.ZoneId);
+                            if (getPlayer == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring monthly score history request, alias '{0}' has no player row in zone '{1}'.", pkt.options, zone._zone.Name);
+                                return;
+                            }
 
                             //Lets give them a year's worth
                             DateTime now = DateTime.Today;
@@ -754,7 +781,7 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
-                                           where mt.ZoneNavigation == zone._zone && mt.Date >= now && mt.Date < today
+                                           where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now && mt.Date < today
                                            orderby mt.Date descending
                                            select mt).ToList();
 
@@ -819,9 +846,18 @@ namespace InfServer.Logic
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly:
                         {
                             Alias getAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.options);
-                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasNavigation == getAlias && p.ZoneId == zone._zone.ZoneId);
-                            if (getPlayer == null)
+                            if (getAlias == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring yearly score history request, alias '{0}' not found.", pkt.options);
                                 return;
+                            }
+
+                            Player getPlayer = db.Players.FirstOrDefault(p => p.AliasId == getAlias.AliasId && p.ZoneId == zone._zone.ZoneId);
+                            if (getPlayer == null)
+                            {
+                                Log.write(TLog.Warning, "Ignoring yearly score history request, alias '{0}' has no player row in zone '{1}'.", pkt.options, zone._zone.Name);
+                                return;
+                            }
 
                             //Lets give them a year's worth
                             DateTime now = DateTime.Today;
@@ -831,7 +867,7 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                          where yt.ZoneNavigation == zone._zone && yt.Date >= now && yt.Date < today
+                                          where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date < today
                                           orderby yt.Date descending
                                           select yt).ToList();
 

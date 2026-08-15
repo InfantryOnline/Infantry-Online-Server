@@ -185,6 +185,12 @@ namespace InfServer.Logic
 
             //Recipient lookup
             Alias recipientAlias = db.Aliases.FirstOrDefault(a => a.Name == pkt.payload);
+            if (recipientAlias == null)
+            {
+                Log.write(TLog.Warning, "Ignoring stat wipe request, recipient alias '{0}' not found.", pkt.payload);
+                zone._server.sendMessage(zone, pkt.sender, "No such alias to wipe.");
+                return;
+            }
 
             Player recipientPlayer = db.Players
                 .Include(p => p.StatsNavigation)
@@ -586,9 +592,18 @@ namespace InfServer.Logic
         {
             zone._server.sendMessage(zone, pkt.sender, "&Email Update");
 
-            Account account = db.Aliases
+            Alias alias = db.Aliases
                 .Include(a => a.AccountNavigation)
-                .SingleOrDefault(a => a.Name == pkt.sender).AccountNavigation;
+                .SingleOrDefault(a => a.Name == pkt.sender);
+
+            if (alias == null || alias.AccountNavigation == null)
+            {
+                Log.write(TLog.Warning, "Ignoring email update request, sender alias '{0}' not found.", pkt.sender);
+                zone._server.sendMessage(zone, pkt.sender, "Cannot find your account.");
+                return;
+            }
+
+            Account account = alias.AccountNavigation;
 
             //Update his email
             account.Email = pkt.payload;
@@ -986,6 +1001,12 @@ namespace InfServer.Logic
                 .Where(p => p.PlayerId == player.dbid)
                 .FirstOrDefault();
 
+            if (dbplayer == null)
+            {
+                Log.write(TLog.Warning, "Ignoring squad invitation response, player '{0}' not present in database.", pkt.alias);
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(cleanPayload) || !cleanPayload.Contains(':'))
             {
                 zone._server.sendMessage(zone, pkt.alias, "Invalid syntax. Use: ?squadIresponse [accept/reject]:[squadname]");
@@ -1003,9 +1024,16 @@ namespace InfServer.Logic
 
             bool bAccept = (sResponse[0].ToLower() == "accept") ? true : false;
             Squad responseSquad = db.Squads.FirstOrDefault(s => s.Name == sResponse[1] && s.ZoneId == zone._zone.ZoneId);
+            if (responseSquad == null)
+            {
+                Log.write(TLog.Warning, "Ignoring squad invitation response, squad '{0}' not found in zone '{1}'.", sResponse[1], zone._zone.Name);
+                zone._server.sendMessage(zone, pkt.alias, "Invalid squad invitation response.");
+                return;
+            }
+
             KeyValuePair<int, int> responsePair = new KeyValuePair<int, int>((int)responseSquad.SquadId, (int)dbplayer.PlayerId);
 
-            if (responseSquad == null || !zone._server._squadInvites.Contains(responsePair))
+            if (!zone._server._squadInvites.Contains(responsePair))
             {   //Either squad doesn't exist... or he's a filthy liar
                 zone._server.sendMessage(zone, pkt.alias, "Invalid squad invitation response.");
                 return;
@@ -1045,6 +1073,12 @@ namespace InfServer.Logic
                 .Include(p => p.SquadNavigation)
                 .Where(p => p.PlayerId == player.dbid)
                 .FirstOrDefault();
+
+            if (dbplayer == null)
+            {
+                Log.write(TLog.Warning, "Ignoring player squad invites request, player '{0}' not present in database.", pkt.alias);
+                return;
+            }
 
             //Is the zone asking?
             if (cleanPayload == "zone")
@@ -1186,7 +1220,11 @@ namespace InfServer.Logic
                 {
                     squad = ctx.Squads.Find(player.squadid);
 
-                    if (squad!.OwnerPlayerId == player.dbid)
+                    if (squad == null)
+                    {
+                        Log.write(TLog.Warning, "Player '{0}' has SquadId '{1}' but no squad row in zone '{2}'.", player.alias, player.squadid, zone._zone.Name);
+                    }
+                    else if (squad.OwnerPlayerId == player.dbid)
                     {
                         owner = player.alias;
                     }

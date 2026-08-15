@@ -246,6 +246,12 @@ namespace InfServer.Logic
                     .Where(p => p.ZoneId == dbplayer.ZoneId && p.SquadId != null && p.SquadId == dbplayer.SquadId);
 
                 //Is he the captain?
+                if (dbplayer.SquadNavigation == null)
+                {
+                    Log.write(TLog.Warning, "Player '{0}' has SquadId '{1}' but no squad row in zone '{2}'.", dbplayer.AliasNavigation.Name, dbplayer.SquadId, zone._zone.Name);
+                    return;
+                }
+
                 if (dbplayer.SquadNavigation.OwnerPlayerId == dbplayer.PlayerId)
                 {   //We might need to dissolve the team!
                     if (squadmates.Count() == 1)
@@ -260,6 +266,12 @@ namespace InfServer.Logic
                     else
                     {   //There are other people on the squad, transfer it to someone
                         Player transferPlayer = squadmates.FirstOrDefault(p => p.PlayerId != dbplayer.PlayerId);
+                        if (transferPlayer == null || transferPlayer.SquadNavigation == null)
+                        {
+                            Log.write(TLog.Warning, "Unable to transfer squad ownership from player '{0}' in zone '{1}'.", dbplayer.PlayerId, zone._zone.Name);
+                            return;
+                        }
+
                         dbplayer.SquadNavigation.OwnerPlayerId = transferPlayer.PlayerId;
                         db.SaveChanges();
                         zone._server.sendMessage(zone, transferPlayer.AliasNavigation.Name, "You have been promoted to squad captain of " + transferPlayer.SquadNavigation.Name);
@@ -533,17 +545,29 @@ namespace InfServer.Logic
                 if (p.SquadId != null)
                 {
                     var squadmates = db.Players
+                        .Include(plyr => plyr.AliasNavigation)
                         .Include(plyr => plyr.SquadNavigation)
                         .Where(plyr => plyr.ZoneId == p.ZoneId && plyr.SquadId != null && plyr.SquadId == p.SquadId)
                         .ToList();
 
-                    if (p.SquadNavigation.OwnerPlayerId == p.PlayerId)
+                    if (p.SquadNavigation == null)
+                    {
+                        Log.write(TLog.Warning, "Alias remove found player '{0}' with SquadId '{1}' but no squad row.", p.PlayerId, p.SquadId);
+                    }
+                    else if (p.SquadNavigation.OwnerPlayerId == p.PlayerId)
                     {
                         if (squadmates.Count() > 1)
                         {
                             var otherPlayer = squadmates.FirstOrDefault(plyr => plyr.PlayerId != p.PlayerId);
-                            //Since the player is the owner, lets just give it to someone else
-                            otherPlayer.SquadNavigation.OwnerPlayerId = otherPlayer.PlayerId;
+                            if (otherPlayer == null || otherPlayer.SquadNavigation == null)
+                            {
+                                Log.write(TLog.Warning, "Alias remove could not transfer squad ownership from player '{0}'.", p.PlayerId);
+                            }
+                            else
+                            {
+                                //Since the player is the owner, lets just give it to someone else
+                                otherPlayer.SquadNavigation.OwnerPlayerId = otherPlayer.PlayerId;
+                            }
                         }
                         else if (squadmates.Count() == 1)
                         {
@@ -628,7 +652,11 @@ namespace InfServer.Logic
                     // Player is the owner; either transfer the squad to someone else, or
                     // remove the squad entirely.
                     //
-                    if (p.SquadNavigation.OwnerPlayerId == p.PlayerId)
+                    if (p.SquadNavigation == null)
+                    {
+                        Log.write(TLog.Warning, "Alias transfer found player '{0}' with SquadId '{1}' but no squad row.", p.PlayerId, p.SquadId);
+                    }
+                    else if (p.SquadNavigation.OwnerPlayerId == p.PlayerId)
                     {
                         var squadmate = ctx.Players
                             .Where(sq =>
