@@ -115,6 +115,7 @@ namespace InfServer.Game
 
         public bool firstTimePlayer;
         public bool _bDBLoaded;						//Has the player's statistics been loaded from the database?
+        public int _tickNextDatabaseSync;           //The next tick at which this player should sync with the database
 
         //Suspended player state
         private Data.PlayerStats _suspStats;

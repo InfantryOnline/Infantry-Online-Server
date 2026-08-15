@@ -67,6 +67,7 @@ namespace InfServer.Logic
             player._squadID = pkt.squadID;
 
             player._bDBLoaded = true;
+            player._tickNextDatabaseSync = Environment.TickCount + Random.Shared.Next(0, 120000);
 
             if (pkt.silencedDurationMinutes > 0)
             {

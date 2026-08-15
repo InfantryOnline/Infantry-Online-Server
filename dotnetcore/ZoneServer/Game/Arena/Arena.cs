@@ -551,10 +551,6 @@ namespace InfServer.Game
                 if (bMinor)
                     _tickLastMinorPoll = now;
 
-                bool bDBSync = (now - _tickLastDatabaseSync) >= 60000; //Every 60 seconds
-                if (bDBSync)
-                    _tickLastDatabaseSync = now;
-
                 //Keep our itemdrops in line
                 foreach (var itm in _items.Values)
                 {
@@ -782,12 +778,22 @@ namespace InfServer.Game
                 }
 
                 //Is it time to sync to database?
-                if (bDBSync && !_server.IsStandalone && _bIsPublic)
+                if (!_server.IsStandalone && _bIsPublic)
                 {
                     foreach (Player p in Players.ToList())
-                        if (p._bDBLoaded)
-                            //Update him!
+                    {
+                        if (!p._bDBLoaded)
+                            continue;
+
+                        if (p._tickNextDatabaseSync == 0)
+                            p._tickNextDatabaseSync = now + _rand.Next(0, 120000);
+
+                        if (unchecked(now - p._tickNextDatabaseSync) >= 0)
+                        {
+                            p._tickNextDatabaseSync = now + 120000;
                             p._server._db.updatePlayer(p);
+                        }
+                    }
                 }
 
                 //Look after our lio objects
