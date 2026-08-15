@@ -75,6 +75,7 @@ namespace AccountServer
             {
                 ctx.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
                 ctx.Database.ExecuteSqlRaw("PRAGMA synchronous=NORMAL;");
+                ctx.Database.ExecuteSqlRaw("PRAGMA busy_timeout=5000;");
             }
 
             return ctx;
