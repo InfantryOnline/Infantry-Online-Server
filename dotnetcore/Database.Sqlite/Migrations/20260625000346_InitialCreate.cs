@@ -17,14 +17,14 @@ namespace Database.Sqlite.Migrations
                 {
                     AccountId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Password = table.Column<string>(type: "TEXT", nullable: false),
-                    Ticket = table.Column<string>(type: "TEXT", nullable: true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Password = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Ticket = table.Column<string>(type: "TEXT", nullable: true, collation: "NOCASE"),
                     DateCreated = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastAccess = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Permission = table.Column<int>(type: "INTEGER", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    IpAddress = table.Column<string>(type: "TEXT", nullable: true),
+                    Email = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    IpAddress = table.Column<string>(type: "TEXT", nullable: true, collation: "NOCASE"),
                     ForumId = table.Column<long>(type: "INTEGER", nullable: true),
                     SilencedAtMillisecondsUnix = table.Column<long>(type: "INTEGER", nullable: false),
                     SilencedDuration = table.Column<long>(type: "INTEGER", nullable: false),
@@ -43,15 +43,15 @@ namespace Database.Sqlite.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Type = table.Column<short>(type: "INTEGER", nullable: false),
                     AccountId = table.Column<long>(type: "INTEGER", nullable: true),
-                    IpAddress = table.Column<string>(type: "TEXT", nullable: true),
+                    IpAddress = table.Column<string>(type: "TEXT", nullable: true, collation: "NOCASE"),
                     Uid1 = table.Column<long>(type: "INTEGER", nullable: true),
                     Uid2 = table.Column<long>(type: "INTEGER", nullable: true),
                     Uid3 = table.Column<long>(type: "INTEGER", nullable: true),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Expires = table.Column<DateTime>(type: "TEXT", nullable: true),
                     ZoneId = table.Column<long>(type: "INTEGER", nullable: true),
-                    Reason = table.Column<string>(type: "TEXT", nullable: true),
-                    Name = table.Column<string>(type: "TEXT", nullable: true)
+                    Reason = table.Column<string>(type: "TEXT", nullable: true, collation: "NOCASE"),
+                    Name = table.Column<string>(type: "TEXT", nullable: true, collation: "NOCASE")
                 },
                 constraints: table =>
                 {
@@ -64,11 +64,11 @@ namespace Database.Sqlite.Migrations
                 {
                     HelpCallId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Sender = table.Column<string>(type: "TEXT", nullable: false),
-                    Arena = table.Column<string>(type: "TEXT", nullable: false),
-                    Zone = table.Column<string>(type: "TEXT", nullable: false),
+                    Sender = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Arena = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Zone = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Reason = table.Column<string>(type: "TEXT", nullable: true)
+                    Reason = table.Column<string>(type: "TEXT", nullable: true, collation: "NOCASE")
                 },
                 constraints: table =>
                 {
@@ -81,11 +81,11 @@ namespace Database.Sqlite.Migrations
                 {
                     HistoryId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Sender = table.Column<string>(type: "TEXT", nullable: false),
-                    Recipient = table.Column<string>(type: "TEXT", nullable: false),
-                    Zone = table.Column<string>(type: "TEXT", nullable: false),
-                    Arena = table.Column<string>(type: "TEXT", nullable: false),
-                    Command = table.Column<string>(type: "TEXT", nullable: false),
+                    Sender = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Recipient = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Zone = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Arena = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Command = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -99,8 +99,8 @@ namespace Database.Sqlite.Migrations
                 {
                     SquadId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Password = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Password = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     DateCreated = table.Column<DateTime>(type: "TEXT", nullable: false),
                     OwnerPlayerId = table.Column<long>(type: "INTEGER", nullable: false),
                     ZoneId = table.Column<long>(type: "INTEGER", nullable: false)
@@ -116,12 +116,12 @@ namespace Database.Sqlite.Migrations
                 {
                     ZoneId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Password = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: false),
-                    Notice = table.Column<string>(type: "TEXT", nullable: false),
+                    Password = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Name = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Description = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Notice = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     Active = table.Column<short>(type: "INTEGER", nullable: false),
-                    Ip = table.Column<string>(type: "TEXT", nullable: true),
+                    Ip = table.Column<string>(type: "TEXT", nullable: true, collation: "NOCASE"),
                     Port = table.Column<int>(type: "INTEGER", nullable: true),
                     Advanced = table.Column<short>(type: "INTEGER", nullable: true),
                     old_id = table.Column<long>(type: "INTEGER", nullable: false)
@@ -138,9 +138,9 @@ namespace Database.Sqlite.Migrations
                     AliasId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     AccountId = table.Column<long>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     Creation = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    IpAddress = table.Column<string>(type: "TEXT", nullable: false),
+                    IpAddress = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     LastAccess = table.Column<DateTime>(type: "TEXT", nullable: false),
                     TimePlayed = table.Column<long>(type: "INTEGER", nullable: false),
                     Stealth = table.Column<int>(type: "INTEGER", nullable: false)
@@ -163,8 +163,8 @@ namespace Database.Sqlite.Migrations
                     ResetTokenId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     AccountId = table.Column<long>(type: "INTEGER", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Token = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
+                    Token = table.Column<string>(type: "TEXT", nullable: false, collation: "NOCASE"),
                     ExpireDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     TokenUsed = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
