@@ -609,7 +609,7 @@ namespace InfServer.Logic
 
                             DateTime today = DateTime.Today;
                             var daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
-                                         where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now && dt.Date < today
+                                         where dt.ZoneId == zone._zone.ZoneId && dt.PlayerId == getPlayer.PlayerId && dt.Date >= now && dt.Date < today
                                          orderby dt.Date descending
                                          select dt).ToList();
 
@@ -695,7 +695,7 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
-                                          where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now && wt.Date < today
+                                          where wt.ZoneId == zone._zone.ZoneId && wt.PlayerId == getPlayer.PlayerId && wt.Date >= now && wt.Date < today
                                           orderby wt.Date descending
                                           select wt).ToList();
 
@@ -781,7 +781,7 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
-                                           where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now && mt.Date < today
+                                           where mt.ZoneId == zone._zone.ZoneId && mt.PlayerId == getPlayer.PlayerId && mt.Date >= now && mt.Date < today
                                            orderby mt.Date descending
                                            select mt).ToList();
 
@@ -867,7 +867,7 @@ namespace InfServer.Logic
                             now = now.AddMonths(-((int)now.Month - 1));
 
                             var yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                          where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date < today
+                                          where yt.ZoneId == zone._zone.ZoneId && yt.PlayerId == getPlayer.PlayerId && yt.Date >= now && yt.Date < today
                                           orderby yt.Date descending
                                           select yt).ToList();
 
