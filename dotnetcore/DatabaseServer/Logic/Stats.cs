@@ -629,10 +629,15 @@ namespace InfServer.Logic
                                 foreach (StatsDaily day in daily)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(day.Date.ToString("yyyy-MM-dd").ToCharArray());
+                                    bw.Write(day.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    bw.Write(day.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    Squad squad = day.PlayerNavigation.SquadNavigation;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.Name;
+
+                                    bw.Write(squadname.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -669,7 +674,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily;
-                            response.columns = "ScoreHistory Daily Score,Date,Name";
+                            response.columns = "ScoreHistory Daily Score,Name,Squad";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
@@ -707,10 +712,15 @@ namespace InfServer.Logic
                                 foreach (StatsWeekly week in weekly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(week.Date.ToString("yyyy-MM-dd").ToCharArray());
+                                    bw.Write(week.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    bw.Write(week.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    Squad squad = week.PlayerNavigation.SquadNavigation;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.Name;
+
+                                    bw.Write(squadname.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -747,7 +757,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly;
-                            response.columns = "ScoreHistory Weekly Score,Week,Name";
+                            response.columns = "ScoreHistory Weekly Score,Name,Squad";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
@@ -785,10 +795,15 @@ namespace InfServer.Logic
                                 foreach (StatsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(month.Date.ToString("yyyy-MM").ToCharArray());
+                                    bw.Write(month.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    bw.Write(month.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    Squad squad = month.PlayerNavigation.SquadNavigation;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.Name;
+
+                                    bw.Write(squadname.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -825,7 +840,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly;
-                            response.columns = "ScoreHistory Monthly Score,Month,Name";
+                            response.columns = "ScoreHistory Monthly Score,Name,Squad";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
@@ -863,10 +878,15 @@ namespace InfServer.Logic
                                 foreach (StatsYearly year in yearly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(year.Date.ToString("yyyy").ToCharArray());
+                                    bw.Write(year.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
-                                    bw.Write(year.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    var squad = year!.PlayerNavigation!.SquadNavigation;
+                                    string squadname = "";
+                                    if (squad != null)
+                                        squadname = squad.Name;
+
+                                    bw.Write(squadname.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -903,7 +923,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly;
-                            response.columns = "ScoreHistory Yearly Score,Year,Name";
+                            response.columns = "ScoreHistory Yearly Score,Name,Squad";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
