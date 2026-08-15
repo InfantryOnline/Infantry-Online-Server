@@ -28,6 +28,7 @@ namespace InfServer
         public SortedDictionary<string, Chat> _chats;
         public Dictionary<string, Zone.Player> _players;                //A list of every connected player
         public int playerPeak;
+        public bool isSqlite;
 
         public List<Zone> _zones;				                        //The zones currently connected
 
@@ -304,6 +305,8 @@ namespace InfServer
                 var pooledFact = new PooledDbContextFactory<SqliteDbContext>(opts.Options);
 
                 _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
+
+                isSqlite = true;
             }
             else
             {
@@ -339,7 +342,15 @@ namespace InfServer
         /// </summary>
         public InfantryDbContext getContext()
         {
-            return _dbContextFactory.CreateDbContext();
+            var ctx = _dbContextFactory.CreateDbContext();
+
+            if (isSqlite)
+            {
+                ctx.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+                ctx.Database.ExecuteSqlRaw("PRAGMA synchronous=NORMAL;");
+            }
+
+            return ctx;
         }
     }
 }

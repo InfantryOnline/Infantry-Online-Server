@@ -506,6 +506,41 @@ namespace Database.Sqlite.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Accounts_Ticket",
+                table: "Accounts",
+                column: "Ticket");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bans_AccountId",
+                table: "Bans",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bans_IpAddress",
+                table: "Bans",
+                column: "IpAddress");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bans_Name",
+                table: "Bans",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bans_Uid1",
+                table: "Bans",
+                column: "Uid1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bans_Uid2",
+                table: "Bans",
+                column: "Uid2");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Bans_Uid3",
+                table: "Bans",
+                column: "Uid3");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Players_AliasId_ZoneId",
                 table: "Players",
                 columns: new[] { "AliasId", "ZoneId" });
@@ -583,6 +618,11 @@ namespace Database.Sqlite.Migrations
                 name: "IX_Zmods_AccountNavigationAccountId",
                 table: "Zmods",
                 column: "AccountNavigationAccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Zmods_Account_Zone",
+                table: "Zmods",
+                columns: new[] { "Account", "Zone" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Zmods_ZoneNavigationZoneId",

@@ -64,6 +64,8 @@ namespace Database.Sqlite.Migrations
 
                     b.HasKey("AccountId");
 
+                    b.HasIndex("Ticket");
+
                     b.ToTable("Accounts");
                 });
 
@@ -146,6 +148,18 @@ namespace Database.Sqlite.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("BanId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("IpAddress");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Uid1");
+
+                    b.HasIndex("Uid2");
+
+                    b.HasIndex("Uid3");
 
                     b.ToTable("Bans");
                 });
@@ -805,6 +819,8 @@ namespace Database.Sqlite.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountNavigationAccountId");
+
+                    b.HasIndex("Account", "Zone");
 
                     b.HasIndex("ZoneNavigationZoneId");
 

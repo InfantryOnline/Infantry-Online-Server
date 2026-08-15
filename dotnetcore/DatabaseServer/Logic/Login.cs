@@ -274,7 +274,9 @@ namespace InfServer.Logic
                 if (alias == null && !pkt.bCreateAlias)
                 {	//Prompt him to create a new alias if he has room
                     int maxAliases = 30;
-                    if (plog.permission == Data.PlayerPermission.Level5 || account.Aliases.Count < maxAliases)
+                    var aliasCount = db.Aliases.Count(a => a.AccountId == account.AccountId);
+
+                    if (plog.permission == Data.PlayerPermission.Level5 || aliasCount < maxAliases)
                     {   //He has space! Prompt him to make a new alias
                         plog.bSuccess = false;
                         plog.bNewAlias = true;
@@ -309,7 +311,7 @@ namespace InfServer.Logic
                 else if (alias != null)
                 {	//We can't recreate an existing alias or login to one that isn't ours..
                     if (pkt.bCreateAlias ||
-                        alias.AccountNavigation != account)
+                        alias.AccountId != account.AccountId)
                     {
                         plog.bSuccess = false;
                         plog.loginMessage = "The specified alias already exists.";
@@ -322,9 +324,7 @@ namespace InfServer.Logic
                 //Do we have a player row for this zone?
                 player = db.Players
                     .Include(p => p.StatsNavigation)
-                    .Include(p => p.AliasNavigation).ThenInclude(p => p.AccountNavigation)
-                    .Include(p => p.ZoneNavigation)
-                    .SingleOrDefault(plyr => plyr.AliasNavigation == alias && plyr.ZoneNavigation == zone._zone);
+                    .SingleOrDefault(plyr => plyr.AliasId == alias.AliasId && plyr.ZoneId == zone._zone.ZoneId);
 
                 if (player == null)
                 {	//We need to create another!
