@@ -82,6 +82,7 @@ namespace InfServer.Logic
         static private IQueryable<Stat> IncludeLifetimePlayerInfo(IQueryable<Stat> query)
         {
             return query
+                .AsNoTracking()
                 .Include(st => st.Players)
                     .ThenInclude(p => p.AliasNavigation)
                 .Include(st => st.Players)
@@ -91,6 +92,7 @@ namespace InfServer.Logic
         static private IQueryable<StatsDaily> IncludeDailyPlayerInfo(IQueryable<StatsDaily> query)
         {
             return query
+                .AsNoTracking()
                 .Include(st => st.PlayerNavigation)
                     .ThenInclude(p => p.AliasNavigation)
                 .Include(st => st.PlayerNavigation)
@@ -100,6 +102,7 @@ namespace InfServer.Logic
         static private IQueryable<StatsWeekly> IncludeWeeklyPlayerInfo(IQueryable<StatsWeekly> query)
         {
             return query
+                .AsNoTracking()
                 .Include(st => st.PlayerNavigation)
                     .ThenInclude(p => p.AliasNavigation)
                 .Include(st => st.PlayerNavigation)
@@ -109,6 +112,7 @@ namespace InfServer.Logic
         static private IQueryable<StatsMonthly> IncludeMonthlyPlayerInfo(IQueryable<StatsMonthly> query)
         {
             return query
+                .AsNoTracking()
                 .Include(st => st.PlayerNavigation)
                     .ThenInclude(p => p.AliasNavigation)
                 .Include(st => st.PlayerNavigation)
@@ -118,6 +122,7 @@ namespace InfServer.Logic
         static private IQueryable<StatsYearly> IncludeYearlyPlayerInfo(IQueryable<StatsYearly> query)
         {
             return query
+                .AsNoTracking()
                 .Include(st => st.PlayerNavigation)
                     .ThenInclude(p => p.AliasNavigation)
                 .Include(st => st.PlayerNavigation)
