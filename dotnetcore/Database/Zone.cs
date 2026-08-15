@@ -23,6 +23,8 @@ public partial class Zone
 
     public short? Advanced { get; set; }
 
+    public long OldId { get; set; }
+
     public virtual ICollection<Player> Players { get; set; } = new List<Player>();
 
     public virtual ICollection<Stat> Stats { get; set; } = new List<Stat>();

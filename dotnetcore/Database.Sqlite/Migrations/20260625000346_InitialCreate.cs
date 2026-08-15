@@ -123,7 +123,8 @@ namespace Database.Sqlite.Migrations
                     Active = table.Column<short>(type: "INTEGER", nullable: false),
                     Ip = table.Column<string>(type: "TEXT", nullable: true),
                     Port = table.Column<int>(type: "INTEGER", nullable: true),
-                    Advanced = table.Column<short>(type: "INTEGER", nullable: true)
+                    Advanced = table.Column<short>(type: "INTEGER", nullable: true),
+                    old_id = table.Column<long>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -229,22 +230,20 @@ namespace Database.Sqlite.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Account = table.Column<long>(type: "INTEGER", nullable: false),
                     Zone = table.Column<long>(type: "INTEGER", nullable: false),
-                    Level = table.Column<int>(type: "INTEGER", nullable: false),
-                    AccountNavigationAccountId = table.Column<long>(type: "INTEGER", nullable: false),
-                    ZoneNavigationZoneId = table.Column<long>(type: "INTEGER", nullable: false)
+                    Level = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Zmods", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Zmods_Accounts_AccountNavigationAccountId",
-                        column: x => x.AccountNavigationAccountId,
+                        name: "zmod_account",
+                        column: x => x.Account,
                         principalTable: "Accounts",
                         principalColumn: "AccountId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Zmods_Zones_ZoneNavigationZoneId",
-                        column: x => x.ZoneNavigationZoneId,
+                        name: "zmod_zone",
+                        column: x => x.Zone,
                         principalTable: "Zones",
                         principalColumn: "ZoneId",
                         onDelete: ReferentialAction.Cascade);
@@ -615,19 +614,21 @@ namespace Database.Sqlite.Migrations
                 column: "ZoneId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Zmods_AccountNavigationAccountId",
-                table: "Zmods",
-                column: "AccountNavigationAccountId");
+                name: "UQ_zone_old_id",
+                table: "Zones",
+                column: "old_id",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Zmods_Account_Zone",
+                name: "zmod_uc_account_zone",
                 table: "Zmods",
-                columns: new[] { "Account", "Zone" });
+                columns: new[] { "Account", "Zone" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Zmods_ZoneNavigationZoneId",
+                name: "IX_Zmods_Zone",
                 table: "Zmods",
-                column: "ZoneNavigationZoneId");
+                column: "Zone");
         }
 
         /// <inheritdoc />

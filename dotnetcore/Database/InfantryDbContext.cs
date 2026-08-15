@@ -44,5 +44,6 @@ namespace Database
         public virtual DbSet<Zmod> Zmods { get; set; }
 
         public virtual DbSet<Zone> Zones { get; set; }
+
     }
 }

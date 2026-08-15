@@ -44,7 +44,7 @@ namespace InfServer.Logic
 
             using (var db = server.getContext())
             {
-                dbZone = db.Zones.SingleOrDefault(z => z.ZoneId == pkt.zoneID);
+                dbZone = db.Zones.SingleOrDefault(z => z.OldId == pkt.zoneID);
 
                 //Does the zone exist?
                 if (dbZone == null)

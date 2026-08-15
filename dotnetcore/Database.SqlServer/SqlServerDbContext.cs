@@ -524,11 +524,14 @@ public partial class SqlServerDbContext : InfantryDbContext
             entity.Property(e => e.Notice)
                 .HasColumnType("text")
                 .HasColumnName("notice");
+            entity.Property(e => e.OldId).HasColumnName("old_id");
             entity.Property(e => e.Password)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("password");
             entity.Property(e => e.Port).HasColumnName("port");
+
+            entity.HasIndex(e => e.OldId).IsUnique().HasDatabaseName("UQ_zone_old_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

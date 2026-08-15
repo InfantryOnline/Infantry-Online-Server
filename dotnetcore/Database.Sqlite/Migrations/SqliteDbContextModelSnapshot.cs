@@ -804,25 +804,19 @@ namespace Database.Sqlite.Migrations
                     b.Property<long>("Account")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("AccountNavigationAccountId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("Level")
                         .HasColumnType("INTEGER");
 
                     b.Property<long>("Zone")
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("ZoneNavigationZoneId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountNavigationAccountId");
+                    b.HasIndex("Account", "Zone")
+                        .IsUnique()
+                        .HasDatabaseName("zmod_uc_account_zone");
 
-                    b.HasIndex("Account", "Zone");
-
-                    b.HasIndex("ZoneNavigationZoneId");
+                    b.HasIndex("Zone");
 
                     b.ToTable("Zmods");
                 });
@@ -854,6 +848,10 @@ namespace Database.Sqlite.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("OldId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("old_id");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -862,6 +860,10 @@ namespace Database.Sqlite.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("ZoneId");
+
+                    b.HasIndex("OldId")
+                        .IsUnique()
+                        .HasDatabaseName("UQ_zone_old_id");
 
                     b.ToTable("Zones");
                 });
@@ -1012,13 +1014,15 @@ namespace Database.Sqlite.Migrations
                 {
                     b.HasOne("Database.Account", "AccountNavigation")
                         .WithMany("Zmods")
-                        .HasForeignKey("AccountNavigationAccountId")
+                        .HasForeignKey("Account")
+                        .HasConstraintName("zmod_account")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Database.Zone", "ZoneNavigation")
                         .WithMany("Zmods")
-                        .HasForeignKey("ZoneNavigationZoneId")
+                        .HasForeignKey("Zone")
+                        .HasConstraintName("zmod_zone")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

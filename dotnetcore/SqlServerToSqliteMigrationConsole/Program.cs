@@ -118,6 +118,7 @@ namespace SqlServerToSqliteMigrationConsole
             List<Database.StatsMonthly> oldStatsMonthly;
             List<Database.StatsYearly> oldStatsYearly;
             List<Database.Zone> oldZones;
+            List<Database.Zmod> oldZmods;
 
             var opts = new DbContextOptionsBuilder<SqlServerDbContext>()
             .UseSqlServer("Data Source=JOVAN\\SQLEXPRESS01;Database=Data;Trusted_Connection=True;TrustServerCertificate=true")
@@ -135,6 +136,7 @@ namespace SqlServerToSqliteMigrationConsole
                 oldSquads = ctx.Squads.ToList();
                 oldStats = ctx.Stats.ToList();
                 oldZones = ctx.Zones.ToList();
+                oldZmods = ctx.Zmods.ToList();
                 oldResetTokens = ctx.ResetTokens.ToList();
                 oldHelpCalls = ctx.Helpcalls.ToList();
                 oldStatsDaily = ctx.StatsDailies.ToList();
@@ -226,6 +228,7 @@ namespace SqlServerToSqliteMigrationConsole
                     var newZ = mapper.Map<Database.Zone>(oldZ);
 
                     newZ.ZoneId = 0;
+                    newZ.OldId = oldZ.ZoneId;
 
                     zoneMap.Add(oldZ.ZoneId, newZ);
 
@@ -236,6 +239,41 @@ namespace SqlServerToSqliteMigrationConsole
             }
 
             oldZones.Clear();
+
+            #endregion
+
+            #region Create Zone Mods
+
+            Console.WriteLine("3a. Creating zone mods...");
+
+            using (var ctx = _dbContextFactory.CreateDbContext())
+            {
+                if (ctx.Zmods.Count() > 0)
+                {
+                    throw new Exception("Database isn't empty. Please provide a clean database");
+                }
+
+                foreach (var oldZmod in oldZmods)
+                {
+                    if (!accMap.ContainsKey(oldZmod.Account) || !zoneMap.ContainsKey(oldZmod.Zone))
+                    {
+                        continue;
+                    }
+
+                    var newZmod = new Database.Zmod
+                    {
+                        Account = accMap[oldZmod.Account].AccountId,
+                        Zone = zoneMap[oldZmod.Zone].ZoneId,
+                        Level = oldZmod.Level
+                    };
+
+                    ctx.Zmods.Add(newZmod);
+                }
+
+                ctx.SaveChanges();
+            }
+
+            oldZmods.Clear();
 
             #endregion
 
