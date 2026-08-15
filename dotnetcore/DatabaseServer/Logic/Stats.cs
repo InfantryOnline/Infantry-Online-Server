@@ -124,6 +124,21 @@ namespace InfServer.Logic
                     .ThenInclude(p => p.SquadNavigation);
         }
 
+        static private DateTime StartOfWeek(DateTime date)
+        {
+            return date.Date.AddDays(-(int)date.DayOfWeek);
+        }
+
+        static private DateTime StartOfMonth(DateTime date)
+        {
+            return new DateTime(date.Year, date.Month, 1);
+        }
+
+        static private DateTime StartOfYear(DateTime date)
+        {
+            return new DateTime(date.Year, 1, 1);
+        }
+
         /// <summary>
         /// Handles a player stat request
         /// </summary>
@@ -376,9 +391,7 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreMonthly:
                         {
-                            DateTime now = DateTime.Today;
-                            if (((int)now.Day - 1) > 1)
-                                now = now.AddDays(-(((int)now.Day) - 1));
+                            DateTime now = StartOfMonth(DateTime.Today);
 
                             //Get the top100 stats sorted by points
                             //For this month
@@ -484,9 +497,7 @@ namespace InfServer.Logic
 
                     case CS_PlayerStatsRequest<Zone>.ChartType.ScoreYearly:
                         {
-                            DateTime now = DateTime.Today;
-                            if (((int)now.Month) > 1)
-                                now = now.AddMonths(-((int)DateTime.Now.Month));
+                            DateTime now = StartOfYear(DateTime.Today);
 
                             //Get the top100 stats sorted by points
                             var yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
@@ -500,9 +511,10 @@ namespace InfServer.Logic
                                 //Player wants to see last years date
                                 if (pkt.options.Equals("-1"))
                                 {
+                                    DateTime nextYear = now;
                                     now = now.AddYears(-1);
                                     yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                              where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now
+                                              where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date < nextYear
                                               orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                               select yt).Take(100).ToList();
                                 }
@@ -522,7 +534,7 @@ namespace InfServer.Logic
                                     DateTime add = now.AddYears(1);
 
                                     yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                              where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date <= add
+                                              where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date < add
                                               orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                               select yt).Take(100).ToList();
                                 }
@@ -602,14 +614,12 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            //Lets give them a year's worth
-                            DateTime now = DateTime.Today;
-                            if (((int)now.DayOfYear - 1) > 1)
-                                now = now.AddDays(-(((int)now.DayOfYear) - 1));
+                            // Lets give them this year's buckets, including the current one.
+                            DateTime now = StartOfYear(DateTime.Today);
+                            DateTime tomorrow = DateTime.Today.AddDays(1);
 
-                            DateTime today = DateTime.Today;
                             var daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
-                                         where dt.ZoneId == zone._zone.ZoneId && dt.PlayerId == getPlayer.PlayerId && dt.Date >= now && dt.Date < today
+                                         where dt.ZoneId == zone._zone.ZoneId && dt.PlayerId == getPlayer.PlayerId && dt.Date >= now && dt.Date < tomorrow
                                          orderby dt.Date descending
                                          select dt).ToList();
 
@@ -619,15 +629,10 @@ namespace InfServer.Logic
                                 foreach (StatsDaily day in daily)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(day.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    bw.Write(day.Date.ToString("yyyy-MM-dd").ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = day.PlayerNavigation.SquadNavigation;
-                                    string squadname = "";
-                                    if (squad != null)
-                                        squadname = squad.Name;
-
-                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write(day.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -664,7 +669,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryDaily;
-                            response.columns = "ScoreHistory Daily Score,Name,Squad";
+                            response.columns = "ScoreHistory Daily Score,Date,Name";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
@@ -687,15 +692,12 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            //Lets give them a year's worth
-                            DateTime now = DateTime.Today;
-                            if (((int)now.DayOfWeek) > 0)
-                                now = now.AddDays(-(((int)now.DayOfWeek) - 1));
-                            DateTime today = now;
-                            now = now.AddMonths(-((int)now.Month - 1));
+                            // Lets give them this year's buckets, including the current one.
+                            DateTime now = StartOfWeek(StartOfYear(DateTime.Today));
+                            DateTime nextWeek = StartOfWeek(DateTime.Today).AddDays(7);
 
                             var weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
-                                          where wt.ZoneId == zone._zone.ZoneId && wt.PlayerId == getPlayer.PlayerId && wt.Date >= now && wt.Date < today
+                                          where wt.ZoneId == zone._zone.ZoneId && wt.PlayerId == getPlayer.PlayerId && wt.Date >= now && wt.Date < nextWeek
                                           orderby wt.Date descending
                                           select wt).ToList();
 
@@ -705,15 +707,10 @@ namespace InfServer.Logic
                                 foreach (StatsWeekly week in weekly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(week.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    bw.Write(week.Date.ToString("yyyy-MM-dd").ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = week.PlayerNavigation.SquadNavigation;
-                                    string squadname = "";
-                                    if (squad != null)
-                                        squadname = squad.Name;
-
-                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write(week.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -750,7 +747,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryWeekly;
-                            response.columns = "ScoreHistory Weekly Score,Name,Squad";
+                            response.columns = "ScoreHistory Weekly Score,Week,Name";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
@@ -773,15 +770,12 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            //Lets give them a year's worth
-                            DateTime now = DateTime.Today;
-                            if (((int)now.Day - 1) > 1)
-                                now = now.AddDays(-(((int)now.Day) - 1));
-                            DateTime today = now;
-                            now = now.AddMonths(-((int)now.Month - 1));
+                            // Lets give them this year's buckets, including the current one.
+                            DateTime now = StartOfYear(DateTime.Today);
+                            DateTime nextMonth = StartOfMonth(DateTime.Today).AddMonths(1);
 
                             var monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
-                                           where mt.ZoneId == zone._zone.ZoneId && mt.PlayerId == getPlayer.PlayerId && mt.Date >= now && mt.Date < today
+                                           where mt.ZoneId == zone._zone.ZoneId && mt.PlayerId == getPlayer.PlayerId && mt.Date >= now && mt.Date < nextMonth
                                            orderby mt.Date descending
                                            select mt).ToList();
 
@@ -791,15 +785,10 @@ namespace InfServer.Logic
                                 foreach (StatsMonthly month in monthly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(month.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    bw.Write(month.Date.ToString("yyyy-MM").ToCharArray());
                                     bw.Write((byte)0);
 
-                                    Squad squad = month.PlayerNavigation.SquadNavigation;
-                                    string squadname = "";
-                                    if (squad != null)
-                                        squadname = squad.Name;
-
-                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write(month.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -836,7 +825,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryMonthly;
-                            response.columns = "ScoreHistory Monthly Score,Name,Squad";
+                            response.columns = "ScoreHistory Monthly Score,Month,Name";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
@@ -859,15 +848,12 @@ namespace InfServer.Logic
                                 return;
                             }
 
-                            //Lets give them a year's worth
-                            DateTime now = DateTime.Today;
-                            if (((int)now.Day - 1) > 1)
-                                now = now.AddDays(-(((int)now.Day) - 1));
-                            DateTime today = now;
-                            now = now.AddMonths(-((int)now.Month - 1));
+                            // Lets give them this year's bucket, including the current one.
+                            DateTime now = StartOfYear(DateTime.Today);
+                            DateTime nextYear = now.AddYears(1);
 
                             var yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
-                                          where yt.ZoneId == zone._zone.ZoneId && yt.PlayerId == getPlayer.PlayerId && yt.Date >= now && yt.Date < today
+                                          where yt.ZoneId == zone._zone.ZoneId && yt.PlayerId == getPlayer.PlayerId && yt.Date >= now && yt.Date < nextYear
                                           orderby yt.Date descending
                                           select yt).ToList();
 
@@ -877,15 +863,10 @@ namespace InfServer.Logic
                                 foreach (StatsYearly year in yearly)
                                 {
                                     BinaryWriter bw = new BinaryWriter(stream);
-                                    bw.Write(year.PlayerNavigation.AliasNavigation.Name.ToCharArray());
+                                    bw.Write(year.Date.ToString("yyyy").ToCharArray());
                                     bw.Write((byte)0);
 
-                                    var squad = year!.PlayerNavigation!.SquadNavigation;
-                                    string squadname = "";
-                                    if (squad != null)
-                                        squadname = squad.Name;
-
-                                    bw.Write(squadname.ToCharArray());
+                                    bw.Write(year.PlayerNavigation.AliasNavigation.Name.ToCharArray());
                                     bw.Write((byte)0);
 
                                     bw.Write((short)2);
@@ -922,7 +903,7 @@ namespace InfServer.Logic
 
                             response.player = pkt.player;
                             response.type = CS_PlayerStatsRequest<Zone>.ChartType.ScoreHistoryYearly;
-                            response.columns = "ScoreHistory Yearly Score,Name,Squad";
+                            response.columns = "ScoreHistory Yearly Score,Year,Name";
                             response.data = stream.ToArray();
 
                             zone._client.sendReliable(response, 1);
