@@ -24,6 +24,7 @@ namespace AccountServer
     {
         ConfigSetting _config;
         private IDbContextFactory<InfantryDbContext> _dbContextFactory;
+        private bool _isSqlite;
 
         /// <summary>
         /// Creates our client then opens a connection to our database
@@ -58,16 +59,30 @@ namespace AccountServer
                 var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);
 
                 _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
+                _isSqlite = true;
             }
             else
             {
                 throw new ApplicationException("No connection string to database found.");
             }
         }
+
+        private InfantryDbContext getContext()
+        {
+            var ctx = _dbContextFactory.CreateDbContext();
+
+            if (_isSqlite)
+            {
+                ctx.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+                ctx.Database.ExecuteSqlRaw("PRAGMA synchronous=NORMAL;");
+            }
+
+            return ctx;
+        }
         
         public string GetHealthCheck()
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var accounts = ctx.Accounts.Count();
                 var zones = ctx.Zones.Count();
@@ -88,7 +103,7 @@ namespace AccountServer
 
             var pwd = Crypto.HashPassword(password);
 
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var acct = new Database.Account
                 {
@@ -124,7 +139,7 @@ namespace AccountServer
         /// </summary>
         public bool UsernameExists(string username)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 return ctx.Accounts.Any(a => a.Name == username);
             }
@@ -135,7 +150,7 @@ namespace AccountServer
         /// </summary>
         public bool IsAccountValid(string username, string passwordMd5Hash)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var account = ctx.Accounts.FirstOrDefault(a => a.Name == username);
 
@@ -161,7 +176,7 @@ namespace AccountServer
         /// </summary>
         public bool EmailExists(string email)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 return ctx.Accounts.Any(a => a.Email == email);
             }
@@ -179,7 +194,7 @@ namespace AccountServer
 
             TryUpgradePassword(username, passwordMd5Hash);
 
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var acct = ctx.Accounts.First(s => s.Name == username);
 
@@ -210,7 +225,7 @@ namespace AccountServer
         /// </summary>
         public bool IsResetTokenValid(string token)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 return ctx.ResetTokens.Any(t => t.Token == token);
             }
@@ -221,7 +236,7 @@ namespace AccountServer
         /// </summary>
         public bool WasTokenUsed(string token)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 return ctx.ResetTokens.Any(t => t.Token == token && t.TokenUsed == true);
             }
@@ -232,7 +247,7 @@ namespace AccountServer
         /// </summary>
         public bool HasTokenExpired(string token)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 return ctx.ResetTokens.Any(t => t.Token == token && t.ExpireDate <= DateTime.Now);
             }
@@ -243,7 +258,7 @@ namespace AccountServer
         /// </summary>
         public bool TryGetUsernameFromEmail(string email, out string username)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var acct = ctx.Accounts.FirstOrDefault(a => a.Email == email);
 
@@ -263,7 +278,7 @@ namespace AccountServer
         /// </summary>
         public bool TryGenerateTokenForAccountReset(string username, out string email, out string token)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var acct = ctx.Accounts.FirstOrDefault(a => a.Name == username);
 
@@ -319,7 +334,7 @@ namespace AccountServer
                 return false;
             }
 
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var rt = ctx.ResetTokens.Include(r => r.AccountNavigation).FirstOrDefault(t => t.Token == token);
 
@@ -389,7 +404,7 @@ namespace AccountServer
 
         private void TryUpgradePassword(string username, string passwordMd5Hash)
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var account = ctx.Accounts.FirstOrDefault(a => a.Name == username);
 

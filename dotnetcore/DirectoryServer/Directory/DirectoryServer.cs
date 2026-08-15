@@ -39,6 +39,7 @@ namespace InfServer.DirectoryServer.Directory
         private System.Timers.Timer timer;
 
         private IDbContextFactory<InfantryDbContext> _dbContextFactory;
+        private bool _isSqlite;
 
         /// <summary>
         /// Generic Constructor
@@ -91,6 +92,7 @@ namespace InfServer.DirectoryServer.Directory
                 var pooledFact = new PooledDbContextFactory<SqliteDbContext>(options);
 
                 _dbContextFactory = new InfantryDbFactory<SqliteDbContext>(pooledFact);
+                _isSqlite = true;
             }
             else
             {
@@ -123,7 +125,7 @@ namespace InfServer.DirectoryServer.Directory
         /// </summary>
         public void grabZones()
         {
-            using (var ctx = _dbContextFactory.CreateDbContext())
+            using (var ctx = getContext())
             {
                 var activeZones = ctx.Zones
                     .Where(z => z.Active == 1)
@@ -142,6 +144,19 @@ namespace InfServer.DirectoryServer.Directory
 
                 ZoneStream = new ZoneStream(activeZones);
             }
+        }
+
+        private InfantryDbContext getContext()
+        {
+            var ctx = _dbContextFactory.CreateDbContext();
+
+            if (_isSqlite)
+            {
+                ctx.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+                ctx.Database.ExecuteSqlRaw("PRAGMA synchronous=NORMAL;");
+            }
+
+            return ctx;
         }
 
         /// <summary>
