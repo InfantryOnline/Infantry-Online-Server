@@ -30,6 +30,7 @@ namespace InfServer.Logic
             }
 
             using var ctx = zone._server.getContext();
+            using var tx = ctx.Database.BeginTransaction();
 
             //
             // Update current stats, and then update historic (accrued) stats.
@@ -86,6 +87,8 @@ namespace InfServer.Logic
             // Update the accrued statistics using the existing stats as a baseline.
             //
             UpdateDailyWeeklyMonthlyYearlyStats(pkt, zone, player, ctx, player.stats);
+
+            tx.Commit();
 
             //
             // Lastly, write the saved stats back to the cached stats object.

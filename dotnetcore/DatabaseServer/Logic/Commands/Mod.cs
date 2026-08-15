@@ -533,6 +533,8 @@ namespace InfServer.Logic
                 return;
             }
 
+            using var tx = db.Database.BeginTransaction();
+
             var players = db.Players
                 .Include(p => p.SquadNavigation)
                 .Include(p => p.StatsNavigation)
@@ -597,6 +599,7 @@ namespace InfServer.Logic
 
             db.Aliases.Remove(palias);
             db.SaveChanges();
+            tx.Commit();
             zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
         }
 
@@ -639,6 +642,8 @@ namespace InfServer.Logic
                 zone._server.sendMessage(zone, pkt.sender, "Can't find the alias in question, maybe its not created yet.");
                 return;
             }
+
+            using var tx = ctx.Database.BeginTransaction();
 
             //
             // Remove all the players under this alias, deleting any links
@@ -712,6 +717,7 @@ namespace InfServer.Logic
             dbAlias.AccountId = dbAliasRecipient.AccountId;
 
             ctx.SaveChanges();
+            tx.Commit();
 
             zone._server.sendMessage(zone, pkt.sender, "Alias transfer completed.");
         }

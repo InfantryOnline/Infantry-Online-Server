@@ -641,6 +641,8 @@ namespace InfServer.Logic
                     return;
                 }
 
+                using var tx = db.Database.BeginTransaction();
+
                 var players = db.Players
                     .Include(p => p.SquadNavigation)
                     .Where(t => t.AliasId == palias.AliasId).ToList();
@@ -706,6 +708,7 @@ namespace InfServer.Logic
                 db.Aliases.Remove(palias);
 
                 db.SaveChanges();
+                tx.Commit();
                 zone._server.sendMessage(zone, pkt.sender, "Alias has been deleted.");
             }
             else
