@@ -493,15 +493,17 @@ namespace InfServer.Game.Commands.Chat
         /// </summary>
         public static void chat(Player player, Player recipient, string payload, int bong)
         {   //Sanity checks
-            if (player._server.IsStandalone)
-            {
-                player.sendMessage(-1, "Server is in stand-alone mode.");
-                return;
-            }
-
             if (payload.Contains(':') || payload.Contains(';'))
             {
                 player.sendMessage(0, "Wrong format typed.");
+                return;
+            }
+
+            player._dbChatChannels = payload;
+
+            if (player._server.IsStandalone)
+            {
+                player.sendMessage(-1, "Server is in stand-alone mode.");
                 return;
             }
 

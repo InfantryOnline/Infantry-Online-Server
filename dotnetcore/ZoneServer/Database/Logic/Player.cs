@@ -69,6 +69,14 @@ namespace InfServer.Logic
             player._bDBLoaded = true;
             player._tickNextDatabaseSync = Environment.TickCount + Random.Shared.Next(0, 120000);
 
+            if (!string.IsNullOrWhiteSpace(player._dbChatChannels))
+            {
+                CS_JoinChat<Data.Database> join = new CS_JoinChat<Data.Database>();
+                join.chat = player._dbChatChannels;
+                join.from = player._alias;
+                db.send(join);
+            }
+
             if (pkt.silencedDurationMinutes > 0)
             {
                 var silenceDateTime = DateTimeOffset.FromUnixTimeMilliseconds(pkt.silencedAtUnixMilliseconds).LocalDateTime;
