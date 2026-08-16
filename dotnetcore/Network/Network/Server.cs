@@ -205,9 +205,11 @@ namespace InfServer.Network
                             {
                                 watch.Stop();
 
-                                if (watch.Elapsed.Milliseconds > 200)
+                                int elapsedMilliseconds = (int)Math.Round(watch.Elapsed.TotalMilliseconds);
+
+                                if (elapsedMilliseconds > 200)
                                 {
-                                    Log.write(TLog.Warning, $"[{watch.Elapsed.Milliseconds} ms] Packet taking too long: {packet}");
+                                    Log.write(TLog.Warning, $"[{elapsedMilliseconds} ms] Packet taking too long: {packet.Dump}");
                                 }
                             }
                         }

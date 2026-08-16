@@ -110,7 +110,8 @@ namespace InfServer.Protocol
 		{
 			get
 			{
-				return "Player stats request";
+				string optionText = string.IsNullOrEmpty(options) ? "<empty>" : options;
+				return $"Player stats request: type={type}({(byte)type}), player={player.id}/{player.magic}, options='{optionText}'";
 			}
 		}
 	}
