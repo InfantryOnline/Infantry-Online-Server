@@ -569,6 +569,11 @@ namespace Database.Sqlite.Migrations
                 table: "Stats",
                 column: "ZoneId");
 
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_Stats_ZoneId_Score
+                ON Stats (ZoneId, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
+
             migrationBuilder.CreateIndex(
                 name: "IX_StatsDailies_PlayerId_Date",
                 table: "StatsDailies",
@@ -579,6 +584,16 @@ namespace Database.Sqlite.Migrations
                 name: "IX_StatsDailies_ZoneId",
                 table: "StatsDailies",
                 column: "ZoneId");
+
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsDailies_ZoneId_Score
+                ON StatsDailies (ZoneId, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
+
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsDailies_ZoneId_Date_Score
+                ON StatsDailies (ZoneId, Date, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
 
             migrationBuilder.CreateIndex(
                 name: "IX_StatsMonthlies_PlayerId_Date",
@@ -591,6 +606,16 @@ namespace Database.Sqlite.Migrations
                 table: "StatsMonthlies",
                 column: "ZoneId");
 
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsMonthlies_ZoneId_Score
+                ON StatsMonthlies (ZoneId, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
+
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsMonthlies_ZoneId_Date_Score
+                ON StatsMonthlies (ZoneId, Date, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
+
             migrationBuilder.CreateIndex(
                 name: "IX_StatsWeeklies_PlayerId_Date",
                 table: "StatsWeeklies",
@@ -602,6 +627,16 @@ namespace Database.Sqlite.Migrations
                 table: "StatsWeeklies",
                 column: "ZoneId");
 
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsWeeklies_ZoneId_Score
+                ON StatsWeeklies (ZoneId, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
+
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsWeeklies_ZoneId_Date_Score
+                ON StatsWeeklies (ZoneId, Date, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
+
             migrationBuilder.CreateIndex(
                 name: "IX_StatsYearlies_PlayerId_Date",
                 table: "StatsYearlies",
@@ -612,6 +647,16 @@ namespace Database.Sqlite.Migrations
                 name: "IX_StatsYearlies_ZoneId",
                 table: "StatsYearlies",
                 column: "ZoneId");
+
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsYearlies_ZoneId_Score
+                ON StatsYearlies (ZoneId, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
+
+            migrationBuilder.Sql("""
+                CREATE INDEX IX_StatsYearlies_ZoneId_Date_Score
+                ON StatsYearlies (ZoneId, Date, (AssistPoints + BonusPoints + KillPoints) DESC);
+                """);
 
             migrationBuilder.CreateIndex(
                 name: "UQ_zone_old_id",

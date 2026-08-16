@@ -165,7 +165,7 @@ namespace InfServer.Logic
                         {	//Get the top100 stats sorted by points
                             var stats = (from st in IncludeLifetimePlayerInfo(db.Stats)
                                          where st.ZoneId == zone._zone.ZoneId
-                                         orderby (long)st.AssistPoints + st.BonusPoints + st.KillPoints descending
+                                         orderby st.AssistPoints + st.BonusPoints + st.KillPoints descending
                                          select st).Take(100).ToList();
 
                             MemoryStream stream = new MemoryStream();
@@ -192,7 +192,7 @@ namespace InfServer.Logic
                             //For today's date
                             var daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
                                          where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now
-                                         orderby (long)dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
+                                         orderby dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
                                          select dt).Take(100).ToList();
 
                             //Are they requesting a specific date?
@@ -205,7 +205,7 @@ namespace InfServer.Logic
                                     now = now.AddDays(-1);
                                     daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
                                              where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now && dt.Date < today
-                                             orderby (long)dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
+                                             orderby dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
                                              select dt).Take(100).ToList();
                                 }
                                 else //Specific date
@@ -225,7 +225,7 @@ namespace InfServer.Logic
 
                                     daily = (from dt in IncludeDailyPlayerInfo(db.StatsDailies)
                                              where dt.ZoneId == zone._zone.ZoneId && dt.Date >= now && dt.Date < add
-                                             orderby (long)dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
+                                             orderby dt.AssistPoints + dt.BonusPoints + dt.KillPoints descending
                                              select dt).Take(100).ToList();
                                 }
                             }
@@ -298,7 +298,7 @@ namespace InfServer.Logic
                             //For this week
                             var weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
                                           where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now
-                                          orderby (long)wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
+                                          orderby wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
                                           select wt).Take(100).ToList();
 
                             //Are they requesting a specific date?
@@ -311,7 +311,7 @@ namespace InfServer.Logic
                                     now = now.AddDays(-7);
                                     weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
                                               where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now && wt.Date < today
-                                              orderby (long)wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
+                                              orderby wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
                                               select wt).Take(100).ToList();
                                 }
                                 else //Specific date
@@ -331,7 +331,7 @@ namespace InfServer.Logic
 
                                     weekly = (from wt in IncludeWeeklyPlayerInfo(db.StatsWeeklies)
                                               where wt.ZoneId == zone._zone.ZoneId && wt.Date >= now && wt.Date < add
-                                              orderby (long)wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
+                                              orderby wt.AssistPoints + wt.BonusPoints + wt.KillPoints descending
                                               select wt).Take(100).ToList();
                                 }
                             }
@@ -402,7 +402,7 @@ namespace InfServer.Logic
                             //For this month
                             var monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
                                            where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now
-                                           orderby (long)mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
+                                           orderby mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
                                            select mt).Take(100).ToList();
 
                             //Are they requesting a specific date?
@@ -415,7 +415,7 @@ namespace InfServer.Logic
                                     now = now.AddMonths(-1);
                                     monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
                                                where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now && mt.Date < today
-                                               orderby (long)mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
+                                               orderby mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
                                                select mt).Take(100).ToList();
                                 }
                                 else //Specific date
@@ -437,7 +437,7 @@ namespace InfServer.Logic
 
                                     monthly = (from mt in IncludeMonthlyPlayerInfo(db.StatsMonthlies)
                                                where mt.ZoneId == zone._zone.ZoneId && mt.Date >= now && mt.Date < add
-                                               orderby (long)mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
+                                               orderby mt.AssistPoints + mt.BonusPoints + mt.KillPoints descending
                                                select mt).Take(100).ToList();
                                 }
                             }
@@ -507,7 +507,7 @@ namespace InfServer.Logic
                             //Get the top100 stats sorted by points
                             var yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
                                           where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now
-                                          orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
+                                          orderby yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                           select yt).Take(100).ToList();
 
                             //Are they requesting a specific date?
@@ -520,7 +520,7 @@ namespace InfServer.Logic
                                     now = now.AddYears(-1);
                                     yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
                                               where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date < nextYear
-                                              orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
+                                              orderby yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                               select yt).Take(100).ToList();
                                 }
                                 else //Specific date
@@ -540,7 +540,7 @@ namespace InfServer.Logic
 
                                     yearly = (from yt in IncludeYearlyPlayerInfo(db.StatsYearlies)
                                               where yt.ZoneId == zone._zone.ZoneId && yt.Date >= now && yt.Date < add
-                                              orderby (long)yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
+                                              orderby yt.AssistPoints + yt.BonusPoints + yt.KillPoints descending
                                               select yt).Take(100).ToList();
                                 }
                             }
