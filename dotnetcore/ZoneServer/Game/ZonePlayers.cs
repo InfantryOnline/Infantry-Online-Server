@@ -126,10 +126,9 @@ namespace InfServer.Game
                 Log.write(TLog.Normal, "Lost player: {0} ({1})", player, player._client._ipe);
 
                 //Make sure his stats get updated
-                if (!IsStandalone)
+                if (!IsStandalone && player._bDBLoaded)
                 {
-                    if (player._bDBLoaded)
-                        _db.updatePlayer(player);
+                    _db.updatePlayer(player);
 
                     //We've lost him!
                     _db.lostPlayer(player);
