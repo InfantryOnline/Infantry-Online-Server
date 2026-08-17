@@ -499,7 +499,8 @@ namespace InfServer.Game.Commands.Chat
                 return;
             }
 
-            player._dbChatChannels = payload;
+            if (!string.IsNullOrWhiteSpace(payload))
+                player._dbChatChannels = payload;
 
             if (player._server.IsStandalone)
             {
