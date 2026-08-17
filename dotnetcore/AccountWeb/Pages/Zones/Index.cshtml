@@ -1,0 +1,62 @@
+@page "/zones"
+@model AccountWeb.Pages.Zones.IndexModel
+@{
+    ViewData["Title"] = "Zones";
+}
+
+<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <p class="text-uppercase text-secondary small mb-1">Database</p>
+        <h1 class="h2 mb-0">Zones</h1>
+    </div>
+    <a class="btn btn-theme-outline" asp-page="/Index">Dashboard</a>
+</div>
+
+<div class="card border-secondary-subtle">
+    <div class="card-header d-flex flex-wrap justify-content-between gap-3">
+        <span>Zone Details</span>
+        <span class="text-secondary">@Model.Zones.Count total rows</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Notice</th>
+                    <th scope="col">Password</th>
+                    <th scope="col">Active</th>
+                    <th scope="col">IP</th>
+                    <th scope="col">Port</th>
+                    <th scope="col">Old ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Zones.Count == 0)
+                {
+                    <tr>
+                        <td colspan="9" class="text-secondary">No zones found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var zone in Model.Zones)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@zone.ZoneId</td>
+                            <td class="fw-semibold">@zone.Name</td>
+                            <td class="text-break">@zone.Description</td>
+                            <td class="text-break">@zone.Notice</td>
+                            <td class="font-monospace text-break">@zone.Password</td>
+                            <td>@zone.Active</td>
+                            <td class="text-nowrap">@(zone.Ip ?? "")</td>
+                            <td>@zone.Port</td>
+                            <td>@zone.OldId</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database", "Database\Databa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseServerNATS", "DatabaseServerNATS\DatabaseServerNATS.csproj", "{5052D6D7-C662-4F00-B106-608FC4E1769A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountWeb", "AccountWeb\AccountWeb.csproj", "{493677C6-5688-4C6E-A74D-8D07D6CE68F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,10 @@ Global
 		{5052D6D7-C662-4F00-B106-608FC4E1769A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5052D6D7-C662-4F00-B106-608FC4E1769A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5052D6D7-C662-4F00-B106-608FC4E1769A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{493677C6-5688-4C6E-A74D-8D07D6CE68F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{493677C6-5688-4C6E-A74D-8D07D6CE68F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{493677C6-5688-4C6E-A74D-8D07D6CE68F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{493677C6-5688-4C6E-A74D-8D07D6CE68F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -153,6 +159,7 @@ Global
 		{6433B414-8171-4E0C-A12C-3C70098C303A} = {E2DAD721-F92C-4091-B0A1-3E5E2F88BCB8}
 		{6B85A576-399B-42E9-B7D8-77A594D00C7D} = {408D7480-78BA-47EF-BEBD-C1400867DAD5}
 		{5052D6D7-C662-4F00-B106-608FC4E1769A} = {5E580B30-EECD-4E7C-AF9C-29EDD68D9963}
+		{493677C6-5688-4C6E-A74D-8D07D6CE68F5} = {5E580B30-EECD-4E7C-AF9C-29EDD68D9963}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFEFCB98-3E47-49A2-98FF-DA2892EF2FCC}

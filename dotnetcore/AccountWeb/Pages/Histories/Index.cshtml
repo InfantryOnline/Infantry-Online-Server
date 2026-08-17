@@ -1,0 +1,75 @@
+@page "/histories"
+@model AccountWeb.Pages.Histories.IndexModel
+@{
+    ViewData["Title"] = "Histories";
+}
+
+<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <p class="text-uppercase text-secondary small mb-1">Database</p>
+        <h1 class="h2 mb-0">Histories</h1>
+    </div>
+    <a class="btn btn-theme-outline" asp-page="/Index">Dashboard</a>
+</div>
+
+<div class="card border-secondary-subtle">
+    <div class="card-header d-flex flex-wrap justify-content-between gap-3">
+        <span>Page @Model.PageNumber of @Model.TotalPages</span>
+        <span class="text-secondary">@Model.TotalCount total rows</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Sender</th>
+                    <th scope="col">Recipient</th>
+                    <th scope="col">Zone</th>
+                    <th scope="col">Arena</th>
+                    <th scope="col">Command</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Histories.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-secondary">No history rows found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var history in Model.Histories)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@history.Date.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>@history.Sender</td>
+                            <td>@history.Recipient</td>
+                            <td>@history.Zone</td>
+                            <td>@history.Arena</td>
+                            <td class="text-break">@history.Command</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer d-flex justify-content-between gap-3">
+        @if (Model.HasPreviousPage)
+        {
+            <a class="btn btn-theme-outline" asp-page="/Histories/Index" asp-route-pageNumber="@(Model.PageNumber - 1)">Previous</a>
+        }
+        else
+        {
+            <button type="button" class="btn btn-outline-secondary" disabled>Previous</button>
+        }
+
+        @if (Model.HasNextPage)
+        {
+            <a class="btn btn-theme-outline ms-auto" asp-page="/Histories/Index" asp-route-pageNumber="@(Model.PageNumber + 1)">Next</a>
+        }
+        else
+        {
+            <button type="button" class="btn btn-outline-secondary ms-auto" disabled>Next</button>
+        }
+    </div>
+</div>

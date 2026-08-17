@@ -1,0 +1,119 @@
+@page "/accounts/{id:long}"
+@model AccountWeb.Pages.Accounts.DetailsModel
+@{
+    ViewData["Title"] = "Account";
+}
+
+<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <p class="text-uppercase text-secondary small mb-1">Account</p>
+        <h1 class="h2 mb-0">@Model.Account?.Name</h1>
+    </div>
+    <a class="btn btn-theme-outline" asp-page="/Index">Dashboard</a>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert alert-success" role="alert">@Model.StatusMessage</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card border-secondary-subtle">
+            <div class="card-header">Edit Account</div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Name" class="form-label"></label>
+                        <input asp-for="Input.Name" class="form-control" />
+                        <span asp-validation-for="Input.Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Permission" class="form-label"></label>
+                        <input asp-for="Input.Permission" class="form-control" />
+                        <span asp-validation-for="Input.Permission" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <input asp-for="Input.Email" class="form-control" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-secondary-subtle mb-4">
+            <div class="card-header">Details</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-secondary">Account ID</dt>
+                    <dd class="col-sm-8">@Model.Account?.AccountId</dd>
+                    <dt class="col-sm-4 text-secondary">Created</dt>
+                    <dd class="col-sm-8">@Model.Account?.DateCreated.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    <dt class="col-sm-4 text-secondary">Last Access</dt>
+                    <dd class="col-sm-8">@Model.Account?.LastAccess.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    <dt class="col-sm-4 text-secondary">IP Address</dt>
+                    <dd class="col-sm-8">@Model.Account?.IpAddress</dd>
+                    <dt class="col-sm-4 text-secondary">Forum ID</dt>
+                    <dd class="col-sm-8">@Model.Account?.ForumId</dd>
+                    <dt class="col-sm-4 text-secondary">Silenced At</dt>
+                    <dd class="col-sm-8">@Model.Account?.SilencedAtMillisecondsUnix</dd>
+                    <dt class="col-sm-4 text-secondary">Silence Duration</dt>
+                    <dd class="col-sm-8">@Model.Account?.SilencedDuration</dd>
+                    <dt class="col-sm-4 text-secondary">Banner Mode</dt>
+                    <dd class="col-sm-8">@Model.Account?.BannerMode</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card border-secondary-subtle">
+            <div class="card-header">Aliases</div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Last Access</th>
+                            <th>Time Played</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Aliases.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="4" class="text-secondary">No aliases found.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var alias in Model.Aliases)
+                            {
+                                <tr>
+                                    <td>@alias.Name</td>
+                                    <td>@alias.LastAccess.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                    <td>@alias.TimePlayed</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-theme-outline" href="/aliases/@alias.AliasId">Open</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

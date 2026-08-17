@@ -1,0 +1,85 @@
+@page "/aliases/{id:long}"
+@model AccountWeb.Pages.Aliases.DetailsModel
+@{
+    ViewData["Title"] = "Alias";
+}
+
+<div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <p class="text-uppercase text-secondary small mb-1">Alias</p>
+        <h1 class="h2 mb-0">@Model.Alias?.Name</h1>
+    </div>
+    <a class="btn btn-theme-outline" asp-page="/Index">Dashboard</a>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert alert-success" role="alert">@Model.StatusMessage</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card border-secondary-subtle">
+            <div class="card-header">Edit Alias</div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.Name" class="form-label"></label>
+                        <input asp-for="Input.Name" class="form-control" />
+                        <span asp-validation-for="Input.Name" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Alias</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-secondary-subtle mb-4">
+            <div class="card-header">Details</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-secondary">Alias ID</dt>
+                    <dd class="col-sm-8">@Model.Alias?.AliasId</dd>
+                    <dt class="col-sm-4 text-secondary">Created</dt>
+                    <dd class="col-sm-8">@Model.Alias?.Creation.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    <dt class="col-sm-4 text-secondary">Last Access</dt>
+                    <dd class="col-sm-8">@Model.Alias?.LastAccess.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                    <dt class="col-sm-4 text-secondary">IP Address</dt>
+                    <dd class="col-sm-8">@Model.Alias?.IpAddress</dd>
+                    <dt class="col-sm-4 text-secondary">Time Played</dt>
+                    <dd class="col-sm-8">@Model.Alias?.TimePlayed</dd>
+                    <dt class="col-sm-4 text-secondary">Stealth</dt>
+                    <dd class="col-sm-8">@Model.Alias?.Stealth</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card border-secondary-subtle">
+            <div class="card-header">Owner Account</div>
+            <div class="card-body">
+                <dl class="row mb-4">
+                    <dt class="col-sm-4 text-secondary">Name</dt>
+                    <dd class="col-sm-8">@Model.Alias?.AccountNavigation.Name</dd>
+                    <dt class="col-sm-4 text-secondary">Email</dt>
+                    <dd class="col-sm-8">@Model.Alias?.AccountNavigation.Email</dd>
+                    <dt class="col-sm-4 text-secondary">Level</dt>
+                    <dd class="col-sm-8">@Model.Alias?.AccountNavigation.Permission</dd>
+                    <dt class="col-sm-4 text-secondary">Last Access</dt>
+                    <dd class="col-sm-8">@Model.Alias?.AccountNavigation.LastAccess.ToString("yyyy-MM-dd HH:mm:ss")</dd>
+                </dl>
+                @if (Model.Alias != null)
+                {
+                    <a class="btn btn-theme-outline" href="/accounts/@Model.Alias.AccountId">Open Account</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

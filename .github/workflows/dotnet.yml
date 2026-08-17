@@ -35,6 +35,9 @@ jobs:
     - name: Build Windows Infra Daemon
       run: dotnet publish ./dotnetcore/Daemon/Daemon.csproj --output ./releases/windows-infrastructure/daemon -c Release -r win-x64
 
+    - name: Build Windows Infra AccountWeb
+      run: dotnet publish ./dotnetcore/AccountWeb/AccountWeb.csproj --output ./releases/windows-infrastructure/account-web -c Release -r win-x64
+
     - name: Upload Windows Infra Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -65,6 +68,9 @@ jobs:
 
     - name: Build Linux Infra Daemon
       run: dotnet publish ./dotnetcore/Daemon/Daemon.csproj --output ./releases/linux-infrastructure/daemon -c Release -r linux-x64
+
+    - name: Build Linux Infra AccountWeb
+      run: dotnet publish ./dotnetcore/AccountWeb/AccountWeb.csproj --output ./releases/linux-infrastructure/account-web -c Release -r linux-x64
 
     - name: Upload Linux Infra Artifact
       uses: actions/upload-artifact@v4
