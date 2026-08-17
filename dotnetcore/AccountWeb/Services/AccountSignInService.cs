@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using Database;
 using Database.Sqlite;
 using Microsoft.AspNetCore.Authentication;
@@ -12,10 +10,6 @@ namespace AccountWeb.Services;
 public sealed class AccountSignInService
 {
     private const int RequiredAccountLevel = 4;
-    private const int SaltSize = 16;
-    private const int KeySize = 32;
-    private const int Iterations = 600_000;
-    private static readonly HashAlgorithmName HashAlgorithm = HashAlgorithmName.SHA256;
 
     private readonly SqliteDbContext _db;
 
@@ -46,16 +40,20 @@ public sealed class AccountSignInService
             return null;
         }
 
-        var passwordMd5Hash = ComputeMd5Hash(password);
-        if (passwordMd5Hash == null || !IsPasswordValid(account.Password, passwordMd5Hash))
+        if (!AccountPasswordHasher.IsPasswordValid(account.Password, password))
         {
             return null;
         }
 
-        if (!IsCurrentPasswordFormat(account.Password))
+        if (!AccountPasswordHasher.IsCurrentPasswordFormat(account.Password))
         {
-            var upgraded = HashPassword(passwordMd5Hash);
-            account.Password = $"{upgraded.Hash}.{upgraded.Salt}";
+            var upgradedPassword = AccountPasswordHasher.HashPlainTextPasswordForStorage(password);
+            if (upgradedPassword == null)
+            {
+                return null;
+            }
+
+            account.Password = upgradedPassword;
         }
 
         account.Ticket = Guid.NewGuid().ToString();
@@ -91,91 +89,5 @@ public sealed class AccountSignInService
             IsPersistent = rememberMe,
             ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(14) : null
         };
-    }
-
-    private static bool IsPasswordValid(string storedPassword, string passwordMd5Hash)
-    {
-        var parts = storedPassword.Split('.', StringSplitOptions.RemoveEmptyEntries);
-
-        if (parts.Length == 2)
-        {
-            return VerifyPassword(passwordMd5Hash, parts[0], parts[1]);
-        }
-
-        return storedPassword == ComputeSha256Hash(passwordMd5Hash);
-    }
-
-    private static bool IsCurrentPasswordFormat(string storedPassword)
-    {
-        return storedPassword.Split('.', StringSplitOptions.RemoveEmptyEntries).Length == 2;
-    }
-
-    private static (string Hash, string Salt) HashPassword(string password)
-    {
-        byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
-        byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
-            Encoding.UTF8.GetBytes(password),
-            salt,
-            Iterations,
-            HashAlgorithm,
-            KeySize);
-
-        return (Convert.ToHexString(hash), Convert.ToHexString(salt));
-    }
-
-    private static bool VerifyPassword(string password, string storedHash, string storedSalt)
-    {
-        byte[] salt;
-        byte[] hash;
-
-        try
-        {
-            salt = Convert.FromHexString(storedSalt);
-            hash = Convert.FromHexString(storedHash);
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
-
-        byte[] newHash = Rfc2898DeriveBytes.Pbkdf2(
-            Encoding.UTF8.GetBytes(password),
-            salt,
-            Iterations,
-            HashAlgorithm,
-            KeySize);
-
-        return CryptographicOperations.FixedTimeEquals(hash, newHash);
-    }
-
-    private static string? ComputeMd5Hash(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return null;
-        }
-
-        byte[] hash = MD5.HashData(Encoding.ASCII.GetBytes(value));
-        var stringBuilder = new StringBuilder();
-
-        for (int index = 0; index < hash.Length; index++)
-        {
-            stringBuilder.Append(hash[index].ToString("x2"));
-        }
-
-        return stringBuilder.ToString();
-    }
-
-    private static string ComputeSha256Hash(string input)
-    {
-        byte[] data = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-        var stringBuilder = new StringBuilder();
-
-        for (int index = 0; index < data.Length; index++)
-        {
-            stringBuilder.Append(data[index].ToString("x2"));
-        }
-
-        return stringBuilder.ToString();
     }
 }

@@ -1,26 +1,47 @@
 ﻿@page
 @model ErrorModel
 @{
-    ViewData["Title"] = "Error";
+    Layout = null;
+    ViewData["Title"] = Model.IsNotFound ? "Page Not Found" : "Error";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Infantry Online</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AccountWeb.styles.css" asp-append-version="true" />
+</head>
+<body class="bg-body-tertiary">
+    <main class="container">
+        <div class="error-shell">
+            <div class="error-panel">
+                <div class="error-code">@Model.ErrorStatusCode</div>
+                <p class="text-uppercase small mb-2">Infantry Online</p>
+                <h1 class="display-6 fw-semibold mb-3">@Model.Heading</h1>
+                <p class="lead mb-4">@Model.Message</p>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+                @if (Model.IsNotFound)
+                {
+                    <p class="mb-0">
+                        If you were expecting to see something here, please contact staff in the
+                        <a href="https://discord.gg/2avPSyv" target="_blank" rel="noopener noreferrer">Discord server</a>.
+                    </p>
+                }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+                @if (Model.ShowRequestId && !Model.IsNotFound)
+                {
+                    <p class="small mt-4 mb-0">
+                        Request ID: <code>@Model.RequestId</code>
+                    </p>
+                }
+            </div>
+        </div>
+    </main>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>

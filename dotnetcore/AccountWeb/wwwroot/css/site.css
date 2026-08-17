@@ -26,6 +26,23 @@ body {
   width: 100%;
 }
 
+.error-shell {
+  align-items: center;
+  display: flex;
+  min-height: calc(100vh - 220px);
+}
+
+.error-panel {
+  max-width: 680px;
+}
+
+.error-code {
+  color: var(--bs-body-color);
+  font-size: 7rem;
+  font-weight: 700;
+  line-height: 0.9;
+}
+
 .validation-summary-valid {
   display: none;
 }
