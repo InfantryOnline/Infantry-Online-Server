@@ -9,7 +9,7 @@ namespace AccountWeb.Services;
 
 public sealed class AccountSignInService
 {
-    private const int RequiredAccountLevel = 4;
+    private const int RequiredAccountLevel = 5;
 
     private readonly SqliteDbContext _db;
 
