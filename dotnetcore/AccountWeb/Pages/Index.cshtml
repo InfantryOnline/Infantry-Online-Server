@@ -92,7 +92,16 @@
                                 <td>@result.Name</td>
                                 <td>@result.Email</td>
                                 <td>@result.Level</td>
-                                <td>@result.Owner</td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(result.Owner))
+                                    {
+                                        @result.Owner
+                                        @if (result.OwnerAccountId.HasValue)
+                                        {
+                                            <span>(@result.OwnerAccountId)</span>
+                                        }
+                                    }
+                                </td>
                                 <td>@result.LastAccess.ToString("yyyy-MM-dd HH:mm:ss")</td>
                                 <td class="text-end">
                                     <a class="btn btn-sm btn-theme-outline" href="@result.DetailsPath">Open</a>

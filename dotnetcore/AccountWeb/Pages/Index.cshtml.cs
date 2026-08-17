@@ -75,6 +75,7 @@ public class IndexModel : PageModel
                 account.Email,
                 account.Permission,
                 "",
+                null,
                 account.LastAccess,
                 "/accounts/" + account.AccountId))
             .ToListAsync(cancellationToken);
@@ -95,6 +96,7 @@ public class IndexModel : PageModel
                 alias.AccountNavigation.Email,
                 alias.AccountNavigation.Permission,
                 alias.AccountNavigation.Name,
+                alias.AccountId,
                 alias.LastAccess,
                 "/aliases/" + alias.AliasId))
             .ToListAsync(cancellationToken);
@@ -121,6 +123,7 @@ public class IndexModel : PageModel
         string Email,
         int Level,
         string Owner,
+        long? OwnerAccountId,
         DateTime LastAccess,
         string DetailsPath);
 }
