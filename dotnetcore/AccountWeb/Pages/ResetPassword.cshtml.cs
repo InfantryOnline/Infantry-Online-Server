@@ -62,8 +62,7 @@ public class ResetPasswordModel : PageModel
         var pwnedPasswordResult = await PwnedPasswordValidator.CheckAsync(Input.Password, cancellationToken);
         if (pwnedPasswordResult.IsUnavailable)
         {
-            ModelState.AddModelError(nameof(Input.Password), "Password safety validation is temporarily unavailable. Please try again.");
-            return Page();
+            _logger.LogWarning("Pwned password validation was unavailable during password reset. Allowing reset to continue.");
         }
 
         if (pwnedPasswordResult.IsPwned)
