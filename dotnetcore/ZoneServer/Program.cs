@@ -66,6 +66,8 @@ namespace InfServer
 
         public static void Main(string[] args)
         {
+            Stopwatch startupStopwatch = Stopwatch.StartNew();
+
             Console.WriteLine("Initializing logger..");
 
             //Initialize the logging system
@@ -106,7 +108,7 @@ namespace InfServer
             }
 
             //Good to go!
-            server.begin();
+            server.begin(startupStopwatch);
         }
     }
 }

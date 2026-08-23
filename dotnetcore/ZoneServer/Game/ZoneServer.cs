@@ -15,6 +15,7 @@ using Assets;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace InfServer.Game
 {
@@ -46,6 +47,7 @@ namespace InfServer.Game
         private bool _isAdvanced;               //Is the zone normal/advanced?
         private string _bindIP;                 //The IP the zone is binded to
         private int _bindPort;                  //The port the zone is binded to
+        private Stopwatch _startupStopwatch;
 
         private LogClient _dbLogger;
         public int _lastDBAttempt;
@@ -414,8 +416,9 @@ namespace InfServer.Game
         /// <summary>
         /// Begins all server processes, and starts accepting clients.
         /// </summary>
-        public void begin()
+        public void begin(Stopwatch startupStopwatch)
         {	//Start up the network
+            _startupStopwatch = startupStopwatch;
             _logger = Log.createClient("ZoneServer");
             base._logger = Log.createClient("Network");
 
@@ -428,6 +431,22 @@ namespace InfServer.Game
             //Start handling our arenas;
             using (LogAssume.Assume(_logger))
                 handleArenas();
+        }
+
+        /// <summary>
+        /// Called after the game socket is bound and ready to receive packets.
+        /// </summary>
+        protected override void onListening(IPEndPoint listenPoint)
+        {
+            if (_startupStopwatch != null)
+            {
+                _startupStopwatch.Stop();
+                Log.write("Listening on {0}. Elapsed time: {1:F2}s", listenPoint, _startupStopwatch.Elapsed.TotalSeconds);
+            }
+            else
+            {
+                Log.write("Listening on {0}.", listenPoint);
+            }
         }
 
         /// <summary>

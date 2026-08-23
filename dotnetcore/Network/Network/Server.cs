@@ -150,6 +150,7 @@ namespace InfServer.Network
 
                 //Begin listening for packets
                 _currentAsyncResult = _sock.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataReceived, _sock);
+                onListening(_listenPoint);
             }
             catch (SocketException se)
             {	//Failure!
@@ -224,6 +225,13 @@ namespace InfServer.Network
                 // Sleep a bit
                 Thread.Sleep(5);
             }
+        }
+
+        /// <summary>
+        /// Called after the server socket is bound and ready to receive packets.
+        /// </summary>
+        protected virtual void onListening(IPEndPoint listenPoint)
+        {
         }
 
         /// <summary>
