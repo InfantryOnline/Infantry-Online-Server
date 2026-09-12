@@ -121,6 +121,9 @@ jobs:
     needs: [build-windows, build-linux, build-windows-infrastructure, build-linux-infrastructure]
     if: github.event_name != 'pull_request'
 
+    outputs:
+      release_tag: ${{ steps.timestep.outputs.time }}
+
     steps:
     - name: Get Date Format
       uses: kaven-universe/github-action-current-date-time@v1.4.0
@@ -218,4 +221,50 @@ jobs:
         asset_path: ./releases-linux/release-linux.zip
         asset_name: release-linux.zip
         asset_content_type: application/zip
+
+  docker-publish:
+    runs-on: ubuntu-latest
+    needs: [build-publish]
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: amd64,arm64
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}
+        tags: |
+          type=raw,value=Release-${{ needs.build-publish.outputs.release_tag }}
+          type=raw,value=latest
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
       
