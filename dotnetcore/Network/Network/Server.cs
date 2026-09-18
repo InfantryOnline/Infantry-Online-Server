@@ -235,6 +235,14 @@ namespace InfServer.Network
         }
 
         /// <summary>
+        /// Determines whether a datagram from a remote endpoint should be processed.
+        /// </summary>
+        protected virtual bool acceptsDatagram(IPEndPoint remoteEndPoint, int bytesRead)
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Delegate for asynchronously receiving UDP packets
         /// </summary>
         private void onDataReceived(IAsyncResult asyn)
@@ -260,6 +268,10 @@ namespace InfServer.Network
                     {
                         //Receive the data
                         read = socket.EndReceiveFrom(asyn, ref _remEP);
+                        IPEndPoint ipe = (IPEndPoint)_remEP;
+
+                        if (!acceptsDatagram(ipe, read))
+                            goto rearm;
 
                         //Read in the typeID
                         ushort typeID = NetworkClient.getTypeID(_buffer, 0);
@@ -281,7 +293,6 @@ namespace InfServer.Network
 
                         try
                         {	//Form the uid for the client
-                            IPEndPoint ipe = (IPEndPoint)_remEP;
                             Int64 id = ipe.Address.Address | (((Int64)ipe.Port) << 32);
 
                             //Do we have a client?
@@ -359,6 +370,7 @@ namespace InfServer.Network
                         Log.write(TLog.Inane, "Packet data:\r\n{0}", PacketBase.createDataDump(_buffer, 0, read));
                 }
 
+            rearm:
                 try
                 {	//Wait for more data
                     _currentAsyncResult = socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref _remEP, onDataReceived, socket);

@@ -48,6 +48,12 @@ namespace InfServer.Game
         private string _bindIP;                 //The IP the zone is binded to
         private int _bindPort;                  //The port the zone is binded to
         private Stopwatch _startupStopwatch;
+        private const string IpAllowlistConfigPath = "server/ipAllowlistFile";
+        private const int IpAllowlistReloadDebounceMs = 250;
+        private HashSet<IPAddress> _ipAllowlist;
+        private FileSystemWatcher _ipAllowlistWatcher;
+        private Timer _ipAllowlistReloadTimer;
+        private string _ipAllowlistFilePath;
 
         private LogClient _dbLogger;
         public int _lastDBAttempt;
@@ -157,6 +163,7 @@ namespace InfServer.Game
             _connections = new Dictionary<IPAddress, DateTime>();
             Log.write(TLog.Normal, "Loading Server Configuration");
             _config = new Xmlconfig("server.xml", false).Settings;
+            initIpAllowlist();
 
             // Load all of the asset folders from the config.
             foreach(var location in _config["assets"].GetNamedChildren("location"))
@@ -373,7 +380,7 @@ namespace InfServer.Game
 
             // Create the ping/player count responder
             //////////////////////////////////////////////
-            _pingResponder = new ClientPingResponder(_players);
+            _pingResponder = new ClientPingResponder(_players, acceptsAllowedIp);
 
             Log.write("Asset Checksum: " + _assets.checkSum());
 
@@ -446,6 +453,191 @@ namespace InfServer.Game
             else
             {
                 Log.write("Listening on {0}.", listenPoint);
+            }
+        }
+
+        /// <summary>
+        /// Determines whether a datagram from a client IP should be processed.
+        /// </summary>
+        protected override bool acceptsDatagram(IPEndPoint remoteEndPoint, int bytesRead)
+        {
+            return acceptsAllowedIp(remoteEndPoint);
+        }
+
+        private bool acceptsAllowedIp(IPEndPoint remoteEndPoint)
+        {
+            HashSet<IPAddress> allowlist = Volatile.Read(ref _ipAllowlist);
+            return allowlist == null || allowlist.Contains(remoteEndPoint.Address);
+        }
+
+        private void initIpAllowlist()
+        {
+            if (!_config.Exists(IpAllowlistConfigPath))
+                return;
+
+            string configuredPath = _config[IpAllowlistConfigPath].Value;
+            if (String.IsNullOrWhiteSpace(configuredPath))
+                return;
+
+            // Configuring an allowlist is security intent; fail closed until a valid file loads.
+            Volatile.Write(ref _ipAllowlist, new HashSet<IPAddress>());
+
+            try
+            {
+                _ipAllowlistFilePath = Path.GetFullPath(configuredPath);
+            }
+            catch (Exception ex)
+            {
+                Log.write(TLog.Error, "Unable to initialize IP allowlist '{0}': {1}", configuredPath, ex.Message);
+                return;
+            }
+
+            reloadIpAllowlist();
+            beginIpAllowlistWatcher();
+        }
+
+        private void beginIpAllowlistWatcher()
+        {
+            string directory = Path.GetDirectoryName(_ipAllowlistFilePath);
+            string fileName = Path.GetFileName(_ipAllowlistFilePath);
+
+            if (String.IsNullOrWhiteSpace(directory))
+                directory = Directory.GetCurrentDirectory();
+
+            try
+            {
+                if (!Directory.Exists(directory))
+                {
+                    Log.write(TLog.Error, "Unable to watch IP allowlist '{0}': directory does not exist.", _ipAllowlistFilePath);
+                    return;
+                }
+
+                _ipAllowlistReloadTimer = new Timer(onIpAllowlistReloadTimer, null, Timeout.Infinite, Timeout.Infinite);
+                _ipAllowlistWatcher = new FileSystemWatcher(directory, fileName);
+                _ipAllowlistWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime;
+                _ipAllowlistWatcher.Changed += onIpAllowlistChanged;
+                _ipAllowlistWatcher.Created += onIpAllowlistChanged;
+                _ipAllowlistWatcher.Deleted += onIpAllowlistChanged;
+                _ipAllowlistWatcher.Renamed += onIpAllowlistChanged;
+                _ipAllowlistWatcher.Error += onIpAllowlistWatcherError;
+                _ipAllowlistWatcher.EnableRaisingEvents = true;
+            }
+            catch (Exception ex)
+            {
+                Log.write(TLog.Error, "Unable to watch IP allowlist '{0}': {1}", _ipAllowlistFilePath, ex.Message);
+            }
+        }
+
+        private void onIpAllowlistChanged(object sender, FileSystemEventArgs e)
+        {
+            Timer timer = _ipAllowlistReloadTimer;
+            if (timer != null)
+                timer.Change(IpAllowlistReloadDebounceMs, Timeout.Infinite);
+        }
+
+        private void onIpAllowlistReloadTimer(object state)
+        {
+            reloadIpAllowlist();
+        }
+
+        private void onIpAllowlistWatcherError(object sender, ErrorEventArgs e)
+        {
+            Log.write(TLog.Error, "IP allowlist watcher error for '{0}': {1}", _ipAllowlistFilePath, e.GetException().Message);
+        }
+
+        private bool reloadIpAllowlist()
+        {
+            try
+            {
+                HashSet<IPAddress> allowlist = readIpAllowlist(_ipAllowlistFilePath);
+                Volatile.Write(ref _ipAllowlist, allowlist);
+                Log.write(TLog.Normal, "Loaded {0} IP allowlist entries from '{1}'.", allowlist.Count, _ipAllowlistFilePath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.write(TLog.Error, "Unable to load IP allowlist '{0}': {1}", _ipAllowlistFilePath, ex.Message);
+                return false;
+            }
+        }
+
+        private static HashSet<IPAddress> readIpAllowlist(string filePath)
+        {
+            HashSet<IPAddress> allowlist = new HashSet<IPAddress>();
+            int lineNumber = 0;
+
+            foreach (string line in File.ReadLines(filePath))
+            {
+                lineNumber++;
+
+                string trimmed = line.Trim();
+                if (trimmed.Length == 0)
+                    continue;
+
+                IPAddress address;
+                if (!IPAddress.TryParse(trimmed, out address) || address.AddressFamily != AddressFamily.InterNetwork)
+                    throw new FormatException(String.Format("Invalid IPv4 address on line {0}: {1}", lineNumber, trimmed));
+
+                allowlist.Add(address);
+            }
+
+            return allowlist;
+        }
+
+        /// <summary>
+        /// Is this address still inside its login cooldown?
+        /// </summary>
+        public bool isLoginThrottled(IPAddress address)
+        {
+            lock (_connections)
+            {
+                DateTime expires;
+                if (!_connections.TryGetValue(address, out expires))
+                    return false;
+
+                if (DateTime.Now > expires)
+                {   //Stale entry, treat as expired
+                    _connections.Remove(address);
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Starts (or restarts) the login cooldown for an address
+        /// </summary>
+        public void noteLoginAttempt(IPAddress address)
+        {
+            lock (_connections)
+                _connections[address] = DateTime.Now.AddSeconds(10);
+        }
+
+        /// <summary>
+        /// Lifts the login cooldown for an address, when we've asked the client to log in again
+        /// </summary>
+        public void clearLoginThrottle(IPAddress address)
+        {
+            lock (_connections)
+                _connections.Remove(address);
+        }
+
+        /// <summary>
+        /// Drops expired login cooldown entries so the table doesn't grow without bound
+        /// </summary>
+        private void pruneLoginAttempts()
+        {
+            if (_connections == null)
+                return;
+
+            lock (_connections)
+            {
+                DateTime nowStamp = DateTime.Now;
+
+                foreach (KeyValuePair<IPAddress, DateTime> pair in _connections.ToList())
+                    if (nowStamp > pair.Value)
+                        _connections.Remove(pair.Key);
             }
         }
 
@@ -568,6 +760,11 @@ namespace InfServer.Game
         /// </sumary>
         public void cleanup()
         {
+            _ipAllowlistWatcher?.Dispose();
+            _ipAllowlistWatcher = null;
+            _ipAllowlistReloadTimer?.Dispose();
+            _ipAllowlistReloadTimer = null;
+
             //Loop through each arena
             foreach (Arena arena in _arenas.Values.ToList())
             {
@@ -684,14 +881,16 @@ namespace InfServer.Game
             private Boolean _isOperating;
             private ReaderWriterLock _lock;
             private byte[] _buffer;
+            private Func<IPEndPoint, bool> _acceptsClient;
 
             /// <summary>
             /// Constructor with socket creation
             /// </summary>
-            public ClientPingResponder(Dictionary<ushort, Player> players)
+            public ClientPingResponder(Dictionary<ushort, Player> players, Func<IPEndPoint, bool> acceptsClient)
             {
                 _pingLogger = Log.createClient("PingResponder");
                 _players = players;
+                _acceptsClient = acceptsClient;
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 _clients = new Dictionary<EndPoint, Int32>();
                 _lock = new ReaderWriterLock();
@@ -821,14 +1020,25 @@ namespace InfServer.Game
 
                 EndPoint remoteEp = new IPEndPoint(IPAddress.Any, 0);
                 int read = 4;
+                bool receiveFailed = false;
                 try
                 {
                     read = _socket.EndReceiveFrom(result, ref remoteEp);
                 }
                 catch (SocketException)
                 {
+                    receiveFailed = true;
+                }
+
+                IPEndPoint remoteIpEndPoint = remoteEp as IPEndPoint;
+                if (remoteIpEndPoint == null || !_acceptsClient(remoteIpEndPoint))
+                    goto rearm;
+
+                if (receiveFailed)
+                {
                     //Packet is too big. Make note of it and the clients IP
                     Log.write("Malformed packet from client: " + remoteEp.ToString() + " (possible attempt to crash the zone)");
+                    goto rearm;
                 }
 
                 if (read != 4)
@@ -848,6 +1058,7 @@ namespace InfServer.Game
                     _lock.ReleaseWriterLock();
                 }
 
+            rearm:
                 remoteEp = new IPEndPoint(IPAddress.Any, 0);
                 _socket.BeginReceiveFrom(_buffer, 0, _buffer.Length, SocketFlags.None, ref remoteEp, OnRequestReceived, null);
             }
