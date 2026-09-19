@@ -32,7 +32,7 @@ namespace InfServer.Protocol
         public CRC32 _CRC_C2S;					//Client to server CRC state
         public CRC32 _CRC_S2C;					//Server to client CRC state
 
-        public int _tickLastDecay;
+        public long _tickLastDecay;
         public int _bytesWritten;				//Bytes currently written
         public int _rateThreshold;				//The threshold for this connection
         public int _decayRate;					//The rate at which the bytes written decays
@@ -43,7 +43,7 @@ namespace InfServer.Protocol
         #endregion
 
         #region Statistics
-        public int _tickLastBytesSample;		//The time of the last sample
+        public long _tickLastBytesSample;		//The time of the last sample
 
         public int _bytesSent;					//The amount of bytes sent since the last time
         public int _bytesReceived;				//The amount of bytes received since the last time
@@ -51,7 +51,7 @@ namespace InfServer.Protocol
         public ulong _packetsSent;				//The total packets sent to the client
         public ulong _packetsReceived;			//The total packets received from the client
 
-        public int _tickDestroy = 0;            //How long before we auto destroy this client
+        public long _tickDestroy = 0;           //The tick at which delayed destruction began
         #endregion
 
         //Static settings
@@ -87,7 +87,7 @@ namespace InfServer.Protocol
             public SortedDictionary<ushort, PacketBase> oosReliable;		//Reliable packets sent out of sync by the client,
             //used for synchronization later
             public ushort lastOOSPacket;									//The last reliable id which was received out of sync
-            public int tickOOSPacket;										//The tick at which the last packet was received out of sync
+            public long tickOOSPacket;										//The tick at which the last packet was received out of sync
 
             public byte[] dataStreamBuffer;									//The buffer to keep our data stream, before it is put together
             public int dataStreamIndex;										//How far we're into the data stream
@@ -215,7 +215,7 @@ namespace InfServer.Protocol
             public DataStream dataStream;	//Used to trigger sending of this entire datastream
             public DataStream streamParent;	//The stream this packet was a part of, if any
 
-            public int timeSent;			//The time at which it was sent
+            public long timeSent;			//The time at which it was sent
             public int attempts;			//The number of attempts we've made to redeliver
 
             public event Action Completed;	//Event called on packet completion
@@ -307,7 +307,7 @@ namespace InfServer.Protocol
         {	//Sync up!
             using (DdMonitor.Lock(_sync))
             {	//Only time out server-side clients
-                int now = Environment.TickCount;
+                long now = Environment.TickCount64;
                 
                 if (connectionTimeout != -1 && !_bClientConn && now - base._lastPacketRecv > connectionTimeout)
                 {	//Farewell~
@@ -489,7 +489,7 @@ namespace InfServer.Protocol
 
         private void ensureReliable(Client.StreamState stream)
         {
-            int currentTick = Environment.TickCount;
+            long currentTick = Environment.TickCount64;
 
             //Do we need to send an out of sync notification?
             if (stream.lastOOSPacket > stream.C2S_Reliable &&
@@ -593,7 +593,7 @@ namespace InfServer.Protocol
 
             //Note it down as out of sync
             stream.lastOOSPacket = rID;
-            stream.tickOOSPacket = Environment.TickCount;
+            stream.tickOOSPacket = Environment.TickCount64;
         }
 
         /// <summary>

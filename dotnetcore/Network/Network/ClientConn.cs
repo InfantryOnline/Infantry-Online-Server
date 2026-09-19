@@ -38,7 +38,7 @@ namespace InfServer.Network
 
         public Random _rand;					//Our PRNG
 
-        private int _tickLastPing;				//The last time we sent a ping packet
+        private long _tickLastPing;				//The last time we sent a ping packet
 
         //Settings
         public bool _bLogPackets;
@@ -109,7 +109,7 @@ namespace InfServer.Network
             _client._obj = _obj;
             _client._handler = this;
             _client._ipe = targetPoint;
-            _client._lastPacketRecv = Environment.TickCount;
+            _client._lastPacketRecv = Environment.TickCount64;
             _client.Destruct += onClientDestroy;
 
             //Ready our udp client
@@ -134,7 +134,7 @@ namespace InfServer.Network
             init.udpMaxPacket = Client.udpMaxSize;
 
             _client.send(init);
-            _client._lastPacketSent = Environment.TickCount;
+            _client._lastPacketSent = Environment.TickCount64;
 
             //Restart the listen thread
             _listenThread = new Thread(new ThreadStart(listen));
@@ -209,9 +209,9 @@ namespace InfServer.Network
         /// </summary>
         public void poll()
         {	//Are we overdue on sending a ping?
-            if (Environment.TickCount - _tickLastPing > clientPingFreq)
+            if (Environment.TickCount64 - _tickLastPing > clientPingFreq)
             {	//Send one!
-                _tickLastPing = Environment.TickCount;
+                _tickLastPing = Environment.TickCount64;
                 _client.send(new PingPacket());
             }
         }
@@ -285,7 +285,7 @@ namespace InfServer.Network
 
                             //Queue it up
                             handlePacket(packet, _client);
-                            _client._lastPacketRecv = Environment.TickCount;
+                            _client._lastPacketRecv = Environment.TickCount64;
                         }
                     }
                 }
@@ -378,7 +378,7 @@ namespace InfServer.Network
             try
             {
                 _udp.Send(data, data.Length);
-                _client._lastPacketSent = Environment.TickCount;
+                _client._lastPacketSent = Environment.TickCount64;
             }
             catch (Exception ex)
             {
