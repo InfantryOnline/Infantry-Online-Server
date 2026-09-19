@@ -35,7 +35,7 @@ namespace InfServer.DirectoryServer.Directory
         public List<string> AssetManifestList;
         private HttpJsonResponder httpJsonResponder;
         private AssetManager manager;
-        private int zoneUpdateTick = Environment.TickCount;
+        private long zoneUpdateTick = Environment.TickCount64;
         private System.Timers.Timer timer;
 
         private IDbContextFactory<InfantryDbContext> _dbContextFactory;
@@ -210,10 +210,12 @@ namespace InfServer.DirectoryServer.Directory
         /// </summary>
         private void TimerElapsed(object sender, ElapsedEventArgs e)
         {
+            long now = Environment.TickCount64;
+
             //Do we need to auto update our zonelist?
-            if (Environment.TickCount - zoneUpdateTick >= 5000) //5 seconds + timer elapsed = 10 sec intervals
+            if (now - zoneUpdateTick >= 5000) //5 seconds + timer elapsed = 10 sec intervals
             {
-                zoneUpdateTick = Environment.TickCount;
+                zoneUpdateTick = now;
                 grabZones();
             }
             Zones.ForEach(z => z.PollServerForPlayers());
