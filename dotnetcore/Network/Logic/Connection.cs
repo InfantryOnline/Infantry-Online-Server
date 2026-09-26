@@ -104,7 +104,8 @@ namespace InfServer.Logic
             SC_State sci = new SC_State();
 
             sci.tickCount = pkt.tickCount;
-            sci.serverTickCount = Environment.TickCount;
+            //The legacy protocol carries only the low 32 bits of the server tick.
+            sci.serverTickCount = unchecked((int)Environment.TickCount64);
             sci.clientSentCount = pkt.packetsSent;
             sci.clientRecvCount = pkt.packetsReceived;
             sci.serverRecvCount = client._stats.serverPacketsRecv;
@@ -135,7 +136,8 @@ namespace InfServer.Logic
         {
             client._stats.serverPacketsSent = pkt.serverSentCount;
             client._stats.serverPacketsRecv = pkt.serverRecvCount;
-            client._timeDiff = (short)(Environment.TickCount - pkt.serverTickCount);
+            //Only the low 16 bits are used for the legacy clock difference.
+            client._timeDiff = unchecked((short)(Environment.TickCount64 - pkt.serverTickCount));
         }
 
         /// <summary>

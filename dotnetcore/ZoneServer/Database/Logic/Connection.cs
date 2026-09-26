@@ -19,7 +19,8 @@ namespace InfServer.Logic
 			//really matter on the Zone -> Database connection
 			CS_State csi = new CS_State();
 
-			csi.tickCount = (ushort)Environment.TickCount;
+			//The legacy protocol carries only the low 16 bits of the client tick.
+			csi.tickCount = unchecked((ushort)Environment.TickCount64);
 			csi.packetsSent = client._packetsSent;
 			csi.packetsReceived = client._packetsReceived;
 

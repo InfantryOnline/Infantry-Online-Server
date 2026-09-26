@@ -299,7 +299,7 @@ namespace InfServer.Network
                             if (bNewClient)
                             {	//This client doesn't exist yet, let's create a new class
                                 client = _clientTemplate.newInstance();
-                                client._lastPacketRecv = Environment.TickCount;
+                                client._lastPacketRecv = Environment.TickCount64;
                                 client._ipe = ipe;
                                 client._handler = this;
                                 client._clientID = id;
@@ -346,7 +346,7 @@ namespace InfServer.Network
                                 packet.Deserialize();
                                 //Queue it up
                                 handlePacket(packet, client);
-                                client._lastPacketRecv = Environment.TickCount;
+                                client._lastPacketRecv = Environment.TickCount64;
                             }
                         }
                     }

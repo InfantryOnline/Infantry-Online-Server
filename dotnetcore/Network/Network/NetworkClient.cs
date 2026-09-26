@@ -20,8 +20,8 @@ namespace InfServer.Network
         public IPEndPoint _ipe;							//The client destination
 
         //Connection stats
-        public int _lastPacketRecv;						//The time at which we last received a packet from this client
-        public int _lastPacketSent;
+        public long _lastPacketRecv;						//The time at which we last received a packet from this client
+        public long _lastPacketSent;
         /// <summary>
         /// Calls onClientDistroy
         /// </summary>

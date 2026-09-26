@@ -135,7 +135,7 @@ namespace InfServer.Game
                 }
 
                 //Set a destroy timer. This prevents lingering clients from not fully disconnecting
-                player._client._tickDestroy = Environment.TickCount;
+                player._client._tickDestroy = Environment.TickCount64;
             }
         }
 

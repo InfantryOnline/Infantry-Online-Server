@@ -55,7 +55,7 @@ namespace InfServer.Logic
 
                 rawResponse = new SC_Chat();
                 rawResponse.chatType = Helpers.Chat_Type.Arena;
-                rawResponse.message = $"Last Packet Received: {player._client._lastPacketRecv}. Last Packet Sent: {player._client._lastPacketSent}. Current Time: {Environment.TickCount}. Time Diff: {player._client._timeDiff}";
+                rawResponse.message = $"Last Packet Received: {player._client._lastPacketRecv}. Last Packet Sent: {player._client._lastPacketSent}. Current Time: {Environment.TickCount64}. Time Diff: {player._client._timeDiff}";
                 rawResponse.from = "";
 
                 player._client.send(rawResponse);
